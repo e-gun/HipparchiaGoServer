@@ -73,7 +73,7 @@ func (dbw DbWork) CitationFormat() []string {
 
 type DbWorkline struct {
 	WkUID       string
-	TbIndex     int
+	TbIndex     int64
 	Lvl5Value   string
 	Lvl4Value   string
 	Lvl3Value   string
@@ -182,27 +182,32 @@ type BrowsedPassage struct {
 }
 
 type CurrentConfiguration struct {
-	RedisKey    string
-	MaxHits     int64
-	WorkerCount int
-	LogLevel    int
-	RedisInfo   string
-	PosgresInfo string
-	BagMethod   string
-	SentPerBag  int
-	VectTestDB  string
-	VectStart   int
-	VectEnd     int
-	VSkipHW     string
-	VSkipInf    string
-	IsVectPtr   *bool
-	IsWSPtr     *bool
-	WSPort      int
-	WSFail      int
-	WSSave      int
-	ProfCPUPtr  *bool
-	ProfMemPtr  *bool
-	SendVersPtr *bool
-	RLogin      RedisLogin
-	PGLogin     PostgresLogin
+	RedisKey        string
+	MaxHits         int64
+	WorkerCount     int
+	LogLevel        int
+	RedisInfo       string
+	PosgresInfo     string
+	BagMethod       string
+	SentPerBag      int
+	VectTestDB      string
+	VectStart       int
+	VectEnd         int
+	VSkipHW         string
+	VSkipInf        string
+	BrowseAuthor    string
+	BrowseWork      string
+	BrowseFoundline int64
+	BrowseContext   int64
+	IsVectPtr       *bool
+	IsWSPtr         *bool
+	IsBrPtr         *bool
+	WSPort          int
+	WSFail          int
+	WSSave          int
+	ProfCPUPtr      *bool
+	ProfMemPtr      *bool
+	SendVersPtr     *bool
+	RLogin          RedisLogin
+	PGLogin         PostgresLogin
 }

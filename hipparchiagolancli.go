@@ -103,6 +103,10 @@ const (
 	skipinflected   = "ἀρ ita a inquit ego die nunc nos quid πάντων ἤ με θεόν δεῖ for igitur ϲύν b uers p ϲου τῷ εἰϲ ergo ἐπ ὥϲτε sua me πρό sic aut nisi rem πάλιν ἡμῶν φηϲί παρά ἔϲτι αὐτῆϲ τότε eos αὐτούϲ λέγει cum τόν quidem ἐϲτιν posse αὐτόϲ post αὐτῶν libro m hanc οὐδέ fr πρῶτον μέν res ἐϲτι αὐτῷ οὐχ non ἐϲτί modo αὐτοῦ sine ad uero fuit τοῦ ἀπό ea ὅτι parte ἔχει οὔτε ὅταν αὐτήν esse sub τοῦτο i omnes break μή ἤδη ϲοι sibi at mihi τήν in de τούτου ab omnia ὃ ἦν γάρ οὐδέν quam per α autem eius item ὡϲ sint length οὗ eum ἀντί ex uel ἐπειδή re ei quo ἐξ δραχμαί αὐτό ἄρα ἔτουϲ ἀλλ οὐκ τά ὑπέρ τάϲ μάλιϲτα etiam haec nihil οὕτω siue nobis si itaque uac erat uestig εἶπεν ἔϲτιν tantum tam nec unde qua hoc quis iii ὥϲπερ semper εἶναι e ½ is quem τῆϲ ἐγώ καθ his θεοῦ tibi ubi pro ἄν πολλά τῇ πρόϲ l ἔϲται οὕτωϲ τό ἐφ ἡμῖν οἷϲ inter idem illa n se εἰ μόνον ac ἵνα ipse erit μετά μοι δι γε enim ille an sunt esset γίνεται omnibus ne ἐπί τούτοιϲ ὁμοίωϲ παρ causa neque cr ἐάν quos ταῦτα h ante ἐϲτίν ἣν αὐτόν eo ὧν ἐπεί οἷον sed ἀλλά ii ἡ t te ταῖϲ est sit cuius καί quasi ἀεί o τούτων ἐϲ quae τούϲ minus quia tamen iam d διά primum r τιϲ νῦν illud u apud c ἐκ δ quod f quoque tr τί ipsa rei hic οἱ illi et πῶϲ φηϲίν τοίνυν s magis unknown οὖν dum text μᾶλλον habet τοῖϲ qui αὐτοῖϲ suo πάντα uacat τίϲ pace ἔχειν οὐ κατά contra δύο ἔτι αἱ uet οὗτοϲ deinde id ut ὑπό τι lin ἄλλων τε tu ὁ cf δή potest ἐν eam tum μου nam θεόϲ κατ ὦ cui nomine περί atque δέ quibus ἡμᾶϲ τῶν eorum"
 	memoutputfile   = "mem_profiler_output.bin"
 	cpuoutputfile   = "cpu_profiler_output.bin"
+	browseauthor    = "gr0062"
+	browsework      = "028"
+	browseline      = 14672
+	browsecontext   = 4
 )
 
 var (
@@ -158,7 +162,12 @@ func main() {
 	var t int64
 	var x string
 
-	if *cfg.IsVectPtr {
+	if *cfg.IsBrPtr {
+		// browser
+		js := HipparchiaBrowser(cfg.BrowseAuthor, cfg.BrowseWork, cfg.BrowseFoundline, cfg.BrowseContext)
+		fmt.Printf(string(js))
+		return
+	} else if *cfg.IsVectPtr {
 		// vectors
 		o = HipparchiaVectors()
 		x = "bags"
@@ -217,6 +226,14 @@ func configatstartup() {
 	flag.IntVar(&cfg.LogLevel, "l", 1, "[common] logging level: 0 is silent; 5 is very noisy")
 	flag.StringVar(&cfg.RedisInfo, "r", RP, "[common] redis logon information (as a JSON string)")
 	flag.StringVar(&cfg.PosgresInfo, "p", PSQ, "[common] psql logon information (as a JSON string)")
+
+	// browser flags
+	flag.StringVar(&cfg.BrowseAuthor, "bau", browseauthor, "[browser] author UID to browse")
+	flag.StringVar(&cfg.BrowseWork, "bwk", browsework, "[browser] work ID to browse")
+	flag.Int64Var(&cfg.BrowseFoundline, "bfl", browseline, "[browser] database line to browse")
+	flag.Int64Var(&cfg.BrowseContext, "bctx", browsecontext, "[browser] lines of context to display")
+
+	cfg.IsBrPtr = flag.Bool("br", false, "[browser] assert that this is a browsing run")
 
 	// vector flags
 

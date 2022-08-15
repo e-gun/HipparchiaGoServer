@@ -7,71 +7,55 @@ import (
 	"strings"
 )
 
-func browse() {
+// HipparchiaBrowser - browse Author A at line X with a context of Y lines
+func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 	// build a response to "GET /browse/linenumber/gr0062/028/14672 HTTP/1.1"
-
-	// test data
-	const (
-		AU  = "gr0062"
-		WK  = "028"
-		FL  = 14672
-		CTX = 4
-	)
-
-	versioninfo := fmt.Sprintf("%s CLI Debugging Interface (v.%s)", myname, version)
-	fmt.Println(versioninfo)
-
-	configatstartup()
+	// note the high initialization costs of doing this as CLI vs a proper server
 
 	authormap := authormapper()
 	workmap := workmapper()
 
 	// [b] acquire the lines we need to display in the body
 
-	lines := simplecontextgrabber(AU, FL, CTX)
-	fmt.Println(lines)
-	fmt.Println(authormap[AU].Name)
-	k := fmt.Sprintf("%sw%s", AU, WK)
+	lines := simplecontextgrabber(au, fc, ctx)
+	k := fmt.Sprintf("%sw%s", au, wk)
 	w := workmap[k]
-	fmt.Println(w.Title)
 
 	// [c] format the lines
 
+	// not yet implemented
 	// lines = paragraphformatting(lines)
 
 	// [d] acquire and format the HTML
 
 	ci := formatcitationinfo(authormap, w, lines[0])
 	pi := formatpublicationinfo(workmap[k])
-	tr := buildbrowsertable(FL, lines)
-	//fmt.Println(pi)
-	//fmt.Println(ci)
-	//fmt.Println(tr)
+	tr := buildbrowsertable(fc, lines)
 
 	// [e] fill out the JSON-ready struct
 
-	fl := fmt.Sprintf(`linenumber/%s/%s/%d`, AU, WK, lines[0].TbIndex)
-	ll := fmt.Sprintf(`linenumber/%s/%s/%d`, AU, WK, lines[len(lines)-1].TbIndex)
-	ab := fmt.Sprintf(`%s [%s]`, authormap[AU].Cleaname, AU)
+	fl := fmt.Sprintf(`linenumber/%s/%s/%d`, au, wk, lines[0].TbIndex)
+	ll := fmt.Sprintf(`linenumber/%s/%s/%d`, au, wk, lines[len(lines)-1].TbIndex)
+	ab := fmt.Sprintf(`%s [%s]`, authormap[au].Cleaname, au)
 	wb := fmt.Sprintf(`%s (w%s)`, w.Title, w.WorkNum)
 
 	var bp BrowsedPassage
 	bp.Browseforwards = ll
 	bp.Browseback = fl
-	bp.Authornumber = AU
+	bp.Authornumber = au
 	bp.Workid = lines[0].WkUID
 	bp.Authorboxcontents = ab
 	bp.Workboxcontents = wb
 	bp.Browserhtml = ci + pi + tr
-	bp.Worknumber = WK
+	bp.Worknumber = wk
 
-	fmt.Println(bp)
+	// debugging
+	// fmt.Println(ci)
 
 	js, e := json.Marshal(bp)
 	checkerror(e)
 
-	fmt.Println(string(js))
-
+	return js
 }
 
 func formatpublicationinfo(w DbWork) string {
@@ -137,7 +121,7 @@ func formatcitationinfo(authormap map[string]DbAuthor, w DbWork, l DbWorkline) s
 	return cv
 }
 
-func buildbrowsertable(focus int, lines []DbWorkline) string {
+func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	tr := `
             <tr class="browser">
                 <td class="browserembeddedannotations">%s</td>
