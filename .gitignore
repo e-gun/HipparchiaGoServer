@@ -1,0 +1,6 @@
+HipparchiaGoDBHelper
+.idea
+go.mod
+go.sum
+.DS_Store
+z_*
