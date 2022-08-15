@@ -91,7 +91,6 @@ func HipparchiaVectors() string {
 		msg(fmt.Sprintf("No redis key; gathering lines with a direct CLI PostgreSQL query"), 1)
 		dblines = fetchdblinesdirectly(dbpool)
 	} else {
-		count := 0
 		for {
 			// [i] get a pre-rolled or break the loop
 			thequery, err := redis.String(rc.Do("SPOP", key))
@@ -102,20 +101,10 @@ func HipparchiaVectors() string {
 			// [ii] - [v] inside findtherows() because its code is common with grabber's needs
 			foundrows := findtherows(thequery, "bagger", key, 0, rc, dbpool)
 
+			// cut out old redis polling code
 			// [vi] iterate through the finds
-			defer foundrows.Close()
-			for foundrows.Next() {
-				count += 1
-				if count%1000 == 0 {
-					rcsetint(rc, key+"_hitcount", int64(count))
-				}
-				// convert the find to a DbWorkline
-				var thehit DbWorkline
-				err = foundrows.Scan(&thehit.WkUID, &thehit.TbIndex, &thehit.Lvl5Value, &thehit.Lvl4Value, &thehit.Lvl3Value,
-					&thehit.Lvl2Value, &thehit.Lvl1Value, &thehit.Lvl0Value, &thehit.MarkedUp, &thehit.Accented,
-					&thehit.Stripped, &thehit.Hypenated, &thehit.Annotations)
-				checkerror(err)
-				dblines[count] = thehit
+			for i, _ := range foundrows {
+				dblines[i] = foundrows[i]
 			}
 		}
 	}

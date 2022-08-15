@@ -14,12 +14,9 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"runtime"
 	"sync"
 )
@@ -83,25 +80,7 @@ func grabber(clientnumber int, searchkey string, awaiting *sync.WaitGroup) {
 		}
 
 		// [ii] - [v] inside findtherows() because its code is common with HipparchiaBagger's needs
-		foundrows := findtherows(thequery, "grabber", searchkey, clientnumber, rc, dbpool)
-
-		// [vi] iterate through the finds
-		// don't check-and-load find-by-find because some searches are effectively uncapped
-		// faster to test only after you finish each query
-		// can over-stuff redis because HipparchaServer should only display hitcap results no matter how many you push
-
-		var thesefinds []DbWorkline
-
-		defer foundrows.Close()
-		for foundrows.Next() {
-			// [vi.1] convert the finds into DbWorklines
-			var thehit DbWorkline
-			err := foundrows.Scan(&thehit.WkUID, &thehit.TbIndex, &thehit.Lvl5Value, &thehit.Lvl4Value, &thehit.Lvl3Value,
-				&thehit.Lvl2Value, &thehit.Lvl1Value, &thehit.Lvl0Value, &thehit.MarkedUp, &thehit.Accented,
-				&thehit.Stripped, &thehit.Hypenated, &thehit.Annotations)
-			checkerror(err)
-			thesefinds = append(thesefinds, thehit)
-		}
+		thesefinds := findtherows(thequery, "grabber", searchkey, clientnumber, rc, dbpool)
 
 		// [vi.2] load via pipeline
 		err := rc.Send("MULTI")
@@ -142,43 +121,6 @@ func checkcap(searchkey string, client int, rc redis.Conn) bool {
 	} else {
 		return false
 	}
-}
-
-func findtherows(thequery string, thecaller string, searchkey string, clientnumber int, rc redis.Conn, dbpool *pgxpool.Pool) pgx.Rows {
-	// called by both grabber() and HipparchiaBagger()
-
-	// [ii] update the polling data
-	if thecaller != "bagger" {
-		remain, err := redis.Int64(rc.Do("SCARD", searchkey))
-		checkerror(err)
-
-		k := fmt.Sprintf("%s_remaining", searchkey)
-		_, e := rc.Do("SET", k, remain)
-		checkerror(e)
-		msg(fmt.Sprintf("%s #%d says that %d items remain", thecaller, clientnumber, remain), 3)
-	}
-
-	// [iii] decode the query
-	var prq PrerolledQuery
-	err := json.Unmarshal([]byte(thequery), &prq)
-	checkerror(err)
-
-	// [iv] build a temp table if needed
-	if prq.TempTable != "" {
-		_, err := dbpool.Exec(context.Background(), prq.TempTable)
-		checkerror(err)
-	}
-
-	// [v] execute the main query
-	var foundrows pgx.Rows
-	if prq.PsqlData != "" {
-		foundrows, err = dbpool.Query(context.Background(), prq.PsqlQuery, prq.PsqlData)
-		checkerror(err)
-	} else {
-		foundrows, err = dbpool.Query(context.Background(), prq.PsqlQuery)
-		checkerror(err)
-	}
-	return foundrows
 }
 
 func recordinitialsizeofworkpile(k string) {

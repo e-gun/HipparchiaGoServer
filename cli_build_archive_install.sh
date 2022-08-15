@@ -6,9 +6,9 @@
 gsed -i "s/package hipparchiagolangsearching/package main/" *.go
 
 go build -ldflags "-s -w"
-O="HipparchiaGoDBHelper"
+O="HipparchiaGoServer"
 #P="golanggrabber-cli"
-P="HipparchiaGoDBHelper"
+P="HipparchiaGoServer"
 T="../HipparchiaGoBinaries/cli_prebuilt_binaries"
 mv ${O} ${P}
 # e.g. Hipparchia Golang Helper CLI Debugging Interface (v.0.0.1)

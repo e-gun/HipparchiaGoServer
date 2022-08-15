@@ -11,6 +11,66 @@ type PrerolledQuery struct {
 	PsqlData  string
 }
 
+type DbAuthor struct {
+	UID       string
+	Language  string
+	IDXname   string
+	Name      string
+	Shortname string
+	Cleaname  string
+	Genres    string
+	RecDate   string
+	ConvDate  int64
+	Location  string
+}
+
+type DbWork struct {
+	UID       string
+	Title     string
+	Language  string
+	Pub       string
+	LL0       string
+	LL1       string
+	LL2       string
+	LL3       string
+	LL4       string
+	LL5       string
+	Genre     string
+	Xmit      string
+	Type      string
+	Prov      string
+	RecDate   string
+	ConvDate  int64
+	WdCount   int64
+	FirstLine int64
+	LastLine  int64
+	Authentic bool
+	// not in the DB, but derived: gr2017w068 --> 068
+	WorkNum string
+}
+
+func (dbw DbWork) FindWorknumber() string {
+	// ex: gr2017w068
+	return dbw.UID[7:]
+}
+
+func (dbw DbWork) FindAuthor() string {
+	// ex: gr2017w068
+	return dbw.UID[:6]
+}
+
+func (dbw DbWork) CitationFormat() []string {
+	cf := []string{
+		dbw.LL5,
+		dbw.LL4,
+		dbw.LL3,
+		dbw.LL2,
+		dbw.LL1,
+		dbw.LL0,
+	}
+	return cf
+}
+
 type DbWorkline struct {
 	WkUID       string
 	TbIndex     int
@@ -25,6 +85,29 @@ type DbWorkline struct {
 	Stripped    string
 	Hypenated   string
 	Annotations string
+}
+
+func (dbw DbWorkline) FindLocus() []string {
+	loc := [6]string{
+		dbw.Lvl5Value,
+		dbw.Lvl4Value,
+		dbw.Lvl3Value,
+		dbw.Lvl2Value,
+		dbw.Lvl1Value,
+		dbw.Lvl0Value,
+	}
+
+	var trim []string
+	for _, l := range loc {
+		if l != "-1" {
+			trim = append(trim, l)
+		}
+	}
+	return trim
+}
+
+func (dbw DbWorkline) FindAuthor() string {
+	return dbw.WkUID[:6]
 }
 
 type RedisLogin struct {
@@ -84,6 +167,18 @@ type CompositePollingData struct {
 	Portnumber    int64
 	Notes         string
 	ID            string // this is not stored in redis; it is asserted here
+}
+
+type BrowsedPassage struct {
+	// marshal will not do lc names
+	Browseforwards    string `json:"browseforwards"`
+	Browseback        string `json:"browseback"`
+	Authornumber      string `json:"authornumber"`
+	Workid            string `json:"workid"`
+	Worknumber        string `json:"worknumber"`
+	Authorboxcontents string `json:"authorboxcontents"`
+	Workboxcontents   string `json:"workboxcontents"`
+	Browserhtml       string `json:"browserhtml"`
 }
 
 type CurrentConfiguration struct {
