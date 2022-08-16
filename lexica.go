@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -26,19 +27,20 @@ func findbyform(word string, author string) {
 
 	var d string
 	if author[0:2] != "lt" {
-		d = "greek_morphology"
+		d = "greek"
 	} else {
-		d = "latin_morphology"
+		d = "latin"
 	}
 
 	// [c] search for morphology matches
 
 	// the python is funky because we need to poke at words several times and to try combinations of fixes
 	// skipping that stuff here for now because 'findbyform' should usually see a known form
+	// TODO: accute/grave issues should be handled ASAP
 
 	dbpool := grabpgsqlconnection()
 	fld := `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
-	psq := fmt.Sprintf("SELECT %s FROM %s WHERE observed_form = '%s'", fld, d, word)
+	psq := fmt.Sprintf("SELECT %s FROM %s_morphology WHERE observed_form = '%s'", fld, d, word)
 
 	var foundrows pgx.Rows
 	var err error
@@ -80,7 +82,7 @@ func findbyform(word string, author string) {
 		}
 	}
 
-	// [c2] take the []MorphPossib and find the set of headwords we are interested in
+	// [d] take the []MorphPossib and find the set of headwords we are interested in
 
 	var hwm []string
 	for _, p := range mpp {
@@ -89,21 +91,114 @@ func findbyform(word string, author string) {
 		}
 	}
 
+	// the next is primed to produce problems: see καρποῦ which will turn καρπόϲ1 and καρπόϲ2 into just καρπόϲ; need xref_value?
+	// but we have probably taken care of this below: see the comments
 	hwm = unique(hwm)
-	fmt.Println(hwm)
+	// fmt.Println(hwm)
 
-	// [d] get the wordobjects for each headword
+	// [e] get the wordobjects for each unique headword: probedictionary()
 
-	// [e] generate the lexical output
+	// note that the greek and latin dictionaries have extra fields that we are not using (right?)
+	//var ec string
+	//if d == "latin" {
+	//	ec = "entry_key"
+	//} else {
+	//	ec = "unaccented_entry"
+	//}
 
-	// [f] add the HTML + JS to inject `{"newhtml": "...", "newjs":"..."}`
+	// fld = fmt.Sprintf(`entry_name, metrical_entry, id_number, pos, translations, entry_body, %s`, ec)
 
+	fld = `entry_name, metrical_entry, id_number, pos, translations, entry_body`
+	psq = `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴)$' ORDER BY id_number ASC`
+	col := "entry_name"
+
+	var lexicalfinds []DbLexicon
+	dedup := make(map[int64]bool)
+	for _, w := range hwm {
+		// var foundrows pgx.Rows
+		var err error
+		q := fmt.Sprintf(psq, fld, d, col, w)
+		foundrows, err = dbpool.Query(context.Background(), q)
+		checkerror(err)
+
+		defer foundrows.Close()
+		for foundrows.Next() {
+			var thehit DbLexicon
+			err := foundrows.Scan(&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry)
+			checkerror(err)
+			if _, dup := dedup[thehit.ID]; !dup {
+				// use ID and not Word because καρπόϲ.53442 is not καρπόϲ.53443
+				dedup[thehit.ID] = true
+				lexicalfinds = append(lexicalfinds, thehit)
+			}
+		}
+	}
+
+	for _, x := range lexicalfinds {
+		fmt.Println(fmt.Sprintf("%s: %s", x.Word, x.Transl))
+	}
+
+	// now we are ready to start formatting ...
+
+	// [f] generate the prevalence data for this form: cf formatprevalencedata() in lexicalformatting.py
+
+	fld = `entry_name, total_count, gr_count, lt_count, dp_count, in_count, ch_count`
+	psq = `SELECT %s FROM wordcounts_%s where entry_name = '%s'`
+	// golang hates indexing unicode strings: strings are bytes, and unicode chars take more than one byte
+	c := []rune(word)
+	q := fmt.Sprintf(psq, fld, string(c[0]), word)
+
+	foundrows, err = dbpool.Query(context.Background(), q)
+	checkerror(err)
+	var wc DbWordCount
+	defer foundrows.Close()
+	for foundrows.Next() {
+		// only one should ever return...
+		err := foundrows.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
+		checkerror(err)
+	}
+
+	formatprevalencedata(wc)
+	// [g] generate the parsing summary
+
+	// [h] generate the lexical output: multiple entries possible - <div id="δημόϲιοϲ_23337644"> ... <div id="δημοϲίᾳ_23333080"> ...
+
+	// [i] add the HTML + JS to inject `{"newhtml": "...", "newjs":"..."}`
+
+}
+
+func formatprevalencedata(w DbWordCount) {
+	// pdp := `<p class="wordcounts">Prevalence (%s): %s</p>`
+	// pds := `<span class="prevalence">%s</span> %d`
+	labels := map[string]string{"Total": "Ⓣ", "Gr": "Ⓖ", "Lt": "Ⓛ", "Dp": "Ⓓ", "In": "Ⓘ", "Ch": "Ⓒ"}
+	fmt.Println(w.Word)
+	for _, l := range []string{"Total", "Gr", "Lt", "Dp", "In", "Ch"} {
+		v := reflect.ValueOf(w).FieldByName(l).Int()
+		if v > 0 {
+			fmt.Println(fmt.Sprintf("%s: %d", labels[l], v))
+		}
+	}
+}
+
+func formatlexicaloutput(w DbLexicon) string {
+	// [h1] first part of a lexical entry
+
+	// [h2] wordcounts data including weighted distributions
+
+	// [h3]  _buildentrysummary() which gives senses, flagged senses, citations, quotes (summarized or not)
+
+	// [h4] the actual body of the entry
+
+	// [h5] previous & next entry
+	enfolded := `<div id="%s_%d">%s</div>`
+	return enfolded
 }
 
 func main() {
 	// findbyform("ἐρχόμενον", "gr0062")
-	findbyform("ἧκεν", "gr0062")
-
+	// findbyform("ἧκεν", "gr0062")
+	findbyform("καρποῦ", "gr0062")
+	// findbyform("miles", "lt0448")
 }
 
 // DELETE LATER: in other files
@@ -111,6 +206,27 @@ func main() {
 type RawPossib struct {
 	Number string
 	MP     string
+}
+
+type DbWordCount struct {
+	Word  string
+	Total int64
+	Gr    int64
+	Lt    int64
+	Dp    int64
+	In    int64
+	Ch    int64
+}
+
+type DbLexicon struct {
+	// skipping 'unaccented_entry' from greek_dictionary
+	// skipping 'entry_key' from latin_dictionary
+	Word     string
+	Metrical string
+	ID       int64
+	POS      string
+	Transl   string
+	Entry    string
 }
 
 type MorphPossib struct {

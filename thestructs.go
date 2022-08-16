@@ -110,6 +110,27 @@ func (dbw DbWorkline) FindAuthor() string {
 	return dbw.WkUID[:6]
 }
 
+type DbWordCount struct {
+	Word  string
+	Total int64
+	Gr    int64
+	Lt    int64
+	Dp    int64
+	In    int64
+	Ch    int64
+}
+
+type DbLexicon struct {
+	// skipping 'unaccented_entry' from greek_dictionary
+	// skipping 'entry_key' from latin_dictionary
+	Word     string
+	Metrical string
+	ID       int64
+	POS      string
+	Transl   string
+	Entry    string
+}
+
 type RedisLogin struct {
 	Addr     string
 	Password string
@@ -155,6 +176,15 @@ type DbMorphology struct {
 	PrefixXrefs string
 	RawPossib   string
 	RelatedHW   string
+}
+
+type MorphPossib struct {
+	Transl   string `json:"transl"`
+	Anal     string `json:"analysis"`
+	Headwd   string `json:"headword"`
+	Scansion string `json:"scansion"`
+	Xrefkind string `json:"xref_kind"`
+	Xrefval  string `json:"xref_value"`
 }
 
 type CompositePollingData struct {
