@@ -82,6 +82,8 @@ func findbyform(word string, author string) {
 		}
 	}
 
+	// fmt.Println(mpp)
+
 	// [d] take the []MorphPossib and find the set of headwords we are interested in
 
 	var hwm []string
@@ -134,13 +136,11 @@ func findbyform(word string, author string) {
 		}
 	}
 
-	for _, x := range lexicalfinds {
-		fmt.Println(fmt.Sprintf("%s: %s", x.Word, x.Transl))
-	}
+	//for _, x := range lexicalfinds {
+	//	fmt.Println(fmt.Sprintf("%s: %s", x.Word, x.Transl))
+	//}
 
-	// now we are ready to start formatting ...
-
-	// [f] generate the prevalence data for this form: cf formatprevalencedata() in lexicalformatting.py
+	// [f] generate and format the prevalence data for this form: cf formatprevalencedata() in lexicalformatting.py
 
 	fld = `entry_name, total_count, gr_count, lt_count, dp_count, in_count, ch_count`
 	psq = `SELECT %s FROM wordcounts_%s where entry_name = '%s'`
@@ -158,30 +158,116 @@ func findbyform(word string, author string) {
 		checkerror(err)
 	}
 
-	formatprevalencedata(wc)
-	// [g] generate the parsing summary
+	label := wc.Word
+	allformpd := formatprevalencedata(wc, label)
+
+	// [g] format the parsing summary
+
+	parsing := formatparsingdata(mpp)
 
 	// [h] generate the lexical output: multiple entries possible - <div id="δημόϲιοϲ_23337644"> ... <div id="δημοϲίᾳ_23333080"> ...
 
+	var entries string
+	for _, w := range lexicalfinds {
+		entries += formatlexicaloutput(w)
+	}
+
 	// [i] add the HTML + JS to inject `{"newhtml": "...", "newjs":"..."}`
 
+	//fmt.Println(allformpd)
+	//fmt.Println(parsing)
+
+	html := allformpd + parsing + entries
+	fmt.Println(html)
 }
 
-func formatprevalencedata(w DbWordCount) {
-	// pdp := `<p class="wordcounts">Prevalence (%s): %s</p>`
-	// pds := `<span class="prevalence">%s</span> %d`
+// formatprevalencedata - turn a wordcount into an HTML summary
+func formatprevalencedata(w DbWordCount, s string) string {
+	// <p class="wordcounts">Prevalence (all forms): <span class="prevalence">Ⓣ</span> 1482 / <span class="prevalence">Ⓖ</span> 1415 / <span class="prevalence">Ⓓ</span> 54 / <span class="prevalence">Ⓘ</span> 11 / <span class="prevalence">Ⓒ</span> 2</p>
+
+	pdp := `<p class="wordcounts">Prevalence of %s: %s</p>`
+	pds := `<span class="prevalence">%s</span> %d`
 	labels := map[string]string{"Total": "Ⓣ", "Gr": "Ⓖ", "Lt": "Ⓛ", "Dp": "Ⓓ", "In": "Ⓘ", "Ch": "Ⓒ"}
-	fmt.Println(w.Word)
+
+	var pdd []string
 	for _, l := range []string{"Total", "Gr", "Lt", "Dp", "In", "Ch"} {
 		v := reflect.ValueOf(w).FieldByName(l).Int()
 		if v > 0 {
-			fmt.Println(fmt.Sprintf("%s: %d", labels[l], v))
+			pd := fmt.Sprintf(pds, labels[l], v)
+			pdd = append(pdd, pd)
 		}
 	}
+
+	spans := strings.Join(pdd, " / ")
+	html := fmt.Sprintf(pdp, s, spans)
+	return html
 }
 
+// formatparsingdata - turn []MorphPossib into HTML
+func formatparsingdata(mpp []MorphPossib) string {
+	// first: 	<span class="obsv">
+	//		<span class="dictionaryform">δημοϲίᾳ</span>&nbsp;:&nbsp;
+	//		<a class="parsing" href="#δημόϲιοϲ_23337644"><span class="obsv">
+	//			from <span class="baseform">δημόϲιοϲ</span>
+	//			<span class="baseformtranslation">&nbsp;(“<span class="transtree">A.I.</span> belonging to the people; <span class="transtree">III.</span> the state; <span class="transtree">IV.</span> tent of the Spartan kings”)</span>
+	//		</span></a>
+	//	</span>
+
+	obs := `
+	<span class="obsv"><a class="parsing" href="#%s_%s"><span class="obsv"> from <span class="baseform">%s</span>
+	<span class="baseformtranslation">&nbsp;(“%s”)</span></span></a></span>`
+	mtb := `
+	<table class="morphtable">
+		<tbody>
+		%s
+		</tbody>
+	</table>
+	`
+	mtr := `<tr>%s</tr>`
+	mtd := `<td class="%s">%s</td>`
+
+	var html string
+	usecounter := false
+	if len(mpp) > 1 {
+		usecounter = true
+	}
+	for i, m := range mpp {
+		if usecounter {
+			html += fmt.Sprintf("(%d)&nbsp;", i+1)
+		}
+		html += fmt.Sprintf(obs, m.Headwd, m.Xrefval, m.Headwd, m.Transl)
+		pos := strings.Split(m.Anal, " ")
+		var tab string
+		for _, p := range pos {
+			tab += fmt.Sprintf(mtd, "morphcell", p)
+		}
+		tab = fmt.Sprintf(mtr, tab)
+		tab = fmt.Sprintf(mtb, tab)
+		html += tab
+	}
+
+	return html
+}
+
+// formatlexicaloutput - turn a DbLexicon word into HTML
 func formatlexicaloutput(w DbLexicon) string {
-	// [h1] first part of a lexical entry
+	// [h1] first part of a lexical entry:
+
+	// [h1a] known forms in use
+
+	// requires probing dictionary_headword_wordcounts
+
+	// 		SELECT
+	//			entry_name , total_count, gr_count, lt_count, dp_count, in_count, ch_count,
+	//			frequency_classification, early_occurrences, middle_occurrences ,late_occurrences,
+	//			acta, agric, alchem, anthol, apocalyp, apocryph, apol, astrol, astron, biogr, bucol, caten, chronogr, comic, comm,
+	//			concil, coq, dialog, docu, doxogr, eccl, eleg, encom, epic, epigr, epist, evangel, exeget, fab, geogr, gnom, gramm,
+	//			hagiogr, hexametr, hist, homilet, hymn, hypoth, iamb, ignotum, invectiv, inscr, jurisprud, lexicogr, liturg, lyr,
+	//			magica, math, mech, med, metrolog, mim, mus, myth, narrfict, nathist, onir, orac, orat, paradox, parod, paroem,
+	//			perieg, phil, physiognom, poem, polyhist, prophet, pseudepigr, rhet, satura, satyr, schol, tact, test, theol, trag
+	//		FROM dictionary_headword_wordcounts WHERE entry_name='%s'
+
+	// [h1b] principle parts
 
 	// [h2] wordcounts data including weighted distributions
 
@@ -189,9 +275,15 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	// [h4] the actual body of the entry
 
+	// more formatting to come
+
+	entrybody := w.Entry
+
 	// [h5] previous & next entry
-	enfolded := `<div id="%s_%d">%s</div>`
-	return enfolded
+	enfolded := `<div id="%s_%d">%s</div>
+	`
+	html := fmt.Sprintf(enfolded, w.Word, w.ID, entrybody)
+	return html
 }
 
 func main() {
