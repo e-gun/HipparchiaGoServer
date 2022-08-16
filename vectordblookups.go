@@ -169,7 +169,7 @@ func morphologyworker(wordlist []string, uselang string, workerid int, trialnumb
 	for foundrows.Next() {
 		count += 1
 		var thehit DbMorphology
-		err = foundrows.Scan(&thehit.Observed, &thehit.Xrefs, &thehit.PefixXrefs, &thehit.RawPossib)
+		err = foundrows.Scan(&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib)
 		checkerror(err)
 		foundmorph[thehit.Observed] = thehit
 	}

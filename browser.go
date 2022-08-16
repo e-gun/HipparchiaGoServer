@@ -28,6 +28,7 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 
 	// [d] acquire and format the HTML
 
+	// need to set lines[0] to the focus, ie the middle of the pile of lines
 	ci := formatcitationinfo(authormap, w, lines[0])
 	pi := formatpublicationinfo(workmap[k])
 	tr := buildbrowsertable(fc, lines)
@@ -78,7 +79,7 @@ func formatpublicationinfo(w DbWork) string {
 		{"yearreprinted", "[", "] "},
 		{"series", "", ""},
 		{"editor", "(", ")"},
-		{"pages", "pp. ", ". "},
+		{"pages", " pp. ", ". "},
 	}
 
 	pubinfo := ""
@@ -99,10 +100,9 @@ func formatpublicationinfo(w DbWork) string {
 }
 
 func formatcitationinfo(authormap map[string]DbAuthor, w DbWork, l DbWorkline) string {
-	// INCOMPLETE
 	cv := `
 		<p class="currentlyviewing">
-		<span class="currentlyviewingauthor">%s</span>, <br />
+		<span class="currentlyviewingauthor">%s</span>, 
 		<span class="currentlyviewingwork">%s</span><br />
 		<span class="currentlyviewingcitation">%s</span></p>`
 	au := authormap[w.FindAuthor()].Name
@@ -132,6 +132,10 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	fla := `<span class="focusline">`
 	flb := `</span>`
 
+	// no handling of 'lines every' yet
+	// no handling of rollovers at new sections yet
+	// no handling of 'issamework' (for papyri, etc) yet
+
 	var trr []string
 	for i, _ := range lines {
 		cit := strings.Join(lines[i].FindLocus(), ".")
@@ -144,6 +148,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		newline := lines[i].MarkedUp
 		for w, _ := range wds {
 			// this is going to have a problem if something already abuts markup...
+			// will need to keep track of the complete list of terminating items.
 			pattern := regexp.MustCompile(fmt.Sprintf("(^|\\s)(%s)(\\s|\\.|,|;|·|$)", wds[w]))
 			newline = pattern.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
 		}
@@ -161,11 +166,11 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 
 	// that was the body, now do the head and tail
 	MINWIDTH := 80
-	top := fmt.Sprintf(`<div id="browsertableuid" uid="%s"></div>\n`, lines[0].FindAuthor())
-	top += `<table>\n<tbody>\n`
-	top += `<tr class="spacing">` + strings.Repeat("&nbsp;", MINWIDTH) + `</tr>\n`
+	top := fmt.Sprintf(`<div id="browsertableuid" uid="%s"></div>`, lines[0].FindAuthor())
+	top += `<table><tbody>`
+	top += `<tr class="spacing">` + strings.Repeat("&nbsp;", MINWIDTH) + `</tr>`
 
-	tab = top + tab + `</tbody>\n</table>\n`
+	tab = top + tab + `</tbody></table>`
 
 	return tab
 }

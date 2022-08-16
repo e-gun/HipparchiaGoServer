@@ -152,11 +152,14 @@ func main() {
 	if cfg.LogLevel < 0 {
 		cfg.LogLevel = 0
 	}
-
-	msg(versioninfo, 1)
-
 	cfg.RLogin = decoderedislogin([]byte(cfg.RedisInfo))
 	cfg.PGLogin = decodepsqllogin([]byte(cfg.PosgresInfo))
+
+	if *cfg.IsBrPtr {
+		// don't want to see version info: confuses our json
+	} else {
+		msg(versioninfo, 1)
+	}
 
 	var o string
 	var t int64

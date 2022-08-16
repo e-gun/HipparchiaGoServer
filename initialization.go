@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// build a map of all authors keyed to the authorUID: map[string]DbAuthor
+// authormapper - build a map of all authors keyed to the authorUID: map[string]DbAuthor
 func authormapper() map[string]DbAuthor {
 	dbpool := grabpgsqlconnection()
 	qt := "SELECT %s FROM authors ORDER by universalid ASC"
@@ -37,7 +37,7 @@ func authormapper() map[string]DbAuthor {
 
 }
 
-// build a map of all works keyed to the authorUID: map[string]DbWork
+// workmapper - build a map of all works keyed to the authorUID: map[string]DbWork
 func workmapper() map[string]DbWork {
 	dbpool := grabpgsqlconnection()
 	qt := "SELECT %s FROM works"

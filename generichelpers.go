@@ -93,3 +93,23 @@ func unique[T comparable](s []T) []T {
 	}
 	return result
 }
+
+// https://stackoverflow.com/questions/59579121/how-to-flatten-a-2d-slice-into-1d-slice
+
+func flatten[T any](lists [][]T) []T {
+	var res []T
+	for _, list := range lists {
+		res = append(res, list...)
+	}
+	return res
+}
+
+//func main() {
+//	w := [][]string{{"a", "b", "c"}, {"d", "e", "f"}}
+//	v := Flatten(w)
+//	fmt.Println(v) // [a b c d e f]
+//
+//	d := [][]uint64{{100, 200}, {3000, 4000}}
+//	e := Flatten(d)
+//	fmt.Println(e) // [100 200 3000 4000]
+//}

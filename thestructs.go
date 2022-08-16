@@ -150,10 +150,11 @@ type BagWithLocus struct {
 }
 
 type DbMorphology struct {
-	Observed   string
-	Xrefs      string
-	PefixXrefs string
-	RawPossib  string
+	Observed    string
+	Xrefs       string
+	PrefixXrefs string
+	RawPossib   string
+	RelatedHW   string
 }
 
 type CompositePollingData struct {
