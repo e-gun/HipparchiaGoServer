@@ -104,6 +104,51 @@ func flatten[T any](lists [][]T) []T {
 	return res
 }
 
+func stripaccents(u string) string {
+	// ὀκνεῖϲ --> οκνειϲ
+	feeder := make(map[rune][]rune)
+	feeder['α'] = []rune("αἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάᾈᾉᾊᾋᾌᾍᾎᾏἈἉἊἋἌἍἎἏΑ")
+	feeder['ε'] = []rune("εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ")
+	feeder['ι'] = []rune("ιἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗΐἸἹἺἻἼἽἾἿΙ")
+	feeder['ο'] = []rune("οὀὁὂὃὄὅόὸὈὉὊὋὌὍΟ")
+	feeder['υ'] = []rune("υὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺὙὛὝὟΥ")
+	feeder['η'] = []rune("ηᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧᾘᾙᾚᾛᾜᾝᾞᾟἨἩἪἫἬἭἮἯΗ")
+	feeder['ω'] = []rune("ωὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼᾨᾩᾪᾫᾬᾭᾮᾯὨὩὪὫὬὭὮὯ")
+	feeder['ρ'] = []rune("ρῤῥῬ")
+	feeder['β'] = []rune("βΒ")
+	feeder['ψ'] = []rune("ψΨ")
+	feeder['δ'] = []rune("δΔ")
+	feeder['φ'] = []rune("φΦ")
+	feeder['γ'] = []rune("γΓ")
+	feeder['ξ'] = []rune("ξΞ")
+	feeder['κ'] = []rune("κΚ")
+	feeder['λ'] = []rune("λΛ")
+	feeder['μ'] = []rune("μΜ")
+	feeder['ν'] = []rune("νΝ")
+	feeder['π'] = []rune("πΠ")
+	feeder['ϙ'] = []rune("ϙϘ")
+	feeder['ϲ'] = []rune("ϲσΣςϹ")
+	feeder['τ'] = []rune("τΤ")
+	feeder['χ'] = []rune("χΧ")
+	feeder['θ'] = []rune("θΘ")
+	feeder['ζ'] = []rune("ζΖ")
+
+	reducer := make(map[rune]rune)
+	for f, _ := range feeder {
+		for _, r := range feeder[f] {
+			reducer[r] = f
+		}
+	}
+
+	var stripped []rune
+	for _, x := range []rune(u) {
+		stripped = append(stripped, reducer[x])
+	}
+
+	s := string(stripped)
+	return s
+}
+
 //func main() {
 //	w := [][]string{{"a", "b", "c"}, {"d", "e", "f"}}
 //	v := Flatten(w)

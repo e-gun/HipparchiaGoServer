@@ -92,7 +92,7 @@ import (
 const (
 	myname          = "Hipparchia Golang Server"
 	shortname       = "HGS"
-	version         = "0.0.1"
+	version         = "0.0.2"
 	tesquery        = "SELECT * FROM %s WHERE index BETWEEN %d and %d"
 	testdb          = "lt0448"
 	teststart       = 1
@@ -107,6 +107,8 @@ const (
 	browsework      = "028"
 	browseline      = 14672
 	browsecontext   = 4
+	lexword         = "καρποῦ"
+	lexauthor       = "gr0062"
 )
 
 var (
@@ -155,7 +157,7 @@ func main() {
 	cfg.RLogin = decoderedislogin([]byte(cfg.RedisInfo))
 	cfg.PGLogin = decodepsqllogin([]byte(cfg.PosgresInfo))
 
-	if *cfg.IsBrPtr {
+	if *cfg.IsBrPtr || *cfg.IsLexPtr {
 		// don't want to see version info: confuses our json
 	} else {
 		msg(versioninfo, 1)
@@ -166,20 +168,25 @@ func main() {
 	var x string
 
 	if *cfg.IsBrPtr {
-		// browser
+		// fmt.Printf("browser")
 		js := HipparchiaBrowser(cfg.BrowseAuthor, cfg.BrowseWork, cfg.BrowseFoundline, cfg.BrowseContext)
 		fmt.Printf(string(js))
 		return
+	} else if *cfg.IsLexPtr {
+		// fmt.Printf("lexica")
+		js := findbyform(cfg.LexWord, cfg.LexAuth)
+		fmt.Printf(string(js))
+		return
 	} else if *cfg.IsVectPtr {
-		// vectors
+		// fmt.Printf("vectors")
 		o = HipparchiaVectors()
 		x = "bags"
 		t = -1
 	} else if *cfg.IsWSPtr {
-		// websockets
+		// fmt.Printf("websockets")
 		HipparchiaWebsocket()
 	} else {
-		// searcher
+		// fmt.Printf("searcher")
 		o = HipparchiaSearcher()
 		t = fetchfinalnumberofresults(cfg.RedisKey)
 		x = "hits"
@@ -237,6 +244,11 @@ func configatstartup() {
 	flag.Int64Var(&cfg.BrowseContext, "bctx", browsecontext, "[browser] lines of context to display")
 
 	cfg.IsBrPtr = flag.Bool("br", false, "[browser] assert that this is a browsing run")
+
+	// lexica findbyform flags
+	flag.StringVar(&cfg.LexWord, "lwd", lexword, "[lexica] word to parse and look up")
+	flag.StringVar(&cfg.LexAuth, "lau", lexauthor, "[lexica] work that is looking up the word")
+	cfg.IsLexPtr = flag.Bool("lx", false, "[lexica] assert that this is a lexical run")
 
 	// vector flags
 

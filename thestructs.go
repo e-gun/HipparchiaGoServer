@@ -226,6 +226,8 @@ type CurrentConfiguration struct {
 	VectEnd         int
 	VSkipHW         string
 	VSkipInf        string
+	LexWord         string
+	LexAuth         string
 	BrowseAuthor    string
 	BrowseWork      string
 	BrowseFoundline int64
@@ -233,6 +235,7 @@ type CurrentConfiguration struct {
 	IsVectPtr       *bool
 	IsWSPtr         *bool
 	IsBrPtr         *bool
+	IsLexPtr        *bool
 	WSPort          int
 	WSFail          int
 	WSSave          int

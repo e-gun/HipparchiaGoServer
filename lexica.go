@@ -5,17 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"reflect"
 	"regexp"
 	"strings"
-	"time"
 )
 
 // initial target: be able to respond to "GET /lexica/findbyform/ἀμιϲθὶ/gr0062 HTTP/1.1"
 // full set of verbs: lookup, findbyform, idlookup, morphologychart
 
-func findbyform(word string, author string) {
+func findbyform(word string, author string) []byte {
 
 	// [a] clean the search term
 
@@ -146,7 +144,7 @@ func findbyform(word string, author string) {
 	psq = `SELECT %s FROM wordcounts_%s where entry_name = '%s'`
 	// golang hates indexing unicode strings: strings are bytes, and unicode chars take more than one byte
 	c := []rune(word)
-	q := fmt.Sprintf(psq, fld, string(c[0]), word)
+	q := fmt.Sprintf(psq, fld, stripaccents(string(c[0])), word)
 
 	foundrows, err = dbpool.Query(context.Background(), q)
 	checkerror(err)
@@ -178,7 +176,23 @@ func findbyform(word string, author string) {
 	//fmt.Println(parsing)
 
 	html := allformpd + parsing + entries
-	fmt.Println(html)
+	// html = strings.Replace(html, `"`, `\"`, -1)
+	js := insertlexicaljs()
+
+	type JSB struct {
+		HTML string `json:"newhtml"`
+		JS   string `json:"newjs"`
+	}
+
+	var jb JSB
+	jb.HTML = html
+	jb.JS = js
+
+	jsonbundle, ee := json.Marshal(jb)
+	checkerror(ee)
+
+	// jsonbundle := []byte(fmt.Sprintf(`{"newhtml":"%s","newjs":"%s"}`, html, js))
+	return jsonbundle
 }
 
 // formatprevalencedata - turn a wordcount into an HTML summary
@@ -205,14 +219,6 @@ func formatprevalencedata(w DbWordCount, s string) string {
 
 // formatparsingdata - turn []MorphPossib into HTML
 func formatparsingdata(mpp []MorphPossib) string {
-	// first: 	<span class="obsv">
-	//		<span class="dictionaryform">δημοϲίᾳ</span>&nbsp;:&nbsp;
-	//		<a class="parsing" href="#δημόϲιοϲ_23337644"><span class="obsv">
-	//			from <span class="baseform">δημόϲιοϲ</span>
-	//			<span class="baseformtranslation">&nbsp;(“<span class="transtree">A.I.</span> belonging to the people; <span class="transtree">III.</span> the state; <span class="transtree">IV.</span> tent of the Spartan kings”)</span>
-	//		</span></a>
-	//	</span>
-
 	obs := `
 	<span class="obsv"><a class="parsing" href="#%s_%s"><span class="obsv"> from <span class="baseform">%s</span>
 	<span class="baseformtranslation">&nbsp;(“%s”)</span></span></a></span>`
@@ -286,156 +292,234 @@ func formatlexicaloutput(w DbLexicon) string {
 	return html
 }
 
-func main() {
-	// findbyform("ἐρχόμενον", "gr0062")
-	// findbyform("ἧκεν", "gr0062")
-	findbyform("καρποῦ", "gr0062")
-	// findbyform("miles", "lt0448")
+func insertlexicaljs() string {
+	js := `
+	<script>
+	// Chromium can send poll data after the search is done... 
+	$('#pollingdata').hide();
+	
+	$('%s').click( function() {
+		$.getJSON('/browse/'+this.id, function (passagereturned) {
+			$('#browseforward').unbind('click');
+			$('#browseback').unbind('click');
+			var fb = parsepassagereturned(passagereturned)
+			// left and right arrow keys
+			$('#browserdialogtext').keydown(function(e) {
+				switch(e.which) {
+					case 37: browseuponclick(fb[1]); break;
+					case 39: browseuponclick(fb[0]); break;
+				}
+			});
+			$('#browseforward').bind('click', function(){ browseuponclick(fb[0]); });
+			$('#browseback').bind('click', function(){ browseuponclick(fb[1]); });
+		});
+	});
+	</script>`
+
+	tag := "bibl"
+
+	thejs := fmt.Sprintf(js, tag)
+	return thejs
 }
 
-// DELETE LATER: in other files
-
-type RawPossib struct {
-	Number string
-	MP     string
-}
-
-type DbWordCount struct {
-	Word  string
-	Total int64
-	Gr    int64
-	Lt    int64
-	Dp    int64
-	In    int64
-	Ch    int64
-}
-
-type DbLexicon struct {
-	// skipping 'unaccented_entry' from greek_dictionary
-	// skipping 'entry_key' from latin_dictionary
-	Word     string
-	Metrical string
-	ID       int64
-	POS      string
-	Transl   string
-	Entry    string
-}
-
-type MorphPossib struct {
-	Transl   string `json:"transl"`
-	Anal     string `json:"analysis"`
-	Headwd   string `json:"headword"`
-	Scansion string `json:"scansion"`
-	Xrefkind string `json:"xref_kind"`
-	Xrefval  string `json:"xref_value"`
-}
-
-type DbMorphology struct {
-	Observed    string
-	Xrefs       string
-	PrefixXrefs string
-	RawPossib   string
-	RelatedHW   string
-}
-
-func grabpgsqlconnection() *pgxpool.Pool {
-	var pl PostgresLogin
-	pl.User = "hippa_wr"
-	pl.Host = "127.0.0.1"
-	pl.Pass = "8rnX8KBcbwvW8zH"
-	pl.Port = 5432
-	pl.DBName = "hipparchiaDB"
-
-	// using 'workers' was causing an m1 to choke when the worker count got high: no available connections to db
-	// panic: failed to connect to `host=localhost user=hippa_wr database=hipparchiaDB`: server error (FATAL: remaining connection slots are reserved for non-replication superuser connections (SQLSTATE 53300))
-	// workers := cfg.WorkerCount
-
-	url := fmt.Sprintf("postgres://%s:%s@%s:%d/%s", pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName)
-
-	config, oops := pgxpool.ParseConfig(url)
-	if oops != nil {
-		msg(fmt.Sprintf("Could not execute pgxpool.ParseConfig(url) via %s", url), -1)
-		panic(oops)
-	}
-
-	// config.ConnConfig.PreferSimpleProtocol = true
-	// config.MaxConns = int32(workers * 3)
-	// config.MinConns = int32(workers + 2)
-
-	// the boring way if you don't want to go via pgxpool.ParseConfig(url)
-	// pooledconnection, err := pgxpool.Connect(context.Background(), url)
-
-	pooledconnection, err := pgxpool.ConnectConfig(context.Background(), config)
-
-	if err != nil {
-		msg(fmt.Sprintf("Could not connect to PostgreSQL via %s", url), -1)
-		panic(err)
-	}
-
-	msg(fmt.Sprintf("Connected to %s on PostgreSQL", pl.DBName), 4)
-
-	return pooledconnection
-}
-
-func checkerror(err error) {
-	if err != nil {
-		fmt.Println(fmt.Sprintf("UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE [%s v.%s]", myname, version))
-		panic(err)
-	}
-}
-
-func msg(message string, threshold int) {
-	if 5 >= threshold {
-		message = fmt.Sprintf("[%s] %s", shortname, message)
-		fmt.Println(message)
-	}
-}
-
-func unique[T comparable](s []T) []T {
-	// https://gosamples.dev/generics-remove-duplicates-slice/
-	inResult := make(map[T]bool)
-	var result []T
-	for _, str := range s {
-		if _, ok := inResult[str]; !ok {
-			inResult[str] = true
-			result = append(result, str)
-		}
-	}
-	return result
-}
-
-func flatten[T any](lists [][]T) []T {
-	var res []T
-	for _, list := range lists {
-		res = append(res, list...)
-	}
-	return res
-}
-
-const (
-	myname          = "Hipparchia Golang Server"
-	shortname       = "HGS"
-	version         = "0.0.1"
-	tesquery        = "SELECT * FROM %s WHERE index BETWEEN %d and %d"
-	testdb          = "lt0448"
-	teststart       = 1
-	testend         = 26
-	linelength      = 72
-	pollinginterval = 333 * time.Millisecond
-	skipheadwords   = "unus verum omne sum¹ ab δύο πρότεροϲ ἄνθρωποϲ τίϲ δέω¹ ὅϲτιϲ homo πᾶϲ οὖν εἶπον ἠμί ἄν² tantus μένω μέγαϲ οὐ verus neque eo¹ nam μέν ἡμόϲ aut Sue διό reor ut ἐγώ is πωϲ ἐκάϲ enim ὅτι² παρά ἐν Ἔχιϲ sed ἐμόϲ οὐδόϲ ad de ita πηρόϲ οὗτοϲ an ἐπεί a γάρ αὐτοῦ ἐκεῖνοϲ ἀνά ἑαυτοῦ quam αὐτόϲε et ὑπό quidem Alius¹ οἷοϲ noster γίγνομαι ἄνα προϲάμβ ἄν¹ οὕτωϲ pro² tamen ἐάν atque τε qui² si multus idem οὐδέ ἐκ omnes γε δεῖ πολύϲ in ἔδω ὅτι¹ μή Ios ἕτεροϲ cum meus ὅλοξ suus omnis ὡϲ sua μετά Ἀλλά ne¹ jam εἰϲ ἤ² ἄναξ ἕ ὅϲοϲ dies ipse ὁ hic οὐδείϲ suo ἔτι ἄνω¹ ὅϲ νῦν ὁμοῖοϲ edo¹ εἰ qui¹ πάλιν ὥϲπερ ne³ ἵνα τιϲ διά φύω per τοιοῦτοϲ for eo² huc locum neo¹ sui non ἤ¹ χάω ex κατά δή ἁμόϲ ὅμοιοϲ αὐτόϲ etiam vaco πρόϲ Ζεύϲ ϲύ quis¹ tuus b εἷϲ Eos οὔτε τῇ καθά ego tu ille pro¹ ἀπό suum εἰμί ἄλλοϲ δέ alius² pars vel ὥϲτε χέω res ἡμέρα quo δέομαι modus ὑπέρ ϲόϲ ito τῷ περί Τήιοϲ ἕκαϲτοϲ autem καί ἐπί nos θεάω γάρον γάροϲ Cos²"
-	skipinflected   = "ἀρ ita a inquit ego die nunc nos quid πάντων ἤ με θεόν δεῖ for igitur ϲύν b uers p ϲου τῷ εἰϲ ergo ἐπ ὥϲτε sua me πρό sic aut nisi rem πάλιν ἡμῶν φηϲί παρά ἔϲτι αὐτῆϲ τότε eos αὐτούϲ λέγει cum τόν quidem ἐϲτιν posse αὐτόϲ post αὐτῶν libro m hanc οὐδέ fr πρῶτον μέν res ἐϲτι αὐτῷ οὐχ non ἐϲτί modo αὐτοῦ sine ad uero fuit τοῦ ἀπό ea ὅτι parte ἔχει οὔτε ὅταν αὐτήν esse sub τοῦτο i omnes break μή ἤδη ϲοι sibi at mihi τήν in de τούτου ab omnia ὃ ἦν γάρ οὐδέν quam per α autem eius item ὡϲ sint length οὗ eum ἀντί ex uel ἐπειδή re ei quo ἐξ δραχμαί αὐτό ἄρα ἔτουϲ ἀλλ οὐκ τά ὑπέρ τάϲ μάλιϲτα etiam haec nihil οὕτω siue nobis si itaque uac erat uestig εἶπεν ἔϲτιν tantum tam nec unde qua hoc quis iii ὥϲπερ semper εἶναι e ½ is quem τῆϲ ἐγώ καθ his θεοῦ tibi ubi pro ἄν πολλά τῇ πρόϲ l ἔϲται οὕτωϲ τό ἐφ ἡμῖν οἷϲ inter idem illa n se εἰ μόνον ac ἵνα ipse erit μετά μοι δι γε enim ille an sunt esset γίνεται omnibus ne ἐπί τούτοιϲ ὁμοίωϲ παρ causa neque cr ἐάν quos ταῦτα h ante ἐϲτίν ἣν αὐτόν eo ὧν ἐπεί οἷον sed ἀλλά ii ἡ t te ταῖϲ est sit cuius καί quasi ἀεί o τούτων ἐϲ quae τούϲ minus quia tamen iam d διά primum r τιϲ νῦν illud u apud c ἐκ δ quod f quoque tr τί ipsa rei hic οἱ illi et πῶϲ φηϲίν τοίνυν s magis unknown οὖν dum text μᾶλλον habet τοῖϲ qui αὐτοῖϲ suo πάντα uacat τίϲ pace ἔχειν οὐ κατά contra δύο ἔτι αἱ uet οὗτοϲ deinde id ut ὑπό τι lin ἄλλων τε tu ὁ cf δή potest ἐν eam tum μου nam θεόϲ κατ ὦ cui nomine περί atque δέ quibus ἡμᾶϲ τῶν eorum"
-	memoutputfile   = "mem_profiler_output.bin"
-	cpuoutputfile   = "cpu_profiler_output.bin"
-	browseauthor    = "gr0062"
-	browsework      = "028"
-	browseline      = 14672
-	browsecontext   = 4
-)
-
-type PostgresLogin struct {
-	Host   string
-	Port   int
-	User   string
-	Pass   string
-	DBName string
-}
+//func main() {
+//	// findbyform("ἐρχόμενον", "gr0062")
+//	// findbyform("ἧκεν", "gr0062")
+//	r := findbyform("ὀκνεῖϲ", "gr0062")
+//	// findbyform("miles", "lt0448")
+//	fmt.Println(string(r))
+//}
+//
+//// DELETE LATER: in other files
+//
+//
+//func stripaccents(u string) string {
+//	// ὀκνεῖϲ --> οκνειϲ
+//	feeder := make(map[rune][]rune)
+//	feeder['α'] = []rune("αἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάᾈᾉᾊᾋᾌᾍᾎᾏἈἉἊἋἌἍἎἏΑ")
+//	feeder['ε'] = []rune("εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ")
+//	feeder['ι'] = []rune("ιἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗΐἸἹἺἻἼἽἾἿΙ")
+//	feeder['ο'] = []rune("οὀὁὂὃὄὅόὸὈὉὊὋὌὍΟ")
+//	feeder['υ'] = []rune("υὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺὙὛὝὟΥ")
+//	feeder['η'] = []rune("ηᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧᾘᾙᾚᾛᾜᾝᾞᾟἨἩἪἫἬἭἮἯΗ")
+//	feeder['ω'] = []rune("ωὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼᾨᾩᾪᾫᾬᾭᾮᾯὨὩὪὫὬὭὮὯ")
+//	feeder['ρ'] = []rune("ρῤῥῬ")
+//	feeder['β'] = []rune("βΒ")
+//	feeder['ψ'] = []rune("ψΨ")
+//	feeder['δ'] = []rune("δΔ")
+//	feeder['φ'] = []rune("φΦ")
+//	feeder['γ'] = []rune("γΓ")
+//	feeder['ξ'] = []rune("ξΞ")
+//	feeder['κ'] = []rune("κΚ")
+//	feeder['λ'] = []rune("λΛ")
+//	feeder['μ'] = []rune("μΜ")
+//	feeder['ν'] = []rune("νΝ")
+//	feeder['π'] = []rune("πΠ")
+//	feeder['ϙ'] = []rune("ϙϘ")
+//	feeder['ϲ'] = []rune("ϲσΣςϹ")
+//	feeder['τ'] = []rune("τΤ")
+//	feeder['χ'] = []rune("χΧ")
+//	feeder['θ'] = []rune("θΘ")
+//	feeder['ζ'] = []rune("ζΖ")
+//
+//	reducer := make(map[rune]rune)
+//	for f, _ := range feeder {
+//		for _, r := range feeder[f] {
+//			reducer[r] = f
+//		}
+//	}
+//
+//	var stripped []rune
+//	for _, x := range []rune(u) {
+//		stripped = append(stripped, reducer[x])
+//	}
+//
+//	s := string(stripped)
+//	return s
+//}
+//
+//
+//type RawPossib struct {
+//	Number string
+//	MP     string
+//}
+//
+//type DbWordCount struct {
+//	Word  string
+//	Total int64
+//	Gr    int64
+//	Lt    int64
+//	Dp    int64
+//	In    int64
+//	Ch    int64
+//}
+//
+//type DbLexicon struct {
+//	// skipping 'unaccented_entry' from greek_dictionary
+//	// skipping 'entry_key' from latin_dictionary
+//	Word     string
+//	Metrical string
+//	ID       int64
+//	POS      string
+//	Transl   string
+//	Entry    string
+//}
+//
+//type MorphPossib struct {
+//	Transl   string `json:"transl"`
+//	Anal     string `json:"analysis"`
+//	Headwd   string `json:"headword"`
+//	Scansion string `json:"scansion"`
+//	Xrefkind string `json:"xref_kind"`
+//	Xrefval  string `json:"xref_value"`
+//}
+//
+//type DbMorphology struct {
+//	Observed    string
+//	Xrefs       string
+//	PrefixXrefs string
+//	RawPossib   string
+//	RelatedHW   string
+//}
+//
+//func grabpgsqlconnection() *pgxpool.Pool {
+//	var pl PostgresLogin
+//	pl.User = "hippa_wr"
+//	pl.Host = "127.0.0.1"
+//	pl.Pass = "8rnX8KBcbwvW8zH"
+//	pl.Port = 5432
+//	pl.DBName = "hipparchiaDB"
+//
+//	// using 'workers' was causing an m1 to choke when the worker count got high: no available connections to db
+//	// panic: failed to connect to `host=localhost user=hippa_wr database=hipparchiaDB`: server error (FATAL: remaining connection slots are reserved for non-replication superuser connections (SQLSTATE 53300))
+//	// workers := cfg.WorkerCount
+//
+//	url := fmt.Sprintf("postgres://%s:%s@%s:%d/%s", pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName)
+//
+//	config, oops := pgxpool.ParseConfig(url)
+//	if oops != nil {
+//		msg(fmt.Sprintf("Could not execute pgxpool.ParseConfig(url) via %s", url), -1)
+//		panic(oops)
+//	}
+//
+//	// config.ConnConfig.PreferSimpleProtocol = true
+//	// config.MaxConns = int32(workers * 3)
+//	// config.MinConns = int32(workers + 2)
+//
+//	// the boring way if you don't want to go via pgxpool.ParseConfig(url)
+//	// pooledconnection, err := pgxpool.Connect(context.Background(), url)
+//
+//	pooledconnection, err := pgxpool.ConnectConfig(context.Background(), config)
+//
+//	if err != nil {
+//		msg(fmt.Sprintf("Could not connect to PostgreSQL via %s", url), -1)
+//		panic(err)
+//	}
+//
+//	msg(fmt.Sprintf("Connected to %s on PostgreSQL", pl.DBName), 4)
+//
+//	return pooledconnection
+//}
+//
+//func checkerror(err error) {
+//	if err != nil {
+//		fmt.Println(fmt.Sprintf("UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE [%s v.%s]", myname, version))
+//		panic(err)
+//	}
+//}
+//
+//func msg(message string, threshold int) {
+//	if 5 >= threshold {
+//		message = fmt.Sprintf("[%s] %s", shortname, message)
+//		fmt.Println(message)
+//	}
+//}
+//
+//func unique[T comparable](s []T) []T {
+//	// https://gosamples.dev/generics-remove-duplicates-slice/
+//	inResult := make(map[T]bool)
+//	var result []T
+//	for _, str := range s {
+//		if _, ok := inResult[str]; !ok {
+//			inResult[str] = true
+//			result = append(result, str)
+//		}
+//	}
+//	return result
+//}
+//
+//func flatten[T any](lists [][]T) []T {
+//	var res []T
+//	for _, list := range lists {
+//		res = append(res, list...)
+//	}
+//	return res
+//}
+//
+//const (
+//	myname          = "Hipparchia Golang Server"
+//	shortname       = "HGS"
+//	version         = "0.0.1"
+//	tesquery        = "SELECT * FROM %s WHERE index BETWEEN %d and %d"
+//	testdb          = "lt0448"
+//	teststart       = 1
+//	testend         = 26
+//	linelength      = 72
+//	pollinginterval = 333 * time.Millisecond
+//	skipheadwords   = "unus verum omne sum¹ ab δύο πρότεροϲ ἄνθρωποϲ τίϲ δέω¹ ὅϲτιϲ homo πᾶϲ οὖν εἶπον ἠμί ἄν² tantus μένω μέγαϲ οὐ verus neque eo¹ nam μέν ἡμόϲ aut Sue διό reor ut ἐγώ is πωϲ ἐκάϲ enim ὅτι² παρά ἐν Ἔχιϲ sed ἐμόϲ οὐδόϲ ad de ita πηρόϲ οὗτοϲ an ἐπεί a γάρ αὐτοῦ ἐκεῖνοϲ ἀνά ἑαυτοῦ quam αὐτόϲε et ὑπό quidem Alius¹ οἷοϲ noster γίγνομαι ἄνα προϲάμβ ἄν¹ οὕτωϲ pro² tamen ἐάν atque τε qui² si multus idem οὐδέ ἐκ omnes γε δεῖ πολύϲ in ἔδω ὅτι¹ μή Ios ἕτεροϲ cum meus ὅλοξ suus omnis ὡϲ sua μετά Ἀλλά ne¹ jam εἰϲ ἤ² ἄναξ ἕ ὅϲοϲ dies ipse ὁ hic οὐδείϲ suo ἔτι ἄνω¹ ὅϲ νῦν ὁμοῖοϲ edo¹ εἰ qui¹ πάλιν ὥϲπερ ne³ ἵνα τιϲ διά φύω per τοιοῦτοϲ for eo² huc locum neo¹ sui non ἤ¹ χάω ex κατά δή ἁμόϲ ὅμοιοϲ αὐτόϲ etiam vaco πρόϲ Ζεύϲ ϲύ quis¹ tuus b εἷϲ Eos οὔτε τῇ καθά ego tu ille pro¹ ἀπό suum εἰμί ἄλλοϲ δέ alius² pars vel ὥϲτε χέω res ἡμέρα quo δέομαι modus ὑπέρ ϲόϲ ito τῷ περί Τήιοϲ ἕκαϲτοϲ autem καί ἐπί nos θεάω γάρον γάροϲ Cos²"
+//	skipinflected   = "ἀρ ita a inquit ego die nunc nos quid πάντων ἤ με θεόν δεῖ for igitur ϲύν b uers p ϲου τῷ εἰϲ ergo ἐπ ὥϲτε sua me πρό sic aut nisi rem πάλιν ἡμῶν φηϲί παρά ἔϲτι αὐτῆϲ τότε eos αὐτούϲ λέγει cum τόν quidem ἐϲτιν posse αὐτόϲ post αὐτῶν libro m hanc οὐδέ fr πρῶτον μέν res ἐϲτι αὐτῷ οὐχ non ἐϲτί modo αὐτοῦ sine ad uero fuit τοῦ ἀπό ea ὅτι parte ἔχει οὔτε ὅταν αὐτήν esse sub τοῦτο i omnes break μή ἤδη ϲοι sibi at mihi τήν in de τούτου ab omnia ὃ ἦν γάρ οὐδέν quam per α autem eius item ὡϲ sint length οὗ eum ἀντί ex uel ἐπειδή re ei quo ἐξ δραχμαί αὐτό ἄρα ἔτουϲ ἀλλ οὐκ τά ὑπέρ τάϲ μάλιϲτα etiam haec nihil οὕτω siue nobis si itaque uac erat uestig εἶπεν ἔϲτιν tantum tam nec unde qua hoc quis iii ὥϲπερ semper εἶναι e ½ is quem τῆϲ ἐγώ καθ his θεοῦ tibi ubi pro ἄν πολλά τῇ πρόϲ l ἔϲται οὕτωϲ τό ἐφ ἡμῖν οἷϲ inter idem illa n se εἰ μόνον ac ἵνα ipse erit μετά μοι δι γε enim ille an sunt esset γίνεται omnibus ne ἐπί τούτοιϲ ὁμοίωϲ παρ causa neque cr ἐάν quos ταῦτα h ante ἐϲτίν ἣν αὐτόν eo ὧν ἐπεί οἷον sed ἀλλά ii ἡ t te ταῖϲ est sit cuius καί quasi ἀεί o τούτων ἐϲ quae τούϲ minus quia tamen iam d διά primum r τιϲ νῦν illud u apud c ἐκ δ quod f quoque tr τί ipsa rei hic οἱ illi et πῶϲ φηϲίν τοίνυν s magis unknown οὖν dum text μᾶλλον habet τοῖϲ qui αὐτοῖϲ suo πάντα uacat τίϲ pace ἔχειν οὐ κατά contra δύο ἔτι αἱ uet οὗτοϲ deinde id ut ὑπό τι lin ἄλλων τε tu ὁ cf δή potest ἐν eam tum μου nam θεόϲ κατ ὦ cui nomine περί atque δέ quibus ἡμᾶϲ τῶν eorum"
+//	memoutputfile   = "mem_profiler_output.bin"
+//	cpuoutputfile   = "cpu_profiler_output.bin"
+//	browseauthor    = "gr0062"
+//	browsework      = "028"
+//	browseline      = 14672
+//	browsecontext   = 4
+//)
+//
+//type PostgresLogin struct {
+//	Host   string
+//	Port   int
+//	User   string
+//	Pass   string
+//	DBName string
+//}
