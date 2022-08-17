@@ -104,8 +104,9 @@ func flatten[T any](lists [][]T) []T {
 	return res
 }
 
+// stripaccents - ὀκνεῖϲ --> οκνειϲ, etc.
 func stripaccents(u string) string {
-	// ὀκνεῖϲ --> οκνειϲ
+	// because we don't have access to python's transtable function
 	feeder := make(map[rune][]rune)
 	feeder['α'] = []rune("αἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάᾈᾉᾊᾋᾌᾍᾎᾏἈἉἊἋἌἍἎἏΑ")
 	feeder['ε'] = []rune("εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ")

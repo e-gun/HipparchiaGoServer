@@ -56,6 +56,7 @@ func HipparchiaSearcher() string {
 	return resultkey
 }
 
+// grabber - fetch prerolled queries from redis; turn into hitlines; then store the hitlines in redis
 func grabber(clientnumber int, searchkey string, awaiting *sync.WaitGroup) {
 	// this is where all of the work happens
 	defer awaiting.Done()
@@ -106,6 +107,7 @@ func grabber(clientnumber int, searchkey string, awaiting *sync.WaitGroup) {
 	}
 }
 
+// checkcap - time to stop working?
 func checkcap(searchkey string, client int, rc redis.Conn) bool {
 	resultkey := searchkey + "_results"
 	hitcount, e := redis.Int64(rc.Do("SCARD", resultkey))

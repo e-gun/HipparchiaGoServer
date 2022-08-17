@@ -22,6 +22,12 @@ type DbAuthor struct {
 	RecDate   string
 	ConvDate  int64
 	Location  string
+	// beyond the DB starts here
+	WorkList []string
+}
+
+func (dba DbAuthor) AddWork(w string) {
+	dba.WorkList = append(dba.WorkList, w)
 }
 
 type DbWork struct {
@@ -69,6 +75,14 @@ func (dbw DbWork) CitationFormat() []string {
 		dbw.LL0,
 	}
 	return cf
+}
+
+func (dbw DbWork) DateInRange(b int64, a int64) bool {
+	if b <= dbw.ConvDate && dbw.ConvDate <= a {
+		return true
+	} else {
+		return false
+	}
 }
 
 type DbWorkline struct {

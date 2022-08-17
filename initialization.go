@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+// all functions in here should be run in order to prepare the core data
+
 // authormapper - build a map of all authors keyed to the authorUID: map[string]DbAuthor
 func authormapper() map[string]DbAuthor {
 	dbpool := grabpgsqlconnection()
@@ -72,4 +74,22 @@ func workmapper() map[string]DbWork {
 
 	return workmap
 
+}
+
+// loadworksintoauthors - load all works in the workmap into the authormap WorkList
+func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[string]DbAuthor {
+	for _, w := range ww {
+		aa[w.FindAuthor()].AddWork(w.UID)
+	}
+	return aa
+}
+
+// dateworksviaauthors - if we do now know the date of a work, give it the date of the author
+func dateworksviaauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[string]DbWork {
+	for _, w := range ww {
+		if w.ConvDate == 2500 && aa[w.FindAuthor()].ConvDate != 2500 {
+			w.ConvDate = aa[w.FindAuthor()].ConvDate
+		}
+	}
+	return ww
 }

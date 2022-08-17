@@ -32,7 +32,7 @@ func findtherows(thequery string, thecaller string, searchkey string, clientnumb
 	err := json.Unmarshal([]byte(thequery), &prq)
 	checkerror(err)
 
-	fmt.Println(prq)
+	// fmt.Println(prq)
 	foundlines := worklinequery(prq, dbpool)
 
 	return foundlines
