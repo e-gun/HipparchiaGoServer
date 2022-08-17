@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"strconv"
 	"strings"
 )
@@ -15,6 +17,7 @@ type Session struct {
 	ActiveCorp map[string]bool
 	VariaOK    bool
 	IncertaOK  bool
+	SpuriaOK   bool
 	// unimplemented for now
 	Querytype      string
 	AvailDBs       map[string]bool
@@ -34,6 +37,16 @@ type SearchInclusions struct {
 	DateRange   [2]string
 }
 
+func (i SearchInclusions) isEmpty() bool {
+	l := len(i.AuGenres) + len(i.WkGenres) + len(i.AuLocations) + len(i.WkLocations) + len(i.Authors)
+	l += len(i.Works) + len(i.Passages)
+	if l > 1 {
+		return true
+	} else {
+		return false
+	}
+}
+
 type SearchExclusions struct {
 	AuGenres    []string
 	WkGenres    []string
@@ -42,9 +55,21 @@ type SearchExclusions struct {
 	Authors     []string
 	Works       []string
 	Passages    []string
+	// note that the following is not implemented
+	// DateRange   [2]string
 }
 
-func compilesearchlist(s Session, aa map[string]DbAuthor, ww map[string]DbWork) {
+func (i SearchExclusions) isEmpty() bool {
+	l := len(i.AuGenres) + len(i.WkGenres) + len(i.AuLocations) + len(i.WkLocations) + len(i.Authors)
+	l += len(i.Works) + len(i.Passages)
+	if l > 1 {
+		return true
+	} else {
+		return false
+	}
+}
+
+func compilesearchlist(s Session, aa map[string]DbAuthor, ww map[string]DbWork) []string {
 
 	// note that we do all the initial stuff by adding WORKS to the list individually
 	var searchlist []string
@@ -66,51 +91,188 @@ func compilesearchlist(s Session, aa map[string]DbAuthor, ww map[string]DbWork) 
 		}
 	}
 
-	// [b] build the inclusion list
 	incl := s.Inclusions
 	excl := s.Exclusions
 
-	// [b1] author genres to include
-	for _, g := range incl.AuGenres {
-		for _, a := range auu {
-			if strings.Contains(a.Genres, g) {
-				searchlist = append(searchlist, a.WorkList...)
+	// [b] build the inclusion list
+	if !incl.isEmpty() {
+		// you only want *some* things
+		// [b1] author genres to include
+		for _, g := range incl.AuGenres {
+			for _, a := range auu {
+				if strings.Contains(a.Genres, g) {
+					searchlist = append(searchlist, a.WorkList...)
+				}
 			}
 		}
-	}
 
-	// [b2] work genres to include
-	for _, g := range incl.WkGenres {
+		// [b2] work genres to include
+		for _, g := range incl.WkGenres {
+			for _, w := range wkk {
+				if w.Genre == g {
+					searchlist = append(searchlist, w.UID)
+				}
+			}
+		}
+
+		// [b3] author locations to include
+		for _, l := range incl.AuLocations {
+			for _, a := range auu {
+				if a.Location == l {
+					searchlist = append(searchlist, a.WorkList...)
+				}
+			}
+		}
+
+		// [b4] work locations to include
+		for _, l := range incl.WkLocations {
+			for _, w := range wkk {
+				if w.Prov == l {
+					searchlist = append(searchlist, w.UID)
+				}
+			}
+		}
+
+		// 		a tricky spot: when/how to apply prunebydate()
+		//		if you want to be able to seek 5th BCE oratory and Plutarch, then you need to let auselections take precedence
+		//		accordingly we will do classes and genres first, then trim by date, then add in individual choices
+
+		// [b5] prune by date
+
+		searchlist = prunebydate(searchlist, incl, wkk, s)
+
+		// [b6] add all works of the authors selected
+
+		for _, au := range incl.Authors {
+			// this should be superfluous, but...
+			_, remains := auu[au]
+			if remains {
+				searchlist = append(searchlist, auu[au].WorkList...)
+			}
+		}
+
+		// [b7] add the individual works selected
+
+		for _, wk := range incl.Works {
+			// this should be superfluous, but...
+			_, remains := wkk[wk]
+			if remains {
+				searchlist = append(searchlist, wk)
+			}
+		}
+
+		// [b8] add the individual passages selected
+
+		searchlist = append(searchlist, incl.Passages...)
+
+	} else {
+		// you want everything. well, maybe everything...
 		for _, w := range wkk {
-			if w.Genre == g {
-				searchlist = append(searchlist, w.UID)
-			}
+			searchlist = append(searchlist, w.UID)
 		}
+
+		// but maybe the only restriction is time...
+		searchlist = prunebydate(searchlist, incl, wkk, s)
+
 	}
 
-	// [b3] author locations to include
-	for _, l := range incl.AuLocations {
-		for _, a := range auu {
-			if a.Location == l {
-				searchlist = append(searchlist, a.WorkList...)
+	// [c] subtract the exclusions from the searchlist
+
+	// [c1] do we allow spuria, incerta, varia?
+	// note that the following will kill explicitly selected spuria: basically a logic bug, but not a priority...
+
+	if !s.SpuriaOK {
+		var trimmed []string
+		for _, w := range searchlist {
+			if wkk[w[0:10]].Authentic {
+				trimmed = append(trimmed, w)
 			}
 		}
+		searchlist = trimmed
 	}
 
-	// [b4] work locations to include
-	for _, l := range incl.WkLocations {
-		for _, w := range wkk {
-			if w.Prov == l {
-				searchlist = append(searchlist, w.UID)
+	if !s.VariaOK {
+		var trimmed []string
+		for _, w := range searchlist {
+			if wkk[w[0:10]].ConvDate != VARIADATE {
+				trimmed = append(trimmed, w)
 			}
 		}
+		searchlist = trimmed
 	}
 
-	// 		a tricky spot: when/how to apply prunebydate()
-	//		if you want to be able to seek 5th BCE oratory and Plutarch, then you need to let auselections take precedence
-	//		accordingly we will do classes and genres first, then trim by date, then add in individual choices
+	if !s.IncertaOK {
+		var trimmed []string
+		for _, w := range searchlist {
+			if wkk[w].ConvDate != INCERTADATE {
+				trimmed = append(trimmed, w)
+			}
+		}
+		searchlist = trimmed
+	}
 
-	// [b5] prune by date
+	// [c2] walk through the exclusions categories; note that excluded passages are handled via the querybuilder
+
+	if !excl.isEmpty() {
+		// [c2a] the authors
+		blacklist := excl.Authors
+
+		// [c2c] the author genres
+		for _, g := range excl.AuGenres {
+			for _, a := range auu {
+				if strings.Contains(a.Genres, g) {
+					blacklist = append(blacklist, a.UID)
+				}
+			}
+		}
+
+		// [c2c] the author locations
+		for _, l := range excl.AuLocations {
+			for _, a := range auu {
+				if a.Location == l {
+					blacklist = append(blacklist, a.UID)
+				}
+			}
+		}
+
+		blacklist = unique(blacklist)
+
+		// [c2d] all works of all excluded authors are themselves excluded
+		// we are now moving over from AuUIDs to WkUIDS...
+
+		var excludedworks []string
+		for _, b := range blacklist {
+			excludedworks = append(excludedworks, auu[b].WorkList...)
+		}
+
+		// [c2e] + the plain old work exclusions
+		excludedworks = append(excludedworks, excl.Works...)
+
+		// [c2f] works excluded by genre
+		for _, l := range excl.WkGenres {
+			for _, w := range wkk {
+				if w.Genre == l {
+					excludedworks = append(excludedworks, w.UID)
+				}
+			}
+		}
+
+		// [c2g] works excluded by provenance
+		for _, l := range excl.WkLocations {
+			for _, w := range wkk {
+				if w.Prov == l {
+					excludedworks = append(excludedworks, w.UID)
+				}
+			}
+		}
+		searchlist = setsubtraction(searchlist, excludedworks)
+	}
+
+	return searchlist
+}
+
+// prunebydate - drop items from searchlist if they are not inside the valid date range
+func prunebydate(searchlist []string, incl SearchInclusions, wkk map[string]DbWork, s Session) []string {
 	// 'varia' and 'incerta' have special dates: incerta = 2500; varia = 2000
 	before, _ := strconv.Atoi(incl.DateRange[0])
 	after, _ := strconv.Atoi(incl.DateRange[1])
@@ -150,14 +312,7 @@ func compilesearchlist(s Session, aa map[string]DbAuthor, ww map[string]DbWork) 
 
 		searchlist = trimmed
 	}
-
-	// [b6] add all works of the authors selected
-
-	// [b7] add the individual works selected
-
-	// [b8] add the individual passages selected
-
-	// [c] subtract from the inclusions
+	return searchlist
 }
 
 func main() {
@@ -166,6 +321,278 @@ func main() {
 	authormap = loadworksintoauthors(authormap, workmap)
 	workmap = dateworksviaauthors(authormap, workmap)
 
+	var s Session
+	s.IncertaOK = true
+	s.VariaOK = true
+	s.SpuriaOK = true
+	c := make(map[string]bool)
+	c["gr"] = true
+	c["lt"] = true
+	c["dp"] = true
+	c["in"] = true
+	c["ch"] = true
+	s.ActiveCorp = c
+	i := s.Inclusions
+	i.Authors = []string{"lt0474", "lt0917"}
+	i.AuGenres = []string{"Apologetici", "Doxographi"}
+	i.WkGenres = []string{"Eleg."}
+	i.Passages = []string{"gr0032w002_FROM_11313_TO_11843"}
+	i.Works = []string{"gr0062w001"}
+	i.AuLocations = []string{"Abdera"}
+	e := s.Exclusions
+	e.Works = []string{"lt0474w001"}
+	e.Passages = []string{"lt0917w001_AT_3"}
+	s.Inclusions = i
+	s.Exclusions = e
+
+	sl := compilesearchlist(s, authormap, workmap)
+
+	fmt.Println(sl)
+}
+
+// things needed to make "listmanagement.go" run on its own
+
+type DbAuthor struct {
+	UID       string
+	Language  string
+	IDXname   string
+	Name      string
+	Shortname string
+	Cleaname  string
+	Genres    string
+	RecDate   string
+	ConvDate  int64
+	Location  string
+	// beyond the DB starts here
+	WorkList []string
+}
+
+func (dba DbAuthor) AddWork(w string) {
+	dba.WorkList = append(dba.WorkList, w)
+}
+
+type DbWork struct {
+	UID       string
+	Title     string
+	Language  string
+	Pub       string
+	LL0       string
+	LL1       string
+	LL2       string
+	LL3       string
+	LL4       string
+	LL5       string
+	Genre     string
+	Xmit      string
+	Type      string
+	Prov      string
+	RecDate   string
+	ConvDate  int64
+	WdCount   int64
+	FirstLine int64
+	LastLine  int64
+	Authentic bool
+	// not in the DB, but derived: gr2017w068 --> 068
+	WorkNum string
+}
+
+func (dbw DbWork) FindWorknumber() string {
+	// ex: gr2017w068
+	return dbw.UID[7:]
+}
+
+func (dbw DbWork) FindAuthor() string {
+	// ex: gr2017w068
+	return dbw.UID[:6]
+}
+
+func (dbw DbWork) CitationFormat() []string {
+	cf := []string{
+		dbw.LL5,
+		dbw.LL4,
+		dbw.LL3,
+		dbw.LL2,
+		dbw.LL1,
+		dbw.LL0,
+	}
+	return cf
+}
+
+func (dbw DbWork) DateInRange(b int64, a int64) bool {
+	if b <= dbw.ConvDate && dbw.ConvDate <= a {
+		return true
+	} else {
+		return false
+	}
+}
+
+const (
+	VARIADATE   = 2000
+	INCERTADATE = 2500
+	MINDATE     = -850
+	MAXDATE     = 1500
+)
+
+// unique - return only the unique items from a slice
+func unique[T comparable](s []T) []T {
+	// https://gosamples.dev/generics-remove-duplicates-slice/
+	inResult := make(map[T]bool)
+	var result []T
+	for _, str := range s {
+		if _, ok := inResult[str]; !ok {
+			inResult[str] = true
+			result = append(result, str)
+		}
+	}
+	return result
+}
+
+// setsubtraction - returns [](set(aa) - set(bb))
+func setsubtraction[T comparable](aa []T, bb []T) []T {
+	// 	aa := []string{"a", "b", "c", "d"}
+	//	bb := []string{"a", "b", "e", "f"}
+	//	dd := setsubtraction(aa, bb)
+	//	fmt.Println(dd)
+	//  [c d]
+
+	pruner := make(map[T]bool)
+	for _, b := range bb {
+		pruner[b] = true
+	}
+
+	remain := make(map[T]bool)
+	for _, a := range aa {
+		if _, y := pruner[a]; !y {
+			remain[a] = true
+		}
+	}
+
+	var result []T
+	for r, _ := range remain {
+		result = append(result, r)
+	}
+	return result
+}
+
+// authormapper - build a map of all authors keyed to the authorUID: map[string]DbAuthor
+func authormapper() map[string]DbAuthor {
+	dbpool := grabpgsqlconnection()
+	qt := "SELECT %s FROM authors ORDER by universalid ASC"
+	q := fmt.Sprintf(qt, AUTHORTEMPLATE)
+
+	foundrows, err := dbpool.Query(context.Background(), q)
+	checkerror(err)
+
+	var thefinds []DbAuthor
+
+	defer foundrows.Close()
+	for foundrows.Next() {
+		// fmt.Println(foundrows.Values())
+		// this will die if <nil> comes back inside any of the columns: "cannot scan null into *string"
+		// the builder should address this: fixing it here is less ideal
+		var thehit DbAuthor
+		err := foundrows.Scan(&thehit.UID, &thehit.Language, &thehit.IDXname, &thehit.Name, &thehit.Shortname,
+			&thehit.Cleaname, &thehit.Genres, &thehit.RecDate, &thehit.ConvDate, &thehit.Location)
+		checkerror(err)
+		thefinds = append(thefinds, thehit)
+	}
+
+	authormap := make(map[string]DbAuthor)
+	for _, val := range thefinds {
+		authormap[val.UID] = val
+	}
+
+	return authormap
+
+}
+
+// workmapper - build a map of all works keyed to the authorUID: map[string]DbWork
+func workmapper() map[string]DbWork {
+	dbpool := grabpgsqlconnection()
+	qt := "SELECT %s FROM works"
+	q := fmt.Sprintf(qt, WORKTEMPLATE)
+
+	foundrows, err := dbpool.Query(context.Background(), q)
+	checkerror(err)
+
+	var thefinds []DbWork
+
+	defer foundrows.Close()
+	for foundrows.Next() {
+		// fmt.Println(foundrows.Values())
+		// this will die if <nil> comes back inside any of the columns
+		var thehit DbWork
+		err := foundrows.Scan(&thehit.UID, &thehit.Title, &thehit.Language, &thehit.Pub, &thehit.LL0,
+			&thehit.LL1, &thehit.LL2, &thehit.LL3, &thehit.LL4, &thehit.LL5, &thehit.Genre,
+			&thehit.Xmit, &thehit.Type, &thehit.Prov, &thehit.RecDate, &thehit.ConvDate, &thehit.WdCount,
+			&thehit.FirstLine, &thehit.LastLine, &thehit.Authentic)
+		checkerror(err)
+		thefinds = append(thefinds, thehit)
+	}
+
+	for _, val := range thefinds {
+		val.WorkNum = val.FindWorknumber()
+	}
+
+	workmap := make(map[string]DbWork)
+	for _, val := range thefinds {
+		workmap[val.UID] = val
+	}
+
+	return workmap
+
+}
+
+// loadworksintoauthors - load all works in the workmap into the authormap WorkList
+func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[string]DbAuthor {
+	for _, w := range ww {
+		aa[w.FindAuthor()].AddWork(w.UID)
+	}
+	return aa
+}
+
+// dateworksviaauthors - if we do now know the date of a work, give it the date of the author
+func dateworksviaauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[string]DbWork {
+	for _, w := range ww {
+		if w.ConvDate == 2500 && aa[w.FindAuthor()].ConvDate != 2500 {
+			w.ConvDate = aa[w.FindAuthor()].ConvDate
+		}
+	}
+	return ww
+}
+
+func grabpgsqlconnection() *pgxpool.Pool {
+	pl := cfg.PGLogin
+
+	// using 'workers' was causing an m1 to choke when the worker count got high: no available connections to db
+	// panic: failed to connect to `host=localhost user=hippa_wr database=hipparchiaDB`: server error (FATAL: remaining connection slots are reserved for non-replication superuser connections (SQLSTATE 53300))
+	// workers := cfg.WorkerCount
+
+	url := fmt.Sprintf("postgres://%s:%s@%s:%d/%s", pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName)
+
+	config, oops := pgxpool.ParseConfig(url)
+	if oops != nil {
+		msg(fmt.Sprintf("Could not execute pgxpool.ParseConfig(url) via %s", url), -1)
+		panic(oops)
+	}
+
+	// config.ConnConfig.PreferSimpleProtocol = true
+	// config.MaxConns = int32(workers * 3)
+	// config.MinConns = int32(workers + 2)
+
+	// the boring way if you don't want to go via pgxpool.ParseConfig(url)
+	// pooledconnection, err := pgxpool.Connect(context.Background(), url)
+
+	pooledconnection, err := pgxpool.ConnectConfig(context.Background(), config)
+
+	if err != nil {
+		msg(fmt.Sprintf("Could not connect to PostgreSQL via %s", url), -1)
+		panic(err)
+	}
+
+	msg(fmt.Sprintf("Connected to %s on PostgreSQL", pl.DBName), 4)
+
+	return pooledconnection
 }
 
 // compilesearchlist() - searching[]: ['lt0474', 'lt0917', 'Apologetici', 'Doxographi', 'Eleg.', 'gr0032w002_FROM_11313_TO_11843', 'gr0062w001', 'Abdera']

@@ -94,6 +94,33 @@ func unique[T comparable](s []T) []T {
 	return result
 }
 
+// setsubtraction - returns [](set(aa) - set(bb))
+func setsubtraction[T comparable](aa []T, bb []T) []T {
+	// 	aa := []string{"a", "b", "c", "d"}
+	//	bb := []string{"a", "b", "e", "f"}
+	//	dd := setsubtraction(aa, bb)
+	//	fmt.Println(dd)
+	//  [c d]
+
+	pruner := make(map[T]bool)
+	for _, b := range bb {
+		pruner[b] = true
+	}
+
+	remain := make(map[T]bool)
+	for _, a := range aa {
+		if _, y := pruner[a]; !y {
+			remain[a] = true
+		}
+	}
+
+	var result []T
+	for r, _ := range remain {
+		result = append(result, r)
+	}
+	return result
+}
+
 // https://stackoverflow.com/questions/59579121/how-to-flatten-a-2d-slice-into-1d-slice
 
 func flatten[T any](lists [][]T) []T {
