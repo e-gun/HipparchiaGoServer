@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"sort"
 )
 
 // all functions in here should be run in order to prepare the core data
@@ -78,10 +79,49 @@ func workmapper() map[string]DbWork {
 
 // loadworksintoauthors - load all works in the workmap into the authormap WorkList
 func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[string]DbAuthor {
+	// https://stackoverflow.com/questions/32751537/why-do-i-get-a-cannot-assign-error-when-setting-value-to-a-struct-as-a-value-i
+	// the following does not work: aa[a].WorkList = append(aa[w.FindAuthor()].WorkList, w.UID)
+	// that means you have to rebuild the damn authormap unless you want to use pointers in DbAuthor: itself a hassle
+
+	// [1] build a map of {UID: WORKLIST...}
+	worklists := make(map[string][]string)
 	for _, w := range ww {
-		aa[w.FindAuthor()].AddWork(w.UID)
+		wk := w.UID
+		au := wk[0:6]
+		if _, y := worklists[au]; !y {
+			worklists[au] = []string{wk}
+		} else {
+			worklists[au] = append(worklists[au], wk)
+		}
 	}
-	return aa
+
+	// [2] decompose aa and rebuild but this time be in possession of all relevant data...
+	// [2a] find all keys and sort them
+	keys := make([]string, 0, len(aa))
+	for _, a := range aa {
+		keys = append(keys, a.UID)
+	}
+	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+	// fmt.Printf("wl %d vs al %d", len(worklists), len(keys))  : wl 3455 vs al 3455
+
+	// [2b] build a *slice* of []DbAuthor since we can's modify a.WorkList in a map version
+	asl := make([]DbAuthor, 0, len(keys))
+	for _, k := range keys {
+		asl = append(asl, aa[k])
+	}
+
+	// [2c] add the worklists to the slice
+	for i, _ := range keys {
+		asl[i].WorkList = worklists[asl[i].UID]
+	}
+
+	// [3] convert slice to map
+	na := make(map[string]DbAuthor)
+	for i, a := range asl {
+		na[a.UID] = asl[i]
+	}
+
+	return na
 }
 
 // dateworksviaauthors - if we do now know the date of a work, give it the date of the author

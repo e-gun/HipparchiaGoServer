@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // searchlistmanagement.py has:
@@ -41,9 +44,9 @@ func (i SearchInclusions) isEmpty() bool {
 	l := len(i.AuGenres) + len(i.WkGenres) + len(i.AuLocations) + len(i.WkLocations) + len(i.Authors)
 	l += len(i.Works) + len(i.Passages)
 	if l > 1 {
-		return true
-	} else {
 		return false
+	} else {
+		return true
 	}
 }
 
@@ -63,9 +66,9 @@ func (i SearchExclusions) isEmpty() bool {
 	l := len(i.AuGenres) + len(i.WkGenres) + len(i.AuLocations) + len(i.WkLocations) + len(i.Authors)
 	l += len(i.Works) + len(i.Passages)
 	if l > 1 {
-		return true
-	} else {
 		return false
+	} else {
+		return true
 	}
 }
 
@@ -80,16 +83,18 @@ func compilesearchlist(s Session, aa map[string]DbAuthor, ww map[string]DbWork) 
 
 	for k, v := range s.ActiveCorp {
 		for _, a := range aa {
-			if a.UID[0:3] == k && v == true {
+			if a.UID[0:2] == k && v == true {
 				auu[a.UID] = a
 			}
 		}
 		for _, w := range ww {
-			if w.UID[0:3] == k && v == true {
+			if w.UID[0:2] == k && v == true {
 				wkk[w.UID] = w
 			}
 		}
 	}
+
+	// fmt.Println(fmt.Sprintf("%s : %s", len(auu), len(wkk)))
 
 	incl := s.Inclusions
 	excl := s.Exclusions
@@ -105,7 +110,6 @@ func compilesearchlist(s Session, aa map[string]DbAuthor, ww map[string]DbWork) 
 				}
 			}
 		}
-
 		// [b2] work genres to include
 		for _, g := range incl.WkGenres {
 			for _, w := range wkk {
@@ -268,6 +272,7 @@ func compilesearchlist(s Session, aa map[string]DbAuthor, ww map[string]DbWork) 
 		searchlist = setsubtraction(searchlist, excludedworks)
 	}
 
+	// this is the moment when you know the total # of works searched
 	return searchlist
 }
 
@@ -316,8 +321,8 @@ func prunebydate(searchlist []string, incl SearchInclusions, wkk map[string]DbWo
 }
 
 func main() {
-	authormap := authormapper()
 	workmap := workmapper()
+	authormap := authormapper()
 	authormap = loadworksintoauthors(authormap, workmap)
 	workmap = dateworksviaauthors(authormap, workmap)
 
@@ -328,9 +333,9 @@ func main() {
 	c := make(map[string]bool)
 	c["gr"] = true
 	c["lt"] = true
-	c["dp"] = true
-	c["in"] = true
-	c["ch"] = true
+	c["dp"] = false
+	c["in"] = false
+	c["ch"] = false
 	s.ActiveCorp = c
 	i := s.Inclusions
 	i.Authors = []string{"lt0474", "lt0917"}
@@ -347,10 +352,83 @@ func main() {
 
 	sl := compilesearchlist(s, authormap, workmap)
 
+	sort.Slice(sl, func(i, j int) bool { return sl[i] < sl[j] })
 	fmt.Println(sl)
+	fmt.Println(len(sl))
 }
 
 // things needed to make "listmanagement.go" run on its own
+const (
+	VARIADATE   = 2000
+	INCERTADATE = 2500
+	MINDATE     = -850
+	MAXDATE     = 1500
+
+	MINBROWSERWIDTH = 90
+
+	// hipparchiaDB=# select * from gr0001 limit 0;
+	// index | wkuniversalid | level_05_value | level_04_value | level_03_value | level_02_value | level_01_value | level_00_value | marked_up_line | accented_line | stripped_line | hyphenated_words | annotations
+	//-------+---------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+---------------+---------------+------------------+-------------
+	//(0 rows)
+
+	WORLINETEMPLATE = `wkuniversalid,
+			index,
+			level_05_value,
+			level_04_value,
+			level_03_value,
+			level_02_value,
+			level_01_value,
+			level_00_value,
+			marked_up_line,
+			accented_line,
+			stripped_line,
+			hyphenated_words,
+			annotations`
+
+	// hipparchiaDB=# select * from authors limit 0;
+	// universalid | language | idxname | akaname | shortname | cleanname | genres | recorded_date | converted_date | location
+	//-------------+----------+---------+---------+-----------+-----------+--------+---------------+----------------+----------
+	//(0 rows)
+
+	AUTHORTEMPLATE = `
+			universalid,
+			language,
+			idxname,
+			akaname,
+			shortname,
+			cleanname,
+			genres,
+			recorded_date,
+			converted_date,
+			location`
+
+	// hipparchiaDB=# select * from works limit 0;
+	// universalid | title | language | publication_info | levellabels_00 | levellabels_01 | levellabels_02 | levellabels_03 | levellabels_04 | levellabels_05 | workgenre | transmission | worktype | provenance | recorded_date | converted_date | wordcount | firstline | lastline | authentic
+	//-------------+-------+----------+------------------+----------------+----------------+----------------+----------------+----------------+----------------+-----------+--------------+----------+------------+---------------+----------------+-----------+-----------+----------+-----------
+	//(0 rows)
+
+	WORKTEMPLATE = `
+		universalid,
+		title,
+		language,
+		publication_info,
+		levellabels_00,
+		levellabels_01,
+		levellabels_02,
+		levellabels_03,
+		levellabels_04,
+		levellabels_05,
+		workgenre,
+		transmission,
+		worktype,
+		provenance,
+		recorded_date,
+		converted_date,
+		wordcount,
+		firstline,
+		lastline,
+		authentic`
+)
 
 type DbAuthor struct {
 	UID       string
@@ -365,10 +443,6 @@ type DbAuthor struct {
 	Location  string
 	// beyond the DB starts here
 	WorkList []string
-}
-
-func (dba DbAuthor) AddWork(w string) {
-	dba.WorkList = append(dba.WorkList, w)
 }
 
 type DbWork struct {
@@ -425,13 +499,6 @@ func (dbw DbWork) DateInRange(b int64, a int64) bool {
 		return false
 	}
 }
-
-const (
-	VARIADATE   = 2000
-	INCERTADATE = 2500
-	MINDATE     = -850
-	MAXDATE     = 1500
-)
 
 // unique - return only the unique items from a slice
 func unique[T comparable](s []T) []T {
@@ -503,7 +570,6 @@ func authormapper() map[string]DbAuthor {
 	}
 
 	return authormap
-
 }
 
 // workmapper - build a map of all works keyed to the authorUID: map[string]DbWork
@@ -545,10 +611,48 @@ func workmapper() map[string]DbWork {
 
 // loadworksintoauthors - load all works in the workmap into the authormap WorkList
 func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[string]DbAuthor {
+	// https://stackoverflow.com/questions/32751537/why-do-i-get-a-cannot-assign-error-when-setting-value-to-a-struct-as-a-value-i
+	// so this does not work: aa[a].WorkList = append(aa[w.FindAuthor()].WorkList, w.UID)
+	// have to rebuild the damn authormap
+	// [1] build a map of {UID: WORKLIST...}
+	worklists := make(map[string][]string)
 	for _, w := range ww {
-		aa[w.FindAuthor()].AddWork(w.UID)
+		wk := w.UID
+		au := wk[0:6]
+		if _, y := worklists[au]; !y {
+			worklists[au] = []string{wk}
+		} else {
+			worklists[au] = append(worklists[au], wk)
+		}
 	}
-	return aa
+
+	// [2] decompose aa and rebuild but this time be in possession of all relevant data...
+	// [2a] find all keys and sort them
+	keys := make([]string, 0, len(aa))
+	for _, a := range aa {
+		keys = append(keys, a.UID)
+	}
+	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+	// fmt.Printf("wl %d vs al %d", len(worklists), len(keys))  : wl 3455 vs al 3455
+
+	// [2b] build a *slice* of []DbAuthor since we can's modify a.WorkList in a map version
+	asl := make([]DbAuthor, 0, len(keys))
+	for _, k := range keys {
+		asl = append(asl, aa[k])
+	}
+
+	// [2c] add the worklists to the slice
+	for i, _ := range keys {
+		asl[i].WorkList = worklists[asl[i].UID]
+	}
+
+	// [3] convert slice to map
+	na := make(map[string]DbAuthor)
+	for i, a := range asl {
+		na[a.UID] = asl[i]
+	}
+
+	return na
 }
 
 // dateworksviaauthors - if we do now know the date of a work, give it the date of the author
@@ -562,8 +666,13 @@ func dateworksviaauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[strin
 }
 
 func grabpgsqlconnection() *pgxpool.Pool {
-	pl := cfg.PGLogin
-
+	// pl := cfg.PGLogin
+	var pl PostgresLogin
+	pl.User = "hippa_wr"
+	pl.Pass = "8rnX8KBcbwvW8zH"
+	pl.Host = "localhost"
+	pl.Port = 5432
+	pl.DBName = "hipparchiaDB"
 	// using 'workers' was causing an m1 to choke when the worker count got high: no available connections to db
 	// panic: failed to connect to `host=localhost user=hippa_wr database=hipparchiaDB`: server error (FATAL: remaining connection slots are reserved for non-replication superuser connections (SQLSTATE 53300))
 	// workers := cfg.WorkerCount
@@ -593,6 +702,95 @@ func grabpgsqlconnection() *pgxpool.Pool {
 	msg(fmt.Sprintf("Connected to %s on PostgreSQL", pl.DBName), 4)
 
 	return pooledconnection
+}
+
+func checkerror(err error) {
+	if err != nil {
+		fmt.Println(fmt.Sprintf("UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE [%s v.%s]", myname, version))
+		panic(err)
+	}
+}
+
+func msg(message string, threshold int) {
+	if cfg.LogLevel >= threshold {
+		message = fmt.Sprintf("[%s] %s", shortname, message)
+		fmt.Println(message)
+	}
+}
+
+const (
+	myname          = "Hipparchia Golang Server"
+	shortname       = "HGS"
+	version         = "0.0.2"
+	tesquery        = "SELECT * FROM %s WHERE index BETWEEN %d and %d"
+	testdb          = "lt0448"
+	teststart       = 1
+	testend         = 26
+	linelength      = 72
+	pollinginterval = 333 * time.Millisecond
+	skipheadwords   = "unus verum omne sum¹ ab δύο πρότεροϲ ἄνθρωποϲ τίϲ δέω¹ ὅϲτιϲ homo πᾶϲ οὖν εἶπον ἠμί ἄν² tantus μένω μέγαϲ οὐ verus neque eo¹ nam μέν ἡμόϲ aut Sue διό reor ut ἐγώ is πωϲ ἐκάϲ enim ὅτι² παρά ἐν Ἔχιϲ sed ἐμόϲ οὐδόϲ ad de ita πηρόϲ οὗτοϲ an ἐπεί a γάρ αὐτοῦ ἐκεῖνοϲ ἀνά ἑαυτοῦ quam αὐτόϲε et ὑπό quidem Alius¹ οἷοϲ noster γίγνομαι ἄνα προϲάμβ ἄν¹ οὕτωϲ pro² tamen ἐάν atque τε qui² si multus idem οὐδέ ἐκ omnes γε δεῖ πολύϲ in ἔδω ὅτι¹ μή Ios ἕτεροϲ cum meus ὅλοξ suus omnis ὡϲ sua μετά Ἀλλά ne¹ jam εἰϲ ἤ² ἄναξ ἕ ὅϲοϲ dies ipse ὁ hic οὐδείϲ suo ἔτι ἄνω¹ ὅϲ νῦν ὁμοῖοϲ edo¹ εἰ qui¹ πάλιν ὥϲπερ ne³ ἵνα τιϲ διά φύω per τοιοῦτοϲ for eo² huc locum neo¹ sui non ἤ¹ χάω ex κατά δή ἁμόϲ ὅμοιοϲ αὐτόϲ etiam vaco πρόϲ Ζεύϲ ϲύ quis¹ tuus b εἷϲ Eos οὔτε τῇ καθά ego tu ille pro¹ ἀπό suum εἰμί ἄλλοϲ δέ alius² pars vel ὥϲτε χέω res ἡμέρα quo δέομαι modus ὑπέρ ϲόϲ ito τῷ περί Τήιοϲ ἕκαϲτοϲ autem καί ἐπί nos θεάω γάρον γάροϲ Cos²"
+	skipinflected   = "ἀρ ita a inquit ego die nunc nos quid πάντων ἤ με θεόν δεῖ for igitur ϲύν b uers p ϲου τῷ εἰϲ ergo ἐπ ὥϲτε sua me πρό sic aut nisi rem πάλιν ἡμῶν φηϲί παρά ἔϲτι αὐτῆϲ τότε eos αὐτούϲ λέγει cum τόν quidem ἐϲτιν posse αὐτόϲ post αὐτῶν libro m hanc οὐδέ fr πρῶτον μέν res ἐϲτι αὐτῷ οὐχ non ἐϲτί modo αὐτοῦ sine ad uero fuit τοῦ ἀπό ea ὅτι parte ἔχει οὔτε ὅταν αὐτήν esse sub τοῦτο i omnes break μή ἤδη ϲοι sibi at mihi τήν in de τούτου ab omnia ὃ ἦν γάρ οὐδέν quam per α autem eius item ὡϲ sint length οὗ eum ἀντί ex uel ἐπειδή re ei quo ἐξ δραχμαί αὐτό ἄρα ἔτουϲ ἀλλ οὐκ τά ὑπέρ τάϲ μάλιϲτα etiam haec nihil οὕτω siue nobis si itaque uac erat uestig εἶπεν ἔϲτιν tantum tam nec unde qua hoc quis iii ὥϲπερ semper εἶναι e ½ is quem τῆϲ ἐγώ καθ his θεοῦ tibi ubi pro ἄν πολλά τῇ πρόϲ l ἔϲται οὕτωϲ τό ἐφ ἡμῖν οἷϲ inter idem illa n se εἰ μόνον ac ἵνα ipse erit μετά μοι δι γε enim ille an sunt esset γίνεται omnibus ne ἐπί τούτοιϲ ὁμοίωϲ παρ causa neque cr ἐάν quos ταῦτα h ante ἐϲτίν ἣν αὐτόν eo ὧν ἐπεί οἷον sed ἀλλά ii ἡ t te ταῖϲ est sit cuius καί quasi ἀεί o τούτων ἐϲ quae τούϲ minus quia tamen iam d διά primum r τιϲ νῦν illud u apud c ἐκ δ quod f quoque tr τί ipsa rei hic οἱ illi et πῶϲ φηϲίν τοίνυν s magis unknown οὖν dum text μᾶλλον habet τοῖϲ qui αὐτοῖϲ suo πάντα uacat τίϲ pace ἔχειν οὐ κατά contra δύο ἔτι αἱ uet οὗτοϲ deinde id ut ὑπό τι lin ἄλλων τε tu ὁ cf δή potest ἐν eam tum μου nam θεόϲ κατ ὦ cui nomine περί atque δέ quibus ἡμᾶϲ τῶν eorum"
+	memoutputfile   = "mem_profiler_output.bin"
+	cpuoutputfile   = "cpu_profiler_output.bin"
+	browseauthor    = "gr0062"
+	browsework      = "028"
+	browseline      = 14672
+	browsecontext   = 4
+	lexword         = "καρποῦ"
+	lexauthor       = "gr0062"
+)
+
+var (
+	// functions will read cfg values instead of being fed parameters
+	cfg CurrentConfiguration
+)
+
+type CurrentConfiguration struct {
+	RedisKey        string
+	MaxHits         int64
+	WorkerCount     int
+	LogLevel        int
+	RedisInfo       string
+	PosgresInfo     string
+	BagMethod       string
+	SentPerBag      int
+	VectTestDB      string
+	VectStart       int
+	VectEnd         int
+	VSkipHW         string
+	VSkipInf        string
+	LexWord         string
+	LexAuth         string
+	BrowseAuthor    string
+	BrowseWork      string
+	BrowseFoundline int64
+	BrowseContext   int64
+	IsVectPtr       *bool
+	IsWSPtr         *bool
+	IsBrPtr         *bool
+	IsLexPtr        *bool
+	WSPort          int
+	WSFail          int
+	WSSave          int
+	ProfCPUPtr      *bool
+	ProfMemPtr      *bool
+	SendVersPtr     *bool
+	RLogin          RedisLogin
+	PGLogin         PostgresLogin
+}
+
+type RedisLogin struct {
+	Addr     string
+	Password string
+	DB       int
+}
+
+type PostgresLogin struct {
+	Host   string
+	Port   int
+	User   string
+	Pass   string
+	DBName string
 }
 
 // compilesearchlist() - searching[]: ['lt0474', 'lt0917', 'Apologetici', 'Doxographi', 'Eleg.', 'gr0032w002_FROM_11313_TO_11843', 'gr0062w001', 'Abdera']
