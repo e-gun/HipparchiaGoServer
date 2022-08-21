@@ -272,7 +272,16 @@ func compilesearchlist(s Session, aa map[string]DbAuthor, ww map[string]DbWork) 
 		searchlist = setsubtraction(searchlist, excludedworks)
 	}
 
-	// this is the moment when you know the total # of works searched
+	// flagexclusions: gr0001w001 becomes gr0001x001
+	if len(excl.Passages) > 0 {
+		searchlist = flagexclusions(searchlist, excl)
+	}
+
+	// this is the moment when you know the total # of locations searched: worth recording somewhere
+
+	// now we lose that info in the name of making the search quicker...
+	searchlist = calculatewholeauthorsearches(searchlist, auu)
+
 	return searchlist
 }
 
@@ -320,6 +329,55 @@ func prunebydate(searchlist []string, incl SearchInclusions, wkk map[string]DbWo
 	return searchlist
 }
 
+// flagexclusions: gr0001w001 becomes gr0001x001
+func flagexclusions(searchlist []string, excl SearchExclusions) []string {
+	var xlist []string
+	for _, item := range searchlist {
+		fmt.Println(item)
+		for _, x := range excl.Passages {
+			if strings.Contains(x, "_AT_") && strings.Contains(x, item) {
+				b := []byte(item)
+				b[6] = 'x'
+				xlist = append(xlist, string(b))
+			} else {
+				xlist = append(xlist, item)
+			}
+		}
+	}
+	// you might now have 3 copies of multiply excluded items
+	searchlist = unique(searchlist)
+	return searchlist
+}
+
+// calculatewholeauthorsearches - find all authors where 100% of works are requested in the searchlist
+func calculatewholeauthorsearches(sl []string, aa map[string]DbAuthor) []string {
+	// 	we have applied all of our inclusions and exclusions by this point and we might well be sitting on a pile of authorsandworks
+	//	that is really a pile of full author dbs. for example, imagine we have not excluded anything from 'Cicero'
+	//
+	//	there is no reason to search that DB work by work since that just means doing a series of "WHERE" searches
+	//	instead of a single, faster search of the whole thing: hits are turned into full citations via the info contained in the
+	//	hit itself and there is no need to derive the work from the item name sent to the dispatcher
+	//
+	//	this function will figure out if the list of work uids contains all of the works for an author and can accordingly be collapsed
+
+	// can use sets to figure this out:
+	// if len(set(sl) - set(allworksofa)) = len(sl) - len(allworksofa),
+	// then you had all of the works on the list
+
+	// need to make sure the exclusions are not a problem...
+	for _, s := range sl {
+		a := s[0:6]
+		wl := aa[a].WorkList
+		diff := setsubtraction(sl, wl)
+		if len(diff) == len(sl)-len(wl) {
+			// you selected all works; otherwise do not modify sl
+			// fmt.Printf("%s diff w/ %s\n", a, wl)
+			sl = append(diff, a)
+		}
+	}
+	return sl
+}
+
 func main() {
 	workmap := workmapper()
 	authormap := authormapper()
@@ -345,7 +403,7 @@ func main() {
 	i.Works = []string{"gr0062w001"}
 	i.AuLocations = []string{"Abdera"}
 	e := s.Exclusions
-	e.Works = []string{"lt0474w001"}
+	e.Works = []string{"lt0474w001_AT_3"}
 	e.Passages = []string{"lt0917w001_AT_3"}
 	s.Inclusions = i
 	s.Exclusions = e
@@ -358,6 +416,16 @@ func main() {
 }
 
 // things needed to make "listmanagement.go" run on its own
+
+func Contains[T comparable](sl []T, seek T) bool {
+	for _, v := range sl {
+		if v == seek {
+			return true
+		}
+	}
+	return false
+}
+
 const (
 	VARIADATE   = 2000
 	INCERTADATE = 2500

@@ -114,11 +114,20 @@ func setsubtraction[T comparable](aa []T, bb []T) []T {
 		}
 	}
 
-	var result []T
+	result := make([]T, 0, len(remain))
 	for r, _ := range remain {
 		result = append(result, r)
 	}
 	return result
+}
+
+func Contains[T comparable](sl []T, seek T) bool {
+	for _, v := range sl {
+		if v == seek {
+			return true
+		}
+	}
+	return false
 }
 
 // https://stackoverflow.com/questions/59579121/how-to-flatten-a-2d-slice-into-1d-slice
