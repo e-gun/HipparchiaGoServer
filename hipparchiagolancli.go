@@ -205,8 +205,8 @@ func main() {
 	if *cfg.IsTestPtr {
 		fmt.Println(versioninfo)
 		msg("Testing Run", 1)
-		t := AllAuthors["lt0474"].Cleaname
-		msg(t, 1)
+		test_selection()
+		// test_compilesearchlist()
 		return
 	}
 

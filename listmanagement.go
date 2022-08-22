@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/google/uuid"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -13,8 +14,8 @@ import (
 
 type Session struct {
 	ID         uuid.UUID
-	Inclusions SearchInclusions
-	Exclusions SearchExclusions
+	Inclusions SearchIncExl
+	Exclusions SearchIncExl
 	ActiveCorp map[string]bool
 	VariaOK    bool
 	IncertaOK  bool
@@ -27,18 +28,19 @@ type Session struct {
 	OutPutSettings bool
 }
 
-type SearchInclusions struct {
-	AuGenres    []string
-	WkGenres    []string
-	AuLocations []string
-	WkLocations []string
-	Authors     []string
-	Works       []string
-	Passages    []string
-	DateRange   [2]string
+type SearchIncExl struct {
+	AuGenres       []string
+	WkGenres       []string
+	AuLocations    []string
+	WkLocations    []string
+	Authors        []string
+	Works          []string
+	Passages       []string          // "lt0474_FROM_36136_TO_36151"
+	PassagesByName map[string]string // "lt0474_FROM_36136_TO_36151": "Cicero, Pro Caelio, section 1
+	DateRange      [2]string
 }
 
-func (i SearchInclusions) isEmpty() bool {
+func (i SearchIncExl) isEmpty() bool {
 	l := len(i.AuGenres) + len(i.WkGenres) + len(i.AuLocations) + len(i.WkLocations) + len(i.Authors)
 	l += len(i.Works) + len(i.Passages)
 	if l > 1 {
@@ -48,29 +50,8 @@ func (i SearchInclusions) isEmpty() bool {
 	}
 }
 
-type SearchExclusions struct {
-	AuGenres    []string
-	WkGenres    []string
-	AuLocations []string
-	WkLocations []string
-	Authors     []string
-	Works       []string
-	Passages    []string
-	// note that the following is not implemented
-	// DateRange   [2]string
-}
-
-func (i SearchExclusions) isEmpty() bool {
-	l := len(i.AuGenres) + len(i.WkGenres) + len(i.AuLocations) + len(i.WkLocations) + len(i.Authors)
-	l += len(i.Works) + len(i.Passages)
-	if l > 1 {
-		return false
-	} else {
-		return true
-	}
-}
-
-func compilesearchlist(s Session, aa map[string]DbAuthor, ww map[string]DbWork) []string {
+// compilesearchlist - converts the stored set of selections into a list of tables + works + passages
+func compilesearchlist(s Session) []string {
 
 	// note that we do all the initial stuff by adding WORKS to the list individually
 	var searchlist []string
@@ -80,12 +61,12 @@ func compilesearchlist(s Session, aa map[string]DbAuthor, ww map[string]DbWork) 
 	wkk := make(map[string]DbWork)
 
 	for k, v := range s.ActiveCorp {
-		for _, a := range aa {
+		for _, a := range AllAuthors {
 			if a.UID[0:2] == k && v == true {
 				auu[a.UID] = a
 			}
 		}
-		for _, w := range ww {
+		for _, w := range AllWorks {
 			if w.UID[0:2] == k && v == true {
 				wkk[w.UID] = w
 			}
@@ -284,7 +265,7 @@ func compilesearchlist(s Session, aa map[string]DbAuthor, ww map[string]DbWork) 
 }
 
 // prunebydate - drop items from searchlist if they are not inside the valid date range
-func prunebydate(searchlist []string, incl SearchInclusions, wkk map[string]DbWork, s Session) []string {
+func prunebydate(searchlist []string, incl SearchIncExl, wkk map[string]DbWork, s Session) []string {
 	// 'varia' and 'incerta' have special dates: incerta = 2500; varia = 2000
 	before, _ := strconv.Atoi(incl.DateRange[0])
 	after, _ := strconv.Atoi(incl.DateRange[1])
@@ -328,12 +309,11 @@ func prunebydate(searchlist []string, incl SearchInclusions, wkk map[string]DbWo
 }
 
 // flagexclusions: gr0001w001 becomes gr0001x001
-func flagexclusions(searchlist []string, excl SearchExclusions) []string {
+func flagexclusions(searchlist []string, excl SearchIncExl) []string {
 	var xlist []string
 	for _, item := range searchlist {
-		fmt.Println(item)
 		for _, x := range excl.Passages {
-			if strings.Contains(x, "_AT_") && strings.Contains(x, item) {
+			if strings.Contains(x, "_FROM_") && strings.Contains(x, item) {
 				b := []byte(item)
 				b[6] = 'x'
 				xlist = append(xlist, string(b))
@@ -376,489 +356,38 @@ func calculatewholeauthorsearches(sl []string, aa map[string]DbAuthor) []string 
 	return sl
 }
 
-//
-//func main() {
-//	workmap := workmapper()
-//	authormap := authormapper()
-//	authormap = loadworksintoauthors(authormap, workmap)
-//	workmap = dateworksviaauthors(authormap, workmap)
-//
-//	var s Session
-//	s.IncertaOK = true
-//	s.VariaOK = true
-//	s.SpuriaOK = true
-//	c := make(map[string]bool)
-//	c["gr"] = true
-//	c["lt"] = true
-//	c["dp"] = false
-//	c["in"] = false
-//	c["ch"] = false
-//	s.ActiveCorp = c
-//	i := s.Inclusions
-//	i.Authors = []string{"lt0474", "lt0917"}
-//	i.AuGenres = []string{"Apologetici", "Doxographi"}
-//	i.WkGenres = []string{"Eleg."}
-//	i.Passages = []string{"gr0032w002_FROM_11313_TO_11843"}
-//	i.Works = []string{"gr0062w001"}
-//	i.AuLocations = []string{"Abdera"}
-//	e := s.Exclusions
-//	e.Works = []string{"lt0474w001_AT_3"}
-//	e.Passages = []string{"lt0917w001_AT_3"}
-//	s.Inclusions = i
-//	s.Exclusions = e
-//
-//	sl := compilesearchlist(s, authormap, workmap)
-//
-//	sort.Slice(sl, func(i, j int) bool { return sl[i] < sl[j] })
-//	fmt.Println(sl)
-//	fmt.Println(len(sl))
-//}
+func test_compilesearchlist() {
+	fmt.Println("testing compilesearchlist()")
+	var s Session
+	s.IncertaOK = true
+	s.VariaOK = true
+	s.SpuriaOK = true
+	c := make(map[string]bool)
+	c["gr"] = true
+	c["lt"] = true
+	c["dp"] = false
+	c["in"] = false
+	c["ch"] = false
+	s.ActiveCorp = c
+	i := s.Inclusions
+	i.Authors = []string{"lt0474", "lt0917"}
+	i.AuGenres = []string{"Apologetici", "Doxographi"}
+	i.WkGenres = []string{"Eleg."}
+	i.Passages = []string{"gr0032w002_FROM_11313_TO_11843"}
+	i.Works = []string{"gr0062w001"}
+	i.AuLocations = []string{"Abdera"}
+	e := s.Exclusions
+	e.Works = []string{""}
+	e.Passages = []string{""}
+	s.Inclusions = i
+	s.Exclusions = e
 
-// things needed to make "listmanagement.go" run on its own
-//
-//func Contains[T comparable](sl []T, seek T) bool {
-//	for _, v := range sl {
-//		if v == seek {
-//			return true
-//		}
-//	}
-//	return false
-//}
-//
-//const (
-//	VARIADATE   = 2000
-//	INCERTADATE = 2500
-//	MINDATE     = -850
-//	MAXDATE     = 1500
-//
-//	MINBROWSERWIDTH = 90
-//
-//	// hipparchiaDB=# select * from gr0001 limit 0;
-//	// index | wkuniversalid | level_05_value | level_04_value | level_03_value | level_02_value | level_01_value | level_00_value | marked_up_line | accented_line | stripped_line | hyphenated_words | annotations
-//	//-------+---------------+----------------+----------------+----------------+----------------+----------------+----------------+----------------+---------------+---------------+------------------+-------------
-//	//(0 rows)
-//
-//	WORLINETEMPLATE = `wkuniversalid,
-//			index,
-//			level_05_value,
-//			level_04_value,
-//			level_03_value,
-//			level_02_value,
-//			level_01_value,
-//			level_00_value,
-//			marked_up_line,
-//			accented_line,
-//			stripped_line,
-//			hyphenated_words,
-//			annotations`
-//
-//	// hipparchiaDB=# select * from authors limit 0;
-//	// universalid | language | idxname | akaname | shortname | cleanname | genres | recorded_date | converted_date | location
-//	//-------------+----------+---------+---------+-----------+-----------+--------+---------------+----------------+----------
-//	//(0 rows)
-//
-//	AUTHORTEMPLATE = `
-//			universalid,
-//			language,
-//			idxname,
-//			akaname,
-//			shortname,
-//			cleanname,
-//			genres,
-//			recorded_date,
-//			converted_date,
-//			location`
-//
-//	// hipparchiaDB=# select * from works limit 0;
-//	// universalid | title | language | publication_info | levellabels_00 | levellabels_01 | levellabels_02 | levellabels_03 | levellabels_04 | levellabels_05 | workgenre | transmission | worktype | provenance | recorded_date | converted_date | wordcount | firstline | lastline | authentic
-//	//-------------+-------+----------+------------------+----------------+----------------+----------------+----------------+----------------+----------------+-----------+--------------+----------+------------+---------------+----------------+-----------+-----------+----------+-----------
-//	//(0 rows)
-//
-//	WORKTEMPLATE = `
-//		universalid,
-//		title,
-//		language,
-//		publication_info,
-//		levellabels_00,
-//		levellabels_01,
-//		levellabels_02,
-//		levellabels_03,
-//		levellabels_04,
-//		levellabels_05,
-//		workgenre,
-//		transmission,
-//		worktype,
-//		provenance,
-//		recorded_date,
-//		converted_date,
-//		wordcount,
-//		firstline,
-//		lastline,
-//		authentic`
-//)
-//
-//type DbAuthor struct {
-//	UID       string
-//	Language  string
-//	IDXname   string
-//	Name      string
-//	Shortname string
-//	Cleaname  string
-//	Genres    string
-//	RecDate   string
-//	ConvDate  int64
-//	Location  string
-//	// beyond the DB starts here
-//	WorkList []string
-//}
-//
-//type DbWork struct {
-//	UID       string
-//	Title     string
-//	Language  string
-//	Pub       string
-//	LL0       string
-//	LL1       string
-//	LL2       string
-//	LL3       string
-//	LL4       string
-//	LL5       string
-//	Genre     string
-//	Xmit      string
-//	Type      string
-//	Prov      string
-//	RecDate   string
-//	ConvDate  int64
-//	WdCount   int64
-//	FirstLine int64
-//	LastLine  int64
-//	Authentic bool
-//	// not in the DB, but derived: gr2017w068 --> 068
-//	WorkNum string
-//}
-//
-//func (dbw DbWork) FindWorknumber() string {
-//	// ex: gr2017w068
-//	return dbw.UID[7:]
-//}
-//
-//func (dbw DbWork) FindAuthor() string {
-//	// ex: gr2017w068
-//	return dbw.UID[:6]
-//}
-//
-//func (dbw DbWork) CitationFormat() []string {
-//	cf := []string{
-//		dbw.LL5,
-//		dbw.LL4,
-//		dbw.LL3,
-//		dbw.LL2,
-//		dbw.LL1,
-//		dbw.LL0,
-//	}
-//	return cf
-//}
-//
-//func (dbw DbWork) DateInRange(b int64, a int64) bool {
-//	if b <= dbw.ConvDate && dbw.ConvDate <= a {
-//		return true
-//	} else {
-//		return false
-//	}
-//}
-//
-//// unique - return only the unique items from a slice
-//func unique[T comparable](s []T) []T {
-//	// https://gosamples.dev/generics-remove-duplicates-slice/
-//	inResult := make(map[T]bool)
-//	var result []T
-//	for _, str := range s {
-//		if _, ok := inResult[str]; !ok {
-//			inResult[str] = true
-//			result = append(result, str)
-//		}
-//	}
-//	return result
-//}
-//
-//// setsubtraction - returns [](set(aa) - set(bb))
-//func setsubtraction[T comparable](aa []T, bb []T) []T {
-//	// 	aa := []string{"a", "b", "c", "d"}
-//	//	bb := []string{"a", "b", "e", "f"}
-//	//	dd := setsubtraction(aa, bb)
-//	//	fmt.Println(dd)
-//	//  [c d]
-//
-//	pruner := make(map[T]bool)
-//	for _, b := range bb {
-//		pruner[b] = true
-//	}
-//
-//	remain := make(map[T]bool)
-//	for _, a := range aa {
-//		if _, y := pruner[a]; !y {
-//			remain[a] = true
-//		}
-//	}
-//
-//	var result []T
-//	for r, _ := range remain {
-//		result = append(result, r)
-//	}
-//	return result
-//}
-//
-//// authormapper - build a map of all authors keyed to the authorUID: map[string]DbAuthor
-//func authormapper() map[string]DbAuthor {
-//	dbpool := grabpgsqlconnection()
-//	qt := "SELECT %s FROM authors ORDER by universalid ASC"
-//	q := fmt.Sprintf(qt, AUTHORTEMPLATE)
-//
-//	foundrows, err := dbpool.Query(context.Background(), q)
-//	checkerror(err)
-//
-//	var thefinds []DbAuthor
-//
-//	defer foundrows.Close()
-//	for foundrows.Next() {
-//		// fmt.Println(foundrows.Values())
-//		// this will die if <nil> comes back inside any of the columns: "cannot scan null into *string"
-//		// the builder should address this: fixing it here is less ideal
-//		var thehit DbAuthor
-//		err := foundrows.Scan(&thehit.UID, &thehit.Language, &thehit.IDXname, &thehit.Name, &thehit.Shortname,
-//			&thehit.Cleaname, &thehit.Genres, &thehit.RecDate, &thehit.ConvDate, &thehit.Location)
-//		checkerror(err)
-//		thefinds = append(thefinds, thehit)
-//	}
-//
-//	authormap := make(map[string]DbAuthor)
-//	for _, val := range thefinds {
-//		authormap[val.UID] = val
-//	}
-//
-//	return authormap
-//}
-//
-//// workmapper - build a map of all works keyed to the authorUID: map[string]DbWork
-//func workmapper() map[string]DbWork {
-//	dbpool := grabpgsqlconnection()
-//	qt := "SELECT %s FROM works"
-//	q := fmt.Sprintf(qt, WORKTEMPLATE)
-//
-//	foundrows, err := dbpool.Query(context.Background(), q)
-//	checkerror(err)
-//
-//	var thefinds []DbWork
-//
-//	defer foundrows.Close()
-//	for foundrows.Next() {
-//		// fmt.Println(foundrows.Values())
-//		// this will die if <nil> comes back inside any of the columns
-//		var thehit DbWork
-//		err := foundrows.Scan(&thehit.UID, &thehit.Title, &thehit.Language, &thehit.Pub, &thehit.LL0,
-//			&thehit.LL1, &thehit.LL2, &thehit.LL3, &thehit.LL4, &thehit.LL5, &thehit.Genre,
-//			&thehit.Xmit, &thehit.Type, &thehit.Prov, &thehit.RecDate, &thehit.ConvDate, &thehit.WdCount,
-//			&thehit.FirstLine, &thehit.LastLine, &thehit.Authentic)
-//		checkerror(err)
-//		thefinds = append(thefinds, thehit)
-//	}
-//
-//	for _, val := range thefinds {
-//		val.WorkNum = val.FindWorknumber()
-//	}
-//
-//	workmap := make(map[string]DbWork)
-//	for _, val := range thefinds {
-//		workmap[val.UID] = val
-//	}
-//
-//	return workmap
-//
-//}
-//
-//// loadworksintoauthors - load all works in the workmap into the authormap WorkList
-//func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[string]DbAuthor {
-//	// https://stackoverflow.com/questions/32751537/why-do-i-get-a-cannot-assign-error-when-setting-value-to-a-struct-as-a-value-i
-//	// so this does not work: aa[a].WorkList = append(aa[w.FindAuthor()].WorkList, w.UID)
-//	// have to rebuild the damn authormap
-//	// [1] build a map of {UID: WORKLIST...}
-//	worklists := make(map[string][]string)
-//	for _, w := range ww {
-//		wk := w.UID
-//		au := wk[0:6]
-//		if _, y := worklists[au]; !y {
-//			worklists[au] = []string{wk}
-//		} else {
-//			worklists[au] = append(worklists[au], wk)
-//		}
-//	}
-//
-//	// [2] decompose aa and rebuild but this time be in possession of all relevant data...
-//	// [2a] find all keys and sort them
-//	keys := make([]string, 0, len(aa))
-//	for _, a := range aa {
-//		keys = append(keys, a.UID)
-//	}
-//	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
-//	// fmt.Printf("wl %d vs al %d", len(worklists), len(keys))  : wl 3455 vs al 3455
-//
-//	// [2b] build a *slice* of []DbAuthor since we can's modify a.WorkList in a map version
-//	asl := make([]DbAuthor, 0, len(keys))
-//	for _, k := range keys {
-//		asl = append(asl, aa[k])
-//	}
-//
-//	// [2c] add the worklists to the slice
-//	for i, _ := range keys {
-//		asl[i].WorkList = worklists[asl[i].UID]
-//	}
-//
-//	// [3] convert slice to map
-//	na := make(map[string]DbAuthor)
-//	for i, a := range asl {
-//		na[a.UID] = asl[i]
-//	}
-//
-//	return na
-//}
-//
-//// dateworksviaauthors - if we do now know the date of a work, give it the date of the author
-//func dateworksviaauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[string]DbWork {
-//	for _, w := range ww {
-//		if w.ConvDate == 2500 && aa[w.FindAuthor()].ConvDate != 2500 {
-//			w.ConvDate = aa[w.FindAuthor()].ConvDate
-//		}
-//	}
-//	return ww
-//}
-//
-//func grabpgsqlconnection() *pgxpool.Pool {
-//	// pl := cfg.PGLogin
-//	var pl PostgresLogin
-//	pl.User = "hippa_wr"
-//	pl.Pass = "8rnX8KBcbwvW8zH"
-//	pl.Host = "localhost"
-//	pl.Port = 5432
-//	pl.DBName = "hipparchiaDB"
-//	// using 'workers' was causing an m1 to choke when the worker count got high: no available connections to db
-//	// panic: failed to connect to `host=localhost user=hippa_wr database=hipparchiaDB`: server error (FATAL: remaining connection slots are reserved for non-replication superuser connections (SQLSTATE 53300))
-//	// workers := cfg.WorkerCount
-//
-//	url := fmt.Sprintf("postgres://%s:%s@%s:%d/%s", pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName)
-//
-//	config, oops := pgxpool.ParseConfig(url)
-//	if oops != nil {
-//		msg(fmt.Sprintf("Could not execute pgxpool.ParseConfig(url) via %s", url), -1)
-//		panic(oops)
-//	}
-//
-//	// config.ConnConfig.PreferSimpleProtocol = true
-//	// config.MaxConns = int32(workers * 3)
-//	// config.MinConns = int32(workers + 2)
-//
-//	// the boring way if you don't want to go via pgxpool.ParseConfig(url)
-//	// pooledconnection, err := pgxpool.Connect(context.Background(), url)
-//
-//	pooledconnection, err := pgxpool.ConnectConfig(context.Background(), config)
-//
-//	if err != nil {
-//		msg(fmt.Sprintf("Could not connect to PostgreSQL via %s", url), -1)
-//		panic(err)
-//	}
-//
-//	msg(fmt.Sprintf("Connected to %s on PostgreSQL", pl.DBName), 4)
-//
-//	return pooledconnection
-//}
-//
-//func checkerror(err error) {
-//	if err != nil {
-//		fmt.Println(fmt.Sprintf("UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE [%s v.%s]", myname, version))
-//		panic(err)
-//	}
-//}
-//
-//func msg(message string, threshold int) {
-//	if cfg.LogLevel >= threshold {
-//		message = fmt.Sprintf("[%s] %s", shortname, message)
-//		fmt.Println(message)
-//	}
-//}
-//
-//const (
-//	myname          = "Hipparchia Golang Server"
-//	shortname       = "HGS"
-//	version         = "0.0.2"
-//	tesquery        = "SELECT * FROM %s WHERE index BETWEEN %d and %d"
-//	testdb          = "lt0448"
-//	teststart       = 1
-//	testend         = 26
-//	linelength      = 72
-//	pollinginterval = 333 * time.Millisecond
-//	skipheadwords   = "unus verum omne sum¹ ab δύο πρότεροϲ ἄνθρωποϲ τίϲ δέω¹ ὅϲτιϲ homo πᾶϲ οὖν εἶπον ἠμί ἄν² tantus μένω μέγαϲ οὐ verus neque eo¹ nam μέν ἡμόϲ aut Sue διό reor ut ἐγώ is πωϲ ἐκάϲ enim ὅτι² παρά ἐν Ἔχιϲ sed ἐμόϲ οὐδόϲ ad de ita πηρόϲ οὗτοϲ an ἐπεί a γάρ αὐτοῦ ἐκεῖνοϲ ἀνά ἑαυτοῦ quam αὐτόϲε et ὑπό quidem Alius¹ οἷοϲ noster γίγνομαι ἄνα προϲάμβ ἄν¹ οὕτωϲ pro² tamen ἐάν atque τε qui² si multus idem οὐδέ ἐκ omnes γε δεῖ πολύϲ in ἔδω ὅτι¹ μή Ios ἕτεροϲ cum meus ὅλοξ suus omnis ὡϲ sua μετά Ἀλλά ne¹ jam εἰϲ ἤ² ἄναξ ἕ ὅϲοϲ dies ipse ὁ hic οὐδείϲ suo ἔτι ἄνω¹ ὅϲ νῦν ὁμοῖοϲ edo¹ εἰ qui¹ πάλιν ὥϲπερ ne³ ἵνα τιϲ διά φύω per τοιοῦτοϲ for eo² huc locum neo¹ sui non ἤ¹ χάω ex κατά δή ἁμόϲ ὅμοιοϲ αὐτόϲ etiam vaco πρόϲ Ζεύϲ ϲύ quis¹ tuus b εἷϲ Eos οὔτε τῇ καθά ego tu ille pro¹ ἀπό suum εἰμί ἄλλοϲ δέ alius² pars vel ὥϲτε χέω res ἡμέρα quo δέομαι modus ὑπέρ ϲόϲ ito τῷ περί Τήιοϲ ἕκαϲτοϲ autem καί ἐπί nos θεάω γάρον γάροϲ Cos²"
-//	skipinflected   = "ἀρ ita a inquit ego die nunc nos quid πάντων ἤ με θεόν δεῖ for igitur ϲύν b uers p ϲου τῷ εἰϲ ergo ἐπ ὥϲτε sua me πρό sic aut nisi rem πάλιν ἡμῶν φηϲί παρά ἔϲτι αὐτῆϲ τότε eos αὐτούϲ λέγει cum τόν quidem ἐϲτιν posse αὐτόϲ post αὐτῶν libro m hanc οὐδέ fr πρῶτον μέν res ἐϲτι αὐτῷ οὐχ non ἐϲτί modo αὐτοῦ sine ad uero fuit τοῦ ἀπό ea ὅτι parte ἔχει οὔτε ὅταν αὐτήν esse sub τοῦτο i omnes break μή ἤδη ϲοι sibi at mihi τήν in de τούτου ab omnia ὃ ἦν γάρ οὐδέν quam per α autem eius item ὡϲ sint length οὗ eum ἀντί ex uel ἐπειδή re ei quo ἐξ δραχμαί αὐτό ἄρα ἔτουϲ ἀλλ οὐκ τά ὑπέρ τάϲ μάλιϲτα etiam haec nihil οὕτω siue nobis si itaque uac erat uestig εἶπεν ἔϲτιν tantum tam nec unde qua hoc quis iii ὥϲπερ semper εἶναι e ½ is quem τῆϲ ἐγώ καθ his θεοῦ tibi ubi pro ἄν πολλά τῇ πρόϲ l ἔϲται οὕτωϲ τό ἐφ ἡμῖν οἷϲ inter idem illa n se εἰ μόνον ac ἵνα ipse erit μετά μοι δι γε enim ille an sunt esset γίνεται omnibus ne ἐπί τούτοιϲ ὁμοίωϲ παρ causa neque cr ἐάν quos ταῦτα h ante ἐϲτίν ἣν αὐτόν eo ὧν ἐπεί οἷον sed ἀλλά ii ἡ t te ταῖϲ est sit cuius καί quasi ἀεί o τούτων ἐϲ quae τούϲ minus quia tamen iam d διά primum r τιϲ νῦν illud u apud c ἐκ δ quod f quoque tr τί ipsa rei hic οἱ illi et πῶϲ φηϲίν τοίνυν s magis unknown οὖν dum text μᾶλλον habet τοῖϲ qui αὐτοῖϲ suo πάντα uacat τίϲ pace ἔχειν οὐ κατά contra δύο ἔτι αἱ uet οὗτοϲ deinde id ut ὑπό τι lin ἄλλων τε tu ὁ cf δή potest ἐν eam tum μου nam θεόϲ κατ ὦ cui nomine περί atque δέ quibus ἡμᾶϲ τῶν eorum"
-//	memoutputfile   = "mem_profiler_output.bin"
-//	cpuoutputfile   = "cpu_profiler_output.bin"
-//	browseauthor    = "gr0062"
-//	browsework      = "028"
-//	browseline      = 14672
-//	browsecontext   = 4
-//	lexword         = "καρποῦ"
-//	lexauthor       = "gr0062"
-//)
-//
-//var (
-//	// functions will read cfg values instead of being fed parameters
-//	cfg CurrentConfiguration
-//)
-//
-//type CurrentConfiguration struct {
-//	RedisKey        string
-//	MaxHits         int64
-//	WorkerCount     int
-//	LogLevel        int
-//	RedisInfo       string
-//	PosgresInfo     string
-//	BagMethod       string
-//	SentPerBag      int
-//	VectTestDB      string
-//	VectStart       int
-//	VectEnd         int
-//	VSkipHW         string
-//	VSkipInf        string
-//	LexWord         string
-//	LexAuth         string
-//	BrowseAuthor    string
-//	BrowseWork      string
-//	BrowseFoundline int64
-//	BrowseContext   int64
-//	IsVectPtr       *bool
-//	IsWSPtr         *bool
-//	IsBrPtr         *bool
-//	IsLexPtr        *bool
-//	WSPort          int
-//	WSFail          int
-//	WSSave          int
-//	ProfCPUPtr      *bool
-//	ProfMemPtr      *bool
-//	SendVersPtr     *bool
-//	RLogin          RedisLogin
-//	PGLogin         PostgresLogin
-//}
-//
-//type RedisLogin struct {
-//	Addr     string
-//	Password string
-//	DB       int
-//}
-//
-//type PostgresLogin struct {
-//	Host   string
-//	Port   int
-//	User   string
-//	Pass   string
-//	DBName string
-//}
+	sl := compilesearchlist(s)
+
+	sort.Slice(sl, func(i, j int) bool { return sl[i] < sl[j] })
+	fmt.Println(sl)
+	fmt.Println(len(sl))
+}
 
 // compilesearchlist() - searching[]: ['lt0474', 'lt0917', 'Apologetici', 'Doxographi', 'Eleg.', 'gr0032w002_FROM_11313_TO_11843', 'gr0062w001', 'Abdera']
 // compilesearchlist() - excluding[]: ['lt0474w001', 'lt0917w001_AT_3']
