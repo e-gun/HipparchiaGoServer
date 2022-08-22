@@ -6,6 +6,95 @@ import (
 	"sort"
 )
 
+var (
+	AllWorks   = workmapper()
+	AllAuthors = loadworksintoauthors(authormapper(), AllWorks)
+)
+
+type DbAuthor struct {
+	UID       string
+	Language  string
+	IDXname   string
+	Name      string
+	Shortname string
+	Cleaname  string
+	Genres    string
+	RecDate   string
+	ConvDate  int64
+	Location  string
+	// beyond the DB starts here
+	WorkList []string
+}
+
+func (dba DbAuthor) AddWork(w string) {
+	dba.WorkList = append(dba.WorkList, w)
+}
+
+type DbWork struct {
+	UID       string
+	Title     string
+	Language  string
+	Pub       string
+	LL0       string
+	LL1       string
+	LL2       string
+	LL3       string
+	LL4       string
+	LL5       string
+	Genre     string
+	Xmit      string
+	Type      string
+	Prov      string
+	RecDate   string
+	ConvDate  int64
+	WdCount   int64
+	FirstLine int64
+	LastLine  int64
+	Authentic bool
+	// not in the DB, but derived: gr2017w068 --> 068
+	WorkNum string
+}
+
+func (dbw DbWork) FindWorknumber() string {
+	// ex: gr2017w068
+	return dbw.UID[7:]
+}
+
+func (dbw DbWork) FindAuthor() string {
+	// ex: gr2017w068
+	return dbw.UID[:6]
+}
+
+func (dbw DbWork) CitationFormat() []string {
+	cf := []string{
+		dbw.LL5,
+		dbw.LL4,
+		dbw.LL3,
+		dbw.LL2,
+		dbw.LL1,
+		dbw.LL0,
+	}
+	return cf
+}
+
+func (dbw DbWork) CountLevels() int {
+	ll := 0
+	for _, l := range []string{dbw.LL5, dbw.LL4, dbw.LL3, dbw.LL2, dbw.LL1, dbw.LL0} {
+		if len(l) > 0 {
+			ll += 1
+		}
+	}
+	return ll
+}
+
+func (dbw DbWork) DateInRange(b int64, a int64) bool {
+	if b <= dbw.ConvDate && dbw.ConvDate <= a {
+		return true
+	} else {
+		return false
+	}
+}
+
 // all functions in here should be run in order to prepare the core data
 
 // authormapper - build a map of all authors keyed to the authorUID: map[string]DbAuthor

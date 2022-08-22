@@ -287,32 +287,6 @@ func configatstartup() {
 }
 
 //
-// PYTHON MODULE AUTHENTICATION
-//
-
-// NewRedisLogin: Generate new redis credentials (for module use only)
-func NewRedisLogin(ad string, pw string, db int) *RedisLogin {
-	// this is code that the python module version will use for authenticating
-	return &RedisLogin{
-		Addr:     ad,
-		Password: pw,
-		DB:       db,
-	}
-}
-
-// NewPostgresLogin: Generate new postgres credentials (for module use only)
-func NewPostgresLogin(ho string, po int, us string, pw string, db string) *PostgresLogin {
-	// this is code that the python module version will use for authenticating
-	return &PostgresLogin{
-		Host:   ho,
-		Port:   po,
-		User:   us,
-		Pass:   pw,
-		DBName: db,
-	}
-}
-
-//
 // GENERAL AUTHENTICATION
 //
 
