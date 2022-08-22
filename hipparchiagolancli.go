@@ -92,7 +92,7 @@ import (
 const (
 	myname          = "Hipparchia Golang Server"
 	shortname       = "HGS"
-	version         = "0.0.2"
+	version         = "0.0.3"
 	tesquery        = "SELECT * FROM %s WHERE index BETWEEN %d and %d"
 	testdb          = "lt0448"
 	teststart       = 1
@@ -109,6 +109,12 @@ const (
 	browsecontext   = 4
 	lexword         = "καρποῦ"
 	lexauthor       = "gr0062"
+	RP              = `{"Addr": "localhost:6379", "Password": "", "DB": 0}`
+	PSQ             = `{"Host": "localhost", "Port": 5432, "User": "hippa_wr", "Pass": "", "DBName": "hipparchiaDB"}`
+	PSDefaultHost   = "localhost"
+	PSDefaultUser   = "hippa_wr"
+	PSDefaultPort   = 5432
+	PSDefaultDB     = "hipparchiaDB"
 )
 
 var (
@@ -116,15 +122,53 @@ var (
 	cfg CurrentConfiguration
 )
 
-//
-// see THEGRABBER.GO, THEVECTORS.GO, and THEWEBSOCKETS.GO for the basic branches of HipparchiaGoDBHelper
-//
+type CurrentConfiguration struct {
+	RedisKey        string
+	MaxHits         int64
+	WorkerCount     int
+	LogLevel        int
+	RedisInfo       string
+	PosgresInfo     string
+	BagMethod       string
+	SentPerBag      int
+	VectTestDB      string
+	VectStart       int
+	VectEnd         int
+	VSkipHW         string
+	VSkipInf        string
+	LexWord         string
+	LexAuth         string
+	BrowseAuthor    string
+	BrowseWork      string
+	TestV1          string
+	TestV2          string
+	TestV3          string
+	PSQP            string
+	BrowseFoundline int64
+	BrowseContext   int64
+	IsVectPtr       *bool
+	IsWSPtr         *bool
+	IsBrPtr         *bool
+	IsLexPtr        *bool
+	IsTestPtr       *bool
+	WSPort          int
+	WSFail          int
+	WSSave          int
+	ProfCPUPtr      *bool
+	ProfMemPtr      *bool
+	SendVersPtr     *bool
+	RLogin          RedisLogin
+	PGLogin         PostgresLogin
+}
 
 func main() {
 
 	versioninfo := fmt.Sprintf("%s CLI Debugging Interface (v.%s)", myname, version)
 
-	configatstartup()
+	// grabpgsqlconnection() needs cfg; it is run before main(); so it calls configatstartup()
+	// and re-config will produce "flag redefined" errors
+
+	// configatstartup()
 
 	if *cfg.ProfCPUPtr {
 		b := cpuoutputfile
@@ -156,6 +200,15 @@ func main() {
 	}
 	cfg.RLogin = decoderedislogin([]byte(cfg.RedisInfo))
 	cfg.PGLogin = decodepsqllogin([]byte(cfg.PosgresInfo))
+
+	// test a function
+	if *cfg.IsTestPtr {
+		fmt.Println(versioninfo)
+		msg("Testing Run", 1)
+		t := AllAuthors["lt0474"].Cleaname
+		msg(t, 1)
+		return
+	}
 
 	if *cfg.IsBrPtr || *cfg.IsLexPtr {
 		// don't want to see version info: confuses our json
@@ -225,15 +278,17 @@ func configatstartup() {
 	// without providing valid credentials to the binary, but if you do you must pass them and your credentials will be
 	// visible to a "ps aux | grep ..."; but a hard-coded binary is not so good if you are going to share it...
 
-	const (
-		RP  = `{"Addr": "localhost:6379", "Password": "", "DB": 0}`
-		PSQ = `{"Host": "localhost", "Port": 5432, "User": "hippa_wr", "Pass": "", "DBName": "hipparchiaDB"}`
-	)
+	// testing flags
+	cfg.IsTestPtr = flag.Bool("tt", false, "[testing] assert that this is a testing run")
+	flag.StringVar(&cfg.TestV1, "t1", "", "[testing] parameter 1")
+	flag.StringVar(&cfg.TestV2, "t2", "", "[testing] parameter 2")
+	flag.StringVar(&cfg.TestV3, "t3", "", "[testing] parameter 3")
+	flag.StringVar(&cfg.PSQP, "psqp", "", "[testing] PSQL Password")
 
 	flag.StringVar(&cfg.RedisKey, "k", "", "[searches] redis key to use")
 	flag.Int64Var(&cfg.MaxHits, "c", 200, "[searches] max hit count")
 	flag.IntVar(&cfg.WorkerCount, "t", 5, "[common] number of goroutines to dispatch")
-	flag.IntVar(&cfg.LogLevel, "l", 1, "[common] logging level: 0 is silent; 5 is very noisy")
+	flag.IntVar(&cfg.LogLevel, "l", 3, "[common] logging level: 0 is silent; 5 is very noisy")
 	flag.StringVar(&cfg.RedisInfo, "r", RP, "[common] redis logon information (as a JSON string)")
 	flag.StringVar(&cfg.PosgresInfo, "p", PSQ, "[common] psql logon information (as a JSON string)")
 

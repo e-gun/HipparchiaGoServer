@@ -119,7 +119,7 @@ func selected(sv SelectValues, s Session) Session {
 
 	if sv.AWP() {
 		// [2]int64 comes back: first and last lines found via the query
-		b := findlinefromlocus(sv.WUID(), sv.Start)
+		b := findendpointsfromlocus(sv.WUID(), sv.Start)
 		t := `%s_FROM_%d_TO_%d`
 		i := fmt.Sprintf(t, sv.Auth, b[0], b[1])
 		if !sv.Excl {
@@ -131,8 +131,8 @@ func selected(sv SelectValues, s Session) Session {
 
 	if sv.AWPR() {
 		// [2]int64 comes back: first and last lines found via the query
-		b := findlinefromlocus(sv.WUID(), sv.Start)
-		e := findlinefromlocus(sv.WUID(), sv.End)
+		b := findendpointsfromlocus(sv.WUID(), sv.Start)
+		e := findendpointsfromlocus(sv.WUID(), sv.End)
 		t := `%s_FROM_%d_TO_%d`
 		i := fmt.Sprintf(t, sv.Auth, b[0], e[1])
 		if !sv.Excl {
@@ -206,7 +206,7 @@ func rationalizeselections() {
 
 }
 
-func findlinefromlocus(wuid string, locus string) [2]int64 {
+func findendpointsfromlocus(wuid string, locus string) [2]int64 {
 	fl := [2]int64{0, 0}
 	wk := AllWorks[wuid]
 
@@ -241,7 +241,7 @@ func findlinefromlocus(wuid string, locus string) [2]int64 {
 	}
 
 	a := strings.Join(use, " AND ")
-	q := fmt.Sprintf(qt, tb, wk, a)
+	q := fmt.Sprintf(qt, tb, wuid, a)
 
 	foundrows, err := dbpool.Query(context.Background(), q)
 	checkerror(err)
@@ -250,9 +250,6 @@ func findlinefromlocus(wuid string, locus string) [2]int64 {
 
 	defer foundrows.Close()
 	for foundrows.Next() {
-		// fmt.Println(foundrows.Values())
-		// this will die if <nil> comes back inside any of the columns: "cannot scan null into *string"
-		// the builder should address this: fixing it here is less ideal
 		var thehit int64
 		err := foundrows.Scan(&thehit)
 		checkerror(err)

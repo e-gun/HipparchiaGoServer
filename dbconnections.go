@@ -11,6 +11,20 @@ import (
 	"time"
 )
 
+type RedisLogin struct {
+	Addr     string
+	Password string
+	DB       int
+}
+
+type PostgresLogin struct {
+	Host   string
+	Port   int
+	User   string
+	Pass   string
+	DBName string
+}
+
 var (
 	RedisPool *redis.Pool
 )
@@ -86,7 +100,23 @@ func rcpopstr(c redis.Conn, k string) string {
 //
 
 func grabpgsqlconnection() *pgxpool.Pool {
-	pl := cfg.PGLogin
+	var pl PostgresLogin
+
+	if cfg.PGLogin.DBName == "" {
+		// grabpgsqlconnection() will be called before main() and so before configatstartup()
+		// workmapper() in initialization.go does this
+		// avoid: "flag redefined: psqp"
+		//flag.StringVar(&cfg.PSQP, "psqp", "", "[testing] PSQL Password")
+		configatstartup()
+		cfg.PGLogin.Port = PSDefaultPort
+		cfg.PGLogin.Pass = cfg.PSQP
+		cfg.PGLogin.User = PSDefaultUser
+		cfg.PGLogin.DBName = PSDefaultDB
+		cfg.PGLogin.Host = PSDefaultHost
+		pl = cfg.PGLogin
+	} else {
+		pl = cfg.PGLogin
+	}
 
 	// using 'workers' was causing an m1 to choke when the worker count got high: no available connections to db
 	// panic: failed to connect to `host=localhost user=hippa_wr database=hipparchiaDB`: server error (FATAL: remaining connection slots are reserved for non-replication superuser connections (SQLSTATE 53300))

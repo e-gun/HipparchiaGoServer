@@ -71,20 +71,6 @@ type DbLexicon struct {
 	Entry    string
 }
 
-type RedisLogin struct {
-	Addr     string
-	Password string
-	DB       int
-}
-
-type PostgresLogin struct {
-	Host   string
-	Port   int
-	User   string
-	Pass   string
-	DBName string
-}
-
 // https://golangbyexample.com/sort-custom-struct-collection-golang/
 type WeightedHeadword struct {
 	Word  string
@@ -150,38 +136,4 @@ type BrowsedPassage struct {
 	Authorboxcontents string `json:"authorboxcontents"`
 	Workboxcontents   string `json:"workboxcontents"`
 	Browserhtml       string `json:"browserhtml"`
-}
-
-type CurrentConfiguration struct {
-	RedisKey        string
-	MaxHits         int64
-	WorkerCount     int
-	LogLevel        int
-	RedisInfo       string
-	PosgresInfo     string
-	BagMethod       string
-	SentPerBag      int
-	VectTestDB      string
-	VectStart       int
-	VectEnd         int
-	VSkipHW         string
-	VSkipInf        string
-	LexWord         string
-	LexAuth         string
-	BrowseAuthor    string
-	BrowseWork      string
-	BrowseFoundline int64
-	BrowseContext   int64
-	IsVectPtr       *bool
-	IsWSPtr         *bool
-	IsBrPtr         *bool
-	IsLexPtr        *bool
-	WSPort          int
-	WSFail          int
-	WSSave          int
-	ProfCPUPtr      *bool
-	ProfMemPtr      *bool
-	SendVersPtr     *bool
-	RLogin          RedisLogin
-	PGLogin         PostgresLogin
 }

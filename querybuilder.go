@@ -40,7 +40,8 @@ type TempSQL struct {
 // [b] subqueryphrasesearching
 
 func searchlistintoqueries(sl []string) []PrerolledQuery {
-
+	var prq []PrerolledQuery
+	return prq
 }
 
 func configurewhereclausedata(sl []string, ww map[string]DbWork) {

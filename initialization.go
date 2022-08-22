@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"time"
 )
 
 var (
@@ -97,40 +98,10 @@ func (dbw DbWork) DateInRange(b int64, a int64) bool {
 
 // all functions in here should be run in order to prepare the core data
 
-// authormapper - build a map of all authors keyed to the authorUID: map[string]DbAuthor
-func authormapper() map[string]DbAuthor {
-	dbpool := grabpgsqlconnection()
-	qt := "SELECT %s FROM authors ORDER by universalid ASC"
-	q := fmt.Sprintf(qt, AUTHORTEMPLATE)
-
-	foundrows, err := dbpool.Query(context.Background(), q)
-	checkerror(err)
-
-	var thefinds []DbAuthor
-
-	defer foundrows.Close()
-	for foundrows.Next() {
-		// fmt.Println(foundrows.Values())
-		// this will die if <nil> comes back inside any of the columns: "cannot scan null into *string"
-		// the builder should address this: fixing it here is less ideal
-		var thehit DbAuthor
-		err := foundrows.Scan(&thehit.UID, &thehit.Language, &thehit.IDXname, &thehit.Name, &thehit.Shortname,
-			&thehit.Cleaname, &thehit.Genres, &thehit.RecDate, &thehit.ConvDate, &thehit.Location)
-		checkerror(err)
-		thefinds = append(thefinds, thehit)
-	}
-
-	authormap := make(map[string]DbAuthor)
-	for _, val := range thefinds {
-		authormap[val.UID] = val
-	}
-
-	return authormap
-
-}
-
 // workmapper - build a map of all works keyed to the authorUID: map[string]DbWork
 func workmapper() map[string]DbWork {
+	start := time.Now()
+	previous := time.Now()
 	dbpool := grabpgsqlconnection()
 	qt := "SELECT %s FROM works"
 	q := fmt.Sprintf(qt, WORKTEMPLATE)
@@ -161,13 +132,50 @@ func workmapper() map[string]DbWork {
 	for _, val := range thefinds {
 		workmap[val.UID] = val
 	}
-
+	timetracker("A", "works built: map[string]DbWork", start, previous)
 	return workmap
+
+}
+
+// authormapper - build a map of all authors keyed to the authorUID: map[string]DbAuthor
+func authormapper() map[string]DbAuthor {
+	start := time.Now()
+	previous := time.Now()
+
+	dbpool := grabpgsqlconnection()
+	qt := "SELECT %s FROM authors ORDER by universalid ASC"
+	q := fmt.Sprintf(qt, AUTHORTEMPLATE)
+
+	foundrows, err := dbpool.Query(context.Background(), q)
+	checkerror(err)
+
+	var thefinds []DbAuthor
+
+	defer foundrows.Close()
+	for foundrows.Next() {
+		// fmt.Println(foundrows.Values())
+		// this will die if <nil> comes back inside any of the columns: "cannot scan null into *string"
+		// the builder should address this: fixing it here is less ideal
+		var thehit DbAuthor
+		err := foundrows.Scan(&thehit.UID, &thehit.Language, &thehit.IDXname, &thehit.Name, &thehit.Shortname,
+			&thehit.Cleaname, &thehit.Genres, &thehit.RecDate, &thehit.ConvDate, &thehit.Location)
+		checkerror(err)
+		thefinds = append(thefinds, thehit)
+	}
+
+	authormap := make(map[string]DbAuthor)
+	for _, val := range thefinds {
+		authormap[val.UID] = val
+	}
+	timetracker("B", "authors built: map[string]DbAuthor", start, previous)
+	return authormap
 
 }
 
 // loadworksintoauthors - load all works in the workmap into the authormap WorkList
 func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[string]DbAuthor {
+	start := time.Now()
+	previous := time.Now()
 	// https://stackoverflow.com/questions/32751537/why-do-i-get-a-cannot-assign-error-when-setting-value-to-a-struct-as-a-value-i
 	// the following does not work: aa[a].WorkList = append(aa[w.FindAuthor()].WorkList, w.UID)
 	// that means you have to rebuild the damn authormap unless you want to use pointers in DbAuthor: itself a hassle
@@ -209,7 +217,7 @@ func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[stri
 	for i, a := range asl {
 		na[a.UID] = asl[i]
 	}
-
+	timetracker("C", "works loaded into authors: map[string]DbAuthor", start, previous)
 	return na
 }
 

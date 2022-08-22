@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/google/uuid"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -377,42 +376,43 @@ func calculatewholeauthorsearches(sl []string, aa map[string]DbAuthor) []string 
 	return sl
 }
 
-func main() {
-	workmap := workmapper()
-	authormap := authormapper()
-	authormap = loadworksintoauthors(authormap, workmap)
-	workmap = dateworksviaauthors(authormap, workmap)
-
-	var s Session
-	s.IncertaOK = true
-	s.VariaOK = true
-	s.SpuriaOK = true
-	c := make(map[string]bool)
-	c["gr"] = true
-	c["lt"] = true
-	c["dp"] = false
-	c["in"] = false
-	c["ch"] = false
-	s.ActiveCorp = c
-	i := s.Inclusions
-	i.Authors = []string{"lt0474", "lt0917"}
-	i.AuGenres = []string{"Apologetici", "Doxographi"}
-	i.WkGenres = []string{"Eleg."}
-	i.Passages = []string{"gr0032w002_FROM_11313_TO_11843"}
-	i.Works = []string{"gr0062w001"}
-	i.AuLocations = []string{"Abdera"}
-	e := s.Exclusions
-	e.Works = []string{"lt0474w001_AT_3"}
-	e.Passages = []string{"lt0917w001_AT_3"}
-	s.Inclusions = i
-	s.Exclusions = e
-
-	sl := compilesearchlist(s, authormap, workmap)
-
-	sort.Slice(sl, func(i, j int) bool { return sl[i] < sl[j] })
-	fmt.Println(sl)
-	fmt.Println(len(sl))
-}
+//
+//func main() {
+//	workmap := workmapper()
+//	authormap := authormapper()
+//	authormap = loadworksintoauthors(authormap, workmap)
+//	workmap = dateworksviaauthors(authormap, workmap)
+//
+//	var s Session
+//	s.IncertaOK = true
+//	s.VariaOK = true
+//	s.SpuriaOK = true
+//	c := make(map[string]bool)
+//	c["gr"] = true
+//	c["lt"] = true
+//	c["dp"] = false
+//	c["in"] = false
+//	c["ch"] = false
+//	s.ActiveCorp = c
+//	i := s.Inclusions
+//	i.Authors = []string{"lt0474", "lt0917"}
+//	i.AuGenres = []string{"Apologetici", "Doxographi"}
+//	i.WkGenres = []string{"Eleg."}
+//	i.Passages = []string{"gr0032w002_FROM_11313_TO_11843"}
+//	i.Works = []string{"gr0062w001"}
+//	i.AuLocations = []string{"Abdera"}
+//	e := s.Exclusions
+//	e.Works = []string{"lt0474w001_AT_3"}
+//	e.Passages = []string{"lt0917w001_AT_3"}
+//	s.Inclusions = i
+//	s.Exclusions = e
+//
+//	sl := compilesearchlist(s, authormap, workmap)
+//
+//	sort.Slice(sl, func(i, j int) bool { return sl[i] < sl[j] })
+//	fmt.Println(sl)
+//	fmt.Println(len(sl))
+//}
 
 // things needed to make "listmanagement.go" run on its own
 //
