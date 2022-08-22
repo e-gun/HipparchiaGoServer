@@ -5,12 +5,6 @@
 
 package main
 
-type PrerolledQuery struct {
-	TempTable string
-	PsqlQuery string
-	PsqlData  string
-}
-
 type DbWorkline struct {
 	WkUID       string
 	TbIndex     int64

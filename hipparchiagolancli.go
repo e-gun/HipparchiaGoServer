@@ -3,80 +3,6 @@
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 
-// [I] the GRABBER is supposed to be pointedly basic
-//
-// [a] it looks to redis for a pile of SQL queries that were pre-rolled
-// [b] it asks postgres to execute these queries
-// [c] it stores the results on redis
-// [d] it also updates the redis progress poll data relative to this search
-//
-
-// [II] VECTOR PREP builds bags for modeling; to do this you need to...
-//
-// [a] grab db lines that are relevant to the search
-// [b] turn them into a unified text block
-// [c] do some preliminary cleanups
-// [d] break the text into sentences and assemble []BagWithLocus (NB: these are "unlemmatized bags of words")
-// [e] figure out all of the words used in the passage
-// [f] find all of the parsing info relative to these words
-// [g] figure out which headwords to associate with the collection of words
-// [h] build the lemmatized bags of words ('unlemmatized' can skip [f] and [g]...)
-// [i] store the bags
-//
-// once you reach this point python can fetch the bags and then run "Word2Vec(bags, parameters, ...)"
-//
-
-//  [III] WEBSOCKETS broadcasts search information for web page updates
-//
-//	[a] it launches and starts listening on a port
-//	[b] it waits to receive a websocket message: this is a search key ID (e.g., '2f81c630')
-//	[c] it then looks inside of redis for the relevant polling data associated with that search ID
-//	[d] it parses, packages (as JSON), and then redistributes this information back over the websocket
-//	[e] when the poll disappears from redis, the messages stop broadcasting
-//
-
-// Usage of ./HipparchiaGoDBHelper:
-//  -c int
-//    	[searches] max hit count (default 200)
-//  -k string
-//    	[searches] redis key to use
-//  -l int
-//    	[common] logging level: 0 is silent; 5 is very noisy (default 1)
-//  -p string
-//    	[common] psql logon information (as a JSON string) (default "{\"Host\": \"localhost\", \"Port\": 5432, \"User\": \"hippa_wr\", \"Pass\": \"\", \"DBName\": \"hipparchiaDB\"}")
-//  -profile
-//    	[debugging] profile cpu use to './profiler_output.bin'
-//  -r string
-//    	[common] redis logon information (as a JSON string) (default "{\"Addr\": \"localhost:6379\", \"Password\": \"\", \"DB\": 0}")
-//  -sv
-//    	[vectors] assert that this is a vectorizing run
-//  -svb string
-//    	[vectors] the bagging method: choices are alternates, flat, unlemmatized, winnertakesall (default "winnertakesall")
-//  -svbs int
-//    	[vectors] number of sentences per bag (default 1)
-//  -svdb string
-//    	[vectors][for manual debugging] db to grab from (default "lt0448")
-//  -sve int
-//    	[vectors][for manual debugging] last line to grab (default 26)
-//  -svhw string
-//    	[vectors] provide a string of headwords to skip 'one two three...' (default "(suppressed owing to length)")
-//  -svin string
-//    	[vectors][provide a string of inflected forms to skip 'one two three...' (default "(suppressed owing to length)")
-//  -svs int
-//    	[vectors][for manual debugging] first line to grab (default 1)
-//  -t int
-//    	[common] number of goroutines to dispatch (default 5)
-//  -v	[common] print version and exit
-//  -ws
-//    	[websockets] assert that you are requesting the websocket server
-//  -wsf int
-//    	[websockets] fail threshold before messages stop being sent (default 3)
-//  -wsp int
-//    	[websockets] port on which to open the websocket server (default 5010)
-//  -wss int
-//    	[websockets] save the polls instead of deleting them: 0 is no; 1 is yes
-
-// toggle the package name to shift between cli and module builds: main or hipparchiagolangsearching
 package main
 
 import (
@@ -115,6 +41,7 @@ const (
 	PSDefaultUser   = "hippa_wr"
 	PSDefaultPort   = 5432
 	PSDefaultDB     = "hipparchiaDB"
+	TwoPassThresh   = 100 // cicero has >70 works
 )
 
 var (
@@ -205,8 +132,8 @@ func main() {
 	if *cfg.IsTestPtr {
 		fmt.Println(versioninfo)
 		msg("Testing Run", 1)
-		test_selection()
-		// test_compilesearchlist()
+		// test_selection()
+		test_compilesearchlist()
 		return
 	}
 

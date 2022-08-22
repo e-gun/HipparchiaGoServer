@@ -121,7 +121,8 @@ func setsubtraction[T comparable](aa []T, bb []T) []T {
 	return result
 }
 
-func Contains[T comparable](sl []T, seek T) bool {
+// contains - is item X an element of slice A?
+func contains[T comparable](sl []T, seek T) bool {
 	for _, v := range sl {
 		if v == seek {
 			return true
@@ -130,8 +131,20 @@ func Contains[T comparable](sl []T, seek T) bool {
 	return false
 }
 
+// containsN - how many Xs in slice A?
+func containsN[T comparable](sl []T, seek T) int {
+	count := 0
+	for _, v := range sl {
+		if v == seek {
+			count += 1
+		}
+	}
+	return count
+}
+
 // https://stackoverflow.com/questions/59579121/how-to-flatten-a-2d-slice-into-1d-slice
 
+// flatten - turn a slice of slices into a slice
 func flatten[T any](lists [][]T) []T {
 	var res []T
 	for _, list := range lists {
@@ -139,6 +152,10 @@ func flatten[T any](lists [][]T) []T {
 	}
 	return res
 }
+
+//
+// Geek and Latin functions
+//
 
 // stripaccents - ὀκνεῖϲ --> οκνειϲ, etc.
 func stripaccents(u string) string {
@@ -187,11 +204,8 @@ func stripaccents(u string) string {
 }
 
 //func main() {
-//	w := [][]string{{"a", "b", "c"}, {"d", "e", "f"}}
-//	v := Flatten(w)
-//	fmt.Println(v) // [a b c d e f]
-//
-//	d := [][]uint64{{100, 200}, {3000, 4000}}
-//	e := Flatten(d)
-//	fmt.Println(e) // [100 200 3000 4000]
+//	a := []int{1, 1, 1, 2, 3, 4, 4, 5}
+//	b := 4
+//	c := containsN(a, b)
+//	fmt.Printf("# of %d found is %d", b, c)
 //}

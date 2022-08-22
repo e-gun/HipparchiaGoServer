@@ -103,6 +103,7 @@ func grabpgsqlconnection() *pgxpool.Pool {
 	var pl PostgresLogin
 
 	if cfg.PGLogin.DBName == "" {
+		// this will probably need refactoring later: non-intuitive to "configure" here
 		// grabpgsqlconnection() will be called before main() and so before configatstartup()
 		// workmapper() in initialization.go does this
 		// avoid: "flag redefined: psqp"
@@ -118,10 +119,6 @@ func grabpgsqlconnection() *pgxpool.Pool {
 		pl = cfg.PGLogin
 	}
 
-	// using 'workers' was causing an m1 to choke when the worker count got high: no available connections to db
-	// panic: failed to connect to `host=localhost user=hippa_wr database=hipparchiaDB`: server error (FATAL: remaining connection slots are reserved for non-replication superuser connections (SQLSTATE 53300))
-	// workers := cfg.WorkerCount
-
 	url := fmt.Sprintf("postgres://%s:%s@%s:%d/%s", pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName)
 
 	config, oops := pgxpool.ParseConfig(url)
@@ -129,13 +126,6 @@ func grabpgsqlconnection() *pgxpool.Pool {
 		msg(fmt.Sprintf("Could not execute pgxpool.ParseConfig(url) via %s", url), -1)
 		panic(oops)
 	}
-
-	// config.ConnConfig.PreferSimpleProtocol = true
-	// config.MaxConns = int32(workers * 3)
-	// config.MinConns = int32(workers + 2)
-
-	// the boring way if you don't want to go via pgxpool.ParseConfig(url)
-	// pooledconnection, err := pgxpool.Connect(context.Background(), url)
 
 	pooledconnection, err := pgxpool.ConnectConfig(context.Background(), config)
 
