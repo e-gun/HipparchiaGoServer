@@ -135,7 +135,7 @@ func main() {
 		// test_selection()
 		// test_compilesearchlist()
 		// test_searchlistintoqueries()
-
+		StartEchoServer()
 		return
 	}
 
