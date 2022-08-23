@@ -1,6 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
+)
 
 type SearchStruct struct {
 	Seeking    string
@@ -17,6 +22,10 @@ type SearchStruct struct {
 	SrchSyntax string // almost always "~="
 	OrderBy    string // almost always "index" + ASC
 	Limit      int64
+	SkgSlice   []string // either just Seeking or a decomposed version of a Lemma's possibilities
+	PrxSlice   []string
+	SearchIn   SearchIncExl
+	SearchEx   SearchIncExl
 }
 
 func (s SearchStruct) FmtOrderBy() string {
@@ -32,6 +41,12 @@ func (s SearchStruct) FmtOrderBy() string {
 	return ob
 }
 
+func (s SearchStruct) FmtWhereTerm(t string) string {
+	a := ` ( %s %s '%s' ) `
+	wht := fmt.Sprintf(a, s.SrchColumn, s.SrchSyntax, t)
+	return wht
+}
+
 func (s SearchStruct) HasLemma() bool {
 	if len(s.LemmaOne) > 0 || len(s.LemmaTwo) > 0 {
 		return true
@@ -44,6 +59,13 @@ type PrerolledQuery struct {
 	TempTable string
 	PsqlQuery string
 	PsqlData  string
+}
+
+type QueryBuilder struct {
+	SelFrom   string
+	WhrTrm    string
+	WhrIdxInc string
+	WhrIdxExc string
 }
 
 type WhereClause struct {
@@ -67,7 +89,8 @@ func (w WhereClause) HasWhere() bool {
 }
 
 type Boundaries struct {
-	SS [2]int64
+	Start int64
+	Stop  int64
 }
 
 type TempSQL struct {
@@ -105,16 +128,114 @@ const (
 
 // searchlistintosqldict()
 
-func searchlistintoqueries(sl []string, ss SearchStruct) []PrerolledQuery {
-	var prq []PrerolledQuery
-
+func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
+	var prqq []PrerolledQuery
+	inc := ss.SearchIn
+	exc := ss.SearchEx
 	// if there are too many "in0001wXXX" type entries: requiresindextemptable()
 
-	// a query looks like: SELECTFROM + WHERETERM + WHEREINDEX
+	// a query looks like: SELECTFROM + WHERETERM + WHEREINDEX + ORDERBY&LIMIT
 	// FROM gr0308 WHERE ( (index BETWEEN 138 AND 175) OR (index BETWEEN 471 AND 510) ) AND ( stripped_line ~* $1 )
 	// FROM lt0917 WHERE ( (index BETWEEN 1 AND 8069) OR (index BETWEEN 8070 AND 8092) ) AND ( (index NOT BETWEEN 1431 AND 2193) ) AND ( stripped_line ~* $1 )
 
-	return prq
+	// TODO: anything that needs an unnest temptable can not pass through here yet...
+
+	// [a] figure out all bounded selections
+
+	boundedincl := make(map[string][]Boundaries)
+	boundedexcl := make(map[string][]Boundaries)
+
+	// [a1] individual works included/excluded
+	for _, w := range inc.Works {
+		wk := AllWorks[w]
+		b := Boundaries{wk.FirstLine, wk.LastLine}
+		boundedincl[wk.FindAuthor()] = append(boundedincl[wk.FindAuthor()], b)
+	}
+
+	for _, w := range exc.Works {
+		wk := AllWorks[w]
+		b := Boundaries{wk.FirstLine, wk.LastLine}
+		boundedexcl[wk.FindAuthor()] = append(boundedexcl[wk.FindAuthor()], b)
+	}
+
+	// [a2] individual passages included/excluded
+
+	// pattern := regexp.MustCompile(`(?P<auth>......)w..._FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`)
+	pattern := regexp.MustCompile(`(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`)
+	for _, p := range inc.Passages {
+		// "gr0032w002_FROM_11313_TO_11843"
+		fmt.Println(p)
+		subs := pattern.FindStringSubmatch(p)
+		au := subs[pattern.SubexpIndex("auth")]
+		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
+		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
+		b := Boundaries{int64(st), int64(sp)}
+		boundedincl[au] = append(boundedincl[au], b)
+		// fmt.Printf("%s: %d - %d", au, st, sp)
+	}
+
+	for _, p := range exc.Passages {
+		subs := pattern.FindStringSubmatch(p)
+		au := subs[pattern.SubexpIndex("auth")]
+		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
+		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
+		b := Boundaries{int64(st), int64(sp)}
+		boundedexcl[au] = append(boundedexcl[au], b)
+	}
+
+	// [b] build the queries for the authors
+	IT := `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
+
+	for _, a := range inc.Authors {
+		var qb QueryBuilder
+		var prq PrerolledQuery
+		qb.SelFrom = fmt.Sprintf(SELECTFROM, a)
+
+		// [b1] check to see if bounded
+		if vv, found := boundedincl[a]; found {
+			var in []string
+			for _, v := range vv {
+				i := fmt.Sprintf(IT, "", v.Start, v.Stop)
+				in = append(in, i)
+			}
+			qb.WhrIdxInc = strings.Join(in, " OR ")
+		}
+
+		if vv, found := boundedexcl[a]; found {
+			var in []string
+			for _, v := range vv {
+				i := fmt.Sprintf(IT, "NOT ", v.Start, v.Stop)
+				in = append(in, i)
+			}
+			qb.WhrIdxExc = strings.Join(in, " AND ")
+		}
+
+		// [b2] search term might be lemmatized, hence the range
+		for _, s := range ss.SkgSlice {
+			qb.WhrTrm = ss.FmtWhereTerm(s)
+			ob := ss.FmtOrderBy()
+			var qt string
+			if len(qb.WhrIdxInc) == 0 && len(qb.WhrIdxExc) == 0 {
+				// SELECTFROM + WHERETERM + WHEREINDEXINCL + WHEREINDEXEXCL + ORDERBY&LIMIT
+				qt = `%s WHERE %s %s%s%s`
+			} else if len(qb.WhrIdxInc) != 0 && len(qb.WhrIdxExc) == 0 {
+				qt = `%s WHERE %s AND ( %s ) %s%s`
+			} else if len(qb.WhrIdxInc) == 0 && len(qb.WhrIdxExc) != 0 {
+				qt = `%s WHERE %s AND%s ( %s ) %s`
+			} else if len(qb.WhrIdxInc) != 0 && len(qb.WhrIdxExc) != 0 {
+				qt = `%s WHERE %s AND ( %s ) AND ( %s ) %s`
+			}
+			prq.PsqlQuery = fmt.Sprintf(qt, qb.SelFrom, qb.WhrTrm, qb.WhrIdxInc, qb.WhrIdxExc, ob)
+			prqq = append(prqq, prq)
+		}
+	}
+
+	return prqq
+}
+
+func recalculatesearchstruct(ss SearchStruct) SearchStruct {
+	var newss SearchStruct
+	return newss
 }
 
 func configureindexwhereclausedata(srch SearchStruct, sl []string) {
@@ -136,4 +257,19 @@ func configureindexwhereclausedata(srch SearchStruct, sl []string) {
 func requiresindextemptable() {
 	// test to see if there are too many "in0001wXXX" type entries
 	// if there are, mimic wholeworktemptablecontents() in whereclauses.py
+}
+
+func test_searchlistintoqueries() {
+	var ss SearchStruct
+	ss.Seeking = "dolor"
+	ss.SrchColumn = "stripped_line"
+	ss.SrchSyntax = "~*"
+	ss.OrderBy = "index"
+	ss.Limit = 200
+	ss.SkgSlice = append(ss.SkgSlice, ss.Seeking)
+	ss.SearchIn.Authors = []string{"lt0959", "lt0857"}
+	ss.SearchIn.Works = []string{"lt0474w041", "lt0474w064"}
+	ss.SearchIn.Passages = []string{"gr0032_FROM_11313_TO_11843", "lt0474_FROM_58578_TO_61085", "lt0474_FROM_36136_TO_36151"}
+	prq := searchlistintoqueries(ss)
+	fmt.Println(prq)
 }

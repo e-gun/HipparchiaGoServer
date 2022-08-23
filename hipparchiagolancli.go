@@ -133,7 +133,8 @@ func main() {
 		fmt.Println(versioninfo)
 		msg("Testing Run", 1)
 		// test_selection()
-		test_compilesearchlist()
+		// test_compilesearchlist()
+		test_searchlistintoqueries()
 		return
 	}
 
