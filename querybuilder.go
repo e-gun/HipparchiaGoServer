@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type SearchStruct struct {
@@ -42,7 +43,7 @@ func (s SearchStruct) FmtOrderBy() string {
 }
 
 func (s SearchStruct) FmtWhereTerm(t string) string {
-	a := ` ( %s %s '%s' ) `
+	a := `%s %s '%s' `
 	wht := fmt.Sprintf(a, s.SrchColumn, s.SrchSyntax, t)
 	return wht
 }
@@ -152,6 +153,8 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 		boundedincl[wk.FindAuthor()] = append(boundedincl[wk.FindAuthor()], b)
 	}
 
+	// TODO: here is where you could check for unnest temptable candidates: e.g., len(boundedincl[x]) > 80
+
 	for _, w := range exc.Works {
 		wk := AllWorks[w]
 		b := Boundaries{wk.FirstLine, wk.LastLine}
@@ -162,7 +165,7 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 
 	pattern := regexp.MustCompile(`(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`)
 	for _, p := range inc.Passages {
-		// "gr0032w002_FROM_11313_TO_11843"
+		// "gr0032_FROM_11313_TO_11843"
 		subs := pattern.FindStringSubmatch(p)
 		au := subs[pattern.SubexpIndex("auth")]
 		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
@@ -182,7 +185,7 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 	}
 
 	// [b] build the queries for the author tables
-	IT := `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
+	idxtmpl := `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
 
 	// [b1] collapse inc.Authors, inc.Works, incl.Passages to find all tables in use
 	// but the keys to boundedincl in fact gives you the answer to the latter two
@@ -200,7 +203,7 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 		if vv, found := boundedincl[a]; found {
 			var in []string
 			for _, v := range vv {
-				i := fmt.Sprintf(IT, "", v.Start, v.Stop)
+				i := fmt.Sprintf(idxtmpl, "", v.Start, v.Stop)
 				in = append(in, i)
 			}
 			qb.WhrIdxInc = strings.Join(in, " OR ")
@@ -209,7 +212,7 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 		if vv, found := boundedexcl[a]; found {
 			var in []string
 			for _, v := range vv {
-				i := fmt.Sprintf(IT, "NOT ", v.Start, v.Stop)
+				i := fmt.Sprintf(idxtmpl, "NOT ", v.Start, v.Stop)
 				in = append(in, i)
 			}
 			qb.WhrIdxExc = strings.Join(in, " AND ")
@@ -219,18 +222,18 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 		for _, s := range ss.SkgSlice {
 			qb.WhrTrm = ss.FmtWhereTerm(s)
 			ob := ss.FmtOrderBy()
-			var qt string
+			var qtmpl string
 			if len(qb.WhrIdxInc) == 0 && len(qb.WhrIdxExc) == 0 {
 				// SELECTFROM + WHERETERM + WHEREINDEXINCL + WHEREINDEXEXCL + ORDERBY&LIMIT
-				qt = `%s WHERE %s %s%s%s`
+				qtmpl = `%s WHERE %s %s%s%s`
 			} else if len(qb.WhrIdxInc) != 0 && len(qb.WhrIdxExc) == 0 {
-				qt = `%s WHERE %s AND ( %s ) %s%s`
+				qtmpl = `%s WHERE %s AND ( %s ) %s%s`
 			} else if len(qb.WhrIdxInc) == 0 && len(qb.WhrIdxExc) != 0 {
-				qt = `%s WHERE %s AND%s ( %s ) %s`
+				qtmpl = `%s WHERE %s AND%s ( %s ) %s`
 			} else if len(qb.WhrIdxInc) != 0 && len(qb.WhrIdxExc) != 0 {
-				qt = `%s WHERE %s AND ( %s ) AND ( %s ) %s`
+				qtmpl = `%s WHERE %s AND ( %s ) AND ( %s ) %s`
 			}
-			prq.PsqlQuery = fmt.Sprintf(qt, qb.SelFrom, qb.WhrTrm, qb.WhrIdxInc, qb.WhrIdxExc, ob)
+			prq.PsqlQuery = fmt.Sprintf(qtmpl, qb.SelFrom, qb.WhrTrm, qb.WhrIdxInc, qb.WhrIdxExc, ob)
 			prqq = append(prqq, prq)
 		}
 	}
@@ -243,30 +246,17 @@ func recalculatesearchstruct(ss SearchStruct) SearchStruct {
 	return newss
 }
 
-func configureindexwhereclausedata(srch SearchStruct, sl []string) {
-	// + wholeworktemptablecontents() and wholeworkbetweenclausecontents()
-
-	// [a] whole author table
-
-	// [b] no exclusion, just "between"
-	// "between" example
-	// Ultimately you need this to search Aristophanes' Birds and Clouds:
-	//
-	//		WHERE (index BETWEEN 2885 AND 4633) AND (index BETWEEN 7921 AND 9913)'
-	// template = '(index BETWEEN {min} AND {max})'
-	// whereclause = 'WHERE ' + ' AND '.join(wheres)
-
-	// [c] an exclusion
-}
-
 func requiresindextemptable() {
 	// test to see if there are too many "in0001wXXX" type entries
 	// if there are, mimic wholeworktemptablecontents() in whereclauses.py
 }
 
 func test_searchlistintoqueries() {
+	start := time.Now()
+	previous := time.Now()
+
 	var ss SearchStruct
-	ss.Seeking = "dolor"
+	ss.Seeking = `dolore\s`
 	ss.SrchColumn = "stripped_line"
 	ss.SrchSyntax = "~*"
 	ss.OrderBy = "index"
@@ -277,4 +267,17 @@ func test_searchlistintoqueries() {
 	ss.SearchIn.Passages = []string{"gr0032_FROM_11313_TO_11843", "lt0474_FROM_58578_TO_61085", "lt0474_FROM_36136_TO_36151"}
 	prq := searchlistintoqueries(ss)
 	fmt.Println(prq)
+
+	c := grabpgsqlconnection()
+	var hits []DbWorkline
+	for _, q := range prq {
+		r := worklinequery(q, c)
+		hits = append(hits, r...)
+	}
+
+	for i, h := range hits {
+		t := fmt.Sprintf("%d - %s : %s", i, h.FindLocus(), h.MarkedUp)
+		fmt.Println(t)
+	}
+	timetracker("-", "query built and executed", start, previous)
 }
