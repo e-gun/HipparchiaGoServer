@@ -167,7 +167,7 @@ $(document).ready( function () {
         document.getElementById('browserclickscriptholder').appendChild(browserclickscript);
     }
 
-    // setoptions() defined in coreinterfaceclicks.js
+    // setoptions() defined in coreinterfaceclicks_go.js
     $('#searchlines').click( function(){ setoptions('searchscope', 'lines'); });
     $('#searchwords').click( function(){ setoptions('searchscope', 'words'); });
 

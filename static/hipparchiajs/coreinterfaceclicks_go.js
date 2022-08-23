@@ -60,52 +60,58 @@ function loadoptions() {
         };
 
         Object.keys(simpletoggles).forEach(function(key) {
-            if (data[key] === 'yes') {
+            if (data[key] === true) {
                 simpletoggles[key].prop('checked', true);
             } else {
                 simpletoggles[key].prop('checked', false);
             }
         });
 
-        const sidebaricontoggles = {
-            'greekcorpus': {'t': $('#grkisactive'), 'f': $('#grkisnotactive')},
-            'latincorpus': {'t': $('#latisactive'), 'f': $('#latisnotactive')},
-            'inscriptioncorpus': {'t': $('#insisactive'), 'f': $('#insnotisactive')},
-            'papyruscorpus': {'t': $('#ddpisactive'), 'f': $('#ddpnotisactive')},
-            'christiancorpus': {'t': $('#chrisactive'), 'f': $('#chrnotisactive')},
-            'spuria': {'t': $('#spuriaistrue'), 'f': $('#spuriaisfalse')},
-            'varia': {'t': $('#variaistrue'), 'f': $('#variaisfalse')},
-            'incerta': {'t': $('#undatedistrue'), 'f': $('#undatedisfalse')}
+        const sidebaActiveCorpricontoggles = {
+            'greekcorpus': {true: $('#grkisactive'), false: $('#grkisnotactive')},
+            'latincorpus': {true: $('#latisactive'), false: $('#latisnotactive')},
+            'inscriptioncorpus': {true: $('#insisactive'), false: $('#insnotisactive')},
+            'papyruscorpus': {true: $('#ddpisactive'), false: $('#ddpnotisactive')},
+            'christiancorpus': {true: $('#chrisactive'), false: $('#chrnotisactive')},
+            'spuria': {true: $('#spuriaistrue'), false: $('#spuriaisfalse')},
+            'varia': {true: $('#variaistrue'), false: $('#variaisfalse')},
+            'incerta': {true: $('#undatedistrue'), false: $('#undatedisfalse')}
         };
 
-        Object.keys(sidebaricontoggles).forEach(function(key) {
-            if (data[key] === 'yes') {
-                sidebaricontoggles[key]['t'].show();
-                sidebaricontoggles[key]['f'].hide();
+        Object.keys(sidebaActiveCorpricontoggles).forEach(function(key) {
+            if (data['ActiveCorp'][key] === true) {
+                sidebaActiveCorpricontoggles[key][true].show();
+                sidebaActiveCorpricontoggles[key][false].hide();
             } else {
-                sidebaricontoggles[key]['t'].hide();
-                sidebaricontoggles[key]['f'].show();
+                sidebaActiveCorpricontoggles[key][true].hide();
+                sidebaActiveCorpricontoggles[key][false].show();
             }
         });
 
+        const sidebaricontoggles = {
+            'SpuriaOK': {true: $('#spuriaistrue'), false: $('#spuriaisfalse')},
+            'VariaOK': {true: $('#variaistrue'), false: $('#variaisfalse')},
+            'IncertaOK': {true: $('#undatedistrue'), false: $('#undatedisfalse')}
+        };
+
         const xoredtoggles = {
-            'onehit': {'y': $('#onehit_y'), 'n': $('#onehit_n'), 'f': $('#onehitisfalse'), 't': $('#onehitistrue')},
-            'headwordindexing': {'y': $('#headwordindexing_y'), 'n': $('#headwordindexing_n'), 'f': $('#headwordindexinginactive'), 't': $('#headwordindexingactive')},
-            'indexbyfrequency': {'y': $('#frequencyindexing_y'), 'n': $('#frequencyindexing_n'), 'f': $('#frequencyindexinginactive'), 't': $('#frequencyindexingactive')},
-            'rawinputstyle': {'y': $('#manualinput'), 'n': $('#autofillinput'), 'f': $('#usingautoinput'), 't': $('#usingrawinput')},
+            'onehit': {'y': $('#onehit_y'), 'n': $('#onehit_n'), false: $('#onehitisfalse'), true: $('#onehitistrue')},
+            'headwordindexing': {'y': $('#headwordindexing_y'), 'n': $('#headwordindexing_n'), false: $('#headwordindexinginactive'), true: $('#headwordindexingactive')},
+            'indexbyfrequency': {'y': $('#frequencyindexing_y'), 'n': $('#frequencyindexing_n'), false: $('#frequencyindexinginactive'), true: $('#frequencyindexingactive')},
+            'rawinputstyle': {'y': $('#manualinput'), 'n': $('#autofillinput'), false: $('#usingautoinput'), true: $('#usingrawinput')},
         };
 
         Object.keys(xoredtoggles).forEach(function(key) {
             if (data[key] === 'yes') {
                 xoredtoggles[key]['y'].prop('checked', true);
                 xoredtoggles[key]['n'].prop('checked', false);
-                xoredtoggles[key]['t'].show();
-                xoredtoggles[key]['f'].hide();
+                xoredtoggles[key][true].show();
+                xoredtoggles[key][false].hide();
             } else {
                 xoredtoggles[key]['n'].prop('checked', true);
                 xoredtoggles[key]['y'].prop('checked', false);
-                xoredtoggles[key]['f'].show();
-                xoredtoggles[key]['t'].hide();
+                xoredtoggles[key][false].show();
+                xoredtoggles[key][true].hide();
             }
         });
 

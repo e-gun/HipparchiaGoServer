@@ -29,7 +29,7 @@ type Session struct {
 func makedefaultsession(id string) Session {
 	var s Session
 	s.ID = id
-	s.ActiveCorp = map[string]bool{"lt": true, "gr": true}
+	s.ActiveCorp = map[string]bool{"greekcorpus": true, "latincorpus": true, "inscriptioncorpus": true}
 	s.VariaOK = true
 	s.IncertaOK = true
 	s.SpuriaOK = true
