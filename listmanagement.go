@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"sort"
 	"strconv"
 	"strings"
@@ -12,21 +11,6 @@ import (
 // searchlistmanagement.py has:
 // compilesearchlist(), sortsearchlist(), sortresultslist(),
 // calculatewholeauthorsearches(), flagexclusions(), prunebydate(), removespuria()
-
-type Session struct {
-	ID         uuid.UUID
-	Inclusions SearchIncExl
-	Exclusions SearchIncExl
-	ActiveCorp map[string]bool
-	VariaOK    bool
-	IncertaOK  bool
-	SpuriaOK   bool
-	// unimplemented for now
-	AvailDBs       map[string]bool
-	VectorVals     bool
-	UISettings     bool
-	OutPutSettings bool
-}
 
 type SearchIncExl struct {
 	AuGenres       []string

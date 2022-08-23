@@ -45,8 +45,8 @@ const (
 )
 
 var (
-	// functions will read cfg values instead of being fed parameters
-	cfg CurrentConfiguration
+	cfg      CurrentConfiguration
+	sessions = make(map[string]Session)
 )
 
 type CurrentConfiguration struct {
