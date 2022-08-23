@@ -40,7 +40,7 @@ func sessionintosearchlist(s Session) [2]SearchIncExl {
 	var exc SearchIncExl
 
 	// note that we do all the initial stuff by adding WORKS to the list individually
-
+	fmt.Println("sessionintosearchlist()")
 	// [a] trim mappers by active corpora
 	auu := make(map[string]DbAuthor)
 	wkk := make(map[string]DbWork)
@@ -143,7 +143,6 @@ func sessionintosearchlist(s Session) [2]SearchIncExl {
 
 		// but maybe the only restriction is time...
 		inc.Works = prunebydate(inc.Works, sessincl, wkk, s)
-
 	}
 
 	// [c] subtract the exclusions from the searchlist
@@ -241,6 +240,8 @@ func sessionintosearchlist(s Session) [2]SearchIncExl {
 	// this is the moment when you know the total # of locations searched: worth recording somewhere
 
 	// now we lose that info in the name of making the search quicker...
+	fmt.Println(len(inc.Works))
+	fmt.Println(len(auu))
 	inc.Authors = calculatewholeauthorsearches(inc.Works, auu)
 
 	// still need to clean the whole authors out of inc.Works
@@ -311,22 +312,20 @@ func calculatewholeauthorsearches(sl []string, aa map[string]DbAuthor) []string 
 	//
 	//	this function will figure out if the list of work uids contains all of the works for an author and can accordingly be collapsed
 
-	// can use sets to figure this out:
-	// if len(set(sl) - set(allworksofa)) = len(sl) - len(allworksofa),
-	// then you had all of the works on the list
-
-	// need to make sure the exclusions are not a problem...
 	var wholes []string
+
+	members := make(map[string]int)
 	for _, s := range sl {
-		a := s[0:6]
-		wl := aa[a].WorkList
-		diff := setsubtraction(sl, wl)
-		if len(diff) == len(sl)-len(wl) {
-			// you selected all works; otherwise do not modify sl
-			// fmt.Printf("%s diff w/ %s\n", a, wl)
-			wholes = append(wholes, a)
+		// count the works
+		members[s] += 1
+	}
+
+	for k, v := range members {
+		if len(aa[k].WorkList) == v {
+			wholes = append(wholes, k)
 		}
 	}
+
 	return wholes
 }
 

@@ -74,6 +74,7 @@ func StartEchoServer() {
 	// [f1b] /get/response/vectorfigure
 	// [f2a] /get/json/sessionvariables
 	e.GET("/get/json/sessionvariables", RtGetJSSession)
+
 	// [f2b] /get/json/worksof
 	// [f2c] /get/json/workstructure
 	// [f2d] /get/json/samplecitation
@@ -85,8 +86,28 @@ func StartEchoServer() {
 
 	// [g] hinters
 	// [h] lexical
+
+	//
 	// [i] resets
+	//
+
+	// [i1] /reset/session
+	e.GET("/reset/session", RtResetSession)
+	// [i2] /reset/vectors
+	// [i3] /reset/vectorimages
+
+	//
 	// [j] searching
+	//
+
+	// [j1] confirm: "GET /search/confirm/1f8f1d22 HTTP/1.1"
+	e.GET("/search/confirm/:id", RtSearchConfirm)
+
+	// [j2] standard: "GET /search/standard/1f8f1d22?skg=dolor HTTP/1.1"
+	e.GET("/search/standard/:id", RtSearchStandard)
+
+	// [j3] singleword
+	// [j4] lemmatized
 
 	//
 	// [k] selection
@@ -116,11 +137,23 @@ func RtAuthChkuser(c echo.Context) error {
 
 func RtGetJSSession(c echo.Context) error {
 	// see hipparchiajs/coreinterfaceclicks_go.js
-	// sample: {"_fresh": "no", "agnexclusions": [], "agnselections": [], "alocexclusions": [], "alocselections": [], "analogyfinder": "no", "auexclusions": [], "auselections": ["gr7000"], "authorflagging": "yes", "authorssummary": "yes", "available": {"greek_dictionary": true, "greek_lemmata": true, "greek_morphology": true, "latin_dictionary": true, "latin_lemmata": true, "latin_morphology": true, "wordcounts_0": true}, "baggingmethod": "winnertakesall", "bracketangled": "yes", "bracketcurly": "yes", "bracketround": "no", "bracketsquare": "yes", "browsercontext": "24", "christiancorpus": "no", "collapseattic": "yes", "cosdistbylineorword": "no", "cosdistbysentence": "no", "debugdb": "no", "debughtml": "no", "debuglex": "no", "debugparse": "no", "earliestdate": "-850", "fontchoice": "Noto", "greekcorpus": "yes", "headwordindexing": "no", "incerta": "yes", "indexbyfrequency": "no", "indexskipsknownwords": "no", "inscriptioncorpus": "no", "latestdate": "1500", "latincorpus": "yes", "ldacomponents": 7, "ldaiterations": 12, "ldamaxfeatures": 2000, "ldamaxfreq": 35, "ldaminfreq": 5, "ldamustbelongerthan": 3, "linesofcontext": 4, "loggedin": "no", "maxresults": "200", "morphdialects": "no", "morphduals": "yes", "morphemptyrows": "yes", "morphfinite": "yes", "morphimper": "yes", "morphinfin": "yes", "morphpcpls": "yes", "morphtables": "yes", "nearestneighborsquery": "no", "nearornot": "near", "onehit": "no", "papyruscorpus": "no", "phrasesummary": "no", "principleparts": "yes", "proximity": "1", "psgexclusions": [], "psgselections": [], "quotesummary": "yes", "rawinputstyle": "no", "searchinsidemarkup": "no", "searchscope": "lines", "semanticvectorquery": "no", "sensesummary": "yes", "sentencesimilarity": "no", "showwordcounts": "yes", "simpletextoutput": "no", "sortorder": "shortname", "spuria": "yes", "suppresscolors": "no", "tensorflowgraph": "no", "topicmodel": "no", "trimvectoryby": "none", "userid": "Anonymous", "varia": "yes", "vcutlem": 50, "vcutloc": 33, "vcutneighb": 15, "vdim": 300, "vdsamp": 5, "viterat": 12, "vminpres": 10, "vnncap": 15, "vsentperdoc": 1, "vwindow": 10, "wkexclusions": [], "wkgnexclusions": [], "wkgnselections": [], "wkselections": [], "wlocexclusions": [], "wlocselections": [], "xmission": "Any", "zaplunates": "no", "zapvees": "no"}
-	s := sessions[readUUIDCookie(c)]
+	// python sample: {"_fresh": "no", "agnexclusions": [], "agnselections": [], "alocexclusions": [], "alocselections": [], "analogyfinder": "no", "auexclusions": [], "auselections": ["gr7000"], "authorflagging": "yes", "authorssummary": "yes", "available": {"greek_dictionary": true, "greek_lemmata": true, "greek_morphology": true, "latin_dictionary": true, "latin_lemmata": true, "latin_morphology": true, "wordcounts_0": true}, "baggingmethod": "winnertakesall", "bracketangled": "yes", "bracketcurly": "yes", "bracketround": "no", "bracketsquare": "yes", "browsercontext": "24", "christiancorpus": "no", "collapseattic": "yes", "cosdistbylineorword": "no", "cosdistbysentence": "no", "debugdb": "no", "debughtml": "no", "debuglex": "no", "debugparse": "no", "earliestdate": "-850", "fontchoice": "Noto", "greekcorpus": "yes", "headwordindexing": "no", "incerta": "yes", "indexbyfrequency": "no", "indexskipsknownwords": "no", "inscriptioncorpus": "no", "latestdate": "1500", "latincorpus": "yes", "ldacomponents": 7, "ldaiterations": 12, "ldamaxfeatures": 2000, "ldamaxfreq": 35, "ldaminfreq": 5, "ldamustbelongerthan": 3, "linesofcontext": 4, "loggedin": "no", "maxresults": "200", "morphdialects": "no", "morphduals": "yes", "morphemptyrows": "yes", "morphfinite": "yes", "morphimper": "yes", "morphinfin": "yes", "morphpcpls": "yes", "morphtables": "yes", "nearestneighborsquery": "no", "nearornot": "near", "onehit": "no", "papyruscorpus": "no", "phrasesummary": "no", "principleparts": "yes", "proximity": "1", "psgexclusions": [], "psgselections": [], "quotesummary": "yes", "rawinputstyle": "no", "searchinsidemarkup": "no", "searchscope": "lines", "semanticvectorquery": "no", "sensesummary": "yes", "sentencesimilarity": "no", "showwordcounts": "yes", "simpletextoutput": "no", "sortorder": "shortname", "spuria": "yes", "suppresscolors": "no", "tensorflowgraph": "no", "topicmodel": "no", "trimvectoryby": "none", "userid": "Anonymous", "varia": "yes", "vcutlem": 50, "vcutloc": 33, "vcutneighb": 15, "vdim": 300, "vdsamp": 5, "viterat": 12, "vminpres": 10, "vnncap": 15, "vsentperdoc": 1, "vwindow": 10, "wkexclusions": [], "wkgnexclusions": [], "wkgnselections": [], "wkselections": [], "wlocexclusions": [], "wlocselections": [], "xmission": "Any", "zaplunates": "no", "zapvees": "no"}
+
+	user := readUUIDCookie(c)
+	if _, exists := sessions[user]; !exists {
+		sessions[user] = makedefaultsession(user)
+	}
+
+	s := sessions[user]
 	o, e := json.Marshal(s)
 	checkerror(e)
 	return c.String(http.StatusOK, string(o))
+}
+
+func RtResetSession(c echo.Context) error {
+	// delete my session..
+	delete(sessions, readUUIDCookie(c))
+	return RtFrontpage(c)
 }
 
 func RtSelectionMake(c echo.Context) error {

@@ -47,6 +47,7 @@ const (
 var (
 	cfg      CurrentConfiguration
 	sessions = make(map[string]Session)
+	searches = make(map[string]SearchStruct)
 )
 
 type CurrentConfiguration struct {
@@ -131,7 +132,7 @@ func main() {
 	// test a function
 	if *cfg.IsTestPtr {
 		fmt.Println(versioninfo)
-		msg("Testing Run", 1)
+		msg("cfg.IsTestPtr was set: Testing Run", 1)
 		// test_selection()
 		// test_compilesearchlist()
 		// test_searchlistintoqueries()

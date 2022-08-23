@@ -9,6 +9,7 @@ import (
 )
 
 type SearchStruct struct {
+	User       string
 	Seeking    string
 	Proximate  string
 	LemmaOne   string
