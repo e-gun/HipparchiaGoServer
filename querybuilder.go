@@ -160,11 +160,9 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 
 	// [a2] individual passages included/excluded
 
-	// pattern := regexp.MustCompile(`(?P<auth>......)w..._FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`)
 	pattern := regexp.MustCompile(`(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`)
 	for _, p := range inc.Passages {
 		// "gr0032w002_FROM_11313_TO_11843"
-		fmt.Println(p)
 		subs := pattern.FindStringSubmatch(p)
 		au := subs[pattern.SubexpIndex("auth")]
 		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
@@ -183,15 +181,22 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 		boundedexcl[au] = append(boundedexcl[au], b)
 	}
 
-	// [b] build the queries for the authors
+	// [b] build the queries for the author tables
 	IT := `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
 
-	for _, a := range inc.Authors {
+	// [b1] collapse inc.Authors, inc.Works, incl.Passages to find all tables in use
+	// but the keys to boundedincl in fact gives you the answer to the latter two
+
+	alltables := inc.Authors
+	for t, _ := range boundedincl {
+		alltables = append(alltables, t)
+	}
+
+	for _, a := range alltables {
 		var qb QueryBuilder
 		var prq PrerolledQuery
 		qb.SelFrom = fmt.Sprintf(SELECTFROM, a)
-
-		// [b1] check to see if bounded
+		// [b2] check to see if bounded
 		if vv, found := boundedincl[a]; found {
 			var in []string
 			for _, v := range vv {
@@ -210,7 +215,7 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 			qb.WhrIdxExc = strings.Join(in, " AND ")
 		}
 
-		// [b2] search term might be lemmatized, hence the range
+		// [b3] search term might be lemmatized, hence the range
 		for _, s := range ss.SkgSlice {
 			qb.WhrTrm = ss.FmtWhereTerm(s)
 			ob := ss.FmtOrderBy()
