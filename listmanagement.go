@@ -8,10 +8,6 @@ import (
 	"time"
 )
 
-// searchlistmanagement.py has:
-// compilesearchlist(), sortsearchlist(), sortresultslist(),
-// calculatewholeauthorsearches(), flagexclusions(), prunebydate(), removespuria()
-
 type SearchIncExl struct {
 	AuGenres       []string
 	WkGenres       []string

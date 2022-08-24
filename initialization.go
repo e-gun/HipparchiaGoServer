@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 )
 
 var (
 	AllWorks   = workmapper()
 	AllAuthors = loadworksintoauthors(authormapper(), AllWorks)
+	AllLemm    = lemmamapper()
 )
 
 type DbAuthor struct {
@@ -94,6 +96,13 @@ func (dbw DbWork) DateInRange(b int64, a int64) bool {
 	} else {
 		return false
 	}
+}
+
+type DbLemma struct {
+	// dictionary_entry | xref_number |    derivative_forms
+	Entry string
+	Xref  int64
+	Deriv []string
 }
 
 // all functions in here should be run in order to prepare the core data
@@ -221,12 +230,68 @@ func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[stri
 	return na
 }
 
-// dateworksviaauthors - if we do now know the date of a work, give it the date of the author
-func dateworksviaauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[string]DbWork {
-	for _, w := range ww {
-		if w.ConvDate == 2500 && aa[w.FindAuthor()].ConvDate != 2500 {
-			w.ConvDate = aa[w.FindAuthor()].ConvDate
+func lemmamapper() map[string]map[string]DbLemma {
+	// hipparchiaDB=# \d greek_lemmata
+	//                       Table "public.greek_lemmata"
+	//      Column      |         Type          | Collation | Nullable | Default
+	//------------------+-----------------------+-----------+----------+---------
+	// dictionary_entry | character varying(64) |           |          |
+	// xref_number      | integer               |           |          |
+	// derivative_forms | text[]                |           |          |
+	//Indexes:
+	//    "greek_lemmata_idx" btree (dictionary_entry)
+
+	// a list of 140k words is too long to send to 'getlemmahint' without offering quicker access
+	// nest a map
+
+	start := time.Now()
+	previous := time.Now()
+
+	nested := make(map[string]map[string]DbLemma)
+	unnested := make(map[string]DbLemma)
+
+	langs := [2]string{"greek", "latin"}
+	t := `SELECT dictionary_entry, xref_number, derivative_forms FROM %s_lemmata`
+
+	dbpool := grabpgsqlconnection()
+	var thefinds []DbLemma
+	for _, lg := range langs {
+		q := fmt.Sprintf(t, lg)
+		foundrows, err := dbpool.Query(context.Background(), q)
+		checkerror(err)
+		defer foundrows.Close()
+		for foundrows.Next() {
+			// fmt.Println(foundrows.Values())
+			// this will die if <nil> comes back inside any of the columns: "cannot scan null into *string"
+			// the builder should address this: fixing it here is less ideal
+			var thehit DbLemma
+			err := foundrows.Scan(&thehit.Entry, &thehit.Xref, &thehit.Deriv)
+			checkerror(err)
+			thefinds = append(thefinds, thehit)
 		}
 	}
-	return ww
+
+	for _, lm := range thefinds {
+		unnested[lm.Entry] = lm
+	}
+
+	for k, v := range unnested {
+		bag := string([]rune(v.Entry)[0:2])
+		bag = stripaccents(bag)
+		bag = strings.ToLower(bag)
+		bag = strings.Replace(bag, "j", "i", -1)
+		bag = strings.Replace(bag, "v", "u", -1)
+		if _, y := nested[bag]; !y {
+			nested[bag] = make(map[string]DbLemma)
+		} else {
+			nested[bag][k] = v
+		}
+	}
+
+	//fmt.Println("lemmata count")
+	//fmt.Println(len(nested))
+	//fmt.Println(nested["ζω"])
+
+	timetracker("-", "lemma list", start, previous)
+	return nested
 }
