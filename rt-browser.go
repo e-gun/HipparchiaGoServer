@@ -3,23 +3,42 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/labstack/echo/v4"
+	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 )
+
+func RtBrowseline(c echo.Context) error {
+	// sample input: '/browse/linenumber/lt0550/001/1855'
+	user := readUUIDCookie(c)
+
+	locus := c.Param("locus")
+	elem := strings.Split(locus, "/")
+	if len(elem) == 3 {
+		au := elem[0]
+		wk := elem[1]
+		ln, e := strconv.Atoi(elem[2])
+		checkerror(e)
+		ctx := sessions[user].UI.BrowseCtx
+		js := HipparchiaBrowser(au, wk, int64(ln), ctx)
+		return c.String(http.StatusOK, string(js))
+	} else {
+		msg(fmt.Sprintf("RtBrowseline() could not parse %s", locus), 3)
+		return c.String(http.StatusOK, "")
+	}
+}
 
 // HipparchiaBrowser - browse Author A at line X with a context of Y lines
 func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 	// build a response to "GET /browse/linenumber/gr0062/028/14672 HTTP/1.1"
-	// note the high initialization costs of doing this as CLI vs a proper server
-
-	authormap := authormapper()
-	workmap := workmapper()
 
 	// [b] acquire the lines we need to display in the body
 
 	lines := simplecontextgrabber(au, fc, ctx)
 	k := fmt.Sprintf("%sw%s", au, wk)
-	w := workmap[k]
+	w := AllWorks[k]
 
 	// [c] format the lines
 
@@ -29,20 +48,29 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 	// [d] acquire and format the HTML
 
 	// need to set lines[0] to the focus, ie the middle of the pile of lines
-	ci := formatcitationinfo(authormap, w, lines[0])
-	pi := formatpublicationinfo(workmap[k])
+	ci := formatcitationinfo(AllAuthors, w, lines[0])
+	pi := formatpublicationinfo(AllWorks[k])
 	tr := buildbrowsertable(fc, lines)
 
 	// [e] fill out the JSON-ready struct
+	p := fc - ctx
+	if p < AllWorks[k].FirstLine {
+		p = AllWorks[k].FirstLine
+	}
 
-	fl := fmt.Sprintf(`linenumber/%s/%s/%d`, au, wk, lines[0].TbIndex)
-	ll := fmt.Sprintf(`linenumber/%s/%s/%d`, au, wk, lines[len(lines)-1].TbIndex)
-	ab := fmt.Sprintf(`%s [%s]`, authormap[au].Cleaname, au)
+	n := fc + ctx
+	if n > AllWorks[k].LastLine {
+		n = AllWorks[k].LastLine
+	}
+
+	bw := fmt.Sprintf(`linenumber/%s/%s/%d`, au, wk, p)
+	fw := fmt.Sprintf(`linenumber/%s/%s/%d`, au, wk, n)
+	ab := fmt.Sprintf(`%s [%s]`, AllAuthors[au].Cleaname, au)
 	wb := fmt.Sprintf(`%s (w%s)`, w.Title, w.WorkNum)
 
 	var bp BrowsedPassage
-	bp.Browseforwards = ll
-	bp.Browseback = fl
+	bp.Browseforwards = fw
+	bp.Browseback = bw
 	bp.Authornumber = au
 	bp.Workid = lines[0].WkUID
 	bp.Authorboxcontents = ab

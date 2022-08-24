@@ -17,7 +17,7 @@ type Session struct {
 	SpuriaOK        bool
 	AvailDBs        map[string]bool `json:"available"`
 	VectorVals      bool
-	UISettings      bool
+	UI              UISettings
 	SrchOutSettings SearchOutputSettings
 	Analogyfinder   bool   `json:"analogyfinder"`
 	Authorflagging  bool   `json:"authorflagging"`
@@ -31,6 +31,18 @@ type Session struct {
 type SearchOutputSettings struct {
 	SearchContext int
 	SortHitsBy    string
+}
+
+type UISettings struct {
+	BrowseCtx   int64
+	InputStyle  string
+	SummSens    bool
+	SummAuu     bool
+	SummQtt     bool
+	SummPhr     bool
+	LxFlagAu    bool
+	WCShow      bool
+	PptAndMorph bool
 }
 
 func makedefaultsession(id string) Session {
@@ -47,6 +59,7 @@ func makedefaultsession(id string) Session {
 	s.Inclusions.DateRange = [2]string{"-850", "1500"}
 	s.SrchOutSettings.SortHitsBy = "Name"
 	s.SrchOutSettings.SearchContext = 0
+	s.UI.BrowseCtx = 10
 	return s
 }
 

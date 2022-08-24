@@ -58,6 +58,8 @@ func StartEchoServer() {
 	//
 
 	// [b1] sample input: '/browse/linenumber/lt0550/001/1855'
+	e.GET("/browse/linenumber/:locus", RtBrowseline)
+
 	// [b2] sample input: '/browse/locus/lt0550/001/3|100'
 	// [b3] sample input: '/browse/perseus/lt0550/001/2:717'
 	// [b4] sample input: '/browse/rawlocus/lt0474/037/2.10.4'

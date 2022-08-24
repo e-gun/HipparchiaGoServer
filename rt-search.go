@@ -34,11 +34,11 @@ func RtSearchStandard(c echo.Context) error {
 
 	user := readUUIDCookie(c)
 
+	id := c.Param("id")
 	skg := c.QueryParam("skg")
 	prx := c.QueryParam("prx")
-	id := c.Param("id")
-	lem := c.Param("lem")
-	plm := c.Param("plm")
+	lem := c.QueryParam("lem")
+	plm := c.QueryParam("plm")
 
 	s := builddefaultsearch(c)
 	timetracker("A", "builddefaultsearch()", start, previous)
