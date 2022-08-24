@@ -40,15 +40,13 @@ func findtherows(thequery string, thecaller string, searchkey string, clientnumb
 
 // worklinequery - use a PrerolledQuery to acquire []DbWorkline
 func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Pool) []DbWorkline {
-	// we omit keeping polling data...
-
-	// [iv] build a temp table if needed
+	// [a] build a temp table if needed
 	if prq.TempTable != "" {
 		_, err := dbpool.Exec(context.Background(), prq.TempTable)
 		checkerror(err)
 	}
 
-	// [v] execute the main query
+	// [b] execute the main query
 	var foundrows pgx.Rows
 	var err error
 
@@ -60,11 +58,7 @@ func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Pool) []DbWorkline {
 		checkerror(err)
 	}
 
-	// [vi] iterate through the finds
-	// don't check-and-load find-by-find because some searches are effectively uncapped
-	// faster to test only after you finish each query
-	// can over-stuff redis because HipparchaServer should only display hitcap results no matter how many you push
-
+	// [c] convert the finds into []DbWorkline
 	var thesefinds []DbWorkline
 
 	defer foundrows.Close()

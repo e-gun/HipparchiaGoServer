@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
 	"runtime"
 	"sync"
@@ -35,13 +33,12 @@ func HGoSrch(s SearchStruct) SearchStruct {
 	}
 
 	merge := ResultAggregator(ctx, findchannels...)
-	s.Results = ResultCollation(ctx, merge)
+	s.Results = ResultCollation(ctx, s.Limit, merge)
 
 	return s
 }
 
-// feeder
-
+// SrchFeeder - emit items to a channel from the []PrerolledQuery that will be consumed by the SrchConsumer
 func SrchFeeder(ctx context.Context, qq []PrerolledQuery) (<-chan PrerolledQuery, error) {
 	emitqueries := make(chan PrerolledQuery, cfg.WorkerCount)
 	go func() {
@@ -58,8 +55,7 @@ func SrchFeeder(ctx context.Context, qq []PrerolledQuery) (<-chan PrerolledQuery
 	return emitqueries, nil
 }
 
-// consumer
-
+// SrchConsumer - grab a PrerolledQuery; execute search; emit finds to a channel
 func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWorkline, error) {
 	emitfinds := make(chan []DbWorkline)
 	go func() {
@@ -70,15 +66,14 @@ func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWo
 			case <-ctx.Done():
 				return
 			default:
-				emitfinds <- modworklinequery(q, dbpool)
+				emitfinds <- worklinequery(q, dbpool)
 			}
 		}
 	}()
 	return emitfinds, nil
 }
 
-// aggregator
-
+// ResultAggregator - gather all of the hits from the hitchannels into one place and then feed them to ResultCollation
 func ResultAggregator(ctx context.Context, hitchannels ...<-chan []DbWorkline) <-chan []DbWorkline {
 	var wg sync.WaitGroup
 	emitaggregate := make(chan []DbWorkline)
@@ -105,8 +100,8 @@ func ResultAggregator(ctx context.Context, hitchannels ...<-chan []DbWorkline) <
 	return emitaggregate
 }
 
-func ResultCollation(ctx context.Context, values <-chan []DbWorkline) []DbWorkline {
-	// will this require locks?
+// ResultCollation - return the actual []DbWorkline results after pulling them from the ResultAggregator channel
+func ResultCollation(ctx context.Context, max int64, values <-chan []DbWorkline) []DbWorkline {
 	var allhits []DbWorkline
 	for {
 		select {
@@ -115,52 +110,17 @@ func ResultCollation(ctx context.Context, values <-chan []DbWorkline) []DbWorkli
 			return allhits
 		case val, ok := <-values:
 			if ok {
+				// the progress poll should be attached here
+				// fmt.Println(fmt.Sprintf("current count: %d", len(allhits)))
 				allhits = append(allhits, val...)
+				if int64(len(allhits)) > max {
+					// you popped over the cap...
+					// fmt.Println(fmt.Sprintf("hit cap: %d > %d", len(allhits), max))
+					return allhits
+				}
 			} else {
 				return allhits
 			}
 		}
 	}
-}
-
-func modworklinequery(prq PrerolledQuery, dbpool *pgxpool.Pool) []DbWorkline {
-	// we omit keeping polling data...
-
-	// [iv] build a temp table if needed
-	if prq.TempTable != "" {
-		_, err := dbpool.Exec(context.Background(), prq.TempTable)
-		checkerror(err)
-	}
-
-	// [v] execute the main query
-	var foundrows pgx.Rows
-	var err error
-
-	if prq.PsqlData != "" {
-		foundrows, err = dbpool.Query(context.Background(), prq.PsqlQuery, prq.PsqlData)
-		checkerror(err)
-	} else {
-		foundrows, err = dbpool.Query(context.Background(), prq.PsqlQuery)
-		checkerror(err)
-	}
-
-	// [vi] iterate through the finds
-	// don't check-and-load find-by-find because some searches are effectively uncapped
-	// faster to test only after you finish each query
-	// can over-stuff redis because HipparchaServer should only display hitcap results no matter how many you push
-
-	var thesefinds []DbWorkline
-
-	defer foundrows.Close()
-	for foundrows.Next() {
-		// [vi.1] convert the finds into DbWorklines
-		var thehit DbWorkline
-		err := foundrows.Scan(&thehit.WkUID, &thehit.TbIndex, &thehit.Lvl5Value, &thehit.Lvl4Value, &thehit.Lvl3Value,
-			&thehit.Lvl2Value, &thehit.Lvl1Value, &thehit.Lvl0Value, &thehit.MarkedUp, &thehit.Accented,
-			&thehit.Stripped, &thehit.Hypenated, &thehit.Annotations)
-		checkerror(err)
-		thesefinds = append(thesefinds, thehit)
-	}
-
-	return thesefinds
 }
