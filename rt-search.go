@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -65,6 +66,7 @@ func RtSearchStandard(c echo.Context) error {
 	s.Queries = prq
 	searches[id] = s
 
+	// return results via searches[id].Results
 	searches[id] = HGoSrch(searches[id])
 
 	timetracker("D", "HGoSrch()", start, previous)
@@ -76,6 +78,7 @@ func RtSearchStandard(c echo.Context) error {
 		t := fmt.Sprintf("%d - %s : %s", i, h.FindLocus(), h.MarkedUp)
 		fmt.Println(t)
 	}
+
 	timetracker("E", "search executed", start, previous)
 
 	js := string(formatnocontextresults(searches[id]))
@@ -87,9 +90,6 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	var s SearchStruct
 
 	user := readUUIDCookie(c)
-	if _, exists := sessions[user]; !exists {
-		sessions[user] = makedefaultsession(user)
-	}
 
 	s.User = user
 	s.Launched = time.Now()
@@ -107,7 +107,7 @@ func formatnocontextresults(s SearchStruct) []byte {
 	out.JS = BROWSERJS
 	out.Title = s.Seeking
 	out.Image = ""
-	out.Searchsummary = s.Seeking
+	out.Searchsummary = formatsearchsummary(s)
 
 	TABLEROW := `
 	<tr class="%s">
@@ -145,4 +145,56 @@ func formatnocontextresults(s SearchStruct) []byte {
 	checkerror(e)
 
 	return js
+}
+
+func formatsearchsummary(s SearchStruct) string {
+
+	t := `
+	<div id="searchsummary">
+		Sought <span class="sought">»%s«</span>
+		<br>
+		Searched %d author tables and found %d passages (%ds)
+		<br>
+		<!-- unlimited hits per author -->
+		Sorted by %s
+		<br>
+		%s
+		%s
+	</div>
+	`
+
+	var dr string
+	if sessions[s.User].Inclusions.DateRange != [2]string{"-850", "1500"} {
+		a := formatbcedate(sessions[s.User].Inclusions.DateRange[0])
+		b := formatbcedate(sessions[s.User].Inclusions.DateRange[1])
+		dr = fmt.Sprintf("<br>Searched between %s and %s", a, b)
+	} else {
+		dr = "<br><!-- dates did not matter -->"
+	}
+
+	var hitcap string
+	if int64(len(s.Results)) == s.Limit {
+		hitcap = "<br>[Search suspended: result cap reached.]"
+	} else {
+		hitcap = "<br><!-- did not hit the results cap -->"
+	}
+
+	so := sessions[s.User].SrchOutSettings.SortHitsBy
+
+	// need to record # of works and not # of tables somewhere & at the right moment...
+	sum := fmt.Sprintf(t, s.Seeking, len(s.Queries), len(s.Results), -9999, so, dr, hitcap)
+	return sum
+}
+
+func formatbcedate(d string) string {
+	s, e := strconv.Atoi(d)
+	if e != nil {
+		s = 9999
+	}
+	if s > 0 {
+		d += " C.E."
+	} else {
+		d = strings.Replace(d, "-", "", -1) + " B.C.E."
+	}
+	return d
 }

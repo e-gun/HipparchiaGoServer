@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"runtime"
+	"sort"
 	"sync"
 )
 
@@ -16,8 +16,6 @@ func HGoSrch(s SearchStruct) SearchStruct {
 	// https://medium.com/geekculture/golang-concurrency-patterns-fan-in-fan-out-1ee43c6830c4
 	// https://pranav93.github.io/blog/golang-fan-inout-pattern/
 	// https://github.com/luk4z7/go-concurrency-guide
-
-	msg(fmt.Sprintf("Searcher Launched"), 1)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -33,7 +31,34 @@ func HGoSrch(s SearchStruct) SearchStruct {
 		findchannels = append(findchannels, fc)
 	}
 
-	s.Results = ResultCollation(ctx, s.Limit, ResultAggregator(ctx, findchannels...))
+	results := ResultCollation(ctx, s.Limit, ResultAggregator(ctx, findchannels...))
+	if int64(len(results)) > s.Limit {
+		results = results[0:s.Limit]
+	}
+
+	// sort results
+	crit := sessions[s.User].SrchOutSettings.SortHitsBy
+	switch {
+	case crit == "Name":
+		sort.Slice(results, func(p, q int) bool {
+			return AllAuthors[results[p].FindAuthor()].Shortname < AllAuthors[results[q].FindAuthor()].Shortname
+		})
+	case crit == "Date":
+		sort.Slice(results, func(p, q int) bool {
+			return AllWorks[results[p].WkUID].ConvDate < AllWorks[results[q].WkUID].ConvDate
+		})
+	case crit == "ID":
+		sort.Slice(results, func(p, q int) bool {
+			return results[p].WkUID < results[q].WkUID
+		})
+	default:
+		// author name
+		sort.Slice(results, func(p, q int) bool {
+			return AllAuthors[results[p].FindAuthor()].Shortname < AllAuthors[results[q].FindAuthor()].Shortname
+		})
+	}
+
+	s.Results = results
 
 	return s
 }

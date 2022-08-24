@@ -45,7 +45,42 @@ type UISettings struct {
 	PptAndMorph bool
 }
 
+func RtFrontpage(c echo.Context) error {
+	// will set if missing
+	readUUIDCookie(c)
+
+	subs := map[string]interface{}{"version": version}
+
+	err := c.Render(http.StatusOK, "frontpage.html", subs)
+	return err
+}
+
+func readUUIDCookie(c echo.Context) string {
+	cookie, err := c.Cookie("ID")
+	if err != nil {
+		id := writeUUIDCookie(c)
+		return id
+	}
+	id := cookie.Value
+
+	if _, t := sessions[id]; !t {
+		sessions[id] = makedefaultsession(id)
+	}
+
+	return id
+}
+
+func writeUUIDCookie(c echo.Context) string {
+	cookie := new(http.Cookie)
+	cookie.Name = "ID"
+	cookie.Value = uuid.New().String()
+	cookie.Expires = time.Now().Add(4800 * time.Hour)
+	c.SetCookie(cookie)
+	return cookie.Value
+}
+
 func makedefaultsession(id string) Session {
+	// note that sessions clear every time the server restarts
 	var s Session
 	s.ID = id
 	// this format is out of sync w/ the JS but necc. for the searching code ATM: lt vs latincorpus, etc
@@ -61,37 +96,6 @@ func makedefaultsession(id string) Session {
 	s.SrchOutSettings.SearchContext = 0
 	s.UI.BrowseCtx = 10
 	return s
-}
-
-func RtFrontpage(c echo.Context) error {
-	id := readUUIDCookie(c)
-	if _, t := sessions[id]; !t {
-		sessions[id] = makedefaultsession(id)
-	}
-
-	subs := map[string]interface{}{"version": version}
-
-	err := c.Render(http.StatusOK, "frontpage.html", subs)
-	return err
-}
-
-func readUUIDCookie(c echo.Context) string {
-	cookie, err := c.Cookie("ID")
-	if err != nil {
-		id := writeUUIDCookie(c)
-		return id
-	}
-	id := cookie.Value
-	return id
-}
-
-func writeUUIDCookie(c echo.Context) string {
-	cookie := new(http.Cookie)
-	cookie.Name = "ID"
-	cookie.Value = uuid.New().String()
-	cookie.Expires = time.Now().Add(4800 * time.Hour)
-	c.SetCookie(cookie)
-	return cookie.Value
 }
 
 // sample python session:
