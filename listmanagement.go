@@ -40,7 +40,7 @@ func sessionintosearchlist(s Session) [2]SearchIncExl {
 	var exc SearchIncExl
 
 	// note that we do all the initial stuff by adding WORKS to the list individually
-	fmt.Println("sessionintosearchlist()")
+
 	// [a] trim mappers by active corpora
 	auu := make(map[string]DbAuthor)
 	wkk := make(map[string]DbWork)
@@ -240,8 +240,6 @@ func sessionintosearchlist(s Session) [2]SearchIncExl {
 	// this is the moment when you know the total # of locations searched: worth recording somewhere
 
 	// now we lose that info in the name of making the search quicker...
-	fmt.Println(len(inc.Works))
-	fmt.Println(len(auu))
 	inc.Authors = calculatewholeauthorsearches(inc.Works, auu)
 
 	// still need to clean the whole authors out of inc.Works
@@ -253,7 +251,6 @@ func sessionintosearchlist(s Session) [2]SearchIncExl {
 	}
 
 	inc.Works = trim
-
 	return [2]SearchIncExl{inc, exc}
 }
 

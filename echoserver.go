@@ -10,7 +10,6 @@ import (
 	"net/http"
 )
 
-// TemplateRenderer is a custom html/template renderer for Echo framework
 type TemplateRenderer struct {
 	templates *template.Template
 }
@@ -30,6 +29,12 @@ func StartEchoServer() {
 	// https://echo.labstack.com/guide/
 	// cf https://medium.com/cuddle-ai/building-microservice-using-golang-echo-framework-ff10ba06d508
 	e := echo.New()
+	renderer := &TemplateRenderer{
+		templates: template.Must(template.ParseGlob("static/html/frontpage.html")),
+	}
+	e.Renderer = renderer
+
+	// e.Use(middleware.Logger())
 	// e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: "method=${method}, uri=${uri}, status=${status}\n"}))
 	e.Use(middleware.Recover())
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))

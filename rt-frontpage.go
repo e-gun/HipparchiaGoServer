@@ -49,11 +49,11 @@ func RtFrontpage(c echo.Context) error {
 	if _, t := sessions[id]; !t {
 		sessions[id] = makedefaultsession(id)
 	}
-	err := c.File("static/html/frontpage.html")
-	if err != nil {
-		return nil
-	}
-	return nil
+
+	subs := map[string]interface{}{"version": version}
+
+	err := c.Render(http.StatusOK, "frontpage.html", subs)
+	return err
 }
 
 func readUUIDCookie(c echo.Context) string {

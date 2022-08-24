@@ -18,7 +18,7 @@ import (
 const (
 	myname          = "Hipparchia Golang Server"
 	shortname       = "HGS"
-	version         = "0.0.4"
+	version         = "0.0.5"
 	tesquery        = "SELECT * FROM %s WHERE index BETWEEN %d and %d"
 	testdb          = "lt0448"
 	teststart       = 1
@@ -42,6 +42,7 @@ const (
 	PSDefaultPort   = 5432
 	PSDefaultDB     = "hipparchiaDB"
 	TwoPassThresh   = 100 // cicero has >70 works
+	NumWorkers      = 10
 )
 
 var (
@@ -217,7 +218,7 @@ func configatstartup() {
 
 	flag.StringVar(&cfg.RedisKey, "k", "", "[searches] redis key to use")
 	flag.Int64Var(&cfg.MaxHits, "c", 200, "[searches] max hit count")
-	flag.IntVar(&cfg.WorkerCount, "t", 5, "[common] number of goroutines to dispatch")
+	flag.IntVar(&cfg.WorkerCount, "t", 10, "[common] number of goroutines to dispatch")
 	flag.IntVar(&cfg.LogLevel, "l", 3, "[common] logging level: 0 is silent; 5 is very noisy")
 	flag.StringVar(&cfg.RedisInfo, "r", RP, "[common] redis logon information (as a JSON string)")
 	flag.StringVar(&cfg.PosgresInfo, "p", PSQ, "[common] psql logon information (as a JSON string)")
