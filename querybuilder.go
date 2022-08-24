@@ -5,92 +5,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
-
-// QueryStack - stack of []PrerolledQueries.
-type QueryStack struct {
-	// Slice of type ItemType, it holds items in stack.
-	items []PrerolledQuery
-	// rwLock for handling concurrent operations on the stack.
-	rwLock sync.RWMutex
-}
-
-// Append - Adds Items to the top of the stack
-func (stack *QueryStack) Append(t []PrerolledQuery) {
-	//Initialize items slice if not initialized
-	if stack.items == nil {
-		stack.items = []PrerolledQuery{}
-	}
-	// Acquire read, write lock before inserting a new item in the stack.
-	stack.rwLock.Lock()
-	// Performs append operation.
-	stack.items = append(stack.items, t...)
-	// This will release read, write lock
-	stack.rwLock.Unlock()
-}
-
-// Push - Adds an Item to the top of the stack
-func (stack *QueryStack) Push(t PrerolledQuery) {
-	//Initialize items slice if not initialized
-	if stack.items == nil {
-		stack.items = []PrerolledQuery{}
-	}
-	// Acquire read, write lock before inserting a new item in the stack.
-	stack.rwLock.Lock()
-	// Performs append operation.
-	stack.items = append(stack.items, t)
-	// This will release read, write lock
-	stack.rwLock.Unlock()
-}
-
-// Pop removes an Item from the top of the stack
-func (stack *QueryStack) Pop() *PrerolledQuery {
-	// Checking if stack is empty before performing pop operation
-	if len(stack.items) == 0 {
-		return nil
-	}
-	// Acquire read, write lock as items are going to modify.
-	stack.rwLock.Lock()
-	// Popping item from items slice.
-	item := stack.items[len(stack.items)-1]
-	//Adjusting the item's length accordingly
-	stack.items = stack.items[0 : len(stack.items)-1]
-	// Release read write lock.
-	stack.rwLock.Unlock()
-	// Return last popped item
-	return &item
-}
-
-// Size return size i.e. number of items present in stack.
-func (stack *QueryStack) Size() int {
-	// Acquire read lock
-	stack.rwLock.RLock()
-	// defer operation of unlock.
-	defer stack.rwLock.RUnlock()
-	// Return length of items slice.
-	return len(stack.items)
-}
-
-// All - return all items present in stack
-func (stack *QueryStack) All() []PrerolledQuery {
-	// Acquire read lock
-	stack.rwLock.RLock()
-	// defer operation of unlock.
-	defer stack.rwLock.RUnlock()
-	// Return items slice to caller.
-	return stack.items
-}
-
-// IsEmpty - Check is stack is empty or not.
-func (stack *QueryStack) IsEmpty() bool {
-	// Acquire read lock
-	stack.rwLock.RLock()
-	// defer operation of unlock.
-	defer stack.rwLock.RUnlock()
-	return len(stack.items) == 0
-}
 
 type SearchStruct struct {
 	User       string
@@ -158,34 +74,9 @@ type QueryBuilder struct {
 	WhrIdxExc string
 }
 
-type WhereClause struct {
-	Table        string
-	Type         string
-	Bounds       []Boundaries
-	Omit         []Boundaries
-	WhindowWhere string
-	IndexWhere   string
-	FirstPass    string
-	SecPass      string
-	Temp         TempSQL
-}
-
-func (w WhereClause) HasWhere() bool {
-	if len(w.Bounds) > 0 || len(w.Omit) > 0 || len(w.Temp.Query) > 0 || len(w.FirstPass) > 0 {
-		return true
-	} else {
-		return false
-	}
-}
-
 type Boundaries struct {
 	Start int64
 	Stop  int64
-}
-
-type TempSQL struct {
-	Data  []int64
-	Query string
 }
 
 const (

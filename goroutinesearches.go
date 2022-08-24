@@ -15,6 +15,7 @@ func HGoSrch(s SearchStruct) SearchStruct {
 	// https://itnext.io/golang-pipeline-in-practise-6007dafbb85f
 	// https://medium.com/geekculture/golang-concurrency-patterns-fan-in-fan-out-1ee43c6830c4
 	// https://pranav93.github.io/blog/golang-fan-inout-pattern/
+	// https://github.com/luk4z7/go-concurrency-guide
 
 	msg(fmt.Sprintf("Searcher Launched"), 1)
 
@@ -32,8 +33,7 @@ func HGoSrch(s SearchStruct) SearchStruct {
 		findchannels = append(findchannels, fc)
 	}
 
-	merge := ResultAggregator(ctx, findchannels...)
-	s.Results = ResultCollation(ctx, s.Limit, merge)
+	s.Results = ResultCollation(ctx, s.Limit, ResultAggregator(ctx, findchannels...))
 
 	return s
 }
@@ -73,11 +73,11 @@ func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWo
 	return emitfinds, nil
 }
 
-// ResultAggregator - gather all of the hits from the hitchannels into one place and then feed them to ResultCollation
-func ResultAggregator(ctx context.Context, hitchannels ...<-chan []DbWorkline) <-chan []DbWorkline {
+// ResultAggregator - gather all hits from the findchannels into one place and then feed them to ResultCollation
+func ResultAggregator(ctx context.Context, findchannels ...<-chan []DbWorkline) <-chan []DbWorkline {
 	var wg sync.WaitGroup
 	emitaggregate := make(chan []DbWorkline)
-	output := func(ll <-chan []DbWorkline) {
+	broadcast := func(ll <-chan []DbWorkline) {
 		defer wg.Done()
 		for l := range ll {
 			select {
@@ -87,9 +87,9 @@ func ResultAggregator(ctx context.Context, hitchannels ...<-chan []DbWorkline) <
 			}
 		}
 	}
-	wg.Add(len(hitchannels))
-	for _, h := range hitchannels {
-		go output(h)
+	wg.Add(len(findchannels))
+	for _, fc := range findchannels {
+		go broadcast(fc)
 	}
 
 	go func() {
@@ -114,8 +114,9 @@ func ResultCollation(ctx context.Context, max int64, values <-chan []DbWorkline)
 				// fmt.Println(fmt.Sprintf("current count: %d", len(allhits)))
 				allhits = append(allhits, val...)
 				if int64(len(allhits)) > max {
-					// you popped over the cap...
-					// fmt.Println(fmt.Sprintf("hit cap: %d > %d", len(allhits), max))
+					// you popped over the cap...: this does in fact save time and exit in the middle
+					// προκατελαβον cap of one: [Δ: 0.112s] HGoSrch()
+					// προκατελαβον uncapped:   [Δ: 1.489s] HGoSrch()
 					return allhits
 				}
 			} else {

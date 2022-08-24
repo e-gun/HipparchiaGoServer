@@ -1,11 +1,22 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strings"
 	"time"
 )
+
+type SearchOutput struct {
+	// meant to turn into JSON
+	Title         string `json:"title"`
+	Searchsummary string `json:"searchsummary"`
+	Found         string `json:"found"`
+	Image         string `json:"image"`
+	JS            string `json:"js"`
+}
 
 func RtSearchConfirm(c echo.Context) error {
 	// not going to be needed?
@@ -55,12 +66,6 @@ func RtSearchStandard(c echo.Context) error {
 	searches[id] = s
 
 	searches[id] = HGoSrch(searches[id])
-	//con := grabpgsqlconnection()
-	//var hits []DbWorkline
-	//for _, q := range prq {
-	//	r := worklinequery(q, con)
-	//	hits = append(hits, r...)
-	//}
 
 	timetracker("D", "HGoSrch()", start, previous)
 	previous = time.Now()
@@ -72,7 +77,10 @@ func RtSearchStandard(c echo.Context) error {
 		fmt.Println(t)
 	}
 	timetracker("E", "search executed", start, previous)
-	return c.String(http.StatusOK, "")
+
+	js := string(formatnocontextresults(searches[id]))
+
+	return c.String(http.StatusOK, js)
 }
 
 func builddefaultsearch(c echo.Context) SearchStruct {
@@ -92,4 +100,49 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	s.SearchIn = sessions[user].Inclusions
 	s.SearchEx = sessions[user].Exclusions
 	return s
+}
+
+func formatnocontextresults(s SearchStruct) []byte {
+	var out SearchOutput
+	out.JS = BROWSERJS
+	out.Title = s.Seeking
+	out.Image = ""
+	out.Searchsummary = s.Seeking
+
+	TABLEROW := `
+	<tr class="%s">
+		<td>
+			<span class="findnumber">[%d]</span>&nbsp;&nbsp;
+			<span class="foundauthor">%s</span>,&nbsp;<span class="foundwork">%s</span>:
+			<browser id="%s"><span class="foundlocus">%s</span></browser>
+		</td>
+		<td class="leftpad">
+			<span class="foundtext">%s</span>
+		</td>
+	</tr>
+	`
+
+	var rows []string
+	for i, r := range s.Results {
+		rc := ""
+		if i%3 == 0 {
+			rc = "nthrow"
+		} else {
+			rc = "regular"
+		}
+
+		au := AllAuthors[r.FindAuthor()].Shortname
+		wk := AllWorks[r.WkUID].Title
+		lk := r.BuildHyperlink()
+		lc := strings.Join(r.FindLocus(), ".")
+		fm := fmt.Sprintf(TABLEROW, rc, i+1, au, wk, lk, lc, r.MarkedUp)
+		rows = append(rows, fm)
+	}
+
+	out.Found = "<tbody>" + strings.Join(rows, "") + "</tbody>"
+
+	js, e := json.Marshal(out)
+	checkerror(e)
+
+	return js
 }

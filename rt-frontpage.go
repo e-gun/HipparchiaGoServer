@@ -8,24 +8,29 @@ import (
 )
 
 type Session struct {
-	ID             string
-	Inclusions     SearchIncExl
-	Exclusions     SearchIncExl
-	ActiveCorp     map[string]bool
-	VariaOK        bool
-	IncertaOK      bool
-	SpuriaOK       bool
-	AvailDBs       map[string]bool `json:"available"`
-	VectorVals     bool
-	UISettings     bool
-	OutPutSettings bool
-	Analogyfinder  bool   `json:"analogyfinder"`
-	Authorflagging bool   `json:"authorflagging"`
-	Authorssummary bool   `json:"authorssummary"`
-	Baggingmethod  string `json:"baggingmethod"`
-	HitLimit       int64
-	Earliest       string
-	Latest         string
+	ID              string
+	Inclusions      SearchIncExl
+	Exclusions      SearchIncExl
+	ActiveCorp      map[string]bool
+	VariaOK         bool
+	IncertaOK       bool
+	SpuriaOK        bool
+	AvailDBs        map[string]bool `json:"available"`
+	VectorVals      bool
+	UISettings      bool
+	SrchOutSettings SearchOutputSettings
+	Analogyfinder   bool   `json:"analogyfinder"`
+	Authorflagging  bool   `json:"authorflagging"`
+	Authorssummary  bool   `json:"authorssummary"`
+	Baggingmethod   string `json:"baggingmethod"`
+	HitLimit        int64
+	Earliest        string
+	Latest          string
+}
+
+type SearchOutputSettings struct {
+	SearchContext int
+	SortHitsBy    string
 }
 
 func makedefaultsession(id string) Session {
@@ -40,7 +45,8 @@ func makedefaultsession(id string) Session {
 	s.Analogyfinder = false
 	s.HitLimit = 200
 	s.Inclusions.DateRange = [2]string{"-850", "1500"}
-
+	s.SrchOutSettings.SortHitsBy = "Name"
+	s.SrchOutSettings.SearchContext = 0
 	return s
 }
 

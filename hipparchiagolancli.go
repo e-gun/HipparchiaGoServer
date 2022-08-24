@@ -18,7 +18,7 @@ import (
 const (
 	myname          = "Hipparchia Golang Server"
 	shortname       = "HGS"
-	version         = "0.0.5"
+	version         = "0.0.6"
 	tesquery        = "SELECT * FROM %s WHERE index BETWEEN %d and %d"
 	testdb          = "lt0448"
 	teststart       = 1
