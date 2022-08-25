@@ -7,7 +7,6 @@ package main
 
 import (
 	"C"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -65,10 +64,6 @@ type CurrentConfiguration struct {
 	VectEnd         int
 	VSkipHW         string
 	VSkipInf        string
-	LexWord         string
-	LexAuth         string
-	BrowseAuthor    string
-	BrowseWork      string
 	TestV1          string
 	TestV2          string
 	TestV3          string
@@ -77,8 +72,6 @@ type CurrentConfiguration struct {
 	BrowseContext   int64
 	IsVectPtr       *bool
 	IsWSPtr         *bool
-	IsBrPtr         *bool
-	IsLexPtr        *bool
 	IsTestPtr       *bool
 	WSPort          int
 	WSFail          int
@@ -141,27 +134,11 @@ func main() {
 		return
 	}
 
-	if *cfg.IsBrPtr || *cfg.IsLexPtr {
-		// don't want to see version info: confuses our json
-	} else {
-		msg(versioninfo, 1)
-	}
-
 	var o string
 	var t int64
 	var x string
 
-	if *cfg.IsBrPtr {
-		// fmt.Printf("browser")
-		js := HipparchiaBrowser(cfg.BrowseAuthor, cfg.BrowseWork, cfg.BrowseFoundline, cfg.BrowseContext)
-		fmt.Printf(string(js))
-		return
-	} else if *cfg.IsLexPtr {
-		// fmt.Printf("lexica")
-		js := findbyform(cfg.LexWord, cfg.LexAuth)
-		fmt.Printf(string(js))
-		return
-	} else if *cfg.IsVectPtr {
+	if *cfg.IsVectPtr {
 		// fmt.Printf("vectors")
 		o = HipparchiaVectors()
 		x = "bags"
@@ -223,19 +200,6 @@ func configatstartup() {
 	flag.StringVar(&cfg.RedisInfo, "r", RP, "[common] redis logon information (as a JSON string)")
 	flag.StringVar(&cfg.PosgresInfo, "p", PSQ, "[common] psql logon information (as a JSON string)")
 
-	// browser flags
-	flag.StringVar(&cfg.BrowseAuthor, "bau", browseauthor, "[browser] author UID to browse")
-	flag.StringVar(&cfg.BrowseWork, "bwk", browsework, "[browser] work ID to browse")
-	flag.Int64Var(&cfg.BrowseFoundline, "bfl", browseline, "[browser] database line to browse")
-	flag.Int64Var(&cfg.BrowseContext, "bctx", browsecontext, "[browser] lines of context to display")
-
-	cfg.IsBrPtr = flag.Bool("br", false, "[browser] assert that this is a browsing run")
-
-	// lexica findbyform flags
-	flag.StringVar(&cfg.LexWord, "lwd", lexword, "[lexica] word to parse and look up")
-	flag.StringVar(&cfg.LexAuth, "lau", lexauthor, "[lexica] work that is looking up the word")
-	cfg.IsLexPtr = flag.Bool("lx", false, "[lexica] assert that this is a lexical run")
-
 	// vector flags
 
 	flag.StringVar(&cfg.BagMethod, "svb", "winnertakesall", "[vectors] the bagging method: choices are alternates, flat, unlemmatized, winnertakesall")
@@ -269,47 +233,5 @@ func configatstartup() {
 
 	if cfg.VSkipInf == "(suppressed owing to length)" {
 		cfg.VSkipInf = skipinflected
-	}
-}
-
-//
-// GENERAL AUTHENTICATION
-//
-
-func decoderedislogin(redislogininfo []byte) RedisLogin {
-	var rl RedisLogin
-	err := json.Unmarshal(redislogininfo, &rl)
-	if err != nil {
-		fmt.Println(fmt.Sprintf("CANNOT PARSE YOUR REDIS LOGIN CREDENTIALS AS JSON [%s v.%s] ", myname, version))
-		panic(err)
-	}
-	return rl
-}
-
-func decodepsqllogin(psqllogininfo []byte) PostgresLogin {
-	var ps PostgresLogin
-	err := json.Unmarshal(psqllogininfo, &ps)
-	if err != nil {
-		fmt.Println(fmt.Sprintf("CANNOT PARSE YOUR POSTGRES LOGIN CREDENTIALS AS JSON [%s v.%s] ", myname, version))
-		panic(err)
-	}
-	return ps
-}
-
-//
-// DEBUGGING
-//
-
-func checkerror(err error) {
-	if err != nil {
-		fmt.Println(fmt.Sprintf("UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE [%s v.%s]", myname, version))
-		panic(err)
-	}
-}
-
-func msg(message string, threshold int) {
-	if cfg.LogLevel >= threshold {
-		message = fmt.Sprintf("[%s] %s", shortname, message)
-		fmt.Println(message)
 	}
 }

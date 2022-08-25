@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -28,6 +29,30 @@ type PostgresLogin struct {
 var (
 	RedisPool *redis.Pool
 )
+
+//
+// GENERAL AUTHENTICATION
+//
+
+func decoderedislogin(redislogininfo []byte) RedisLogin {
+	var rl RedisLogin
+	err := json.Unmarshal(redislogininfo, &rl)
+	if err != nil {
+		fmt.Println(fmt.Sprintf("CANNOT PARSE YOUR REDIS LOGIN CREDENTIALS AS JSON [%s v.%s] ", myname, version))
+		panic(err)
+	}
+	return rl
+}
+
+func decodepsqllogin(psqllogininfo []byte) PostgresLogin {
+	var ps PostgresLogin
+	err := json.Unmarshal(psqllogininfo, &ps)
+	if err != nil {
+		fmt.Println(fmt.Sprintf("CANNOT PARSE YOUR POSTGRES LOGIN CREDENTIALS AS JSON [%s v.%s] ", myname, version))
+		panic(err)
+	}
+	return ps
+}
 
 //
 // REDIS

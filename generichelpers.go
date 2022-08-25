@@ -1,6 +1,24 @@
 package main
 
-// https://rksurwase.medium.com/slice-based-stack-implementation-in-golang-8140603a1dc2
+import "fmt"
+
+//
+// DEBUGGING
+//
+
+func checkerror(err error) {
+	if err != nil {
+		fmt.Println(fmt.Sprintf("UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE [%s v.%s]", myname, version))
+		panic(err)
+	}
+}
+
+func msg(message string, threshold int) {
+	if cfg.LogLevel >= threshold {
+		message = fmt.Sprintf("[%s] %s", shortname, message)
+		fmt.Println(message)
+	}
+}
 
 //
 // misc generic functions
