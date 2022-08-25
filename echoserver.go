@@ -86,6 +86,8 @@ func StartEchoServer() {
 	e.GET("/get/json/worksof/:id", RtGetJSWorksOf)
 
 	// [f2c] /get/json/workstructure
+	e.GET("/get/json/workstructure/:locus", RtGetJSWorksStruct)
+
 	// [f2d] /get/json/samplecitation
 	// [f2e] /get/json/authorinfo
 	// [f2f] /get/json/searchlistcontents
@@ -179,20 +181,30 @@ func RtGetJSWorksOf(c echo.Context) error {
 	tp := "%s (%s)"
 	var titles []JSStruct
 	for _, w := range wl {
-		new := fmt.Sprintf(tp, AllWorks[id].Title, w[7:10])
+		new := fmt.Sprintf(tp, AllWorks[w].Title, w[6:10])
 		titles = append(titles, JSStruct{new})
 	}
 
 	// send
 	b, e := json.Marshal(titles)
 	checkerror(e)
-	fmt.Println(string(b))
+
 	return c.String(http.StatusOK, string(b))
 }
 
+func RtGetJSWorksStruct(c echo.Context) error {
+	// curl localhost:5000/get/json/workstructure/lt0474/058
+	//{"totallevels": 4, "level": 3, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
+
+	return c.String(http.StatusOK, "")
+}
+
 func RtResetSession(c echo.Context) error {
-	// delete my session..
+	// delete my session
 	delete(sessions, readUUIDCookie(c))
+
+	// then reset it
+	readUUIDCookie(c)
 	return RtFrontpage(c)
 }
 

@@ -94,3 +94,7 @@ func simplecontextgrabber(table string, focus int64, context int64) []DbWorkline
 
 	return foundlines
 }
+
+func findvalidlevelvalues() {
+	// tell me some of a citation and i can tell you what is a valid choice at the next step
+}
