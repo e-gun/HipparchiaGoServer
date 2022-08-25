@@ -142,3 +142,8 @@ type BrowsedPassage struct {
 	Workboxcontents   string `json:"workboxcontents"`
 	Browserhtml       string `json:"browserhtml"`
 }
+
+// JSStruct - this is really just for generating JSON
+type JSStruct struct {
+	V string `json:"value"`
+}

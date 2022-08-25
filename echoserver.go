@@ -83,6 +83,8 @@ func StartEchoServer() {
 	e.GET("/get/json/sessionvariables", RtGetJSSession)
 
 	// [f2b] /get/json/worksof
+	e.GET("/get/json/worksof/:id", RtGetJSWorksOf)
+
 	// [f2c] /get/json/workstructure
 	// [f2d] /get/json/samplecitation
 	// [f2e] /get/json/authorinfo
@@ -167,6 +169,25 @@ func RtGetJSSession(c echo.Context) error {
 	o, e := json.Marshal(s)
 	checkerror(e)
 	return c.String(http.StatusOK, string(o))
+}
+
+func RtGetJSWorksOf(c echo.Context) error {
+	// curl localhost:5000/get/json/worksof/lt0972
+	//[{"value": "Satyrica (w001)"}, {"value": "Satyrica, fragmenta (w002)"}]
+	id := c.Param("id")
+	wl := AllAuthors[id].WorkList
+	tp := "%s (%s)"
+	var titles []JSStruct
+	for _, w := range wl {
+		new := fmt.Sprintf(tp, AllWorks[id].Title, w[7:10])
+		titles = append(titles, JSStruct{new})
+	}
+
+	// send
+	b, e := json.Marshal(titles)
+	checkerror(e)
+	fmt.Println(string(b))
+	return c.String(http.StatusOK, string(b))
 }
 
 func RtResetSession(c echo.Context) error {

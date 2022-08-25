@@ -10,7 +10,8 @@ import (
 )
 
 func RtAuthorHints(c echo.Context) error {
-	// input is not validated...
+	// input is not validated
+
 	// 127.0.0.1 - - [24/Aug/2022 19:57:47] "GET /hints/author/_?term=auf HTTP/1.1" 200 -
 	// [{'value': 'Aufidius Bassus [lt0809]'}, {'value': 'Aufustius [lt0401]'}]
 
@@ -23,9 +24,18 @@ func RtAuthorHints(c echo.Context) error {
 	// is what we have a match?
 	var auu [][2]string
 	for _, a := range AllAuthors {
+		var who string
 		var an string
-		if len(a.Cleaname) >= len(skg) {
-			an = strings.ToLower(a.Cleaname[0:len(skg)])
+
+		// [sosthenes], et al. can be found via "sos" or "[so"
+		if strings.Contains(skg, "[") {
+			who = a.Cleaname
+		} else {
+			who = strings.Replace(a.Cleaname, "[", "", 1)
+		}
+
+		if len(who) >= len(skg) {
+			an = strings.ToLower(who[0:len(skg)])
 		}
 		if an == skg {
 			ai := [2]string{a.Cleaname, a.UID}
@@ -46,15 +56,10 @@ func RtAuthorHints(c echo.Context) error {
 		}
 	}
 
-	// format
-	type TempSt struct {
-		V string `json:"value"`
-	}
-
-	var auf []TempSt
+	var auf []JSStruct
 	for _, t := range trimmed {
 		st := fmt.Sprintf(`%s [%s]`, t[0], t[1])
-		auf = append(auf, TempSt{st})
+		auf = append(auf, JSStruct{st})
 	}
 
 	// sort since we were working with a map
