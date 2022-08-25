@@ -134,16 +134,15 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 		atlvl = lvls - len(locc)
 	}
 
-	if atlvl < 0 {
+	need := lvls - atlvl
+
+	if atlvl < 0 || need < 0 {
+		// logic bug in here somehwere...
+		msg("findvalidlevelvalues() sent negative levels", -1)
 		return LevelValues{}
 	}
-	need := lvls - atlvl - 1
 
 	// [b] make a query
-
-	// top: SELECT ... FROM lt0959 WHERE ( wkuniversalid=%s ) AND level_02_value NOT IN (%s) ORDER BY index ('lt0959w001', 't')
-	// first: SELECT ... FROM lt0959 WHERE ( wkuniversalid=%s ) AND  level_02_value=%s AND level_01_value NOT IN (%s) ORDER BY index ('lt0959w001', '1', 't')
-	// second: SELECT ... FROM lt0959 WHERE ( wkuniversalid=%s ) AND  level_02_value=%s AND  level_01_value=%s AND level_00_value NOT IN (%s) ORDER BY index ('lt0959w001', '1', '3', 't')
 
 	qmap := map[int]string{0: "level_00_value", 1: "level_01_value", 2: "level_02_value", 3: "level_03_value",
 		4: "level_04_value", 5: "level_05_value"}
@@ -151,11 +150,22 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	t := SELECTFROM + ` WHERE wkuniversalid='%s' %s %s ORDER BY index ASC`
 
 	var ands []string
-	for i := atlvl; i < need; i-- {
-		a := fmt.Sprintf(`%s='%s'`, qmap[i], locc[len(locc)-i])
+	for i := 0; i < need; i++ {
+		// example: xen's anabasis (gr0032w006) has 4 levels
+		// top is 3; need just all vals @ 3; so no ands
+		// next is 2; need "level_03_value='X'" (ie, qmap[3] and locc[0])
+		// next is 1; need "level_03_value='X' AND level_02_value='Y'" (ie, qmap[3] and locc[0] + qmap[2] and locc[1])
+		// next is 0; need "level_03_value='X' AND level_02_value='Y' AND level_01_value='Z'"
+		q := lvls - i
+		a := fmt.Sprintf(`%s='%s'`, qmap[q], locc[i])
 		ands = append(ands, a)
+		// fmt.Println(ands)
 	}
-	and := strings.Join(ands, " AND ")
+
+	var and string
+	if len(ands) > 0 {
+		and = " AND " + strings.Join(ands, " AND ")
+	}
 	andnot := fmt.Sprintf(`AND %s NOT IN ('t')`, qmap[atlvl])
 
 	var prq PrerolledQuery
@@ -181,6 +191,7 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	r = unique(r)
 	sort.Strings(r)
 	vals.Range = r
+
 	return vals
 }
 

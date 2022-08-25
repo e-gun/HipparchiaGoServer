@@ -62,6 +62,8 @@ func StartEchoServer() {
 	e.GET("/browse/linenumber/:locus", RtBrowseline)
 
 	// [b2] sample input: '/browse/locus/lt0550/001/3|100'
+	e.GET("/browse/locus/:locus", RtBrowseLocus)
+
 	// [b3] sample input: '/browse/perseus/lt0550/001/2:717'
 	// [b4] sample input: '/browse/rawlocus/lt0474/037/2.10.4'
 
@@ -213,13 +215,11 @@ func RtGetJSWorksStruct(c echo.Context) error {
 	}
 
 	locc := strings.Split(parsed[2], "|")
-
 	lvls := findvalidlevelvalues(wkid, locc)
 
 	// send
 	b, e := json.Marshal(lvls)
 	checkerror(e)
-	fmt.Println(string(b))
 	return c.String(http.StatusOK, string(b))
 }
 

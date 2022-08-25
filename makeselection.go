@@ -212,6 +212,17 @@ func findendpointsfromlocus(wuid string, locus string) [2]int64 {
 		ll = ll[0:wl]
 	}
 
+	if len(ll) == 0 || ll[0] == "_0" {
+		fl = [2]int64{wk.FirstLine, wk.LastLine}
+		return fl
+	}
+
+	if ll[len(ll)-1] == "_0" {
+		ll = ll[0 : len(ll)-1]
+	}
+
+	fmt.Println(ll)
+
 	col := [6]string{"level_00_value", "level_01_value", "level_02_value", "level_03_value", "level_04_value", "level_05_value"}
 	tem := `%s='%s'`
 	var use []string
@@ -224,17 +235,6 @@ func findendpointsfromlocus(wuid string, locus string) [2]int64 {
 
 	dbpool := grabpgsqlconnection()
 	qt := `SELECT index FROM %s WHERE wkuniversalid='%s' AND %s ORDER BY index ASC`
-
-	// if the last selection box was empty you are sent '_0' instead of a real value
-	if ll[0] == "_0" {
-		lu := len(use)
-		use = use[1:lu]
-	}
-
-	if len(use) == 0 {
-		fl = [2]int64{wk.FirstLine, wk.LastLine}
-		return fl
-	}
 
 	a := strings.Join(use, " AND ")
 	q := fmt.Sprintf(qt, tb, wuid, a)
@@ -252,8 +252,14 @@ func findendpointsfromlocus(wuid string, locus string) [2]int64 {
 		checkerror(err)
 		idx = append(idx, thehit)
 	}
+	if len(idx) == 0 {
+		// bogus input
+		msg(fmt.Sprintf("findendpointsfromlocus() failed to find the following inside of %s: %s", wuid, locus), -1)
+		fl = [2]int64{1, 1}
+	} else {
+		fl = [2]int64{idx[0], idx[len(idx)-1]}
+	}
 
-	fl = [2]int64{idx[0], idx[len(idx)-1]}
 	return fl
 }
 
