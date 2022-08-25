@@ -23,7 +23,7 @@ type SearchIncExl struct {
 func (i SearchIncExl) isEmpty() bool {
 	l := len(i.AuGenres) + len(i.WkGenres) + len(i.AuLocations) + len(i.WkLocations) + len(i.Authors)
 	l += len(i.Works) + len(i.Passages)
-	if l > 1 {
+	if l > 0 {
 		return false
 	} else {
 		return true
@@ -310,7 +310,7 @@ func calculatewholeauthorsearches(sl []string, aa map[string]DbAuthor) []string 
 	members := make(map[string]int)
 	for _, s := range sl {
 		// count the works
-		members[s] += 1
+		members[s[0:6]] += 1
 	}
 
 	for k, v := range members {
@@ -318,6 +318,9 @@ func calculatewholeauthorsearches(sl []string, aa map[string]DbAuthor) []string 
 			wholes = append(wholes, k)
 		}
 	}
+
+	//fmt.Printf("len(aa[lt0474].WorkList): %d\n", len(aa["lt0474"].WorkList))
+	//fmt.Printf("members[lt0474]: %d\n", members["lt0474"])
 
 	return wholes
 }

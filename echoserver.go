@@ -140,7 +140,7 @@ func StartEchoServer() {
 	//
 
 	// [k1] "GET /selection/make/_?auth=gr7000 HTTP/1.1"
-	e.GET("/selection/make", RtSelectionMake)
+	e.GET("/selection/make/:locus", RtSelectionMake)
 
 	// [k2] "GET /selection/clear/auselections/0 HTTP/1.1"
 	e.GET("/selection/clear", RtSelectionClear)
@@ -233,6 +233,31 @@ func RtResetSession(c echo.Context) error {
 }
 
 func RtSelectionMake(c echo.Context) error {
+	// GET http://localhost:8000/selection/make/_?auth=lt0474&work=073&locus=3|10&endpoint=
+	user := readUUIDCookie(c)
+	var sel SelectValues
+	sel.Auth = c.QueryParam("auth")
+	sel.Work = c.QueryParam("work")
+	sel.LocusAsString = c.QueryParam("locus")
+	sel.EndAsString = c.QueryParam("entpoint")
+	sel.AGenre = c.QueryParam("genre")
+	sel.WGenre = c.QueryParam("wkgenre")
+	sel.ALoc = c.QueryParam("auloc")
+	sel.WLoc = c.QueryParam("wkprov")
+
+	if c.QueryParam("raw") == "t" {
+		sel.IsRaw = true
+	} else {
+		sel.IsRaw = false
+	}
+
+	if c.QueryParam("exclude") == "t" {
+		sel.IsExcl = true
+	} else {
+		sel.IsExcl = false
+	}
+
+	sessions[user] = selected(user, sel)
 	return c.String(http.StatusOK, "")
 }
 

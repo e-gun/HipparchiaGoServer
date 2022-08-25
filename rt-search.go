@@ -41,30 +41,32 @@ func RtSearchStandard(c echo.Context) error {
 	lem := c.QueryParam("lem")
 	plm := c.QueryParam("plm")
 
-	s := builddefaultsearch(c)
+	srch := builddefaultsearch(c)
 	timetracker("A", "builddefaultsearch()", start, previous)
 	previous = time.Now()
 
-	s.Seeking = skg
-	s.Proximate = prx
-	s.LemmaOne = lem
-	s.LemmaTwo = plm
-	s.IsVector = false
+	srch.Seeking = skg
+	srch.Proximate = prx
+	srch.LemmaOne = lem
+	srch.LemmaTwo = plm
+	srch.IsVector = false
 	sl := sessionintosearchlist(sessions[user])
-	s.SearchIn = sl[0]
-	s.SearchEx = sl[1]
+	srch.SearchIn = sl[0]
+	srch.SearchEx = sl[1]
+	fmt.Printf("srch.SearchIn works len: %d\n", len(srch.SearchIn.Works))
+	fmt.Printf("srch.SearchIn auth len: %d\n", len(srch.SearchIn.Authors))
 	timetracker("B", "sessionintosearchlist()", start, previous)
 	previous = time.Now()
 
 	// only true if not lemmatized
-	s.SkgSlice = append(s.SkgSlice, s.Seeking)
+	srch.SkgSlice = append(srch.SkgSlice, srch.Seeking)
 
-	prq := searchlistintoqueries(s)
+	prq := searchlistintoqueries(srch)
 	timetracker("C", "searchlistintoqueries()", start, previous)
 	previous = time.Now()
 
-	s.Queries = prq
-	searches[id] = s
+	srch.Queries = prq
+	searches[id] = srch
 
 	// return results via searches[id].Results
 	searches[id] = HGoSrch(searches[id])
@@ -72,12 +74,11 @@ func RtSearchStandard(c echo.Context) error {
 	timetracker("D", "HGoSrch()", start, previous)
 	previous = time.Now()
 
-	hits := searches[id].Results
-
-	for i, h := range hits {
-		t := fmt.Sprintf("%d - %s : %s", i, h.FindLocus(), h.MarkedUp)
-		fmt.Println(t)
-	}
+	//hits := searches[id].Results
+	//for i, h := range hits {
+	//	t := fmt.Sprintf("%d - %srch : %srch", i, h.FindLocus(), h.MarkedUp)
+	//	fmt.Println(t)
+	//}
 
 	timetracker("E", "search executed", start, previous)
 

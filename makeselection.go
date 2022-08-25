@@ -8,15 +8,18 @@ import (
 )
 
 type SelectValues struct {
-	Auth   string
-	Work   string
-	Start  string
-	End    string
-	AGenre string
-	WGenre string
-	ALoc   string
-	WLoc   string
-	Excl   bool
+	Auth          string
+	Work          string
+	Start         string
+	End           string
+	AGenre        string
+	WGenre        string
+	ALoc          string
+	WLoc          string
+	IsExcl        bool
+	IsRaw         bool
+	LocusAsString string
+	EndAsString   string
 }
 
 // WUID - return work universalid
@@ -60,8 +63,7 @@ func (s SelectValues) A() bool {
 	}
 }
 
-func selected(sv SelectValues, s Session) Session {
-
+func selected(user string, sv SelectValues) Session {
 	// have to deal with all sorts of possibilities
 	// [a] author: "GET /selection/make/_?auth=gr7000 HTTP/1.1"
 	// [b] work: "GET /selection/make/_?auth=lt0474&work=001 HTTP/1.1"
@@ -74,6 +76,8 @@ func selected(sv SelectValues, s Session) Session {
 	// [f] author location: "GET /selection/make/_?auloc=Abdera HTTP/1.1"
 	// [g] work proven: "GET /selection/make/_?wkprov=Abdera%20(Thrace) HTTP/1.1"
 
+	s := sessions[user]
+
 	if s.Inclusions.PassagesByName == nil {
 		s.Inclusions.PassagesByName = make(map[string]string)
 	}
@@ -82,7 +86,7 @@ func selected(sv SelectValues, s Session) Session {
 	}
 
 	if sv.A() {
-		if !sv.Excl {
+		if !sv.IsExcl {
 			s.Inclusions.Authors = unique(append(s.Inclusions.Authors, sv.Auth))
 		} else {
 			s.Exclusions.Authors = unique(append(s.Exclusions.Authors, sv.Auth))
@@ -90,7 +94,7 @@ func selected(sv SelectValues, s Session) Session {
 	}
 
 	if sv.AW() {
-		if !sv.Excl {
+		if !sv.IsExcl {
 			s.Inclusions.Works = unique(append(s.Inclusions.Works, fmt.Sprintf("%sw%s", sv.Auth, sv.Work)))
 		} else {
 			s.Exclusions.Works = unique(append(s.Exclusions.Works, fmt.Sprintf("%sw%s", sv.Auth, sv.Work)))
@@ -106,7 +110,7 @@ func selected(sv SelectValues, s Session) Session {
 		cs := fmt.Sprintf("%s, %s, %s", ra, rw, r)
 		t := `%s_FROM_%d_TO_%d`
 		i := fmt.Sprintf(t, sv.Auth, b[0], b[1])
-		if !sv.Excl {
+		if !sv.IsExcl {
 			s.Inclusions.Passages = unique(append(s.Inclusions.Passages, i))
 			s.Inclusions.PassagesByName[i] = cs
 		} else {
@@ -126,7 +130,7 @@ func selected(sv SelectValues, s Session) Session {
 		cs := fmt.Sprintf("%s, %s, %s - %s", ra, rw, rs, re)
 		t := `%s_FROM_%d_TO_%d`
 		i := fmt.Sprintf(t, sv.Auth, b[0], e[1])
-		if !sv.Excl {
+		if !sv.IsExcl {
 			s.Inclusions.Passages = unique(append(s.Inclusions.Passages, i))
 			s.Inclusions.PassagesByName[i] = cs
 		} else {
@@ -186,9 +190,9 @@ func parsesleectvals(r *http.Request) SelectValues {
 
 	if _, ok := kvp["exclude"]; ok {
 		if kvp["exclude"][0] == "t" {
-			sv.Excl = true
+			sv.IsExcl = true
 		} else {
-			sv.Excl = false
+			sv.IsExcl = false
 		}
 	}
 
@@ -276,14 +280,16 @@ func test_selection() {
 	//{[] [] [] [] [] [] [lt0474_FROM_36136_TO_36151] [ ]}
 
 	var s Session
+	id := "testing"
+	sessions[id] = s
 	var sv SelectValues
 	sv.Auth = cfg.TestV1
 	sv.Work = cfg.TestV2
 	sv.Start = cfg.TestV3
 	// sv.Start = "2|100"
 	// sv.End = "3|20"
-	sv.Excl = false
-	s = selected(sv, s)
+	sv.IsExcl = false
+	s = selected(id, sv)
 	fmt.Println(s.Inclusions)
 	return
 }
