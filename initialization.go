@@ -11,7 +11,7 @@ import (
 var (
 	AllWorks   = workmapper()
 	AllAuthors = loadworksintoauthors(authormapper(), AllWorks)
-	AllLemm    = lemmamapper()
+	// AllLemm    = lemmamapper()
 )
 
 type DbAuthor struct {
@@ -242,7 +242,7 @@ func lemmamapper() map[string]map[string]DbLemma {
 	//    "greek_lemmata_idx" btree (dictionary_entry)
 
 	// a list of 140k words is too long to send to 'getlemmahint' without offering quicker access
-	// nest a map
+	// nest a map: [HGS] [-: 2.497s][Δ: 2.497s] lemma
 
 	start := time.Now()
 	previous := time.Now()
@@ -261,9 +261,6 @@ func lemmamapper() map[string]map[string]DbLemma {
 		checkerror(err)
 		defer foundrows.Close()
 		for foundrows.Next() {
-			// fmt.Println(foundrows.Values())
-			// this will die if <nil> comes back inside any of the columns: "cannot scan null into *string"
-			// the builder should address this: fixing it here is less ideal
 			var thehit DbLemma
 			err := foundrows.Scan(&thehit.Entry, &thehit.Xref, &thehit.Deriv)
 			checkerror(err)
@@ -292,6 +289,6 @@ func lemmamapper() map[string]map[string]DbLemma {
 	//fmt.Println(len(nested))
 	//fmt.Println(nested["ζω"])
 
-	timetracker("-", "lemma list", start, previous)
+	timetracker("D", "lemma map built", start, previous)
 	return nested
 }

@@ -91,7 +91,19 @@ func StartEchoServer() {
 	// [f2f] /get/json/vectorranges
 	// [f2g] /get/json/helpdata
 
+	//
 	// [g] hinters
+	//
+
+	// [g1] "GET /hints/author/_?term=au HTTP/1.1"
+	e.GET("/hints/author/:id", RtAuthorHints)
+
+	// [g2] authorgenre
+	// [g3] workgenre
+	// [g4] authorlocation
+	// [g5] worklocation
+	// [g6] lemmata
+
 	// [h] lexical
 
 	//
