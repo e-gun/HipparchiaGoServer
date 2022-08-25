@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"strings"
 )
 
 type TemplateRenderer struct {
@@ -195,8 +196,31 @@ func RtGetJSWorksOf(c echo.Context) error {
 func RtGetJSWorksStruct(c echo.Context) error {
 	// curl localhost:5000/get/json/workstructure/lt0474/058
 	//{"totallevels": 4, "level": 3, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
+	// that is a top: interiors look like "1|3" for "book one", "subheading_val 3"
 
-	return c.String(http.StatusOK, "")
+	// TODO: input sanitization
+
+	locus := c.Param("locus")
+	parsed := strings.Split(locus, "/")
+
+	if len(parsed) < 2 || len(parsed) > 3 {
+		return c.String(http.StatusOK, "")
+	}
+	wkid := parsed[0] + "w" + parsed[1]
+
+	if len(parsed) == 2 {
+		parsed = append(parsed, "")
+	}
+
+	locc := strings.Split(parsed[2], "|")
+
+	lvls := findvalidlevelvalues(wkid, locc)
+
+	// send
+	b, e := json.Marshal(lvls)
+	checkerror(e)
+	fmt.Println(string(b))
+	return c.String(http.StatusOK, string(b))
 }
 
 func RtResetSession(c echo.Context) error {

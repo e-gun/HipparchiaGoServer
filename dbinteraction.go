@@ -125,7 +125,7 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	w := AllWorks[wkid]
 	lmap := map[int]string{0: w.LL0, 1: w.LL1, 2: w.LL2, 3: w.LL3, 4: w.LL4, 5: w.LL5}
 
-	lvls := w.CountLevels()
+	lvls := w.CountLevels() - 1 // count vs indexing adjustment
 	atlvl := 0
 	if locc[0] == "" {
 		// at top
@@ -134,7 +134,10 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 		atlvl = lvls - len(locc)
 	}
 
-	need := lvls - atlvl
+	if atlvl < 0 {
+		return LevelValues{}
+	}
+	need := lvls - atlvl - 1
 
 	// [b] make a query
 
@@ -145,7 +148,7 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	qmap := map[int]string{0: "level_00_value", 1: "level_01_value", 2: "level_02_value", 3: "level_03_value",
 		4: "level_04_value", 5: "level_05_value"}
 
-	t := SELECTFROM + `WHERE wkuniversalid='%s' %s %s ORDER BY index ASC`
+	t := SELECTFROM + ` WHERE wkuniversalid='%s' %s %s ORDER BY index ASC`
 
 	var ands []string
 	for i := atlvl; i < need; i-- {
@@ -157,6 +160,7 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 
 	var prq PrerolledQuery
 	prq.PsqlQuery = fmt.Sprintf(t, w.FindAuthor(), wkid, and, andnot)
+
 	dbpool := grabpgsqlconnection()
 	lines := worklinequery(prq, dbpool)
 
@@ -174,6 +178,7 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	for i, _ := range lines {
 		r = append(r, picklvlval(atlvl, lines[i]))
 	}
+	r = unique(r)
 	sort.Strings(r)
 	vals.Range = r
 	return vals
