@@ -86,7 +86,7 @@ func newPool(addr string) *redis.Pool {
 
 func cleanupHook() {
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	// signal.Notify(c, os.Interrupt)
 	signal.Notify(c, syscall.SIGTERM)
 	signal.Notify(c, syscall.SIGKILL)
 	go func() {

@@ -11,7 +11,8 @@ import (
 var (
 	AllWorks   = workmapper()
 	AllAuthors = loadworksintoauthors(authormapper(), AllWorks)
-	// AllLemm    = lemmamapper()
+	//AllLemm    = lemmamapper()
+	//NestedLemm = nestedlemmamapper(AllLemm)
 )
 
 type DbAuthor struct {
@@ -70,12 +71,7 @@ func (dbw DbWork) FindAuthor() string {
 
 func (dbw DbWork) CitationFormat() []string {
 	cf := []string{
-		dbw.LL5,
-		dbw.LL4,
-		dbw.LL3,
-		dbw.LL2,
-		dbw.LL1,
-		dbw.LL0,
+		dbw.LL5, dbw.LL4, dbw.LL3, dbw.LL2, dbw.LL1, dbw.LL0,
 	}
 	return cf
 }
@@ -230,7 +226,8 @@ func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[stri
 	return na
 }
 
-func lemmamapper() map[string]map[string]DbLemma {
+// lemmamapper - map[string]DbLemma for all lemmata
+func lemmamapper() map[string]DbLemma {
 	// hipparchiaDB=# \d greek_lemmata
 	//                       Table "public.greek_lemmata"
 	//      Column      |         Type          | Collation | Nullable | Default
@@ -242,12 +239,11 @@ func lemmamapper() map[string]map[string]DbLemma {
 	//    "greek_lemmata_idx" btree (dictionary_entry)
 
 	// a list of 140k words is too long to send to 'getlemmahint' without offering quicker access
-	// nest a map: [HGS] [-: 2.497s][Δ: 2.497s] lemma
+	// [HGS] [D: 0.199s][Δ: 0.199s] unnested lemma map built
 
 	start := time.Now()
 	previous := time.Now()
 
-	nested := make(map[string]map[string]DbLemma)
 	unnested := make(map[string]DbLemma)
 
 	langs := [2]string{"greek", "latin"}
@@ -271,7 +267,18 @@ func lemmamapper() map[string]map[string]DbLemma {
 	for _, lm := range thefinds {
 		unnested[lm.Entry] = lm
 	}
+	timetracker("D", "unnested lemma map built", start, previous)
+	return unnested
+}
 
+// nestedlemmamapper - map[string]map[string]DbLemma for the hinter
+func nestedlemmamapper(unnested map[string]DbLemma) map[string]map[string]DbLemma {
+	// you need both a nested and the unnested version; nested for the hinter
+	// [HGS] [E: 2.284s][Δ: 2.284s] nested lemma map built
+	start := time.Now()
+	previous := time.Now()
+
+	nested := make(map[string]map[string]DbLemma)
 	for k, v := range unnested {
 		bag := string([]rune(v.Entry)[0:2])
 		bag = stripaccents(bag)
@@ -289,6 +296,6 @@ func lemmamapper() map[string]map[string]DbLemma {
 	//fmt.Println(len(nested))
 	//fmt.Println(nested["ζω"])
 
-	timetracker("D", "lemma map built", start, previous)
+	timetracker("E", "nested lemma map built", start, previous)
 	return nested
 }

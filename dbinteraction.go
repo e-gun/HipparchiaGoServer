@@ -7,8 +7,21 @@ import (
 	"github.com/gomodule/redigo/redis"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"sort"
 	"strconv"
+	"strings"
 )
+
+type LevelValues struct {
+	// for JSON output...
+	// {"totallevels": 3, "level": 2, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
+	Total int      `json:"totallevels"`
+	AtLvl int      `json:"level"`
+	Label string   `json:"label"`
+	Low   string   `json:"low"`
+	High  string   `json:"high"`
+	Range []string `json:"range"`
+}
 
 // findtherows - use a redis.Conn to acquire []DbWorkline
 func findtherows(thequery string, thecaller string, searchkey string, clientnumber int, rc redis.Conn, dbpool *pgxpool.Pool) []DbWorkline {
@@ -95,6 +108,93 @@ func simplecontextgrabber(table string, focus int64, context int64) []DbWorkline
 	return foundlines
 }
 
-func findvalidlevelvalues() {
+func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	// tell me some of a citation and i can tell you what is a valid choice at the next step
+	// curl localhost:5000/get/json/workstructure/lt0959/001
+	// {"totallevels": 3, "level": 2, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
+	// curl localhost:5000/get/json/workstructure/lt0959/001/2
+	// {"totallevels": 3, "level": 1, "label": "poem", "low": "1", "high": "19", "range": ["1", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "2", "3", "4", "5", "6", "7", "8", "9a", "9b"]}
+
+	// select levellabels_00, levellabels_01, levellabels_02, levellabels_03, levellabels_04, levellabels_05 from works where universalid = 'lt0959w001';
+	// levellabels_00 | levellabels_01 | levellabels_02 | levellabels_03 | levellabels_04 | levellabels_05
+	//----------------+----------------+----------------+----------------+----------------+----------------
+	// verse          | poem           | book           |                |                |
+
+	// [a] what do we need?
+
+	w := AllWorks[wkid]
+	lmap := map[int]string{0: w.LL0, 1: w.LL1, 2: w.LL2, 3: w.LL3, 4: w.LL4, 5: w.LL5}
+
+	lvls := w.CountLevels()
+	atlvl := 0
+	if locc[0] == "" {
+		// at top
+		atlvl = lvls
+	} else {
+		atlvl = lvls - len(locc)
+	}
+
+	need := lvls - atlvl
+
+	// [b] make a query
+
+	// top: SELECT ... FROM lt0959 WHERE ( wkuniversalid=%s ) AND level_02_value NOT IN (%s) ORDER BY index ('lt0959w001', 't')
+	// first: SELECT ... FROM lt0959 WHERE ( wkuniversalid=%s ) AND  level_02_value=%s AND level_01_value NOT IN (%s) ORDER BY index ('lt0959w001', '1', 't')
+	// second: SELECT ... FROM lt0959 WHERE ( wkuniversalid=%s ) AND  level_02_value=%s AND  level_01_value=%s AND level_00_value NOT IN (%s) ORDER BY index ('lt0959w001', '1', '3', 't')
+
+	qmap := map[int]string{0: "level_00_value", 1: "level_01_value", 2: "level_02_value", 3: "level_03_value",
+		4: "level_04_value", 5: "level_05_value"}
+
+	t := SELECTFROM + `WHERE wkuniversalid='%s' %s %s ORDER BY index ASC`
+
+	var ands []string
+	for i := atlvl; i < need; i-- {
+		a := fmt.Sprintf(`%s='%s'`, qmap[i], locc[len(locc)-i])
+		ands = append(ands, a)
+	}
+	and := strings.Join(ands, " AND ")
+	andnot := fmt.Sprintf(`AND %s NOT IN ('t')`, qmap[atlvl])
+
+	var prq PrerolledQuery
+	prq.PsqlQuery = fmt.Sprintf(t, w.FindAuthor(), wkid, and, andnot)
+	dbpool := grabpgsqlconnection()
+	lines := worklinequery(prq, dbpool)
+
+	// [c] extract info from the hitlines returned
+	var vals LevelValues
+	vals.AtLvl = atlvl
+	vals.Label = lmap[atlvl]
+
+	if len(lines) == 0 {
+		return vals
+	}
+	vals.Low = picklvlval(atlvl, lines[0])
+	vals.High = picklvlval(atlvl, lines[len(lines)-1])
+	var r []string
+	for i, _ := range lines {
+		r = append(r, picklvlval(atlvl, lines[i]))
+	}
+	sort.Strings(r)
+	vals.Range = r
+	return vals
+}
+
+func picklvlval(lvl int, ln DbWorkline) string {
+	// reflection and type checking is every bit as cumbersome as this stupid solution
+	switch lvl {
+	case 0:
+		return ln.Lvl0Value
+	case 1:
+		return ln.Lvl1Value
+	case 2:
+		return ln.Lvl2Value
+	case 3:
+		return ln.Lvl3Value
+	case 4:
+		return ln.Lvl4Value
+	case 5:
+		return ln.Lvl5Value
+	default:
+		return ""
+	}
 }

@@ -169,14 +169,14 @@ func formatsearchsummary(s SearchStruct) string {
 		b := formatbcedate(sessions[s.User].Inclusions.DateRange[1])
 		dr = fmt.Sprintf("<br>Searched between %s and %s", a, b)
 	} else {
-		dr = "<br><!-- dates did not matter -->"
+		dr = "<!-- dates did not matter -->"
 	}
 
 	var hitcap string
 	if int64(len(s.Results)) == s.Limit {
-		hitcap = "<br>[Search suspended: result cap reached.]"
+		hitcap = "[Search suspended: result cap reached.]"
 	} else {
-		hitcap = "<br><!-- did not hit the results cap -->"
+		hitcap = "<!-- did not hit the results cap -->"
 	}
 
 	so := sessions[s.User].SrchOutSettings.SortHitsBy
