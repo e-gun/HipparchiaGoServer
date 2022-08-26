@@ -109,8 +109,8 @@ func StartEchoServer() {
 	// [g3] workgenre
 	// [g4] authorlocation
 	// [g5] worklocation
-	// [g6] lemmata
-
+	// [g6] lemmata: "GET http://localhost:8000/hints/lemmata/_?term=dol"
+	e.GET("/hints/lemmata/:id", RtLemmaHints)
 	// [h] lexical
 
 	//

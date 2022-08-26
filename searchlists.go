@@ -101,7 +101,8 @@ func sessionintosearchlist(s Session) ProcessedList {
 	// note that we do all the initial stuff by adding WORKS to the list individually
 
 	// [a] trim mappers by active corpora
-	// SLOW: [Δ: 0.244s] sessionintosearchlist(): trim mappers by active corpora
+
+	// [a1] SLOW: [Δ: 0.244s] sessionintosearchlist(): trim mappers by active corpora
 	//activeauthors := make(map[string]DbAuthor)
 	//activeworks := make(map[string]DbWork)
 	//
@@ -118,21 +119,30 @@ func sessionintosearchlist(s Session) ProcessedList {
 	//	}
 	//}
 
-	// faster, but requires a lot of edits below: [Δ: 0.116s] sessionintosearchlist(): trim mappers by active corpora
 	var activeauthors []string
 	var activeworks []string
+
+	// [a2] faster, but requires a lot of edits below: [Δ: 0.116s] sessionintosearchlist(): trim mappers by active corpora
+	//for k, v := range s.ActiveCorp {
+	//	for _, a := range AllAuthors {
+	//		if a.UID[0:2] == k && v == true {
+	//			activeauthors = append(activeauthors, a.UID)
+	//		}
+	//	}
+	//}
+	//for k, v := range s.ActiveCorp {
+	//	for _, w := range AllWorks {
+	//		if w.UID[0:2] == k && v == true {
+	//			activeworks = append(activeworks, w.UID)
+	//		}
+	//	}
+	//}
+
+	// [a3] fastest via cheating...: [Δ: 0.020s] sessionintosearchlist()
 	for k, v := range s.ActiveCorp {
-		for _, a := range AllAuthors {
-			if a.UID[0:2] == k && v == true {
-				activeauthors = append(activeauthors, a.UID)
-			}
-		}
-	}
-	for k, v := range s.ActiveCorp {
-		for _, w := range AllWorks {
-			if w.UID[0:2] == k && v == true {
-				activeworks = append(activeworks, w.UID)
-			}
+		if v {
+			activeauthors = append(activeauthors, AuCorpusMap[k]...)
+			activeworks = append(activeworks, WkCorpusMap[k]...)
 		}
 	}
 

@@ -9,10 +9,12 @@ import (
 )
 
 var (
-	AllWorks   = workmapper()
-	AllAuthors = loadworksintoauthors(authormapper(), AllWorks)
-	//AllLemm    = lemmamapper()
-	//NestedLemm = nestedlemmamapper(AllLemm)
+	AllWorks    = workmapper()
+	AllAuthors  = loadworksintoauthors(authormapper(), AllWorks)
+	AllLemm     = lemmamapper()
+	NestedLemm  = nestedlemmamapper(AllLemm)
+	WkCorpusMap = buildwkcorpusmap()
+	AuCorpusMap = buildaucorpusmap()
 )
 
 type DbAuthor struct {
@@ -263,10 +265,17 @@ func lemmamapper() map[string]DbLemma {
 			thefinds = append(thefinds, thehit)
 		}
 	}
+	clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "", "j", "i", "v", "u")
 
 	for _, lm := range thefinds {
-		unnested[lm.Entry] = lm
+		cl := clean.Replace(lm.Entry)
+		lm.Entry = cl
+		unnested[cl] = lm
 	}
+
+	// fmt.Println(unnested["dorsum"])
+	// {dorsum 24563373 [dorsum dorsone dorsa dorsoque dorso dorsoue dorsis dorsi dorsisque dorsumque]}
+
 	timetracker("D", fmt.Sprintf("unnested lemma map built (%d items)", len(unnested)), start, previous)
 
 	return unnested
@@ -296,7 +305,59 @@ func nestedlemmamapper(unnested map[string]DbLemma) map[string]map[string]DbLemm
 	//fmt.Println("lemmata count")
 	//fmt.Println(len(nested))
 	//fmt.Println(nested["ζω"])
+	// fmt.Println(nested["hy"])
 
 	timetracker("E", "nested lemma map built", start, previous)
 	return nested
+}
+
+func buildwkcorpusmap() map[string][]string {
+	// sessionintosearchlist() could just grab a pre-rolled list instead of calculating every time...
+	start := time.Now()
+	previous := time.Now()
+
+	wkcorpusmap := make(map[string][]string)
+	corp := [5]string{"gr", "lt", "in", "ch", "dp"}
+	for _, w := range AllWorks {
+		for _, c := range corp {
+			if w.UID[0:2] == c {
+				wkcorpusmap[c] = append(wkcorpusmap[c], w.UID)
+			}
+		}
+	}
+	timetracker("F", "wkcorpusmap built", start, previous)
+	return wkcorpusmap
+}
+
+func buildaucorpusmap() map[string][]string {
+	// sessionintosearchlist() could just grab a pre-rolled list instead of calculating every time...
+	start := time.Now()
+	previous := time.Now()
+
+	aucorpusmap := make(map[string][]string)
+	corp := [5]string{"gr", "lt", "in", "ch", "dp"}
+	for _, a := range AllAuthors {
+		for _, c := range corp {
+			if a.UID[0:2] == c {
+				aucorpusmap[c] = append(aucorpusmap[c], a.UID)
+			}
+		}
+	}
+	timetracker("G", "aucorpusmap built", start, previous)
+	return aucorpusmap
+}
+
+func buildaugenreslist() {
+	// for the hinter
+
+}
+
+func buildwkgenreslist() {
+	// for the hinter
+
+}
+
+func buildlocationlist() {
+	// for the hinter
+
 }

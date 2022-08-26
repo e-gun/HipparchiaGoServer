@@ -70,3 +70,32 @@ func RtAuthorHints(c echo.Context) error {
 	checkerror(e)
 	return c.String(http.StatusOK, string(b))
 }
+
+func RtLemmaHints(c echo.Context) error {
+	// "GET http://localhost:8000/hints/lemmata/_?term=dol"
+	// curl "http://localhost:5000/hints/lemmata/_?term=dol"
+	//[{"value": "dolabella\u00b9"}, {"value": "dolabra"}, {"value": "dolamen"}, {"value": "dolatorium"}, ...]
+
+	skg := c.QueryParam("term")
+	if len(skg) < 2 {
+		return c.String(http.StatusOK, "")
+	}
+
+	var match []JSStruct
+	if _, ok := NestedLemm[skg[0:2]]; ok {
+		for _, l := range NestedLemm[skg[0:2]] {
+			if len(l.Entry) >= len(skg) && l.Entry[0:len(skg)] == skg {
+				// need to filter ab-cedo¹ --> abcedo
+				match = append(match, JSStruct{l.Entry})
+			}
+		}
+	}
+
+	sort.Slice(match, func(i, j int) bool { return match[i].V < match[j].V })
+
+	// send
+	b, e := json.Marshal(match)
+	checkerror(e)
+
+	return c.String(http.StatusOK, string(b))
+}
