@@ -48,6 +48,7 @@ func sessionintosearchlist(s Session) ProcessedList {
 	// note that we do all the initial stuff by adding WORKS to the list individually
 
 	// [a] trim mappers by active corpora
+	// SLOW: [Δ: 0.244s] sessionintosearchlist(): trim mappers by active corpora
 	auu := make(map[string]DbAuthor)
 	wkk := make(map[string]DbWork)
 
@@ -256,16 +257,32 @@ func sessionintosearchlist(s Session) ProcessedList {
 	sl := len(inc.Works)
 
 	// now we lose that info in the name of making the search quicker...
-	inc.Authors = calculatewholeauthorsearches(inc.Works, auu)
+	wp := calculatewholeauthorsearches(inc.Works, auu)
+	inc.Authors = wp[0]
+	pruner := wp[1]
+	prunemap := make(map[string]bool)
+	for _, p := range pruner {
+		prunemap[p] = true
+	}
 
 	// still need to clean the whole authors out of inc.Works
+
 	// SLOW: [HGS] [6: 1.221s][Δ: 0.989s] sessionintosearchlist(): clean the whole authors out of inc.Works
+	//var trim []string
+	//for _, i := range inc.Works {
+	//	if !contains(inc.Authors, i[0:6]) {
+	//		trim = append(trim, i)
+	//	}
+	//}
+
+	// FAST: [Δ: 0.045s] sessionintosearchlist(): clean the whole authors out of inc.Works
 	var trim []string
 	for _, i := range inc.Works {
-		if !contains(inc.Authors, i[0:6]) {
+		if _, ok := prunemap[i]; !ok {
 			trim = append(trim, i)
 		}
 	}
+
 	timetracker("6", "sessionintosearchlist(): clean the whole authors out of inc.Works", start, previous)
 	previous = time.Now()
 
@@ -324,7 +341,7 @@ func prunebydate(searchlist []string, incl SearchIncExl, wkk map[string]DbWork, 
 }
 
 // calculatewholeauthorsearches - find all authors where 100% of works are requested in the searchlist
-func calculatewholeauthorsearches(sl []string, aa map[string]DbAuthor) []string {
+func calculatewholeauthorsearches(sl []string, aa map[string]DbAuthor) [2][]string {
 	// 	we have applied all of our inclusions and exclusions by this point and we might well be sitting on a pile of authorsandworks
 	//	that is really a pile of full author dbs. for example, imagine we have not excluded anything from 'Cicero'
 	//
@@ -338,6 +355,7 @@ func calculatewholeauthorsearches(sl []string, aa map[string]DbAuthor) []string 
 	previous := time.Now()
 
 	var wholes []string
+	var pruner []string
 
 	members := make(map[string]int)
 	for _, s := range sl {
@@ -348,13 +366,15 @@ func calculatewholeauthorsearches(sl []string, aa map[string]DbAuthor) []string 
 	for k, v := range members {
 		if len(aa[k].WorkList) == v {
 			wholes = append(wholes, k)
+			pruner = append(pruner, aa[k].WorkList...)
 		}
 	}
 
 	//fmt.Printf("len(aa[lt0474].WorkList): %d\n", len(aa["lt0474"].WorkList))
 	//fmt.Printf("members[lt0474]: %d\n", members["lt0474"])
 	timetracker("-", "calculatewholeauthorsearches()", start, previous)
-	return wholes
+
+	return [2][]string{wholes, pruner}
 }
 
 func test_compilesearchlist() {
