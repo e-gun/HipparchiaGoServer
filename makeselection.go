@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/labstack/echo/v4"
 	"net/http"
+	"reflect"
 	"strings"
 )
 
@@ -78,11 +80,11 @@ func selected(user string, sv SelectValues) Session {
 
 	s := sessions[user]
 
-	if s.Inclusions.PassagesByName == nil {
-		s.Inclusions.PassagesByName = make(map[string]string)
+	if s.Inclusions.MappedPsgByName == nil {
+		s.Inclusions.MappedPsgByName = make(map[string]string)
 	}
-	if s.Exclusions.PassagesByName == nil {
-		s.Exclusions.PassagesByName = make(map[string]string)
+	if s.Exclusions.MappedPsgByName == nil {
+		s.Exclusions.MappedPsgByName = make(map[string]string)
 	}
 
 	if sv.A() {
@@ -112,10 +114,10 @@ func selected(user string, sv SelectValues) Session {
 		i := fmt.Sprintf(t, sv.Auth, b[0], b[1])
 		if !sv.IsExcl {
 			s.Inclusions.Passages = unique(append(s.Inclusions.Passages, i))
-			s.Inclusions.PassagesByName[i] = cs
+			s.Inclusions.MappedPsgByName[i] = cs
 		} else {
 			s.Exclusions.Passages = unique(append(s.Exclusions.Passages, i))
-			s.Exclusions.PassagesByName[i] = cs
+			s.Exclusions.MappedPsgByName[i] = cs
 		}
 	}
 
@@ -132,10 +134,10 @@ func selected(user string, sv SelectValues) Session {
 		i := fmt.Sprintf(t, sv.Auth, b[0], e[1])
 		if !sv.IsExcl {
 			s.Inclusions.Passages = unique(append(s.Inclusions.Passages, i))
-			s.Inclusions.PassagesByName[i] = cs
+			s.Inclusions.MappedPsgByName[i] = cs
 		} else {
 			s.Exclusions.Passages = unique(append(s.Exclusions.Passages, i))
-			s.Exclusions.PassagesByName[i] = cs
+			s.Exclusions.MappedPsgByName[i] = cs
 		}
 	}
 
@@ -266,6 +268,149 @@ func findendpointsfromlocus(wuid string, locus string) [2]int64 {
 
 	return fl
 }
+
+//type SelectionReporter struct {
+//	TimeRestr string
+//	AuCatI    string
+//	WkGenI    string
+//	AuLocI    string
+//	WkLocI    string
+//	AuI       string
+//	WksI      string
+//	PsgI      string
+//	AuCatE    string
+//	WkGenE    string
+//	AuLocE    string
+//	WkLocE    string
+//	AuE       string
+//	WksE      string
+//	PsgE      string
+//}
+
+type SelectionData struct {
+	TimeRestr string `json:"timeexclusions"`
+	Select    string `json:"selections"`
+	Exclude   string `json:"exclusions"`
+	NewJS     string `json:"newjs"`
+	Count     int    `json:"numberofselections"`
+}
+
+func reportcurrentselections(c echo.Context) {
+	// ultimately feeding autocomplete.js
+	//    $('#timerestrictions').html(selectiondata.timeexclusions);
+	//    $('#selectioninfocell').html(selectiondata.selections);
+	//    $('#exclusioninfocell').html(selectiondata.exclusions);
+	//    $('#selectionscriptholder').html(selectiondata['newjs']);
+
+	s := sessions[readUUIDCookie(c)]
+	s.Inclusions.BuildAuByName()
+	s.Exclusions.BuildAuByName()
+	s.Inclusions.BuildWkByName()
+	s.Exclusions.BuildWkByName()
+	s.Inclusions.BuildPsgByName()
+	s.Exclusions.BuildPsgByName()
+
+	i := s.Inclusions
+	e := s.Exclusions
+	fmt.Println(i)
+
+	//tb := `
+	//<table id="selectionstable" style="">
+	//<tbody>
+	//{{.TimeRestr}}
+	//<tr>
+	//	<td class="infocells" id="selectioninfocell" title="Selection list" width="47%">
+	//	{{.AuCatI}}{{.WkGenI}}{{.AuLocI}}{{.WkLocI}}{{.AuI}}{{.WksI}}{{.PsgI}}
+	//	</td>
+	//    <td style="text-align: center;" id="jscriptwigetcell" width="6%">
+	//        <p id="searchinfo"><span class="ui-button-icon ui-icon ui-icon-info" title="Show/hide details of the current search list">&nbsp;</span></p>
+	//    </td>
+	//	<td class="infocellx" id="exclusioninfocell" title="Exclusion list" width="47%">
+	//		{{.AuCatE}}{{.WkGenE}}{{.AuLocE}}{{.WkLocE}}{{.AuE}}{{.WksE}}{{.PsgE}}
+	//	</td>
+	//</tr>
+	//</tbody>
+	//</table>`
+
+	pl := `\t\t<span class="picklabel">%s</span><br>\n`
+	sl := `\t\t<span class="%sselections selection" id="%sselections_%02d" title="Double-click to remove this item">%s</span><br>\n`
+	el := `\t\t<span class="%ssexclusions selection" id="%sexclusions_%02d" title="Double-click to remove this item">%s</span><br>\n`
+	// need to do it in this order: don't walk through the map keys
+	cat := []string{"agn", "wgn", "aloc", "wloc", "au", "wk", "psg"}
+	catmap := map[string][2]string{
+		"agn":  {"Author categories", "AuGenres"},
+		"wgn":  {"Work genres", "WkGenres"},
+		"aloc": {"Author location", "AuLocations"},
+		"wloc": {"Work provenance", "WkLocations"},
+		"au":   {"Authors", "ListedABN"},
+		"wk":   {"Works", "ListedWBN"},
+		"psg":  {"Passages", "ListedPBN"},
+	}
+
+	var sd SelectionData
+
+	// run inclusions, then exclusions
+	var rows [2][]string
+	swap := [2]string{sl, el}
+	for idx, v := range [2]SearchIncExl{i, e} {
+		fmt.Println(reflect.TypeOf(v).Name())
+		fmt.Println(v)
+		for _, ct := range cat {
+			label := catmap[ct][0]
+			using := catmap[ct][1]
+			fmt.Println(using)
+			val := reflect.ValueOf(&v).Elem().FieldByName(using)
+			fmt.Println(val)
+			// PITA to cast a Value to its type: https://stackoverflow.com/questions/17262238/how-to-cast-reflect-value-to-its-type
+			// note that the next is terrible if we are not 100% sure of the interface
+			slc := val.Interface().([]string)
+			fmt.Println(slc)
+			if len(slc) > 0 {
+				rows[idx] = append(rows[idx], fmt.Sprintf(pl, label))
+				for n, g := range slc {
+					st := fmt.Sprintf(swap[idx], ct, ct, n, g)
+					rows[idx] = append(rows[idx], st)
+				}
+			}
+		}
+	}
+
+	sd.Select = strings.Join(rows[0], "")
+	sd.Exclude = strings.Join(rows[1], "")
+	sd.Count = i.CountItems() + e.CountItems()
+	fmt.Println(sd)
+}
+
+/*
+<div id="outputbox">
+        <table id="selectionstable" style="">
+            <tbody>
+                <tr>
+                    <th colspan="5" id="timerestrictions">Unless specifically listed, authors/works must come from 850 B.C.E&nbsp;to&nbsp;1450 C.E</th>
+                </tr>
+                <tr>
+                    <td class="infocells" id="selectioninfocell" title="Selection list" width="47%"><span class="picklabel">Author categories</span><br>
+<span class="agnselections selection" id="agnselections_00" title="Double-click to remove this item">Choliambographi</span><br>
+<span class="picklabel">Work genres</span><br>
+<span class="wkgnselections selection" id="wkgnselections_00" title="Double-click to remove this item">Dialog.</span><br>
+<span class="picklabel">Author location</span><br>
+<span class="alocselections selection" id="alocselections_00" title="Double-click to remove this item">Elaea</span><br>
+<span class="picklabel">Authors</span><br>
+<span class="auselections selection" id="auselections_00" title="Double-click to remove this item">AG</span><br>
+<span class="picklabel">Works</span><br>
+<span class="wkselections selection" id="wkselections_00" title="Double-click to remove this item">Babrius , Valerius, <span class="pickedwork">Mythiambi Aesopici</span></span><br></td>
+                    <td style="text-align: center;" id="jscriptwigetcell" width="6%">
+                        <p id="searchinfo"><span class="ui-button-icon ui-icon ui-icon-info" title="Show/hide details of the current search list">&nbsp;</span></p>
+                    </td>
+                    <td class="infocellx" id="exclusioninfocell" title="Exclusion list" width="47%"><span class="picklabel">Author location</span><br>
+<span class="alocexclusions selection" id="alocexclusions_00" title="Double-click to remove this item">Florentia</span><br></td>
+                </tr>
+            </tbody>
+        </table>
+        <p id="authoroutputcontent"></p>
+        <div id="searchlistcontents" style="display: none;">(this might take a second...)</div>
+    </div>
+*/
 
 func test_selection() {
 	// t := AllAuthors["lt0474"].Cleaname

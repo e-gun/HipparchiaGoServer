@@ -234,6 +234,9 @@ func RtResetSession(c echo.Context) error {
 
 func RtSelectionMake(c echo.Context) error {
 	// GET http://localhost:8000/selection/make/_?auth=lt0474&work=073&locus=3|10&endpoint=
+
+	// note that you need to return JSON: reportcurrentselections() so as to fill #selectionstable on the page
+
 	user := readUUIDCookie(c)
 	var sel SelectValues
 	sel.Auth = c.QueryParam("auth")
@@ -258,6 +261,8 @@ func RtSelectionMake(c echo.Context) error {
 	}
 
 	sessions[user] = selected(user, sel)
+	reportcurrentselections(c)
+
 	return c.String(http.StatusOK, "")
 }
 

@@ -9,6 +9,9 @@ import (
 )
 
 func HGoSrch(s SearchStruct) SearchStruct {
+	// NOTE: this is all much more "go-like" than HipparchiaGolangSearcher() in grabber.go,
+	// BUT python + redis + HipparchiaGolangSearcher() is marginally faster than what follows [channels produce overhead?]
+
 	// see https://go.dev/blog/pipelines : see Parallel digestion & Fan-out, fan-in & Explicit cancellation
 	// https://medium.com/amboss/applying-modern-go-concurrency-patterns-to-data-pipelines-b3b5327908d4
 	// https://github.com/amboss-mededu/go-pipeline-article/blob/fe0cebe78ecc9c57cdb1ac83ae6af1cda44de475/main.go

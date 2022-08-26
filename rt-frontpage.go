@@ -86,7 +86,7 @@ func makedefaultsession(id string) Session {
 	var s Session
 	s.ID = id
 	// this format is out of sync w/ the JS but necc. for the searching code ATM: lt vs latincorpus, etc
-	s.ActiveCorp = map[string]bool{"gr": true, "lt": true, "in": true, "ch": true, "dp": true}
+	s.ActiveCorp = map[string]bool{"gr": true, "lt": true, "in": false, "ch": false, "dp": false}
 	s.VariaOK = true
 	s.IncertaOK = true
 	s.SpuriaOK = true

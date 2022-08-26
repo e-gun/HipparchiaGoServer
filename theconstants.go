@@ -1,6 +1,8 @@
 package main
 
 const (
+	NUMOFWORKS  = 236835
+	NUMOFAUTHS  = 3455
 	VARIADATE   = 2000
 	INCERTADATE = 2500
 	MINDATE     = -850

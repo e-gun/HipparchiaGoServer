@@ -133,7 +133,7 @@ func workmapper() map[string]DbWork {
 		val.WorkNum = val.FindWorknumber()
 	}
 
-	workmap := make(map[string]DbWork)
+	workmap := make(map[string]DbWork, NUMOFWORKS)
 	for _, val := range thefinds {
 		workmap[val.UID] = val
 	}
@@ -168,7 +168,7 @@ func authormapper() map[string]DbAuthor {
 		thefinds = append(thefinds, thehit)
 	}
 
-	authormap := make(map[string]DbAuthor)
+	authormap := make(map[string]DbAuthor, NUMOFAUTHS)
 	for _, val := range thefinds {
 		authormap[val.UID] = val
 	}
@@ -218,7 +218,7 @@ func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[stri
 	}
 
 	// [3] convert slice to map
-	na := make(map[string]DbAuthor)
+	na := make(map[string]DbAuthor, NUMOFAUTHS)
 	for i, a := range asl {
 		na[a.UID] = asl[i]
 	}
