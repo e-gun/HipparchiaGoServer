@@ -10,6 +10,59 @@ import (
 	"time"
 )
 
+type SearchStruct struct {
+	User       string
+	Seeking    string
+	Proximate  string
+	LemmaOne   string
+	LemmaTwo   string
+	Summary    string
+	QueryType  string
+	ProxScope  string // "lines" or "words"
+	ProxType   string // "near" or "not near"
+	IsVector   bool
+	NeedsWhere bool
+	SrchColumn string // almost always "stripped_line"
+	SrchSyntax string // almost always "~="
+	OrderBy    string // almost always "index" + ASC
+	Limit      int64
+	SkgSlice   []string // either just Seeking or a decomposed version of a Lemma's possibilities
+	PrxSlice   []string
+	SearchIn   SearchIncExl
+	SearchEx   SearchIncExl
+	Queries    []PrerolledQuery
+	Results    []DbWorkline
+	Launched   time.Time
+	SearchSize int
+}
+
+func (s SearchStruct) FmtOrderBy() string {
+	var ob string
+	a := `ORDER BY %s ASC %s`
+	b := `LIMIT %d`
+	if s.Limit > 0 {
+		c := fmt.Sprintf(b, s.Limit)
+		ob = fmt.Sprintf(a, s.OrderBy, c)
+	} else {
+		ob = fmt.Sprintf(a, s.OrderBy, "")
+	}
+	return ob
+}
+
+func (s SearchStruct) FmtWhereTerm(t string) string {
+	a := `%s %s '%s' `
+	wht := fmt.Sprintf(a, s.SrchColumn, s.SrchSyntax, t)
+	return wht
+}
+
+func (s SearchStruct) HasLemma() bool {
+	if len(s.LemmaOne) > 0 || len(s.LemmaTwo) > 0 {
+		return true
+	} else {
+		return false
+	}
+}
+
 type SearchOutput struct {
 	// meant to turn into JSON
 	Title         string `json:"title"`
@@ -51,10 +104,10 @@ func RtSearchStandard(c echo.Context) error {
 	srch.LemmaTwo = plm
 	srch.IsVector = false
 	sl := sessionintosearchlist(sessions[user])
-	srch.SearchIn = sl[0]
-	srch.SearchEx = sl[1]
-	fmt.Printf("srch.SearchIn works len: %d\n", len(srch.SearchIn.Works))
-	fmt.Printf("srch.SearchIn auth len: %d\n", len(srch.SearchIn.Authors))
+	srch.SearchIn = sl.Inc
+	srch.SearchEx = sl.Excl
+	srch.SearchSize = sl.Size
+
 	timetracker("B", "sessionintosearchlist()", start, previous)
 	previous = time.Now()
 
@@ -80,7 +133,7 @@ func RtSearchStandard(c echo.Context) error {
 	//	fmt.Println(t)
 	//}
 
-	timetracker("E", "search executed", start, previous)
+	timetracker("E", fmt.Sprintf("search executed: %d hits", len(searches[id].Results)), start, previous)
 
 	js := string(formatnocontextresults(searches[id]))
 
@@ -154,7 +207,7 @@ func formatsearchsummary(s SearchStruct) string {
 	<div id="searchsummary">
 		Sought <span class="sought">»%s«</span>
 		<br>
-		Searched %d author tables and found %d passages (%ds)
+		Searched %d works and found %d passages (%ss)
 		<br>
 		<!-- unlimited hits per author -->
 		Sorted by %s
@@ -181,9 +234,9 @@ func formatsearchsummary(s SearchStruct) string {
 	}
 
 	so := sessions[s.User].SrchOutSettings.SortHitsBy
-
+	el := fmt.Sprintf("%.3f", time.Now().Sub(s.Launched).Seconds())
 	// need to record # of works and not # of tables somewhere & at the right moment...
-	sum := fmt.Sprintf(t, s.Seeking, len(s.Queries), len(s.Results), -9999, so, dr, hitcap)
+	sum := fmt.Sprintf(t, s.Seeking, s.SearchSize, len(s.Results), el, so, dr, hitcap)
 	return sum
 }
 

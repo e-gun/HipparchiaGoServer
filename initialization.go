@@ -137,7 +137,7 @@ func workmapper() map[string]DbWork {
 	for _, val := range thefinds {
 		workmap[val.UID] = val
 	}
-	timetracker("A", "works built: map[string]DbWork", start, previous)
+	timetracker("A", fmt.Sprintf("%d works built: map[string]DbWork", len(workmap)), start, previous)
 	return workmap
 
 }
@@ -172,7 +172,7 @@ func authormapper() map[string]DbAuthor {
 	for _, val := range thefinds {
 		authormap[val.UID] = val
 	}
-	timetracker("B", "authors built: map[string]DbAuthor", start, previous)
+	timetracker("B", fmt.Sprintf("%d authors built: map[string]DbAuthor", len(authormap)), start, previous)
 	return authormap
 
 }
@@ -267,7 +267,8 @@ func lemmamapper() map[string]DbLemma {
 	for _, lm := range thefinds {
 		unnested[lm.Entry] = lm
 	}
-	timetracker("D", "unnested lemma map built", start, previous)
+	timetracker("D", fmt.Sprintf("unnested lemma map built (%d items)", len(unnested)), start, previous)
+
 	return unnested
 }
 

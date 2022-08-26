@@ -30,8 +30,18 @@ func (i SearchIncExl) isEmpty() bool {
 	}
 }
 
+type ProcessedList struct {
+	Inc  SearchIncExl
+	Excl SearchIncExl
+	Size int
+}
+
 // sessionintosearchlist - converts the stored set of selections into a calculated pair of SearchIncExl w/ Authors, Works, Passages
-func sessionintosearchlist(s Session) [2]SearchIncExl {
+func sessionintosearchlist(s Session) ProcessedList {
+	// pretty slow, really if you have all lists active: [HGS] [B: 1.112s][Δ: 1.112s] sessionintosearchlist()
+	// https://medium.com/scum-gazeta/golang-simple-optimization-notes-70bc64673980
+	start := time.Now()
+	previous := time.Now()
 	var inc SearchIncExl
 	var exc SearchIncExl
 
@@ -53,6 +63,8 @@ func sessionintosearchlist(s Session) [2]SearchIncExl {
 			}
 		}
 	}
+	timetracker("1", "sessionintosearchlist(): trim mappers by active corpora", start, previous)
+	previous = time.Now()
 
 	sessincl := s.Inclusions
 	sessexl := s.Exclusions
@@ -98,7 +110,8 @@ func sessionintosearchlist(s Session) [2]SearchIncExl {
 				}
 			}
 		}
-
+		timetracker("2", "sessionintosearchlist(): build inclusion list", start, previous)
+		previous = time.Now()
 		// 		a tricky spot: when/how to apply prunebydate()
 		//		if you want to be able to seek 5th BCE oratory and Plutarch, then you need to let auselections take precedence
 		//		accordingly we will do classes and genres first, then trim by date, then add inc individual choices
@@ -106,7 +119,8 @@ func sessionintosearchlist(s Session) [2]SearchIncExl {
 		// [b5] prune by date
 
 		inc.Works = prunebydate(inc.Works, sessincl, wkk, s)
-
+		timetracker("3", "sessionintosearchlist(): prune by date", start, previous)
+		previous = time.Now()
 		// [b6] add all works of the authors selected
 
 		for _, au := range sessincl.Authors {
@@ -136,9 +150,12 @@ func sessionintosearchlist(s Session) [2]SearchIncExl {
 		for _, w := range wkk {
 			inc.Works = append(inc.Works, w.UID)
 		}
-
+		timetracker("4", "sessionintosearchlist(): all of everything", start, previous)
+		previous = time.Now()
 		// but maybe the only restriction is time...
 		inc.Works = prunebydate(inc.Works, sessincl, wkk, s)
+		timetracker("5", "sessionintosearchlist(): prune by date", start, previous)
+		previous = time.Now()
 	}
 
 	// [c] subtract the exclusions from the searchlist
@@ -231,23 +248,35 @@ func sessionintosearchlist(s Session) [2]SearchIncExl {
 		}
 
 		inc.Works = setsubtraction(inc.Works, exc.Works)
+		timetracker("5", "sessionintosearchlist(): setsubtraction", start, previous)
+		previous = time.Now()
 	}
 
 	// this is the moment when you know the total # of locations searched: worth recording somewhere
+	sl := len(inc.Works)
 
 	// now we lose that info in the name of making the search quicker...
 	inc.Authors = calculatewholeauthorsearches(inc.Works, auu)
 
 	// still need to clean the whole authors out of inc.Works
+	// SLOW: [HGS] [6: 1.221s][Δ: 0.989s] sessionintosearchlist(): clean the whole authors out of inc.Works
 	var trim []string
 	for _, i := range inc.Works {
 		if !contains(inc.Authors, i[0:6]) {
 			trim = append(trim, i)
 		}
 	}
+	timetracker("6", "sessionintosearchlist(): clean the whole authors out of inc.Works", start, previous)
+	previous = time.Now()
 
 	inc.Works = trim
-	return [2]SearchIncExl{inc, exc}
+
+	var proc ProcessedList
+	proc.Inc = inc
+	proc.Excl = exc
+	proc.Size = sl
+	timetracker("7", "sessionintosearchlist(): done", start, previous)
+	return proc
 }
 
 // prunebydate - drop items from searchlist if they are not inside the valid date range
@@ -305,6 +334,9 @@ func calculatewholeauthorsearches(sl []string, aa map[string]DbAuthor) []string 
 	//
 	//	this function will figure out if the list of work uids contains all of the works for an author and can accordingly be collapsed
 
+	start := time.Now()
+	previous := time.Now()
+
 	var wholes []string
 
 	members := make(map[string]int)
@@ -321,7 +353,7 @@ func calculatewholeauthorsearches(sl []string, aa map[string]DbAuthor) []string 
 
 	//fmt.Printf("len(aa[lt0474].WorkList): %d\n", len(aa["lt0474"].WorkList))
 	//fmt.Printf("members[lt0474]: %d\n", members["lt0474"])
-
+	timetracker("-", "calculatewholeauthorsearches()", start, previous)
 	return wholes
 }
 
@@ -354,7 +386,7 @@ func test_compilesearchlist() {
 	s.Exclusions = e
 
 	sl := sessionintosearchlist(s)
-	in := sl[0]
+	in := sl.Inc
 
 	sort.Slice(in.Authors, func(i, j int) bool { return in.Authors[i] < in.Authors[j] })
 	sort.Slice(in.Works, func(i, j int) bool { return in.Works[i] < in.Works[j] })

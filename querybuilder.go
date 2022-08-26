@@ -8,59 +8,6 @@ import (
 	"time"
 )
 
-type SearchStruct struct {
-	User       string
-	Seeking    string
-	Proximate  string
-	LemmaOne   string
-	LemmaTwo   string
-	Summary    string
-	QueryType  string
-	ProxScope  string // "lines" or "words"
-	ProxType   string // "near" or "not near"
-	IsVector   bool
-	NeedsWhere bool
-	SrchColumn string // almost always "stripped_line"
-	SrchSyntax string // almost always "~="
-	OrderBy    string // almost always "index" + ASC
-	Limit      int64
-	SkgSlice   []string // either just Seeking or a decomposed version of a Lemma's possibilities
-	PrxSlice   []string
-	SearchIn   SearchIncExl
-	SearchEx   SearchIncExl
-	Queries    []PrerolledQuery
-	Results    []DbWorkline
-	Launched   time.Time
-	SearchSize int
-}
-
-func (s SearchStruct) FmtOrderBy() string {
-	var ob string
-	a := `ORDER BY %s ASC %s`
-	b := `LIMIT %d`
-	if s.Limit > 0 {
-		c := fmt.Sprintf(b, s.Limit)
-		ob = fmt.Sprintf(a, s.OrderBy, c)
-	} else {
-		ob = fmt.Sprintf(a, s.OrderBy, "")
-	}
-	return ob
-}
-
-func (s SearchStruct) FmtWhereTerm(t string) string {
-	a := `%s %s '%s' `
-	wht := fmt.Sprintf(a, s.SrchColumn, s.SrchSyntax, t)
-	return wht
-}
-
-func (s SearchStruct) HasLemma() bool {
-	if len(s.LemmaOne) > 0 || len(s.LemmaTwo) > 0 {
-		return true
-	} else {
-		return false
-	}
-}
-
 type PrerolledQuery struct {
 	TempTable string
 	PsqlQuery string

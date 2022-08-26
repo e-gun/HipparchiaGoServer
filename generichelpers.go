@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 //
 // DEBUGGING
@@ -18,6 +21,12 @@ func msg(message string, threshold int) {
 		message = fmt.Sprintf("[%s] %s", shortname, message)
 		fmt.Println(message)
 	}
+}
+
+func timetracker(letter string, m string, start time.Time, previous time.Time) {
+	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
+	m = fmt.Sprintf("[%s: %.3fs]", letter, time.Now().Sub(start).Seconds()) + d + m
+	msg(m, 3)
 }
 
 //
