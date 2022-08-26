@@ -261,9 +261,9 @@ func RtSelectionMake(c echo.Context) error {
 	}
 
 	sessions[user] = selected(user, sel)
-	reportcurrentselections(c)
+	jsbytes := reportcurrentselections(c)
 
-	return c.String(http.StatusOK, "")
+	return c.String(http.StatusOK, string(jsbytes))
 }
 
 func RtSelectionClear(c echo.Context) error {

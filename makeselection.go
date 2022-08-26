@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -295,7 +296,7 @@ type SelectionData struct {
 	Count     int    `json:"numberofselections"`
 }
 
-func reportcurrentselections(c echo.Context) {
+func reportcurrentselections(c echo.Context) []byte {
 	// ultimately feeding autocomplete.js
 	//    $('#timerestrictions').html(selectiondata.timeexclusions);
 	//    $('#selectioninfocell').html(selectiondata.selections);
@@ -312,7 +313,6 @@ func reportcurrentselections(c echo.Context) {
 
 	i := s.Inclusions
 	e := s.Exclusions
-	fmt.Println(i)
 
 	//tb := `
 	//<table id="selectionstable" style="">
@@ -332,9 +332,10 @@ func reportcurrentselections(c echo.Context) {
 	//</tbody>
 	//</table>`
 
-	pl := `\t\t<span class="picklabel">%s</span><br>\n`
-	sl := `\t\t<span class="%sselections selection" id="%sselections_%02d" title="Double-click to remove this item">%s</span><br>\n`
-	el := `\t\t<span class="%ssexclusions selection" id="%sexclusions_%02d" title="Double-click to remove this item">%s</span><br>\n`
+	pl := `<span class="picklabel">%s</span><br>`
+	sl := `<span class="%sselections selection" id="%sselections_%02d" title="Double-click to remove this item">%s</span><br>`
+	el := `<span class="%ssexclusions selection" id="%sexclusions_%02d" title="Double-click to remove this item">%s</span><br>`
+
 	// need to do it in this order: don't walk through the map keys
 	cat := []string{"agn", "wgn", "aloc", "wloc", "au", "wk", "psg"}
 	catmap := map[string][2]string{
@@ -353,18 +354,13 @@ func reportcurrentselections(c echo.Context) {
 	var rows [2][]string
 	swap := [2]string{sl, el}
 	for idx, v := range [2]SearchIncExl{i, e} {
-		fmt.Println(reflect.TypeOf(v).Name())
-		fmt.Println(v)
 		for _, ct := range cat {
 			label := catmap[ct][0]
 			using := catmap[ct][1]
-			fmt.Println(using)
 			val := reflect.ValueOf(&v).Elem().FieldByName(using)
-			fmt.Println(val)
 			// PITA to cast a Value to its type: https://stackoverflow.com/questions/17262238/how-to-cast-reflect-value-to-its-type
 			// note that the next is terrible if we are not 100% sure of the interface
 			slc := val.Interface().([]string)
-			fmt.Println(slc)
 			if len(slc) > 0 {
 				rows[idx] = append(rows[idx], fmt.Sprintf(pl, label))
 				for n, g := range slc {
@@ -378,7 +374,10 @@ func reportcurrentselections(c echo.Context) {
 	sd.Select = strings.Join(rows[0], "")
 	sd.Exclude = strings.Join(rows[1], "")
 	sd.Count = i.CountItems() + e.CountItems()
-	fmt.Println(sd)
+
+	js, err := json.Marshal(sd)
+	checkerror(err)
+	return js
 }
 
 /*
