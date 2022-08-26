@@ -49,21 +49,40 @@ func sessionintosearchlist(s Session) ProcessedList {
 
 	// [a] trim mappers by active corpora
 	// SLOW: [Δ: 0.244s] sessionintosearchlist(): trim mappers by active corpora
-	auu := make(map[string]DbAuthor)
-	wkk := make(map[string]DbWork)
+	//auu := make(map[string]DbAuthor)
+	//wkk := make(map[string]DbWork)
+	//
+	//for k, v := range s.ActiveCorp {
+	//	for _, a := range AllAuthors {
+	//		if a.UID[0:2] == k && v == true {
+	//			auu[a.UID] = a
+	//		}
+	//	}
+	//	for _, w := range AllWorks {
+	//		if w.UID[0:2] == k && v == true {
+	//			wkk[w.UID] = w
+	//		}
+	//	}
+	//}
 
+	// faster, but requires a lot of edits below: [Δ: 0.116s] sessionintosearchlist(): trim mappers by active corpora
+	auu := make([]string, 0, len(AllAuthors))
+	wkk := make([]string, 0, len(AllWorks))
 	for k, v := range s.ActiveCorp {
 		for _, a := range AllAuthors {
 			if a.UID[0:2] == k && v == true {
-				auu[a.UID] = a
-			}
-		}
-		for _, w := range AllWorks {
-			if w.UID[0:2] == k && v == true {
-				wkk[w.UID] = w
+				auu = append(auu, a.UID)
 			}
 		}
 	}
+	for k, v := range s.ActiveCorp {
+		for _, w := range AllWorks {
+			if w.UID[0:2] == k && v == true {
+				wkk = append(wkk, w.UID)
+			}
+		}
+	}
+
 	timetracker("1", "sessionintosearchlist(): trim mappers by active corpora", start, previous)
 	previous = time.Now()
 
@@ -80,16 +99,16 @@ func sessionintosearchlist(s Session) ProcessedList {
 		// [b1] author genres to include
 		for _, g := range sessincl.AuGenres {
 			for _, a := range auu {
-				if strings.Contains(a.Genres, g) {
-					inc.Works = append(inc.Works, a.WorkList...)
+				if strings.Contains(AllAuthors[a].Genres, g) {
+					inc.Works = append(inc.Works, AllAuthors[a].WorkList...)
 				}
 			}
 		}
 		// [b2] work genres to include
 		for _, g := range sessincl.WkGenres {
 			for _, w := range wkk {
-				if w.Genre == g {
-					inc.Works = append(inc.Works, w.UID)
+				if AllWorks[w].Genre == g {
+					inc.Works = append(inc.Works, AllWorks[w].UID)
 				}
 			}
 		}
@@ -97,8 +116,8 @@ func sessionintosearchlist(s Session) ProcessedList {
 		// [b3] author locations to include
 		for _, l := range sessincl.AuLocations {
 			for _, a := range auu {
-				if a.Location == l {
-					inc.Works = append(inc.Works, a.WorkList...)
+				if AllAuthors[a].Location == l {
+					inc.Works = append(inc.Works, AllAuthors[a].WorkList...)
 				}
 			}
 		}
@@ -106,8 +125,8 @@ func sessionintosearchlist(s Session) ProcessedList {
 		// [b4] work locations to include
 		for _, l := range sessincl.WkLocations {
 			for _, w := range wkk {
-				if w.Prov == l {
-					inc.Works = append(inc.Works, w.UID)
+				if AllWorks[w].Prov == l {
+					inc.Works = append(inc.Works, AllWorks[w].UID)
 				}
 			}
 		}
@@ -119,16 +138,16 @@ func sessionintosearchlist(s Session) ProcessedList {
 
 		// [b5] prune by date
 
-		inc.Works = prunebydate(inc.Works, sessincl, wkk, s)
+		inc.Works = prunebydate(inc.Works, sessincl, s)
 		timetracker("3", "sessionintosearchlist(): prune by date", start, previous)
 		previous = time.Now()
 		// [b6] add all works of the authors selected
 
 		for _, au := range sessincl.Authors {
 			// this should be superfluous, but...
-			_, remains := auu[au]
+			_, remains := AllAuthors[au]
 			if remains {
-				inc.Works = append(inc.Works, auu[au].WorkList...)
+				inc.Works = append(inc.Works, AllAuthors[au].WorkList...)
 			}
 		}
 
@@ -136,7 +155,7 @@ func sessionintosearchlist(s Session) ProcessedList {
 
 		for _, wk := range sessincl.Works {
 			// this should be superfluous, but...
-			_, remains := wkk[wk]
+			_, remains := AllWorks[wk]
 			if remains {
 				inc.Works = append(inc.Works, wk)
 			}
@@ -149,12 +168,12 @@ func sessionintosearchlist(s Session) ProcessedList {
 	} else {
 		// you want everything. well, maybe everything...
 		for _, w := range wkk {
-			inc.Works = append(inc.Works, w.UID)
+			inc.Works = append(inc.Works, AllWorks[w].UID)
 		}
 		timetracker("4", "sessionintosearchlist(): all of everything", start, previous)
 		previous = time.Now()
 		// but maybe the only restriction is time...
-		inc.Works = prunebydate(inc.Works, sessincl, wkk, s)
+		inc.Works = prunebydate(inc.Works, sessincl, s)
 		timetracker("5", "sessionintosearchlist(): prune by date", start, previous)
 		previous = time.Now()
 	}
@@ -167,7 +186,7 @@ func sessionintosearchlist(s Session) ProcessedList {
 	if !s.SpuriaOK {
 		var trimmed []string
 		for _, w := range inc.Works {
-			if wkk[w[0:10]].Authentic {
+			if AllWorks[w[0:10]].Authentic {
 				trimmed = append(trimmed, w)
 			}
 		}
@@ -177,7 +196,7 @@ func sessionintosearchlist(s Session) ProcessedList {
 	if !s.VariaOK {
 		var trimmed []string
 		for _, w := range inc.Works {
-			if wkk[w[0:10]].ConvDate != VARIADATE {
+			if AllWorks[w[0:10]].ConvDate != VARIADATE {
 				trimmed = append(trimmed, w)
 			}
 		}
@@ -187,7 +206,7 @@ func sessionintosearchlist(s Session) ProcessedList {
 	if !s.IncertaOK {
 		var trimmed []string
 		for _, w := range inc.Works {
-			if wkk[w].ConvDate != INCERTADATE {
+			if AllWorks[w].ConvDate != INCERTADATE {
 				trimmed = append(trimmed, w)
 			}
 		}
@@ -203,8 +222,8 @@ func sessionintosearchlist(s Session) ProcessedList {
 		// [c2c] the author genres
 		for _, g := range sessexl.AuGenres {
 			for _, a := range auu {
-				if strings.Contains(a.Genres, g) {
-					blacklist = append(blacklist, a.UID)
+				if strings.Contains(AllAuthors[a].Genres, g) {
+					blacklist = append(blacklist, AllAuthors[a].UID)
 				}
 			}
 		}
@@ -212,8 +231,8 @@ func sessionintosearchlist(s Session) ProcessedList {
 		// [c2c] the author locations
 		for _, l := range sessexl.AuLocations {
 			for _, a := range auu {
-				if a.Location == l {
-					blacklist = append(blacklist, a.UID)
+				if AllAuthors[a].Location == l {
+					blacklist = append(blacklist, AllAuthors[a].UID)
 				}
 			}
 		}
@@ -224,7 +243,7 @@ func sessionintosearchlist(s Session) ProcessedList {
 		// we are now moving over from AuUIDs to WkUIDS...
 
 		for _, b := range blacklist {
-			exc.Works = append(exc.Works, auu[b].WorkList...)
+			exc.Works = append(exc.Works, AllAuthors[b].WorkList...)
 		}
 
 		// [c2e] + the plain old work exclusions
@@ -233,8 +252,8 @@ func sessionintosearchlist(s Session) ProcessedList {
 		// [c2f] works excluded by genre
 		for _, l := range sessexl.WkGenres {
 			for _, w := range wkk {
-				if w.Genre == l {
-					exc.Works = append(exc.Works, w.UID)
+				if AllWorks[w].Genre == l {
+					exc.Works = append(exc.Works, AllWorks[w].UID)
 				}
 			}
 		}
@@ -242,8 +261,8 @@ func sessionintosearchlist(s Session) ProcessedList {
 		// [c2g] works excluded by provenance
 		for _, l := range sessexl.WkLocations {
 			for _, w := range wkk {
-				if w.Prov == l {
-					exc.Works = append(exc.Works, w.UID)
+				if AllWorks[w].Prov == l {
+					exc.Works = append(exc.Works, AllWorks[w].UID)
 				}
 			}
 		}
@@ -253,11 +272,11 @@ func sessionintosearchlist(s Session) ProcessedList {
 		previous = time.Now()
 	}
 
-	// this is the moment when you know the total # of locations searched: worth recording somewhere
+	// this is the moment when you know the total # of locations searched: worth recording
 	sl := len(inc.Works)
 
 	// now we lose that info in the name of making the search quicker...
-	wp := calculatewholeauthorsearches(inc.Works, auu)
+	wp := calculatewholeauthorsearches(inc.Works)
 	inc.Authors = wp[0]
 	pruner := wp[1]
 	prunemap := make(map[string]bool)
@@ -297,7 +316,7 @@ func sessionintosearchlist(s Session) ProcessedList {
 }
 
 // prunebydate - drop items from searchlist if they are not inside the valid date range
-func prunebydate(searchlist []string, incl SearchIncExl, wkk map[string]DbWork, s Session) []string {
+func prunebydate(searchlist []string, incl SearchIncExl, s Session) []string {
 	// 'varia' and 'incerta' have special dates: incerta = 2500; varia = 2000
 	before, _ := strconv.Atoi(incl.DateRange[0])
 	after, _ := strconv.Atoi(incl.DateRange[1])
@@ -313,7 +332,7 @@ func prunebydate(searchlist []string, incl SearchIncExl, wkk map[string]DbWork, 
 		// [b5a] first prune the bad dates
 		var trimmed []string
 		for _, uid := range searchlist {
-			if wkk[uid].DateInRange(b, a) {
+			if AllWorks[uid].DateInRange(b, a) {
 				trimmed = append(trimmed, uid)
 			}
 		}
@@ -321,7 +340,7 @@ func prunebydate(searchlist []string, incl SearchIncExl, wkk map[string]DbWork, 
 		// [b5b] add back in any varia and/or incerta as needed
 		if s.VariaOK {
 			for _, uid := range searchlist {
-				if wkk[uid].ConvDate == VARIADATE {
+				if AllWorks[uid].ConvDate == VARIADATE {
 					trimmed = append(trimmed, uid)
 				}
 			}
@@ -329,7 +348,7 @@ func prunebydate(searchlist []string, incl SearchIncExl, wkk map[string]DbWork, 
 
 		if s.IncertaOK {
 			for _, uid := range searchlist {
-				if wkk[uid].ConvDate == INCERTADATE {
+				if AllWorks[uid].ConvDate == INCERTADATE {
 					trimmed = append(trimmed, uid)
 				}
 			}
@@ -341,7 +360,7 @@ func prunebydate(searchlist []string, incl SearchIncExl, wkk map[string]DbWork, 
 }
 
 // calculatewholeauthorsearches - find all authors where 100% of works are requested in the searchlist
-func calculatewholeauthorsearches(sl []string, aa map[string]DbAuthor) [2][]string {
+func calculatewholeauthorsearches(sl []string) [2][]string {
 	// 	we have applied all of our inclusions and exclusions by this point and we might well be sitting on a pile of authorsandworks
 	//	that is really a pile of full author dbs. for example, imagine we have not excluded anything from 'Cicero'
 	//
@@ -364,9 +383,9 @@ func calculatewholeauthorsearches(sl []string, aa map[string]DbAuthor) [2][]stri
 	}
 
 	for k, v := range members {
-		if len(aa[k].WorkList) == v {
+		if len(AllAuthors[k].WorkList) == v {
 			wholes = append(wholes, k)
-			pruner = append(pruner, aa[k].WorkList...)
+			pruner = append(pruner, AllAuthors[k].WorkList...)
 		}
 	}
 
