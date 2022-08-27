@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -22,7 +23,7 @@ type SearchStruct struct {
 	ProxType   string // "near" or "not near"
 	IsVector   bool
 	NeedsWhere bool
-	SrchColumn string // almost always "stripped_line"
+	SrchColumn string // usually "stripped_line", sometimes "accented_line"
 	SrchSyntax string // almost always "~="
 	OrderBy    string // almost always "index" + ASC
 	Limit      int64
@@ -103,6 +104,7 @@ func RtSearchStandard(c echo.Context) error {
 	srch.LemmaOne = lem
 	srch.LemmaTwo = plm
 	srch.IsVector = false
+
 	sl := sessionintosearchlist(sessions[user])
 	srch.SearchIn = sl.Inc
 	srch.SearchEx = sl.Excl
@@ -111,14 +113,27 @@ func RtSearchStandard(c echo.Context) error {
 	timetracker("B", "sessionintosearchlist()", start, previous)
 	previous = time.Now()
 
-	// only true if not lemmatized
-	srch.SkgSlice = append(srch.SkgSlice, srch.Seeking)
+	// must happen before searchlistintoqueries()
+	srch = setsearchtype(srch)
+
+	if srch.LemmaOne != "" {
+		srch.SkgSlice = lemmaintoregex(srch.LemmaOne)
+	} else {
+		srch.SkgSlice = append(srch.SkgSlice, srch.Seeking)
+	}
+
+	if srch.LemmaTwo != "" {
+		srch.PrxSlice = lemmaintoregex(srch.LemmaTwo)
+	} else {
+		srch.PrxSlice = append(srch.PrxSlice, srch.Proximate)
+	}
 
 	prq := searchlistintoqueries(srch)
 	timetracker("C", "searchlistintoqueries()", start, previous)
 	previous = time.Now()
 
 	srch.Queries = prq
+
 	searches[id] = srch
 
 	// return results via searches[id].Results
@@ -154,6 +169,42 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	s.SearchIn = sessions[user].Inclusions
 	s.SearchEx = sessions[user].Exclusions
 	return s
+}
+
+func setsearchtype(srch SearchStruct) SearchStruct {
+	containsphrase := false
+	containslemma := false
+	twobox := false
+
+	// will not find greek...
+	// pattern := regexp.MustCompile(`\w\s\w`)
+
+	pattern := regexp.MustCompile(`[A-Za-zΑ-ΩϹα-ωϲ]\s[A-Za-zΑ-ΩϹα-ωϲ]`)
+
+	if pattern.MatchString(srch.Seeking) || pattern.MatchString(srch.Proximate) {
+		containsphrase = true
+	}
+	if srch.LemmaOne != "" || srch.LemmaTwo != "" {
+		containslemma = true
+	}
+	if srch.LemmaOne != "" || srch.LemmaTwo != "" {
+		twobox = true
+	}
+
+	if containsphrase && !twobox {
+		srch.QueryType = "phrase"
+	} else if containsphrase && twobox {
+		srch.QueryType = "phrase_and_proximity"
+	} else if containslemma && !twobox {
+		srch.QueryType = "simplelemma"
+		srch.SrchColumn = "accented_line"
+	} else if twobox {
+		srch.QueryType = "proximity"
+	} else {
+		srch.QueryType = "simple"
+	}
+
+	return srch
 }
 
 func formatnocontextresults(s SearchStruct) []byte {
@@ -251,4 +302,37 @@ func formatbcedate(d string) string {
 		d = strings.Replace(d, "-", "", -1) + " B.C.E."
 	}
 	return d
+}
+
+func lemmaintoregex(hdwd string) []string {
+	// rather than do one word per query, bundle things up: some words have >100 forms
+	// ...(^|\\s)ἐδηλώϲαντο(\\s|$)|(^|\\s)δεδηλωμένοϲ(\\s|$)|(^|\\s)δήλουϲ(\\s|$)|(^|\\s)δηλούϲαϲ(\\s|$)...
+	var qq []string
+	if _, ok := AllLemm[hdwd]; !ok {
+		msg(fmt.Sprintf("lemmaintoregex() could not find '%s'", hdwd), 1)
+		return qq
+	}
+
+	tp := `(^|\s)%s(\s|$)`
+	lemm := AllLemm[hdwd].Deriv
+	ct := 0
+	for true {
+		var bnd []string
+		for i := 0; i < MAXLEMMACHUNKSIZE; i++ {
+			if ct > len(lemm)-1 {
+				//re := fmt.Sprintf(tp, lemm[ct])
+				//bnd = append(bnd, re)
+				//qq = append(qq, strings.Join(bnd, "|"))
+				break
+			}
+			re := fmt.Sprintf(tp, lemm[ct])
+			bnd = append(bnd, re)
+			ct += 1
+		}
+		qq = append(qq, strings.Join(bnd, "|"))
+		if ct >= len(lemm)-1 {
+			break
+		}
+	}
+	return qq
 }
