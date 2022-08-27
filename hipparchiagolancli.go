@@ -10,7 +10,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"runtime/pprof"
 	"time"
 )
 
@@ -92,20 +91,6 @@ func main() {
 
 	// configatstartup()
 
-	if *cfg.ProfCPUPtr {
-		b := cpuoutputfile
-		f, err := os.Create(b)
-		if err != nil {
-			msg(fmt.Sprintf("failed to create '%s'", b), -1)
-			checkerror(err)
-		} else {
-			msg(fmt.Sprintf("logging cpu profiling data to '%s'", b), -1)
-		}
-		e := pprof.StartCPUProfile(f)
-		checkerror(e)
-		defer pprof.StopCPUProfile()
-	}
-
 	if *cfg.SendVersPtr {
 		fmt.Println(versioninfo)
 		os.Exit(1)
@@ -121,60 +106,15 @@ func main() {
 		cfg.LogLevel = 0
 	}
 
-	cfg.RLogin = decoderedislogin([]byte(cfg.RedisInfo))
 	cfg.PGLogin = decodepsqllogin([]byte(cfg.PosgresInfo))
 
-	// test a function
-	if *cfg.IsTestPtr {
-		fmt.Println(versioninfo)
-		msg("cfg.IsTestPtr was set: Testing Run", 1)
-		// test_selection()
-		// test_compilesearchlist()
-		// test_searchlistintoqueries()
-		StartEchoServer()
-		return
-	}
-
-	var o string
-	var t int64
-	var x string
-
-	if *cfg.IsVectPtr {
-		// fmt.Printf("vectors")
-		o = HipparchiaVectors()
-		x = "bags"
-		t = -1
-	} else if *cfg.IsWSPtr {
-		// fmt.Printf("websockets")
-		HipparchiaWebsocket()
-	} else {
-		// fmt.Printf("searcher")
-		o = HipparchiaSearcher()
-		t = fetchfinalnumberofresults(cfg.RedisKey)
-		x = "hits"
-	}
-
-	if *cfg.ProfMemPtr {
-		b := memoutputfile
-		f, err := os.Create(b)
-		if err != nil {
-			msg(fmt.Sprintf("failed to create '%s'", b), -1)
-			checkerror(err)
-		} else {
-			msg(fmt.Sprintf("logging memory profiling data to '%s'", b), -1)
-		}
-		e := pprof.WriteHeapProfile(f)
-		checkerror(e)
-	}
-
-	// DO NOT comment out the fmt.Printf(): the resultkey is parsed by HipparchiaServer when EXTERNALLOADING = 'cli'
-	// sharedlibraryclisearcher(): "resultrediskey = resultrediskey.split()[-1]"
-
-	if t > -1 {
-		fmt.Printf("%d %s have been stored at %s", t, x, o)
-	} else {
-		fmt.Printf("%s have been stored at %s", x, o)
-	}
+	fmt.Println(versioninfo)
+	msg("cfg.IsTestPtr was set: Testing Run", 1)
+	// test_selection()
+	// test_compilesearchlist()
+	// test_searchlistintoqueries()
+	StartEchoServer()
+	return
 
 }
 
@@ -194,45 +134,10 @@ func configatstartup() {
 	flag.StringVar(&cfg.TestV3, "t3", "", "[testing] parameter 3")
 	flag.StringVar(&cfg.PSQP, "psqp", "", "[testing] PSQL Password")
 
-	flag.StringVar(&cfg.RedisKey, "k", "", "[searches] redis key to use")
-	flag.Int64Var(&cfg.MaxHits, "c", 200, "[searches] max hit count")
-	flag.IntVar(&cfg.WorkerCount, "t", 10, "[common] number of goroutines to dispatch")
-	flag.IntVar(&cfg.LogLevel, "l", 3, "[common] logging level: 0 is silent; 5 is very noisy")
-	flag.StringVar(&cfg.RedisInfo, "r", RP, "[common] redis logon information (as a JSON string)")
-	flag.StringVar(&cfg.PosgresInfo, "p", PSQ, "[common] psql logon information (as a JSON string)")
-
-	// vector flags
-
-	flag.StringVar(&cfg.BagMethod, "svb", "winnertakesall", "[vectors] the bagging method: choices are alternates, flat, unlemmatized, winnertakesall")
-	flag.IntVar(&cfg.SentPerBag, "svbs", 1, "[vectors] number of sentences per bag")
-	flag.StringVar(&cfg.VectTestDB, "svdb", testdb, "[vectors][for manual debugging] db to grab from")
-	flag.IntVar(&cfg.VectStart, "svs", teststart, "[vectors][for manual debugging] first line to grab")
-	flag.IntVar(&cfg.VectEnd, "sve", testend, "[vectors][for manual debugging] last line to grab")
-	flag.StringVar(&cfg.VSkipHW, "svhw", "(suppressed owing to length)", "[vectors] provide a string of headwords to skip 'one two three...'")
-	flag.StringVar(&cfg.VSkipInf, "svin", "(suppressed owing to length)", "[vectors][provide a string of inflected forms to skip 'one two three...'")
-
-	cfg.IsVectPtr = flag.Bool("sv", false, "[vectors] assert that this is a vectorizing run")
-
-	// websocket flags
-
-	cfg.IsWSPtr = flag.Bool("ws", false, "[websockets] assert that you are requesting the websocket server")
-	flag.IntVar(&cfg.WSPort, "wsp", 5010, "[websockets] port on which to open the websocket server")
-	flag.IntVar(&cfg.WSFail, "wsf", 3, "[websockets] fail threshold before messages stop being sent")
-	flag.IntVar(&cfg.WSSave, "wss", 0, "[websockets] save the polls instead of deleting them: 0 is no; 1 is yes")
-
-	// profiling flags
-
-	cfg.ProfCPUPtr = flag.Bool("cprofile", false, "[debugging] profile cpu use to './cpu_profiler_output.bin'")
-	cfg.ProfMemPtr = flag.Bool("mprofile", false, "[debugging] profile cpu use to './cpu_profiler_output.bin'")
 	cfg.SendVersPtr = flag.Bool("v", false, "[common] print version and exit")
 
-	flag.Parse()
+	flag.Int64Var(&cfg.MaxHits, "c", 200, "[searches] max hit count")
+	flag.IntVar(&cfg.LogLevel, "l", 3, "[common] logging level: 0 is silent; 5 is very noisy")
+	flag.StringVar(&cfg.PosgresInfo, "p", PSQ, "[common] psql logon information (as a JSON string)")
 
-	if cfg.VSkipHW == "(suppressed owing to length)" {
-		cfg.VSkipHW = skipheadwords
-	}
-
-	if cfg.VSkipInf == "(suppressed owing to length)" {
-		cfg.VSkipInf = skipinflected
-	}
 }
