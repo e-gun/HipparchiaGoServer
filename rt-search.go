@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"regexp"
@@ -23,6 +24,7 @@ type SearchStruct struct {
 	ProxType   string // "near" or "not near"
 	IsVector   bool
 	NeedsWhere bool
+	TwoPart    bool
 	SrchColumn string // usually "stripped_line", sometimes "accented_line"
 	SrchSyntax string // almost always "~="
 	OrderBy    string // almost always "index" + ASC
@@ -34,6 +36,7 @@ type SearchStruct struct {
 	Queries    []PrerolledQuery
 	Results    []DbWorkline
 	Launched   time.Time
+	TTName     string
 	SearchSize int
 }
 
@@ -50,11 +53,11 @@ func (s SearchStruct) FmtOrderBy() string {
 	return ob
 }
 
-func (s SearchStruct) FmtWhereTerm(t string) string {
-	a := `%s %s '%s' `
-	wht := fmt.Sprintf(a, s.SrchColumn, s.SrchSyntax, t)
-	return wht
-}
+//func (s SearchStruct) FmtWhereTerm(t string) string {
+//	a := `%s %s '%s' `
+//	wht := fmt.Sprintf(a, s.SrchColumn, s.SrchSyntax, t)
+//	return wht
+//}
 
 func (s SearchStruct) HasLemma() bool {
 	if len(s.LemmaOne) > 0 || len(s.LemmaTwo) > 0 {
@@ -168,6 +171,7 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	s.OrderBy = "index"
 	s.SearchIn = sessions[user].Inclusions
 	s.SearchEx = sessions[user].Exclusions
+	s.TTName = uuid.New().String()
 	return s
 }
 
@@ -187,7 +191,7 @@ func setsearchtype(srch SearchStruct) SearchStruct {
 	if srch.LemmaOne != "" || srch.LemmaTwo != "" {
 		containslemma = true
 	}
-	if srch.LemmaOne != "" || srch.LemmaTwo != "" {
+	if srch.LemmaOne != "" && srch.LemmaTwo != "" {
 		twobox = true
 	}
 
@@ -256,7 +260,7 @@ func formatsearchsummary(s SearchStruct) string {
 
 	t := `
 	<div id="searchsummary">
-		Sought <span class="sought">»%s«</span>
+		Sought %s<span class="sought">»%s«</span>
 		<br>
 		Searched %d works and found %d passages (%ss)
 		<br>
@@ -284,10 +288,17 @@ func formatsearchsummary(s SearchStruct) string {
 		hitcap = "<!-- did not hit the results cap -->"
 	}
 
+	af := ""
+	sk := s.Seeking
+	if s.LemmaOne != "" {
+		af = "all forms of "
+		sk = s.LemmaOne
+	}
+
 	so := sessions[s.User].SrchOutSettings.SortHitsBy
 	el := fmt.Sprintf("%.3f", time.Now().Sub(s.Launched).Seconds())
 	// need to record # of works and not # of tables somewhere & at the right moment...
-	sum := fmt.Sprintf(t, s.Seeking, s.SearchSize, len(s.Results), el, so, dr, hitcap)
+	sum := fmt.Sprintf(t, af, sk, s.SearchSize, len(s.Results), el, so, dr, hitcap)
 	return sum
 }
 

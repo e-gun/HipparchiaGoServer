@@ -17,7 +17,7 @@ import (
 const (
 	myname          = "Hipparchia Golang Server"
 	shortname       = "HGS"
-	version         = "0.0.8"
+	version         = "0.0.9"
 	tesquery        = "SELECT * FROM %s WHERE index BETWEEN %d and %d"
 	testdb          = "lt0448"
 	teststart       = 1
@@ -120,6 +120,7 @@ func main() {
 	if cfg.LogLevel < 0 {
 		cfg.LogLevel = 0
 	}
+
 	cfg.RLogin = decoderedislogin([]byte(cfg.RedisInfo))
 	cfg.PGLogin = decodepsqllogin([]byte(cfg.PosgresInfo))
 

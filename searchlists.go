@@ -63,7 +63,11 @@ func (i *SearchIncExl) BuildAuByName() {
 func (i *SearchIncExl) BuildWkByName() {
 	bn := make(map[string]string, len(i.MappedWkByName))
 	for _, w := range i.Works {
-		bn[w] = AllWorks[w].Title
+		tp := `%s, <i>%s</i>`
+		ws := AllWorks[w]
+		au := AllAuthors[ws.FindAuthor()].Name
+		ti := AllWorks[w].Title
+		bn[w] = fmt.Sprintf(tp, au, ti)
 	}
 	i.MappedWkByName = bn
 

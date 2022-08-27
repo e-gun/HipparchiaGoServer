@@ -27,7 +27,19 @@ type Boundaries struct {
 }
 
 const (
-	SELECTFROM = `SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM %s`
+	SELECTFROM = `
+		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, 
+			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM %s`
+	PRFXSELFRM = `
+		SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value, 
+			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM`
+	CONCATSELFROM = `
+		( SELECT * FROM
+			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
+				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) ) AS linebundle
+				FROM %s 
+					) first 
+				) second`
 )
 
 // findselectionboundaries() stuff should all be handled when making the selections, not here
@@ -60,6 +72,9 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 	var prqq []PrerolledQuery
 	inc := ss.SearchIn
 	exc := ss.SearchEx
+
+	// fmt.Println(ss.QueryType)
+
 	// if there are too many "in0001wXXX" type entries: requiresindextemptable()
 
 	// a query looks like: SELECTFROM + WHERETERM + WHEREINDEX + ORDERBY&LIMIT
@@ -67,6 +82,12 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 	// FROM lt0917 WHERE ( (index BETWEEN 1 AND 8069) OR (index BETWEEN 8070 AND 8092) ) AND ( (index NOT BETWEEN 1431 AND 2193) ) AND ( stripped_line ~* $1 )
 
 	// TODO: anything that needs an unnest temptable can not pass through here yet...
+
+	needstempt := make(map[string]bool)
+
+	for _, a := range AllAuthors {
+		needstempt[a.UID] = false
+	}
 
 	// [a] figure out all bounded selections
 
@@ -122,10 +143,16 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 		alltables = append(alltables, t)
 	}
 
+	seltempl := SELECTFROM
+	if ss.QueryType == "phrase" {
+		seltempl = PRFXSELFRM + CONCATSELFROM
+	}
+
 	for _, a := range alltables {
 		var qb QueryBuilder
 		var prq PrerolledQuery
-		qb.SelFrom = fmt.Sprintf(SELECTFROM, a)
+		qb.SelFrom = fmt.Sprintf(seltempl, a)
+
 		// [b2] check to see if bounded
 		if vv, found := boundedincl[a]; found {
 			var in []string
@@ -146,12 +173,25 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 		}
 
 		// [b3] search term might be lemmatized, hence the range
-		for _, s := range ss.SkgSlice {
-			qb.WhrTrm = ss.FmtWhereTerm(s)
-			ob := ss.FmtOrderBy()
+
+		// map to the %s items in the qtmpl below:
+		// SELECTFROM + WHERETERM + WHEREINDEXINCL + WHEREINDEXEXCL + (either) ORDERBY&LIMIT (or) SECOND
+
+		for _, skg := range ss.SkgSlice {
+			var tail string
+			if ss.QueryType != "phrase" {
+				// there is SECOND element
+				qb.WhrTrm = fmt.Sprintf(`%s %s '%s' `, ss.SrchColumn, ss.SrchSyntax, skg)
+				tail = ss.FmtOrderBy()
+			} else {
+				// in subqueryphrasesearch WHERETERM = "" since the search term comes after the "second" clause
+				// in subqueryphrasesearch not ORDERBY&LIMIT but SECOND
+				qb.WhrTrm = ""
+				tail = subqueryphrasesearchtail(a, needstempt[a], skg, ss)
+			}
+
 			var qtmpl string
 			if len(qb.WhrIdxInc) == 0 && len(qb.WhrIdxExc) == 0 {
-				// SELECTFROM + WHERETERM + WHEREINDEXINCL + WHEREINDEXEXCL + ORDERBY&LIMIT
 				qtmpl = `%s WHERE %s %s%s%s`
 			} else if len(qb.WhrIdxInc) != 0 && len(qb.WhrIdxExc) == 0 {
 				qtmpl = `%s WHERE %s AND ( %s ) %s%s`
@@ -160,7 +200,10 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 			} else if len(qb.WhrIdxInc) != 0 && len(qb.WhrIdxExc) != 0 {
 				qtmpl = `%s WHERE %s AND ( %s ) AND ( %s ) %s`
 			}
-			prq.PsqlQuery = fmt.Sprintf(qtmpl, qb.SelFrom, qb.WhrTrm, qb.WhrIdxInc, qb.WhrIdxExc, ob)
+
+			prq.PsqlQuery = fmt.Sprintf(qtmpl, qb.SelFrom, qb.WhrTrm, qb.WhrIdxInc, qb.WhrIdxExc, tail)
+
+			// fmt.Println(prq.PsqlQuery)
 			prqq = append(prqq, prq)
 		}
 	}
@@ -168,14 +211,74 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 	return prqq
 }
 
-func recalculatesearchstruct(ss SearchStruct) SearchStruct {
-	var newss SearchStruct
-	return newss
-}
-
 func requiresindextemptable() {
 	// test to see if there are too many "in0001wXXX" type entries
 	// if there are, mimic wholeworktemptablecontents() in whereclauses.py
+}
+
+func subqueryphrasesearchtail(au string, hastt bool, skg string, ss SearchStruct) string {
+	// a more general note...
+	//
+	// we use subquery syntax to grab multi-line windows of text for phrase searching
+	//
+	//    line ends and line beginning issues can be overcome this way, but then you have plenty of
+	//    bookkeeping to do to to get the proper results focussed on the right line (TODO: bookkeeping)
+	//
+	//    these searches take linear time: same basic time for any given scope regardless of the query
+
+	// "dolore omni " in all of Lucretius:
+	// 	SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value,
+	//			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
+	//		( SELECT * FROM
+	//			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
+	//				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) ) AS linebundle
+	//				FROM lt0550
+	//					) first
+	//				) second WHERE  second.linebundle ~ 'dolore omni ' LIMIT 200
+	//
+	// in 3 works of Cicero is the same but the WHERE clause has been added
+	//     SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value, second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
+	//        ( SELECT * FROM
+	//            ( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations, concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) ) AS linebundle
+	//                FROM lt0474 WHERE ( (index BETWEEN 1 AND 1052) OR (index BETWEEN 1053 AND 2631) OR (index BETWEEN 3911 AND 16459) ) ) first
+	//        ) second
+	//    WHERE second.linebundle ~ $1  LIMIT 200
+
+	// »ἐν τῆι βουλῆι« in inscriptions from 1CE to 150CE: the TT has been added & the where clause is complicated by this
+
+	// [a] 	CREATE TEMPORARY TABLE in0c17_includelist_bfc1d910ba3e4f6d8670e530f89ecdda AS
+	//		SELECT values
+	//			AS includeindex FROM unnest(ARRAY[34903,34904,34905,34906,34907,34908,34909,34910]) values
+	// [b]      SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value, second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
+	//        ( SELECT * FROM
+	//            ( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations, concat(accented_line, ' ', lead(accented_line) OVER (ORDER BY index ASC) ) AS linebundle
+	//                FROM in0c17 WHERE
+	//            EXISTS
+	//                (SELECT 1 FROM in0c17_includelist_bfc1d910ba3e4f6d8670e530f89ecdda incl WHERE incl.includeindex = in0c17.index
+	//             ) ) first
+	//        ) second
+	//    WHERE second.linebundle ~ $1  LIMIT 200
+
+	// top bits provided above via: " qb.SelFrom = fmt.Sprintf(seltempl, a)"
+	// baseq := PRFXSELFRM
+	// bundq := CONCATSELFROM
+
+	// so we need either [a] whr or [b] ttfirst + whr depending on hastt
+
+	ttfirst := ""
+
+	if hastt {
+		tp := `
+			EXISTS
+				(SELECT 1 FROM %s_includelist_%s incl WHERE incl.includeindex = %s.index)`
+		ttfirst = fmt.Sprintf(tp, au, ss.TTName, au)
+	}
+
+	w := `second.linebundle ~ '%s' LIMIT %d`
+
+	whr := fmt.Sprintf(w, skg, ss.Limit)
+
+	return ttfirst + whr
 }
 
 func test_searchlistintoqueries() {
