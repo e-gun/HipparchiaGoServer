@@ -26,7 +26,7 @@ type LevelValues struct {
 // findtherows - use a redis.Conn to acquire []DbWorkline
 func findtherows(thequery string, thecaller string, searchkey string, clientnumber int, rc redis.Conn, dbpool *pgxpool.Pool) []DbWorkline {
 	// called by both linegrabber() and HipparchiaBagger()
-	// this version contains polling data
+	// this VERSION contains polling data
 	// it also assumes that thequery arrived via popping redis
 
 	// [ii] update the polling data

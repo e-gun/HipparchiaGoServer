@@ -11,14 +11,14 @@ import (
 
 func checkerror(err error) {
 	if err != nil {
-		fmt.Println(fmt.Sprintf("UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE [%s v.%s]", myname, version))
+		fmt.Println(fmt.Sprintf("UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE [%s v.%s]", MYNAME, VERSION))
 		panic(err)
 	}
 }
 
 func msg(message string, threshold int) {
 	if cfg.LogLevel >= threshold {
-		message = fmt.Sprintf("[%s] %s", shortname, message)
+		message = fmt.Sprintf("[%s] %s", SHORTNAME, message)
 		fmt.Println(message)
 	}
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"sort"
 	"strings"
@@ -9,6 +10,10 @@ import (
 )
 
 var (
+	// order matters
+	cfg         CurrentConfiguration
+	sessions    = make(map[string]Session)
+	searches    = make(map[string]SearchStruct)
 	AllWorks    = workmapper()
 	AllAuthors  = loadworksintoauthors(authormapper(), AllWorks)
 	AllLemm     = lemmamapper()
@@ -16,6 +21,15 @@ var (
 	WkCorpusMap = buildwkcorpusmap()
 	AuCorpusMap = buildaucorpusmap()
 )
+
+type CurrentConfiguration struct {
+	WorkerCount int
+	LogLevel    int
+	PosgresInfo string
+	PSQP        string
+	EchoLog     int // "none", "terse", "verbose"
+	PGLogin     PostgresLogin
+}
 
 type DbAuthor struct {
 	UID       string
@@ -101,6 +115,27 @@ type DbLemma struct {
 	Entry string
 	Xref  int64
 	Deriv []string
+}
+
+//
+// STARTUP CONFIGURATION
+//
+
+func makeconfig() {
+
+	flag.StringVar(&cfg.PSQP, "psqp", "", "PSQL Password")
+	flag.IntVar(&cfg.LogLevel, "gl", 3, "[common] golang msg logging level: 0 is silent; 5 is very noisy")
+	flag.StringVar(&cfg.PosgresInfo, "p", PSQ, "[common] psql logon information (as a JSON string)")
+	flag.IntVar(&cfg.EchoLog, "el", 0, "[common] logging for the echo server: 0: 'none', 1: 'terse', or 2: 'verbose'")
+
+	cfg.PGLogin.Port = PSDefaultPort
+	// cfg.PGLogin.Pass = cfg.PSQP
+	cfg.PGLogin.Pass = ""
+	cfg.PGLogin.User = PSDefaultUser
+	cfg.PGLogin.DBName = PSDefaultDB
+	cfg.PGLogin.Host = PSDefaultHost
+
+	return
 }
 
 // all functions in here should be run in order to prepare the core data
@@ -208,7 +243,7 @@ func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[stri
 	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 	// fmt.Printf("wl %d vs al %d", len(worklists), len(keys))  : wl 3455 vs al 3455
 
-	// [2b] build a *slice* of []DbAuthor since we can's modify a.WorkList in a map version
+	// [2b] build a *slice* of []DbAuthor since we can's modify a.WorkList in a map VERSION
 	asl := make([]DbAuthor, 0, len(keys))
 	for _, k := range keys {
 		asl = append(asl, aa[k])
@@ -283,7 +318,7 @@ func lemmamapper() map[string]DbLemma {
 
 // nestedlemmamapper - map[string]map[string]DbLemma for the hinter
 func nestedlemmamapper(unnested map[string]DbLemma) map[string]map[string]DbLemma {
-	// you need both a nested and the unnested version; nested for the hinter
+	// you need both a nested and the unnested VERSION; nested for the hinter
 	// [HGS] [E: 2.284s][Δ: 2.284s] nested lemma map built
 	start := time.Now()
 	previous := time.Now()

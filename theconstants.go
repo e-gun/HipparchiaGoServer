@@ -31,7 +31,7 @@ const (
 			annotations`
 
 	// hipparchiaDB=# select * from authors limit 0;
-	// universalid | language | idxname | akaname | shortname | cleanname | genres | recorded_date | converted_date | location
+	// universalid | language | idxname | akaname | SHORTNAME | cleanname | genres | recorded_date | converted_date | location
 	//-------------+----------+---------+---------+-----------+-----------+--------+---------------+----------------+----------
 	//(0 rows)
 
@@ -40,7 +40,7 @@ const (
 			language,
 			idxname,
 			akaname,
-			shortname,
+			SHORTNAME,
 			cleanname,
 			genres,
 			recorded_date,

@@ -29,7 +29,7 @@ type SearchStruct struct {
 	SrchSyntax string // almost always "~="
 	OrderBy    string // almost always "index" + ASC
 	Limit      int64
-	SkgSlice   []string // either just Seeking or a decomposed version of a Lemma's possibilities
+	SkgSlice   []string // either just Seeking or a decomposed VERSION of a Lemma's possibilities
 	PrxSlice   []string
 	SearchIn   SearchIncExl
 	SearchEx   SearchIncExl

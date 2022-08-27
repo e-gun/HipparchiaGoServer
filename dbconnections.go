@@ -28,7 +28,7 @@ func decodepsqllogin(psqllogininfo []byte) PostgresLogin {
 	var ps PostgresLogin
 	err := json.Unmarshal(psqllogininfo, &ps)
 	if err != nil {
-		fmt.Println(fmt.Sprintf("CANNOT PARSE YOUR POSTGRES LOGIN CREDENTIALS AS JSON [%s v.%s] ", myname, version))
+		fmt.Println(fmt.Sprintf("CANNOT PARSE YOUR POSTGRES LOGIN CREDENTIALS AS JSON [%s v.%s] ", MYNAME, VERSION))
 		panic(err)
 	}
 	return ps
@@ -42,21 +42,10 @@ func grabpgsqlconnection() *pgxpool.Pool {
 	var pl PostgresLogin
 
 	if cfg.PGLogin.DBName == "" {
-		// this will probably need refactoring later: non-intuitive to "configure" here
-		// grabpgsqlconnection() will be called before main() and so before configatstartup()
-		// workmapper() in initialization.go does this
-		// avoid: "flag redefined: psqp"
-		//flag.StringVar(&cfg.PSQP, "psqp", "", "[testing] PSQL Password")
-		configatstartup()
-		cfg.PGLogin.Port = PSDefaultPort
-		cfg.PGLogin.Pass = cfg.PSQP
-		cfg.PGLogin.User = PSDefaultUser
-		cfg.PGLogin.DBName = PSDefaultDB
-		cfg.PGLogin.Host = PSDefaultHost
-		pl = cfg.PGLogin
-	} else {
-		pl = cfg.PGLogin
+		makeconfig()
 	}
+
+	pl = cfg.PGLogin
 
 	url := fmt.Sprintf("postgres://%s:%s@%s:%d/%s", pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName)
 
@@ -76,4 +65,16 @@ func grabpgsqlconnection() *pgxpool.Pool {
 	msg(fmt.Sprintf("Connected to %s on PostgreSQL", pl.DBName), 4)
 
 	return pooledconnection
+}
+
+func blankconfig() CurrentConfiguration {
+	// need a non-commandline config
+	var thecfg CurrentConfiguration
+	thecfg.PGLogin.Port = PSDefaultPort
+	// cfg.PGLogin.Pass = cfg.PSQP
+	thecfg.PGLogin.Pass = ""
+	thecfg.PGLogin.User = PSDefaultUser
+	thecfg.PGLogin.DBName = PSDefaultDB
+	thecfg.PGLogin.Host = PSDefaultHost
+	return thecfg
 }

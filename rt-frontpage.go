@@ -51,7 +51,7 @@ func RtFrontpage(c echo.Context) error {
 	// will set if missing
 	readUUIDCookie(c)
 
-	subs := map[string]interface{}{"version": version}
+	subs := map[string]interface{}{"VERSION": VERSION}
 
 	err := c.Render(http.StatusOK, "frontpage.html", subs)
 	return err
@@ -116,7 +116,7 @@ func makedefaultsession(id string) Session {
 // "principleparts": "yes", "proximity": "1", "psgexclusions": [], "psgselections": [], "quotesummary": "yes",
 // "rawinputstyle": "no", "searchinsidemarkup": "no", "searchscope": "lines", "semanticvectorquery": "no",
 // "sensesummary": "yes", "sentencesimilarity": "no", "showwordcounts": "yes", "simpletextoutput": "no",
-// "sortorder": "shortname", "spuria": "yes", "suppresscolors": "no", "tensorflowgraph": "no", "topicmodel": "no",
+// "sortorder": "SHORTNAME", "spuria": "yes", "suppresscolors": "no", "tensorflowgraph": "no", "topicmodel": "no",
 // "trimvectoryby": "none", "userid": "Anonymous", "varia": "yes", "vcutlem": 50, "vcutloc": 33, "vcutneighb": 15,
 // "vdim": 300, "vdsamp": 5, "viterat": 12, "vminpres": 10, "vnncap": 15, "vsentperdoc": 1, "vwindow": 10,
 // "wkexclusions": [], "wkgnexclusions": [], "wkgnselections": [], "wkselections": [], "wlocexclusions": [],

@@ -270,24 +270,6 @@ func findendpointsfromlocus(wuid string, locus string) [2]int64 {
 	return fl
 }
 
-//type SelectionReporter struct {
-//	TimeRestr string
-//	AuCatI    string
-//	WkGenI    string
-//	AuLocI    string
-//	WkLocI    string
-//	AuI       string
-//	WksI      string
-//	PsgI      string
-//	AuCatE    string
-//	WkGenE    string
-//	AuLocE    string
-//	WkLocE    string
-//	AuE       string
-//	WksE      string
-//	PsgE      string
-//}
-
 type SelectionData struct {
 	TimeRestr string `json:"timeexclusions"`
 	Select    string `json:"selections"`
@@ -380,37 +362,6 @@ func reportcurrentselections(c echo.Context) []byte {
 	return js
 }
 
-/*
-<div id="outputbox">
-        <table id="selectionstable" style="">
-            <tbody>
-                <tr>
-                    <th colspan="5" id="timerestrictions">Unless specifically listed, authors/works must come from 850 B.C.E&nbsp;to&nbsp;1450 C.E</th>
-                </tr>
-                <tr>
-                    <td class="infocells" id="selectioninfocell" title="Selection list" width="47%"><span class="picklabel">Author categories</span><br>
-<span class="agnselections selection" id="agnselections_00" title="Double-click to remove this item">Choliambographi</span><br>
-<span class="picklabel">Work genres</span><br>
-<span class="wkgnselections selection" id="wkgnselections_00" title="Double-click to remove this item">Dialog.</span><br>
-<span class="picklabel">Author location</span><br>
-<span class="alocselections selection" id="alocselections_00" title="Double-click to remove this item">Elaea</span><br>
-<span class="picklabel">Authors</span><br>
-<span class="auselections selection" id="auselections_00" title="Double-click to remove this item">AG</span><br>
-<span class="picklabel">Works</span><br>
-<span class="wkselections selection" id="wkselections_00" title="Double-click to remove this item">Babrius , Valerius, <span class="pickedwork">Mythiambi Aesopici</span></span><br></td>
-                    <td style="text-align: center;" id="jscriptwigetcell" width="6%">
-                        <p id="searchinfo"><span class="ui-button-icon ui-icon ui-icon-info" title="Show/hide details of the current search list">&nbsp;</span></p>
-                    </td>
-                    <td class="infocellx" id="exclusioninfocell" title="Exclusion list" width="47%"><span class="picklabel">Author location</span><br>
-<span class="alocexclusions selection" id="alocexclusions_00" title="Double-click to remove this item">Florentia</span><br></td>
-                </tr>
-            </tbody>
-        </table>
-        <p id="authoroutputcontent"></p>
-        <div id="searchlistcontents" style="display: none;">(this might take a second...)</div>
-    </div>
-*/
-
 func test_selection() {
 	// t := AllAuthors["lt0474"].Cleaname
 	// [c3] span of a work: "GET /selection/make/_?auth=lt0474&work=037&locus=2|100&endpoint=3|20 HTTP/1.1"
@@ -427,9 +378,9 @@ func test_selection() {
 	id := "testing"
 	sessions[id] = s
 	var sv SelectValues
-	sv.Auth = cfg.TestV1
-	sv.Work = cfg.TestV2
-	sv.Start = cfg.TestV3
+	//sv.Auth = "lt0474"
+	//sv.Work = ""
+	//sv.Start = ""
 	// sv.Start = "2|100"
 	// sv.End = "3|20"
 	sv.IsExcl = false

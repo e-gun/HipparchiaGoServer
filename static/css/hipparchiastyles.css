@@ -1,19 +1,11 @@
 :root {
 	/*
-	nginx/gunicorn will not do the regex substitutions right; this file is sent unaltered...
-	so a hard-coded css is our fallback
-	to (re)generate it use a default localhost instance:
-		curl localhost:5000/css/x > notostyle.css
-	+
-		sed "s/hipparchiastyles.css/notostyle.css/" $SERVERPATH/server/sample_settings/htmlandcssstylesettings.py > $SERVERPATH/server/settings/htmlandcssstylesettings.py
-	*/
 
 	/* define the default FONTS that will have precedence over the served-if-necessary fonts
 	that are delivered via @font-face below. NB: only Arial is likely to be pre-installed.
 	The others can be downloaded from various locations. Arial is available on >95% of MacOS and PC systems? */
-	--systemdefaultfont: "Noto";
-	--greekfont: "yourfonthere_otherwise_fallbacktohipparchiahostedfonts";
-	--latinfont: "yourfonthere_otherwise_fallbacktohipparchiahostedfonts";
+	--systemdefaultfont: "SERVEALLFONTS";
+
 	/* --systemdefaultfont: ArialUnicodeMS; */
 	/* --systemdefaultfont: Alexander; */
 	/* --systemdefaultfont: Arimo; */
@@ -30,7 +22,6 @@
 	/* --systemdefaultfont: KerkisSans; [but the lunate sigma is ugly] */
 	/* --systemdefaultfont: SourceSansPro; [but the lunate sigma is ugly] */
 	/* --systemdefaultfont: Ubuntu; */
-	/* --systemdefaultfont: ZZforce_fallback_to_whatever_is_set_as_hipparchiasansstatic; */
 
 	/* define COLORS by variable so you can change them all right here */
 	/* formula to invert HEX: amount*(255-value)+(1-amount)*value */
@@ -71,16 +62,6 @@
 	--vdkteal: hsla(196, 27%, 20%, 1);
 	--vdkgrey: hsla(0, 0%, 20%, 1);
 }
-
-/*
-    font swaps handled by cssformattingobject.py
-    you also need to put 'bold' and 'italic' on the same CSS line if you want the secondary swap to happen right
-    e.g.:
-        font-weight: bold; font-style: italic;
-
-    note that 'hipparchiasansstatic' need not really be sans...
-
- */
 
 @font-face {
 	font-family: 'hipparchiasansstatic';
@@ -147,7 +128,7 @@ body {
 	line-height: 1.4;
 	}
 
-.90degreerotate {
+.\90degreerotate {
 	-webkit-transform: rotate(-90deg);
 	-moz-transform: rotate(-90deg);
 	}
@@ -956,7 +937,7 @@ body {
 
 .ui-helper-hidden-accessible {
 	position: absolute !important;
-	clip: rect(1px 1px 1px 1px);
+	clip: rect(1px, 1px, 1px, 1px);
 	}
 
 .ui-icon ui-icon-arrowthick-1-e:hover{
@@ -1219,7 +1200,8 @@ body {
 	}
 
 #wordsearchform {
-	position: float;
+	/* position: float; */
+	position: relative;
 	}
 
 a.nounderline {
@@ -1347,7 +1329,7 @@ input {
 	}
 
 latinfont {
-	font-family: var(--latinfont), 'hipparchiasansstatic', sans-serif;
+	font-family: 'hipparchiasansstatic', sans-serif;
 }
 
 legend {
