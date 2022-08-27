@@ -14,12 +14,12 @@ var (
 	cfg         CurrentConfiguration
 	sessions    = make(map[string]Session)
 	searches    = make(map[string]SearchStruct)
-	AllWorks    = workmapper()
-	AllAuthors  = loadworksintoauthors(authormapper(), AllWorks)
-	AllLemm     = lemmamapper()
-	NestedLemm  = nestedlemmamapper(AllLemm)
-	WkCorpusMap = buildwkcorpusmap()
-	AuCorpusMap = buildaucorpusmap()
+	AllWorks    = make(map[string]DbWork)
+	AllAuthors  = make(map[string]DbAuthor)
+	AllLemm     = make(map[string]DbLemma)
+	NestedLemm  = make(map[string]map[string]DbLemma)
+	WkCorpusMap = make(map[string][]string)
+	AuCorpusMap = make(map[string][]string)
 )
 
 type CurrentConfiguration struct {

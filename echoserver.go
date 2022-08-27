@@ -117,7 +117,17 @@ func StartEchoServer() {
 	// [g5] worklocation
 	// [g6] lemmata: "GET http://localhost:8000/hints/lemmata/_?term=dol"
 	e.GET("/hints/lemmata/:id", RtLemmaHints)
+
+	//
 	// [h] lexical
+	//
+
+	// [h1]
+	// [h2] GET http://localhost:8000/lexica/findbyform/sapientem/lt0474
+	e.GET("/lexica/findbyform/:id", RtLexFindByForm)
+
+	// [h3]
+	// [h4]
 
 	//
 	// [i] resets

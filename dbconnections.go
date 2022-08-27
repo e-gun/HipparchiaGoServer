@@ -41,10 +41,6 @@ func decodepsqllogin(psqllogininfo []byte) PostgresLogin {
 func grabpgsqlconnection() *pgxpool.Pool {
 	var pl PostgresLogin
 
-	if cfg.PGLogin.DBName == "" {
-		makeconfig()
-	}
-
 	pl = cfg.PGLogin
 
 	url := fmt.Sprintf("postgres://%s:%s@%s:%d/%s", pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName)

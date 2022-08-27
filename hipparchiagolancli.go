@@ -25,11 +25,12 @@ const (
 )
 
 func main() {
-	// the command line arguments get lost after the invocation of makeconfig() via the first grabpgsqlconnection()
-	// and you are not allowed to reset them
+	makeconfig()
+
+	// the command line arguments are getting lost
 
 	// main() instead has a cfg with the defaults burned into it
-	// so we do this the stupic/bound to fail way...
+	// so we do this the stupid/bound to fail way...
 
 	// fmt.Println(os.Args[1:len(os.Args)])
 
@@ -62,10 +63,12 @@ func main() {
 
 	cfg.PGLogin = decodepsqllogin([]byte(cfg.PosgresInfo))
 
-	fmt.Println("cfg.EchoLog")
-	fmt.Println(cfg.EchoLog)
-
 	fmt.Println(versioninfo)
-
+	AllWorks = workmapper()
+	AllAuthors = loadworksintoauthors(authormapper(), AllWorks)
+	AllLemm = lemmamapper()
+	NestedLemm = nestedlemmamapper(AllLemm)
+	WkCorpusMap = buildwkcorpusmap()
+	AuCorpusMap = buildaucorpusmap()
 	StartEchoServer()
 }
