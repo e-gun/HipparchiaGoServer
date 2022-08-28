@@ -64,7 +64,6 @@ func Browse(c echo.Context, sep string) string {
 
 	locus := c.Param("locus")
 	elem := strings.Split(locus, "/")
-	fmt.Println(elem)
 	if len(elem) == 3 {
 		au := elem[0]
 		wk := elem[1]

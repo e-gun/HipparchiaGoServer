@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/gomodule/redigo/redis"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"sort"
@@ -23,32 +21,52 @@ type LevelValues struct {
 	Range []string `json:"range"`
 }
 
-// findtherows - use a redis.Conn to acquire []DbWorkline
-func findtherows(thequery string, thecaller string, searchkey string, clientnumber int, rc redis.Conn, dbpool *pgxpool.Pool) []DbWorkline {
-	// called by both linegrabber() and HipparchiaBagger()
-	// this VERSION contains polling data
-	// it also assumes that thequery arrived via popping redis
+type DbWorkline struct {
+	WkUID       string
+	TbIndex     int64
+	Lvl5Value   string
+	Lvl4Value   string
+	Lvl3Value   string
+	Lvl2Value   string
+	Lvl1Value   string
+	Lvl0Value   string
+	MarkedUp    string
+	Accented    string
+	Stripped    string
+	Hypenated   string
+	Annotations string
+}
 
-	// [ii] update the polling data
-	if thecaller != "bagger" {
-		remain, err := redis.Int64(rc.Do("SCARD", searchkey))
-		chke(err)
-
-		k := fmt.Sprintf("%s_remaining", searchkey)
-		_, e := rc.Do("SET", k, remain)
-		chke(e)
-		msg(fmt.Sprintf("%s #%d says that %d items remain", thecaller, clientnumber, remain), 3)
+func (dbw DbWorkline) FindLocus() []string {
+	loc := [6]string{
+		dbw.Lvl5Value,
+		dbw.Lvl4Value,
+		dbw.Lvl3Value,
+		dbw.Lvl2Value,
+		dbw.Lvl1Value,
+		dbw.Lvl0Value,
 	}
 
-	// [iii] decode the query
-	var prq PrerolledQuery
-	err := json.Unmarshal([]byte(thequery), &prq)
-	chke(err)
+	var trim []string
+	for _, l := range loc {
+		if l != "-1" {
+			trim = append(trim, l)
+		}
+	}
+	return trim
+}
 
-	// fmt.Println(prq)
-	foundlines := worklinequery(prq, dbpool)
+func (dbw DbWorkline) FindAuthor() string {
+	return dbw.WkUID[:6]
+}
 
-	return foundlines
+func (dbw DbWorkline) FindWork() string {
+	return dbw.WkUID[7:]
+}
+
+func (dbw DbWorkline) BuildHyperlink() string {
+	t := `linenumber/%s/%s/%d`
+	return fmt.Sprintf(t, dbw.FindAuthor(), dbw.FindWork(), dbw.TbIndex)
 }
 
 // worklinequery - use a PrerolledQuery to acquire []DbWorkline

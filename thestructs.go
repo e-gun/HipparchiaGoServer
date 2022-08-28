@@ -5,56 +5,6 @@
 
 package main
 
-import "fmt"
-
-type DbWorkline struct {
-	WkUID       string
-	TbIndex     int64
-	Lvl5Value   string
-	Lvl4Value   string
-	Lvl3Value   string
-	Lvl2Value   string
-	Lvl1Value   string
-	Lvl0Value   string
-	MarkedUp    string
-	Accented    string
-	Stripped    string
-	Hypenated   string
-	Annotations string
-}
-
-func (dbw DbWorkline) FindLocus() []string {
-	loc := [6]string{
-		dbw.Lvl5Value,
-		dbw.Lvl4Value,
-		dbw.Lvl3Value,
-		dbw.Lvl2Value,
-		dbw.Lvl1Value,
-		dbw.Lvl0Value,
-	}
-
-	var trim []string
-	for _, l := range loc {
-		if l != "-1" {
-			trim = append(trim, l)
-		}
-	}
-	return trim
-}
-
-func (dbw DbWorkline) FindAuthor() string {
-	return dbw.WkUID[:6]
-}
-
-func (dbw DbWorkline) FindWork() string {
-	return dbw.WkUID[7:]
-}
-
-func (dbw DbWorkline) BuildHyperlink() string {
-	t := `linenumber/%s/%s/%d`
-	return fmt.Sprintf(t, dbw.FindAuthor(), dbw.FindWork(), dbw.TbIndex)
-}
-
 type DbWordCount struct {
 	Word  string
 	Total int64
@@ -63,31 +13,6 @@ type DbWordCount struct {
 	Dp    int64
 	In    int64
 	Ch    int64
-}
-
-// https://golangbyexample.com/sort-custom-struct-collection-golang/
-type WeightedHeadword struct {
-	Word  string
-	Count int
-}
-
-type WHWList []WeightedHeadword
-
-func (w WHWList) Len() int {
-	return len(w)
-}
-
-func (w WHWList) Less(i, j int) bool {
-	return w[i].Count > w[j].Count
-}
-
-func (w WHWList) Swap(i, j int) {
-	w[i], w[j] = w[j], w[i]
-}
-
-type BagWithLocus struct {
-	Loc string
-	Bag string
 }
 
 type DbMorphology struct {

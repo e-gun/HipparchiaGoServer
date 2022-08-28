@@ -22,6 +22,7 @@ type SearchStruct struct {
 	QueryType  string
 	ProxScope  string // "lines" or "words"
 	ProxType   string // "near" or "not near"
+	ProxVal    int64
 	IsVector   bool
 	NeedsWhere bool
 	TwoPart    bool
@@ -140,7 +141,11 @@ func RtSearchStandard(c echo.Context) error {
 	searches[id] = srch
 
 	// return results via searches[id].Results
-	searches[id] = HGoSrch(searches[id])
+	if searches[id].QueryType == "proximity" {
+		searches[id] = withinxlinessearch(searches[id])
+	} else {
+		searches[id] = HGoSrch(searches[id])
+	}
 
 	timetracker("D", "HGoSrch()", start, previous)
 	previous = time.Now()
@@ -346,4 +351,84 @@ func lemmaintoregex(hdwd string) []string {
 		}
 	}
 	return qq
+}
+
+func withinxlinessearch(s SearchStruct) SearchStruct {
+	// after finding x, look for y within n lines of x
+	//	CREATE TEMPORARY TABLE in110f_includelist_UNIQUENAME AS
+	//        SELECT values
+	//            AS includeindex FROM unnest(ARRAY[16197,16198,16199,16200,16201,16202,16203,16204,16205,16206,16207]) values
+	// (and then)
+	//     SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value, second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
+	//        ( SELECT * FROM
+	//            ( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations, concat(accented_line, ' ', lead(accented_line) OVER (ORDER BY index ASC)
+	//            ) AS linebundle
+	//                FROM in110f WHERE EXISTS
+	//                ( SELECT 1 FROM in110f_includelist_UNIQUENAME incl WHERE incl.includeindex = in110f.index ) ) first
+	//        ) second
+	//    WHERE second.linebundle ~ 'ἀνέθηκεν ὑπὲρ'  LIMIT 200;
+
+	first := s
+	first.Limit = FIRSTSEARCHLIM
+	first = HGoSrch(first)
+
+	// convert the hits into new selections:
+	// a temptable will be built once you know which lines do you need from which works
+	var required = make(map[string][]int64)
+	for _, r := range first.Results {
+		w := AllWorks[r.WkUID]
+		var idx []int64
+		for i := r.TbIndex - s.ProxVal; i < r.TbIndex+s.ProxVal; i++ {
+			if i >= w.FirstLine && i <= w.LastLine {
+				idx = append(idx, i)
+			}
+		}
+		required[w.FindAuthor()] = append(required[w.FindAuthor()], idx...)
+	}
+
+	// prepare new searchlists
+	second := first
+	second.Results = []DbWorkline{}
+	second.Queries = []PrerolledQuery{}
+	second.TTName = uuid.New().String()
+	second.SkgSlice = second.PrxSlice
+	second.PrxSlice = first.SkgSlice
+
+	var ttsq = make(map[string]string)
+	ctt := `
+	CREATE TEMPORARY TABLE %s_includelist_%s AS 
+		SELECT values AS includeindex FROM 
+			unnest(ARRAY[%s])
+		values`
+
+	for r, vv := range required {
+		var arr []string
+		for v := range vv {
+			arr = append(arr, strconv.FormatInt(int64(v), 10))
+		}
+		a := strings.Join(arr, ",")
+		ttsq[r] = fmt.Sprintf(ctt, r, second.TTName, a)
+	}
+
+	seltempl := PRFXSELFRM + CONCATSELFROM
+
+	wha := `
+	WHERE EXISTS 
+		(SELECT 1 FROM %s_includelist_%s incl 
+			WHERE incl.includeindex = %s.index AND %s.accented_line %s '%s')`
+	whb := `WHERE second.linebundle ~ '%s' LIMIT %d;`
+	var prqq = make(map[string][]PrerolledQuery)
+	for _, q := range second.SkgSlice {
+		for r, _ := range required {
+			var prq PrerolledQuery
+			prq.TempTable = ttsq[r]
+			whc := fmt.Sprintf(wha, r, second.TTName, r, r, second.SrchSyntax, q)
+			whd := fmt.Sprintf(whb, q, second.Limit)
+			prq.PsqlQuery = fmt.Sprintf(seltempl, whc) + whd
+			prqq[r] = append(prqq[r], prq)
+		}
+	}
+
+	second = HGoSrch(second)
+	return second
 }

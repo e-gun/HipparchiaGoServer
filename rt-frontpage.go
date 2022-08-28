@@ -51,8 +51,7 @@ func RtFrontpage(c echo.Context) error {
 	// will set if missing
 	readUUIDCookie(c)
 
-	subs := map[string]interface{}{"VERSION": VERSION}
-
+	subs := map[string]interface{}{"version": VERSION}
 	err := c.Render(http.StatusOK, "frontpage.html", subs)
 	return err
 }

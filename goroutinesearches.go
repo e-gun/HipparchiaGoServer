@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-func HGoSrch(s SearchStruct) SearchStruct {
+func HGoSrch(ss SearchStruct) SearchStruct {
 	// NOTE: this is all much more "go-like" than HipparchiaGolangSearcher() in grabber.go,
 	// BUT python + redis + HipparchiaGolangSearcher() is marginally faster than what follows [channels produce overhead?]
 
@@ -23,10 +23,10 @@ func HGoSrch(s SearchStruct) SearchStruct {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	emitqueries, err := SrchFeeder(ctx, s.Queries)
+	emitqueries, err := SrchFeeder(ctx, ss.Queries)
 	chke(err)
 
-	findchannels := []<-chan []DbWorkline{}
+	var findchannels []<-chan []DbWorkline
 
 	for i := 0; i < runtime.NumCPU(); i++ {
 		fc, e := SrchConsumer(ctx, emitqueries)
@@ -34,13 +34,13 @@ func HGoSrch(s SearchStruct) SearchStruct {
 		findchannels = append(findchannels, fc)
 	}
 
-	results := ResultCollation(ctx, s.Limit, ResultAggregator(ctx, findchannels...))
-	if int64(len(results)) > s.Limit {
-		results = results[0:s.Limit]
+	results := ResultCollation(ctx, ss.Limit, ResultAggregator(ctx, findchannels...))
+	if int64(len(results)) > ss.Limit {
+		results = results[0:ss.Limit]
 	}
 
 	// sort results
-	crit := sessions[s.User].SrchOutSettings.SortHitsBy
+	crit := sessions[ss.User].SrchOutSettings.SortHitsBy
 	switch {
 	case crit == "Name":
 		sort.Slice(results, func(p, q int) bool {
@@ -61,9 +61,9 @@ func HGoSrch(s SearchStruct) SearchStruct {
 		})
 	}
 
-	s.Results = results
+	ss.Results = results
 
-	return s
+	return ss
 }
 
 // SrchFeeder - emit items to a channel from the []PrerolledQuery that will be consumed by the SrchConsumer

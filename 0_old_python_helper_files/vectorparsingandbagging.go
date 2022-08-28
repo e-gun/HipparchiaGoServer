@@ -6,11 +6,65 @@
 package main
 
 import (
+	"fmt"
+	"github.com/gomodule/redigo/redis"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"regexp"
 	"sort"
 	"strings"
 )
+
+type WeightedHeadword struct {
+	Word  string
+	Count int
+}
+
+type WHWList []WeightedHeadword
+
+func (w WHWList) Len() int {
+	return len(w)
+}
+
+func (w WHWList) Less(i, j int) bool {
+	return w[i].Count > w[j].Count
+}
+
+func (w WHWList) Swap(i, j int) {
+	w[i], w[j] = w[j], w[i]
+}
+
+type BagWithLocus struct {
+	Loc string
+	Bag string
+}
+
+// findtherows - use a redis.Conn to acquire []DbWorkline
+func findtherows(thequery string, thecaller string, searchkey string, clientnumber int, rc redis.Conn, dbpool *pgxpool.Pool) []DbWorkline {
+	// called by both linegrabber() and HipparchiaBagger()
+	// this VERSION contains polling data
+	// it also assumes that thequery arrived via popping redis
+
+	// [ii] update the polling data
+	if thecaller != "bagger" {
+		remain, err := redis.Int64(rc.Do("SCARD", searchkey))
+		chke(err)
+
+		k := fmt.Sprintf("%s_remaining", searchkey)
+		_, e := rc.Do("SET", k, remain)
+		chke(e)
+		msg(fmt.Sprintf("%s #%d says that %d items remain", thecaller, clientnumber, remain), 3)
+	}
+
+	// [iii] decode the query
+	var prq PrerolledQuery
+	err := json.Unmarshal([]byte(thequery), &prq)
+	chke(err)
+
+	// fmt.Println(prq)
+	foundlines := worklinequery(prq, dbpool)
+
+	return foundlines
+}
 
 //
 // CLEANING

@@ -229,8 +229,6 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 		ll = ll[0 : len(ll)-1]
 	}
 
-	fmt.Println(ll)
-
 	col := [6]string{"level_00_value", "level_01_value", "level_02_value", "level_03_value", "level_04_value", "level_05_value"}
 	tem := `%s='%s'`
 	var use []string
@@ -247,7 +245,6 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 	a := strings.Join(use, " AND ")
 	q := fmt.Sprintf(qt, tb, wuid, a)
 
-	fmt.Println(q)
 	foundrows, err := dbpool.Query(context.Background(), q)
 	chke(err)
 
