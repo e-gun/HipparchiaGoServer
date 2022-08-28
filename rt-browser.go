@@ -33,7 +33,7 @@ func RtBrowseline(c echo.Context) error {
 		au := elem[0]
 		wk := elem[1]
 		ln, e := strconv.Atoi(elem[2])
-		checkerror(e)
+		chke(e)
 		ctx := sessions[user].UI.BrowseCtx
 		js := HipparchiaBrowser(au, wk, int64(ln), ctx)
 		return c.String(http.StatusOK, string(js))
@@ -46,22 +46,37 @@ func RtBrowseline(c echo.Context) error {
 // RtBrowseLocus - open a browser if sent '/browse/locus/gr0086/025/999a|_0'
 func RtBrowseLocus(c echo.Context) error {
 	// sample input: http://localhost:8000/browse/locus/gr0086/025/999a|_0
+	sep := "|"
+	bp := Browse(c, sep)
+	return c.String(http.StatusOK, bp)
+}
+
+func RtBrowsePerseus(c echo.Context) error {
+	// sample input: http://localhost:8000//browse/perseus/lt0550/001/2:717
+	sep := ":"
+	bp := Browse(c, sep)
+	return c.String(http.StatusOK, bp)
+}
+
+func Browse(c echo.Context, sep string) string {
+	// sample input: http://localhost:8000//browse/perseus/lt0550/001/2:717
 	user := readUUIDCookie(c)
 
 	locus := c.Param("locus")
 	elem := strings.Split(locus, "/")
+	fmt.Println(elem)
 	if len(elem) == 3 {
 		au := elem[0]
 		wk := elem[1]
 		uid := au + "w" + wk
 		// findendpointsfromlocus() lives in makeselection.go
-		ln := findendpointsfromlocus(uid, elem[2])
+		ln := findendpointsfromlocus(uid, elem[2], sep)
 		ctx := sessions[user].UI.BrowseCtx
 		js := HipparchiaBrowser(au, wk, ln[0], ctx)
-		return c.String(http.StatusOK, string(js))
+		return string(js)
 	} else {
-		msg(fmt.Sprintf("RtBrowseline() could not parse %s", locus), 3)
-		return c.String(http.StatusOK, "")
+		msg(fmt.Sprintf("Browse() could not parse %s", locus), 3)
+		return ""
 	}
 }
 
@@ -117,7 +132,7 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 	// fmt.Println(ci)
 
 	js, e := json.Marshal(bp)
-	checkerror(e)
+	chke(e)
 
 	return js
 }

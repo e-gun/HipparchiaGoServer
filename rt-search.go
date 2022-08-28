@@ -251,7 +251,7 @@ func formatnocontextresults(s SearchStruct) []byte {
 	out.Found = "<tbody>" + strings.Join(rows, "") + "</tbody>"
 
 	js, e := json.Marshal(out)
-	checkerror(e)
+	chke(e)
 
 	return js
 }

@@ -67,7 +67,7 @@ func RtAuthorHints(c echo.Context) error {
 
 	// send
 	b, e := json.Marshal(auf)
-	checkerror(e)
+	chke(e)
 	return c.String(http.StatusOK, string(b))
 }
 
@@ -95,7 +95,7 @@ func RtLemmaHints(c echo.Context) error {
 
 	// send
 	b, e := json.Marshal(match)
-	checkerror(e)
+	chke(e)
 
 	return c.String(http.StatusOK, string(b))
 }

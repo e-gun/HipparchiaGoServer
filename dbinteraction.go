@@ -32,18 +32,18 @@ func findtherows(thequery string, thecaller string, searchkey string, clientnumb
 	// [ii] update the polling data
 	if thecaller != "bagger" {
 		remain, err := redis.Int64(rc.Do("SCARD", searchkey))
-		checkerror(err)
+		chke(err)
 
 		k := fmt.Sprintf("%s_remaining", searchkey)
 		_, e := rc.Do("SET", k, remain)
-		checkerror(e)
+		chke(e)
 		msg(fmt.Sprintf("%s #%d says that %d items remain", thecaller, clientnumber, remain), 3)
 	}
 
 	// [iii] decode the query
 	var prq PrerolledQuery
 	err := json.Unmarshal([]byte(thequery), &prq)
-	checkerror(err)
+	chke(err)
 
 	// fmt.Println(prq)
 	foundlines := worklinequery(prq, dbpool)
@@ -56,7 +56,7 @@ func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Pool) []DbWorkline {
 	// [a] build a temp table if needed
 	if prq.TempTable != "" {
 		_, err := dbpool.Exec(context.Background(), prq.TempTable)
-		checkerror(err)
+		chke(err)
 	}
 
 	// [b] execute the main query
@@ -65,10 +65,10 @@ func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Pool) []DbWorkline {
 
 	if prq.PsqlData != "" {
 		foundrows, err = dbpool.Query(context.Background(), prq.PsqlQuery, prq.PsqlData)
-		checkerror(err)
+		chke(err)
 	} else {
 		foundrows, err = dbpool.Query(context.Background(), prq.PsqlQuery)
-		checkerror(err)
+		chke(err)
 	}
 
 	// [c] convert the finds into []DbWorkline
@@ -81,7 +81,7 @@ func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Pool) []DbWorkline {
 		err := foundrows.Scan(&thehit.WkUID, &thehit.TbIndex, &thehit.Lvl5Value, &thehit.Lvl4Value, &thehit.Lvl3Value,
 			&thehit.Lvl2Value, &thehit.Lvl1Value, &thehit.Lvl0Value, &thehit.MarkedUp, &thehit.Accented,
 			&thehit.Stripped, &thehit.Hypenated, &thehit.Annotations)
-		checkerror(err)
+		chke(err)
 		thesefinds = append(thesefinds, thehit)
 	}
 

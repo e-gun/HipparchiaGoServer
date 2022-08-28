@@ -80,6 +80,7 @@ func selected(user string, sv SelectValues) Session {
 	// [g] work proven: "GET /selection/make/_?wkprov=Abdera%20(Thrace) HTTP/1.1"
 
 	s := sessions[user]
+	sep := "|"
 
 	if s.Inclusions.MappedPsgByName == nil {
 		s.Inclusions.MappedPsgByName = make(map[string]string)
@@ -106,7 +107,7 @@ func selected(user string, sv SelectValues) Session {
 
 	if sv.AWP() {
 		// [2]int64 comes back: first and last lines found via the query
-		b := findendpointsfromlocus(sv.WUID(), sv.Start)
+		b := findendpointsfromlocus(sv.WUID(), sv.Start, sep)
 		r := strings.Replace(sv.Start, "|", ".", -1)
 		ra := AllAuthors[sv.Auth].Shortname
 		rw := AllWorks[sv.WUID()].Title
@@ -124,8 +125,8 @@ func selected(user string, sv SelectValues) Session {
 
 	if sv.AWPR() {
 		// [2]int64 comes back: first and last lines found via the query
-		b := findendpointsfromlocus(sv.WUID(), sv.Start)
-		e := findendpointsfromlocus(sv.WUID(), sv.End)
+		b := findendpointsfromlocus(sv.WUID(), sv.Start, sep)
+		e := findendpointsfromlocus(sv.WUID(), sv.End, sep)
 		ra := AllAuthors[sv.Auth].Shortname
 		rw := AllWorks[sv.WUID()].Title
 		rs := strings.Replace(sv.Start, "|", ".", -1)
@@ -209,12 +210,12 @@ func rationalizeselections() {
 
 }
 
-func findendpointsfromlocus(wuid string, locus string) [2]int64 {
+func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 	fl := [2]int64{0, 0}
 	wk := AllWorks[wuid]
 
 	wl := wk.CountLevels()
-	ll := strings.Split(locus, "|")
+	ll := strings.Split(locus, sep)
 	if len(ll) > wl {
 		ll = ll[0:wl]
 	}
@@ -248,7 +249,7 @@ func findendpointsfromlocus(wuid string, locus string) [2]int64 {
 
 	fmt.Println(q)
 	foundrows, err := dbpool.Query(context.Background(), q)
-	checkerror(err)
+	chke(err)
 
 	var idx []int64
 
@@ -256,7 +257,7 @@ func findendpointsfromlocus(wuid string, locus string) [2]int64 {
 	for foundrows.Next() {
 		var thehit int64
 		err := foundrows.Scan(&thehit)
-		checkerror(err)
+		chke(err)
 		idx = append(idx, thehit)
 	}
 	if len(idx) == 0 {
@@ -358,7 +359,7 @@ func reportcurrentselections(c echo.Context) []byte {
 	sd.Count = i.CountItems() + e.CountItems()
 
 	js, err := json.Marshal(sd)
-	checkerror(err)
+	chke(err)
 	return js
 }
 

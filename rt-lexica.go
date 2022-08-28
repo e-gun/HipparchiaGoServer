@@ -80,14 +80,14 @@ func findbyform(word string, author string) []byte {
 	var err error
 
 	foundrows, err = dbpool.Query(context.Background(), psq)
-	checkerror(err)
+	chke(err)
 
 	var thesefinds []DbMorphology
 	defer foundrows.Close()
 	for foundrows.Next() {
 		var thehit DbMorphology
 		err := foundrows.Scan(&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW)
-		checkerror(err)
+		chke(err)
 		thesefinds = append(thesefinds, thehit)
 	}
 
@@ -110,7 +110,7 @@ func findbyform(word string, author string) []byte {
 			var mp MorphPossib
 			if len(p) > 0 {
 				err := json.Unmarshal([]byte(p), &mp)
-				checkerror(err)
+				chke(err)
 			}
 			mpp = append(mpp, mp)
 		}
@@ -144,13 +144,13 @@ func findbyform(word string, author string) []byte {
 		var err error
 		q := fmt.Sprintf(psq, fld, d, col, w)
 		foundrows, err = dbpool.Query(context.Background(), q)
-		checkerror(err)
+		chke(err)
 
 		defer foundrows.Close()
 		for foundrows.Next() {
 			var thehit DbLexicon
 			err := foundrows.Scan(&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry)
-			checkerror(err)
+			chke(err)
 			thehit.Lang = d
 			if _, dup := dedup[thehit.ID]; !dup {
 				// use ID and not Word because καρπόϲ.53442 is not καρπόϲ.53443
@@ -169,13 +169,13 @@ func findbyform(word string, author string) []byte {
 	q := fmt.Sprintf(psq, fld, stripaccents(string(c[0])), word)
 
 	foundrows, err = dbpool.Query(context.Background(), q)
-	checkerror(err)
+	chke(err)
 	var wc DbWordCount
 	defer foundrows.Close()
 	for foundrows.Next() {
 		// only one should ever return...
 		err := foundrows.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
-		checkerror(err)
+		chke(err)
 	}
 
 	label := wc.Word
@@ -208,7 +208,7 @@ func findbyform(word string, author string) []byte {
 	jb.JS = js
 
 	jsonbundle, ee := json.Marshal(jb)
-	checkerror(ee)
+	chke(ee)
 
 	// jsonbundle := []byte(fmt.Sprintf(`{"newhtml":"%s","newjs":"%s"}`, html, js))
 	return jsonbundle
@@ -340,23 +340,21 @@ func formatlexicaloutput(w DbLexicon) string {
 	dbpool := grabpgsqlconnection()
 
 	foundrows, err := dbpool.Query(context.Background(), fmt.Sprintf(qt, w.Lang, "<", w.ID, "DESC"))
-	checkerror(err)
+	chke(err)
 	var prev DbLexicon
 	defer foundrows.Close()
 	for foundrows.Next() {
-		// only one should ever return...
-		err := foundrows.Scan(&prev.Entry, &prev.ID)
-		checkerror(err)
+		err = foundrows.Scan(&prev.Entry, &prev.ID)
+		chke(err)
 	}
 
 	foundrows, err = dbpool.Query(context.Background(), fmt.Sprintf(qt, w.Lang, ">", w.ID, "ASC"))
-	checkerror(err)
+	chke(err)
 	var nxt DbLexicon
 	defer foundrows.Close()
 	for foundrows.Next() {
-		// only one should ever return...
-		err := foundrows.Scan(&nxt.Entry, &nxt.ID)
-		checkerror(err)
+		err = foundrows.Scan(&nxt.Entry, &nxt.ID)
+		chke(err)
 	}
 
 	pn := fmt.Sprintf(nt, prev.ID, w.Lang, prev.Entry, nxt.ID, w.Lang, nxt.Entry)

@@ -24,13 +24,13 @@ func HGoSrch(s SearchStruct) SearchStruct {
 	defer cancel()
 
 	emitqueries, err := SrchFeeder(ctx, s.Queries)
-	checkerror(err)
+	chke(err)
 
 	findchannels := []<-chan []DbWorkline{}
 
 	for i := 0; i < runtime.NumCPU(); i++ {
 		fc, e := SrchConsumer(ctx, emitqueries)
-		checkerror(e)
+		chke(e)
 		findchannels = append(findchannels, fc)
 	}
 

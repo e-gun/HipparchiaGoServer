@@ -9,7 +9,7 @@ import (
 // DEBUGGING
 //
 
-func checkerror(err error) {
+func chke(err error) {
 	if err != nil {
 		fmt.Println(fmt.Sprintf("UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE [%s v.%s]", MYNAME, VERSION))
 		panic(err)

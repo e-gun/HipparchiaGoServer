@@ -40,12 +40,12 @@ func main() {
 		fmt.Println(a)
 		if a == "-gl" {
 			ll, e := strconv.Atoi(args[i+1])
-			checkerror(e)
+			chke(e)
 			cfg.LogLevel = ll
 		}
 		if a == "-el" {
 			ll, e := strconv.Atoi(args[i+1])
-			checkerror(e)
+			chke(e)
 			cfg.EchoLog = ll
 		}
 	}

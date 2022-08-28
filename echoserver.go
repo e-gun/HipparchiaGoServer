@@ -71,6 +71,8 @@ func StartEchoServer() {
 	e.GET("/browse/locus/:locus", RtBrowseLocus)
 
 	// [b3] sample input: '/browse/perseus/lt0550/001/2:717'
+	e.GET("/browse/perseus/:locus", RtBrowsePerseus)
+
 	// [b4] sample input: '/browse/rawlocus/lt0474/037/2.10.4'
 
 	// [c] css
@@ -188,7 +190,7 @@ func RtGetJSSession(c echo.Context) error {
 
 	s := sessions[user]
 	o, e := json.Marshal(s)
-	checkerror(e)
+	chke(e)
 	return c.String(http.StatusOK, string(o))
 }
 
@@ -206,7 +208,7 @@ func RtGetJSWorksOf(c echo.Context) error {
 
 	// send
 	b, e := json.Marshal(titles)
-	checkerror(e)
+	chke(e)
 
 	return c.String(http.StatusOK, string(b))
 }
@@ -235,7 +237,7 @@ func RtGetJSWorksStruct(c echo.Context) error {
 
 	// send
 	b, e := json.Marshal(lvls)
-	checkerror(e)
+	chke(e)
 	return c.String(http.StatusOK, string(b))
 }
 

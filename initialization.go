@@ -149,7 +149,7 @@ func workmapper() map[string]DbWork {
 	q := fmt.Sprintf(qt, WORKTEMPLATE)
 
 	foundrows, err := dbpool.Query(context.Background(), q)
-	checkerror(err)
+	chke(err)
 
 	var thefinds []DbWork
 
@@ -162,7 +162,7 @@ func workmapper() map[string]DbWork {
 			&thehit.LL1, &thehit.LL2, &thehit.LL3, &thehit.LL4, &thehit.LL5, &thehit.Genre,
 			&thehit.Xmit, &thehit.Type, &thehit.Prov, &thehit.RecDate, &thehit.ConvDate, &thehit.WdCount,
 			&thehit.FirstLine, &thehit.LastLine, &thehit.Authentic)
-		checkerror(err)
+		chke(err)
 		thefinds = append(thefinds, thehit)
 	}
 
@@ -189,7 +189,7 @@ func authormapper() map[string]DbAuthor {
 	q := fmt.Sprintf(qt, AUTHORTEMPLATE)
 
 	foundrows, err := dbpool.Query(context.Background(), q)
-	checkerror(err)
+	chke(err)
 
 	var thefinds []DbAuthor
 
@@ -201,7 +201,7 @@ func authormapper() map[string]DbAuthor {
 		var thehit DbAuthor
 		err := foundrows.Scan(&thehit.UID, &thehit.Language, &thehit.IDXname, &thehit.Name, &thehit.Shortname,
 			&thehit.Cleaname, &thehit.Genres, &thehit.RecDate, &thehit.ConvDate, &thehit.Location)
-		checkerror(err)
+		chke(err)
 		thefinds = append(thefinds, thehit)
 	}
 
@@ -291,12 +291,12 @@ func lemmamapper() map[string]DbLemma {
 	for _, lg := range langs {
 		q := fmt.Sprintf(t, lg)
 		foundrows, err := dbpool.Query(context.Background(), q)
-		checkerror(err)
+		chke(err)
 		defer foundrows.Close()
 		for foundrows.Next() {
 			var thehit DbLemma
 			err := foundrows.Scan(&thehit.Entry, &thehit.Xref, &thehit.Deriv)
-			checkerror(err)
+			chke(err)
 			thefinds = append(thefinds, thehit)
 		}
 	}
