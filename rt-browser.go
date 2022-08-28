@@ -10,6 +10,18 @@ import (
 	"strings"
 )
 
+type BrowsedPassage struct {
+	// marshal will not do lc names
+	Browseforwards    string `json:"browseforwards"`
+	Browseback        string `json:"browseback"`
+	Authornumber      string `json:"authornumber"`
+	Workid            string `json:"workid"`
+	Worknumber        string `json:"worknumber"`
+	Authorboxcontents string `json:"authorboxcontents"`
+	Workboxcontents   string `json:"workboxcontents"`
+	Browserhtml       string `json:"browserhtml"`
+}
+
 // RtBrowseline - open a browser if sent '/browse/linenumber/lt0550/001/1855'
 func RtBrowseline(c echo.Context) error {
 	// sample input: '/browse/linenumber/lt0550/001/1855'

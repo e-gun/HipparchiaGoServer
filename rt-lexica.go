@@ -14,11 +14,23 @@ import (
 
 // full set of verbs: lookup, findbyform, idlookup, morphologychart
 
+type DbLexicon struct {
+	// skipping 'unaccented_entry' from greek_dictionary
+	// skipping 'entry_key' from latin_dictionary
+	Word     string
+	Metrical string
+	ID       float32
+	POS      string
+	Transl   string
+	Entry    string
+	Lang     string
+}
+
 func RtLexFindByForm(c echo.Context) error {
 	// be able to respond to "GET /lexica/findbyform/ἀμιϲθὶ/gr0062 HTTP/1.1"
 	req := c.Param("id")
 	elem := strings.Split(req, "/")
-	fmt.Println(elem)
+
 	if len(elem) == 0 || elem[0] == "" {
 		return c.String(http.StatusOK, "")
 	}
@@ -104,8 +116,6 @@ func findbyform(word string, author string) []byte {
 		}
 	}
 
-	// fmt.Println(mpp)
-
 	// [d] take the []MorphPossib and find the set of headwords we are interested in
 
 	var hwm []string
@@ -122,22 +132,13 @@ func findbyform(word string, author string) []byte {
 
 	// [e] get the wordobjects for each unique headword: probedictionary()
 
-	// note that the greek and latin dictionaries have extra fields that we are not using (right?)
-	//var ec string
-	//if d == "latin" {
-	//	ec = "entry_key"
-	//} else {
-	//	ec = "unaccented_entry"
-	//}
-
-	// fld = fmt.Sprintf(`entry_name, metrical_entry, id_number, pos, translations, entry_body, %s`, ec)
-
-	fld = `entry_name, metrical_entry, id_number, pos, translations, entry_body`
+	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
+	fld = `entry_name, metrical_entry, id_number, pos, translations, html_body`
 	psq = `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴)$' ORDER BY id_number ASC`
 	col := "entry_name"
 
 	var lexicalfinds []DbLexicon
-	dedup := make(map[int64]bool)
+	dedup := make(map[float32]bool)
 	for _, w := range hwm {
 		// var foundrows pgx.Rows
 		var err error
@@ -150,6 +151,7 @@ func findbyform(word string, author string) []byte {
 			var thehit DbLexicon
 			err := foundrows.Scan(&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry)
 			checkerror(err)
+			thehit.Lang = d
 			if _, dup := dedup[thehit.ID]; !dup {
 				// use ID and not Word because καρπόϲ.53442 is not καρπόϲ.53443
 				dedup[thehit.ID] = true
@@ -157,10 +159,6 @@ func findbyform(word string, author string) []byte {
 			}
 		}
 	}
-
-	//for _, x := range lexicalfinds {
-	//	fmt.Println(fmt.Sprintf("%s: %s", x.Word, x.Transl))
-	//}
 
 	// [f] generate and format the prevalence data for this form: cf formatprevalencedata() in lexicalformatting.py
 
@@ -195,9 +193,6 @@ func findbyform(word string, author string) []byte {
 	}
 
 	// [i] add the HTML + JS to inject `{"newhtml": "...", "newjs":"..."}`
-
-	//fmt.Println(allformpd)
-	//fmt.Println(parsing)
 
 	html := allformpd + parsing + entries
 	// html = strings.Replace(html, `"`, `\"`, -1)
@@ -281,7 +276,20 @@ func formatparsingdata(mpp []MorphPossib) string {
 
 // formatlexicaloutput - turn a DbLexicon word into HTML
 func formatlexicaloutput(w DbLexicon) string {
+
+	var elem []string
+
 	// [h1] first part of a lexical entry:
+
+	ht := `<div id="%s_%f"><hr>
+		<p class="dictionaryheading" id="%s_%.1f">%s&nbsp;<span class="metrics">%s</span></p>
+	`
+	var met string
+	if w.Metrical != "" {
+		met = fmt.Sprintf("[%s]", w.Metrical)
+	}
+
+	elem = append(elem, fmt.Sprintf(ht, w.Word, w.ID, w.Word, w.ID, w.Word, met))
 
 	// [h1a] known forms in use
 
@@ -299,20 +307,62 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	// [h1b] principle parts
 
+	// TODO
+
 	// [h2] wordcounts data including weighted distributions
 
-	// [h3]  _buildentrysummary() which gives senses, flagged senses, citations, quotes (summarized or not)
+	// TODO
+	// pd := `<span class="prevalence">%s</span> %d`
 
 	// [h4] the actual body of the entry
 
-	// more formatting to come
-
-	entrybody := w.Entry
+	elem = append(elem, w.Entry)
 
 	// [h5] previous & next entry
-	enfolded := `<div id="%s_%d">%s</div>
-	`
-	html := fmt.Sprintf(enfolded, w.Word, w.ID, entrybody)
+	nt := `
+	<table class="navtable">
+		<tbody>
+		<tr>
+			<td class="alignleft">
+				<span class="label">Previous: </span>
+				<dictionaryidsearch entryid="%d" language="%s">%s</dictionaryidsearch>
+			</td>
+			<td>&nbsp;</td>
+			<td class="alignright">
+				<span class="label">Next: </span>
+				<dictionaryidsearch entryid="%d" language="%s">%s</dictionaryidsearch>
+			</td>
+		</tr>
+		</tbody>
+	</table>`
+
+	qt := `SELECT entry_name, id_number from %s_dictionary WHERE id_number %s %.0f ORDER BY id_number %s LIMIT 1`
+	dbpool := grabpgsqlconnection()
+
+	foundrows, err := dbpool.Query(context.Background(), fmt.Sprintf(qt, w.Lang, "<", w.ID, "DESC"))
+	checkerror(err)
+	var prev DbLexicon
+	defer foundrows.Close()
+	for foundrows.Next() {
+		// only one should ever return...
+		err := foundrows.Scan(&prev.Entry, &prev.ID)
+		checkerror(err)
+	}
+
+	foundrows, err = dbpool.Query(context.Background(), fmt.Sprintf(qt, w.Lang, ">", w.ID, "ASC"))
+	checkerror(err)
+	var nxt DbLexicon
+	defer foundrows.Close()
+	for foundrows.Next() {
+		// only one should ever return...
+		err := foundrows.Scan(&nxt.Entry, &nxt.ID)
+		checkerror(err)
+	}
+
+	pn := fmt.Sprintf(nt, prev.ID, w.Lang, prev.Entry, nxt.ID, w.Lang, nxt.Entry)
+	elem = append(elem, pn)
+
+	html := strings.Join(elem, "")
 	return html
 }
 
@@ -345,158 +395,3 @@ func insertlexicaljs() string {
 	thejs := fmt.Sprintf(js, tag)
 	return thejs
 }
-
-/*
-	def _buildfullentry(self) -> str:
-		fullentrystring = '<br /><br />\n<span class="lexiconhighlight">Full entry:</span><br />'
-		suppressedmorph = '<br /><br />\n<span class="lexiconhighlight">(Morphology notes hidden)</span><br />'
-		w = self.thiswordobject
-		w.constructsensehierarchy()
-		w.runbodyxrefsuite()
-		w.insertclickablelookups()
-		# next is optional, really: a good CSS file will parse what you have thus far
-		# (HipparchiaServer v.1.1.2 has the old XML CSS)
-		w.xmltohtmlconversions()
-		segments = list()
-		segments.append(w.grabheadmaterial())
-		# segments.append(suppressedmorph)
-		segments.append(fullentrystring)
-		segments.append(w.grabnonheadmaterial())
-		fullentry = '\n'.join(segments)
-		return fullentry
-
-
-<div style="position: absolute; height: auto; width: 624.03px; top: 47px; left: 385.167px;" tabindex="-1" role="dialog" class="ui-dialog ui-corner-all ui-widget ui-widget-content ui-front ui-draggable ui-resizable" aria-describedby="lexicadialogtext" aria-labelledby="ui-id-43"><div class="ui-dialog-titlebar ui-corner-all ui-widget-header ui-helper-clearfix ui-draggable-handle"><span id="ui-id-43" class="ui-dialog-title">finitio</span><button type="button" class="ui-button ui-corner-all ui-widget ui-button-icon-only ui-dialog-titlebar-close" title="Close"><span class="ui-button-icon ui-icon ui-icon-closethick"></span><span class="ui-button-icon-space"> </span>Close</button></div><div id="lexicadialogtext" class="ui-dialog-content ui-widget-content" style="width: auto; min-height: 86.3334px; max-height: 1253.93px; height: auto;"><p class="wordcounts">Prevalence (this form):
-    <!-- lexicaformatting.py formatprevalencedata() output begins -->
-    <span class="prevalence">Ⓖ</span> 5 / <span class="prevalence">Ⓛ</span> 44 / <span class="prevalence">Ⓣ</span> 49
-    <!-- lexicaformatting.py formatprevalencedata() output ends -->
-    </p>
-
-    <!-- lexicaformatting.py formatparsinginformation() output begins -->
-
-
-    <span class="obsv">
-        <span class="dictionaryform">finitio</span>&nbsp;:&nbsp;
-        <a class="parsing" href="#finitio_30382620"><span class="obsv">
-            from <span class="baseform">finitio</span>
-            <span class="baseformtranslation">&nbsp;(“<span class="transtree">I.</span> A <cb n="FIRM"> limiting; <span class="transtree">II.</span> A determining; <span class="transtree">III.</span> An end”)</cb></span>
-        </span></a>
-    </span>
-
-
-    <table class="morphtable">
-        <tbody>
-            <tr><td class="morphcell invisible">[a]</td>
-<td class="morphcell">fem</td>
-<td class="morphcell">nom/voc</td>
-<td class="morphcell">sg</td>
-</tr>
-        </tbody>
-    </table>
-
-    <!-- lexicaformatting.py formatparsinginformation() output ends -->
-
-<div id="finitio_30382620">
-<hr><p class="dictionaryheading" id="finitio_18205.0">finitio
-&nbsp;<span class="metrics">[fīnītĭo]</span>
-</p>
-
-    <!-- lexicaloutputobjects.py _buildprincipleparts() output begins -->
-
-        <formsummary parserxref="30382620" lexicalid="18205.0" headword="finitio" lang="latin">known forms in use: 15</formsummary>
-        <table class="morphtable">
-            <tbody>
-                <tr><th class="morphcell labelcell" rowspan="1" colspan="2"></th></tr>
-
-            </tbody>
-        </table>
-
-    <!-- lexicaloutputobjects.py _buildprincipleparts() output ends -->
-
-<p class="wordcounts">Prevalence (all forms):
-
-    <!-- lexicaformatting.py formatprevalencedata() output begins -->
-    <span class="prevalence">Ⓖ</span> 5 / <span class="prevalence">Ⓛ</span> 148 / <span class="prevalence">Ⓣ</span> 153
-
-</p><p class="wordcounts">Weighted distribution by corpus:
-<span class="prevalence">Ⓛ</span> 100 / <span class="prevalence">Ⓖ</span> 0 / <span class="prevalence">Ⓘ</span> 0 / <span class="prevalence">Ⓓ</span> 0 / <span class="prevalence">Ⓒ</span> 0
-</p>
-<p class="wordcounts">Predominant genres:
-<span class="emph">allrhet</span>&nbsp;(100), <span class="emph">agric</span>&nbsp;(77), <span class="emph">astron</span>&nbsp;(33), <span class="emph">nathist</span>&nbsp;(32), <span class="emph">lexicogr</span>&nbsp;(27), <span class="emph">phil</span>&nbsp;(20), <span class="emph">polyhist</span>&nbsp;(14), <span class="emph">gramm</span>&nbsp;(11)
-    <!-- lexicaformatting.py formatprevalencedata() output ends -->
-
-</p>
-
-    <!-- lexicaloutputobjects.py _buildentrysummary() output begins -->
-
-    <!-- lexicaformatting.py formatdictionarysummary() output begins -->
-    <div class="sensesummary"><span class="lexiconhighlight">Senses</span><br>
-<span class="sensesum">13 senses</span><br>
-</div>
-<div class="authorsummary"><span class="lexiconhighlight">Citations from</span><br>
-<span class="authorsum">7 authors</span><br>
-</div>
-<div class="quotessummary"><span class="lexiconhighlight">Quotes</span><br>
-<span class="quotesum">4 quotes</span><br>
-</div><br>
-    <!-- lexicaformatting.py formatdictionarysummary() output ends -->
-
-    <!-- lexicaloutputobjects.py _buildentrysummary() output ends -->
-
-<span class="dictorth dictlang_la">fīnītĭo</span>, <span class="dictitype">ōnis</span>, <span class="dictgen">f.</span> <span class="dictetym"><dictionaryentry id="finio">finio</dictionaryentry></span> (post-Aug.).
-
-<br><br>
-<span class="lexiconhighlight">Full entry:</span><br>
-        <p class="level1">
-            <span class="levellabel1">I</span>
-            <sense id="n18205.0" level="1"><span class="dicthi dictrend_ital">A <span class="dictcb"> limiting</span>, <span class="dicthi dictrend_ital">limit</span>, <span class="dicthi dictrend_ital">boundary</span>, <bibl id="perseus/lt1056/001/2:1"><span class="dictauthor">Vitruvius</span> 2, 1 <span class="dicthi dictrend_ital">fin.</span></bibl>; <bibl id="perseus/lt1056/001/5:4">5, 4</bibl> <span class="dicthi dictrend_ital">fin.</span>; 8, 1.—</span></sense>
-        </p>
-        <p class="level1">
-            <span class="levellabel1">II</span>
-            <sense id="n18205.1" level="1"> <span class="dicthi dictrend_ital">A determining</span>, <span class="dicthi dictrend_ital">assigning</span>, viz., </sense>
-        </p>
-        <p class="level2">
-            <span class="levellabel2">A</span>
-            <sense id="n18205.2" level="2"> <span class="dictusg dicttype_style">Lit.</span>, <span class="dicthi dictrend_ital">a division</span>, <span class="dicthi dictrend_ital">part</span>, <bibl><span class="dictauthor">Hyginus</span> Astr. 1, 6 <span class="dicthi dictrend_ital">fin.</span></bibl>—</sense>
-        </p>
-        <p class="level2">
-            <span class="levellabel2">B</span>
-            <sense id="n18205.3" level="2"> <span class="dictusg dicttype_style">Trop.</span> </sense>
-        </p>
-        <p class="level3">
-            <span class="levellabel3">1</span>
-            <sense id="n18205.4" level="3"> <span class="dicthi dictrend_ital">A definition</span>, <span class="dicthi dictrend_ital">explanation</span> (esp. freq. in Quint.): <span class="dictcit"><span class="dictquote dictlang_la">finitio est rei propositae propria et dilucida et breviter comprehensa verbis enunciatio,</span> <bibl><span class="dictauthor">Quintilian</span> 7, 3, 2 sq.</bibl></span>; <bibl id="perseus/lt1002/001/2:15:34">2, 15, 34</bibl>; <bibl id="perseus/lt1002/001/3:6:49">3, 6, 49</bibl>; 5, 10, 63 et saep.; <bibl id="perseus/lt1254/001/15:9:11"><span class="dictauthor">Gellius</span> 15, 9, 11</bibl>.—</sense>
-        </p>
-        <p class="level3">
-            <span class="levellabel3">2</span>
-            <sense id="n18205.5" level="3"> <span class="dicthi dictrend_ital">A rule</span>: <span class="dictcit"><span class="dictquote dictlang_la">illam quasi finitionem veluti quandam legem sanxerunt, eos tantum surculos posse coalescere, qui, etc.,</span> <bibl id="perseus/lt0845/001/5:11:12"><span class="dictauthor">Columella</span> 5, 11, 12</bibl></span>.—</sense>
-        </p>
-        <p class="level1">
-            <span class="levellabel1">III</span>
-            <sense id="n18205.6" level="1"> <span class="dicthi dictrend_ital">An end;</span> esp., </sense>
-        </p>
-        <p class="level2">
-            <span class="levellabel2">A</span>
-            <sense id="n18205.7" level="2"> <span class="dicthi dictrend_ital">The end of life</span>, <span class="dicthi dictrend_ital">death</span>, <unclickablebibl><span class="dictauthor">Inscr. Grut.</span> 810, 10</unclickablebibl>: <span class="dictcit"><span class="dictquote dictlang_la">FATI,</span> <unclickablebibl><span class="dictauthor">Inscr. Orell.</span> 4776</unclickablebibl></span>.—</sense>
-        </p>
-        <p class="level2">
-            <span class="levellabel2">B</span>
-            <sense id="n18205.8" level="2"> <span class="dicthi dictrend_ital">Completeness</span>: <span class="dictcit"><span class="dictquote dictlang_la">progressum esse ad hanc finitionem,</span> <bibl id="perseus/lt1056/001/2:1:8"><span class="dictauthor">Vitruvius</span> 2, 1, 8</bibl></span>.</sense>
-        </p>
-
-        <table class="navtable">
-        <tbody><tr>
-            <td class="alignleft">
-                <span class="label">Previous: </span>
-                <dictionaryidsearch entryid="18204.0" language="latin">finitimus</dictionaryidsearch>
-            </td>
-            <td>&nbsp;</td>
-            <td class="alignright">
-                <span class="label">Next: </span>
-                <dictionaryidsearch entryid="18206.0" language="latin">finitivus</dictionaryidsearch>
-            </td>
-        </tr><tr>
-        </tr></tbody></table>
-
-</div></div><div class="ui-resizable-handle ui-resizable-n" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-e" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-s" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-w" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-sw" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-ne" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-nw" style="z-index: 90;"></div></div>
-*/

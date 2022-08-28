@@ -65,17 +65,6 @@ type DbWordCount struct {
 	Ch    int64
 }
 
-type DbLexicon struct {
-	// skipping 'unaccented_entry' from greek_dictionary
-	// skipping 'entry_key' from latin_dictionary
-	Word     string
-	Metrical string
-	ID       int64
-	POS      string
-	Transl   string
-	Entry    string
-}
-
 // https://golangbyexample.com/sort-custom-struct-collection-golang/
 type WeightedHeadword struct {
 	Word  string
@@ -129,18 +118,6 @@ type CompositePollingData struct {
 	Portnumber    int64
 	Notes         string
 	ID            string // this is not stored in redis; it is asserted here
-}
-
-type BrowsedPassage struct {
-	// marshal will not do lc names
-	Browseforwards    string `json:"browseforwards"`
-	Browseback        string `json:"browseback"`
-	Authornumber      string `json:"authornumber"`
-	Workid            string `json:"workid"`
-	Worknumber        string `json:"worknumber"`
-	Authorboxcontents string `json:"authorboxcontents"`
-	Workboxcontents   string `json:"workboxcontents"`
-	Browserhtml       string `json:"browserhtml"`
 }
 
 // JSStruct - this is really just for generating JSON
