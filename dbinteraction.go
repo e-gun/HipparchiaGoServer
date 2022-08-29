@@ -72,6 +72,8 @@ func (dbw DbWorkline) BuildHyperlink() string {
 // worklinequery - use a PrerolledQuery to acquire []DbWorkline
 func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Pool) []DbWorkline {
 	// [a] build a temp table if needed
+
+	// fmt.Printf("TT:\n%s\n", prq.TempTable)
 	if prq.TempTable != "" {
 		_, err := dbpool.Exec(context.Background(), prq.TempTable)
 		chke(err)
@@ -81,6 +83,7 @@ func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Pool) []DbWorkline {
 	var foundrows pgx.Rows
 	var err error
 
+	// fmt.Printf("Q:\n%s\n", prq.PsqlQuery)
 	if prq.PsqlData != "" {
 		foundrows, err = dbpool.Query(context.Background(), prq.PsqlQuery, prq.PsqlData)
 		chke(err)

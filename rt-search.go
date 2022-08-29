@@ -176,7 +176,8 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	s.OrderBy = "index"
 	s.SearchIn = sessions[user].Inclusions
 	s.SearchEx = sessions[user].Exclusions
-	s.TTName = uuid.New().String()
+	s.ProxVal = 5
+	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
 	return s
 }
 
@@ -197,6 +198,18 @@ func setsearchtype(srch SearchStruct) SearchStruct {
 		containslemma = true
 	}
 	if srch.LemmaOne != "" && srch.LemmaTwo != "" {
+		twobox = true
+	}
+
+	if srch.Seeking != "" && srch.Proximate != "" {
+		twobox = true
+	}
+
+	if srch.Seeking != "" && srch.LemmaTwo != "" {
+		twobox = true
+	}
+
+	if srch.LemmaOne != "" && srch.Proximate != "" {
 		twobox = true
 	}
 
@@ -368,9 +381,12 @@ func withinxlinessearch(s SearchStruct) SearchStruct {
 	//        ) second
 	//    WHERE second.linebundle ~ 'ἀνέθηκεν ὑπὲρ'  LIMIT 200;
 
+	// alternate: ... FROM lt0474 WHERE ( (index BETWEEN 128860 AND 128866) OR (index BETWEEN 39846 AND 39852) OR ...
+
 	first := s
 	first.Limit = FIRSTSEARCHLIM
 	first = HGoSrch(first)
+	// fmt.Printf("%d initial hits\n", len(first.Results))
 
 	// convert the hits into new selections:
 	// a temptable will be built once you know which lines do you need from which works
@@ -387,12 +403,13 @@ func withinxlinessearch(s SearchStruct) SearchStruct {
 	}
 
 	// prepare new searchlists
-	second := first
+	var second SearchStruct
 	second.Results = []DbWorkline{}
 	second.Queries = []PrerolledQuery{}
-	second.TTName = uuid.New().String()
-	second.SkgSlice = second.PrxSlice
+	second.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
+	second.SkgSlice = first.PrxSlice
 	second.PrxSlice = first.SkgSlice
+	second.Limit = s.Limit
 
 	var ttsq = make(map[string]string)
 	ctt := `
@@ -403,7 +420,7 @@ func withinxlinessearch(s SearchStruct) SearchStruct {
 
 	for r, vv := range required {
 		var arr []string
-		for v := range vv {
+		for _, v := range vv {
 			arr = append(arr, strconv.FormatInt(int64(v), 10))
 		}
 		a := strings.Join(arr, ",")
@@ -413,20 +430,24 @@ func withinxlinessearch(s SearchStruct) SearchStruct {
 	seltempl := PRFXSELFRM + CONCATSELFROM
 
 	wha := `
-	WHERE EXISTS 
+	%s WHERE EXISTS 
 		(SELECT 1 FROM %s_includelist_%s incl 
-			WHERE incl.includeindex = %s.index AND %s.accented_line %s '%s')`
-	whb := `WHERE second.linebundle ~ '%s' LIMIT %d;`
+			WHERE incl.includeindex = %s.index)`
+	whb := ` WHERE second.linebundle ~ '%s' LIMIT %d;`
 	var prqq = make(map[string][]PrerolledQuery)
 	for _, q := range second.SkgSlice {
 		for r, _ := range required {
 			var prq PrerolledQuery
 			prq.TempTable = ttsq[r]
-			whc := fmt.Sprintf(wha, r, second.TTName, r, r, second.SrchSyntax, q)
+			whc := fmt.Sprintf(wha, r, r, second.TTName, r)
 			whd := fmt.Sprintf(whb, q, second.Limit)
 			prq.PsqlQuery = fmt.Sprintf(seltempl, whc) + whd
 			prqq[r] = append(prqq[r], prq)
 		}
+	}
+
+	for _, q := range prqq {
+		second.Queries = append(second.Queries, q...)
 	}
 
 	second = HGoSrch(second)
