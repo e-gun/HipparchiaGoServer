@@ -571,54 +571,48 @@ func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 	find = regexp.MustCompile(`\s$`)
 	re = find.ReplaceAllString(ss.Seeking, "(\\s|$)")
 
-	fmt.Println("findphrasesacrosslines() does not work yet: *partial* checks made")
-
 	for i, r := range ss.Results {
-		var nxt DbWorkline
-		fmt.Printf("len(ss.Results): %d\n", len(ss.Results))
-		if i+1 < len(ss.Results) {
-			nxt = ss.Results[i+1]
-			if r.WkUID != nxt.WkUID || r.TbIndex+1 != nxt.TbIndex {
-				// grab the actual next line (i.e. index = 101)
-				nn := simplecontextgrabber(r.FindAuthor(), r.TbIndex+1, 1)
-				nxt = nn[0]
-			}
-		} else {
-			// grab the actual next line (i.e. index = 101)
-			nn := simplecontextgrabber(r.FindAuthor(), r.TbIndex+1, 1)
-			nxt = nn[0]
-			fmt.Printf("r: %d; nxt: %d\n", r.TbIndex, nxt.TbIndex)
-			if r.WkUID != nxt.WkUID {
-				nxt = DbWorkline{
-					WkUID:       "",
-					TbIndex:     0,
-					Lvl5Value:   "",
-					Lvl4Value:   "",
-					Lvl3Value:   "",
-					Lvl2Value:   "",
-					Lvl1Value:   "",
-					Lvl0Value:   "",
-					MarkedUp:    "",
-					Accented:    "",
-					Stripped:    "",
-					Hypenated:   "",
-					Annotations: "",
-				}
-			}
-			fmt.Printf("nxt: %s\n", nxt.Stripped)
-		}
-		// need to do the "it's all on this line" case separately
+		// do the "it's all on this line" case separately
 		li := columnpicker(ss.SrchColumn, r)
 		fp := regexp.MustCompile(re)
 		f := fp.MatchString(li)
 		if f {
 			valid[r.BuildHyperlink()] = r
 		} else {
-			comb := phrasecombinations(ss.Seeking)
-			for _, c := range comb[1:] {
-				fmt.Printf("c0: %s; c1: %s\n", c[0], c[1])
+			var nxt DbWorkline
+			if i+1 < len(ss.Results) {
+				nxt = ss.Results[i+1]
+				if r.WkUID != nxt.WkUID || r.TbIndex+1 != nxt.TbIndex {
+					// grab the actual next line (i.e. index = 101)
+					nn := simplecontextgrabber(r.FindAuthor(), r.TbIndex+1, 1)
+					nxt = nn[0]
+				}
+			} else {
+				// grab the actual next line (i.e. index = 101)
+				nn := simplecontextgrabber(r.FindAuthor(), r.TbIndex+1, 1)
+				nxt = nn[0]
+				if r.WkUID != nxt.WkUID {
+					nxt = DbWorkline{
+						WkUID:       "",
+						TbIndex:     0,
+						Lvl5Value:   "",
+						Lvl4Value:   "",
+						Lvl3Value:   "",
+						Lvl2Value:   "",
+						Lvl1Value:   "",
+						Lvl0Value:   "",
+						MarkedUp:    "",
+						Accented:    "",
+						Stripped:    "",
+						Hypenated:   "",
+						Annotations: "",
+					}
+				}
+			}
+
+			comb := phrasecombinations(re)
+			for _, c := range comb {
 				nl := columnpicker(ss.SrchColumn, nxt)
-				fmt.Printf("nl: %s\n", nl)
 				fp = regexp.MustCompile(c[0])
 				sp := regexp.MustCompile(c[1])
 				f = fp.MatchString(li)
@@ -641,7 +635,7 @@ func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 
 func phrasecombinations(phr string) [][2]string {
 	// 'one two three four five' -->
-	// [('one', 'two three four five'), ('one two', 'three four five'), ('one two three', 'four five'), ('one two three four', 'five'), ('one two three four five', '')]
+	// [('one', 'two three four five'), ('one two', 'three four five'), ('one two three', 'four five'), ('one two three four', 'five')]
 
 	gt := func(n int, wds []string) []string {
 		return wds[n:]
@@ -656,93 +650,21 @@ func phrasecombinations(phr string) [][2]string {
 	for i, _ := range ww {
 		h := strings.Join(gh(i, ww), " ")
 		t := strings.Join(gt(i, ww), " ")
+		h = h + "$"
+		t = "^" + t
 		comb = append(comb, [2]string{h, t})
 	}
 
-	// comb[0] is:
-	// a:
-	// b: one two three four five
+	var trimmed [][2]string
+	for _, c := range comb {
+		if strings.TrimSpace(c[0]) != "" && strings.TrimSpace(c[1]) != "" {
+			trimmed = append(trimmed, c)
+		}
+	}
 
-	return comb
+	//for i, c := range trimmed {
+	//	fmt.Printf("%d:\n\t0: %s\n\t1: %s\n", i, c[0], c[1])
+	//}
+
+	return trimmed
 }
-
-/*
-class QueryCombinator(object):
-	"""
-
-	take a phrase and grab all of the possible searches that you need to catch its line-spanning variants
-
-	x = 'one two three four five'
-	z = QueryCombinator(x)
-	z.combinationlist()
-		[(['one'], ['two', 'three', 'four', 'five']), (['one', 'two'], ['three', 'four', 'five']), (['one', 'two', 'three'], ['four', 'five']), (['one', 'two', 'three', 'four'], ['five']), (['one', 'two', 'three', 'four', 'five'], [])]
-	z.combinations()
-		[('one', 'two three four five'), ('one two', 'three four five'), ('one two three', 'four five'), ('one two three four', 'five'), ('one two three four five', '')]
-
-	"""
-	def __init__(self, phrase):
-		self.phrase = phrase
-		self.words = [w for w in self.phrase.split(' ') if w]
-
-	@staticmethod
-	def _grabhead(n, iterable):
-		"""Return first n items of the iterable as a list"""
-		return list(islice(iterable, n))
-
-	@staticmethod
-	def _grabtail(n, iterable):
-		"""Return the last n items of the iterable as a list"""
-		return list(deque(iterable, maxlen=n))
-
-	def combinationlist(self):
-		"""Return all of the possible pairs of list items"""
-		combinations = list()
-		for c in range(1, len(self.words) + 1):
-			front = self._grabhead(c, self.words)
-			back = self._grabtail(len(self.words) - c, self.words)
-			combinations.append((front, back))
-		return combinations
-
-	def combinations(self):
-		"""Return the set of search pairs you will need"""
-		cl = self.combinationlist()
-		combinations = [(' '.join(c[0]), ' '.join(c[1])) for c in cl]
-		return combinations
-*/
-
-/*
-
-TODO: DEBUG
-
-Hipparchia Golang Server CLI Debugging Interface (v.0.1.0) [loglevel=4]
-Sought all forms of »perhibeo« within 3 lines of all forms of »perhibeo«
-Searched 7461 works and found 8 passages (0.871s)
-
-[1]   Apuleius Madaurensis, Metamorphoses: 4.27.19 	imagines falsae perhibentur, tunc etiam nocturnae
-[2]   Apuleius Madaurensis, De Deo Socratis: 14.27 	perhiberi, quo liquidius et plenius de praesagio
-[3]   Fronto, Marcus Cornelius, Ad Amicos Epistulae: 1.7.1.5 	testimonium perhibere certo scio.
-[4]   Lucretius, Titus Carus, De Rerum Natura: 3.597 	quod genus est, animo male factum cum perhibetur
-[5]   Plautus, Titus Maccius, Rudens: 931 	navíbus magnis mercáturam faciam, ápud reges rex pérhibebor.
-[6]   Pliny, Naturalis Historia: 11.227.5 	omnium quadripedum suptilitas animi praecipua perhibetur
-[7]   Scriptores Historiae Augustae, ⟨Trebelli Pollionis⟩ Tyranni Triginta: 33.6.3 	dam Titi principis fuisse perhibetur.
-[8]   Terence, Adelphoe: 504 	oportet, si vos volti’ perhiberi probos.
-
-vs python
-Sought all 26 known forms of »animus« within 3 lines of all 42 known forms of »perhibeo«
-Searched 7,461 works and found 10 passages (14.65s)
-
-[1]   Apuleius Madaurensis, De Deo Socratis: 14.27	perhiberi, quo liquidius et plenius de praesagio
-[2]   Apuleius Madaurensis, Metamorphoses: 4.27.19	imagines falsae perhibentur, tunc etiam nocturnae
-[3]   Cicero, De Republica: 2.4.14	laboreque aluissent, perhibetur, ut adoleverit, et cor-
-[4]   Fronto, Marcus Cornelius, Ad Amicos Epistulae: 1.7.1.5	testimonium perhibere certo scio.
-[5]   Lucretius, Titus Carus, De Rerum Natura: 3.597	quod genus est, animo male factum cum perhibetur
-[6]   Plautus, Titus Maccius, Rudens: line 931	navíbus magnis mercáturam faciam, ápud reges rex pérhibebor.
-[7]   Plautus, Titus Maccius, Truculentus: line 452	nimió — minus perhibemúr malae quam sumus íngenio.
-[8]   Pliny, Naturalis Historia: 11.227.5	omnium quadripedum suptilitas animi praecipua perhibetur
-[9]   Scriptores Historiae Augustae, ⟨Trebelli Pollionis⟩ Tyranni Triginta: 33.6.3	dam Titi principis fuisse perhibetur.
-[10]   Terence, Adelphoe: line 504	oportet, si vos volti’ perhiberi probos.
-
-
-
-
-*/
