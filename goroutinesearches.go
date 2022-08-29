@@ -39,29 +39,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 		results = results[0:ss.Limit]
 	}
 
-	// sort results
-	crit := sessions[ss.User].SrchOutSettings.SortHitsBy
-	switch {
-	case crit == "Name":
-		sort.Slice(results, func(p, q int) bool {
-			return AllAuthors[results[p].FindAuthor()].Shortname < AllAuthors[results[q].FindAuthor()].Shortname
-		})
-	case crit == "Date":
-		sort.Slice(results, func(p, q int) bool {
-			return AllWorks[results[p].WkUID].ConvDate < AllWorks[results[q].WkUID].ConvDate
-		})
-	case crit == "ID":
-		sort.Slice(results, func(p, q int) bool {
-			return results[p].WkUID < results[q].WkUID
-		})
-	default:
-		// author name
-		sort.Slice(results, func(p, q int) bool {
-			return AllAuthors[results[p].FindAuthor()].Shortname < AllAuthors[results[q].FindAuthor()].Shortname
-		})
-	}
-
-	ss.Results = results
+	ss.Results = sortresults(results, ss)
 
 	return ss
 }
@@ -153,4 +131,28 @@ func ResultCollation(ctx context.Context, max int64, values <-chan []DbWorkline)
 			}
 		}
 	}
+}
+
+func sortresults(results []DbWorkline, ss SearchStruct) []DbWorkline {
+	crit := sessions[ss.User].SrchOutSettings.SortHitsBy
+	switch {
+	case crit == "Name":
+		sort.Slice(results, func(p, q int) bool {
+			return AllAuthors[results[p].FindAuthor()].Shortname < AllAuthors[results[q].FindAuthor()].Shortname
+		})
+	case crit == "Date":
+		sort.Slice(results, func(p, q int) bool {
+			return AllWorks[results[p].WkUID].ConvDate < AllWorks[results[q].WkUID].ConvDate
+		})
+	case crit == "ID":
+		sort.Slice(results, func(p, q int) bool {
+			return results[p].WkUID < results[q].WkUID
+		})
+	default:
+		// author name
+		sort.Slice(results, func(p, q int) bool {
+			return AllAuthors[results[p].FindAuthor()].Shortname < AllAuthors[results[q].FindAuthor()].Shortname
+		})
+	}
+	return results
 }

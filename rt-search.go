@@ -142,6 +142,15 @@ func RtSearchStandard(c echo.Context) error {
 		searches[id] = HGoSrch(searches[id])
 	}
 
+	if searches[id].QueryType == "phrase" {
+		// you did HGoSrch() and need to check the windowed lines
+		// withinxlinessearch() has already done the checking
+		// the cannot assign problem...
+		mod := searches[id]
+		mod.Results = findphrasesacrosslines(searches[id])
+		searches[id] = mod
+	}
+
 	previous = time.Now()
 
 	//hits := searches[id].Results
@@ -171,6 +180,7 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	s.SearchIn = sessions[user].Inclusions
 	s.SearchEx = sessions[user].Exclusions
 	s.ProxVal = DEFAULTPROXIMITY
+	s.ProxScope = DEFAULTPROXIMITYSCOPE
 	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
 	return s
 }
@@ -274,7 +284,7 @@ func formatsearchsummary(s SearchStruct) string {
 
 	t := `
 	<div id="searchsummary">
-		Sought %s<span class="sought">»%s«</span>
+		Sought %s<span class="sought">»%s«</span>%s
 		<br>
 		Searched %d works and found %d passages (%ss)
 		<br>
@@ -285,6 +295,8 @@ func formatsearchsummary(s SearchStruct) string {
 		%s
 	</div>
 	`
+
+	win := ` within %d %s of %s<span class="sought">»%s«</span>`
 
 	var dr string
 	if sessions[s.User].Inclusions.DateRange != [2]string{"-850", "1500"} {
@@ -309,10 +321,21 @@ func formatsearchsummary(s SearchStruct) string {
 		sk = s.LemmaOne
 	}
 
+	two := ""
+	if s.Twobox {
+		sk = s.Proximate
+		af = ""
+		if s.LemmaTwo != "" {
+			af = "all forms of "
+			sk = s.LemmaTwo
+		}
+		two = fmt.Sprintf(win, s.ProxVal, s.ProxScope, af, sk)
+	}
+
 	so := sessions[s.User].SrchOutSettings.SortHitsBy
 	el := fmt.Sprintf("%.3f", time.Now().Sub(s.Launched).Seconds())
 	// need to record # of works and not # of tables somewhere & at the right moment...
-	sum := fmt.Sprintf(t, af, sk, s.SearchSize, len(s.Results), el, so, dr, hitcap)
+	sum := fmt.Sprintf(t, af, sk, two, s.SearchSize, len(s.Results), el, so, dr, hitcap)
 	return sum
 }
 
@@ -514,36 +537,87 @@ func validatebundledhits(ss SearchStruct) []DbWorkline {
 
 	var valid []DbWorkline
 	for _, r := range ss.Results {
-
-		var li string
-		switch ss.SrchColumn {
-		case "stripped_line":
-			li = r.Stripped
-		case "accented_line":
-			li = r.Accented
-		case "marked_up_line":
-			li = r.MarkedUp
-		default:
-			li = r.Stripped
-			msg("second.SrchColumn was not set; defaulting to 'stripped_line'", 2)
-		}
-
+		li := columnpicker(ss.SrchColumn, r)
 		if find.MatchString(li) {
 			valid = append(valid, r)
 		}
 	}
+
 	return valid
+}
+
+func columnpicker(c string, r DbWorkline) string {
+	var li string
+	switch c {
+	case "stripped_line":
+		li = r.Stripped
+	case "accented_line":
+		li = r.Accented
+	case "marked_up_line":
+		li = r.MarkedUp
+	default:
+		li = r.Stripped
+		msg("second.SrchColumn was not set; defaulting to 'stripped_line'", 2)
+	}
+	return li
 }
 
 func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 	// in progress
+	var valid = make(map[string]DbWorkline)
+
 	find := regexp.MustCompile(`^\s`)
 	re := find.ReplaceAllString(ss.Seeking, "(^|\\s)")
 	find = regexp.MustCompile(`\s$`)
 	re = find.ReplaceAllString(ss.Seeking, "(\\s|$)")
 	fmt.Println(re)
-	fmt.Println("findphrasesacrosslines() does not work yet: no checks made")
-	return ss.Results
+	fmt.Println("findphrasesacrosslines() does not work yet: *partial* checks made")
+
+	for i, r := range ss.Results {
+		comb := [][2]string{{re, ""}}
+
+		var nxt DbWorkline
+		if i+1 < len(ss.Results) {
+			nxt = ss.Results[i+1]
+		} else {
+			nxt = DbWorkline{
+				WkUID:       "",
+				TbIndex:     0,
+				Lvl5Value:   "",
+				Lvl4Value:   "",
+				Lvl3Value:   "",
+				Lvl2Value:   "",
+				Lvl1Value:   "",
+				Lvl0Value:   "",
+				MarkedUp:    "",
+				Accented:    "",
+				Stripped:    "",
+				Hypenated:   "",
+				Annotations: "",
+			}
+		}
+
+		for _, c := range comb {
+			li := columnpicker(ss.SrchColumn, r)
+			nl := columnpicker(ss.SrchColumn, nxt)
+			fp := regexp.MustCompile(c[0])
+			sp := regexp.MustCompile(c[1])
+			f := fp.MatchString(li)
+			s := sp.MatchString(nl)
+			fmt.Println(nl)
+			// s := true
+			if f && s {
+				valid[r.BuildHyperlink()] = r
+			}
+		}
+	}
+
+	var slc []DbWorkline
+	for _, r := range valid {
+		slc = append(slc, r)
+	}
+	slc = sortresults(slc, ss)
+	return slc
 }
 
 /*
@@ -588,4 +662,41 @@ class QueryCombinator(object):
 		cl = self.combinationlist()
 		combinations = [(' '.join(c[0]), ' '.join(c[1])) for c in cl]
 		return combinations
+*/
+
+/*
+
+TODO: DEBUG
+
+Hipparchia Golang Server CLI Debugging Interface (v.0.1.0) [loglevel=4]
+Sought all forms of »perhibeo« within 3 lines of all forms of »perhibeo«
+Searched 7461 works and found 8 passages (0.871s)
+
+[1]   Apuleius Madaurensis, Metamorphoses: 4.27.19 	imagines falsae perhibentur, tunc etiam nocturnae
+[2]   Apuleius Madaurensis, De Deo Socratis: 14.27 	perhiberi, quo liquidius et plenius de praesagio
+[3]   Fronto, Marcus Cornelius, Ad Amicos Epistulae: 1.7.1.5 	testimonium perhibere certo scio.
+[4]   Lucretius, Titus Carus, De Rerum Natura: 3.597 	quod genus est, animo male factum cum perhibetur
+[5]   Plautus, Titus Maccius, Rudens: 931 	navíbus magnis mercáturam faciam, ápud reges rex pérhibebor.
+[6]   Pliny, Naturalis Historia: 11.227.5 	omnium quadripedum suptilitas animi praecipua perhibetur
+[7]   Scriptores Historiae Augustae, ⟨Trebelli Pollionis⟩ Tyranni Triginta: 33.6.3 	dam Titi principis fuisse perhibetur.
+[8]   Terence, Adelphoe: 504 	oportet, si vos volti’ perhiberi probos.
+
+vs python
+Sought all 26 known forms of »animus« within 3 lines of all 42 known forms of »perhibeo«
+Searched 7,461 works and found 10 passages (14.65s)
+
+[1]   Apuleius Madaurensis, De Deo Socratis: 14.27	perhiberi, quo liquidius et plenius de praesagio
+[2]   Apuleius Madaurensis, Metamorphoses: 4.27.19	imagines falsae perhibentur, tunc etiam nocturnae
+[3]   Cicero, De Republica: 2.4.14	laboreque aluissent, perhibetur, ut adoleverit, et cor-
+[4]   Fronto, Marcus Cornelius, Ad Amicos Epistulae: 1.7.1.5	testimonium perhibere certo scio.
+[5]   Lucretius, Titus Carus, De Rerum Natura: 3.597	quod genus est, animo male factum cum perhibetur
+[6]   Plautus, Titus Maccius, Rudens: line 931	navíbus magnis mercáturam faciam, ápud reges rex pérhibebor.
+[7]   Plautus, Titus Maccius, Truculentus: line 452	nimió — minus perhibemúr malae quam sumus íngenio.
+[8]   Pliny, Naturalis Historia: 11.227.5	omnium quadripedum suptilitas animi praecipua perhibetur
+[9]   Scriptores Historiae Augustae, ⟨Trebelli Pollionis⟩ Tyranni Triginta: 33.6.3	dam Titi principis fuisse perhibetur.
+[10]   Terence, Adelphoe: line 504	oportet, si vos volti’ perhiberi probos.
+
+
+
+
 */

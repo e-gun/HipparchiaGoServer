@@ -1,14 +1,15 @@
 package main
 
 const (
-	NUMOFWORKS       = 236835
-	NUMOFAUTHS       = 3455
-	VARIADATE        = 2000
-	INCERTADATE      = 2500
-	MINDATE          = -850
-	MAXDATE          = 1500
-	DEFAULTPROXIMITY = 3
-	DEFAULTLOGLEVEL  = 3
+	NUMOFWORKS            = 236835
+	NUMOFAUTHS            = 3455
+	VARIADATE             = 2000
+	INCERTADATE           = 2500
+	MINDATE               = -850
+	MAXDATE               = 1500
+	DEFAULTPROXIMITY      = 3
+	DEFAULTPROXIMITYSCOPE = "lines"
+	DEFAULTLOGLEVEL       = 3
 
 	MINBROWSERWIDTH   = 90
 	MAXLEMMACHUNKSIZE = 20
