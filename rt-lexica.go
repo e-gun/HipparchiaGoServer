@@ -122,7 +122,7 @@ func findbyform(word string, author string) []byte {
 
 	var hwm []string
 	for _, p := range mpp {
-		if len(p.Headwd) > 0 {
+		if strings.TrimSpace(p.Headwd) != "" {
 			hwm = append(hwm, p.Headwd)
 		}
 	}
@@ -243,7 +243,8 @@ func formatprevalencedata(w DbWordCount, s string) string {
 func formatparsingdata(mpp []MorphPossib) string {
 	obs := `
 	<span class="obsv"><a class="parsing" href="#%s_%s"><span class="obsv"> from <span class="baseform">%s</span>
-	<span class="baseformtranslation">&nbsp;(“%s”)</span></span></a></span>`
+	`
+	bft := `<span class="baseformtranslation">&nbsp;(“%s”)</span></span></a></span>`
 	mtb := `
 	<table class="morphtable">
 		<tbody>
@@ -259,11 +260,19 @@ func formatparsingdata(mpp []MorphPossib) string {
 	if len(mpp) > 1 {
 		usecounter = true
 	}
-	for i, m := range mpp {
-		if usecounter {
-			html += fmt.Sprintf("(%d)&nbsp;", i+1)
+	ct := 0
+	for _, m := range mpp {
+		if strings.TrimSpace(m.Headwd) == "" {
+			continue
 		}
-		html += fmt.Sprintf(obs, m.Headwd, m.Xrefval, m.Headwd, m.Transl)
+		if usecounter {
+			ct += 1
+			html += fmt.Sprintf("(%d)&nbsp;", ct)
+		}
+		html += fmt.Sprintf(obs, m.Headwd, m.Xrefval, m.Headwd)
+		if strings.TrimSpace(m.Transl) != "" {
+			html += fmt.Sprintf(bft, m.Transl)
+		}
 		pos := strings.Split(m.Anal, " ")
 		var tab string
 		for _, p := range pos {

@@ -510,11 +510,9 @@ func withinxlinessearch(s SearchStruct) SearchStruct {
 
 	second = HGoSrch(second)
 
-	// windows of indices come back: e.g., three lines that look like they match when only one matches [3131, 3132, 3133]
+	// windows of lines come back: e.g., three lines that look like they match when only one matches [3131, 3132, 3133]
 	// figure out which line is really the line with the goods
-	// it is not nearly so simple as picking the 2nd element in any run of 3: no always runs of 3 + matches in
-	// subsequent lines means that you really should check your work carefully; this is not an especially costly
-	// operation relative to the whole search and esp. relative to the speed gains of using a subquery search
+
 	phrasefinder := regexp.MustCompile(`[A-Za-zΑ-ΩϹα-ωϲ]\s[A-Za-zΑ-ΩϹα-ωϲ]`)
 
 	if phrasefinder.MatchString(second.Seeking) {
@@ -546,24 +544,8 @@ func validatebundledhits(ss SearchStruct) []DbWorkline {
 	return valid
 }
 
-func columnpicker(c string, r DbWorkline) string {
-	var li string
-	switch c {
-	case "stripped_line":
-		li = r.Stripped
-	case "accented_line":
-		li = r.Accented
-	case "marked_up_line": // only a maniac tries to search via marked_up_line
-		li = r.MarkedUp
-	default:
-		li = r.Stripped
-		msg("second.SrchColumn was not set; defaulting to 'stripped_line'", 2)
-	}
-	return li
-}
-
 func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
-	// in progress
+	// "one two$" + "^three four" makes a hit if you want "one two three four"
 	var valid = make(map[string]DbWorkline)
 
 	find := regexp.MustCompile(`^\s`)
@@ -633,6 +615,22 @@ func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 	return slc
 }
 
+func columnpicker(c string, r DbWorkline) string {
+	var li string
+	switch c {
+	case "stripped_line":
+		li = r.Stripped
+	case "accented_line":
+		li = r.Accented
+	case "marked_up_line": // only a maniac tries to search via marked_up_line
+		li = r.MarkedUp
+	default:
+		li = r.Stripped
+		msg("second.SrchColumn was not set; defaulting to 'stripped_line'", 2)
+	}
+	return li
+}
+
 func phrasecombinations(phr string) [][2]string {
 	// 'one two three four five' -->
 	// [('one', 'two three four five'), ('one two', 'three four five'), ('one two three', 'four five'), ('one two three four', 'five')]
@@ -657,7 +655,9 @@ func phrasecombinations(phr string) [][2]string {
 
 	var trimmed [][2]string
 	for _, c := range comb {
-		if strings.TrimSpace(c[0]) != "" && strings.TrimSpace(c[1]) != "" {
+		head := strings.TrimSpace(c[0]) != "" && strings.TrimSpace(c[0]) != "$"
+		tail := strings.TrimSpace(c[1]) != "" && strings.TrimSpace(c[0]) != "^"
+		if head && tail {
 			trimmed = append(trimmed, c)
 		}
 	}
