@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 )
 
 var (
@@ -27,7 +26,8 @@ type CurrentConfiguration struct {
 	LogLevel    int
 	PosgresInfo string
 	PSQP        string
-	EchoLog     int // "none", "terse", "verbose"
+	EchoLog     int  // "none", "terse", "verbose"
+	SkipLemm    bool // if you are debugging and want a fast start
 	PGLogin     PostgresLogin
 }
 
@@ -144,8 +144,6 @@ func makeconfig() {
 
 // workmapper - build a map of all works keyed to the authorUID: map[string]DbWork
 func workmapper() map[string]DbWork {
-	start := time.Now()
-	previous := time.Now()
 	dbpool := grabpgsqlconnection()
 	defer dbpool.Close()
 	qt := "SELECT %s FROM works"
@@ -173,17 +171,11 @@ func workmapper() map[string]DbWork {
 	for _, val := range thefinds {
 		workmap[val.UID] = val
 	}
-	timetracker("A", fmt.Sprintf("%d works built: map[string]DbWork", len(workmap)), start, previous)
-
 	return workmap
-
 }
 
 // authormapper - build a map of all authors keyed to the authorUID: map[string]DbAuthor
 func authormapper() map[string]DbAuthor {
-	start := time.Now()
-	previous := time.Now()
-
 	dbpool := grabpgsqlconnection()
 	defer dbpool.Close()
 	qt := "SELECT %s FROM authors ORDER by universalid ASC"
@@ -210,16 +202,11 @@ func authormapper() map[string]DbAuthor {
 	for _, val := range thefinds {
 		authormap[val.UID] = val
 	}
-	timetracker("B", fmt.Sprintf("%d authors built: map[string]DbAuthor", len(authormap)), start, previous)
-
 	return authormap
-
 }
 
 // loadworksintoauthors - load all works in the workmap into the authormap WorkList
 func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[string]DbAuthor {
-	start := time.Now()
-	previous := time.Now()
 	// https://stackoverflow.com/questions/32751537/why-do-i-get-a-cannot-assign-error-when-setting-value-to-a-struct-as-a-value-i
 	// the following does not work: aa[a].WorkList = append(aa[w.FindAuthor()].WorkList, w.UID)
 	// that means you have to rebuild the damn authormap unless you want to use pointers in DbAuthor: itself a hassle
@@ -261,7 +248,6 @@ func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[stri
 	for i, a := range asl {
 		na[a.UID] = asl[i]
 	}
-	timetracker("C", "works loaded into authors: map[string]DbAuthor", start, previous)
 	return na
 }
 
@@ -279,9 +265,6 @@ func lemmamapper() map[string]DbLemma {
 
 	// a list of 140k words is too long to send to 'getlemmahint' without offering quicker access
 	// [HGS] [D: 0.199s][Δ: 0.199s] unnested lemma map built
-
-	start := time.Now()
-	previous := time.Now()
 
 	unnested := make(map[string]DbLemma)
 
@@ -314,9 +297,6 @@ func lemmamapper() map[string]DbLemma {
 
 	// fmt.Println(unnested["dorsum"])
 	// {dorsum 24563373 [dorsum dorsone dorsa dorsoque dorso dorsoue dorsis dorsi dorsisque dorsumque]}
-
-	timetracker("D", fmt.Sprintf("unnested lemma map built (%d items)", len(unnested)), start, previous)
-
 	return unnested
 }
 
@@ -324,9 +304,6 @@ func lemmamapper() map[string]DbLemma {
 func nestedlemmamapper(unnested map[string]DbLemma) map[string]map[string]DbLemma {
 	// you need both a nested and the unnested VERSION; nested for the hinter
 	// [HGS] [E: 2.284s][Δ: 2.284s] nested lemma map built
-	start := time.Now()
-	previous := time.Now()
-
 	nested := make(map[string]map[string]DbLemma)
 	for k, v := range unnested {
 		bag := string([]rune(v.Entry)[0:2])
@@ -345,16 +322,11 @@ func nestedlemmamapper(unnested map[string]DbLemma) map[string]map[string]DbLemm
 	//fmt.Println(len(nested))
 	//fmt.Println(nested["ζω"])
 	// fmt.Println(nested["hy"])
-
-	timetracker("E", "nested lemma map built", start, previous)
 	return nested
 }
 
 func buildwkcorpusmap() map[string][]string {
 	// sessionintosearchlist() could just grab a pre-rolled list instead of calculating every time...
-	start := time.Now()
-	previous := time.Now()
-
 	wkcorpusmap := make(map[string][]string)
 	corp := [5]string{"gr", "lt", "in", "ch", "dp"}
 	for _, w := range AllWorks {
@@ -364,15 +336,11 @@ func buildwkcorpusmap() map[string][]string {
 			}
 		}
 	}
-	timetracker("F", "wkcorpusmap built", start, previous)
 	return wkcorpusmap
 }
 
 func buildaucorpusmap() map[string][]string {
 	// sessionintosearchlist() could just grab a pre-rolled list instead of calculating every time...
-	start := time.Now()
-	previous := time.Now()
-
 	aucorpusmap := make(map[string][]string)
 	corp := [5]string{"gr", "lt", "in", "ch", "dp"}
 	for _, a := range AllAuthors {
@@ -382,7 +350,6 @@ func buildaucorpusmap() map[string][]string {
 			}
 		}
 	}
-	timetracker("G", "aucorpusmap built", start, previous)
 	return aucorpusmap
 }
 

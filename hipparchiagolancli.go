@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"sync"
+	"time"
 )
 
 const (
@@ -25,6 +27,7 @@ const (
 )
 
 func main() {
+
 	makeconfig()
 
 	// the command line arguments are getting lost
@@ -47,6 +50,11 @@ func main() {
 			chke(e)
 			cfg.EchoLog = ll
 		}
+		if a == "-skip" {
+			cfg.SkipLemm = true
+		} else {
+			cfg.SkipLemm = false
+		}
 	}
 
 	versioninfo := fmt.Sprintf("%s CLI Debugging Interface (v.%s)", MYNAME, VERSION)
@@ -63,11 +71,47 @@ func main() {
 	cfg.PGLogin = decodepsqllogin([]byte(cfg.PosgresInfo))
 
 	fmt.Println(versioninfo)
-	AllWorks = workmapper()
-	AllAuthors = loadworksintoauthors(authormapper(), AllWorks)
-	AllLemm = lemmamapper()
-	NestedLemm = nestedlemmamapper(AllLemm)
-	WkCorpusMap = buildwkcorpusmap()
-	AuCorpusMap = buildaucorpusmap()
+
+	// concurrent launching
+	var awaiting sync.WaitGroup
+
+	awaiting.Add(1)
+	go func(awaiting *sync.WaitGroup) {
+		defer awaiting.Done()
+
+		start := time.Now()
+		previous := time.Now()
+
+		AllWorks = workmapper()
+		timetracker("A1", fmt.Sprintf("%d works built: map[string]DbWork", len(AllWorks)), start, previous)
+
+		previous = time.Now()
+		AllAuthors = loadworksintoauthors(authormapper(), AllWorks)
+		timetracker("A2", fmt.Sprintf("%d authors built: map[string]DbAuthor", len(AllAuthors)), start, previous)
+
+		previous = time.Now()
+		WkCorpusMap = buildwkcorpusmap()
+		AuCorpusMap = buildaucorpusmap()
+		timetracker("A3", "corpus maps built", start, previous)
+	}(&awaiting)
+
+	if !cfg.SkipLemm {
+		awaiting.Add(1)
+		go func(awaiting *sync.WaitGroup) {
+			defer awaiting.Done()
+
+			start := time.Now()
+			previous := time.Now()
+
+			AllLemm = lemmamapper()
+			timetracker("B1", fmt.Sprintf("unnested lemma map built (%d items)", len(AllLemm)), start, previous)
+
+			previous = time.Now()
+			NestedLemm = nestedlemmamapper(AllLemm)
+			timetracker("B2", "nested lemma map built", start, previous)
+		}(&awaiting)
+	}
+
+	awaiting.Wait()
 	StartEchoServer()
 }
