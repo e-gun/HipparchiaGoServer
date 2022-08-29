@@ -553,7 +553,7 @@ func columnpicker(c string, r DbWorkline) string {
 		li = r.Stripped
 	case "accented_line":
 		li = r.Accented
-	case "marked_up_line":
+	case "marked_up_line": // only a maniac tries to search via marked_up_line
 		li = r.MarkedUp
 	default:
 		li = r.Stripped
@@ -570,44 +570,63 @@ func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 	re := find.ReplaceAllString(ss.Seeking, "(^|\\s)")
 	find = regexp.MustCompile(`\s$`)
 	re = find.ReplaceAllString(ss.Seeking, "(\\s|$)")
-	fmt.Println(re)
+
 	fmt.Println("findphrasesacrosslines() does not work yet: *partial* checks made")
 
 	for i, r := range ss.Results {
-		comb := [][2]string{{re, ""}}
-
 		var nxt DbWorkline
+		fmt.Printf("len(ss.Results): %d\n", len(ss.Results))
 		if i+1 < len(ss.Results) {
 			nxt = ss.Results[i+1]
-		} else {
-			nxt = DbWorkline{
-				WkUID:       "",
-				TbIndex:     0,
-				Lvl5Value:   "",
-				Lvl4Value:   "",
-				Lvl3Value:   "",
-				Lvl2Value:   "",
-				Lvl1Value:   "",
-				Lvl0Value:   "",
-				MarkedUp:    "",
-				Accented:    "",
-				Stripped:    "",
-				Hypenated:   "",
-				Annotations: "",
+			if r.WkUID != nxt.WkUID || r.TbIndex+1 != nxt.TbIndex {
+				// grab the actual next line (i.e. index = 101)
+				nn := simplecontextgrabber(r.FindAuthor(), r.TbIndex+1, 1)
+				nxt = nn[0]
 			}
+		} else {
+			// grab the actual next line (i.e. index = 101)
+			nn := simplecontextgrabber(r.FindAuthor(), r.TbIndex+1, 1)
+			nxt = nn[0]
+			fmt.Printf("r: %d; nxt: %d\n", r.TbIndex, nxt.TbIndex)
+			if r.WkUID != nxt.WkUID {
+				nxt = DbWorkline{
+					WkUID:       "",
+					TbIndex:     0,
+					Lvl5Value:   "",
+					Lvl4Value:   "",
+					Lvl3Value:   "",
+					Lvl2Value:   "",
+					Lvl1Value:   "",
+					Lvl0Value:   "",
+					MarkedUp:    "",
+					Accented:    "",
+					Stripped:    "",
+					Hypenated:   "",
+					Annotations: "",
+				}
+			}
+			fmt.Printf("nxt: %s\n", nxt.Stripped)
 		}
+		// need to do the "it's all on this line" case separately
+		li := columnpicker(ss.SrchColumn, r)
+		fp := regexp.MustCompile(re)
+		f := fp.MatchString(li)
+		if f {
+			valid[r.BuildHyperlink()] = r
+		} else {
+			comb := phrasecombinations(ss.Seeking)
+			for _, c := range comb[1:] {
+				fmt.Printf("c0: %s; c1: %s\n", c[0], c[1])
+				nl := columnpicker(ss.SrchColumn, nxt)
+				fmt.Printf("nl: %s\n", nl)
+				fp = regexp.MustCompile(c[0])
+				sp := regexp.MustCompile(c[1])
+				f = fp.MatchString(li)
+				s := sp.MatchString(nl)
 
-		for _, c := range comb {
-			li := columnpicker(ss.SrchColumn, r)
-			nl := columnpicker(ss.SrchColumn, nxt)
-			fp := regexp.MustCompile(c[0])
-			sp := regexp.MustCompile(c[1])
-			f := fp.MatchString(li)
-			s := sp.MatchString(nl)
-			fmt.Println(nl)
-			// s := true
-			if f && s {
-				valid[r.BuildHyperlink()] = r
+				if f && s && r.WkUID == nxt.WkUID {
+					valid[r.BuildHyperlink()] = r
+				}
 			}
 		}
 	}
@@ -618,6 +637,33 @@ func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 	}
 	slc = sortresults(slc, ss)
 	return slc
+}
+
+func phrasecombinations(phr string) [][2]string {
+	// 'one two three four five' -->
+	// [('one', 'two three four five'), ('one two', 'three four five'), ('one two three', 'four five'), ('one two three four', 'five'), ('one two three four five', '')]
+
+	gt := func(n int, wds []string) []string {
+		return wds[n:]
+	}
+
+	gh := func(n int, wds []string) []string {
+		return wds[:n]
+	}
+
+	ww := strings.Split(phr, " ")
+	var comb [][2]string
+	for i, _ := range ww {
+		h := strings.Join(gh(i, ww), " ")
+		t := strings.Join(gt(i, ww), " ")
+		comb = append(comb, [2]string{h, t})
+	}
+
+	// comb[0] is:
+	// a:
+	// b: one two three four five
+
+	return comb
 }
 
 /*

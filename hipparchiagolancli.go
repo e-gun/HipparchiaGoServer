@@ -15,7 +15,7 @@ import (
 const (
 	MYNAME        = "Hipparchia Golang Server"
 	SHORTNAME     = "HGS"
-	VERSION       = "0.1.0"
+	VERSION       = "0.1.1"
 	PSQ           = `{"Host": "localhost", "Port": 5432, "User": "hippa_wr", "Pass": "", "DBName": "hipparchiaDB"}`
 	PSDefaultHost = "localhost"
 	PSDefaultUser = "hippa_wr"
@@ -37,7 +37,6 @@ func main() {
 	args := os.Args[1:len(os.Args)]
 
 	for i, a := range args {
-		fmt.Println(a)
 		if a == "-gl" {
 			ll, e := strconv.Atoi(args[i+1])
 			chke(e)
