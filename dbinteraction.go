@@ -127,7 +127,6 @@ func simplecontextgrabber(table string, focus int64, context int64) []DbWorkline
 
 	foundlines := worklinequery(prq, dbpool)
 
-	dbpool.Close()
 	return foundlines
 }
 
@@ -216,7 +215,6 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	sort.Strings(r)
 	vals.Range = r
 
-	dbpool.Close()
 	return vals
 }
 

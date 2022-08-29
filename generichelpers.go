@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/fatih/color"
 	"time"
 )
 
@@ -17,9 +18,30 @@ func chke(err error) {
 }
 
 func msg(message string, threshold int) {
+	hgc := color.New(color.FgYellow).SprintFunc()
+	c := color.FgRed
+	switch threshold {
+	case -1:
+		c = color.FgHiRed
+	case 0:
+		c = color.FgRed
+	case 1:
+		c = color.FgHiYellow
+	case 2:
+		c = color.FgYellow
+	case 3:
+		c = color.FgWhite
+	case 4:
+		c = color.FgHiBlack
+	case 5:
+		c = color.FgHiBlack
+	default:
+		c = color.FgWhite
+	}
+	mc := color.New(c).SprintFunc()
+
 	if cfg.LogLevel >= threshold {
-		message = fmt.Sprintf("[%s] %s", SHORTNAME, message)
-		fmt.Println(message)
+		fmt.Printf("[%s] %s\n", hgc(SHORTNAME), mc(message))
 	}
 }
 

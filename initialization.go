@@ -181,7 +181,6 @@ func workmapper() map[string]DbWork {
 	}
 	timetracker("A", fmt.Sprintf("%d works built: map[string]DbWork", len(workmap)), start, previous)
 
-	dbpool.Close()
 	return workmap
 
 }
@@ -218,7 +217,7 @@ func authormapper() map[string]DbAuthor {
 		authormap[val.UID] = val
 	}
 	timetracker("B", fmt.Sprintf("%d authors built: map[string]DbAuthor", len(authormap)), start, previous)
-	dbpool.Close()
+
 	return authormap
 
 }
@@ -323,7 +322,7 @@ func lemmamapper() map[string]DbLemma {
 	// {dorsum 24563373 [dorsum dorsone dorsa dorsoque dorso dorsoue dorsis dorsi dorsisque dorsumque]}
 
 	timetracker("D", fmt.Sprintf("unnested lemma map built (%d items)", len(unnested)), start, previous)
-	dbpool.Close()
+
 	return unnested
 }
 

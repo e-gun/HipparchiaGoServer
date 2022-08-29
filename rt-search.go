@@ -433,7 +433,7 @@ func withinxlinessearch(s SearchStruct) SearchStruct {
 	for r, vv := range required {
 		var arr []string
 		for _, v := range vv {
-			arr = append(arr, strconv.FormatInt(int64(v), 10))
+			arr = append(arr, strconv.FormatInt(v, 10))
 		}
 		a := strings.Join(arr, ",")
 		ttsq[r] = fmt.Sprintf(ctt, r, second.TTName, a)
@@ -447,11 +447,12 @@ func withinxlinessearch(s SearchStruct) SearchStruct {
 			WHERE incl.includeindex = %s.index)`
 	whb := ` WHERE second.linebundle ~ '%s' LIMIT %d;`
 	var prqq = make(map[string][]PrerolledQuery)
-	for _, q := range second.SkgSlice {
+	for i, q := range second.SkgSlice {
 		for r, _ := range required {
 			var prq PrerolledQuery
-			prq.TempTable = ttsq[r]
-			whc := fmt.Sprintf(wha, r, r, second.TTName, r)
+			modname := second.TTName + fmt.Sprintf("_%d", i)
+			prq.TempTable = strings.Replace(ttsq[r], second.TTName, modname, -1)
+			whc := fmt.Sprintf(wha, r, r, modname, r)
 			whd := fmt.Sprintf(whb, q, second.Limit)
 			prq.PsqlQuery = fmt.Sprintf(seltempl, whc) + whd
 			prqq[r] = append(prqq[r], prq)

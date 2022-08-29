@@ -74,6 +74,7 @@ func findbyform(word string, author string) []byte {
 
 	dbpool := grabpgsqlconnection()
 	defer dbpool.Close()
+
 	fld := `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
 	psq := fmt.Sprintf("SELECT %s FROM %s_morphology WHERE observed_form = '%s'", fld, d, word)
 
@@ -212,7 +213,7 @@ func findbyform(word string, author string) []byte {
 	chke(ee)
 
 	// jsonbundle := []byte(fmt.Sprintf(`{"newhtml":"%s","newjs":"%s"}`, html, js))
-	dbpool.Close()
+
 	return jsonbundle
 }
 
@@ -364,7 +365,7 @@ func formatlexicaloutput(w DbLexicon) string {
 	elem = append(elem, pn)
 
 	html := strings.Join(elem, "")
-	dbpool.Close()
+
 	return html
 }
 

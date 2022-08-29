@@ -98,7 +98,6 @@ func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWo
 				emitfinds <- worklinequery(q, dbpool)
 			}
 		}
-		dbpool.Close()
 	}()
 	return emitfinds, nil
 }

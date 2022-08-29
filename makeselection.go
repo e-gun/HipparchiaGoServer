@@ -266,7 +266,6 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 		fl = [2]int64{idx[0], idx[len(idx)-1]}
 	}
 
-	dbpool.Close()
 	return fl
 }
 
