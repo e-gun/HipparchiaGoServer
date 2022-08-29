@@ -424,8 +424,8 @@ func calculatewholeauthorsearches(sl []string) [2][]string {
 	//
 	//	this function will figure out if the list of work uids contains all of the works for an author and can accordingly be collapsed
 
-	start := time.Now()
-	previous := time.Now()
+	//start := time.Now()
+	//previous := time.Now()
 
 	var wholes []string
 	var pruner []string
@@ -445,7 +445,7 @@ func calculatewholeauthorsearches(sl []string) [2][]string {
 
 	//fmt.Printf("len(aa[lt0474].WorkList): %d\n", len(aa["lt0474"].WorkList))
 	//fmt.Printf("members[lt0474]: %d\n", members["lt0474"])
-	timetracker("-", "calculatewholeauthorsearches()", start, previous)
+	// timetracker("-", "calculatewholeauthorsearches()", start, previous)
 
 	return [2][]string{wholes, pruner}
 }

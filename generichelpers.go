@@ -12,7 +12,8 @@ import (
 
 func chke(err error) {
 	if err != nil {
-		fmt.Println(fmt.Sprintf("UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE [%s v.%s]", MYNAME, VERSION))
+		red := color.New(color.FgHiRed).PrintfFunc()
+		red("UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE [%s v.%s]\n", MYNAME, VERSION)
 		panic(err)
 	}
 }

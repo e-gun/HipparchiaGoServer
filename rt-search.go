@@ -114,13 +114,13 @@ func RtSearchStandard(c echo.Context) error {
 	srch = setsearchtype(srch)
 
 	if srch.LemmaOne != "" {
-		srch.SkgSlice = lemmaintoregex(srch.LemmaOne)
+		srch.SkgSlice = lemmaintoregexslice(srch.LemmaOne)
 	} else {
 		srch.SkgSlice = append(srch.SkgSlice, srch.Seeking)
 	}
 
 	if srch.LemmaTwo != "" {
-		srch.PrxSlice = lemmaintoregex(srch.LemmaTwo)
+		srch.PrxSlice = lemmaintoregexslice(srch.LemmaTwo)
 	} else {
 		srch.PrxSlice = append(srch.PrxSlice, srch.Proximate)
 	}
@@ -142,7 +142,6 @@ func RtSearchStandard(c echo.Context) error {
 		searches[id] = HGoSrch(searches[id])
 	}
 
-	timetracker("D", "HGoSrch()", start, previous)
 	previous = time.Now()
 
 	//hits := searches[id].Results
@@ -151,7 +150,7 @@ func RtSearchStandard(c echo.Context) error {
 	//	fmt.Println(t)
 	//}
 
-	timetracker("E", fmt.Sprintf("search executed: %d hits", len(searches[id].Results)), start, previous)
+	timetracker("D", fmt.Sprintf("search executed: %d hits", len(searches[id].Results)), start, previous)
 
 	js := string(formatnocontextresults(searches[id]))
 
@@ -330,12 +329,33 @@ func formatbcedate(d string) string {
 	return d
 }
 
-func lemmaintoregex(hdwd string) []string {
+func lemmaintoflatregex(hdwd string) string {
+	// a single regex string for all forms
+	var re string
+	if _, ok := AllLemm[hdwd]; !ok {
+		msg(fmt.Sprintf("lemmaintoregexslice() could not find '%s'", hdwd), 1)
+		return re
+	}
+
+	tp := `(^|\s)%s(\s|$)`
+	lemm := AllLemm[hdwd].Deriv
+
+	var bnd []string
+	for _, l := range lemm {
+		bnd = append(bnd, fmt.Sprintf(tp, l))
+	}
+
+	re = strings.Join(bnd, "|")
+
+	return re
+}
+
+func lemmaintoregexslice(hdwd string) []string {
 	// rather than do one word per query, bundle things up: some words have >100 forms
 	// ...(^|\\s)ἐδηλώϲαντο(\\s|$)|(^|\\s)δεδηλωμένοϲ(\\s|$)|(^|\\s)δήλουϲ(\\s|$)|(^|\\s)δηλούϲαϲ(\\s|$)...
 	var qq []string
 	if _, ok := AllLemm[hdwd]; !ok {
-		msg(fmt.Sprintf("lemmaintoregex() could not find '%s'", hdwd), 1)
+		msg(fmt.Sprintf("lemmaintoregexslice() could not find '%s'", hdwd), 1)
 		return qq
 	}
 
@@ -390,13 +410,14 @@ func withinxlinessearch(s SearchStruct) SearchStruct {
 	//					) first
 	//				) second WHERE second.linebundle ~ 'spem' LIMIT 200;
 
-	// alternate: ... FROM lt0474 WHERE ( (index BETWEEN 128860 AND 128866) OR (index BETWEEN 39846 AND 39852) OR ... )
+	// alternate strategy, but not a universal solution to the various types of search linebundles can handle:
+	// ... FROM lt0474 WHERE ( (index BETWEEN 128860 AND 128866) OR (index BETWEEN 39846 AND 39852) OR ... )
 
 	first := s
 	first.Limit = FIRSTSEARCHLIM
 	first = HGoSrch(first)
 
-	// fmt.Printf("%d initial hits\n", len(first.Results))
+	msg(fmt.Sprintf("withinxlinessearch(): %d initial hits", len(first.Results)), 4)
 
 	// convert the hits into new selections:
 	// a temptable will be built once you know which lines do you need from which works
@@ -422,6 +443,7 @@ func withinxlinessearch(s SearchStruct) SearchStruct {
 	second.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
 	second.SkgSlice = second.PrxSlice
 	second.PrxSlice = fss
+	second.Limit = s.Limit
 
 	var ttsq = make(map[string]string)
 	ctt := `
@@ -464,5 +486,106 @@ func withinxlinessearch(s SearchStruct) SearchStruct {
 	}
 
 	second = HGoSrch(second)
+
+	// windows of indices come back: e.g., three lines that look like they match when only one matches [3131, 3132, 3133]
+	// figure out which line is really the line with the goods
+	// it is not nearly so simple as picking the 2nd element in any run of 3: no always runs of 3 + matches in
+	// subsequent lines means that you really should check your work carefully; this is not an especially costly
+	// operation relative to the whole search and esp. relative to the speed gains of using a subquery search
+	phrasefinder := regexp.MustCompile(`[A-Za-zΑ-ΩϹα-ωϲ]\s[A-Za-zΑ-ΩϹα-ωϲ]`)
+
+	if phrasefinder.MatchString(second.Seeking) {
+		second.Results = findphrasesacrosslines(second)
+	} else {
+		second.Results = validatebundledhits(second)
+	}
+
 	return second
 }
+
+func validatebundledhits(ss SearchStruct) []DbWorkline {
+	// if the second search term available in the window of lines?
+	re := ss.Proximate
+	if ss.LemmaTwo != "" {
+		re = lemmaintoflatregex(ss.LemmaTwo)
+	}
+
+	find := regexp.MustCompile(re)
+
+	var valid []DbWorkline
+	for _, r := range ss.Results {
+
+		var li string
+		switch ss.SrchColumn {
+		case "stripped_line":
+			li = r.Stripped
+		case "accented_line":
+			li = r.Accented
+		case "marked_up_line":
+			li = r.MarkedUp
+		default:
+			li = r.Stripped
+			msg("second.SrchColumn was not set; defaulting to 'stripped_line'", 2)
+		}
+
+		if find.MatchString(li) {
+			valid = append(valid, r)
+		}
+	}
+	return valid
+}
+
+func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
+	// in progress
+	find := regexp.MustCompile(`^\s`)
+	re := find.ReplaceAllString(ss.Seeking, "(^|\\s)")
+	find = regexp.MustCompile(`\s$`)
+	re = find.ReplaceAllString(ss.Seeking, "(\\s|$)")
+	fmt.Println(re)
+	fmt.Println("findphrasesacrosslines() does not work yet: no checks made")
+	return ss.Results
+}
+
+/*
+class QueryCombinator(object):
+	"""
+
+	take a phrase and grab all of the possible searches that you need to catch its line-spanning variants
+
+	x = 'one two three four five'
+	z = QueryCombinator(x)
+	z.combinationlist()
+		[(['one'], ['two', 'three', 'four', 'five']), (['one', 'two'], ['three', 'four', 'five']), (['one', 'two', 'three'], ['four', 'five']), (['one', 'two', 'three', 'four'], ['five']), (['one', 'two', 'three', 'four', 'five'], [])]
+	z.combinations()
+		[('one', 'two three four five'), ('one two', 'three four five'), ('one two three', 'four five'), ('one two three four', 'five'), ('one two three four five', '')]
+
+	"""
+	def __init__(self, phrase):
+		self.phrase = phrase
+		self.words = [w for w in self.phrase.split(' ') if w]
+
+	@staticmethod
+	def _grabhead(n, iterable):
+		"""Return first n items of the iterable as a list"""
+		return list(islice(iterable, n))
+
+	@staticmethod
+	def _grabtail(n, iterable):
+		"""Return the last n items of the iterable as a list"""
+		return list(deque(iterable, maxlen=n))
+
+	def combinationlist(self):
+		"""Return all of the possible pairs of list items"""
+		combinations = list()
+		for c in range(1, len(self.words) + 1):
+			front = self._grabhead(c, self.words)
+			back = self._grabtail(len(self.words) - c, self.words)
+			combinations.append((front, back))
+		return combinations
+
+	def combinations(self):
+		"""Return the set of search pairs you will need"""
+		cl = self.combinationlist()
+		combinations = [(' '.join(c[0]), ' '.join(c[1])) for c in cl]
+		return combinations
+*/

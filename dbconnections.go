@@ -58,7 +58,7 @@ func grabpgsqlconnection() *pgxpool.Pool {
 		panic(err)
 	}
 
-	msg(fmt.Sprintf("Connected to %s on PostgreSQL", pl.DBName), 4)
+	msg(fmt.Sprintf("Connected to %s on PostgreSQL", pl.DBName), 5)
 
 	return pooledconnection
 }
