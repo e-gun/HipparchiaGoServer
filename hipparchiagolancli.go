@@ -14,18 +14,6 @@ import (
 	"time"
 )
 
-const (
-	MYNAME        = "Hipparchia Golang Server"
-	SHORTNAME     = "HGS"
-	VERSION       = "0.1.2"
-	PSQ           = `{"Host": "localhost", "Port": 5432, "User": "hippa_wr", "Pass": "", "DBName": "hipparchiaDB"}`
-	PSDefaultHost = "localhost"
-	PSDefaultUser = "hippa_wr"
-	PSDefaultPort = 5432
-	PSDefaultDB   = "hipparchiaDB"
-	TwoPassThresh = 100 // cicero has >70 works
-)
-
 func main() {
 
 	makeconfig()
@@ -70,7 +58,7 @@ func main() {
 
 	cfg.PGLogin = decodepsqllogin([]byte(cfg.PosgresInfo))
 
-	fmt.Println(versioninfo)
+	msg(versioninfo, 0)
 
 	// concurrent launching
 	var awaiting sync.WaitGroup
@@ -113,5 +101,6 @@ func main() {
 	}
 
 	awaiting.Wait()
+
 	StartEchoServer()
 }

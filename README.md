@@ -2,7 +2,11 @@
 
 experimental...
 
-status:
+status as of 0.1.2:
 
-basic simple search of full corpus
-basic browsing
+searching mostly works
+browsing mostly works
+dictionaries mostly work
+
+simple selections work imperfectly
+cannot "unselect" yet

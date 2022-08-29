@@ -1,6 +1,15 @@
 package main
 
 const (
+	MYNAME                = "Hipparchia Golang Server"
+	SHORTNAME             = "HGS"
+	VERSION               = "0.1.2"
+	PSQ                   = `{"Host": "localhost", "Port": 5432, "User": "hippa_wr", "Pass": "", "DBName": "hipparchiaDB"}`
+	PSDefaultHost         = "localhost"
+	PSDefaultUser         = "hippa_wr"
+	PSDefaultPort         = 5432
+	PSDefaultDB           = "hipparchiaDB"
+	TwoPassThresh         = 100 // cicero has >70 works
 	NUMOFWORKS            = 236835
 	NUMOFAUTHS            = 3455
 	VARIADATE             = 2000
@@ -10,10 +19,10 @@ const (
 	DEFAULTPROXIMITY      = 3
 	DEFAULTPROXIMITYSCOPE = "lines"
 	DEFAULTLOGLEVEL       = 3
-
-	MINBROWSERWIDTH   = 90
-	MAXLEMMACHUNKSIZE = 20
-	FIRSTSEARCHLIM    = 999999
+	DEFAULTECHOLOGLEVEL   = 0
+	MINBROWSERWIDTH       = 90
+	MAXLEMMACHUNKSIZE     = 20
+	FIRSTSEARCHLIM        = 999999
 
 	// hipparchiaDB=# select * from gr0001 limit 0;
 	// index | wkuniversalid | level_05_value | level_04_value | level_03_value | level_02_value | level_01_value | level_00_value | marked_up_line | accented_line | stripped_line | hyphenated_words | annotations
