@@ -210,6 +210,7 @@ func RtGetJSWorksOf(c echo.Context) error {
 	b, e := json.Marshal(titles)
 	chke(e)
 
+	// fmt.Printf("RtGetJSWorksOf():\n\t%s\n", b)
 	return c.String(http.StatusOK, string(b))
 }
 
@@ -238,6 +239,7 @@ func RtGetJSWorksStruct(c echo.Context) error {
 	// send
 	b, e := json.Marshal(lvls)
 	chke(e)
+	// fmt.Printf("RtGetJSWorksStruct():\n\t%s\n", b)
 	return c.String(http.StatusOK, string(b))
 }
 

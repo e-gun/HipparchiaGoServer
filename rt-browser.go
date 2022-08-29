@@ -115,7 +115,7 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 	bw := fmt.Sprintf(`linenumber/%s/%s/%d`, au, wk, p)
 	fw := fmt.Sprintf(`linenumber/%s/%s/%d`, au, wk, n)
 	ab := fmt.Sprintf(`%s [%s]`, AllAuthors[au].Cleaname, au)
-	wb := fmt.Sprintf(`%s (w%s)`, w.Title, w.WorkNum)
+	wb := fmt.Sprintf(`%s (w%s)`, w.Title, w.FindWorknumber())
 
 	var bp BrowsedPassage
 	bp.Browseforwards = fw

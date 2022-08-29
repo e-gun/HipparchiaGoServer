@@ -71,8 +71,6 @@ type DbWork struct {
 	FirstLine int64
 	LastLine  int64
 	Authentic bool
-	// not in the DB, but derived: gr2017w068 --> 068
-	WorkNum string
 }
 
 func (dbw DbWork) FindWorknumber() string {
@@ -169,10 +167,6 @@ func workmapper() map[string]DbWork {
 			&thehit.FirstLine, &thehit.LastLine, &thehit.Authentic)
 		chke(err)
 		thefinds = append(thefinds, thehit)
-	}
-
-	for _, val := range thefinds {
-		val.WorkNum = val.FindWorknumber()
 	}
 
 	workmap := make(map[string]DbWork, NUMOFWORKS)
