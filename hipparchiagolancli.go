@@ -15,7 +15,7 @@ import (
 const (
 	MYNAME        = "Hipparchia Golang Server"
 	SHORTNAME     = "HGS"
-	VERSION       = "0.0.9"
+	VERSION       = "0.1.0"
 	PSQ           = `{"Host": "localhost", "Port": 5432, "User": "hippa_wr", "Pass": "", "DBName": "hipparchiaDB"}`
 	PSDefaultHost = "localhost"
 	PSDefaultUser = "hippa_wr"

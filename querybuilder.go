@@ -222,11 +222,12 @@ func subqueryphrasesearchtail(au string, hastt bool, skg string, ss SearchStruct
 	// we use subquery syntax to grab multi-line windows of text for phrase searching
 	//
 	//    line ends and line beginning issues can be overcome this way, but then you have plenty of
-	//    bookkeeping to do to to get the proper results focussed on the right line (TODO: bookkeeping)
+	//    bookkeeping to do to get the proper results focussed on the right line (TODO: bookkeeping)
 	//
 	//    these searches take linear time: same basic time for any given scope regardless of the query
 
 	// "dolore omni " in all of Lucretius:
+
 	// 	SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value,
 	//			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
 	//		( SELECT * FROM
@@ -299,6 +300,7 @@ func test_searchlistintoqueries() {
 	fmt.Println(prq)
 
 	c := grabpgsqlconnection()
+	defer c.Close()
 	var hits []DbWorkline
 	for _, q := range prq {
 		r := worklinequery(q, c)
@@ -310,4 +312,5 @@ func test_searchlistintoqueries() {
 		fmt.Println(t)
 	}
 	timetracker("-", "query built and executed", start, previous)
+	c.Close()
 }

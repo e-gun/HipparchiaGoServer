@@ -82,7 +82,11 @@ func (dbw DbWork) FindWorknumber() string {
 
 func (dbw DbWork) FindAuthor() string {
 	// ex: gr2017w068
-	return dbw.UID[:6]
+	if len(dbw.UID) < 6 {
+		return ""
+	} else {
+		return dbw.UID[:6]
+	}
 }
 
 func (dbw DbWork) CitationFormat() []string {
@@ -145,6 +149,7 @@ func workmapper() map[string]DbWork {
 	start := time.Now()
 	previous := time.Now()
 	dbpool := grabpgsqlconnection()
+	defer dbpool.Close()
 	qt := "SELECT %s FROM works"
 	q := fmt.Sprintf(qt, WORKTEMPLATE)
 
@@ -175,6 +180,8 @@ func workmapper() map[string]DbWork {
 		workmap[val.UID] = val
 	}
 	timetracker("A", fmt.Sprintf("%d works built: map[string]DbWork", len(workmap)), start, previous)
+
+	dbpool.Close()
 	return workmap
 
 }
@@ -185,6 +192,7 @@ func authormapper() map[string]DbAuthor {
 	previous := time.Now()
 
 	dbpool := grabpgsqlconnection()
+	defer dbpool.Close()
 	qt := "SELECT %s FROM authors ORDER by universalid ASC"
 	q := fmt.Sprintf(qt, AUTHORTEMPLATE)
 
@@ -210,6 +218,7 @@ func authormapper() map[string]DbAuthor {
 		authormap[val.UID] = val
 	}
 	timetracker("B", fmt.Sprintf("%d authors built: map[string]DbAuthor", len(authormap)), start, previous)
+	dbpool.Close()
 	return authormap
 
 }
@@ -287,6 +296,8 @@ func lemmamapper() map[string]DbLemma {
 	t := `SELECT dictionary_entry, xref_number, derivative_forms FROM %s_lemmata`
 
 	dbpool := grabpgsqlconnection()
+	defer dbpool.Close()
+
 	var thefinds []DbLemma
 	for _, lg := range langs {
 		q := fmt.Sprintf(t, lg)
@@ -312,7 +323,7 @@ func lemmamapper() map[string]DbLemma {
 	// {dorsum 24563373 [dorsum dorsone dorsa dorsoque dorso dorsoue dorsis dorsi dorsisque dorsumque]}
 
 	timetracker("D", fmt.Sprintf("unnested lemma map built (%d items)", len(unnested)), start, previous)
-
+	dbpool.Close()
 	return unnested
 }
 

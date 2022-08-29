@@ -73,6 +73,7 @@ func findbyform(word string, author string) []byte {
 	// TODO: accute/grave issues should be handled ASAP
 
 	dbpool := grabpgsqlconnection()
+	defer dbpool.Close()
 	fld := `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
 	psq := fmt.Sprintf("SELECT %s FROM %s_morphology WHERE observed_form = '%s'", fld, d, word)
 
@@ -211,6 +212,7 @@ func findbyform(word string, author string) []byte {
 	chke(ee)
 
 	// jsonbundle := []byte(fmt.Sprintf(`{"newhtml":"%s","newjs":"%s"}`, html, js))
+	dbpool.Close()
 	return jsonbundle
 }
 
@@ -325,12 +327,12 @@ func formatlexicaloutput(w DbLexicon) string {
 		<tr>
 			<td class="alignleft">
 				<span class="label">Previous: </span>
-				<dictionaryidsearch entryid="%d" language="%s">%s</dictionaryidsearch>
+				<dictionaryidsearch entryid="%.1f" language="%s">%s</dictionaryidsearch>
 			</td>
 			<td>&nbsp;</td>
 			<td class="alignright">
 				<span class="label">Next: </span>
-				<dictionaryidsearch entryid="%d" language="%s">%s</dictionaryidsearch>
+				<dictionaryidsearch entryid="%.1f" language="%s">%s</dictionaryidsearch>
 			</td>
 		</tr>
 		</tbody>
@@ -338,6 +340,7 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	qt := `SELECT entry_name, id_number from %s_dictionary WHERE id_number %s %.0f ORDER BY id_number %s LIMIT 1`
 	dbpool := grabpgsqlconnection()
+	defer dbpool.Close()
 
 	foundrows, err := dbpool.Query(context.Background(), fmt.Sprintf(qt, w.Lang, "<", w.ID, "DESC"))
 	chke(err)
@@ -361,6 +364,7 @@ func formatlexicaloutput(w DbLexicon) string {
 	elem = append(elem, pn)
 
 	html := strings.Join(elem, "")
+	dbpool.Close()
 	return html
 }
 

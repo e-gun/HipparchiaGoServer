@@ -24,13 +24,12 @@ type SearchStruct struct {
 	ProxType   string // "near" or "not near"
 	ProxVal    int64
 	IsVector   bool
-	NeedsWhere bool
-	TwoPart    bool
+	Twobox     bool
 	SrchColumn string // usually "stripped_line", sometimes "accented_line"
 	SrchSyntax string // almost always "~="
 	OrderBy    string // almost always "index" + ASC
 	Limit      int64
-	SkgSlice   []string // either just Seeking or a decomposed VERSION of a Lemma's possibilities
+	SkgSlice   []string // either just Seeking or a decomposed version of a Lemma's possibilities
 	PrxSlice   []string
 	SearchIn   SearchIncExl
 	SearchEx   SearchIncExl
@@ -38,7 +37,7 @@ type SearchStruct struct {
 	Results    []DbWorkline
 	Launched   time.Time
 	TTName     string
-	SearchSize int
+	SearchSize int // # of works
 }
 
 func (s SearchStruct) FmtOrderBy() string {
@@ -53,12 +52,6 @@ func (s SearchStruct) FmtOrderBy() string {
 	}
 	return ob
 }
-
-//func (s SearchStruct) FmtWhereTerm(t string) string {
-//	a := `%s %s '%s' `
-//	wht := fmt.Sprintf(a, s.SrchColumn, s.SrchSyntax, t)
-//	return wht
-//}
 
 func (s SearchStruct) HasLemma() bool {
 	if len(s.LemmaOne) > 0 || len(s.LemmaTwo) > 0 {
@@ -141,7 +134,9 @@ func RtSearchStandard(c echo.Context) error {
 	searches[id] = srch
 
 	// return results via searches[id].Results
-	if searches[id].QueryType == "proximity" {
+	if searches[id].Twobox {
+		// this can do word + lemma; double lemmata; phrase + phrase...
+		// todo: "not near" syntax
 		searches[id] = withinxlinessearch(searches[id])
 	} else {
 		searches[id] = HGoSrch(searches[id])
@@ -176,7 +171,7 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	s.OrderBy = "index"
 	s.SearchIn = sessions[user].Inclusions
 	s.SearchEx = sessions[user].Exclusions
-	s.ProxVal = 5
+	s.ProxVal = DEFAULTPROXIMITY
 	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
 	return s
 }
@@ -212,6 +207,8 @@ func setsearchtype(srch SearchStruct) SearchStruct {
 	if srch.LemmaOne != "" && srch.Proximate != "" {
 		twobox = true
 	}
+
+	srch.Twobox = twobox
 
 	if containsphrase && !twobox {
 		srch.QueryType = "phrase"
@@ -368,28 +365,42 @@ func lemmaintoregex(hdwd string) []string {
 
 func withinxlinessearch(s SearchStruct) SearchStruct {
 	// after finding x, look for y within n lines of x
-	//	CREATE TEMPORARY TABLE in110f_includelist_UNIQUENAME AS
-	//        SELECT values
-	//            AS includeindex FROM unnest(ARRAY[16197,16198,16199,16200,16201,16202,16203,16204,16205,16206,16207]) values
-	// (and then)
-	//     SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value, second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
-	//        ( SELECT * FROM
-	//            ( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations, concat(accented_line, ' ', lead(accented_line) OVER (ORDER BY index ASC)
-	//            ) AS linebundle
-	//                FROM in110f WHERE EXISTS
-	//                ( SELECT 1 FROM in110f_includelist_UNIQUENAME incl WHERE incl.includeindex = in110f.index ) ) first
-	//        ) second
-	//    WHERE second.linebundle ~ 'ἀνέθηκεν ὑπὲρ'  LIMIT 200;
 
-	// alternate: ... FROM lt0474 WHERE ( (index BETWEEN 128860 AND 128866) OR (index BETWEEN 39846 AND 39852) OR ...
+	// "decessionis" near "spem" in Cicero...
+
+	// (part 1)
+	//		HGoSrch(first)
+	//
+	// (part 2.1)
+	//		CREATE TEMPORARY TABLE lt0474_includelist_24bfe76dc1124f07becabb389a4f393d AS
+	//		SELECT values AS includeindex FROM
+	//			unnest(ARRAY[39844,39845,39846,39847,39848,39849,39850,39851,39852,39853,128858,128859,128860,128861,128862,128863,128864,128865,128866,128867,138278,138279,138280,138281,138282,138283,138284,138285,138286,138287])
+	//		values
+
+	// (part 2.2)
+	// 		SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value,
+	//			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
+	//		( SELECT * FROM
+	//			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
+	//				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) ) AS linebundle
+	//				FROM
+	//	lt0474 WHERE EXISTS
+	//		(SELECT 1 FROM lt0474_includelist_24bfe76dc1124f07becabb389a4f393d incl
+	//			WHERE incl.includeindex = lt0474.index)
+	//					) first
+	//				) second WHERE second.linebundle ~ 'spem' LIMIT 200;
+
+	// alternate: ... FROM lt0474 WHERE ( (index BETWEEN 128860 AND 128866) OR (index BETWEEN 39846 AND 39852) OR ... )
 
 	first := s
 	first.Limit = FIRSTSEARCHLIM
 	first = HGoSrch(first)
+
 	// fmt.Printf("%d initial hits\n", len(first.Results))
 
 	// convert the hits into new selections:
 	// a temptable will be built once you know which lines do you need from which works
+
 	var required = make(map[string][]int64)
 	for _, r := range first.Results {
 		w := AllWorks[r.WkUID]
@@ -402,14 +413,15 @@ func withinxlinessearch(s SearchStruct) SearchStruct {
 		required[w.FindAuthor()] = append(required[w.FindAuthor()], idx...)
 	}
 
-	// prepare new searchlists
-	var second SearchStruct
+	// prepare new search
+	fss := first.SkgSlice
+
+	second := first
 	second.Results = []DbWorkline{}
 	second.Queries = []PrerolledQuery{}
 	second.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
-	second.SkgSlice = first.PrxSlice
-	second.PrxSlice = first.SkgSlice
-	second.Limit = s.Limit
+	second.SkgSlice = second.PrxSlice
+	second.PrxSlice = fss
 
 	var ttsq = make(map[string]string)
 	ctt := `

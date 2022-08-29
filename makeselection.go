@@ -240,6 +240,7 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 	tb := wk.FindAuthor()
 
 	dbpool := grabpgsqlconnection()
+	defer dbpool.Close()
 	qt := `SELECT index FROM %s WHERE wkuniversalid='%s' AND %s ORDER BY index ASC`
 
 	a := strings.Join(use, " AND ")
@@ -265,6 +266,7 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 		fl = [2]int64{idx[0], idx[len(idx)-1]}
 	}
 
+	dbpool.Close()
 	return fl
 }
 

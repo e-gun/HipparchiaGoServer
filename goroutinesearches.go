@@ -88,6 +88,7 @@ func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWo
 	emitfinds := make(chan []DbWorkline)
 	go func() {
 		dbpool := grabpgsqlconnection()
+		defer dbpool.Close()
 		defer close(emitfinds)
 		for q := range prq {
 			select {
@@ -97,6 +98,7 @@ func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWo
 				emitfinds <- worklinequery(q, dbpool)
 			}
 		}
+		dbpool.Close()
 	}()
 	return emitfinds, nil
 }
