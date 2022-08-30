@@ -41,8 +41,8 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	}
 
 	results := ResultCollation(ctx, max, ResultAggregator(ctx, findchannels...))
-	if int64(len(results)) > ss.Limit {
-		results = results[0:ss.Limit]
+	if int64(len(results)) > max {
+		results = results[0:max]
 	}
 
 	ss.Results = sortresults(results, ss)
