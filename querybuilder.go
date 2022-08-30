@@ -73,6 +73,13 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 	inc := ss.SearchIn
 	exc := ss.SearchEx
 
+	if ss.LemmaOne != "" {
+		ss.SkgSlice = lemmaintoregexslice(ss.LemmaOne)
+	} else {
+		ss.SkgSlice = append(ss.SkgSlice, ss.Seeking)
+	}
+
+	// fmt.Println(inc)
 	// fmt.Println(ss.QueryType)
 
 	// if there are too many "in0001wXXX" type entries: requiresindextemptable()
@@ -120,7 +127,7 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
 		b := Boundaries{int64(st), int64(sp)}
 		boundedincl[au] = append(boundedincl[au], b)
-		// fmt.Printf("%s: %d - %d", au, st, sp)
+		// fmt.Printf("%s: %d - %d\n", au, st, sp)
 	}
 
 	for _, p := range exc.Passages {

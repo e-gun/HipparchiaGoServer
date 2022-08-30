@@ -117,17 +117,11 @@ func RtSearchStandard(c echo.Context) error {
 	// must happen before searchlistintoqueries()
 	srch = setsearchtype(srch)
 
-	if srch.LemmaOne != "" {
-		srch.SkgSlice = lemmaintoregexslice(srch.LemmaOne)
-	} else {
-		srch.SkgSlice = append(srch.SkgSlice, srch.Seeking)
-	}
-
-	if srch.LemmaTwo != "" {
-		srch.PrxSlice = lemmaintoregexslice(srch.LemmaTwo)
-	} else {
-		srch.PrxSlice = append(srch.PrxSlice, srch.Proximate)
-	}
+	//if srch.LemmaTwo != "" {
+	//	srch.PrxSlice = lemmaintoregexslice(srch.LemmaTwo)
+	//} else {
+	//	srch.PrxSlice = append(srch.PrxSlice, srch.Proximate)
+	//}
 
 	prq := searchlistintoqueries(srch)
 	timetracker("C", "searchlistintoqueries()", start, previous)
@@ -143,6 +137,7 @@ func RtSearchStandard(c echo.Context) error {
 		// [1] single + single
 		// [2]
 		// todo: "not near" syntax
+		msg("twobox", 4)
 		searches[id] = withinxlinessearch(searches[id])
 	} else {
 		searches[id] = HGoSrch(searches[id])
@@ -431,9 +426,10 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	first.Limit = FIRSTSEARCHLIM
 	first = HGoSrch(first)
 
-	osk := originalsrch.Seeking
-	oss := originalsrch.SkgSlice
+	// osk := originalsrch.Seeking
+	// oss := originalsrch.SkgSlice
 	osl := originalsrch.Limit
+	// oslm := originalsrch.LemmaOne
 
 	msg(fmt.Sprintf("withinxlinessearch(): %d initial hits", len(first.Results)), 4)
 
@@ -451,19 +447,23 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	second.SearchIn = SearchIncExl{}
 	second.SearchEx = SearchIncExl{}
 	second.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
-	second.SkgSlice = second.PrxSlice
+	second.SkgSlice = []string{}
 	second.Seeking = second.Proximate
-	second.Proximate = osk
-	second.PrxSlice = oss
+	second.LemmaOne = second.LemmaTwo
+	second.Proximate = ""
+	second.PrxSlice = []string{}
+	second.LemmaTwo = ""
 	second.Limit = osl
+
 	second = setsearchtype(second)
+
+	msg(fmt.Sprintf("ll1: %s\nll2:%s\n", second.QueryType, second.LemmaTwo), 4)
 
 	pt := `%s_FROM_%d_TO_%d`
 
 	var newpsg []string
 	for _, r := range first.Results {
 		np := fmt.Sprintf(pt, r.FindAuthor(), r.TbIndex-originalsrch.ProxVal, r.TbIndex+originalsrch.ProxVal)
-		// fmt.Println(np)
 		newpsg = append(newpsg, np)
 	}
 
@@ -471,6 +471,7 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	second.SearchIn.Passages = newpsg
 
 	prq := searchlistintoqueries(second)
+
 	second.Queries = prq
 	searches[originalsrch.ID] = second
 	searches[originalsrch.ID] = HGoSrch(searches[originalsrch.ID])
