@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"regexp"
 	"strconv"
 	"strings"
@@ -73,6 +75,221 @@ const (
 // searchlistintosqldict()
 
 func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
+	var prqq []PrerolledQuery
+	inc := ss.SearchIn
+	exc := ss.SearchEx
+
+	if len(ss.LemmaOne) != 0 {
+		ss.SkgSlice = lemmaintoregexslice(ss.LemmaOne)
+	} else {
+		ss.SkgSlice = append(ss.SkgSlice, ss.Seeking)
+	}
+
+	// fmt.Println(inc)
+	// fmt.Println(ss.QueryType)
+
+	// if there are too many "in0001wXXX" type entries: requiresindextemptable()
+
+	// au query looks like: SELECTFROM + WHERETERM + WHEREINDEX + ORDERBY&LIMIT
+	// FROM gr0308 WHERE ( (index BETWEEN 138 AND 175) OR (index BETWEEN 471 AND 510) ) AND ( stripped_line ~* $1 )
+	// FROM lt0917 WHERE ( (index BETWEEN 1 AND 8069) OR (index BETWEEN 8070 AND 8092) ) AND ( (index NOT BETWEEN 1431 AND 2193) ) AND ( stripped_line ~* $1 )
+
+	// [au] figure out all bounded selections
+
+	boundedincl := make(map[string][]Boundaries)
+	boundedexcl := make(map[string][]Boundaries)
+
+	// [a1] individual works included/excluded
+	for _, w := range inc.Works {
+		wk := AllWorks[w]
+		b := Boundaries{wk.FirstLine, wk.LastLine}
+		boundedincl[wk.FindAuthor()] = append(boundedincl[wk.FindAuthor()], b)
+	}
+
+	for _, w := range exc.Works {
+		wk := AllWorks[w]
+		b := Boundaries{wk.FirstLine, wk.LastLine}
+		boundedexcl[wk.FindAuthor()] = append(boundedexcl[wk.FindAuthor()], b)
+	}
+
+	// [a2] individual passages included/excluded
+
+	pattern := regexp.MustCompile(`(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`)
+	for _, p := range inc.Passages {
+		// "gr0032_FROM_11313_TO_11843"
+		subs := pattern.FindStringSubmatch(p)
+		au := subs[pattern.SubexpIndex("auth")]
+		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
+		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
+		b := Boundaries{int64(st), int64(sp)}
+		boundedincl[au] = append(boundedincl[au], b)
+		// fmt.Printf("%s: %d - %d\n", au, st, sp)
+	}
+
+	for _, p := range exc.Passages {
+		subs := pattern.FindStringSubmatch(p)
+		au := subs[pattern.SubexpIndex("auth")]
+		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
+		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
+		b := Boundaries{int64(st), int64(sp)}
+		boundedexcl[au] = append(boundedexcl[au], b)
+	}
+
+	// [b] build the queries for the author tables
+	idxtmpl := `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
+
+	// [b1] collapse inc.Authors, inc.Works, incl.Passages to find all tables in use
+	// but the keys to boundedincl in fact gives you the answer to the latter two
+
+	alltables := inc.Authors
+	for t, _ := range boundedincl {
+		alltables = append(alltables, t)
+	}
+
+	for _, au := range alltables {
+		var qb QueryBuilder
+		var prq PrerolledQuery
+
+		// [b2] check to see if bounded
+		if bb, found := boundedincl[au]; found {
+			if len(bb) > TEMPTABLETHRESHOLD {
+				prq.TempTable = requiresindextemptable(au, bb, ss)
+			} else {
+				qb.WhrIdxInc = andorwhereclause(bb, idxtmpl, "", " OR ")
+			}
+		}
+
+		if bb, found := boundedexcl[au]; found {
+			if len(bb) > TEMPTABLETHRESHOLD {
+				// note that 200 incl + 200 excl will produce garbage; in practice you have only au ton of one of them
+				prq.TempTable = requiresindextemptable(au, bb, ss)
+			} else {
+				qb.WhrIdxExc = andorwhereclause(bb, idxtmpl, "NOT ", " AND ")
+			}
+		}
+
+		// [b3] search term might be lemmatized, hence the range
+
+		// there are fancier ways to do this, but debugging and maintaining become overwhelming...
+
+		// map to the %s items in the qtmpl below:
+		// SELECTFROM + WHERETERM + WHEREINDEXINCL + WHEREINDEXEXCL + (either) ORDERBY&LIMIT (or) SECOND
+
+		fmt.Println(qb.WhrIdxInc)
+
+		nott := len(prq.TempTable) == 0
+		yestt := len(prq.TempTable) != 0
+		noph := !ss.HasPhrase
+		yesphr := ss.HasPhrase
+		noidx := len(qb.WhrIdxExc) == 0 && len(qb.WhrIdxInc) == 0
+		yesidx := len(qb.WhrIdxExc) != 0 || len(qb.WhrIdxInc) != 0
+		if nott && noph && noidx {
+			msg("basic", 5)
+			prq = basicprq(prq, au, qb, ss)
+		} else if nott && noph && yesidx {
+			// word in work(s)/passage(s): AND ( (index BETWEEN 481 AND 483) OR (index BETWEEN 501 AND 503) ... )
+			msg("basic_and_indices", 5)
+			prq = basicidxprq(prq, au, qb, ss)
+		} else if nott && yesphr && noidx {
+			msg("basic_window", 5)
+			prq = basicwindowprq(prq, au, qb, ss)
+		} else if nott && yesphr && noidx {
+			msg("window_with_indices", 5)
+			prq = windandidxprq(prq, au, qb, ss)
+		} else if yestt && noph {
+			msg("simple_tt", 5)
+			prq = simplettprq(prq, au, qb, ss)
+		} else {
+			msg("window_with_tt", 5)
+			prq = windowandttprq(prq, au, qb, ss)
+		}
+		prqq = append(prqq, prq)
+	}
+	return prqq
+}
+
+type PRQTemplate struct {
+	AU  string
+	COL string
+	SYN string
+	SK  string
+	LIM string
+	IDX string
+}
+
+func basicprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct) PrerolledQuery {
+	// word in an author
+	//
+	//		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
+	//			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations
+	//			FROM lt0472 WHERE stripped_line ~* 'potest'  ORDER BY index ASC LIMIT 200
+
+	var t PRQTemplate
+	t.AU = au
+	t.COL = ss.SrchColumn
+	t.SYN = ss.SrchSyntax
+	t.SK = ss.Seeking
+	t.LIM = fmt.Sprintf("%d", ss.Limit)
+
+	tail := `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
+
+	tmpl, e := template.New("b").Parse(tail)
+	chke(e)
+	var b bytes.Buffer
+	e = tmpl.Execute(&b, t)
+	chke(e)
+
+	prq.PsqlQuery = fmt.Sprintf(SELECTFROM, b.String())
+	return prq
+}
+
+func basicidxprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct) PrerolledQuery {
+	// word in a work
+	//		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
+	//			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt0472 WHERE stripped_line ~* 'nomen' AND (index BETWEEN 1 AND 2548) ORDER BY index ASC LIMIT 200
+
+	var t PRQTemplate
+	t.AU = au
+	t.COL = ss.SrchColumn
+	t.SYN = ss.SrchSyntax
+	t.SK = ss.Seeking
+	t.LIM = fmt.Sprintf("%d", ss.Limit)
+	if ss.NotNear {
+		t.IDX = qb.WhrIdxExc
+	} else {
+		t.IDX = qb.WhrIdxInc
+	}
+
+	tail := `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' AND {{ .IDX }} ORDER BY index ASC LIMIT {{ .LIM }}`
+
+	tmpl, e := template.New("bi").Parse(tail)
+	chke(e)
+	var b bytes.Buffer
+	e = tmpl.Execute(&b, t)
+	chke(e)
+
+	prq.PsqlQuery = fmt.Sprintf(SELECTFROM, b.String())
+	return prq
+
+}
+
+func basicwindowprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct) PrerolledQuery {
+	return prq
+}
+
+func windandidxprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct) PrerolledQuery {
+	return prq
+}
+
+func simplettprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct) PrerolledQuery {
+	return prq
+}
+
+func windowandttprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct) PrerolledQuery {
+	return prq
+}
+
+func OLD_searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 	var prqq []PrerolledQuery
 	inc := ss.SearchIn
 	exc := ss.SearchEx
@@ -440,7 +657,7 @@ SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, lev
 
 [i] lemma near word + tt
 	= [g] +
-	[WRONG]
+	[WRONG][todo: (SELECT 1 FROM lt0472_includelist_f79d14b56d1c481c8bbdeadc4d2e23c0 incl WHERE incl.includeindex = lt0472.index AND stripped_line ~ 'unice') LIMIT 200;
 	CREATE TEMPORARY TABLE lt0472_includelist_755d8184cf6840dd8e6afab0bd34f535 AS
 		SELECT values AS includeindex FROM
 			unnest(ARRAY[491,492,493,503,504,505,576,577,578,1150,1151,1152,1214,1215,1216,2006,2007,2008,2009,2010,2011,2063,2064,2065,2135,2136,2137,2167,2168,2169])
@@ -449,4 +666,41 @@ SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, lev
 		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
 			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt0472 WHERE EXISTS
 			(SELECT 1 FROM accented_line ~* 'unice' _includelist_ incl WHERE incl.includeindex = .index AND ORDER BY index ASC LIMIT 200 ~ '%!s(MISSING)') LIMIT %!s(MISSING);
+
+[j] lemma near phrase + tt
+	= [g] +
+	[WRONG]
+	CREATE TEMPORARY TABLE lt0472_includelist_380505330f364d9fa40024d16d3191bf AS
+		SELECT values AS includeindex FROM
+			unnest(ARRAY[491,492,493,503,504,505,576,577,578,1150,1151,1152,1214,1215,1216,2006,2007,2008,2009,2010,2011,2063,2064,2065,2135,2136,2137,2167,2168,2169])
+		values
+	+
+
+		SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value,
+			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
+		( SELECT * FROM
+			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
+				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) )
+			AS linebundle
+				FROM lt0472
+					) first
+				) second WHERE
+			EXISTS
+				(SELECT 1 FROM lt0472_includelist_380505330f364d9fa40024d16d3191bf incl WHERE incl.includeindex = lt0472.index)
+				) first
+			) second WHERE second.linebundle ~ 'in tabulas' LIMIT 200
+
+	[todo: make it look like this...]
+		SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value,
+			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
+		( SELECT * FROM
+			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
+				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) )
+			AS linebundle
+				FROM lt0472 WHERE
+			EXISTS
+				(SELECT 1 FROM lt0472_includelist_380505330f364d9fa40024d16d3191bf incl WHERE incl.includeindex = lt0472.index)
+				) first
+			) second WHERE second.linebundle ~ 'in tabulas' LIMIT 200
+
 */
