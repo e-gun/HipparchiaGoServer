@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/fatih/color"
+	"sort"
 	"time"
 )
 
@@ -128,6 +129,63 @@ func flatten[T any](lists [][]T) []T {
 		res = append(res, list...)
 	}
 	return res
+}
+
+//
+// https://pkg.go.dev/sort#example__sortMultiKeys
+//
+
+type lessFunc func(p1, p2 *DbWorkline) bool
+
+// multiSorter implements the Sort interface, sorting the changes within.
+type multiSorter struct {
+	changes []DbWorkline
+	less    []lessFunc
+}
+
+// Sort sorts the argument slice according to the less functions passed to OrderedBy.
+func (ms *multiSorter) Sort(changes []DbWorkline) {
+	ms.changes = changes
+	sort.Sort(ms)
+}
+
+// OrderedBy returns a Sorter that sorts using the less functions, in order.
+// Call its Sort method to sort the data.
+func OrderedBy(less ...lessFunc) *multiSorter {
+	return &multiSorter{
+		less: less,
+	}
+}
+
+// Len is part of sort.Interface.
+func (ms *multiSorter) Len() int {
+	return len(ms.changes)
+}
+
+// Swap is part of sort.Interface.
+func (ms *multiSorter) Swap(i, j int) {
+	ms.changes[i], ms.changes[j] = ms.changes[j], ms.changes[i]
+}
+
+func (ms *multiSorter) Less(i, j int) bool {
+	p, q := &ms.changes[i], &ms.changes[j]
+	// Try all but the last comparison.
+	var k int
+	for k = 0; k < len(ms.less)-1; k++ {
+		less := ms.less[k]
+		switch {
+		case less(p, q):
+			// p < q, so we have a decision.
+			return true
+		case less(q, p):
+			// p > q, so we have a decision.
+			return false
+		}
+		// p == q; try the next comparison.
+	}
+	// All comparisons to here said "equal", so just return whatever
+	// the final comparison reports.
+	return ms.less[k](p, q)
 }
 
 //

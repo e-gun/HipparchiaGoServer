@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"runtime"
-	"sort"
 	"sync"
 )
 
@@ -140,25 +139,53 @@ func ResultCollation(ctx context.Context, max int64, values <-chan []DbWorkline)
 }
 
 func sortresults(results []DbWorkline, ss SearchStruct) []DbWorkline {
+	// Closures that order the DbWorkline structure:
+	// see generichelpers.go and https://pkg.go.dev/sort#example__sortMultiKeys
+	nameIncreasing := func(one, two *DbWorkline) bool {
+		a1 := AllAuthors[one.FindAuthor()].Shortname
+		a2 := AllAuthors[two.FindAuthor()].Shortname
+		return a1 < a2
+	}
+
+	titleIncreasing := func(one, two *DbWorkline) bool {
+		return AllWorks[one.WkUID].Title < AllWorks[two.WkUID].Title
+	}
+
+	dateIncreasing := func(one, two *DbWorkline) bool {
+		return AllWorks[one.FindWork()].ConvDate < AllWorks[two.FindWork()].ConvDate
+	}
+
+	//dateDecreasing := func(one, two *DbWorkline) bool {
+	//	return AllWorks[one.FindWork()].ConvDate > AllWorks[two.FindWork()].ConvDate
+	//}
+
+	increasingLines := func(one, two *DbWorkline) bool {
+		return one.TbIndex < two.TbIndex
+	}
+
+	//decreasingLines := func(one, two *DbWorkline) bool {
+	//	return one.TbIndex > two.TbIndex // Note: > orders downwards.
+	//}
+
+	increasingID := func(one, two *DbWorkline) bool {
+		return one.BuildHyperlink() < two.BuildHyperlink()
+	}
+
 	crit := sessions[ss.User].SrchOutSettings.SortHitsBy
+
 	switch {
 	case crit == "Name":
-		sort.Slice(results, func(p, q int) bool {
-			return AllAuthors[results[p].FindAuthor()].Shortname < AllAuthors[results[q].FindAuthor()].Shortname
-		})
+		OrderedBy(nameIncreasing, titleIncreasing, increasingLines).Sort(results)
+		return results
 	case crit == "Date":
-		sort.Slice(results, func(p, q int) bool {
-			return AllWorks[results[p].WkUID].ConvDate < AllWorks[results[q].WkUID].ConvDate
-		})
+		OrderedBy(dateIncreasing, nameIncreasing, titleIncreasing, increasingLines).Sort(results)
+		return results
 	case crit == "ID":
-		sort.Slice(results, func(p, q int) bool {
-			return results[p].WkUID < results[q].WkUID
-		})
+		OrderedBy(increasingID).Sort(results)
+		return results
 	default:
-		// author name
-		sort.Slice(results, func(p, q int) bool {
-			return AllAuthors[results[p].FindAuthor()].Shortname < AllAuthors[results[q].FindAuthor()].Shortname
-		})
+		// author nameIncreasing
+		OrderedBy(nameIncreasing, increasingLines).Sort(results)
+		return results
 	}
-	return results
 }
