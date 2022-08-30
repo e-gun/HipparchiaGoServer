@@ -214,7 +214,7 @@ func formatnocontextresults(s SearchStruct) []byte {
 	out.JS = BROWSERJS
 	out.Title = s.Seeking
 	out.Image = ""
-	out.Searchsummary = formatsearchsummary(s)
+	out.Searchsummary = formatfinalsearchsummary(s)
 
 	TABLEROW := `
 	<tr class="%s">
@@ -254,7 +254,7 @@ func formatnocontextresults(s SearchStruct) []byte {
 	return js
 }
 
-func formatsearchsummary(s SearchStruct) string {
+func formatfinalsearchsummary(s SearchStruct) string {
 
 	t := `
 	<div id="searchsummary">
@@ -423,7 +423,7 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 
 	var newpsg []string
 	for _, r := range first.Results {
-		np := fmt.Sprintf(pt, r.FindAuthor(), r.TbIndex-originalsrch.ProxVal, r.TbIndex+originalsrch.ProxVal)
+		np := fmt.Sprintf(pt, r.FindAuthor(), r.TbIndex-first.ProxVal, r.TbIndex+first.ProxVal)
 		newpsg = append(newpsg, np)
 	}
 
@@ -433,13 +433,14 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	second.SearchIn.Passages = newpsg
 
 	prq := searchlistintoqueries(second)
+
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	msg(fmt.Sprintf("%s searchlistintoqueries() rerun", d), 4)
 	previous = time.Now()
 
 	second.Queries = prq
-
 	searches[originalsrch.ID] = HGoSrch(second)
+
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	msg(fmt.Sprintf("%s withinxlinessearch(): %d subsequent hits", d, len(first.Results)), 4)
 

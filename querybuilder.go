@@ -41,12 +41,9 @@ const (
 				FROM %s 
 					) first 
 				) second`
-	EXISTSSELFROM = `
-		( SELECT * FROM
-			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
-				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) ) 
-			AS linebundle
-				FROM %s `
+	WHEREXISTSSELECT = `
+		%s WHERE EXISTS 
+			(SELECT 1 FROM %s_includelist_%s incl WHERE incl.includeindex = %s.index AND %s ~ '%s') LIMIT %s;`
 )
 
 // findselectionboundaries() stuff should all be handled when making the selections, not here
@@ -184,7 +181,7 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 
 		for _, skg := range ss.SkgSlice {
 			var tail string
-			if ss.HasPhrase || needstempt[a] {
+			if ss.HasPhrase {
 				// in subqueryphrasesearch WHERETERM = "" since the search term comes after the "second" clause
 				// in subqueryphrasesearch not ORDERBY&LIMIT but SECOND
 				qb.WhrTrm = ""
@@ -212,8 +209,10 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 			}
 
 			seltempl := SELECTFROM
-			if len(prq.TempTable) > 0 {
-				seltempl = PRFXSELFRM + EXISTSSELFROM
+			if len(prq.TempTable) > 0 && !ss.HasPhrase {
+				// SELECT * lt0448  WHERE EXISTS (SELECT 1 from lt0448_includelist incl WHERE .. ) LIMIT 200;
+				seltempl = SELECTFROM
+				qtmpl = WHEREXISTSSELECT
 			} else if ss.HasPhrase {
 				seltempl = PRFXSELFRM + CONCATSELFROM
 			}
@@ -226,6 +225,10 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 		}
 	}
 	return prqq
+}
+
+func basicqueryformat() {
+
 }
 
 func requiresindextemptable(au string, bb []Boundaries, ss SearchStruct) string {
@@ -371,3 +374,79 @@ func test_searchlistintoqueries() {
 	timetracker("-", "query built and executed", start, previous)
 	c.Close()
 }
+
+/*
+[a] word in an author
+
+		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
+			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt0472 WHERE stripped_line ~* 'potest'  ORDER BY index ASC LIMIT 200
+
+[b] word in a work
+
+		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
+			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt0448 WHERE stripped_line ~* 'potest'  AND ( (index BETWEEN 1 AND 6192) ) ORDER BY index ASC LIMIT 200
+
+[c] word near word [no temptable]
+		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
+			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt0472 WHERE stripped_line ~* 'erat'  AND ( (index BETWEEN 481 AND 483) OR (index BETWEEN 501 AND 503) ... ) ORDER BY index ASC LIMIT 200
+
+[d] phrase in an author
+
+		SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value,
+			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
+		( SELECT * FROM
+			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
+				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) )
+			AS linebundle
+				FROM lt0472
+					) first
+				) second WHERE  second.linebundle ~ 'aut quid ' LIMIT 200
+
+[e] phrase near word
+	= [d] +
+	[WRONG][todo: the right way is a simple "WHERE stripped_line ~* 'potest'  AND ( (index BETWEEN 501 AND 503) ) LIMIT 200"]
+
+	SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value,
+			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
+		( SELECT * FROM
+			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
+				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) )
+			AS linebundle
+				FROM lt0472
+					) first
+				) second WHERE  ( (index BETWEEN 501 AND 503) ) AND second.linebundle ~ 'uncta' LIMIT 200
+
+
+[f] phrase near phrase
+	= [d] +
+			SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value,
+			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
+		( SELECT * FROM
+			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
+				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) )
+			AS linebundle
+				FROM lt0472
+					) first
+				) second WHERE  ( (index BETWEEN 501 AND 503) ) AND second.linebundle ~ 'nisi uncta' LIMIT 200
+
+[g] lemma
+SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
+			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt0472 WHERE accented_line ~* '(^|\s)nominisque(\s|$)|(^|\s)nominum(\s|$)|...'  ORDER BY index ASC LIMIT 200
+
+
+[h] lemma near word - tt
+		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
+			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt0472 WHERE accented_line ~* 'unice'  AND ( (index BETWEEN 491 AND 493) OR (index BETWEEN 503 AND 505) OR... ) ORDER BY index ASC LIMIT 200
+
+[i] lemma near word + tt
+	= [g] +
+	[WRONG]
+	CREATE TEMPORARY TABLE lt0472_includelist_755d8184cf6840dd8e6afab0bd34f535 AS
+		SELECT values AS includeindex FROM
+			unnest(ARRAY[491,492,493,503,504,505,576,577,578,1150,1151,1152,1214,1215,1216,2006,2007,2008,2009,2010,2011,2063,2064,2065,2135,2136,2137,2167,2168,2169])
+		values
+
+		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
+			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt0472 WHERE EXISTS
+			(SELECT 1 FROM accented_line ~* 'unice' _includelist_ incl WHERE incl.includeindex = .index AND ORDER BY index ASC LIMIT 200 ~ '%!s(MISSING)') LIMIT %!s(MISSING);
+*/
