@@ -41,6 +41,12 @@ const (
 				FROM %s 
 					) first 
 				) second`
+	EXISTSSELFROM = `
+		( SELECT * FROM
+			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
+				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) ) 
+			AS linebundle
+				FROM %s `
 )
 
 // findselectionboundaries() stuff should all be handled when making the selections, not here
@@ -89,8 +95,6 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 	// FROM gr0308 WHERE ( (index BETWEEN 138 AND 175) OR (index BETWEEN 471 AND 510) ) AND ( stripped_line ~* $1 )
 	// FROM lt0917 WHERE ( (index BETWEEN 1 AND 8069) OR (index BETWEEN 8070 AND 8092) ) AND ( (index NOT BETWEEN 1431 AND 2193) ) AND ( stripped_line ~* $1 )
 
-	// TODO: anything that needs an unnest temptable can not pass through here yet...
-
 	needstempt := make(map[string]bool)
 
 	for _, a := range AllAuthors {
@@ -108,8 +112,6 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 		b := Boundaries{wk.FirstLine, wk.LastLine}
 		boundedincl[wk.FindAuthor()] = append(boundedincl[wk.FindAuthor()], b)
 	}
-
-	// TODO: here is where you could check for unnest temptable candidates: e.g., len(boundedincl[x]) > 80
 
 	for _, w := range exc.Works {
 		wk := AllWorks[w]
@@ -151,33 +153,28 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 		alltables = append(alltables, t)
 	}
 
-	seltempl := SELECTFROM
-	if ss.HasPhrase {
-		seltempl = PRFXSELFRM + CONCATSELFROM
-	}
-
 	for _, a := range alltables {
 		var qb QueryBuilder
 		var prq PrerolledQuery
-		qb.SelFrom = fmt.Sprintf(seltempl, a)
 
 		// [b2] check to see if bounded
-		if vv, found := boundedincl[a]; found {
-			var in []string
-			for _, v := range vv {
-				i := fmt.Sprintf(idxtmpl, "", v.Start, v.Stop)
-				in = append(in, i)
+		if bb, found := boundedincl[a]; found {
+			if len(bb) > TEMPTABLETHRESHOLD {
+				needstempt[a] = true
+				prq.TempTable = requiresindextemptable(a, bb, ss)
+			} else {
+				qb.WhrIdxInc = andorwhereclause(bb, idxtmpl, "", " OR ")
 			}
-			qb.WhrIdxInc = strings.Join(in, " OR ")
 		}
 
-		if vv, found := boundedexcl[a]; found {
-			var in []string
-			for _, v := range vv {
-				i := fmt.Sprintf(idxtmpl, "NOT ", v.Start, v.Stop)
-				in = append(in, i)
+		if bb, found := boundedexcl[a]; found {
+			if len(bb) > TEMPTABLETHRESHOLD {
+				// note that 200 incl + 200 excl will produce garbage; in practice you have only a ton of one of them
+				needstempt[a] = true
+				prq.TempTable = requiresindextemptable(a, bb, ss)
+			} else {
+				qb.WhrIdxExc = andorwhereclause(bb, idxtmpl, "NOT ", " AND ")
 			}
-			qb.WhrIdxExc = strings.Join(in, " AND ")
 		}
 
 		// [b3] search term might be lemmatized, hence the range
@@ -187,32 +184,44 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 
 		for _, skg := range ss.SkgSlice {
 			var tail string
-			if !ss.HasPhrase {
-				// there is SECOND element
-				qb.WhrTrm = fmt.Sprintf(`%s %s '%s' `, ss.SrchColumn, ss.SrchSyntax, skg)
-				tail = ss.FmtOrderBy()
-			} else {
+			if ss.HasPhrase || needstempt[a] {
 				// in subqueryphrasesearch WHERETERM = "" since the search term comes after the "second" clause
 				// in subqueryphrasesearch not ORDERBY&LIMIT but SECOND
 				qb.WhrTrm = ""
 				tail = subqueryphrasesearchtail(a, needstempt[a], skg, ss)
+			} else {
+				// there is SECOND element
+				qb.WhrTrm = fmt.Sprintf(`%s %s '%s' `, ss.SrchColumn, ss.SrchSyntax, skg)
+				tail = ss.FmtOrderBy()
 			}
 
 			var qtmpl string
 			if len(qb.WhrIdxInc) == 0 && len(qb.WhrIdxExc) == 0 {
 				qtmpl = `%s WHERE %s %s%s%s`
 			} else if len(qb.WhrIdxInc) != 0 && len(qb.WhrIdxExc) == 0 {
-				// qtmpl = `%s WHERE %s AND ( %s ) %s%s`
-				qtmpl = `%s WHERE %s ( %s ) AND %s%s`
+				// kludgy and should be regularized some day...
+				if ss.HasPhrase {
+					qtmpl = `%s WHERE %s ( %s ) AND %s%s`
+				} else {
+					qtmpl = `%s WHERE %s AND ( %s ) %s%s`
+				}
 			} else if len(qb.WhrIdxInc) == 0 && len(qb.WhrIdxExc) != 0 {
 				qtmpl = `%s WHERE %s AND%s ( %s ) %s`
 			} else if len(qb.WhrIdxInc) != 0 && len(qb.WhrIdxExc) != 0 {
 				qtmpl = `%s WHERE %s AND ( %s ) AND ( %s ) %s`
 			}
 
+			seltempl := SELECTFROM
+			if len(prq.TempTable) > 0 {
+				seltempl = PRFXSELFRM + EXISTSSELFROM
+			} else if ss.HasPhrase {
+				seltempl = PRFXSELFRM + CONCATSELFROM
+			}
+
+			qb.SelFrom = fmt.Sprintf(seltempl, a)
 			prq.PsqlQuery = fmt.Sprintf(qtmpl, qb.SelFrom, qb.WhrTrm, qb.WhrIdxInc, qb.WhrIdxExc, tail)
 
-			// fmt.Println(prq.PsqlQuery)
+			fmt.Println(prq)
 			prqq = append(prqq, prq)
 		}
 	}
@@ -220,9 +229,42 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 	return prqq
 }
 
-func requiresindextemptable() {
+func requiresindextemptable(au string, bb []Boundaries, ss SearchStruct) string {
 	// test to see if there are too many "in0001wXXX" type entries
 	// if there are, mimic wholeworktemptablecontents() in whereclauses.py
+	m := fmt.Sprintf("requiresindextemptable(): %d []Boundaries", len(bb))
+	msg(m, 4)
+	var required []int64
+	for _, b := range bb {
+		for i := b.Start; i <= b.Stop; i++ {
+			required = append(required, i)
+		}
+	}
+
+	ctt := `
+	CREATE TEMPORARY TABLE %s_includelist_%s AS 
+		SELECT values AS includeindex FROM 
+			unnest(ARRAY[%s])
+		values`
+
+	var arr []string
+	for _, r := range required {
+		arr = append(arr, strconv.FormatInt(r, 10))
+	}
+	a := strings.Join(arr, ",")
+	ttsq := fmt.Sprintf(ctt, au, ss.TTName, a)
+
+	return ttsq
+}
+
+func andorwhereclause(bounds []Boundaries, templ string, negation string, syntax string) string {
+	// idxtmpl := `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
+	var in []string
+	for _, v := range bounds {
+		i := fmt.Sprintf(templ, negation, v.Start, v.Stop)
+		in = append(in, i)
+	}
+	return strings.Join(in, syntax)
 }
 
 func subqueryphrasesearchtail(au string, hastt bool, skg string, ss SearchStruct) string {
@@ -269,6 +311,12 @@ func subqueryphrasesearchtail(au string, hastt bool, skg string, ss SearchStruct
 	//        ) second
 	//    WHERE second.linebundle ~ $1  LIMIT 200
 
+	//	lt0474 WHERE EXISTS
+	//		(SELECT 1 FROM lt0474_includelist_24bfe76dc1124f07becabb389a4f393d incl
+	//			WHERE incl.includeindex = lt0474.index)
+	//					) first
+	//				) second WHERE second.linebundle ~ 'spem' LIMIT 200;
+
 	// top bits provided above via: " qb.SelFrom = fmt.Sprintf(seltempl, a)"
 	// baseq := PRFXSELFRM
 	// bundq := CONCATSELFROM
@@ -280,7 +328,9 @@ func subqueryphrasesearchtail(au string, hastt bool, skg string, ss SearchStruct
 	if hastt {
 		tp := `
 			EXISTS
-				(SELECT 1 FROM %s_includelist_%s incl WHERE incl.includeindex = %s.index)`
+				(SELECT 1 FROM %s_includelist_%s incl WHERE incl.includeindex = %s.index) 
+				) first 
+			) second WHERE `
 		ttfirst = fmt.Sprintf(tp, au, ss.TTName, au)
 	}
 

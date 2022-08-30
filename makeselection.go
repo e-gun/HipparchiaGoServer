@@ -11,18 +11,16 @@ import (
 )
 
 type SelectValues struct {
-	Auth          string
-	Work          string
-	Start         string
-	End           string
-	AGenre        string
-	WGenre        string
-	ALoc          string
-	WLoc          string
-	IsExcl        bool
-	IsRaw         bool
-	LocusAsString string
-	EndAsString   string
+	Auth   string
+	Work   string
+	AGenre string
+	WGenre string
+	ALoc   string
+	WLoc   string
+	IsExcl bool
+	IsRaw  bool
+	Start  string
+	End    string
 }
 
 // WUID - return work universalid

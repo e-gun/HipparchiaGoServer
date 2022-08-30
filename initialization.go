@@ -168,7 +168,7 @@ func workmapper() map[string]DbWork {
 		thefinds = append(thefinds, thehit)
 	}
 
-	workmap := make(map[string]DbWork, NUMOFWORKS)
+	workmap := make(map[string]DbWork, DBWKMAPSIZE)
 	for _, val := range thefinds {
 		workmap[val.UID] = val
 	}
@@ -199,7 +199,7 @@ func authormapper() map[string]DbAuthor {
 		thefinds = append(thefinds, thehit)
 	}
 
-	authormap := make(map[string]DbAuthor, NUMOFAUTHS)
+	authormap := make(map[string]DbAuthor, DBAUMAPSIZE)
 	for _, val := range thefinds {
 		authormap[val.UID] = val
 	}
@@ -245,7 +245,7 @@ func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[stri
 	}
 
 	// [3] convert slice to map
-	na := make(map[string]DbAuthor, NUMOFAUTHS)
+	na := make(map[string]DbAuthor, DBAUMAPSIZE)
 	for i, a := range asl {
 		na[a.UID] = asl[i]
 	}
@@ -267,7 +267,7 @@ func lemmamapper() map[string]DbLemma {
 	// a list of 140k words is too long to send to 'getlemmahint' without offering quicker access
 	// [HGS] [D: 0.199s][Δ: 0.199s] unnested lemma map built
 
-	unnested := make(map[string]DbLemma)
+	unnested := make(map[string]DbLemma, DBLMMAPSIZE)
 
 	langs := [2]string{"greek", "latin"}
 	t := `SELECT dictionary_entry, xref_number, derivative_forms FROM %s_lemmata`

@@ -261,8 +261,8 @@ func RtSelectionMake(c echo.Context) error {
 	var sel SelectValues
 	sel.Auth = c.QueryParam("auth")
 	sel.Work = c.QueryParam("work")
-	sel.LocusAsString = c.QueryParam("locus")
-	sel.EndAsString = c.QueryParam("entpoint")
+	sel.Start = c.QueryParam("locus")
+	sel.End = c.QueryParam("endpoint")
 	sel.AGenre = c.QueryParam("genre")
 	sel.WGenre = c.QueryParam("wkgenre")
 	sel.ALoc = c.QueryParam("auloc")

@@ -228,7 +228,7 @@ func formatnocontextresults(s SearchStruct) []byte {
 	var rows []string
 	for i, r := range s.Results {
 		rc := ""
-		if i%3 == 0 {
+		if i%3 == 2 {
 			rc = "nthrow"
 		} else {
 			rc = "regular"
@@ -373,6 +373,7 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	//		HGoSrch(second)
 
 	first := originalsrch
+
 	first.Limit = FIRSTSEARCHLIM
 	first = HGoSrch(first)
 
@@ -409,13 +410,13 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	}
 
 	// todo: not near logic
-	second.SearchIn.Passages = newpsg
 
+	second.Limit = originalsrch.Limit
+	second.SearchIn.Passages = newpsg
 	prq := searchlistintoqueries(second)
 
 	second.Queries = prq
-	searches[originalsrch.ID] = second
-	searches[originalsrch.ID] = HGoSrch(searches[originalsrch.ID])
+	searches[originalsrch.ID] = HGoSrch(second)
 
 	// findphrasesacrosslines() check happens just after you exit this function
 
@@ -434,23 +435,21 @@ func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 	for i, r := range ss.Results {
 		// do the "it's all on this line" case separately
 		li := columnpicker(ss.SrchColumn, r)
-		//msg(li, 4)
-		//msg(ss.Seeking, 4)
 		fp := regexp.MustCompile(re)
 		f := fp.MatchString(li)
 		if f {
-			// msg("initial match", 4)
 			valid[r.BuildHyperlink()] = r
 		} else {
 			// msg("'else'", 4)
 			var nxt DbWorkline
 			if i+1 < len(ss.Results) {
 				nxt = ss.Results[i+1]
-				if r.WkUID != nxt.WkUID || r.TbIndex+1 != nxt.TbIndex {
+				if r.TbIndex+1 > AllWorks[r.WkUID].LastLine {
+					nxt = DbWorkline{}
+				} else if r.WkUID != nxt.WkUID || r.TbIndex+1 != nxt.TbIndex {
 					// grab the actual next line (i.e. index = 101)
 					nxt = graboneline(r.FindAuthor(), r.TbIndex+1)
 				}
-
 			} else {
 				// grab the actual next line (i.e. index = 101)
 				nxt = graboneline(r.FindAuthor(), r.TbIndex+1)
@@ -460,7 +459,6 @@ func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 			}
 
 			// combinator dodges double-register of hits
-
 			nl := columnpicker(ss.SrchColumn, nxt)
 			comb := phrasecombinations(re)
 			for _, c := range comb {
