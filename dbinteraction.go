@@ -109,6 +109,23 @@ func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Pool) []DbWorkline {
 	return thesefinds
 }
 
+// graboneline - return a single DbWorkline from a table
+func graboneline(table string, line int64) DbWorkline {
+	dbpool := grabpgsqlconnection()
+	defer dbpool.Close()
+	qt := "SELECT %s FROM %s WHERE index = %s ORDER by index"
+	var prq PrerolledQuery
+	prq.TempTable = ""
+	prq.PsqlData = ""
+	prq.PsqlQuery = fmt.Sprintf(qt, WORLINETEMPLATE, table, strconv.FormatInt(line, 10))
+	foundlines := worklinequery(prq, dbpool)
+	if len(foundlines) != 0 {
+		return foundlines[0]
+	} else {
+		return DbWorkline{}
+	}
+}
+
 // simplecontextgrabber - grab a pile of lines centered around the focusline
 func simplecontextgrabber(table string, focus int64, context int64) []DbWorkline {
 	dbpool := grabpgsqlconnection()
@@ -116,11 +133,10 @@ func simplecontextgrabber(table string, focus int64, context int64) []DbWorkline
 
 	qt := "SELECT %s FROM %s WHERE (index BETWEEN %s AND %s) ORDER by index"
 
-	low := focus - (context / 2)
-	high := focus + (context / 2)
+	low := focus - context
+	high := focus + context
 
 	var prq PrerolledQuery
-
 	prq.TempTable = ""
 	prq.PsqlData = ""
 	prq.PsqlQuery = fmt.Sprintf(qt, WORLINETEMPLATE, table, strconv.FormatInt(low, 10), strconv.FormatInt(high, 10))

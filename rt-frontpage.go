@@ -91,11 +91,11 @@ func makedefaultsession(id string) Session {
 	s.SpuriaOK = true
 	s.AvailDBs = map[string]bool{"greek_dictionary": true, "greek_lemmata": true, "greek_morphology": true, "latin_dictionary": true, "latin_lemmata": true, "latin_morphology": true, "wordcounts_0": true}
 	s.Analogyfinder = false
-	s.HitLimit = 200
+	s.HitLimit = DEFAULTHITLIMIT
 	s.Inclusions.DateRange = [2]string{"-850", "1500"}
 	s.SrchOutSettings.SortHitsBy = "Name"
 	s.SrchOutSettings.SearchContext = 0
-	s.UI.BrowseCtx = 10
+	s.UI.BrowseCtx = DEFAULTBROWSERCTX
 	return s
 }
 

@@ -85,7 +85,7 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 
 	// [b] acquire the lines we need to display in the body
 
-	lines := simplecontextgrabber(au, fc, ctx)
+	lines := simplecontextgrabber(au, fc, ctx/2)
 	k := fmt.Sprintf("%sw%s", au, wk)
 	w := AllWorks[k]
 

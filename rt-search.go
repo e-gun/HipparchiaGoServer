@@ -14,6 +14,7 @@ import (
 
 type SearchStruct struct {
 	User       string
+	ID         string
 	Seeking    string
 	Proximate  string
 	LemmaOne   string
@@ -25,6 +26,7 @@ type SearchStruct struct {
 	ProxVal    int64
 	IsVector   bool
 	Twobox     bool
+	NotNear    bool
 	SrchColumn string // usually "stripped_line", sometimes "accented_line"
 	SrchSyntax string // almost always "~="
 	OrderBy    string // almost always "index" + ASC
@@ -100,6 +102,8 @@ func RtSearchStandard(c echo.Context) error {
 	srch.Proximate = prx
 	srch.LemmaOne = lem
 	srch.LemmaTwo = plm
+	srch.User = user
+	srch.ID = id
 	srch.IsVector = false
 
 	sl := sessionintosearchlist(sessions[user])
@@ -130,19 +134,21 @@ func RtSearchStandard(c echo.Context) error {
 	previous = time.Now()
 
 	srch.Queries = prq
-
 	searches[id] = srch
 
 	// return results via searches[id].Results
 	if searches[id].Twobox {
-		// this can do word + lemma; double lemmata; phrase + phrase...
+		// this needs to be able to do word + lemma; double lemmata; phrase + phrase...
+		// can do:
+		// [1] single + single
+		// [2]
 		// todo: "not near" syntax
 		searches[id] = withinxlinessearch(searches[id])
 	} else {
 		searches[id] = HGoSrch(searches[id])
 	}
 
-	if searches[id].QueryType == "phrase" {
+	if searches[id].QueryType == "phrase" || searches[id].QueryType == "phrase_and_proximity" {
 		// you did HGoSrch() and need to check the windowed lines
 		// withinxlinessearch() has already done the checking
 		// the cannot assign problem...
@@ -181,6 +187,7 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	s.SearchEx = sessions[user].Exclusions
 	s.ProxVal = DEFAULTPROXIMITY
 	s.ProxScope = DEFAULTPROXIMITYSCOPE
+	s.NotNear = false
 	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
 	return s
 }
@@ -406,7 +413,72 @@ func lemmaintoregexslice(hdwd string) []string {
 	return qq
 }
 
-func withinxlinessearch(s SearchStruct) SearchStruct {
+func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
+	// after finding x, look for y within n lines of x
+
+	// "decessionis" near "spem" in Cicero...
+
+	// (part 1)
+	//		HGoSrch(first)
+	//
+	// (part 2)
+	// 		populate a new search list with a ton of passages via the first results
+	//		HGoSrch(second)
+
+	// todo: this won't work with phrases
+
+	first := originalsrch
+	first.Limit = FIRSTSEARCHLIM
+	first = HGoSrch(first)
+
+	osk := originalsrch.Seeking
+	oss := originalsrch.SkgSlice
+	osl := originalsrch.Limit
+
+	msg(fmt.Sprintf("withinxlinessearch(): %d initial hits", len(first.Results)), 4)
+
+	if first.QueryType == "phrase_and_proximity" {
+		mod := first
+		mod.Results = findphrasesacrosslines(first)
+		first = mod
+	}
+
+	msg(fmt.Sprintf("withinxlinessearch(): %d findphrasesacrosslines() hits", len(first.Results)), 4)
+
+	second := first
+	second.Results = []DbWorkline{}
+	second.Queries = []PrerolledQuery{}
+	second.SearchIn = SearchIncExl{}
+	second.SearchEx = SearchIncExl{}
+	second.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
+	second.SkgSlice = second.PrxSlice
+	second.Seeking = second.Proximate
+	second.Proximate = osk
+	second.PrxSlice = oss
+	second.Limit = osl
+	second = setsearchtype(second)
+
+	pt := `%s_FROM_%d_TO_%d`
+
+	var newpsg []string
+	for _, r := range first.Results {
+		np := fmt.Sprintf(pt, r.FindAuthor(), r.TbIndex-originalsrch.ProxVal, r.TbIndex+originalsrch.ProxVal)
+		// fmt.Println(np)
+		newpsg = append(newpsg, np)
+	}
+
+	// todo: not near logic
+	second.SearchIn.Passages = newpsg
+
+	prq := searchlistintoqueries(second)
+	second.Queries = prq
+	searches[originalsrch.ID] = second
+	searches[originalsrch.ID] = HGoSrch(searches[originalsrch.ID])
+
+	return searches[originalsrch.ID]
+}
+
+func old_withinxlinessearch(s SearchStruct) SearchStruct {
 	// after finding x, look for y within n lines of x
 
 	// "decessionis" near "spem" in Cicero...
@@ -435,6 +507,8 @@ func withinxlinessearch(s SearchStruct) SearchStruct {
 
 	// alternate strategy, but not a universal solution to the various types of search linebundles can handle:
 	// ... FROM lt0474 WHERE ( (index BETWEEN 128860 AND 128866) OR (index BETWEEN 39846 AND 39852) OR ... )
+
+	// todo: it looks like we can't do "within 5 lines" this way since the bundle is too small; grablinebundles() instead
 
 	first := s
 	first.Limit = FIRSTSEARCHLIM
@@ -556,50 +630,50 @@ func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 	for i, r := range ss.Results {
 		// do the "it's all on this line" case separately
 		li := columnpicker(ss.SrchColumn, r)
+		//msg(li, 4)
+		//msg(ss.Seeking, 4)
 		fp := regexp.MustCompile(re)
 		f := fp.MatchString(li)
 		if f {
+			// msg("initial match", 4)
 			valid[r.BuildHyperlink()] = r
 		} else {
+			// msg("'else'", 4)
 			var nxt DbWorkline
 			if i+1 < len(ss.Results) {
 				nxt = ss.Results[i+1]
 				if r.WkUID != nxt.WkUID || r.TbIndex+1 != nxt.TbIndex {
 					// grab the actual next line (i.e. index = 101)
-					nn := simplecontextgrabber(r.FindAuthor(), r.TbIndex+1, 1)
-					nxt = nn[0]
+					nxt = graboneline(r.FindAuthor(), r.TbIndex+1)
 				}
+
 			} else {
 				// grab the actual next line (i.e. index = 101)
-				nn := simplecontextgrabber(r.FindAuthor(), r.TbIndex+1, 1)
-				nxt = nn[0]
+				nxt = graboneline(r.FindAuthor(), r.TbIndex+1)
 				if r.WkUID != nxt.WkUID {
-					nxt = DbWorkline{
-						WkUID:       "",
-						TbIndex:     0,
-						Lvl5Value:   "",
-						Lvl4Value:   "",
-						Lvl3Value:   "",
-						Lvl2Value:   "",
-						Lvl1Value:   "",
-						Lvl0Value:   "",
-						MarkedUp:    "",
-						Accented:    "",
-						Stripped:    "",
-						Hypenated:   "",
-						Annotations: "",
-					}
+					nxt = DbWorkline{}
 				}
 			}
 
+			// the following version will double-register some hits; combinator dodges that
+
+			//pattern := regexp.MustCompile(ss.Seeking)
+			//nl := columnpicker(ss.SrchColumn, nxt)
+			//targ := li + " " + nl
+			//fmt.Printf("'%s'\n", targ)
+			//targ = strings.Replace(targ, "  ", " ", -1)
+			//if pattern.MatchString(targ) && r.WkUID == nxt.WkUID {
+			//	valid[r.BuildHyperlink()] = r
+			//}
+
+			nl := columnpicker(ss.SrchColumn, nxt)
+			// msg(nl, 4)
 			comb := phrasecombinations(re)
 			for _, c := range comb {
-				nl := columnpicker(ss.SrchColumn, nxt)
 				fp = regexp.MustCompile(c[0])
 				sp := regexp.MustCompile(c[1])
 				f = fp.MatchString(li)
 				s := sp.MatchString(nl)
-
 				if f && s && r.WkUID == nxt.WkUID {
 					valid[r.BuildHyperlink()] = r
 				}
@@ -668,3 +742,28 @@ func phrasecombinations(phr string) [][2]string {
 
 	return trimmed
 }
+
+/* [python]
+
+Sought »dolor« within 3 lines of »maer«
+Searched 1 works and found 2 passages (0.17s)
+Sorted by name
+{'lt1038': {'temptable': '', 'query': 'SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt1038 WHERE ( (index BETWEEN 1474 AND 1480) OR (index BETWEEN 11397 AND 11403) OR (index BETWEEN 822 AND 828) OR (index BETWEEN 5039 AND 5045) OR (index BETWEEN 2539 AND 2545) OR (index BETWEEN 5129 AND 5135) OR (index BETWEEN 2832 AND 2838) OR (index BETWEEN 11252 AND 11258) OR (index BETWEEN 2885 AND 2891) OR (index BETWEEN 11827 AND 11833) OR (index BETWEEN 8396 AND 8402) OR (index BETWEEN 5383 AND 5389) OR (index BETWEEN 11364 AND 11370) OR (index BETWEEN 384 AND 390) OR (index BETWEEN 6951 AND 6957) OR (index BETWEEN 11826 AND 11832) OR (index BETWEEN 3342 AND 3348) OR (index BETWEEN 1834 AND 1840) OR (index BETWEEN 542 AND 548) OR (index BETWEEN 6980 AND 6986) OR (index BETWEEN 7009 AND 7015) OR (index BETWEEN 9790 AND 9796) OR (index BETWEEN 3305 AND 3311) OR (index BETWEEN 3277 AND 3283) OR (index BETWEEN 4310 AND 4316) OR (index BETWEEN 6297 AND 6303) OR (index BETWEEN 11256 AND 11262) OR (index BETWEEN 199 AND 205) OR (index BETWEEN 5070 AND 5076) OR (index BETWEEN 7140 AND 7146) OR (index BETWEEN 9802 AND 9808) OR (index BETWEEN 11385 AND 11391) OR (index BETWEEN 3262 AND 3268) OR (index BETWEEN 11867 AND 11873) OR (index BETWEEN 12022 AND 12028) OR (index BETWEEN 12104 AND 12110) ) AND ( stripped_line ~* %s )  ORDER BY index ASC LIMIT 200', 'data': ('maer',)}}
+
+
+Sought all 12 known forms of »maeror« within 3 lines of »dolor«
+Searched 1 works and found 2 passages (0.14s)
+Sorted by name
+{'lt1038_0': {'data': '(^|\\s)maerorem(\\s|$)', 'query': 'SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt1038 WHERE ( (index BETWEEN 1474 AND 1480) OR (index BETWEEN 11397 AND 11403) OR (index BETWEEN 822 AND 828) OR (index BETWEEN 5039 AND 5045) OR (index BETWEEN 2539 AND 2545) OR (index BETWEEN 5129 AND 5135) OR (index BETWEEN 2832 AND 2838) OR (index BETWEEN 11252 AND 11258) OR (index BETWEEN 2885 AND 2891) OR (index BETWEEN 11827 AND 11833) OR (index BETWEEN 8396 AND 8402) OR (index BETWEEN 5383 AND 5389) OR (index BETWEEN 11364 AND 11370) OR (index BETWEEN 384 AND 390) OR (index BETWEEN 6951 AND 6957) OR (index BETWEEN 11826 AND 11832) OR (index BETWEEN 3342 AND 3348) OR (index BETWEEN 1834 AND 1840) OR (index BETWEEN 542 AND 548) OR (index BETWEEN 6980 AND 6986) OR (index BETWEEN 7009 AND 7015) OR (index BETWEEN 9790 AND 9796) OR (index BETWEEN 3305 AND 3311) OR (index BETWEEN 3277 AND 3283) OR (index BETWEEN 4310 AND 4316) OR (index BETWEEN 6297 AND 6303) OR (index BETWEEN 11256 AND 11262) OR (index BETWEEN 199 AND 205) OR (index BETWEEN 5070 AND 5076) OR (index BETWEEN 7140 AND 7146) OR (index BETWEEN 9802 AND 9808) OR (index BETWEEN 11385 AND 11391) OR (index BETWEEN 3262 AND 3268) OR (index BETWEEN 11867 AND 11873) OR (index BETWEEN 12022 AND 12028) OR (index BETWEEN 12104 AND 12110) ) AND ( stripped_line ~* %s )  ORDER BY index ASC LIMIT 200', 'temptable': ''}, 'lt1038_1': {'data': '(^|\\s)maerore(\\s|$)', 'query': 'SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt1038 WHERE ( (index BETWEEN 1474 AND 1480) OR (index BETWEEN 11397 AND 11403) OR (index BETWEEN 822 AND 828) OR (index BETWEEN 5039 AND 5045) OR (index BETWEEN 2539 AND 2545) OR (index BETWEEN 5129 AND 5135) OR (index BETWEEN 2832 AND 2838) OR (index BETWEEN 11252 AND 11258) OR (index BETWEEN 2885 AND 2891) OR (index BETWEEN 11827 AND 11833) OR (index BETWEEN 8396 AND 8402) OR (index BETWEEN 5383 AND 5389) OR (index BETWEEN 11364 AND 11370) OR (index BETWEEN 384 AND 390) OR (index BETWEEN 6951 AND 6957) OR (index BETWEEN 11826 AND 11832) OR (index BETWEEN 3342 AND 3348) OR (index BETWEEN 1834 AND 1840) OR (index BETWEEN 542 AND 548) OR (index BETWEEN 6980 AND 6986) OR (index BETWEEN 7009 AND 7015) OR (index BETWEEN 9790 AND 9796) OR (index BETWEEN 3305 AND 3311) OR (index BETWEEN 3277 AND 3283) OR (index BETWEEN 4310 AND 4316) OR (index BETWEEN 6297 AND 6303) OR (index BETWEEN 11256 AND 11262) OR (index BETWEEN 199 AND 205) OR (index BETWEEN 5070 AND 5076) OR (index BETWEEN 7140 AND 7146) OR (index BETWEEN 9802 AND 9808) OR (index BETWEEN 11385 AND 11391) OR (index BETWEEN 3262 AND 3268) OR (index BETWEEN 11867 AND 11873) OR (index BETWEEN 12022 AND 12028) OR (index BETWEEN 12104 AND 12110) ) AND ( stripped_line ~* %s )  ORDER BY index ASC LIMIT 200', 'temptable': ''}, 'lt1038_2': {'data': '(^|\\s)maerores(\\s|$)', 'query': 'SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt1038 WHERE ( (index BETWEEN 1474 AND 1480) OR (index BETWEEN 11397 AND 11403) OR (index BETWEEN 822 AND 828) OR (index BETWEEN 5039 AND 5045) OR (index BETWEEN 2539 AND 2545) OR (index BETWEEN 5129 AND 5135) OR (index BETWEEN 2832 AND 2838) OR (index BETWEEN 11252 AND 11258) OR (index BETWEEN 2885 AND 2891) OR (index BETWEEN 11827 AND 11833) OR (index BETWEEN 8396 AND 8402) OR (index BETWEEN 5383 AND 5389) OR (index BETWEEN 11364 AND 11370) OR (index BETWEEN 384 AND 390) OR (index BETWEEN 6951 AND 6957) OR (index BETWEEN 11826 AND 11832) OR (index BETWEEN 3342 AND 3348) OR (index BETWEEN 1834 AND 1840) OR (index BETWEEN 542 AND 548) OR (index BETWEEN 6980 AND 6986) OR (index BETWEEN 7009 AND 7015) OR (index BETWEEN 9790 AND 9796) OR (index BETWEEN 3305 AND 3311) OR (index BETWEEN 3277 AND 3283) OR (index BETWEEN 4310 AND 4316) OR (index BETWEEN 6297 AND 6303) OR (index BETWEEN 11256 AND 11262) OR (index BETWEEN 199 AND 205) OR (index BETWEEN 5070 AND 5076) OR (index BETWEEN 7140 AND 7146) OR (index BETWEEN 9802 AND 9808) OR (index BETWEEN 11385 AND 11391) OR (index BETWEEN 3262 AND 3268) OR (index BETWEEN 11867 AND 11873) OR (index BETWEEN 12022 AND 12028) OR (index BETWEEN 12104 AND 12110) ) AND ( stripped_line ~* %s )  ORDER BY index ASC LIMIT 200', 'temptable': ''}, 'lt1038_3': {'data': '(^|\\s)maerori(\\s|$)', 'query': 'SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt1038 WHERE ( (index BETWEEN 1474 AND 1480) OR (index BETWEEN 11397 AND 11403) OR (index BETWEEN 822 AND 828) OR (index BETWEEN 5039 AND 5045) OR (index BETWEEN 2539 AND 2545) OR (index BETWEEN 5129 AND 5135) OR (index BETWEEN 2832 AND 2838) OR (index BETWEEN 11252 AND 11258) OR (index BETWEEN 2885 AND 2891) OR (index BETWEEN 11827 AND 11833) OR (index BETWEEN 8396 AND 8402) OR (index BETWEEN 5383 AND 5389) OR (index BETWEEN 11364 AND 11370) OR (index BETWEEN 384 AND 390) OR (index BETWEEN 6951 AND 6957) OR (index BETWEEN 11826 AND 11832) OR (index BETWEEN 3342 AND 3348) OR (index BETWEEN 1834 AND 1840) OR (index BETWEEN 542 AND 548) OR (index BETWEEN 6980 AND 6986) OR (index BETWEEN 7009 AND 7015) OR (index BETWEEN 9790 AND 9796) OR (index BETWEEN 3305 AND 3311) OR (index BETWEEN 3277 AND 3283) OR (index BETWEEN 4310 AND 4316) OR (index BETWEEN 6297 AND 6303) OR (index BETWEEN 11256 AND 11262) OR (index BETWEEN 199 AND 205) OR (index BETWEEN 5070 AND 5076) OR (index BETWEEN 7140 AND 7146) OR (index BETWEEN 9802 AND 9808) OR (index BETWEEN 11385 AND 11391) OR (index BETWEEN 3262 AND 3268) OR (index BETWEEN 11867 AND 11873) OR (index BETWEEN 12022 AND 12028) OR (index BETWEEN 12104 AND 12110) ) AND ( stripped_line ~* %s )  ORDER BY index ASC LIMIT 200', 'temptable': ''}, 'lt1038_4': {'data': '(^|\\s)maeroremq[uv]e(\\s|$)', 'query': 'SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt1038 WHERE ( (index BETWEEN 1474 AND 1480) OR (index BETWEEN 11397 AND 11403) OR (index BETWEEN 822 AND 828) OR (index BETWEEN 5039 AND 5045) OR (index BETWEEN 2539 AND 2545) OR (index BETWEEN 5129 AND 5135) OR (index BETWEEN 2832 AND 2838) OR (index BETWEEN 11252 AND 11258) OR (index BETWEEN 2885 AND 2891) OR (index BETWEEN 11827 AND 11833) OR (index BETWEEN 8396 AND 8402) OR (index BETWEEN 5383 AND 5389) OR (index BETWEEN 11364 AND 11370) OR (index BETWEEN 384 AND 390) OR (index BETWEEN 6951 AND 6957) OR (index BETWEEN 11826 AND 11832) OR (index BETWEEN 3342 AND 3348) OR (index BETWEEN 1834 AND 1840) OR (index BETWEEN 542 AND 548) OR (index BETWEEN 6980 AND 6986) OR (index BETWEEN 7009 AND 7015) OR (index BETWEEN 9790 AND 9796) OR (index BETWEEN 3305 AND 3311) OR (index BETWEEN 3277 AND 3283) OR (index BETWEEN 4310 AND 4316) OR (index BETWEEN 6297 AND 6303) OR (index BETWEEN 11256 AND 11262) OR (index BETWEEN 199 AND 205) OR (index BETWEEN 5070 AND 5076) OR (index BETWEEN 7140 AND 7146) OR (index BETWEEN 9802 AND 9808) OR (index BETWEEN 11385 AND 11391) OR (index BETWEEN 3262 AND 3268) OR (index BETWEEN 11867 AND 11873) OR (index BETWEEN 12022 AND 12028) OR (index BETWEEN 12104 AND 12110) ) AND ( stripped_line ~* %s )  ORDER BY index ASC LIMIT 200', 'temptable': ''}, 'lt1038_5': {'data': '(^|\\s)maerorib[uv]s(\\s|$)', 'query': 'SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt1038 WHERE ( (index BETWEEN 1474 AND 1480) OR (index BETWEEN 11397 AND 11403) OR (index BETWEEN 822 AND 828) OR (index BETWEEN 5039 AND 5045) OR (index BETWEEN 2539 AND 2545) OR (index BETWEEN 5129 AND 5135) OR (index BETWEEN 2832 AND 2838) OR (index BETWEEN 11252 AND 11258) OR (index BETWEEN 2885 AND 2891) OR (index BETWEEN 11827 AND 11833) OR (index BETWEEN 8396 AND 8402) OR (index BETWEEN 5383 AND 5389) OR (index BETWEEN 11364 AND 11370) OR (index BETWEEN 384 AND 390) OR (index BETWEEN 6951 AND 6957) OR (index BETWEEN 11826 AND 11832) OR (index BETWEEN 3342 AND 3348) OR (index BETWEEN 1834 AND 1840) OR (index BETWEEN 542 AND 548) OR (index BETWEEN 6980 AND 6986) OR (index BETWEEN 7009 AND 7015) OR (index BETWEEN 9790 AND 9796) OR (index BETWEEN 3305 AND 3311) OR (index BETWEEN 3277 AND 3283) OR (index BETWEEN 4310 AND 4316) OR (index BETWEEN 6297 AND 6303) OR (index BETWEEN 11256 AND 11262) OR (index BETWEEN 199 AND 205) OR (index BETWEEN 5070 AND 5076) OR (index BETWEEN 7140 AND 7146) OR (index BETWEEN 9802 AND 9808) OR (index BETWEEN 11385 AND 11391) OR (index BETWEEN 3262 AND 3268) OR (index BETWEEN 11867 AND 11873) OR (index BETWEEN 12022 AND 12028) OR (index BETWEEN 12104 AND 12110) ) AND ( stripped_line ~* %s )  ORDER BY index ASC LIMIT 200', 'temptable': ''}, 'lt1038_6': {'data': '(^|\\s)maeroris(\\s|$)', 'query': 'SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt1038 WHERE ( (index BETWEEN 1474 AND 1480) OR (index BETWEEN 11397 AND 11403) OR (index BETWEEN 822 AND 828) OR (index BETWEEN 5039 AND 5045) OR (index BETWEEN 2539 AND 2545) OR (index BETWEEN 5129 AND 5135) OR (index BETWEEN 2832 AND 2838) OR (index BETWEEN 11252 AND 11258) OR (index BETWEEN 2885 AND 2891) OR (index BETWEEN 11827 AND 11833) OR (index BETWEEN 8396 AND 8402) OR (index BETWEEN 5383 AND 5389) OR (index BETWEEN 11364 AND 11370) OR (index BETWEEN 384 AND 390) OR (index BETWEEN 6951 AND 6957) OR (index BETWEEN 11826 AND 11832) OR (index BETWEEN 3342 AND 3348) OR (index BETWEEN 1834 AND 1840) OR (index BETWEEN 542 AND 548) OR (index BETWEEN 6980 AND 6986) OR (index BETWEEN 7009 AND 7015) OR (index BETWEEN 9790 AND 9796) OR (index BETWEEN 3305 AND 3311) OR (index BETWEEN 3277 AND 3283) OR (index BETWEEN 4310 AND 4316) OR (index BETWEEN 6297 AND 6303) OR (index BETWEEN 11256 AND 11262) OR (index BETWEEN 199 AND 205) OR (index BETWEEN 5070 AND 5076) OR (index BETWEEN 7140 AND 7146) OR (index BETWEEN 9802 AND 9808) OR (index BETWEEN 11385 AND 11391) OR (index BETWEEN 3262 AND 3268) OR (index BETWEEN 11867 AND 11873) OR (index BETWEEN 12022 AND 12028) OR (index BETWEEN 12104 AND 12110) ) AND ( stripped_line ~* %s )  ORDER BY index ASC LIMIT 200', 'temptable': ''}, 'lt1038_7': {'data': '(^|\\s)maerorq[uv]e(\\s|$)', 'query': 'SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt1038 WHERE ( (index BETWEEN 1474 AND 1480) OR (index BETWEEN 11397 AND 11403) OR (index BETWEEN 822 AND 828) OR (index BETWEEN 5039 AND 5045) OR (index BETWEEN 2539 AND 2545) OR (index BETWEEN 5129 AND 5135) OR (index BETWEEN 2832 AND 2838) OR (index BETWEEN 11252 AND 11258) OR (index BETWEEN 2885 AND 2891) OR (index BETWEEN 11827 AND 11833) OR (index BETWEEN 8396 AND 8402) OR (index BETWEEN 5383 AND 5389) OR (index BETWEEN 11364 AND 11370) OR (index BETWEEN 384 AND 390) OR (index BETWEEN 6951 AND 6957) OR (index BETWEEN 11826 AND 11832) OR (index BETWEEN 3342 AND 3348) OR (index BETWEEN 1834 AND 1840) OR (index BETWEEN 542 AND 548) OR (index BETWEEN 6980 AND 6986) OR (index BETWEEN 7009 AND 7015) OR (index BETWEEN 9790 AND 9796) OR (index BETWEEN 3305 AND 3311) OR (index BETWEEN 3277 AND 3283) OR (index BETWEEN 4310 AND 4316) OR (index BETWEEN 6297 AND 6303) OR (index BETWEEN 11256 AND 11262) OR (index BETWEEN 199 AND 205) OR (index BETWEEN 5070 AND 5076) OR (index BETWEEN 7140 AND 7146) OR (index BETWEEN 9802 AND 9808) OR (index BETWEEN 11385 AND 11391) OR (index BETWEEN 3262 AND 3268) OR (index BETWEEN 11867 AND 11873) OR (index BETWEEN 12022 AND 12028) OR (index BETWEEN 12104 AND 12110) ) AND ( stripped_line ~* %s )  ORDER BY index ASC LIMIT 200', 'temptable': ''}, 'lt1038_8': {'data': '(^|\\s)maerorest(\\s|$)', 'query': 'SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt1038 WHERE ( (index BETWEEN 1474 AND 1480) OR (index BETWEEN 11397 AND 11403) OR (index BETWEEN 822 AND 828) OR (index BETWEEN 5039 AND 5045) OR (index BETWEEN 2539 AND 2545) OR (index BETWEEN 5129 AND 5135) OR (index BETWEEN 2832 AND 2838) OR (index BETWEEN 11252 AND 11258) OR (index BETWEEN 2885 AND 2891) OR (index BETWEEN 11827 AND 11833) OR (index BETWEEN 8396 AND 8402) OR (index BETWEEN 5383 AND 5389) OR (index BETWEEN 11364 AND 11370) OR (index BETWEEN 384 AND 390) OR (index BETWEEN 6951 AND 6957) OR (index BETWEEN 11826 AND 11832) OR (index BETWEEN 3342 AND 3348) OR (index BETWEEN 1834 AND 1840) OR (index BETWEEN 542 AND 548) OR (index BETWEEN 6980 AND 6986) OR (index BETWEEN 7009 AND 7015) OR (index BETWEEN 9790 AND 9796) OR (index BETWEEN 3305 AND 3311) OR (index BETWEEN 3277 AND 3283) OR (index BETWEEN 4310 AND 4316) OR (index BETWEEN 6297 AND 6303) OR (index BETWEEN 11256 AND 11262) OR (index BETWEEN 199 AND 205) OR (index BETWEEN 5070 AND 5076) OR (index BETWEEN 7140 AND 7146) OR (index BETWEEN 9802 AND 9808) OR (index BETWEEN 11385 AND 11391) OR (index BETWEEN 3262 AND 3268) OR (index BETWEEN 11867 AND 11873) OR (index BETWEEN 12022 AND 12028) OR (index BETWEEN 12104 AND 12110) ) AND ( stripped_line ~* %s )  ORDER BY index ASC LIMIT 200', 'temptable': ''}, 'lt1038_9': {'data': '(^|\\s)maeror[uv]m(\\s|$)', 'query': 'SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt1038 WHERE ( (index BETWEEN 1474 AND 1480) OR (index BETWEEN 11397 AND 11403) OR (index BETWEEN 822 AND 828) OR (index BETWEEN 5039 AND 5045) OR (index BETWEEN 2539 AND 2545) OR (index BETWEEN 5129 AND 5135) OR (index BETWEEN 2832 AND 2838) OR (index BETWEEN 11252 AND 11258) OR (index BETWEEN 2885 AND 2891) OR (index BETWEEN 11827 AND 11833) OR (index BETWEEN 8396 AND 8402) OR (index BETWEEN 5383 AND 5389) OR (index BETWEEN 11364 AND 11370) OR (index BETWEEN 384 AND 390) OR (index BETWEEN 6951 AND 6957) OR (index BETWEEN 11826 AND 11832) OR (index BETWEEN 3342 AND 3348) OR (index BETWEEN 1834 AND 1840) OR (index BETWEEN 542 AND 548) OR (index BETWEEN 6980 AND 6986) OR (index BETWEEN 7009 AND 7015) OR (index BETWEEN 9790 AND 9796) OR (index BETWEEN 3305 AND 3311) OR (index BETWEEN 3277 AND 3283) OR (index BETWEEN 4310 AND 4316) OR (index BETWEEN 6297 AND 6303) OR (index BETWEEN 11256 AND 11262) OR (index BETWEEN 199 AND 205) OR (index BETWEEN 5070 AND 5076) OR (index BETWEEN 7140 AND 7146) OR (index BETWEEN 9802 AND 9808) OR (index BETWEEN 11385 AND 11391) OR (index BETWEEN 3262 AND 3268) OR (index BETWEEN 11867 AND 11873) OR (index BETWEEN 12022 AND 12028) OR (index BETWEEN 12104 AND 12110) ) AND ( stripped_line ~* %s )  ORDER BY index ASC LIMIT 200', 'temptable': ''}, 'lt1038_10': {'data': '(^|\\s)maeroreq[uv]e(\\s|$)', 'query': 'SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt1038 WHERE ( (index BETWEEN 1474 AND 1480) OR (index BETWEEN 11397 AND 11403) OR (index BETWEEN 822 AND 828) OR (index BETWEEN 5039 AND 5045) OR (index BETWEEN 2539 AND 2545) OR (index BETWEEN 5129 AND 5135) OR (index BETWEEN 2832 AND 2838) OR (index BETWEEN 11252 AND 11258) OR (index BETWEEN 2885 AND 2891) OR (index BETWEEN 11827 AND 11833) OR (index BETWEEN 8396 AND 8402) OR (index BETWEEN 5383 AND 5389) OR (index BETWEEN 11364 AND 11370) OR (index BETWEEN 384 AND 390) OR (index BETWEEN 6951 AND 6957) OR (index BETWEEN 11826 AND 11832) OR (index BETWEEN 3342 AND 3348) OR (index BETWEEN 1834 AND 1840) OR (index BETWEEN 542 AND 548) OR (index BETWEEN 6980 AND 6986) OR (index BETWEEN 7009 AND 7015) OR (index BETWEEN 9790 AND 9796) OR (index BETWEEN 3305 AND 3311) OR (index BETWEEN 3277 AND 3283) OR (index BETWEEN 4310 AND 4316) OR (index BETWEEN 6297 AND 6303) OR (index BETWEEN 11256 AND 11262) OR (index BETWEEN 199 AND 205) OR (index BETWEEN 5070 AND 5076) OR (index BETWEEN 7140 AND 7146) OR (index BETWEEN 9802 AND 9808) OR (index BETWEEN 11385 AND 11391) OR (index BETWEEN 3262 AND 3268) OR (index BETWEEN 11867 AND 11873) OR (index BETWEEN 12022 AND 12028) OR (index BETWEEN 12104 AND 12110) ) AND ( stripped_line ~* %s )  ORDER BY index ASC LIMIT 200', 'temptable': ''}, 'lt1038_11': {'data': '(^|\\s)maeror(\\s|$)', 'query': 'SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt1038 WHERE ( (index BETWEEN 1474 AND 1480) OR (index BETWEEN 11397 AND 11403) OR (index BETWEEN 822 AND 828) OR (index BETWEEN 5039 AND 5045) OR (index BETWEEN 2539 AND 2545) OR (index BETWEEN 5129 AND 5135) OR (index BETWEEN 2832 AND 2838) OR (index BETWEEN 11252 AND 11258) OR (index BETWEEN 2885 AND 2891) OR (index BETWEEN 11827 AND 11833) OR (index BETWEEN 8396 AND 8402) OR (index BETWEEN 5383 AND 5389) OR (index BETWEEN 11364 AND 11370) OR (index BETWEEN 384 AND 390) OR (index BETWEEN 6951 AND 6957) OR (index BETWEEN 11826 AND 11832) OR (index BETWEEN 3342 AND 3348) OR (index BETWEEN 1834 AND 1840) OR (index BETWEEN 542 AND 548) OR (index BETWEEN 6980 AND 6986) OR (index BETWEEN 7009 AND 7015) OR (index BETWEEN 9790 AND 9796) OR (index BETWEEN 3305 AND 3311) OR (index BETWEEN 3277 AND 3283) OR (index BETWEEN 4310 AND 4316) OR (index BETWEEN 6297 AND 6303) OR (index BETWEEN 11256 AND 11262) OR (index BETWEEN 199 AND 205) OR (index BETWEEN 5070 AND 5076) OR (index BETWEEN 7140 AND 7146) OR (index BETWEEN 9802 AND 9808) OR (index BETWEEN 11385 AND 11391) OR (index BETWEEN 3262 AND 3268) OR (index BETWEEN 11867 AND 11873) OR (index BETWEEN 12022 AND 12028) OR (index BETWEEN 12104 AND 12110) ) AND ( stripped_line ~* %s )  ORDER BY index ASC LIMIT 200', 'temptable': ''}}
+
+
+Sought »dolor« within 3 lines of »penates maeroris«
+Searched 1 works and found 1 passage (0.17s)
+Sorted by name
+{'lt1038': {'temptable': '', 'query': "\n    SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value, second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM\n        ( SELECT * FROM\n            ( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations, concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) ) AS linebundle\n                FROM lt1038  ) first\n        ) second\n    WHERE second.linebundle ~ %s  LIMIT 2000000", 'data': ('penates maeroris',)}}
+*/
+
+/* debug
+can't find "Amisit enim | filiam" @ pliny epp. book 5, letter 16, section 7
+"enim filiam" is a great test because 3 of the 4 hits are at line ends
+*/

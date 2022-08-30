@@ -5,3 +5,4 @@ go.sum
 .DS_Store
 z_*
 /HipparchiaGoServer
+/HipparchiaGoServer-*

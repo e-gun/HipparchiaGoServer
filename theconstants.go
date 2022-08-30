@@ -16,6 +16,8 @@ const (
 	INCERTADATE           = 2500
 	MINDATE               = -850
 	MAXDATE               = 1500
+	DEFAULTBROWSERCTX     = 20
+	DEFAULTHITLIMIT       = 200
 	DEFAULTPROXIMITY      = 3
 	DEFAULTPROXIMITYSCOPE = "lines"
 	DEFAULTLOGLEVEL       = 3
