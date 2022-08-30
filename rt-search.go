@@ -20,10 +20,11 @@ type SearchStruct struct {
 	LemmaOne   string
 	LemmaTwo   string
 	Summary    string
-	QueryType  string
 	ProxScope  string // "lines" or "words"
 	ProxType   string // "near" or "not near"
 	ProxVal    int64
+	HasLemma   bool
+	HasPhrase  bool
 	IsVector   bool
 	Twobox     bool
 	NotNear    bool
@@ -53,14 +54,6 @@ func (s SearchStruct) FmtOrderBy() string {
 		ob = fmt.Sprintf(a, s.OrderBy, "")
 	}
 	return ob
-}
-
-func (s SearchStruct) HasLemma() bool {
-	if len(s.LemmaOne) > 0 || len(s.LemmaTwo) > 0 {
-		return true
-	} else {
-		return false
-	}
 }
 
 type SearchOutput struct {
@@ -95,6 +88,9 @@ func RtSearchStandard(c echo.Context) error {
 	plm := c.QueryParam("plm")
 
 	srch := builddefaultsearch(c)
+	// HasPhrase makes us use a fake limit temporarily
+	reallimit := srch.Limit
+
 	timetracker("A", "builddefaultsearch()", start, previous)
 	previous = time.Now()
 
@@ -117,12 +113,6 @@ func RtSearchStandard(c echo.Context) error {
 	// must happen before searchlistintoqueries()
 	srch = setsearchtype(srch)
 
-	//if srch.LemmaTwo != "" {
-	//	srch.PrxSlice = lemmaintoregexslice(srch.LemmaTwo)
-	//} else {
-	//	srch.PrxSlice = append(srch.PrxSlice, srch.Proximate)
-	//}
-
 	prq := searchlistintoqueries(srch)
 	timetracker("C", "searchlistintoqueries()", start, previous)
 	previous = time.Now()
@@ -132,23 +122,22 @@ func RtSearchStandard(c echo.Context) error {
 
 	// return results via searches[id].Results
 	if searches[id].Twobox {
-		// this needs to be able to do word + lemma; double lemmata; phrase + phrase...
-		// can do:
-		// [1] single + single
-		// [2]
+		// todo: triple-check results against python
 		// todo: "not near" syntax
-		msg("twobox", 4)
 		searches[id] = withinxlinessearch(searches[id])
 	} else {
 		searches[id] = HGoSrch(searches[id])
 	}
 
-	if searches[id].QueryType == "phrase" || searches[id].QueryType == "phrase_and_proximity" {
+	if searches[id].HasPhrase {
 		// you did HGoSrch() and need to check the windowed lines
 		// withinxlinessearch() has already done the checking
 		// the cannot assign problem...
 		mod := searches[id]
 		mod.Results = findphrasesacrosslines(searches[id])
+		if int64(len(mod.Results)) > reallimit {
+			mod.Results = mod.Results[0:reallimit]
+		}
 		searches[id] = mod
 	}
 
@@ -183,55 +172,34 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	s.ProxVal = DEFAULTPROXIMITY
 	s.ProxScope = DEFAULTPROXIMITYSCOPE
 	s.NotNear = false
+	s.Twobox = false
+	s.HasPhrase = false
+	s.HasLemma = false
 	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
 	return s
 }
 
 func setsearchtype(srch SearchStruct) SearchStruct {
-	containsphrase := false
-	containslemma := false
-	twobox := false
+	// skip detailed proximate checks because second pass search just feeds all of that into the primary fields
+
+	ps := srch.Proximate != ""
+	psl := srch.LemmaTwo != ""
+
+	if ps || psl {
+		srch.Twobox = true
+	}
 
 	// will not find greek...
 	// pattern := regexp.MustCompile(`\w\s\w`)
 
 	pattern := regexp.MustCompile(`[A-Za-zΑ-ΩϹα-ωϲ]\s[A-Za-zΑ-ΩϹα-ωϲ]`)
 
-	if pattern.MatchString(srch.Seeking) || pattern.MatchString(srch.Proximate) {
-		containsphrase = true
+	if pattern.MatchString(srch.Seeking) {
+		srch.HasPhrase = true
 	}
-	if srch.LemmaOne != "" || srch.LemmaTwo != "" {
-		containslemma = true
-	}
-	if srch.LemmaOne != "" && srch.LemmaTwo != "" {
-		twobox = true
-	}
-
-	if srch.Seeking != "" && srch.Proximate != "" {
-		twobox = true
-	}
-
-	if srch.Seeking != "" && srch.LemmaTwo != "" {
-		twobox = true
-	}
-
-	if srch.LemmaOne != "" && srch.Proximate != "" {
-		twobox = true
-	}
-
-	srch.Twobox = twobox
-
-	if containsphrase && !twobox {
-		srch.QueryType = "phrase"
-	} else if containsphrase && twobox {
-		srch.QueryType = "phrase_and_proximity"
-	} else if containslemma && !twobox {
-		srch.QueryType = "simplelemma"
+	if srch.LemmaOne != "" {
+		srch.HasLemma = true
 		srch.SrchColumn = "accented_line"
-	} else if twobox {
-		srch.QueryType = "proximity"
-	} else {
-		srch.QueryType = "simple"
 	}
 
 	return srch
@@ -354,27 +322,6 @@ func formatbcedate(d string) string {
 	return d
 }
 
-func lemmaintoflatregex(hdwd string) string {
-	// a single regex string for all forms
-	var re string
-	if _, ok := AllLemm[hdwd]; !ok {
-		msg(fmt.Sprintf("lemmaintoregexslice() could not find '%s'", hdwd), 1)
-		return re
-	}
-
-	tp := `(^|\s)%s(\s|$)`
-	lemm := AllLemm[hdwd].Deriv
-
-	var bnd []string
-	for _, l := range lemm {
-		bnd = append(bnd, fmt.Sprintf(tp, l))
-	}
-
-	re = strings.Join(bnd, "|")
-
-	return re
-}
-
 func lemmaintoregexslice(hdwd string) []string {
 	// rather than do one word per query, bundle things up: some words have >100 forms
 	// ...(^|\\s)ἐδηλώϲαντο(\\s|$)|(^|\\s)δεδηλωμένοϲ(\\s|$)|(^|\\s)δήλουϲ(\\s|$)|(^|\\s)δηλούϲαϲ(\\s|$)...
@@ -410,8 +357,13 @@ func lemmaintoregexslice(hdwd string) []string {
 
 func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	// after finding x, look for y within n lines of x
-
-	// "decessionis" near "spem" in Cicero...
+	// can do:
+	// [1] single + single
+	// [2] lemma + single
+	// [3] lemma + lemma
+	// [4] phrase + single
+	// [5] phrase + lemma
+	// [6] phrase + phrase
 
 	// (part 1)
 	//		HGoSrch(first)
@@ -420,26 +372,18 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	// 		populate a new search list with a ton of passages via the first results
 	//		HGoSrch(second)
 
-	// todo: this won't work with phrases
-
 	first := originalsrch
 	first.Limit = FIRSTSEARCHLIM
 	first = HGoSrch(first)
 
-	// osk := originalsrch.Seeking
-	// oss := originalsrch.SkgSlice
-	osl := originalsrch.Limit
-	// oslm := originalsrch.LemmaOne
-
 	msg(fmt.Sprintf("withinxlinessearch(): %d initial hits", len(first.Results)), 4)
 
-	if first.QueryType == "phrase_and_proximity" {
+	if first.HasPhrase {
 		mod := first
+		// this will cut the hits by c. 50%
 		mod.Results = findphrasesacrosslines(first)
 		first = mod
 	}
-
-	msg(fmt.Sprintf("withinxlinessearch(): %d findphrasesacrosslines() hits", len(first.Results)), 4)
 
 	second := first
 	second.Results = []DbWorkline{}
@@ -453,11 +397,8 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	second.Proximate = ""
 	second.PrxSlice = []string{}
 	second.LemmaTwo = ""
-	second.Limit = osl
 
 	second = setsearchtype(second)
-
-	msg(fmt.Sprintf("ll1: %s\nll2:%s\n", second.QueryType, second.LemmaTwo), 4)
 
 	pt := `%s_FROM_%d_TO_%d`
 
@@ -476,147 +417,9 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	searches[originalsrch.ID] = second
 	searches[originalsrch.ID] = HGoSrch(searches[originalsrch.ID])
 
+	// findphrasesacrosslines() check happens just after you exit this function
+
 	return searches[originalsrch.ID]
-}
-
-func old_withinxlinessearch(s SearchStruct) SearchStruct {
-	// after finding x, look for y within n lines of x
-
-	// "decessionis" near "spem" in Cicero...
-
-	// (part 1)
-	//		HGoSrch(first)
-	//
-	// (part 2.1)
-	//		CREATE TEMPORARY TABLE lt0474_includelist_24bfe76dc1124f07becabb389a4f393d AS
-	//		SELECT values AS includeindex FROM
-	//			unnest(ARRAY[39844,39845,39846,39847,39848,39849,39850,39851,39852,39853,128858,128859,128860,128861,128862,128863,128864,128865,128866,128867,138278,138279,138280,138281,138282,138283,138284,138285,138286,138287])
-	//		values
-
-	// (part 2.2)
-	// 		SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value,
-	//			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
-	//		( SELECT * FROM
-	//			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
-	//				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) ) AS linebundle
-	//				FROM
-	//	lt0474 WHERE EXISTS
-	//		(SELECT 1 FROM lt0474_includelist_24bfe76dc1124f07becabb389a4f393d incl
-	//			WHERE incl.includeindex = lt0474.index)
-	//					) first
-	//				) second WHERE second.linebundle ~ 'spem' LIMIT 200;
-
-	// alternate strategy, but not a universal solution to the various types of search linebundles can handle:
-	// ... FROM lt0474 WHERE ( (index BETWEEN 128860 AND 128866) OR (index BETWEEN 39846 AND 39852) OR ... )
-
-	// todo: it looks like we can't do "within 5 lines" this way since the bundle is too small; grablinebundles() instead
-
-	first := s
-	first.Limit = FIRSTSEARCHLIM
-	first = HGoSrch(first)
-
-	msg(fmt.Sprintf("withinxlinessearch(): %d initial hits", len(first.Results)), 4)
-
-	// convert the hits into new selections:
-	// a temptable will be built once you know which lines do you need from which works
-
-	var required = make(map[string][]int64)
-	for _, r := range first.Results {
-		w := AllWorks[r.WkUID]
-		var idx []int64
-		for i := r.TbIndex - s.ProxVal; i < r.TbIndex+s.ProxVal; i++ {
-			if i >= w.FirstLine && i <= w.LastLine {
-				idx = append(idx, i)
-			}
-		}
-		required[w.FindAuthor()] = append(required[w.FindAuthor()], idx...)
-	}
-
-	// prepare new search
-	fss := first.SkgSlice
-
-	second := first
-	second.Results = []DbWorkline{}
-	second.Queries = []PrerolledQuery{}
-	second.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
-	second.SkgSlice = second.PrxSlice
-	second.PrxSlice = fss
-	second.Limit = s.Limit
-
-	var ttsq = make(map[string]string)
-	ctt := `
-	CREATE TEMPORARY TABLE %s_includelist_%s AS 
-		SELECT values AS includeindex FROM 
-			unnest(ARRAY[%s])
-		values`
-
-	for r, vv := range required {
-		var arr []string
-		for _, v := range vv {
-			arr = append(arr, strconv.FormatInt(v, 10))
-		}
-		a := strings.Join(arr, ",")
-		ttsq[r] = fmt.Sprintf(ctt, r, second.TTName, a)
-	}
-
-	seltempl := PRFXSELFRM + CONCATSELFROM
-
-	wha := `
-	%s WHERE EXISTS 
-		(SELECT 1 FROM %s_includelist_%s incl 
-			WHERE incl.includeindex = %s.index)`
-	whb := ` WHERE second.linebundle ~ '%s' LIMIT %d;`
-	var prqq = make(map[string][]PrerolledQuery)
-	for i, q := range second.SkgSlice {
-		for r, _ := range required {
-			var prq PrerolledQuery
-			modname := second.TTName + fmt.Sprintf("_%d", i)
-			prq.TempTable = strings.Replace(ttsq[r], second.TTName, modname, -1)
-			whc := fmt.Sprintf(wha, r, r, modname, r)
-			whd := fmt.Sprintf(whb, q, second.Limit)
-			prq.PsqlQuery = fmt.Sprintf(seltempl, whc) + whd
-			prqq[r] = append(prqq[r], prq)
-		}
-	}
-
-	for _, q := range prqq {
-		second.Queries = append(second.Queries, q...)
-	}
-
-	second = HGoSrch(second)
-
-	// windows of lines come back: e.g., three lines that look like they match when only one matches [3131, 3132, 3133]
-	// figure out which line is really the line with the goods
-
-	phrasefinder := regexp.MustCompile(`[A-Za-zΑ-ΩϹα-ωϲ]\s[A-Za-zΑ-ΩϹα-ωϲ]`)
-
-	if phrasefinder.MatchString(second.Seeking) {
-		second.Results = findphrasesacrosslines(second)
-	} else {
-		second.Results = validatebundledhits(second)
-	}
-
-	return second
-}
-
-func validatebundledhits(ss SearchStruct) []DbWorkline {
-	// if the second search term available in the window of lines?
-	re := ss.Proximate
-	if ss.LemmaTwo != "" {
-		re = lemmaintoflatregex(ss.LemmaTwo)
-	}
-
-	find := regexp.MustCompile(re)
-
-	var valid []DbWorkline
-	for _, r := range ss.Results {
-		li := columnpicker(ss.SrchColumn, r)
-		if find.MatchString(li) {
-			valid = append(valid, r)
-		}
-	}
-
-	return valid
 }
 
 func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
@@ -656,19 +459,9 @@ func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 				}
 			}
 
-			// the following version will double-register some hits; combinator dodges that
-
-			//pattern := regexp.MustCompile(ss.Seeking)
-			//nl := columnpicker(ss.SrchColumn, nxt)
-			//targ := li + " " + nl
-			//fmt.Printf("'%s'\n", targ)
-			//targ = strings.Replace(targ, "  ", " ", -1)
-			//if pattern.MatchString(targ) && r.WkUID == nxt.WkUID {
-			//	valid[r.BuildHyperlink()] = r
-			//}
+			// combinator dodges double-register of hits
 
 			nl := columnpicker(ss.SrchColumn, nxt)
-			// msg(nl, 4)
 			comb := phrasecombinations(re)
 			for _, c := range comb {
 				fp = regexp.MustCompile(c[0])

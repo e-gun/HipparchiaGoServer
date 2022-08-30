@@ -3,7 +3,7 @@ package main
 const (
 	MYNAME                = "Hipparchia Golang Server"
 	SHORTNAME             = "HGS"
-	VERSION               = "0.1.2"
+	VERSION               = "0.1.3"
 	PSQ                   = `{"Host": "localhost", "Port": 5432, "User": "hippa_wr", "Pass": "", "DBName": "hipparchiaDB"}`
 	PSDefaultHost         = "localhost"
 	PSDefaultUser         = "hippa_wr"
@@ -25,6 +25,9 @@ const (
 	MINBROWSERWIDTH       = 90
 	MAXLEMMACHUNKSIZE     = 20
 	FIRSTSEARCHLIM        = 999999
+	DBWKMAPSIZE           = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
+	DBAUMAPSIZE           = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
+	DBLMMAPSIZE           = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
 
 	// hipparchiaDB=# select * from gr0001 limit 0;
 	// index | wkuniversalid | level_05_value | level_04_value | level_03_value | level_02_value | level_01_value | level_00_value | marked_up_line | accented_line | stripped_line | hyphenated_words | annotations

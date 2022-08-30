@@ -36,7 +36,8 @@ const (
 	CONCATSELFROM = `
 		( SELECT * FROM
 			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
-				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) ) AS linebundle
+				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) ) 
+			AS linebundle
 				FROM %s 
 					) first 
 				) second`
@@ -73,7 +74,7 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 	inc := ss.SearchIn
 	exc := ss.SearchEx
 
-	if ss.LemmaOne != "" {
+	if ss.HasLemma {
 		ss.SkgSlice = lemmaintoregexslice(ss.LemmaOne)
 	} else {
 		ss.SkgSlice = append(ss.SkgSlice, ss.Seeking)
@@ -151,7 +152,7 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 	}
 
 	seltempl := SELECTFROM
-	if ss.QueryType == "phrase" {
+	if ss.HasPhrase {
 		seltempl = PRFXSELFRM + CONCATSELFROM
 	}
 
@@ -186,7 +187,7 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 
 		for _, skg := range ss.SkgSlice {
 			var tail string
-			if ss.QueryType != "phrase" {
+			if !ss.HasPhrase {
 				// there is SECOND element
 				qb.WhrTrm = fmt.Sprintf(`%s %s '%s' `, ss.SrchColumn, ss.SrchSyntax, skg)
 				tail = ss.FmtOrderBy()
@@ -201,7 +202,8 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 			if len(qb.WhrIdxInc) == 0 && len(qb.WhrIdxExc) == 0 {
 				qtmpl = `%s WHERE %s %s%s%s`
 			} else if len(qb.WhrIdxInc) != 0 && len(qb.WhrIdxExc) == 0 {
-				qtmpl = `%s WHERE %s AND ( %s ) %s%s`
+				// qtmpl = `%s WHERE %s AND ( %s ) %s%s`
+				qtmpl = `%s WHERE %s ( %s ) AND %s%s`
 			} else if len(qb.WhrIdxInc) == 0 && len(qb.WhrIdxExc) != 0 {
 				qtmpl = `%s WHERE %s AND%s ( %s ) %s`
 			} else if len(qb.WhrIdxInc) != 0 && len(qb.WhrIdxExc) != 0 {
