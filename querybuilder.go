@@ -80,7 +80,7 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 	inc := ss.SearchIn
 	exc := ss.SearchEx
 
-	if ss.HasLemma {
+	if len(ss.LemmaOne) != 0 {
 		ss.SkgSlice = lemmaintoregexslice(ss.LemmaOne)
 	} else {
 		ss.SkgSlice = append(ss.SkgSlice, ss.Seeking)

@@ -19,6 +19,7 @@ type SearchStruct struct {
 	Proximate  string
 	LemmaOne   string
 	LemmaTwo   string
+	InitSum    string
 	Summary    string
 	ProxScope  string // "lines" or "words"
 	ProxType   string // "near" or "not near"
@@ -102,6 +103,11 @@ func RtSearchStandard(c echo.Context) error {
 	srch.ID = id
 	srch.IsVector = false
 
+	// must happen before searchlistintoqueries()
+	srch = setsearchtype(srch)
+
+	srch.InitSum = formatinitialsummary(srch)
+
 	sl := sessionintosearchlist(sessions[user])
 	srch.SearchIn = sl.Inc
 	srch.SearchEx = sl.Excl
@@ -109,9 +115,6 @@ func RtSearchStandard(c echo.Context) error {
 
 	timetracker("B", "sessionintosearchlist()", start, previous)
 	previous = time.Now()
-
-	// must happen before searchlistintoqueries()
-	srch = setsearchtype(srch)
 
 	prq := searchlistintoqueries(srch)
 	timetracker("C", "searchlistintoqueries()", start, previous)
@@ -197,7 +200,8 @@ func setsearchtype(srch SearchStruct) SearchStruct {
 	if pattern.MatchString(srch.Seeking) {
 		srch.HasPhrase = true
 	}
-	if srch.LemmaOne != "" {
+
+	if len(srch.LemmaOne) != 0 {
 		srch.HasLemma = true
 		srch.SrchColumn = "accented_line"
 	}
@@ -254,7 +258,7 @@ func formatsearchsummary(s SearchStruct) string {
 
 	t := `
 	<div id="searchsummary">
-		Sought %s<span class="sought">»%s«</span>%s
+		%s
 		<br>
 		Searched %d works and found %d passages (%ss)
 		<br>
@@ -265,8 +269,6 @@ func formatsearchsummary(s SearchStruct) string {
 		%s
 	</div>
 	`
-
-	win := ` within %d %s of %s<span class="sought">»%s«</span>`
 
 	var dr string
 	if sessions[s.User].Inclusions.DateRange != [2]string{"-850", "1500"} {
@@ -284,28 +286,39 @@ func formatsearchsummary(s SearchStruct) string {
 		hitcap = "<!-- did not hit the results cap -->"
 	}
 
-	af := ""
+	so := sessions[s.User].SrchOutSettings.SortHitsBy
+	el := fmt.Sprintf("%.3f", time.Now().Sub(s.Launched).Seconds())
+	// need to record # of works and not # of tables somewhere & at the right moment...
+	sum := fmt.Sprintf(t, s.InitSum, s.SearchSize, len(s.Results), el, so, dr, hitcap)
+	return sum
+}
+
+func formatinitialsummary(s SearchStruct) string {
+	tmp := `Sought %s<span class="sought">»%s«</span>%s`
+	win := ` within %d %s of %s<span class="sought">»%s«</span>`
+
+	af1 := ""
 	sk := s.Seeking
-	if s.LemmaOne != "" {
-		af = "all forms of "
+	if len(s.LemmaOne) != 0 {
+		af := "all %d forms of "
 		sk = s.LemmaOne
+		af1 = fmt.Sprintf(af, len(AllLemm[sk].Deriv))
 	}
 
 	two := ""
 	if s.Twobox {
-		sk = s.Proximate
-		af = ""
-		if s.LemmaTwo != "" {
-			af = "all forms of "
-			sk = s.LemmaTwo
+		sk2 := s.Proximate
+		af2 := ""
+		if len(s.LemmaTwo) != 0 {
+			af3 := "all %d forms of "
+			sk2 = s.LemmaTwo
+			af2 = fmt.Sprintf(af3, len(AllLemm[sk2].Deriv))
 		}
-		two = fmt.Sprintf(win, s.ProxVal, s.ProxScope, af, sk)
+		two = fmt.Sprintf(win, s.ProxVal, s.ProxScope, af2, sk2)
 	}
-
-	so := sessions[s.User].SrchOutSettings.SortHitsBy
-	el := fmt.Sprintf("%.3f", time.Now().Sub(s.Launched).Seconds())
-	// need to record # of works and not # of tables somewhere & at the right moment...
-	sum := fmt.Sprintf(t, af, sk, two, s.SearchSize, len(s.Results), el, so, dr, hitcap)
+	sum := fmt.Sprintf(tmp, af1, sk, two)
+	fmt.Println(sum)
+	fmt.Println(s.LemmaTwo)
 	return sum
 }
 
@@ -371,6 +384,7 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	// (part 2)
 	// 		populate a new search list with a ton of passages via the first results
 	//		HGoSrch(second)
+
 	previous := time.Now()
 	first := originalsrch
 
