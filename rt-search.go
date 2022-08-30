@@ -371,13 +371,14 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	// (part 2)
 	// 		populate a new search list with a ton of passages via the first results
 	//		HGoSrch(second)
-
+	previous := time.Now()
 	first := originalsrch
 
 	first.Limit = FIRSTSEARCHLIM
 	first = HGoSrch(first)
-
-	msg(fmt.Sprintf("withinxlinessearch(): %d initial hits", len(first.Results)), 4)
+	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
+	msg(fmt.Sprintf("%s withinxlinessearch(): %d initial hits", d, len(first.Results)), 4)
+	previous = time.Now()
 
 	if first.HasPhrase {
 		mod := first
@@ -385,6 +386,9 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 		mod.Results = findphrasesacrosslines(first)
 		first = mod
 	}
+	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
+	msg(fmt.Sprintf("%s findphrasesacrosslines(): %d trimmed hits", d, len(first.Results)), 4)
+	previous = time.Now()
 
 	second := first
 	second.Results = []DbWorkline{}
@@ -413,10 +417,17 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 
 	second.Limit = originalsrch.Limit
 	second.SearchIn.Passages = newpsg
+
 	prq := searchlistintoqueries(second)
+	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
+	msg(fmt.Sprintf("%s searchlistintoqueries() rerun", d), 4)
+	previous = time.Now()
 
 	second.Queries = prq
+
 	searches[originalsrch.ID] = HGoSrch(second)
+	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
+	msg(fmt.Sprintf("%s withinxlinessearch(): %d subsequent hits", d, len(first.Results)), 4)
 
 	// findphrasesacrosslines() check happens just after you exit this function
 
@@ -425,6 +436,10 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 
 func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 	// "one two$" + "^three four" makes a hit if you want "one two three four"
+	// super slow...:
+	// [HGS] [Δ: 1.474s]  withinxlinessearch(): 1631 initial hits
+	// [HGS] [Δ: 7.433s]  findphrasesacrosslines(): 855 trimmed hits
+
 	var valid = make(map[string]DbWorkline)
 
 	find := regexp.MustCompile(`^\s`)

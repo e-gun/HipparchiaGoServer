@@ -221,18 +221,16 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 			qb.SelFrom = fmt.Sprintf(seltempl, a)
 			prq.PsqlQuery = fmt.Sprintf(qtmpl, qb.SelFrom, qb.WhrTrm, qb.WhrIdxInc, qb.WhrIdxExc, tail)
 
-			fmt.Println(prq)
+			//fmt.Println(prq)
 			prqq = append(prqq, prq)
 		}
 	}
-
 	return prqq
 }
 
 func requiresindextemptable(au string, bb []Boundaries, ss SearchStruct) string {
-	// test to see if there are too many "in0001wXXX" type entries
-	// if there are, mimic wholeworktemptablecontents() in whereclauses.py
-	m := fmt.Sprintf("requiresindextemptable(): %d []Boundaries", len(bb))
+	// mimic wholeworktemptablecontents() in whereclauses.py
+	m := fmt.Sprintf("%s requiresindextemptable(): %d []Boundaries", au, len(bb))
 	msg(m, 4)
 	var required []int64
 	for _, b := range bb {
