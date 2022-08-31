@@ -188,6 +188,19 @@ func (ms *multiSorter) Less(i, j int) bool {
 	return ms.less[k](p, q)
 }
 
+// https://stackoverflow.com/questions/37334119/how-to-delete-an-element-from-a-slice-in-golang
+
+func RemoveIndex[T any](s []T, index int) []T {
+	if len(s) < index {
+		msg("RemoveIndex() tried to drop an out of range element", 1)
+		return s
+	}
+
+	ret := make([]T, 0)
+	ret = append(ret, s[:index]...)
+	return append(ret, s[index+1:]...)
+}
+
 //
 // Geek and Latin functions
 //

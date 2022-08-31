@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -166,7 +167,7 @@ func StartEchoServer() {
 	e.GET("/selection/make/:locus", RtSelectionMake)
 
 	// [k2] "GET /selection/clear/auselections/0 HTTP/1.1"
-	e.GET("/selection/clear", RtSelectionClear)
+	e.GET("/selection/clear/:locus", RtSelectionClear)
 
 	// [k3] "GET /selection/fetch HTTP/1.1"
 	e.GET("/selection/fetch", RtSelectionFetch)
@@ -292,7 +293,68 @@ func RtSelectionMake(c echo.Context) error {
 }
 
 func RtSelectionClear(c echo.Context) error {
-	return c.String(http.StatusOK, "")
+	// GET http://localhost:8000/selection/clear/wkselections/0
+	user := readUUIDCookie(c)
+
+	locus := c.Param("locus")
+	which := strings.Split(locus, "/")
+
+	if len(which) != 2 {
+		msg(fmt.Sprintf("RtSelectionClear() was given bad input: %s", locus), 1)
+		return c.String(http.StatusOK, "")
+	}
+
+	cat := which[0]
+	id, e := strconv.Atoi(which[1])
+	if e != nil {
+		msg(fmt.Sprintf("RtSelectionClear() was given bad input: %s", locus), 1)
+		return c.String(http.StatusOK, "")
+	}
+
+	// cat := []string{"agn", "wgn", "aloc", "wloc", "au", "wk", "psg"}
+
+	mod := sessions[user]
+	modi := mod.Inclusions
+	mode := mod.Exclusions
+
+	switch cat {
+	case "agnselections":
+		modi.AuGenres = RemoveIndex(modi.AuGenres, id)
+	case "wgnselections":
+		modi.WkGenres = RemoveIndex(modi.WkGenres, id)
+	case "alocselections":
+		modi.AuLocations = RemoveIndex(modi.AuLocations, id)
+	case "wlocselections":
+		modi.WkLocations = RemoveIndex(modi.WkLocations, id)
+	case "auselections":
+		modi.Authors = RemoveIndex(modi.Authors, id)
+	case "wkselections":
+		modi.Works = RemoveIndex(modi.Works, id)
+	case "psgselections":
+		modi.Passages = RemoveIndex(modi.Passages, id)
+	case "agnexclusions":
+		mode.AuGenres = RemoveIndex(mode.AuGenres, id)
+	case "wgnexclusions":
+		mode.WkGenres = RemoveIndex(mode.WkGenres, id)
+	case "alocexclusions":
+		mode.AuLocations = RemoveIndex(mode.AuLocations, id)
+	case "wlocexclusions":
+		mode.WkLocations = RemoveIndex(mode.WkLocations, id)
+	case "auexclusions":
+		mode.Authors = RemoveIndex(mode.Authors, id)
+	case "wkexclusions":
+		mode.Works = RemoveIndex(mode.Works, id)
+	case "psgexclusions":
+		mode.Passages = RemoveIndex(mode.Passages, id)
+	default:
+		msg(fmt.Sprintf("RtSelectionClear() was given bad category: %s", cat), 1)
+	}
+
+	sessions[user] = mod
+
+	jsbytes := reportcurrentselections(c)
+
+	return c.String(http.StatusOK, string(jsbytes))
 }
 
 func RtSelectionFetch(c echo.Context) error {
