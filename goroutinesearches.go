@@ -172,16 +172,17 @@ func sortresults(results []DbWorkline, ss SearchStruct) []DbWorkline {
 		return one.BuildHyperlink() < two.BuildHyperlink()
 	}
 
-	crit := sessions[ss.User].SrchOutSettings.SortHitsBy
+	crit := sessions[ss.User].SortHitsBy
 
 	switch {
-	case crit == "Name":
+	// unhandled are "location" & "provenance"
+	case crit == "shortname":
 		OrderedBy(nameIncreasing, titleIncreasing, increasingLines).Sort(results)
 		return results
-	case crit == "Date":
+	case crit == "converted_date":
 		OrderedBy(dateIncreasing, nameIncreasing, titleIncreasing, increasingLines).Sort(results)
 		return results
-	case crit == "ID":
+	case crit == "universalid":
 		OrderedBy(increasingID).Sort(results)
 		return results
 	default:

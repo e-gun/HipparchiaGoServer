@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -325,15 +326,54 @@ func RtSetOption(c echo.Context) error {
 			default:
 				msg("RtSetOption() hit an impossible case", 1)
 			}
-			fmt.Println(sessions[readUUIDCookie(c)])
 		}
 	}
 
-	//valoptionlist := `nearornot (near/notnear), searchscope (lines/words), sortorder (shortname, converted_date, location, provenance, universalid, [drop: authgenre] )`
-	//
-	//spineroptionlist := `maxresults, linesofcontext`
+	valoptionlist := []string{"nearornot", "searchscope", "sortorder"}
+	if contains(valoptionlist, opt) {
+		switch opt {
+		case "nearornot":
+			valid := []string{"near", "notnear"}
+			if contains(valid, val) {
+				s.NearOrNot = val
+			}
+		case "searchscope":
+			valid := []string{"lines", "words"}
+			if contains(valid, val) {
+				s.SearchScope = val
+			}
+		case "sortorder":
+			// unhandled are "location" & "provenance": see goroutinesearches.go
+			valid := []string{"shortname", "converted_date", "location", "provenance", "universalid"}
+			if contains(valid, val) {
+				s.SortHitsBy = val
+			}
+		default:
+			msg("RtSetOption() hit an impossible case", 1)
+		}
+	}
 
-	st := fmt.Sprintf("tried to set '%s' to '%s'", parsed[0], parsed[1])
+	spinoptionlist := []string{"maxresults", "linesofcontext", "browsercontext"}
+	if contains(spinoptionlist, opt) {
+		intval, e := strconv.Atoi(val)
+		if e == nil {
+			switch opt {
+			case "maxresults":
+				s.HitLimit = int64(intval)
+			case "linesofcontext":
+				s.HitContext = intval
+			case "browsercontext":
+				s.UI.BrowseCtx = int64(intval)
+			default:
+				msg("RtSetOption() hit an impossible case", 1)
+			}
+		}
+	}
+
+	st := fmt.Sprintf("set '%s' to '%s'", parsed[0], parsed[1])
+	delete(sessions, readUUIDCookie(c))
+	sessions[readUUIDCookie(c)] = s
+
 	msg(st, 1)
 
 	return c.String(http.StatusOK, "")

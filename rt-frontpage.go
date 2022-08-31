@@ -8,35 +8,32 @@ import (
 )
 
 type Session struct {
-	ID          string
-	Inclusions  SearchIncExl
-	Exclusions  SearchIncExl
-	ActiveCorp  map[string]bool
-	VariaOK     bool            `json:"varia"`
-	IncertaOK   bool            `json:"incerta"`
-	SpuriaOK    bool            `json:"spuria"`
-	AvailDBs    map[string]bool `json:"available"`
-	RawInput    bool            `json:"rawinputstyle"`
-	OneHit      bool            `json:"onehit"`
-	HeadwordIdx bool            `json:"headwordindexing"`
-	FrqIdx      bool            `json:"indexbyfrequency"`
-
-	UI              UISettings
-	SrchOutSettings SearchOutputSettings
-	Analogyfinder   bool   `json:"analogyfinder"`
-	Authorflagging  bool   `json:"authorflagging"`
-	Authorssummary  bool   `json:"authorssummary"`
-	Baggingmethod   string `json:"baggingmethod"`
-	HitLimit        int64
-	Earliest        string
-	Latest          string
-	TmpInt          int
-	TmpStr          string
-}
-
-type SearchOutputSettings struct {
-	SearchContext int
-	SortHitsBy    string
+	ID             string
+	Inclusions     SearchIncExl
+	Exclusions     SearchIncExl
+	ActiveCorp     map[string]bool
+	VariaOK        bool            `json:"varia"`
+	IncertaOK      bool            `json:"incerta"`
+	SpuriaOK       bool            `json:"spuria"`
+	AvailDBs       map[string]bool `json:"available"`
+	RawInput       bool            `json:"rawinputstyle"`
+	OneHit         bool            `json:"onehit"`
+	HeadwordIdx    bool            `json:"headwordindexing"`
+	FrqIdx         bool            `json:"indexbyfrequency"`
+	NearOrNot      string          `json:"nearornot"`
+	SearchScope    string          `json:"searchscope"`
+	SortHitsBy     string          `json:"sortorder"`
+	Analogyfinder  bool            `json:"analogyfinder"`
+	Authorflagging bool            `json:"authorflagging"`
+	Authorssummary bool            `json:"authorssummary"`
+	Baggingmethod  string          `json:"baggingmethod"`
+	HitLimit       int64
+	HitContext     int
+	Earliest       string
+	Latest         string
+	TmpInt         int
+	TmpStr         string
+	UI             UISettings
 }
 
 type UISettings struct {
@@ -97,8 +94,8 @@ func makedefaultsession(id string) Session {
 	s.Analogyfinder = false
 	s.HitLimit = DEFAULTHITLIMIT
 	s.Inclusions.DateRange = [2]string{"-850", "1500"}
-	s.SrchOutSettings.SortHitsBy = "Name"
-	s.SrchOutSettings.SearchContext = 0
+	s.SortHitsBy = "Name"
+	s.HitContext = 0
 	s.UI.BrowseCtx = DEFAULTBROWSERCTX
 	return s
 }

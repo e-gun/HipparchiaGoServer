@@ -296,7 +296,7 @@ func formatfinalsearchsummary(s SearchStruct) string {
 		hitcap = "<!-- did not hit the results cap -->"
 	}
 
-	so := sessions[s.User].SrchOutSettings.SortHitsBy
+	so := sessions[s.User].SortHitsBy
 	el := fmt.Sprintf("%.3f", time.Now().Sub(s.Launched).Seconds())
 	// need to record # of works and not # of tables somewhere & at the right moment...
 	sum := fmt.Sprintf(t, s.InitSum, s.SearchSize, len(s.Results), el, so, dr, hitcap)
