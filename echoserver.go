@@ -194,6 +194,9 @@ func RtGetJSSession(c echo.Context) error {
 		sessions[user] = makedefaultsession(user)
 	}
 
+	type JSO struct {
+	}
+
 	s := sessions[user]
 	o, e := json.Marshal(s)
 	chke(e)
@@ -289,6 +292,8 @@ func RtSelectionMake(c echo.Context) error {
 	sessions[user] = selected(user, sel)
 	jsbytes := reportcurrentselections(c)
 
+	fmt.Println(string(jsbytes))
+
 	return c.String(http.StatusOK, string(jsbytes))
 }
 
@@ -350,15 +355,17 @@ func RtSelectionClear(c echo.Context) error {
 		msg(fmt.Sprintf("RtSelectionClear() was given bad category: %s", cat), 1)
 	}
 
+	delete(sessions, user)
 	sessions[user] = mod
 
-	jsbytes := reportcurrentselections(c)
+	r := RtSelectionFetch(c)
 
-	return c.String(http.StatusOK, string(jsbytes))
+	return r
 }
 
 func RtSelectionFetch(c echo.Context) error {
-	return c.String(http.StatusOK, "")
+	jsbytes := reportcurrentselections(c)
+	return c.String(http.StatusOK, string(jsbytes))
 }
 
 func RtTest(c echo.Context) error {

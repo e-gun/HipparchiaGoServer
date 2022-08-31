@@ -26,56 +26,17 @@ License: GNU GENERAL PUBLIC LICENSE 3
     <!-- note that "openoptionsbutton" is to be found in "miscuielements.html" -->
     <div id="alt_upperleftbuttons">
         <span id="closeoptionsbutton" class="ui-icon ui-icon-gear" title="Configuration options"></span>
-        <span id="alt_vector_options_button" class="ui-icon ui-icon-arrowthick-1-ne" title="Vector options"></span>
         <span id="alt_moretools" title="Lexical tools" class="ui-icon ui-icon-wrench"></span>
         <span id="alt_clear_button" class="ui-icon ui-icon-close" title="Reset session/Clear search"></span>
     </div>
     <br />
     <p class="optionlabel">Corpora to search</p>
     <p class="optionitem">
-        
         Ⓖ <input type="checkbox" id="greekcorpus" value="no" title="Greek authors ">
-        
-        
-        
-        
-      
-        
         &middot;&nbsp;Ⓛ&nbsp;<input type="checkbox" id="latincorpus" value="no" title="Latin authors">
-        
-        
-        
-      
-        
-        
         &middot;&nbsp;Ⓓ&nbsp;<input type="checkbox" id="papyruscorpus" value="no" title="Documentary papyri">
-        
-        
-      
-        
-        
-        
         &middot;&nbsp;Ⓘ&nbsp;<input type="checkbox" id="inscriptioncorpus" value="no" title="Inscriptions I (IG, SEG, etc.)">
-        
-      
-        
-        
-        
-        
         &middot;&nbsp;Ⓒ&nbsp;<input type="checkbox" id="christiancorpus" value="no" title="Inscriptions II (Cla., Lt. Antiq., Med.; Christ.)">
-      
-        
-        
-        
-        
-        
-      
-        
-        
-        
-        
-        
-      
     </p>
 
     <p class="optionlabel">Input style for passages to search</p>
@@ -137,17 +98,6 @@ License: GNU GENERAL PUBLIC LICENSE 3
         <input type="radio" name="frqindex" id="frequencyindexing_n" value="no"></label>
     </p>
 
-    <p class="optionlabel">Lexical options</p>
-    <p class="optionitem">
-        <label>summarized senses&nbsp;<input type="checkbox" id="sensesummary" value="yes"></label>
-        &middot;&nbsp;<label>summarized authors&nbsp;<input type="checkbox" id="authorssummary" value="yes"></label>
-        &middot;&nbsp;<label>summarized quotes&nbsp;<input type="checkbox" id="quotesummary" value="yes"></label>
-        &middot;&nbsp;<label>summarized phrases&nbsp;<input type="checkbox" id="phrasesummary" value="yes"></label>
-        &middot;&nbsp;<label>flag author in lexicon&nbsp;<input type="checkbox" id="authorflagging" value="yes"></label>
-        &middot;&nbsp;<label>show wordcounts&nbsp;<input type="checkbox" id="showwordcounts" value="yes"></label>
-        &middot;&nbsp;<label>principle parts &amp; morphology tables&nbsp;<input type="checkbox" id="principleparts" value="no"></label>
-    </p>
-
     <div id="mophologytablesoptions">
     <p class="optionlabel">Morphology tables</p>
     <p class="optionitem">
@@ -162,182 +112,7 @@ License: GNU GENERAL PUBLIC LICENSE 3
     </p>
     </div>
 
-    <p class="optionlabel">Display color shifted text inside of brackets?</p>
-    <p class="optionitem">
-        <label>[&nbsp;]&nbsp;<input type="checkbox" id="bracketsquare" value="yes"></label>
-        &middot;&nbsp;<label>(&nbsp;)&nbsp;<input type="checkbox" id="bracketround" value="yes"></label>
-        &middot;&nbsp;<label>&lt;&nbsp;&gt;&nbsp;<input type="checkbox" id="bracketangled" value="yes"></label>
-        &middot;&nbsp;<label>{&nbsp;}&nbsp;<input type="checkbox" id="bracketcurly" value="yes"></label>
-    </p>
-
-    <p class="optionlabel">Text features</p>
-    <p class="optionitem">
-        <label>force σ/ς&nbsp;<input type="checkbox" id="zaplunates" value="no"></label>
-        &middot;&nbsp;<label>force u for v&nbsp;<input type="checkbox" id="zapvees" value="no"></label>
-        &middot;&nbsp;<label>colorless&nbsp;<input type="checkbox" id="suppresscolors" value="no"></label>
-        &middot;&nbsp;<label>simplified text output&nbsp;<input type="checkbox" id="simpletextoutput" value="no"></label>
-    </p>
-
-    
-    <p class="optionlabel">Font for display</p>
-    <p class="optionitem">
-        <select name="fontchoice" id="fontchoice">
-        <option value="CMUSans">CMUSans</option><option value="CMUSerif">CMUSerif</option><option value="DejaVuSans">DejaVuSans</option><option value="DejaVuSerif">DejaVuSerif</option><option value="EBGaramond">EBGaramond</option><option value="Fira">Fira</option><option value="IBMPlex">IBMPlex</option><option value="Noto">Noto</option><option value="Roboto">Roboto</option><option value="Ubuntu">Ubuntu</option>
-        </select>
-    </p>
-    
-    
-    <p class="optionlabel">Display debugging info for</p>
-    <p class="optionitem">
-        html&nbsp;<input type="checkbox" id="debughtml" value="no">
-        &middot;&nbsp;database&nbsp;<input type="checkbox" id="debugdb" value="no">
-        &middot;&nbsp;lexicon&nbsp;<input type="checkbox" id="debuglex" value="no">
-        &middot;&nbsp;parser&nbsp;<input type="checkbox" id="debugparse" value="no">
-        &middot;&nbsp;search for markup&nbsp;<input type="checkbox" id="searchinsidemarkup" value="no">
-    </p>
-    <p class="optionitem small">[some options are mutually incompatible]</p>
-    <p class="optionlabel">Omit/Drop</p>
-    <p class="optionitem">
-        from index all words known to the parser<input type="checkbox" id="indexskipsknownwords" value="no">
-    </p>
-    
-
 </div>
-    
-	<!-- frontpagehtmlformatting.py vectorhtmlforoptionsbar() output begins -->
-	
-	<div id="vectoroptionsetter" class="sidenavigation">
-		<div id="vector_upperleftbuttons">
-			<span id="vectoralt_openoptionsbutton" class="ui-icon ui-icon-gear" title="Configuration options"></span>
-			<span id="close_vector_options_button" class="ui-icon ui-icon-arrowthick-1-sw" title="Vector options"></span>
-			<span id="vectoralt_moretools" title="Lexical tools" class="ui-icon ui-icon-wrench"></span>
-			<span id="vectoralt_clear_button" class="ui-icon ui-icon-close" title="Reset session/Clear search"></span>
-		</div>
-		<p class="optionlabel">How to fill the bags of words</p>
-
-	<span id="flatbagspan" style="">
-			<span class="small">Flat bags</span>
-			<input type="checkbox" id="flatbagbutton" value="yes" title="Build flat bags of words">
-	</span>
-	&middot;&nbsp;
-
-	<span id="alternatebagspan" style="">
-			<span class="small">Composite alternates</span>
-			<input type="checkbox" id="alternatebagbutton" value="yes" title="Build composite alternates bags of words">
-	</span>
-	&middot;&nbsp;
-
-	<span id="winnerbagspan" style="">
-			<span class="small">Winner takes all</span>
-			<input type="checkbox" id="winnertakesallbutton" value="yes" title="Bags contain only the most popular homonym">
-	</span>
-	&middot;&nbsp;
-
-	<span id="unlemmatizedspan" style="">
-			<span class="small">No lemmatizing</span>
-			<input type="checkbox" id="unlemmatizedbutton" value="yes" title="Bags contain exactly what the sentence says">
-	</span>
-	<p class="optionlabel">Semantic Vector Settings</p>
-
-	<fieldset id="ldacomponentsfield">
-		<legend>LDA: no. of topics (1 - 50)</legend>
-		<input id="ldacomponents" type="text" value="7" width="20px;">
-	</fieldset>
-	
-
-	<fieldset id="ldaiterationsfield">
-		<legend>LDA: iterations (1 - 25)</legend>
-		<input id="ldaiterations" type="text" value="12" width="20px;">
-	</fieldset>
-	
-
-	<fieldset id="ldamaxfeaturesfield">
-		<legend>LDA: features (1 - 5000)</legend>
-		<input id="ldamaxfeatures" type="text" value="2000" width="20px;">
-	</fieldset>
-	
-
-	<fieldset id="ldamaxfreqfield">
-		<legend>LDA: max frequency (1 - 100)</legend>
-		<input id="ldamaxfreq" type="text" value="35" width="20px;">
-	</fieldset>
-	
-
-	<fieldset id="ldaminfreqfield">
-		<legend>LDA: min frequency (1 - 20)</legend>
-		<input id="ldaminfreq" type="text" value="5" width="20px;">
-	</fieldset>
-	
-
-	<fieldset id="ldamustbelongerthanfield">
-		<legend>LDA: min length (1 - 4)</legend>
-		<input id="ldamustbelongerthan" type="text" value="3" width="20px;">
-	</fieldset>
-	
-
-	<fieldset id="vcutlemfield">
-		<legend>Cutoff: Lemma pairs (1 - 100)</legend>
-		<input id="vcutlem" type="text" value="50" width="20px;">
-	</fieldset>
-	
-
-	<fieldset id="vcutlocfield">
-		<legend>Cutoff: Literal distance (1 - 100)</legend>
-		<input id="vcutloc" type="text" value="33" width="20px;">
-	</fieldset>
-	
-
-	<fieldset id="vcutneighbfield">
-		<legend>Cutoff: Nearest Neighbors (1 - 100)</legend>
-		<input id="vcutneighb" type="text" value="15" width="20px;">
-	</fieldset>
-	
-
-	<fieldset id="vdimfield">
-		<legend>Vector Dimensions (25 - 500)</legend>
-		<input id="vdim" type="text" value="300" width="20px;">
-	</fieldset>
-	
-
-	<fieldset id="vdsampfield">
-		<legend>Vector downsampling (1 - 20)</legend>
-		<input id="vdsamp" type="text" value="5" width="20px;">
-	</fieldset>
-	
-
-	<fieldset id="viteratfield">
-		<legend>Training iterations (1 - 20)</legend>
-		<input id="viterat" type="text" value="12" width="20px;">
-	</fieldset>
-	
-
-	<fieldset id="vminpresfield">
-		<legend>Minimal term presence (1 - 20)</legend>
-		<input id="vminpres" type="text" value="10" width="20px;">
-	</fieldset>
-	
-
-	<fieldset id="vnncapfield">
-		<legend>Nearest Neighbors cap (1 - 25)</legend>
-		<input id="vnncap" type="text" value="15" width="20px;">
-	</fieldset>
-	
-
-	<fieldset id="vsentperdocfield">
-		<legend>Sentences per document (1 - 5)</legend>
-		<input id="vsentperdoc" type="text" value="1" width="20px;">
-	</fieldset>
-	
-
-	<fieldset id="vwindowfield">
-		<legend>Proximity window size (2 - 20)</legend>
-		<input id="vwindow" type="text" value="10" width="20px;">
-	</fieldset>
-	
-	</div>
-	
-	<!-- frontpagehtmlformatting.py vectorhtmlforoptionsbar() output ends -->
-	
 
 <div id="mainbody">
     <!-- "mainbody" allows the option sidebar to push the page contents right -->
@@ -566,46 +341,8 @@ License: GNU GENERAL PUBLIC LICENSE 3
         <label for="searchwords">words
         <input type="radio" name="searchfor" id="searchwords" value="W"></label>
     </div>
-    <div id="vectorzone">
-        
-	<!-- frontpagehtmlformatting.py vectorhtmlforfrontpage() output begins -->
-	
-		<span id="semanticvectornnquerycheckbox">
-			<span class="small">Concept map</span><input type="checkbox" id="nearestneighborsquery" value="yes" title="Make a nearest neighbor query">
-		</span>
-		
 
-		<span id="topicmodelcheckbox">
-			<span class="small">Topic map</span>
-			<input type="checkbox" id="topicmodel" value="yes" title="Find topics within a search zone">
-		</span>
-	
-	<!-- frontpagehtmlformatting.py vectorhtmlforfrontpage() output ends -->
-	
-        <br>
-        <fieldset id="trimmingcheckboxes" class="small">
-            <legend>Trim results by part of speech...</legend>
-            untrimmed <input type="checkbox" id="trimming-none" value="no">&nbsp;&middot;&nbsp;
-            retain nouns and adjectives <input type="checkbox" id="trimming-declined" value="no">&nbsp;&middot;&nbsp;
-            retain conjugated verbs <input type="checkbox" id="trimming-conjugated" value="no"><br />
-        </fieldset>
-    </div>
-</div>
-<div id="analogiesinputarea" class="center">
-    <br>
-    <br>
-    Analogy finder:
-    <br>
-    A : B :: C : ___
-    <br>
-    <input type="text" name="analogy term A" id="analogiesinputA" placeholder="(A is to ...)">&nbsp;:&nbsp;
-    <input type="text" name="analogy term B" id="analogiesinputB" placeholder="(... B)">&nbsp;::&nbsp;
-    <input type="text" name="analogy term C" id="analogiesinputC" placeholder="(as C is to ...)">&nbsp;:&nbsp;
-    <button id="executeanalogysearch" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Look for analogies"><span class="ui-button-icon ui-icon ui-icon-shuffle"></span><span class="ui-button-icon-space"> </span>&nbsp;</button>
-    <br>
-    <br>
-    <div id="analogiesresults" class="center"></div>
-</div>
+
 <br />
     <div id="browserdialog">
     <div id="browserdialogtext"></div>
