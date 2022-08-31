@@ -198,18 +198,71 @@ func RtAuthChkuser(c echo.Context) error {
 
 func RtGetJSSession(c echo.Context) error {
 	// see hipparchiajs/coreinterfaceclicks_go.js
-	// python sample: {"_fresh": "no", "agnexclusions": [], "agnselections": [], "alocexclusions": [], "alocselections": [], "analogyfinder": "no", "auexclusions": [], "auselections": ["gr7000"], "authorflagging": "yes", "authorssummary": "yes", "available": {"greek_dictionary": true, "greek_lemmata": true, "greek_morphology": true, "latin_dictionary": true, "latin_lemmata": true, "latin_morphology": true, "wordcounts_0": true}, "baggingmethod": "winnertakesall", "bracketangled": "yes", "bracketcurly": "yes", "bracketround": "no", "bracketsquare": "yes", "browsercontext": "24", "christiancorpus": "no", "collapseattic": "yes", "cosdistbylineorword": "no", "cosdistbysentence": "no", "debugdb": "no", "debughtml": "no", "debuglex": "no", "debugparse": "no", "earliestdate": "-850", "fontchoice": "Noto", "greekcorpus": "yes", "headwordindexing": "no", "incerta": "yes", "indexbyfrequency": "no", "indexskipsknownwords": "no", "inscriptioncorpus": "no", "latestdate": "1500", "latincorpus": "yes", "ldacomponents": 7, "ldaiterations": 12, "ldamaxfeatures": 2000, "ldamaxfreq": 35, "ldaminfreq": 5, "ldamustbelongerthan": 3, "linesofcontext": 4, "loggedin": "no", "maxresults": "200", "morphdialects": "no", "morphduals": "yes", "morphemptyrows": "yes", "morphfinite": "yes", "morphimper": "yes", "morphinfin": "yes", "morphpcpls": "yes", "morphtables": "yes", "nearestneighborsquery": "no", "nearornot": "near", "onehit": "no", "papyruscorpus": "no", "phrasesummary": "no", "principleparts": "yes", "proximity": "1", "psgexclusions": [], "psgselections": [], "quotesummary": "yes", "rawinputstyle": "no", "searchinsidemarkup": "no", "searchscope": "lines", "semanticvectorquery": "no", "sensesummary": "yes", "sentencesimilarity": "no", "showwordcounts": "yes", "simpletextoutput": "no", "sortorder": "SHORTNAME", "spuria": "yes", "suppresscolors": "no", "tensorflowgraph": "no", "topicmodel": "no", "trimvectoryby": "none", "userid": "Anonymous", "varia": "yes", "vcutlem": 50, "vcutloc": 33, "vcutneighb": 15, "vdim": 300, "vdsamp": 5, "viterat": 12, "vminpres": 10, "vnncap": 15, "vsentperdoc": 1, "vwindow": 10, "wkexclusions": [], "wkgnexclusions": [], "wkgnselections": [], "wkselections": [], "wlocexclusions": [], "wlocselections": [], "xmission": "Any", "zaplunates": "no", "zapvees": "no"}
 
 	user := readUUIDCookie(c)
 	if _, exists := sessions[user]; !exists {
 		sessions[user] = makedefaultsession(user)
 	}
+	s := sessions[user]
 
 	type JSO struct {
+		// what the JS is looking for; note that vector stuff, etc is being skipped vs the python session dump
+		Browsercontext    string `json:"browsercontext"`
+		Christiancorpus   string `json:"christiancorpus"`
+		Earliestdate      string `json:"earliestdate"`
+		Greekcorpus       string `json:"greekcorpus"`
+		Headwordindexing  string `json:"headwordindexing"`
+		Incerta           string `json:"incerta"`
+		Indexbyfrequency  string `json:"indexbyfrequency"`
+		Inscriptioncorpus string `json:"inscriptioncorpus"`
+		Latestdate        string `json:"latestdate"`
+		Latincorpus       string `json:"latincorpus"`
+		Linesofcontext    string `json:"linesofcontext"`
+		Maxresults        string `json:"maxresults"`
+		Nearornot         string `json:"nearornot"`
+		Onehit            string `json:"onehit"`
+		Papyruscorpus     string `json:"papyruscorpus"`
+		Proximity         string `json:"proximity"`
+		Rawinputstyle     string `json:"rawinputstyle"`
+		Searchscope       string `json:"searchscope"`
+		Sortorder         string `json:"sortorder"`
+		Spuria            string `json:"spuria"`
+		Varia             string `json:"varia"`
 	}
 
-	s := sessions[user]
-	o, e := json.Marshal(s)
+	t2y := func(b bool) string {
+		if b {
+			return "yes"
+		} else {
+			return "no"
+		}
+	}
+	i64s := func(i int64) string { return fmt.Sprintf("%d", i) }
+	is := func(i int) string { return fmt.Sprintf("%d", i) }
+
+	var jso JSO
+	jso.Browsercontext = i64s(s.UI.BrowseCtx)
+	jso.Christiancorpus = t2y(s.ActiveCorp["ch"])
+	jso.Earliestdate = s.Earliest
+	jso.Greekcorpus = t2y(s.ActiveCorp["gr"])
+	jso.Headwordindexing = t2y(s.HeadwordIdx)
+	jso.Incerta = t2y(s.IncertaOK)
+	jso.Indexbyfrequency = t2y(s.FrqIdx)
+	jso.Inscriptioncorpus = t2y(s.ActiveCorp["in"])
+	jso.Latestdate = s.Latest
+	jso.Latincorpus = t2y(s.ActiveCorp["lt"])
+	jso.Linesofcontext = is(s.HitContext)
+	jso.Maxresults = i64s(s.HitLimit)
+	jso.Nearornot = s.NearOrNot
+	jso.Papyruscorpus = t2y(s.ActiveCorp["dp"])
+	jso.Proximity = is(s.HitContext)
+	jso.Rawinputstyle = t2y(s.RawInput)
+	jso.Searchscope = s.SearchScope
+	jso.Sortorder = s.SortHitsBy
+	jso.Spuria = t2y(s.SpuriaOK)
+	jso.Varia = t2y(s.VariaOK)
+
+	o, e := json.Marshal(jso)
 	chke(e)
 	return c.String(http.StatusOK, string(o))
 }
