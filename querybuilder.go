@@ -29,13 +29,14 @@ type Boundaries struct {
 }
 
 type PRQTemplate struct {
-	AU  string
-	COL string
-	SYN string
-	SK  string
-	LIM string
-	IDX string
-	TTN string
+	AU   string
+	COL  string
+	SYN  string
+	SK   string
+	LIM  string
+	IDX  string
+	TTN  string
+	Tail *template.Template
 }
 
 const (
@@ -161,6 +162,8 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 		alltables = append(alltables, t)
 	}
 
+	tails := acquiretails()
+
 	for _, au := range alltables {
 		var qb QueryBuilder
 		var prq PrerolledQuery
@@ -213,29 +216,55 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 			t.TTN = ss.TTName
 
 			if nott && noph && noidx {
-				msg("basic", 5)
+				t.Tail = tails["basic"]
 				prq = basicprq(t, prq)
 			} else if nott && noph && yesidx {
 				// word in work(s)/passage(s): AND ( (index BETWEEN 481 AND 483) OR (index BETWEEN 501 AND 503) ... )
-				msg("basic_and_indices", 5)
+				t.Tail = tails["basic_and_indices"]
 				prq = basicidxprq(t, prq)
 			} else if nott && yesphr && noidx {
-				msg("basic_window", 5)
+				t.Tail = tails["basic_window"]
 				prq = basicwindowprq(t, prq)
 			} else if nott && yesphr && yesidx {
-				msg("window_with_indices", 5)
+				t.Tail = tails["window_with_indices"]
 				prq = windandidxprq(t, prq)
 			} else if yestt && noph {
-				msg("simple_tt", 5)
+				t.Tail = tails["simple_tt"]
 				prq = simplettprq(t, prq)
 			} else {
-				msg("window_with_tt", 5)
+				t.Tail = tails["window_with_tt"]
 				prq = windowandttprq(t, prq)
 			}
 			prqq = append(prqq, prq)
 		}
 	}
 	return prqq
+}
+
+func acquiretails() map[string]*template.Template {
+	// this avoids recompiling them a bunch of times in a loop
+
+	mm := make(map[string]string)
+	mm["basic"] = `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
+	mm["basic_and_indices"] = `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' AND ({{ .IDX }}) ORDER BY index ASC LIMIT {{ .LIM }}`
+	mm["basic_window"] = ` FROM {{ .AU }} ) first
+			) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
+	mm["window_with_indices"] = ` FROM {{ .AU }} WHERE {{ .IDX }} ) first 
+			) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
+	mm["simple_tt"] = ` {{ .AU }} WHERE EXISTS
+		(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}.index AND {{ .COL }} {{ .SYN }} '{{ .SK }}') LIMIT {{ .LIM }}`
+	mm["window_with_tt"] = ` FROM {{ .AU }} WHERE EXISTS
+			(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}.index ) 
+			) first
+		) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' LIMIT {{ .LIM }}`
+
+	t := make(map[string]*template.Template)
+	for k, v := range mm {
+		tmpl, e := template.New(k).Parse(v)
+		chke(e)
+		t[k] = tmpl
+	}
+	return t
 }
 
 func basicprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
@@ -245,12 +274,10 @@ func basicprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	//			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations
 	//			FROM lt0472 WHERE stripped_line ~* 'potest'  ORDER BY index ASC LIMIT 200
 
-	tail := `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
-
-	tmpl, e := template.New("b").Parse(tail)
-	chke(e)
+	// tail := `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
+	msg(t.Tail.Name(), 5)
 	var b bytes.Buffer
-	e = tmpl.Execute(&b, t)
+	e := t.Tail.Execute(&b, t)
 	chke(e)
 
 	prq.PsqlQuery = fmt.Sprintf(SELECTFROM, b.String())
@@ -262,12 +289,11 @@ func basicidxprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	//		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
 	//			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt0472 WHERE stripped_line ~* 'nomen' AND (index BETWEEN 1 AND 2548) ORDER BY index ASC LIMIT 200
 
-	tail := `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' AND ({{ .IDX }}) ORDER BY index ASC LIMIT {{ .LIM }}`
+	// tail := `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' AND ({{ .IDX }}) ORDER BY index ASC LIMIT {{ .LIM }}`
 
-	tmpl, e := template.New("bi").Parse(tail)
-	chke(e)
+	msg(t.Tail.Name(), 5)
 	var b bytes.Buffer
-	e = tmpl.Execute(&b, t)
+	e := t.Tail.Execute(&b, t)
 	chke(e)
 
 	prq.PsqlQuery = fmt.Sprintf(SELECTFROM, b.String())
@@ -284,13 +310,12 @@ func basicwindowprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	//				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) ) AS linebundle FROM lt0472 ) first
 	//		) second WHERE second.linebundle ~* 'nomen esse' ORDER BY index ASC LIMIT 200
 
-	tail := ` FROM {{ .AU }} ) first 
-			) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
+	//tail := ` FROM {{ .AU }} ) first
+	//		) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
 
-	tmpl, e := template.New("bw").Parse(tail)
-	chke(e)
+	msg(t.Tail.Name(), 5)
 	var b bytes.Buffer
-	e = tmpl.Execute(&b, t)
+	e := t.Tail.Execute(&b, t)
 	chke(e)
 
 	prq.PsqlQuery = fmt.Sprintf(PRFXSELFRM + ASLINEBUNDLE + b.String())
@@ -306,13 +331,12 @@ func windandidxprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	//				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) ) AS linebundle FROM lt0474 WHERE (index BETWEEN 104798 AND 109397) OR (index BETWEEN 67552 AND 70014) ) first
 	//			) second WHERE second.linebundle ~* 'causa esse' ORDER BY index ASC LIMIT 200
 
-	tail := ` FROM {{ .AU }} WHERE {{ .IDX }} ) first 
-			) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
+	// tail := ` FROM {{ .AU }} WHERE {{ .IDX }} ) first
+	//		) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
 
-	tmpl, e := template.New("wdx").Parse(tail)
-	chke(e)
+	msg(t.Tail.Name(), 5)
 	var b bytes.Buffer
-	e = tmpl.Execute(&b, t)
+	e := t.Tail.Execute(&b, t)
 	chke(e)
 
 	prq.PsqlQuery = fmt.Sprintf(PRFXSELFRM + ASLINEBUNDLE + b.String())
@@ -330,13 +354,12 @@ func simplettprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	//			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM  lt0472 WHERE EXISTS
 	//		(SELECT 1 FROM lt0472_includelist_f5d653cfcdab44c6bfb662f688d47e73 incl WHERE incl.includeindex = lt0472.index AND stripped_line ~* 'carm') LIMIT 200
 
-	tail := ` {{ .AU }} WHERE EXISTS
-		(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}.index AND {{ .COL }} {{ .SYN }} '{{ .SK }}') LIMIT {{ .LIM }}`
+	//tail := ` {{ .AU }} WHERE EXISTS
+	//	(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}.index AND {{ .COL }} {{ .SYN }} '{{ .SK }}') LIMIT {{ .LIM }}`
 
-	tmpl, e := template.New("stt").Parse(tail)
-	chke(e)
+	msg(t.Tail.Name(), 5)
 	var b bytes.Buffer
-	e = tmpl.Execute(&b, t)
+	e := t.Tail.Execute(&b, t)
 	chke(e)
 
 	prq.PsqlQuery = fmt.Sprintf(SELECTFROM, b.String())
@@ -358,15 +381,14 @@ func windowandttprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	//			) first
 	//		) second WHERE second.linebundle ~* 'ad italos' LIMIT 200
 
-	tail := ` FROM {{ .AU }} WHERE EXISTS
-			(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}.index ) 
-			) first
-		) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' LIMIT {{ .LIM }}`
+	//tail := ` FROM {{ .AU }} WHERE EXISTS
+	//		(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}.index )
+	//		) first
+	//	) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' LIMIT {{ .LIM }}`
 
-	tmpl, e := template.New("wtt").Parse(tail)
-	chke(e)
+	msg(t.Tail.Name(), 5)
 	var b bytes.Buffer
-	e = tmpl.Execute(&b, t)
+	e := t.Tail.Execute(&b, t)
 	chke(e)
 
 	prq.PsqlQuery = fmt.Sprintf(PRFXSELFRM + ASLINEBUNDLE + b.String())
