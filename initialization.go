@@ -13,6 +13,7 @@ var (
 	cfg         CurrentConfiguration
 	sessions    = make(map[string]Session)
 	searches    = make(map[string]SearchStruct)
+	srchsumm    = make(map[string]SearchSummary)
 	AllWorks    = make(map[string]DbWork)
 	AllAuthors  = make(map[string]DbAuthor)
 	AllLemm     = make(map[string]DbLemma)

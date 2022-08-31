@@ -26,6 +26,11 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
+// JSStruct - this is for generating a specific brand of JSON
+type JSStruct struct {
+	V string `json:"value"`
+}
+
 func StartEchoServer() {
 	// https://echo.labstack.com/guide/
 	// cf https://medium.com/cuddle-ai/building-microservice-using-golang-echo-framework-ff10ba06d508

@@ -26,6 +26,33 @@ type DbLexicon struct {
 	Lang     string
 }
 
+type DbMorphology struct {
+	Observed    string
+	Xrefs       string
+	PrefixXrefs string
+	RawPossib   string
+	RelatedHW   string
+}
+
+type DbWordCount struct {
+	Word  string
+	Total int64
+	Gr    int64
+	Lt    int64
+	Dp    int64
+	In    int64
+	Ch    int64
+}
+
+type MorphPossib struct {
+	Transl   string `json:"transl"`
+	Anal     string `json:"analysis"`
+	Headwd   string `json:"headword"`
+	Scansion string `json:"scansion"`
+	Xrefkind string `json:"xref_kind"`
+	Xrefval  string `json:"xref_value"`
+}
+
 func RtLexFindByForm(c echo.Context) error {
 	// be able to respond to "GET /lexica/findbyform/ἀμιϲθὶ/gr0062 HTTP/1.1"
 	req := c.Param("id")

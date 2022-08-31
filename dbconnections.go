@@ -58,19 +58,7 @@ func grabpgsqlconnection() *pgxpool.Pool {
 		panic(err)
 	}
 
-	msg(fmt.Sprintf("Connected to %s on PostgreSQL", pl.DBName), 5)
+	// msg(fmt.Sprintf("Connected to %s on PostgreSQL", pl.DBName), 5)
 
 	return pooledconnection
-}
-
-func blankconfig() CurrentConfiguration {
-	// need a non-commandline config
-	var thecfg CurrentConfiguration
-	thecfg.PGLogin.Port = PSDefaultPort
-	// cfg.PGLogin.Pass = cfg.PSQP
-	thecfg.PGLogin.Pass = ""
-	thecfg.PGLogin.User = PSDefaultUser
-	thecfg.PGLogin.DBName = PSDefaultDB
-	thecfg.PGLogin.Host = PSDefaultHost
-	return thecfg
 }

@@ -226,8 +226,12 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		for w, _ := range wds {
 			// this is going to have a problem if something already abuts markup...
 			// will need to keep track of the complete list of terminating items.
-			pattern := regexp.MustCompile(fmt.Sprintf("(^|\\s)(%s)(\\s|\\.|,|;|·|$)", wds[w]))
-			newline = pattern.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
+			fmt.Println(wds[w])
+			pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s)(%s)(\\s|\\.|,|;|·|$)", wds[w]))
+			if e == nil {
+				// you will barf if wds[w] = *
+				newline = pattern.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
+			}
 		}
 
 		var bl string

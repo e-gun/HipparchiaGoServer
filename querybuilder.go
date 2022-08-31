@@ -275,6 +275,7 @@ func basicprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	//			FROM lt0472 WHERE stripped_line ~* 'potest'  ORDER BY index ASC LIMIT 200
 
 	// tail := `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
+
 	msg(t.Tail.Name(), 5)
 	var b bytes.Buffer
 	e := t.Tail.Execute(&b, t)

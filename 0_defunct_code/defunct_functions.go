@@ -402,6 +402,18 @@ func lemmaintoflatregex(hdwd string) string {
 	return re
 }
 
+func blankconfig() CurrentConfiguration {
+	// need a non-commandline config
+	var thecfg CurrentConfiguration
+	thecfg.PGLogin.Port = PSDefaultPort
+	// cfg.PGLogin.Pass = cfg.PSQP
+	thecfg.PGLogin.Pass = ""
+	thecfg.PGLogin.User = PSDefaultUser
+	thecfg.PGLogin.DBName = PSDefaultDB
+	thecfg.PGLogin.Host = PSDefaultHost
+	return thecfg
+}
+
 /*
 [a] word in an author
 
