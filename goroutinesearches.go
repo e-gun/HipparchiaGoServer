@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"runtime"
 	"sync"
@@ -56,7 +55,7 @@ func SrchFeeder(ctx context.Context, qq []PrerolledQuery) (<-chan PrerolledQuery
 	go func() {
 		defer close(emitqueries)
 		for _, q := range qq {
-			fmt.Println(q)
+			// fmt.Println(q)
 			select {
 			case <-ctx.Done():
 				return

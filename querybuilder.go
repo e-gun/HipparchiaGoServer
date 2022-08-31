@@ -176,55 +176,54 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 
 		// [b3] search term might be lemmatized, hence the range
 
-		// there are fancier ways to do this, but debugging and maintaining become overwhelming...
+		for _, skg := range ss.SkgSlice {
+			// there are fancier ways to do this, but debugging and maintaining become overwhelming...
 
-		// map to the %s items in the qtmpl below:
-		// SELECTFROM + WHERETERM + WHEREINDEXINCL + WHEREINDEXEXCL + (either) ORDERBY&LIMIT (or) SECOND
+			// map to the %s items in the qtmpl below:
+			// SELECTFROM + WHERETERM + WHEREINDEXINCL + WHEREINDEXEXCL + (either) ORDERBY&LIMIT (or) SECOND
 
-		nott := len(prq.TempTable) == 0
-		yestt := len(prq.TempTable) != 0
-		noph := !ss.HasPhrase
-		yesphr := ss.HasPhrase
-		noidx := len(qb.WhrIdxExc) == 0 && len(qb.WhrIdxInc) == 0
-		yesidx := len(qb.WhrIdxExc) != 0 || len(qb.WhrIdxInc) != 0
+			nott := len(prq.TempTable) == 0
+			yestt := len(prq.TempTable) != 0
+			noph := !ss.HasPhrase
+			yesphr := ss.HasPhrase
+			noidx := len(qb.WhrIdxExc) == 0 && len(qb.WhrIdxInc) == 0
+			yesidx := len(qb.WhrIdxExc) != 0 || len(qb.WhrIdxInc) != 0
 
-		var t PRQTemplate
-		t.AU = au
-		t.COL = ss.SrchColumn
-		t.SYN = ss.SrchSyntax
-		t.SK = ss.Seeking
-		t.LIM = fmt.Sprintf("%d", ss.Limit)
-		if ss.NotNear {
-			t.IDX = qb.WhrIdxExc
-		} else {
-			t.IDX = qb.WhrIdxInc
+			var t PRQTemplate
+			t.AU = au
+			t.COL = ss.SrchColumn
+			t.SYN = ss.SrchSyntax
+			t.SK = skg
+			t.LIM = fmt.Sprintf("%d", ss.Limit)
+			if ss.NotNear {
+				t.IDX = qb.WhrIdxExc
+			} else {
+				t.IDX = qb.WhrIdxInc
+			}
+			t.TTN = ss.TTName
+
+			if nott && noph && noidx {
+				msg("basic", 5)
+				prq = basicprq(t, prq)
+			} else if nott && noph && yesidx {
+				// word in work(s)/passage(s): AND ( (index BETWEEN 481 AND 483) OR (index BETWEEN 501 AND 503) ... )
+				msg("basic_and_indices", 5)
+				prq = basicidxprq(t, prq)
+			} else if nott && yesphr && noidx {
+				msg("basic_window", 5)
+				prq = basicwindowprq(t, prq)
+			} else if nott && yesphr && yesidx {
+				msg("window_with_indices", 5)
+				prq = windandidxprq(t, prq)
+			} else if yestt && noph {
+				msg("simple_tt", 5)
+				prq = simplettprq(t, prq)
+			} else {
+				msg("window_with_tt", 5)
+				prq = windowandttprq(t, prq)
+			}
+			prqq = append(prqq, prq)
 		}
-		t.TTN = ss.TTName
-
-		// todo
-		// problem remains with tt and lemma: WHERE accented_line ~* ''
-
-		if nott && noph && noidx {
-			msg("basic", 5)
-			prq = basicprq(t, prq)
-		} else if nott && noph && yesidx {
-			// word in work(s)/passage(s): AND ( (index BETWEEN 481 AND 483) OR (index BETWEEN 501 AND 503) ... )
-			msg("basic_and_indices", 5)
-			prq = basicidxprq(t, prq)
-		} else if nott && yesphr && noidx {
-			msg("basic_window", 5)
-			prq = basicwindowprq(t, prq)
-		} else if nott && yesphr && yesidx {
-			msg("window_with_indices", 5)
-			prq = windandidxprq(t, prq)
-		} else if yestt && noph {
-			msg("simple_tt", 5)
-			prq = simplettprq(t, prq)
-		} else {
-			msg("window_with_tt", 5)
-			prq = windowandttprq(t, prq)
-		}
-		prqq = append(prqq, prq)
 	}
 	return prqq
 }
