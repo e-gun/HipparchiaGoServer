@@ -181,16 +181,12 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 		// map to the %s items in the qtmpl below:
 		// SELECTFROM + WHERETERM + WHEREINDEXINCL + WHEREINDEXEXCL + (either) ORDERBY&LIMIT (or) SECOND
 
-		fmt.Println(qb.WhrIdxInc)
-
 		nott := len(prq.TempTable) == 0
 		yestt := len(prq.TempTable) != 0
 		noph := !ss.HasPhrase
 		yesphr := ss.HasPhrase
 		noidx := len(qb.WhrIdxExc) == 0 && len(qb.WhrIdxInc) == 0
 		yesidx := len(qb.WhrIdxExc) != 0 || len(qb.WhrIdxInc) != 0
-		fmt.Printf("yesphr: %t\n", yesphr)
-		fmt.Printf("noidx: %t\n", noidx)
 
 		if nott && noph && noidx {
 			msg("basic", 5)
@@ -349,7 +345,7 @@ func windandidxprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStru
 	tail := ` FROM {{ .AU }} WHERE {{ .IDX }} ) first 
 			) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
 
-	tmpl, e := template.New("bw").Parse(tail)
+	tmpl, e := template.New("wdx").Parse(tail)
 	chke(e)
 	var b bytes.Buffer
 	e = tmpl.Execute(&b, t)
@@ -365,6 +361,7 @@ func simplettprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct
 	//		SELECT values AS includeindex FROM
 	//			unnest(ARRAY[2,3,4,5,6,7,8,9,...])
 	//		values
+	// (and then)
 	//		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
 	//			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM  lt0472 WHERE EXISTS
 	//		(SELECT 1 FROM lt0472_includelist_f5d653cfcdab44c6bfb662f688d47e73 incl WHERE incl.includeindex = lt0472.index AND stripped_line ~* 'carm') LIMIT 200
@@ -385,7 +382,7 @@ func simplettprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct
 	tail := ` {{ .AU }} WHERE EXISTS
 		(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}.index AND {{ .COL }} {{ .SYN }} '{{ .SK }}') LIMIT {{ .LIM }}`
 
-	tmpl, e := template.New("bw").Parse(tail)
+	tmpl, e := template.New("stt").Parse(tail)
 	chke(e)
 	var b bytes.Buffer
 	e = tmpl.Execute(&b, t)
@@ -396,6 +393,45 @@ func simplettprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct
 }
 
 func windowandttprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct) PrerolledQuery {
+	// 	CREATE TEMPORARY TABLE lt0893_includelist_fce25efdd0d4f4ecab77e636f8c512224 AS
+	//		SELECT values AS includeindex FROM
+	//			unnest(ARRAY[2,3,4,5,6,7,8,9,...])
+	//		values
+	// (and then)
+	// 		SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value,
+	//			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
+	//		( SELECT * FROM
+	//			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
+	//				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) ) AS linebundle FROM lt0893 WHERE EXISTS
+	//			(SELECT 1 FROM lt0893_includelist_ce25efdd0d4f4ecab77e636f8c512224 incl WHERE incl.includeindex = lt0893.index )
+	//			) first
+	//		) second WHERE second.linebundle ~* 'ad italos' LIMIT 200
+
+	var t PRQTemplate
+	t.AU = au
+	t.COL = ss.SrchColumn
+	t.SYN = ss.SrchSyntax
+	t.SK = ss.Seeking
+	t.LIM = fmt.Sprintf("%d", ss.Limit)
+	if ss.NotNear {
+		t.IDX = qb.WhrIdxExc
+	} else {
+		t.IDX = qb.WhrIdxInc
+	}
+	t.TTN = ss.TTName
+
+	tail := ` FROM {{ .AU }} WHERE EXISTS
+			(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}.index ) 
+			) first
+		) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' LIMIT {{ .LIM }}`
+
+	tmpl, e := template.New("wtt").Parse(tail)
+	chke(e)
+	var b bytes.Buffer
+	e = tmpl.Execute(&b, t)
+	chke(e)
+
+	prq.PsqlQuery = fmt.Sprintf(PRFXSELFRM + ASLINEBUNDLE + b.String())
 	return prq
 }
 
@@ -552,10 +588,6 @@ func OLD_searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 		}
 	}
 	return prqq
-}
-
-func basicqueryformat() {
-
 }
 
 func requiresindextemptable(au string, bb []Boundaries, ss SearchStruct) string {
