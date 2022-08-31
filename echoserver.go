@@ -45,7 +45,7 @@ func StartEchoServer() {
 	if cfg.EchoLog == 2 {
 		e.Use(middleware.Logger())
 	} else if cfg.EchoLog == 1 {
-		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: "method=${method}, uri=${uri}, status=${status}\n"}))
+		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: "status: ${status}\turi: ${uri}\n"}))
 	}
 
 	e.Use(middleware.Recover())

@@ -275,6 +275,11 @@ type SelectionData struct {
 	Count     int    `json:"numberofselections"`
 }
 
+type JSData struct {
+	Pound string
+	Url   string
+}
+
 func reportcurrentselections(c echo.Context) []byte {
 	// ultimately feeding autocomplete.js
 	//    $('#timerestrictions').html(selectiondata.timeexclusions);
@@ -327,6 +332,12 @@ func reportcurrentselections(c echo.Context) []byte {
 		"psg":  {"Passages", "ListedPBN"},
 	}
 
+	var jsinfo []JSData
+	jsin := `%sselections_%02d`
+	jsinu := `/selection/clear/%sselections/%d`
+	jsex := `%sexclusions_%02d`
+	jsexu := `/selection/clear/%sexclusions/%d`
+
 	var sd SelectionData
 
 	// run inclusions, then exclusions
@@ -345,6 +356,15 @@ func reportcurrentselections(c echo.Context) []byte {
 				for n, g := range slc {
 					st := fmt.Sprintf(swap[idx], ct, ct, n, g)
 					rows[idx] = append(rows[idx], st)
+					if swap[idx] == sl {
+						a := fmt.Sprintf(jsin, ct, n)
+						b := fmt.Sprintf(jsinu, ct, n)
+						jsinfo = append(jsinfo, JSData{a, b})
+					} else {
+						a := fmt.Sprintf(jsex, ct, n)
+						b := fmt.Sprintf(jsexu, ct, n)
+						jsinfo = append(jsinfo, JSData{a, b})
+					}
 				}
 			}
 		}
@@ -353,10 +373,32 @@ func reportcurrentselections(c echo.Context) []byte {
 	sd.Select = strings.Join(rows[0], "")
 	sd.Exclude = strings.Join(rows[1], "")
 	sd.Count = i.CountItems() + e.CountItems()
+	sd.NewJS = formatnewselectionjs(jsinfo)
 
 	js, err := json.Marshal(sd)
 	chke(err)
 	return js
+}
+
+func formatnewselectionjs(jsinfo []JSData) string {
+	t := `
+		$( '#%s' ).dblclick(function() {
+			$.getJSON('%s', function (selectiondata) { 
+				reloadselections(selectiondata); });
+		});`
+
+	s := `
+	<script>%s
+	</script>
+	`
+
+	var info []string
+	for _, j := range jsinfo {
+		info = append(info, fmt.Sprintf(t, j.Pound, j.Url))
+	}
+
+	script := fmt.Sprintf(s, strings.Join(info, ""))
+	return script
 }
 
 func test_selection() {

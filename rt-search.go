@@ -327,8 +327,7 @@ func formatinitialsummary(s SearchStruct) string {
 		two = fmt.Sprintf(win, s.ProxVal, s.ProxScope, af2, sk2)
 	}
 	sum := fmt.Sprintf(tmp, af1, sk, two)
-	fmt.Println(sum)
-	fmt.Println(s.LemmaTwo)
+
 	return sum
 }
 
@@ -574,3 +573,76 @@ func phrasecombinations(phr string) [][2]string {
 
 	return trimmed
 }
+
+/*
+
+the following yields a strange problem: "&nbsp;" will render literally rather than as a space in the output. why?
+templating makes the formatting code a lot more readable...
+
+func formatnocontextresults(s SearchStruct) []byte {
+	var out SearchOutput
+	out.JS = BROWSERJS
+	out.Title = s.Seeking
+	out.Image = ""
+	out.Searchsummary = formatfinalsearchsummary(s)
+
+	type TR struct {
+		RC string
+		NU int
+		AU string
+		WK string
+		LK string
+		LC string
+		MU string
+	}
+
+	TABLEROW := `
+	<tr class="{{.RC}}">
+		<td>
+			<span class="findnumber">[{{.NU}}]</span>&nbsp;&nbsp;
+			<span class="foundauthor">{{.AU}}</span>,&nbsp;<span class="foundwork">{{.WK}}</span>:
+			<browser id="{{.LK}}"><span class="foundlocus">{{.LC}}</span></browser>
+		</td>
+		<td class="leftpad">
+			<span class="foundtext">{{.MU}}</span>
+		</td>
+	</tr>
+	`
+
+	tmpl, e := template.New("tr").Parse(TABLEROW)
+	chke(e)
+
+	var rows []string
+	for i, r := range s.Results {
+		rc := ""
+		if i%3 == 2 {
+			rc = "nthrow"
+		} else {
+			rc = "regular"
+		}
+
+		var tr TR
+		tr.RC = rc
+		tr.AU = AllAuthors[r.FindAuthor()].Shortname
+		tr.WK = AllWorks[r.WkUID].Title
+		tr.LK = r.BuildHyperlink()
+		tr.LC = strings.Join(r.FindLocus(), ".")
+		tr.MU = r.MarkedUp
+
+		var b bytes.Buffer
+		err := tmpl.Execute(&b, tr)
+		chke(err)
+
+		fmt.Println(b.String())
+		rows = append(rows, b.String())
+	}
+
+	out.Found = "<tbody>" + strings.Join(rows, "") + "</tbody>"
+
+	js, e := json.Marshal(out)
+	chke(e)
+
+	return js
+}
+
+*/
