@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -62,6 +63,113 @@ func (s SelectValues) A() bool {
 	} else {
 		return false
 	}
+}
+
+func RtSelectionMake(c echo.Context) error {
+	// GET http://localhost:8000/selection/make/_?auth=lt0474&work=073&locus=3|10&endpoint=
+
+	// note that you need to return JSON: reportcurrentselections() so as to fill #selectionstable on the page
+
+	user := readUUIDCookie(c)
+	var sel SelectValues
+	sel.Auth = c.QueryParam("auth")
+	sel.Work = c.QueryParam("work")
+	sel.Start = c.QueryParam("locus")
+	sel.End = c.QueryParam("endpoint")
+	sel.AGenre = c.QueryParam("genre")
+	sel.WGenre = c.QueryParam("wkgenre")
+	sel.ALoc = c.QueryParam("auloc")
+	sel.WLoc = c.QueryParam("wkprov")
+
+	if c.QueryParam("raw") == "t" {
+		sel.IsRaw = true
+	} else {
+		sel.IsRaw = false
+	}
+
+	if c.QueryParam("exclude") == "t" {
+		sel.IsExcl = true
+	} else {
+		sel.IsExcl = false
+	}
+
+	sessions[user] = selected(user, sel)
+	jsbytes := reportcurrentselections(c)
+
+	fmt.Println(string(jsbytes))
+
+	return c.String(http.StatusOK, string(jsbytes))
+}
+
+func RtSelectionClear(c echo.Context) error {
+	// GET http://localhost:8000/selection/clear/wkselections/0
+	user := readUUIDCookie(c)
+
+	locus := c.Param("locus")
+	which := strings.Split(locus, "/")
+
+	if len(which) != 2 {
+		msg(fmt.Sprintf("RtSelectionClear() was given bad input: %s", locus), 1)
+		return c.String(http.StatusOK, "")
+	}
+
+	cat := which[0]
+	id, e := strconv.Atoi(which[1])
+	if e != nil {
+		msg(fmt.Sprintf("RtSelectionClear() was given bad input: %s", locus), 1)
+		return c.String(http.StatusOK, "")
+	}
+
+	// cat := []string{"agn", "wgn", "aloc", "wloc", "au", "wk", "psg"}
+
+	mod := sessions[user]
+	modi := mod.Inclusions
+	mode := mod.Exclusions
+
+	switch cat {
+	case "agnselections":
+		modi.AuGenres = RemoveIndex(modi.AuGenres, id)
+	case "wgnselections":
+		modi.WkGenres = RemoveIndex(modi.WkGenres, id)
+	case "alocselections":
+		modi.AuLocations = RemoveIndex(modi.AuLocations, id)
+	case "wlocselections":
+		modi.WkLocations = RemoveIndex(modi.WkLocations, id)
+	case "auselections":
+		modi.Authors = RemoveIndex(modi.Authors, id)
+	case "wkselections":
+		modi.Works = RemoveIndex(modi.Works, id)
+	case "psgselections":
+		modi.Passages = RemoveIndex(modi.Passages, id)
+	case "agnexclusions":
+		mode.AuGenres = RemoveIndex(mode.AuGenres, id)
+	case "wgnexclusions":
+		mode.WkGenres = RemoveIndex(mode.WkGenres, id)
+	case "alocexclusions":
+		mode.AuLocations = RemoveIndex(mode.AuLocations, id)
+	case "wlocexclusions":
+		mode.WkLocations = RemoveIndex(mode.WkLocations, id)
+	case "auexclusions":
+		mode.Authors = RemoveIndex(mode.Authors, id)
+	case "wkexclusions":
+		mode.Works = RemoveIndex(mode.Works, id)
+	case "psgexclusions":
+		mode.Passages = RemoveIndex(mode.Passages, id)
+	default:
+		msg(fmt.Sprintf("RtSelectionClear() was given bad category: %s", cat), 1)
+	}
+
+	delete(sessions, user)
+	sessions[user] = mod
+
+	r := RtSelectionFetch(c)
+
+	return r
+}
+
+func RtSelectionFetch(c echo.Context) error {
+	jsbytes := reportcurrentselections(c)
+	return c.String(http.StatusOK, string(jsbytes))
 }
 
 func selected(user string, sv SelectValues) Session {

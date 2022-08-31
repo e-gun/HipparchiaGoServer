@@ -44,7 +44,7 @@ function togglemany(arrayofelements) {
 }
 
 function setoptions(sessionvar, value){
-	$.getJSON( {url: '/setsessionvariable/' + sessionvar + '/' + value,
+	$.getJSON( {url: '/setoption/' + sessionvar + '/' + value,
 	    async: false,
 	    success: function (resultdata) {
 		 // do nothing special: the return exists but is not relevant

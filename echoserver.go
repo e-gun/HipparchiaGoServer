@@ -8,7 +8,6 @@ import (
 	"html/template"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -172,8 +171,19 @@ func StartEchoServer() {
 	// [k3] "GET /selection/fetch HTTP/1.1"
 	e.GET("/selection/fetch", RtSelectionFetch)
 
-	// [l] text and index
-	// [m] vectors
+	//
+	// [l] setoption: http://localhost:8000/setoption/greekcorpus/yes
+	//
+
+	e.GET("/setoption/:opt", RtSetOption)
+
+	//
+	// [m] text and index
+	//
+
+	//
+	// [n] vectors [unneeded/unimplemented ATM]
+	//
 
 	// [z] testing
 	e.GET("/t", RtTest)
@@ -261,111 +271,19 @@ func RtResetSession(c echo.Context) error {
 	return RtFrontpage(c)
 }
 
-func RtSelectionMake(c echo.Context) error {
-	// GET http://localhost:8000/selection/make/_?auth=lt0474&work=073&locus=3|10&endpoint=
+func RtSetOption(c echo.Context) error {
+	optandval := c.Param("opt")
+	parsed := strings.Split(optandval, "/")
 
-	// note that you need to return JSON: reportcurrentselections() so as to fill #selectionstable on the page
-
-	user := readUUIDCookie(c)
-	var sel SelectValues
-	sel.Auth = c.QueryParam("auth")
-	sel.Work = c.QueryParam("work")
-	sel.Start = c.QueryParam("locus")
-	sel.End = c.QueryParam("endpoint")
-	sel.AGenre = c.QueryParam("genre")
-	sel.WGenre = c.QueryParam("wkgenre")
-	sel.ALoc = c.QueryParam("auloc")
-	sel.WLoc = c.QueryParam("wkprov")
-
-	if c.QueryParam("raw") == "t" {
-		sel.IsRaw = true
-	} else {
-		sel.IsRaw = false
-	}
-
-	if c.QueryParam("exclude") == "t" {
-		sel.IsExcl = true
-	} else {
-		sel.IsExcl = false
-	}
-
-	sessions[user] = selected(user, sel)
-	jsbytes := reportcurrentselections(c)
-
-	fmt.Println(string(jsbytes))
-
-	return c.String(http.StatusOK, string(jsbytes))
-}
-
-func RtSelectionClear(c echo.Context) error {
-	// GET http://localhost:8000/selection/clear/wkselections/0
-	user := readUUIDCookie(c)
-
-	locus := c.Param("locus")
-	which := strings.Split(locus, "/")
-
-	if len(which) != 2 {
-		msg(fmt.Sprintf("RtSelectionClear() was given bad input: %s", locus), 1)
+	if len(parsed) != 2 {
+		msg(fmt.Sprintf("RtSetOption() was given bad input: %s", optandval), 1)
 		return c.String(http.StatusOK, "")
 	}
 
-	cat := which[0]
-	id, e := strconv.Atoi(which[1])
-	if e != nil {
-		msg(fmt.Sprintf("RtSelectionClear() was given bad input: %s", locus), 1)
-		return c.String(http.StatusOK, "")
-	}
+	s := fmt.Sprintf("tried to set '%s' to '%s'", parsed[0], parsed[1])
+	msg(s, 1)
 
-	// cat := []string{"agn", "wgn", "aloc", "wloc", "au", "wk", "psg"}
-
-	mod := sessions[user]
-	modi := mod.Inclusions
-	mode := mod.Exclusions
-
-	switch cat {
-	case "agnselections":
-		modi.AuGenres = RemoveIndex(modi.AuGenres, id)
-	case "wgnselections":
-		modi.WkGenres = RemoveIndex(modi.WkGenres, id)
-	case "alocselections":
-		modi.AuLocations = RemoveIndex(modi.AuLocations, id)
-	case "wlocselections":
-		modi.WkLocations = RemoveIndex(modi.WkLocations, id)
-	case "auselections":
-		modi.Authors = RemoveIndex(modi.Authors, id)
-	case "wkselections":
-		modi.Works = RemoveIndex(modi.Works, id)
-	case "psgselections":
-		modi.Passages = RemoveIndex(modi.Passages, id)
-	case "agnexclusions":
-		mode.AuGenres = RemoveIndex(mode.AuGenres, id)
-	case "wgnexclusions":
-		mode.WkGenres = RemoveIndex(mode.WkGenres, id)
-	case "alocexclusions":
-		mode.AuLocations = RemoveIndex(mode.AuLocations, id)
-	case "wlocexclusions":
-		mode.WkLocations = RemoveIndex(mode.WkLocations, id)
-	case "auexclusions":
-		mode.Authors = RemoveIndex(mode.Authors, id)
-	case "wkexclusions":
-		mode.Works = RemoveIndex(mode.Works, id)
-	case "psgexclusions":
-		mode.Passages = RemoveIndex(mode.Passages, id)
-	default:
-		msg(fmt.Sprintf("RtSelectionClear() was given bad category: %s", cat), 1)
-	}
-
-	delete(sessions, user)
-	sessions[user] = mod
-
-	r := RtSelectionFetch(c)
-
-	return r
-}
-
-func RtSelectionFetch(c echo.Context) error {
-	jsbytes := reportcurrentselections(c)
-	return c.String(http.StatusOK, string(jsbytes))
+	return c.String(http.StatusOK, "")
 }
 
 func RtTest(c echo.Context) error {
