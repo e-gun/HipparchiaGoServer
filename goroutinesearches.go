@@ -56,7 +56,7 @@ func SrchFeeder(ctx context.Context, qq []PrerolledQuery) (<-chan PrerolledQuery
 	go func() {
 		defer close(emitqueries)
 		for _, q := range qq {
-			fmt.Println(qq)
+			fmt.Println(q)
 			select {
 			case <-ctx.Done():
 				return

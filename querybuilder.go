@@ -188,25 +188,41 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 		noidx := len(qb.WhrIdxExc) == 0 && len(qb.WhrIdxInc) == 0
 		yesidx := len(qb.WhrIdxExc) != 0 || len(qb.WhrIdxInc) != 0
 
+		var t PRQTemplate
+		t.AU = au
+		t.COL = ss.SrchColumn
+		t.SYN = ss.SrchSyntax
+		t.SK = ss.Seeking
+		t.LIM = fmt.Sprintf("%d", ss.Limit)
+		if ss.NotNear {
+			t.IDX = qb.WhrIdxExc
+		} else {
+			t.IDX = qb.WhrIdxInc
+		}
+		t.TTN = ss.TTName
+
+		// todo
+		// problem remains with tt and lemma: WHERE accented_line ~* ''
+
 		if nott && noph && noidx {
 			msg("basic", 5)
-			prq = basicprq(prq, au, qb, ss)
+			prq = basicprq(t, prq)
 		} else if nott && noph && yesidx {
 			// word in work(s)/passage(s): AND ( (index BETWEEN 481 AND 483) OR (index BETWEEN 501 AND 503) ... )
 			msg("basic_and_indices", 5)
-			prq = basicidxprq(prq, au, qb, ss)
+			prq = basicidxprq(t, prq)
 		} else if nott && yesphr && noidx {
 			msg("basic_window", 5)
-			prq = basicwindowprq(prq, au, qb, ss)
+			prq = basicwindowprq(t, prq)
 		} else if nott && yesphr && yesidx {
 			msg("window_with_indices", 5)
-			prq = windandidxprq(prq, au, qb, ss)
+			prq = windandidxprq(t, prq)
 		} else if yestt && noph {
 			msg("simple_tt", 5)
-			prq = simplettprq(prq, au, qb, ss)
+			prq = simplettprq(t, prq)
 		} else {
 			msg("window_with_tt", 5)
-			prq = windowandttprq(prq, au, qb, ss)
+			prq = windowandttprq(t, prq)
 		}
 		prqq = append(prqq, prq)
 	}
@@ -223,25 +239,12 @@ type PRQTemplate struct {
 	TTN string
 }
 
-func basicprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct) PrerolledQuery {
+func basicprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	// word in an author
 	//
 	//		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
 	//			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations
 	//			FROM lt0472 WHERE stripped_line ~* 'potest'  ORDER BY index ASC LIMIT 200
-
-	var t PRQTemplate
-	t.AU = au
-	t.COL = ss.SrchColumn
-	t.SYN = ss.SrchSyntax
-	t.SK = ss.Seeking
-	t.LIM = fmt.Sprintf("%d", ss.Limit)
-	if ss.NotNear {
-		t.IDX = qb.WhrIdxExc
-	} else {
-		t.IDX = qb.WhrIdxInc
-	}
-	t.TTN = ss.TTName
 
 	tail := `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
 
@@ -255,23 +258,10 @@ func basicprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct) P
 	return prq
 }
 
-func basicidxprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct) PrerolledQuery {
+func basicidxprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	// word in a work
 	//		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
 	//			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt0472 WHERE stripped_line ~* 'nomen' AND (index BETWEEN 1 AND 2548) ORDER BY index ASC LIMIT 200
-
-	var t PRQTemplate
-	t.AU = au
-	t.COL = ss.SrchColumn
-	t.SYN = ss.SrchSyntax
-	t.SK = ss.Seeking
-	t.LIM = fmt.Sprintf("%d", ss.Limit)
-	if ss.NotNear {
-		t.IDX = qb.WhrIdxExc
-	} else {
-		t.IDX = qb.WhrIdxInc
-	}
-	t.TTN = ss.TTName
 
 	tail := `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' AND ({{ .IDX }}) ORDER BY index ASC LIMIT {{ .LIM }}`
 
@@ -286,7 +276,7 @@ func basicidxprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct
 
 }
 
-func basicwindowprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct) PrerolledQuery {
+func basicwindowprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	// phrase in an author
 	//		SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value,
 	//			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
@@ -294,19 +284,6 @@ func basicwindowprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStr
 	//			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
 	//				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) ) AS linebundle FROM lt0472 ) first
 	//		) second WHERE second.linebundle ~* 'nomen esse' ORDER BY index ASC LIMIT 200
-
-	var t PRQTemplate
-	t.AU = au
-	t.COL = ss.SrchColumn
-	t.SYN = ss.SrchSyntax
-	t.SK = ss.Seeking
-	t.LIM = fmt.Sprintf("%d", ss.Limit)
-	if ss.NotNear {
-		t.IDX = qb.WhrIdxExc
-	} else {
-		t.IDX = qb.WhrIdxInc
-	}
-	t.TTN = ss.TTName
 
 	tail := ` FROM {{ .AU }} ) first 
 			) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
@@ -321,7 +298,7 @@ func basicwindowprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStr
 	return prq
 }
 
-func windandidxprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct) PrerolledQuery {
+func windandidxprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	// phrase within selections from the author
 	// 		SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value,
 	//			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
@@ -329,18 +306,6 @@ func windandidxprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStru
 	//			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
 	//				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) ) AS linebundle FROM lt0474 WHERE (index BETWEEN 104798 AND 109397) OR (index BETWEEN 67552 AND 70014) ) first
 	//			) second WHERE second.linebundle ~* 'causa esse' ORDER BY index ASC LIMIT 200
-	var t PRQTemplate
-	t.AU = au
-	t.COL = ss.SrchColumn
-	t.SYN = ss.SrchSyntax
-	t.SK = ss.Seeking
-	t.LIM = fmt.Sprintf("%d", ss.Limit)
-	if ss.NotNear {
-		t.IDX = qb.WhrIdxExc
-	} else {
-		t.IDX = qb.WhrIdxInc
-	}
-	t.TTN = ss.TTName
 
 	tail := ` FROM {{ .AU }} WHERE {{ .IDX }} ) first 
 			) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
@@ -356,7 +321,7 @@ func windandidxprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStru
 	return prq
 }
 
-func simplettprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct) PrerolledQuery {
+func simplettprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	// 	CREATE TEMPORARY TABLE lt0472_includelist_f5d653cfcdab44c6bfb662f688d47e73 AS
 	//		SELECT values AS includeindex FROM
 	//			unnest(ARRAY[2,3,4,5,6,7,8,9,...])
@@ -365,19 +330,6 @@ func simplettprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct
 	//		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
 	//			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM  lt0472 WHERE EXISTS
 	//		(SELECT 1 FROM lt0472_includelist_f5d653cfcdab44c6bfb662f688d47e73 incl WHERE incl.includeindex = lt0472.index AND stripped_line ~* 'carm') LIMIT 200
-
-	var t PRQTemplate
-	t.AU = au
-	t.COL = ss.SrchColumn
-	t.SYN = ss.SrchSyntax
-	t.SK = ss.Seeking
-	t.LIM = fmt.Sprintf("%d", ss.Limit)
-	if ss.NotNear {
-		t.IDX = qb.WhrIdxExc
-	} else {
-		t.IDX = qb.WhrIdxInc
-	}
-	t.TTN = ss.TTName
 
 	tail := ` {{ .AU }} WHERE EXISTS
 		(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}.index AND {{ .COL }} {{ .SYN }} '{{ .SK }}') LIMIT {{ .LIM }}`
@@ -392,7 +344,7 @@ func simplettprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct
 	return prq
 }
 
-func windowandttprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStruct) PrerolledQuery {
+func windowandttprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	// 	CREATE TEMPORARY TABLE lt0893_includelist_fce25efdd0d4f4ecab77e636f8c512224 AS
 	//		SELECT values AS includeindex FROM
 	//			unnest(ARRAY[2,3,4,5,6,7,8,9,...])
@@ -406,19 +358,6 @@ func windowandttprq(prq PrerolledQuery, au string, qb QueryBuilder, ss SearchStr
 	//			(SELECT 1 FROM lt0893_includelist_ce25efdd0d4f4ecab77e636f8c512224 incl WHERE incl.includeindex = lt0893.index )
 	//			) first
 	//		) second WHERE second.linebundle ~* 'ad italos' LIMIT 200
-
-	var t PRQTemplate
-	t.AU = au
-	t.COL = ss.SrchColumn
-	t.SYN = ss.SrchSyntax
-	t.SK = ss.Seeking
-	t.LIM = fmt.Sprintf("%d", ss.Limit)
-	if ss.NotNear {
-		t.IDX = qb.WhrIdxExc
-	} else {
-		t.IDX = qb.WhrIdxInc
-	}
-	t.TTN = ss.TTName
 
 	tail := ` FROM {{ .AU }} WHERE EXISTS
 			(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}.index ) 
