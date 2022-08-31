@@ -280,8 +280,61 @@ func RtSetOption(c echo.Context) error {
 		return c.String(http.StatusOK, "")
 	}
 
-	s := fmt.Sprintf("tried to set '%s' to '%s'", parsed[0], parsed[1])
-	msg(s, 1)
+	opt := parsed[0]
+	val := parsed[1]
+
+	ynoptionlist := []string{"greekcorpus", "latincorpus", "papyruscorpus", "inscriptioncorpus", "christiancorpus",
+		"rawinputstyle", "onehit", "headwordindexing", "indexbyfrequency", "spuria", "incerta", "varia"}
+
+	s := sessions[readUUIDCookie(c)]
+
+	if contains(ynoptionlist, opt) {
+		valid := []string{"yes", "no"}
+		if contains(valid, val) {
+			var b bool
+			if val == "yes" {
+				b = true
+			} else {
+				b = false
+			}
+			switch opt {
+			case "greekcorpus":
+				s.ActiveCorp["gr"] = b
+			case "latincorpus":
+				s.ActiveCorp["lt"] = b
+			case "papyruscorpus":
+				s.ActiveCorp["dp"] = b
+			case "inscriptioncorpus":
+				s.ActiveCorp["in"] = b
+			case "christiancorpus":
+				s.ActiveCorp["ch"] = b
+			case "rawinputstyle":
+				s.RawInput = b
+			case "onehit":
+				s.OneHit = b
+			case "indexbyfrequency":
+				s.FrqIdx = b
+			case "headwordindexing":
+				s.HeadwordIdx = b
+			case "spuria":
+				s.SpuriaOK = b
+			case "incerta":
+				s.IncertaOK = b
+			case "varia":
+				s.VariaOK = b
+			default:
+				msg("RtSetOption() hit an impossible case", 1)
+			}
+			fmt.Println(sessions[readUUIDCookie(c)])
+		}
+	}
+
+	//valoptionlist := `nearornot (near/notnear), searchscope (lines/words), sortorder (shortname, converted_date, location, provenance, universalid, [drop: authgenre] )`
+	//
+	//spineroptionlist := `maxresults, linesofcontext`
+
+	st := fmt.Sprintf("tried to set '%s' to '%s'", parsed[0], parsed[1])
+	msg(st, 1)
 
 	return c.String(http.StatusOK, "")
 }

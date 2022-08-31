@@ -8,15 +8,19 @@ import (
 )
 
 type Session struct {
-	ID              string
-	Inclusions      SearchIncExl
-	Exclusions      SearchIncExl
-	ActiveCorp      map[string]bool
-	VariaOK         bool
-	IncertaOK       bool
-	SpuriaOK        bool
-	AvailDBs        map[string]bool `json:"available"`
-	VectorVals      bool
+	ID          string
+	Inclusions  SearchIncExl
+	Exclusions  SearchIncExl
+	ActiveCorp  map[string]bool
+	VariaOK     bool            `json:"varia"`
+	IncertaOK   bool            `json:"incerta"`
+	SpuriaOK    bool            `json:"spuria"`
+	AvailDBs    map[string]bool `json:"available"`
+	RawInput    bool            `json:"rawinputstyle"`
+	OneHit      bool            `json:"onehit"`
+	HeadwordIdx bool            `json:"headwordindexing"`
+	FrqIdx      bool            `json:"indexbyfrequency"`
+
 	UI              UISettings
 	SrchOutSettings SearchOutputSettings
 	Analogyfinder   bool   `json:"analogyfinder"`
