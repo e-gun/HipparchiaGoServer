@@ -141,10 +141,16 @@ func RtSelectionClear(c echo.Context) error {
 	case "wlocselections":
 		modi.WkLocations = RemoveIndex(modi.WkLocations, id)
 	case "auselections":
+		key := modi.Passages[id]
+		delete(modi.MappedAuthByName, key)
 		modi.Authors = RemoveIndex(modi.Authors, id)
 	case "wkselections":
+		key := modi.Passages[id]
+		delete(modi.MappedWkByName, key)
 		modi.Works = RemoveIndex(modi.Works, id)
 	case "psgselections":
+		key := modi.Passages[id]
+		delete(modi.MappedPsgByName, key)
 		modi.Passages = RemoveIndex(modi.Passages, id)
 	case "agnexclusions":
 		mode.AuGenres = RemoveIndex(mode.AuGenres, id)
@@ -155,10 +161,16 @@ func RtSelectionClear(c echo.Context) error {
 	case "wlocexclusions":
 		mode.WkLocations = RemoveIndex(mode.WkLocations, id)
 	case "auexclusions":
+		key := mode.Passages[id]
+		delete(mode.MappedAuthByName, key)
 		mode.Authors = RemoveIndex(mode.Authors, id)
 	case "wkexclusions":
+		key := mode.Passages[id]
+		delete(mode.MappedPsgByName, key)
 		mode.Works = RemoveIndex(mode.Works, id)
 	case "psgexclusions":
+		key := mode.Passages[id]
+		delete(mode.MappedAuthByName, key)
 		mode.Passages = RemoveIndex(mode.Passages, id)
 	default:
 		msg(fmt.Sprintf("RtSelectionClear() was given bad category: %s", cat), 1)
@@ -176,7 +188,6 @@ func RtSelectionClear(c echo.Context) error {
 
 func RtSelectionFetch(c echo.Context) error {
 	jsbytes := reportcurrentselections(c)
-	msg(string(jsbytes), 1)
 	return c.String(http.StatusOK, string(jsbytes))
 }
 
