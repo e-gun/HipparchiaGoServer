@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -273,6 +274,17 @@ func stripaccents(u string) string {
 
 	s := string(stripped)
 	return s
+}
+
+// purgechars - drop any of the chars in the []byte from the string
+func purgechars(bad string, checking string) string {
+	bbytes := []byte(bad)
+	var replacements []string
+	for _, b := range bbytes {
+		replacements = append(replacements, []string{string(b), ""}...)
+	}
+	re := strings.NewReplacer(replacements...)
+	return re.Replace(checking)
 }
 
 //func main() {

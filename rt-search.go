@@ -57,20 +57,6 @@ func (s SearchStruct) FmtOrderBy() string {
 	return ob
 }
 
-type SearchOutput struct {
-	// meant to turn into JSON
-	Title         string `json:"title"`
-	Searchsummary string `json:"searchsummary"`
-	Found         string `json:"found"`
-	Image         string `json:"image"`
-	JS            string `json:"js"`
-}
-
-type SearchSummary struct {
-	Time time.Time
-	Sum  string
-}
-
 func RtSearchConfirm(c echo.Context) error {
 	// not going to be needed?
 	// "test the activity of a poll so you don't start conjuring a bunch of key errors if you use wscheckpoll() prematurely"
@@ -94,6 +80,7 @@ func RtSearchStandard(c echo.Context) error {
 	plm := c.QueryParam("plm")
 
 	srch := builddefaultsearch(c)
+
 	// HasPhrase makes us use a fake limit temporarily
 	reallimit := srch.Limit
 
@@ -107,6 +94,8 @@ func RtSearchStandard(c echo.Context) error {
 	srch.User = user
 	srch.ID = id
 	srch.IsVector = false
+
+	srch = parsesearchinput(srch)
 
 	// must happen before searchlistintoqueries()
 	srch = setsearchtype(srch)
@@ -169,6 +158,87 @@ func RtSearchStandard(c echo.Context) error {
 	return c.String(http.StatusOK, js)
 }
 
+func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
+	// after finding x, look for y within n lines of x
+	// can do:
+	// [1] single + single
+	// [2] lemma + single
+	// [3] lemma + lemma
+	// [4] phrase + single
+	// [5] phrase + lemma
+	// [6] phrase + phrase
+
+	// (part 1)
+	//		HGoSrch(first)
+	//
+	// (part 2)
+	// 		populate a new search list with a ton of passages via the first results
+	//		HGoSrch(second)
+
+	previous := time.Now()
+	first := originalsrch
+
+	first.Limit = FIRSTSEARCHLIM
+	first = HGoSrch(first)
+	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
+	msg(fmt.Sprintf("%s withinxlinessearch(): %d initial hits", d, len(first.Results)), 4)
+	previous = time.Now()
+
+	if first.HasPhrase {
+		mod := first
+		// this will cut the hits by c. 50%
+		mod.Results = findphrasesacrosslines(first)
+		first = mod
+	}
+	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
+	msg(fmt.Sprintf("%s findphrasesacrosslines(): %d trimmed hits", d, len(first.Results)), 4)
+	previous = time.Now()
+
+	second := first
+	second.Results = []DbWorkline{}
+	second.Queries = []PrerolledQuery{}
+	second.SearchIn = SearchIncExl{}
+	second.SearchEx = SearchIncExl{}
+	second.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
+	second.SkgSlice = []string{}
+	second.Seeking = second.Proximate
+	second.LemmaOne = second.LemmaTwo
+	second.Proximate = ""
+	second.PrxSlice = []string{}
+	second.LemmaTwo = ""
+
+	second = setsearchtype(second)
+
+	pt := `%s_FROM_%d_TO_%d`
+
+	var newpsg []string
+	for _, r := range first.Results {
+		np := fmt.Sprintf(pt, r.FindAuthor(), r.TbIndex-first.ProxVal, r.TbIndex+first.ProxVal)
+		newpsg = append(newpsg, np)
+	}
+
+	// todo: not near logic
+
+	second.Limit = originalsrch.Limit
+	second.SearchIn.Passages = newpsg
+
+	prq := searchlistintoqueries(second)
+
+	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
+	msg(fmt.Sprintf("%s searchlistintoqueries() rerun", d), 4)
+	previous = time.Now()
+
+	second.Queries = prq
+	searches[originalsrch.ID] = HGoSrch(second)
+
+	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
+	msg(fmt.Sprintf("%s withinxlinessearch(): %d subsequent hits", d, len(first.Results)), 4)
+
+	// findphrasesacrosslines() check happens just after you exit this function
+
+	return searches[originalsrch.ID]
+}
+
 func builddefaultsearch(c echo.Context) SearchStruct {
 	var s SearchStruct
 
@@ -219,7 +289,166 @@ func setsearchtype(srch SearchStruct) SearchStruct {
 	return srch
 }
 
+func lemmaintoregexslice(hdwd string) []string {
+	// rather than do one word per query, bundle things up: some words have >100 forms
+	// ...(^|\\s)ἐδηλώϲαντο(\\s|$)|(^|\\s)δεδηλωμένοϲ(\\s|$)|(^|\\s)δήλουϲ(\\s|$)|(^|\\s)δηλούϲαϲ(\\s|$)...
+	var qq []string
+	if _, ok := AllLemm[hdwd]; !ok {
+		msg(fmt.Sprintf("lemmaintoregexslice() could not find '%s'", hdwd), 1)
+		return qq
+	}
+
+	tp := `(^|\s)%s(\s|$)`
+	lemm := AllLemm[hdwd].Deriv
+	ct := 0
+	for true {
+		var bnd []string
+		for i := 0; i < MAXLEMMACHUNKSIZE; i++ {
+			if ct > len(lemm)-1 {
+				//re := fmt.Sprintf(tp, lemm[ct])
+				//bnd = append(bnd, re)
+				//qq = append(qq, strings.Join(bnd, "|"))
+				break
+			}
+			re := fmt.Sprintf(tp, lemm[ct])
+			bnd = append(bnd, re)
+			ct += 1
+		}
+		qq = append(qq, strings.Join(bnd, "|"))
+		if ct >= len(lemm)-1 {
+			break
+		}
+	}
+	return qq
+}
+
+func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
+	// "one two$" + "^three four" makes a hit if you want "one two three four"
+	// super slow...:
+	// [HGS] [Δ: 1.474s]  withinxlinessearch(): 1631 initial hits
+	// [HGS] [Δ: 7.433s]  findphrasesacrosslines(): 855 trimmed hits
+
+	var valid = make(map[string]DbWorkline)
+
+	find := regexp.MustCompile(`^\s`)
+	re := find.ReplaceAllString(ss.Seeking, "(^|\\s)")
+	find = regexp.MustCompile(`\s$`)
+	re = find.ReplaceAllString(ss.Seeking, "(\\s|$)")
+
+	for i, r := range ss.Results {
+		// do the "it's all on this line" case separately
+		li := columnpicker(ss.SrchColumn, r)
+		fp := regexp.MustCompile(re)
+		f := fp.MatchString(li)
+		if f {
+			valid[r.BuildHyperlink()] = r
+		} else {
+			// msg("'else'", 4)
+			var nxt DbWorkline
+			if i+1 < len(ss.Results) {
+				nxt = ss.Results[i+1]
+				if r.TbIndex+1 > AllWorks[r.WkUID].LastLine {
+					nxt = DbWorkline{}
+				} else if r.WkUID != nxt.WkUID || r.TbIndex+1 != nxt.TbIndex {
+					// grab the actual next line (i.e. index = 101)
+					nxt = graboneline(r.FindAuthor(), r.TbIndex+1)
+				}
+			} else {
+				// grab the actual next line (i.e. index = 101)
+				nxt = graboneline(r.FindAuthor(), r.TbIndex+1)
+				if r.WkUID != nxt.WkUID {
+					nxt = DbWorkline{}
+				}
+			}
+
+			// combinator dodges double-register of hits
+			nl := columnpicker(ss.SrchColumn, nxt)
+			comb := phrasecombinations(re)
+			for _, c := range comb {
+				fp = regexp.MustCompile(c[0])
+				sp := regexp.MustCompile(c[1])
+				f = fp.MatchString(li)
+				s := sp.MatchString(nl)
+				if f && s && r.WkUID == nxt.WkUID {
+					valid[r.BuildHyperlink()] = r
+				}
+			}
+		}
+	}
+
+	var slc []DbWorkline
+	for _, r := range valid {
+		slc = append(slc, r)
+	}
+	slc = sortresults(slc, ss)
+	return slc
+}
+
+func columnpicker(c string, r DbWorkline) string {
+	var li string
+	switch c {
+	case "stripped_line":
+		li = r.Stripped
+	case "accented_line":
+		li = r.Accented
+	case "marked_up_line": // only a maniac tries to search via marked_up_line
+		li = r.MarkedUp
+	default:
+		li = r.Stripped
+		msg("second.SrchColumn was not set; defaulting to 'stripped_line'", 2)
+	}
+	return li
+}
+
+func phrasecombinations(phr string) [][2]string {
+	// 'one two three four five' -->
+	// [('one', 'two three four five'), ('one two', 'three four five'), ('one two three', 'four five'), ('one two three four', 'five')]
+
+	gt := func(n int, wds []string) []string {
+		return wds[n:]
+	}
+
+	gh := func(n int, wds []string) []string {
+		return wds[:n]
+	}
+
+	ww := strings.Split(phr, " ")
+	var comb [][2]string
+	for i, _ := range ww {
+		h := strings.Join(gh(i, ww), " ")
+		t := strings.Join(gt(i, ww), " ")
+		h = h + "$"
+		t = "^" + t
+		comb = append(comb, [2]string{h, t})
+	}
+
+	var trimmed [][2]string
+	for _, c := range comb {
+		head := strings.TrimSpace(c[0]) != "" && strings.TrimSpace(c[0]) != "$"
+		tail := strings.TrimSpace(c[1]) != "" && strings.TrimSpace(c[0]) != "^"
+		if head && tail {
+			trimmed = append(trimmed, c)
+		}
+	}
+
+	//for i, c := range trimmed {
+	//	fmt.Printf("%d:\n\t0: %s\n\t1: %s\n", i, c[0], c[1])
+	//}
+
+	return trimmed
+}
+
 func formatnocontextresults(s SearchStruct) []byte {
+
+	type SearchOutput struct {
+		// meant to turn into JSON
+		Title         string `json:"title"`
+		Searchsummary string `json:"searchsummary"`
+		Found         string `json:"found"`
+		Image         string `json:"image"`
+		JS            string `json:"js"`
+	}
+
 	var out SearchOutput
 	out.JS = BROWSERJS
 	out.Title = s.Seeking
@@ -344,234 +573,27 @@ func formatbcedate(d string) string {
 	return d
 }
 
-func lemmaintoregexslice(hdwd string) []string {
-	// rather than do one word per query, bundle things up: some words have >100 forms
-	// ...(^|\\s)ἐδηλώϲαντο(\\s|$)|(^|\\s)δεδηλωμένοϲ(\\s|$)|(^|\\s)δήλουϲ(\\s|$)|(^|\\s)δηλούϲαϲ(\\s|$)...
-	var qq []string
-	if _, ok := AllLemm[hdwd]; !ok {
-		msg(fmt.Sprintf("lemmaintoregexslice() could not find '%s'", hdwd), 1)
-		return qq
-	}
-
-	tp := `(^|\s)%s(\s|$)`
-	lemm := AllLemm[hdwd].Deriv
-	ct := 0
-	for true {
-		var bnd []string
-		for i := 0; i < MAXLEMMACHUNKSIZE; i++ {
-			if ct > len(lemm)-1 {
-				//re := fmt.Sprintf(tp, lemm[ct])
-				//bnd = append(bnd, re)
-				//qq = append(qq, strings.Join(bnd, "|"))
-				break
-			}
-			re := fmt.Sprintf(tp, lemm[ct])
-			bnd = append(bnd, re)
-			ct += 1
-		}
-		qq = append(qq, strings.Join(bnd, "|"))
-		if ct >= len(lemm)-1 {
-			break
-		}
-	}
-	return qq
-}
-
-func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
-	// after finding x, look for y within n lines of x
-	// can do:
-	// [1] single + single
-	// [2] lemma + single
-	// [3] lemma + lemma
-	// [4] phrase + single
-	// [5] phrase + lemma
-	// [6] phrase + phrase
-
-	// (part 1)
-	//		HGoSrch(first)
-	//
-	// (part 2)
-	// 		populate a new search list with a ton of passages via the first results
-	//		HGoSrch(second)
-
-	previous := time.Now()
-	first := originalsrch
-
-	first.Limit = FIRSTSEARCHLIM
-	first = HGoSrch(first)
-	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf("%s withinxlinessearch(): %d initial hits", d, len(first.Results)), 4)
-	previous = time.Now()
-
-	if first.HasPhrase {
-		mod := first
-		// this will cut the hits by c. 50%
-		mod.Results = findphrasesacrosslines(first)
-		first = mod
-	}
-	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf("%s findphrasesacrosslines(): %d trimmed hits", d, len(first.Results)), 4)
-	previous = time.Now()
-
-	second := first
-	second.Results = []DbWorkline{}
-	second.Queries = []PrerolledQuery{}
-	second.SearchIn = SearchIncExl{}
-	second.SearchEx = SearchIncExl{}
-	second.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
-	second.SkgSlice = []string{}
-	second.Seeking = second.Proximate
-	second.LemmaOne = second.LemmaTwo
-	second.Proximate = ""
-	second.PrxSlice = []string{}
-	second.LemmaTwo = ""
-
-	second = setsearchtype(second)
-
-	pt := `%s_FROM_%d_TO_%d`
-
-	var newpsg []string
-	for _, r := range first.Results {
-		np := fmt.Sprintf(pt, r.FindAuthor(), r.TbIndex-first.ProxVal, r.TbIndex+first.ProxVal)
-		newpsg = append(newpsg, np)
-	}
-
-	// todo: not near logic
-
-	second.Limit = originalsrch.Limit
-	second.SearchIn.Passages = newpsg
-
-	prq := searchlistintoqueries(second)
-
-	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf("%s searchlistintoqueries() rerun", d), 4)
-	previous = time.Now()
-
-	second.Queries = prq
-	searches[originalsrch.ID] = HGoSrch(second)
-
-	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf("%s withinxlinessearch(): %d subsequent hits", d, len(first.Results)), 4)
-
-	// findphrasesacrosslines() check happens just after you exit this function
-
-	return searches[originalsrch.ID]
-}
-
-func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
-	// "one two$" + "^three four" makes a hit if you want "one two three four"
-	// super slow...:
-	// [HGS] [Δ: 1.474s]  withinxlinessearch(): 1631 initial hits
-	// [HGS] [Δ: 7.433s]  findphrasesacrosslines(): 855 trimmed hits
-
-	var valid = make(map[string]DbWorkline)
-
-	find := regexp.MustCompile(`^\s`)
-	re := find.ReplaceAllString(ss.Seeking, "(^|\\s)")
-	find = regexp.MustCompile(`\s$`)
-	re = find.ReplaceAllString(ss.Seeking, "(\\s|$)")
-
-	for i, r := range ss.Results {
-		// do the "it's all on this line" case separately
-		li := columnpicker(ss.SrchColumn, r)
-		fp := regexp.MustCompile(re)
-		f := fp.MatchString(li)
-		if f {
-			valid[r.BuildHyperlink()] = r
-		} else {
-			// msg("'else'", 4)
-			var nxt DbWorkline
-			if i+1 < len(ss.Results) {
-				nxt = ss.Results[i+1]
-				if r.TbIndex+1 > AllWorks[r.WkUID].LastLine {
-					nxt = DbWorkline{}
-				} else if r.WkUID != nxt.WkUID || r.TbIndex+1 != nxt.TbIndex {
-					// grab the actual next line (i.e. index = 101)
-					nxt = graboneline(r.FindAuthor(), r.TbIndex+1)
-				}
-			} else {
-				// grab the actual next line (i.e. index = 101)
-				nxt = graboneline(r.FindAuthor(), r.TbIndex+1)
-				if r.WkUID != nxt.WkUID {
-					nxt = DbWorkline{}
-				}
-			}
-
-			// combinator dodges double-register of hits
-			nl := columnpicker(ss.SrchColumn, nxt)
-			comb := phrasecombinations(re)
-			for _, c := range comb {
-				fp = regexp.MustCompile(c[0])
-				sp := regexp.MustCompile(c[1])
-				f = fp.MatchString(li)
-				s := sp.MatchString(nl)
-				if f && s && r.WkUID == nxt.WkUID {
-					valid[r.BuildHyperlink()] = r
-				}
-			}
-		}
-	}
-
-	var slc []DbWorkline
-	for _, r := range valid {
-		slc = append(slc, r)
-	}
-	slc = sortresults(slc, ss)
-	return slc
-}
-
-func columnpicker(c string, r DbWorkline) string {
-	var li string
-	switch c {
-	case "stripped_line":
-		li = r.Stripped
-	case "accented_line":
-		li = r.Accented
-	case "marked_up_line": // only a maniac tries to search via marked_up_line
-		li = r.MarkedUp
-	default:
-		li = r.Stripped
-		msg("second.SrchColumn was not set; defaulting to 'stripped_line'", 2)
-	}
-	return li
-}
-
-func phrasecombinations(phr string) [][2]string {
-	// 'one two three four five' -->
-	// [('one', 'two three four five'), ('one two', 'three four five'), ('one two three', 'four five'), ('one two three four', 'five')]
-
-	gt := func(n int, wds []string) []string {
-		return wds[n:]
-	}
-
-	gh := func(n int, wds []string) []string {
-		return wds[:n]
-	}
-
-	ww := strings.Split(phr, " ")
-	var comb [][2]string
-	for i, _ := range ww {
-		h := strings.Join(gh(i, ww), " ")
-		t := strings.Join(gt(i, ww), " ")
-		h = h + "$"
-		t = "^" + t
-		comb = append(comb, [2]string{h, t})
-	}
-
-	var trimmed [][2]string
-	for _, c := range comb {
-		head := strings.TrimSpace(c[0]) != "" && strings.TrimSpace(c[0]) != "$"
-		tail := strings.TrimSpace(c[1]) != "" && strings.TrimSpace(c[0]) != "^"
-		if head && tail {
-			trimmed = append(trimmed, c)
-		}
-	}
-
-	//for i, c := range trimmed {
-	//	fmt.Printf("%d:\n\t0: %s\n\t1: %s\n", i, c[0], c[1])
+func parsesearchinput(s SearchStruct) SearchStruct {
+	// [a] remove bad chars
+	// [b] uv issues; lunate issues; ...
+	//if len(s.Seeking) > MAXINPUTLEN {
+	//	s.Seeking = s.Seeking[0:MAXINPUTLEN]
+	//}
+	//if len(s.Seeking) > MAXINPUTLEN {
+	//	s.Proximate = s.Proximate[0:MAXINPUTLEN]
 	//}
 
-	return trimmed
+	if hasAccent.MatchString(s.Seeking) || hasAccent.MatchString(s.Proximate) {
+		s.SrchColumn = "accented_line"
+	}
+
+	s.Seeking = strings.ToLower(s.Seeking)
+	s.Proximate = strings.ToLower(s.Proximate)
+
+	//s.Seeking = purgechars(UNACCEPTABLEINPUT, s.Seeking)
+	//s.Proximate = purgechars(UNACCEPTABLEINPUT, s.Proximate)
+	msg(s.Seeking, 1)
+	return s
 }
 
 /*

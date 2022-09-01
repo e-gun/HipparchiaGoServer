@@ -4,8 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
+	"time"
 )
 
 var (
@@ -20,6 +22,8 @@ var (
 	NestedLemm  = make(map[string]map[string]DbLemma)
 	WkCorpusMap = make(map[string][]string)
 	AuCorpusMap = make(map[string][]string)
+	isGreek     = regexp.MustCompile("[α-ωϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ]")
+	hasAccent   = regexp.MustCompile("[äëïöüâêîôûàèìòùáéíóúᾂᾒᾢᾃᾓᾣᾄᾔᾤᾅᾕᾥᾆᾖᾦᾇᾗᾧἂἒἲὂὒἢὢἃἓἳὃὓἣὣἄἔἴὄὔἤὤἅἕἵὅὕἥὥἆἶὖἦὦἇἷὗἧὧᾲῂῲᾴῄῴᾷῇῷᾀᾐᾠᾁᾑᾡῒῢΐΰῧἀἐἰὀὐἠὠῤἁἑἱὁὑἡὡῥὰὲὶὸὺὴὼάέίόύήώᾶῖῦῆῶϊϋ]")
 )
 
 type CurrentConfiguration struct {
@@ -118,6 +122,11 @@ type DbLemma struct {
 	Entry string
 	Xref  int64
 	Deriv []string
+}
+
+type SearchSummary struct {
+	Time time.Time
+	Sum  string
 }
 
 //

@@ -27,6 +27,11 @@ const (
 	DBAUMAPSIZE           = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
 	DBLMMAPSIZE           = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
 	TEMPTABLETHRESHOLD    = 100
+	MAXHITLIMIT           = 2500
+	MAXLINESHITCONTEXT    = 30
+	MAXBROWSERCONTEXT     = 60
+	MAXINPUTLEN           = 50
+	UNACCEPTABLEINPUT     = "|'!@#%&:," // a pretty tame list, really; but we want to be able to do regex...
 
 	// hipparchiaDB=# select * from gr0001 limit 0;
 	// index | wkuniversalid | level_05_value | level_04_value | level_03_value | level_02_value | level_01_value | level_00_value | marked_up_line | accented_line | stripped_line | hyphenated_words | annotations
