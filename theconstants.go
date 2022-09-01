@@ -31,7 +31,7 @@ const (
 	MAXLINESHITCONTEXT    = 30
 	MAXBROWSERCONTEXT     = 60
 	MAXINPUTLEN           = 50
-	UNACCEPTABLEINPUT     = "|'!@#%&:," // a pretty tame list, really; but we want to be able to do regex...
+	UNACCEPTABLEINPUT     = `|""'!@:,=+` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
 
 	// hipparchiaDB=# select * from gr0001 limit 0;
 	// index | wkuniversalid | level_05_value | level_04_value | level_03_value | level_02_value | level_01_value | level_00_value | marked_up_line | accented_line | stripped_line | hyphenated_words | annotations

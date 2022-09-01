@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"sort"
-	"strings"
 	"time"
 )
 
@@ -318,13 +317,20 @@ func uvσçϲ(u string) string {
 
 // purgechars - drop any of the chars in the []byte from the string
 func purgechars(bad string, checking string) string {
-	bbytes := []byte(bad)
-	var replacements []string
-	for _, b := range bbytes {
-		replacements = append(replacements, []string{string(b), ""}...)
+	reducer := make(map[rune]bool)
+	for _, r := range []rune(bad) {
+		reducer[r] = true
 	}
-	re := strings.NewReplacer(replacements...)
-	return re.Replace(checking)
+
+	var stripped []rune
+	for _, x := range []rune(checking) {
+		if _, skip := reducer[x]; !skip {
+			stripped = append(stripped, x)
+		} else {
+		}
+	}
+	s := string(stripped)
+	return s
 }
 
 //func main() {
