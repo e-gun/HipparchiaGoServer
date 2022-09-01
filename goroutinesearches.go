@@ -71,7 +71,7 @@ func SrchFeeder(ctx context.Context, qq []PrerolledQuery) (<-chan PrerolledQuery
 func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWorkline, error) {
 	emitfinds := make(chan []DbWorkline)
 	go func() {
-		dbpool := grabpgsqlconnection()
+		dbpool := GetPSQLconnection()
 		defer dbpool.Close()
 		defer close(emitfinds)
 		for q := range prq {

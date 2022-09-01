@@ -99,7 +99,7 @@ func findbyform(word string, author string) []byte {
 	// skipping that stuff here for now because 'findbyform' should usually see a known form
 	// TODO: accute/grave issues should be handled ASAP
 
-	dbpool := grabpgsqlconnection()
+	dbpool := GetPSQLconnection()
 	defer dbpool.Close()
 
 	fld := `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
@@ -195,7 +195,7 @@ func findbyform(word string, author string) []byte {
 	psq = `SELECT %s FROM wordcounts_%s where entry_name = '%s'`
 	// golang hates indexing unicode strings: strings are bytes, and unicode chars take more than one byte
 	c := []rune(word)
-	q := fmt.Sprintf(psq, fld, stripaccents(string(c[0])), word)
+	q := fmt.Sprintf(psq, fld, stripaccentsSTR(string(c[0])), word)
 
 	foundrows, err = dbpool.Query(context.Background(), q)
 	chke(err)
@@ -376,7 +376,7 @@ func formatlexicaloutput(w DbLexicon) string {
 	</table>`
 
 	qt := `SELECT entry_name, id_number from %s_dictionary WHERE id_number %s %.0f ORDER BY id_number %s LIMIT 1`
-	dbpool := grabpgsqlconnection()
+	dbpool := GetPSQLconnection()
 	defer dbpool.Close()
 
 	foundrows, err := dbpool.Query(context.Background(), fmt.Sprintf(qt, w.Lang, "<", w.ID, "DESC"))

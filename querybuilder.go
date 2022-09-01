@@ -446,7 +446,7 @@ func test_searchlistintoqueries() {
 	prq := searchlistintoqueries(ss)
 	fmt.Println(prq)
 
-	c := grabpgsqlconnection()
+	c := GetPSQLconnection()
 	defer c.Close()
 	var hits []DbWorkline
 	for _, q := range prq {

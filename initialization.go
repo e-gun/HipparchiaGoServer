@@ -124,6 +124,10 @@ type DbLemma struct {
 	Deriv []string
 }
 
+func (dbl DbLemma) EntryRune() []rune {
+	return []rune(dbl.Entry)
+}
+
 type SearchSummary struct {
 	Time time.Time
 	Sum  string
@@ -155,7 +159,7 @@ func makeconfig() {
 
 // workmapper - build a map of all works keyed to the authorUID: map[string]DbWork
 func workmapper() map[string]DbWork {
-	dbpool := grabpgsqlconnection()
+	dbpool := GetPSQLconnection()
 	defer dbpool.Close()
 	qt := "SELECT %s FROM works"
 	q := fmt.Sprintf(qt, WORKTEMPLATE)
@@ -187,7 +191,7 @@ func workmapper() map[string]DbWork {
 
 // authormapper - build a map of all authors keyed to the authorUID: map[string]DbAuthor
 func authormapper() map[string]DbAuthor {
-	dbpool := grabpgsqlconnection()
+	dbpool := GetPSQLconnection()
 	defer dbpool.Close()
 	qt := "SELECT %s FROM authors ORDER by universalid ASC"
 	q := fmt.Sprintf(qt, AUTHORTEMPLATE)
@@ -282,7 +286,7 @@ func lemmamapper() map[string]DbLemma {
 	langs := [2]string{"greek", "latin"}
 	t := `SELECT dictionary_entry, xref_number, derivative_forms FROM %s_lemmata`
 
-	dbpool := grabpgsqlconnection()
+	dbpool := GetPSQLconnection()
 	defer dbpool.Close()
 
 	var thefinds []DbLemma
@@ -318,7 +322,7 @@ func nestedlemmamapper(unnested map[string]DbLemma) map[string]map[string]DbLemm
 	nested := make(map[string]map[string]DbLemma)
 	for k, v := range unnested {
 		bag := string([]rune(v.Entry)[0:2])
-		bag = stripaccents(bag)
+		bag = stripaccentsSTR(bag)
 		bag = strings.ToLower(bag)
 		bag = strings.Replace(bag, "j", "i", -1)
 		bag = strings.Replace(bag, "v", "u", -1)

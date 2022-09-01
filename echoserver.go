@@ -110,6 +110,7 @@ func StartEchoServer() {
 	// [f2e] /get/json/genrelistcontents
 	// [f2f] /get/json/vectorranges
 	// [f2g] /get/json/helpdata
+	e.GET("/get/json/helpdata", RtGetJSHelpdata)
 
 	//
 	// [g] hinters

@@ -130,3 +130,12 @@ func RtGetJSWorksStruct(c echo.Context) error {
 	// fmt.Printf("RtGetJSWorksStruct():\n\t%s\n", b)
 	return c.String(http.StatusOK, string(b))
 }
+
+func RtGetJSHelpdata(c echo.Context) error {
+	// needs to return:
+	//{"helpcategories": ["Interface", "Browsing", "Dictionaries", "MakingSearchLists", "BasicSyntax", "RegexSearching",
+	// "SpeedSearching", "LemmaSearching", "VectorSearching", "Oddities", "Extending", "IncludedMaterials", "Openness"],
+	// "Interface": "(the_html)", "Browsing": "(the_html)", ...}
+	msg("called empty placeholder function: RtGetJSHelpdata()", 1)
+	return c.String(http.StatusOK, "")
+}

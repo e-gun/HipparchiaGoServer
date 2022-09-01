@@ -206,8 +206,28 @@ func RemoveIndex[T any](s []T, index int) []T {
 // Geek and Latin functions
 //
 
-// stripaccents - ὀκνεῖϲ --> οκνειϲ, etc.
-func stripaccents(u string) string {
+// stripaccentsSTR - ὀκνεῖϲ --> οκνειϲ, etc.
+func stripaccentsSTR(u string) string {
+	reducer := getrunereducer()
+	var stripped []rune
+	for _, x := range []rune(u) {
+		stripped = append(stripped, reducer[x])
+	}
+	s := string(stripped)
+	return s
+}
+
+// stripaccentsRUNE - ὀκνεῖϲ --> οκνειϲ, etc.
+func stripaccentsRUNE(u []rune) []rune {
+	reducer := getrunereducer()
+	var stripped []rune
+	for _, x := range u {
+		stripped = append(stripped, reducer[x])
+	}
+	return stripped
+}
+
+func getrunereducer() map[rune]rune {
 	// because we don't have access to python's transtable function
 	feeder := make(map[rune][]rune)
 	feeder['α'] = []rune("αἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάᾈᾉᾊᾋᾌᾍᾎᾏἈἉἊἋἌἍἎἏΑ")
@@ -266,14 +286,7 @@ func stripaccents(u string) string {
 			reducer[r] = f
 		}
 	}
-
-	var stripped []rune
-	for _, x := range []rune(u) {
-		stripped = append(stripped, reducer[x])
-	}
-
-	s := string(stripped)
-	return s
+	return reducer
 }
 
 // purgechars - drop any of the chars in the []byte from the string

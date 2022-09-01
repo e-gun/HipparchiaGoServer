@@ -76,15 +76,24 @@ func RtLemmaHints(c echo.Context) error {
 	// curl "http://localhost:5000/hints/lemmata/_?term=dol"
 	//[{"value": "dolabella\u00b9"}, {"value": "dolabra"}, {"value": "dolamen"}, {"value": "dolatorium"}, ...]
 
-	skg := c.QueryParam("term")
+	term := c.QueryParam("term")
+	// can't slice a unicode string...
+	skg := []rune(term)
+
 	if len(skg) < 2 {
 		return c.String(http.StatusOK, "")
 	}
 
+	// we will be slicing unicode, so can't use string
+	skg = stripaccentsRUNE(skg)
+	nl := string(skg[0:2])
+
 	var match []JSStruct
-	if _, ok := NestedLemm[skg[0:2]]; ok {
-		for _, l := range NestedLemm[skg[0:2]] {
-			if len(l.Entry) >= len(skg) && l.Entry[0:len(skg)] == skg {
+	if _, ok := NestedLemm[nl]; ok {
+		for _, l := range NestedLemm[nl] {
+			er := l.EntryRune()
+			potential := stripaccentsRUNE(er[0:len(skg)])
+			if len(er) >= len(skg) && string(potential) == string(skg) {
 				// need to filter ab-cedo¹ --> abcedo
 				match = append(match, JSStruct{l.Entry})
 			}

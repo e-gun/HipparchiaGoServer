@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gomodule/redigo/redis"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -15,10 +14,6 @@ type PostgresLogin struct {
 	Pass   string
 	DBName string
 }
-
-var (
-	RedisPool *redis.Pool
-)
 
 //
 // GENERAL AUTHENTICATION
@@ -38,7 +33,7 @@ func decodepsqllogin(psqllogininfo []byte) PostgresLogin {
 // POSTGRESQL
 //
 
-func grabpgsqlconnection() *pgxpool.Pool {
+func GetPSQLconnection() *pgxpool.Pool {
 	var pl PostgresLogin
 
 	pl = cfg.PGLogin

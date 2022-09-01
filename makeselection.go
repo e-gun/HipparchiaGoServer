@@ -343,7 +343,7 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 
 	tb := wk.FindAuthor()
 
-	dbpool := grabpgsqlconnection()
+	dbpool := GetPSQLconnection()
 	defer dbpool.Close()
 	qt := `SELECT index FROM %s WHERE wkuniversalid='%s' AND %s ORDER BY index ASC`
 
