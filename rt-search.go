@@ -95,10 +95,10 @@ func RtSearchStandard(c echo.Context) error {
 	srch.ID = id
 	srch.IsVector = false
 
-	srch = parsesearchinput(srch)
+	parsesearchinput(&srch)
 
 	// must happen before searchlistintoqueries()
-	srch = setsearchtype(srch)
+	setsearchtype(&srch)
 
 	srch.InitSum = formatinitialsummary(srch)
 
@@ -110,7 +110,7 @@ func RtSearchStandard(c echo.Context) error {
 	timetracker("B", "sessionintosearchlist()", start, previous)
 	previous = time.Now()
 
-	prq := searchlistintoqueries(srch)
+	prq := searchlistintoqueries(&srch)
 	timetracker("C", "searchlistintoqueries()", start, previous)
 	previous = time.Now()
 
@@ -207,7 +207,7 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	second.PrxSlice = []string{}
 	second.LemmaTwo = ""
 
-	second = setsearchtype(second)
+	setsearchtype(&second)
 
 	pt := `%s_FROM_%d_TO_%d`
 
@@ -222,7 +222,7 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	second.Limit = originalsrch.Limit
 	second.SearchIn.Passages = newpsg
 
-	prq := searchlistintoqueries(second)
+	prq := searchlistintoqueries(&second)
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	msg(fmt.Sprintf("%s searchlistintoqueries() rerun", d), 4)
@@ -262,7 +262,7 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	return s
 }
 
-func setsearchtype(srch SearchStruct) SearchStruct {
+func setsearchtype(srch *SearchStruct) {
 	// skip detailed proximate checks because second pass search just feeds all of that into the primary fields
 
 	ps := srch.Proximate != ""
@@ -286,7 +286,7 @@ func setsearchtype(srch SearchStruct) SearchStruct {
 		srch.SrchColumn = "accented_line"
 	}
 
-	return srch
+	return
 }
 
 func lemmaintoregexslice(hdwd string) []string {
@@ -573,9 +573,10 @@ func formatbcedate(d string) string {
 	return d
 }
 
-func parsesearchinput(s SearchStruct) SearchStruct {
-	// [a] remove bad chars
-	// [b] uv issues; lunate issues; ...
+func parsesearchinput(s *SearchStruct) {
+	// remove bad chars
+	// address uv issues; lunate issues; ...
+	// no need to parse a lemma: this bounces if there is not a key match to a map
 
 	s.Seeking = strings.ToLower(s.Seeking)
 	s.Proximate = strings.ToLower(s.Proximate)
@@ -599,12 +600,8 @@ func parsesearchinput(s SearchStruct) SearchStruct {
 	s.Proximate = uvσçϲ(s.Proximate)
 
 	s.Seeking = purgechars(UNACCEPTABLEINPUT, s.Seeking)
+	s.Proximate = purgechars(UNACCEPTABLEINPUT, s.Proximate)
 
-	//s.Seeking = purgechars(UNACCEPTABLEINPUT, s.Seeking)
-	//s.Proximate = purgechars(UNACCEPTABLEINPUT, s.Proximate)
-	msg(s.SrchColumn, 1)
-	msg(s.Seeking, 1)
-	return s
 }
 
 /*

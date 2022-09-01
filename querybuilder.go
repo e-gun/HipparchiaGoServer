@@ -79,7 +79,7 @@ const (
 
 // searchlistintosqldict()
 
-func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
+func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 	var prqq []PrerolledQuery
 	inc := ss.SearchIn
 	exc := ss.SearchEx
@@ -392,7 +392,7 @@ func windowandttprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	return prq
 }
 
-func requiresindextemptable(au string, bb []Boundaries, ss SearchStruct) string {
+func requiresindextemptable(au string, bb []Boundaries, ss *SearchStruct) string {
 	// mimic wholeworktemptablecontents() in whereclauses.py
 	m := fmt.Sprintf("%s requiresindextemptable(): %d []Boundaries", au, len(bb))
 	msg(m, 4)
@@ -443,7 +443,7 @@ func test_searchlistintoqueries() {
 	ss.SearchIn.Authors = []string{"lt0959", "lt0857"}
 	ss.SearchIn.Works = []string{"lt0474w041", "lt0474w064"}
 	ss.SearchIn.Passages = []string{"gr0032_FROM_11313_TO_11843", "lt0474_FROM_58578_TO_61085", "lt0474_FROM_36136_TO_36151"}
-	prq := searchlistintoqueries(ss)
+	prq := searchlistintoqueries(&ss)
 	fmt.Println(prq)
 
 	c := GetPSQLconnection()
