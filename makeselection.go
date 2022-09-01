@@ -96,8 +96,6 @@ func RtSelectionMake(c echo.Context) error {
 	sessions[user] = selected(user, sel)
 	jsbytes := reportcurrentselections(c)
 
-	fmt.Println(string(jsbytes))
-
 	return c.String(http.StatusOK, string(jsbytes))
 }
 

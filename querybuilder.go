@@ -29,14 +29,15 @@ type Boundaries struct {
 }
 
 type PRQTemplate struct {
-	AU   string
-	COL  string
-	SYN  string
-	SK   string
-	LIM  string
-	IDX  string
-	TTN  string
-	Tail *template.Template
+	AU    string
+	COL   string
+	SYN   string
+	SK    string
+	LIM   string
+	IDX   string
+	TTN   string
+	Tail  *template.Template
+	PSCol string
 }
 
 const (
@@ -49,19 +50,7 @@ const (
 	ASLINEBUNDLE = `
 		( SELECT * FROM
 			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
-				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) ) AS linebundle`
-
-	CONCATSELFROM = `
-		( SELECT * FROM
-			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
-				concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC) ) 
-			AS linebundle
-				FROM %s 
-					) first 
-				) second`
-	WHEREXISTSSELECT = `
-		%s WHERE EXISTS 
-			(SELECT 1 FROM %s_includelist_%s incl WHERE incl.includeindex = %s.index AND %s ~ '%s') LIMIT %s;`
+				concat(%s, ' ', lead(%s) OVER (ORDER BY index ASC) ) AS linebundle`
 )
 
 // findselectionboundaries() stuff should all be handled when making the selections, not here
@@ -214,6 +203,7 @@ func searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 				t.IDX = qb.WhrIdxInc
 			}
 			t.TTN = ss.TTName
+			t.PSCol = ss.SrchColumn
 
 			if nott && noph && noidx {
 				t.Tail = tails["basic"]
@@ -319,7 +309,9 @@ func basicwindowprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	e := t.Tail.Execute(&b, t)
 	chke(e)
 
-	prq.PsqlQuery = fmt.Sprintf(PRFXSELFRM + ASLINEBUNDLE + b.String())
+	alb := fmt.Sprintf(ASLINEBUNDLE, t.PSCol, t.PSCol)
+
+	prq.PsqlQuery = fmt.Sprintf(PRFXSELFRM + alb + b.String())
 	return prq
 }
 
@@ -340,7 +332,9 @@ func windandidxprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	e := t.Tail.Execute(&b, t)
 	chke(e)
 
-	prq.PsqlQuery = fmt.Sprintf(PRFXSELFRM + ASLINEBUNDLE + b.String())
+	alb := fmt.Sprintf(ASLINEBUNDLE, t.PSCol, t.PSCol)
+
+	prq.PsqlQuery = fmt.Sprintf(PRFXSELFRM + alb + b.String())
 
 	return prq
 }
@@ -392,7 +386,9 @@ func windowandttprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	e := t.Tail.Execute(&b, t)
 	chke(e)
 
-	prq.PsqlQuery = fmt.Sprintf(PRFXSELFRM + ASLINEBUNDLE + b.String())
+	alb := fmt.Sprintf(ASLINEBUNDLE, t.PSCol, t.PSCol)
+
+	prq.PsqlQuery = fmt.Sprintf(PRFXSELFRM + alb + b.String())
 	return prq
 }
 

@@ -592,11 +592,47 @@ func parsesearchinput(s SearchStruct) SearchStruct {
 
 	//s.Seeking = purgechars(UNACCEPTABLEINPUT, s.Seeking)
 	//s.Proximate = purgechars(UNACCEPTABLEINPUT, s.Proximate)
+	msg(s.SrchColumn, 1)
 	msg(s.Seeking, 1)
 	return s
 }
 
 /*
+
+todo: the list is long...
+
+greek lemma hints don't work
+
+accented greek
+
+can do simple:
+
+Sought »εὑροῦϲα«
+Searched 7461 works and found 200 passages (0.917s)
+Sorted by Name
+
+
+Sought »εὑροῦϲα« within 1 lines of »ἐνόμιϲεν«
+Searched 7461 works and found 1 passages (1.295s)
+Sorted by Name
+[1]   Achilles Tatius, Leucippe et Clitophon: 8.10.9.2 	μίαν, καιρὸν τοῦτον ἐνόμιϲεν εὔκαιρον μοιχείαϲ καὶ νεανίϲκον εὑροῦϲα
+
+
+can't do phrase: because "concat(stripped_line, ' ', lead(stripped_line) OVER (ORDER BY index ASC)"
+and not "concat(accented_line, ' ', lead(accented_line) OVER (ORDER BY index ASC)
+
+Sought »ωϲ ευρουϲα θηϲαυρον«
+Searched 7461 works and found 2 passages (1.876s)
+Sorted by Name
+[1]   Aesopus, Fabulae: 83.1.4 	νον, ἀγαγοῦϲα αὐτὸν ἐνταῦθα ἔλεγεν, ὡϲ εὑροῦϲα θηϲαυρὸν
+[2]   Aesopus, Fabulae: 83.2.4 	νον, ἀγαγοῦϲα αὐτὸν ἐνταῦθα ἔλεγεν, ὡϲ εὑροῦϲα θηϲαυρὸν
+
+vs
+
+Sought »ὡϲ εὑροῦϲα θηϲαυρὸν«
+Searched 7461 works and found 0 passages (1.763s)
+Sorted by Name
+
 
 the following yields a strange problem: "&nbsp;" will render literally rather than as a space in the output. why?
 templating makes the formatting code a lot more readable...
