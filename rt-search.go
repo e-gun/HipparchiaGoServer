@@ -576,19 +576,27 @@ func formatbcedate(d string) string {
 func parsesearchinput(s SearchStruct) SearchStruct {
 	// [a] remove bad chars
 	// [b] uv issues; lunate issues; ...
-	//if len(s.Seeking) > MAXINPUTLEN {
-	//	s.Seeking = s.Seeking[0:MAXINPUTLEN]
-	//}
-	//if len(s.Seeking) > MAXINPUTLEN {
-	//	s.Proximate = s.Proximate[0:MAXINPUTLEN]
-	//}
-
-	if hasAccent.MatchString(s.Seeking) || hasAccent.MatchString(s.Proximate) {
-		s.SrchColumn = "accented_line"
-	}
 
 	s.Seeking = strings.ToLower(s.Seeking)
 	s.Proximate = strings.ToLower(s.Proximate)
+
+	if hasAccent.MatchString(s.Seeking) || hasAccent.MatchString(s.Proximate) {
+		// lemma search will select accented automatically
+		s.SrchColumn = "accented_line"
+	}
+
+	rs := []rune(s.Seeking)
+	if len(rs) > MAXINPUTLEN {
+		s.Seeking = string(rs[0:MAXINPUTLEN])
+	}
+
+	rp := []rune(s.Proximate)
+	if len(rp) > MAXINPUTLEN {
+		s.Proximate = string(rs[0:MAXINPUTLEN])
+	}
+
+	s.Seeking = uvσçϲ(s.Seeking)
+	s.Proximate = uvσçϲ(s.Proximate)
 
 	//s.Seeking = purgechars(UNACCEPTABLEINPUT, s.Seeking)
 	//s.Proximate = purgechars(UNACCEPTABLEINPUT, s.Proximate)
@@ -600,8 +608,6 @@ func parsesearchinput(s SearchStruct) SearchStruct {
 /*
 
 todo: the list is long...
-
-greek lemma hints don't work
 
 accented greek
 

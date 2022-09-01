@@ -12,7 +12,7 @@
 function reloadselections(selectiondata){
     hidemany(endpointbuttons);
     // the data comes back from the server as a dict with three keys: timeexclusions, selections, exclusions
-    if (selectiondata.numberofselections > -1) {
+    if (selectiondata.numberofselections > 0) {
             $('#selectionstable').show();
         } else {
             $('#selectionstable').hide();

@@ -289,6 +289,33 @@ func getrunereducer() map[rune]rune {
 	return reducer
 }
 
+func uvσçϲ(u string) string {
+	feeder := make(map[rune][]rune)
+
+	feeder['u'] = []rune("uUvVÜÚüú")
+	feeder['ϲ'] = []rune("ϲσΣςϹ")
+	feeder['i'] = []rune("iIÍÏíïJj")
+
+	reducer := make(map[rune]rune)
+	for f, _ := range feeder {
+		for _, r := range feeder[f] {
+			reducer[r] = f
+		}
+	}
+
+	var stripped []rune
+	for _, x := range []rune(u) {
+		if _, ok := reducer[x]; ok {
+			stripped = append(stripped, reducer[x])
+		} else {
+			stripped = append(stripped, x)
+		}
+	}
+	s := string(stripped)
+	return s
+
+}
+
 // purgechars - drop any of the chars in the []byte from the string
 func purgechars(bad string, checking string) string {
 	bbytes := []byte(bad)
