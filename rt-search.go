@@ -239,17 +239,17 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	return searches[originalsrch.ID]
 }
 
+// builddefaultsearch - fill out the basic values for a new search
 func builddefaultsearch(c echo.Context) SearchStruct {
-	var s SearchStruct
-
 	user := readUUIDCookie(c)
 
+	var s SearchStruct
 	s.User = user
 	s.Launched = time.Now()
 	s.Limit = sessions[user].HitLimit
-	s.SrchColumn = "stripped_line"
-	s.SrchSyntax = "~*"
-	s.OrderBy = "index"
+	s.SrchColumn = DEFAULTCOLUMN
+	s.SrchSyntax = DEFAULTSYNTAX
+	s.OrderBy = ORDERBY
 	s.SearchIn = sessions[user].Inclusions
 	s.SearchEx = sessions[user].Exclusions
 	s.ProxVal = DEFAULTPROXIMITY

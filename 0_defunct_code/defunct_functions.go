@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// querybuilder.go
+// buildquery.go
 
 func OLD_searchlistintoqueries(ss SearchStruct) []PrerolledQuery {
 	var prqq []PrerolledQuery

@@ -56,7 +56,7 @@ func Browse(c echo.Context, sep string) string {
 		au := elem[0]
 		wk := elem[1]
 		uid := au + "w" + wk
-		// findendpointsfromlocus() lives in makeselection.go
+		// findendpointsfromlocus() lives in rt-selection.go
 		ln := findendpointsfromlocus(uid, elem[2], sep)
 		ctx := sessions[user].UI.BrowseCtx
 		js := HipparchiaBrowser(au, wk, ln[0], ctx)

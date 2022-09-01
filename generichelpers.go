@@ -54,8 +54,21 @@ func timetracker(letter string, m string, start time.Time, previous time.Time) {
 }
 
 //
-// misc generic functions
+// SETS AND SLICES
 //
+
+// RemoveIndex - remove item #N from a slice
+func RemoveIndex[T any](s []T, index int) []T {
+	// https://stackoverflow.com/questions/37334119/how-to-delete-an-element-from-a-slice-in-golang
+	if len(s) < index {
+		msg("RemoveIndex() tried to drop an out of range element", 1)
+		return s
+	}
+
+	ret := make([]T, 0)
+	ret = append(ret, s[:index]...)
+	return append(ret, s[index+1:]...)
+}
 
 // unique - return only the unique items from a slice
 func unique[T comparable](s []T) []T {
@@ -120,10 +133,9 @@ func containsN[T comparable](sl []T, seek T) int {
 	return count
 }
 
-// https://stackoverflow.com/questions/59579121/how-to-flatten-a-2d-slice-into-1d-slice
-
 // flatten - turn a slice of slices into a slice
 func flatten[T any](lists [][]T) []T {
+	// https://stackoverflow.com/questions/59579121/how-to-flatten-a-2d-slice-into-1d-slice
 	var res []T
 	for _, list := range lists {
 		res = append(res, list...)
@@ -132,7 +144,7 @@ func flatten[T any](lists [][]T) []T {
 }
 
 //
-// https://pkg.go.dev/sort#example__sortMultiKeys
+// SORTING: https://pkg.go.dev/sort#example__sortMultiKeys
 //
 
 type lessFunc func(p1, p2 *DbWorkline) bool
@@ -188,17 +200,26 @@ func (ms *multiSorter) Less(i, j int) bool {
 	return ms.less[k](p, q)
 }
 
-// https://stackoverflow.com/questions/37334119/how-to-delete-an-element-from-a-slice-in-golang
+//
+// STRINGS and []RUNE
+//
 
-func RemoveIndex[T any](s []T, index int) []T {
-	if len(s) < index {
-		msg("RemoveIndex() tried to drop an out of range element", 1)
-		return s
+// purgechars - drop any of the chars in the []byte from the string
+func purgechars(bad string, checking string) string {
+	reducer := make(map[rune]bool)
+	for _, r := range []rune(bad) {
+		reducer[r] = true
 	}
 
-	ret := make([]T, 0)
-	ret = append(ret, s[:index]...)
-	return append(ret, s[index+1:]...)
+	var stripped []rune
+	for _, x := range []rune(checking) {
+		if _, skip := reducer[x]; !skip {
+			stripped = append(stripped, x)
+		} else {
+		}
+	}
+	s := string(stripped)
+	return s
 }
 
 //
@@ -314,29 +335,3 @@ func uvσçϲ(u string) string {
 	return s
 
 }
-
-// purgechars - drop any of the chars in the []byte from the string
-func purgechars(bad string, checking string) string {
-	reducer := make(map[rune]bool)
-	for _, r := range []rune(bad) {
-		reducer[r] = true
-	}
-
-	var stripped []rune
-	for _, x := range []rune(checking) {
-		if _, skip := reducer[x]; !skip {
-			stripped = append(stripped, x)
-		} else {
-		}
-	}
-	s := string(stripped)
-	return s
-}
-
-//func main() {
-//	a := []int{1, 1, 1, 2, 3, 4, 4, 5}
-//	b := 4
-//	c := containsN(a, b)
-//	fmt.Printf("# of %d found is %d", b, c)
-//
-//}
