@@ -57,6 +57,10 @@ func (s SearchStruct) FmtOrderBy() string {
 	return ob
 }
 
+//
+// ROUTING
+//
+
 func RtSearchConfirm(c echo.Context) error {
 	// not going to be needed?
 	// "test the activity of a poll so you don't start conjuring a bunch of key errors if you use wscheckpoll() prematurely"
@@ -158,6 +162,10 @@ func RtSearchStandard(c echo.Context) error {
 	return c.String(http.StatusOK, js)
 }
 
+//
+// TWO-PART SEARCHES
+//
+
 func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	// after finding x, look for y within n lines of x
 	// can do:
@@ -239,6 +247,10 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	return searches[originalsrch.ID]
 }
 
+//
+// SETUP
+//
+
 // builddefaultsearch - fill out the basic values for a new search
 func builddefaultsearch(c echo.Context) SearchStruct {
 	user := readUUIDCookie(c)
@@ -260,6 +272,37 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	s.HasLemma = false
 	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
 	return s
+}
+
+func parsesearchinput(s *SearchStruct) {
+	// remove bad chars
+	// address uv issues; lunate issues; ...
+	// no need to parse a lemma: this bounces if there is not a key match to a map
+
+	s.Seeking = strings.ToLower(s.Seeking)
+	s.Proximate = strings.ToLower(s.Proximate)
+
+	if hasAccent.MatchString(s.Seeking) || hasAccent.MatchString(s.Proximate) {
+		// lemma search will select accented automatically
+		s.SrchColumn = "accented_line"
+	}
+
+	rs := []rune(s.Seeking)
+	if len(rs) > MAXINPUTLEN {
+		s.Seeking = string(rs[0:MAXINPUTLEN])
+	}
+
+	rp := []rune(s.Proximate)
+	if len(rp) > MAXINPUTLEN {
+		s.Proximate = string(rs[0:MAXINPUTLEN])
+	}
+
+	s.Seeking = uvσçϲ(s.Seeking)
+	s.Proximate = uvσçϲ(s.Proximate)
+
+	s.Seeking = purgechars(UNACCEPTABLEINPUT, s.Seeking)
+	s.Proximate = purgechars(UNACCEPTABLEINPUT, s.Proximate)
+
 }
 
 func setsearchtype(srch *SearchStruct) {
@@ -288,6 +331,10 @@ func setsearchtype(srch *SearchStruct) {
 
 	return
 }
+
+//
+// HELPERS
+//
 
 func lemmaintoregexslice(hdwd string) []string {
 	// rather than do one word per query, bundle things up: some words have >100 forms
@@ -438,18 +485,28 @@ func phrasecombinations(phr string) [][2]string {
 	return trimmed
 }
 
+//
+// FORMATTING
+//
+
+type SearchOutputJSON struct {
+	Title         string `json:"title"`
+	Searchsummary string `json:"searchsummary"`
+	Found         string `json:"found"`
+	Image         string `json:"image"`
+	JS            string `json:"js"`
+}
+
+type ResultPassageLine struct {
+	Locus           string
+	ShowLocus       bool
+	Contents        string
+	ContinuingStyle string
+	IsHighlight     bool
+}
+
 func formatnocontextresults(s SearchStruct) []byte {
-
-	type SearchOutput struct {
-		// meant to turn into JSON
-		Title         string `json:"title"`
-		Searchsummary string `json:"searchsummary"`
-		Found         string `json:"found"`
-		Image         string `json:"image"`
-		JS            string `json:"js"`
-	}
-
-	var out SearchOutput
+	var out SearchOutputJSON
 	out.JS = BROWSERJS
 	out.Title = s.Seeking
 	out.Image = ""
@@ -491,6 +548,119 @@ func formatnocontextresults(s SearchStruct) []byte {
 	chke(e)
 
 	return js
+}
+
+func formatwithcontextresults(ss SearchStruct) []byte {
+	// SAMPLE:
+	// <locus>
+	//			<span class="findnumber">[1]</span>&nbsp;&nbsp;
+	//			<span class="foundauthor">Frontinus, Sextus Iulius</span>,&nbsp;<span class="foundwork">De Aquis Urbis Romae</span>:
+	//			<browser id="linenumber/lt1245/002/3112"><span class="foundlocus">chapter 14, section 3, line 2</span></browser>
+	//</locus>
+	//<br>
+	//<span class="locus">14.2.3</span>&nbsp;<span class="foundtext">quotiens opus est ita sufficiat, ut adiectione sui nihil ex</span><br>
+	//<span class="locus">14.3.1</span>&nbsp;<span class="foundtext">qualitate eius mutet. Augustae fons, quia Marciam sibi</span><br>
+	//<span class="locus">14.3.2</span>&nbsp;<span class="foundtext"><span class="highlight">sufficere adparebat, in <span class="match">Claudiam</span> derivatus est, manente</span></span><br>
+	//<span class="locus">14.3.3</span>&nbsp;<span class="foundtext">nihilo minus praesidiario in Marciam, ut ita demum</span><br>
+	//<span class="locus">14.3.4</span>&nbsp;<span class="foundtext">Claudiam aquam adiuvaret Augusta, si eam ductus</span><br>
+
+	// things to worry about: formateditorialbrackets(); unbalancedspancleaner()
+
+	// unbalancedspancleaner() has to be run on the first line & after the whole block has been built
+
+	// how/when to do <span class="highlight">
+
+	//pht := `
+	//<locus>
+	//	<span class="findnumber">[{{.Findnumber}}]</span>&nbsp;&nbsp;
+	//	<span class="foundauthor">{{.Foundauthor}}</span>,&nbsp;<span class="foundwork">{{.Foundwork}}</span>:
+	//	<browser id="{{.FindURL}}"><span class="foundlocus">{{.FindLocus}}</span></browser>
+	//</locus>
+	//{{.LocusBody}}`
+	//
+	//plt := `<span class="locus">%s</span>&nbsp;<span class="foundtext">%s</span><br>`
+
+	thesession := sessions[ss.User]
+
+	type PsgFormattingTemplate struct {
+		Findnumber  int
+		Foundauthor string
+		Foundwork   string
+		FindURL     string
+		FindLocus   string
+		RawCTX      []DbWorkline
+		CookedCTX   []ResultPassageLine
+		LocusBody   string
+	}
+
+	// iterate over the results to build the raw core data
+	var allpassages []PsgFormattingTemplate
+	for i, r := range ss.Results {
+		var psg PsgFormattingTemplate
+		psg.Findnumber = i
+		psg.Foundwork = AllAuthors[r.FindAuthor()].Shortname
+		psg.Foundauthor = AllWorks[r.FindAuthor()].Title
+		psg.FindURL = r.BuildHyperlink()
+		psg.FindLocus = basiccitation(AllWorks[r.FindAuthor()], r)
+		psg.RawCTX = simplecontextgrabber(r.FindAuthor(), r.TbIndex, int64(thesession.HitContext))
+		for j := 0; j < len(psg.RawCTX); j++ {
+			c := ResultPassageLine{}
+			c.Locus = strings.Join(r.FindLocus(), ".")
+			if psg.RawCTX[j].BuildHyperlink() == psg.FindURL {
+				// this is the highlight line
+				c.Contents = "<span class=\"highlight\">" + psg.RawCTX[j].MarkedUp + "</span>"
+			} else {
+				c.Contents = psg.RawCTX[j].MarkedUp
+			}
+			psg.CookedCTX = append(psg.CookedCTX, c)
+		}
+		allpassages = append(allpassages, psg)
+	}
+
+	// fix the unmattched spans
+	for _, p := range allpassages {
+		// at the top
+		p.CookedCTX[0].Contents = unbalancedspancleaner(p.CookedCTX[0].Contents)
+
+		// across the whole
+		var block []string
+		for _, c := range p.CookedCTX {
+			block = append(block, c.Contents)
+		}
+		whole := strings.Join(block, "✃✃✃")
+		whole = unbalancedspancleaner(whole)
+
+		// reassemble
+		block = strings.Split(whole, "✃✃✃")
+		for i, b := range block {
+			p.CookedCTX[i].Contents = b
+		}
+	}
+
+	// highlight the search term: do this at the "block" stage?
+
+	// search for brackets
+	// TODO: it's fiddly
+
+	// search for span inheretance
+	// TODO: it's fiddly
+
+	// decide which lines need to display their citation info
+	// TODO: set to "all on" atm
+	for _, p := range allpassages {
+		for _, c := range p.CookedCTX {
+			c.ShowLocus = true
+		}
+	}
+
+	// build a passage bundle
+
+	// aggregate the bundles
+
+	// ouput
+
+	b := []byte{}
+	return b
 }
 
 func formatfinalsearchsummary(s SearchStruct) string {
@@ -573,35 +743,60 @@ func formatbcedate(d string) string {
 	return d
 }
 
-func parsesearchinput(s *SearchStruct) {
-	// remove bad chars
-	// address uv issues; lunate issues; ...
-	// no need to parse a lemma: this bounces if there is not a key match to a map
+func formateditorialbrackets(html string) string {
+	// sample:
+	// [<span class="editorialmarker_squarebrackets">ἔδοχϲεν τε͂ι βολε͂ι καὶ το͂ι</span>]
 
-	s.Seeking = strings.ToLower(s.Seeking)
-	s.Proximate = strings.ToLower(s.Proximate)
+	// special cases:
+	// [a] no "open" or "close" bracket at the head/tail of a line: ^τε͂ι βολε͂ι καὶ] το͂ι...$ / ^...ἔδοχϲεν τε͂ι βολε͂ι [καὶ το͂ι$
+	// [b] we are continuing from a previous state: no brackets here, but should insert a span; the previous line will need to notify the subsequent...
 
-	if hasAccent.MatchString(s.Seeking) || hasAccent.MatchString(s.Proximate) {
-		// lemma search will select accented automatically
-		s.SrchColumn = "accented_line"
+	// types: editorialmarker_angledbrackets; editorialmarker_curlybrackets, editorialmarker_roundbrackets, editorialmarker_squarebrackets
+	//
+
+	return ""
+}
+
+func unbalancedspancleaner(html string) string {
+	// 	unbalanced spans inside of result chunks: ask for 4 lines of context and search for »ἀδύνατον γ[άὰ]ρ«
+	//	this will cough up two examples of the problem in Alexander, In Aristotelis analyticorum priorum librum i commentarium
+	//
+	//	the first line of context shows spans closing here that were opened in a previous line
+	//
+	//		<span class="locus">98.14</span>&nbsp;<span class="foundtext">ὅρων ὄντων πρὸϲ τὸ μέϲον.</span></span></span><br />
+	//
+	//	the last line of the context is opening a span that runs into the next line of the text where it will close
+	//	but since the next line does not appear, the span remains open. This will make the next results bold + italic + ...
+	//
+	//		<span class="locus">98.18</span>&nbsp;<span class="foundtext"><hmu_roman_in_a_greek_text>p. 28a18 </hmu_roman_in_a_greek_text><span class="title"><span class="expanded">Καθόλου μὲν οὖν ὄντων, ὅταν καὶ τὸ Π καὶ τὸ Ρ παντὶ</span><br />
+	//
+	//	the solution:
+	//		open anything that needs opening: this needs to be done with the first line
+	//		close anything left hanging: this needs to be done with the whole passage
+	//
+	//	return the html with these supplemental tags
+
+	xopen := `<span class="htmlbalancingsupplement">`
+	xclose := `</span>`
+
+	op := regexp.MustCompile("<span")
+	cl := regexp.MustCompile("</span>")
+
+	opened := len(op.FindAllString(html, -1))
+	closed := len(cl.FindAllString(html, -1))
+
+	if closed > opened {
+		for i := 0; i < closed-opened; i++ {
+			html = xopen + html
+		}
 	}
 
-	rs := []rune(s.Seeking)
-	if len(rs) > MAXINPUTLEN {
-		s.Seeking = string(rs[0:MAXINPUTLEN])
+	if opened > closed {
+		for i := 0; i < opened-closed; i++ {
+			html = html + xclose
+		}
 	}
-
-	rp := []rune(s.Proximate)
-	if len(rp) > MAXINPUTLEN {
-		s.Proximate = string(rs[0:MAXINPUTLEN])
-	}
-
-	s.Seeking = uvσçϲ(s.Seeking)
-	s.Proximate = uvσçϲ(s.Proximate)
-
-	s.Seeking = purgechars(UNACCEPTABLEINPUT, s.Seeking)
-	s.Proximate = purgechars(UNACCEPTABLEINPUT, s.Proximate)
-
+	return html
 }
 
 /*
@@ -610,7 +805,7 @@ the following yields a strange problem: "&nbsp;" will render literally rather th
 templating makes the formatting code a lot more readable...
 
 func formatnocontextresults(s SearchStruct) []byte {
-	var out SearchOutput
+	var out SearchOutputJSON
 	out.JS = BROWSERJS
 	out.Title = s.Seeking
 	out.Image = ""

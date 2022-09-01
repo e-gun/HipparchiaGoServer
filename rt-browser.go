@@ -185,6 +185,13 @@ func formatcitationinfo(authormap map[string]DbAuthor, w DbWork, l DbWorkline) s
 		<span class="currentlyviewingcitation">%s</span></p>`
 	au := authormap[w.FindAuthor()].Name
 	ti := w.Title
+	fc := basiccitation(w, l)
+	cv = fmt.Sprintf(cv, au, ti, fc)
+
+	return cv
+}
+
+func basiccitation(w DbWork, l DbWorkline) string {
 	cf := w.CitationFormat()
 	loc := l.FindLocus()
 	cf = cf[6-(len(loc)) : 6]
@@ -193,10 +200,8 @@ func formatcitationinfo(authormap map[string]DbAuthor, w DbWork, l DbWorkline) s
 	for i, _ := range loc {
 		cit = append(cit, fmt.Sprintf("%s %s", cf[i], loc[i]))
 	}
-	fc := strings.Join(cit, ", ")
-	cv = fmt.Sprintf(cv, au, ti, fc)
-
-	return cv
+	fullcit := strings.Join(cit, ", ")
+	return fullcit
 }
 
 func buildbrowsertable(focus int64, lines []DbWorkline) string {
