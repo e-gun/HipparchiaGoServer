@@ -11,7 +11,13 @@ import (
 	"strings"
 )
 
-type SelectValues struct {
+type JSData struct {
+	Pound string
+	Url   string
+}
+
+// SelectionValues - what was selected?
+type SelectionValues struct {
 	Auth   string
 	Work   string
 	AGenre string
@@ -25,12 +31,12 @@ type SelectValues struct {
 }
 
 // WUID - return work universalid
-func (s SelectValues) WUID() string {
+func (s SelectionValues) WUID() string {
 	return s.Auth + "w" + s.Work
 }
 
 // AWPR - author, work, passage start, passage end
-func (s SelectValues) AWPR() bool {
+func (s SelectionValues) AWPR() bool {
 	if len(s.Auth) > 0 && len(s.Work) > 0 && len(s.Start) > 0 && len(s.End) > 0 {
 		return true
 	} else {
@@ -39,7 +45,7 @@ func (s SelectValues) AWPR() bool {
 }
 
 // AWP - author, work, and passage
-func (s SelectValues) AWP() bool {
+func (s SelectionValues) AWP() bool {
 	if len(s.Auth) > 0 && len(s.Work) > 0 && len(s.Start) > 0 && len(s.End) == 0 {
 		return true
 	} else {
@@ -48,7 +54,7 @@ func (s SelectValues) AWP() bool {
 }
 
 // AW - author, work, and not passage
-func (s SelectValues) AW() bool {
+func (s SelectionValues) AW() bool {
 	if len(s.Auth) > 0 && len(s.Work) > 0 && len(s.Start) == 0 && len(s.End) == 0 {
 		return true
 	} else {
@@ -57,7 +63,7 @@ func (s SelectValues) AW() bool {
 }
 
 // A - author, not work, and not passage
-func (s SelectValues) A() bool {
+func (s SelectionValues) A() bool {
 	if len(s.Auth) > 0 && len(s.Work) == 0 && len(s.Start) == 0 && len(s.End) == 0 {
 		return true
 	} else {
@@ -71,7 +77,8 @@ func RtSelectionMake(c echo.Context) error {
 	// note that you need to return JSON: reportcurrentselections() so as to fill #selectionstable on the page
 
 	user := readUUIDCookie(c)
-	var sel SelectValues
+
+	var sel SelectionValues
 	sel.Auth = c.QueryParam("auth")
 	sel.Work = c.QueryParam("work")
 	sel.Start = c.QueryParam("locus")
@@ -157,7 +164,9 @@ func RtSelectionClear(c echo.Context) error {
 		msg(fmt.Sprintf("RtSelectionClear() was given bad category: %s", cat), 1)
 	}
 
-	delete(sessions, user)
+	mod.Inclusions = modi
+	mod.Exclusions = mode
+
 	sessions[user] = mod
 
 	r := RtSelectionFetch(c)
@@ -167,10 +176,11 @@ func RtSelectionClear(c echo.Context) error {
 
 func RtSelectionFetch(c echo.Context) error {
 	jsbytes := reportcurrentselections(c)
+	msg(string(jsbytes), 1)
 	return c.String(http.StatusOK, string(jsbytes))
 }
 
-func selected(user string, sv SelectValues) Session {
+func selected(user string, sv SelectionValues) Session {
 	// have to deal with all sorts of possibilities
 	// [a] author: "GET /selection/make/_?auth=gr7000 HTTP/1.1"
 	// [b] work: "GET /selection/make/_?auth=lt0474&work=001 HTTP/1.1"
@@ -252,61 +262,6 @@ func selected(user string, sv SelectValues) Session {
 	return s
 }
 
-func parsesleectvals(r *http.Request) SelectValues {
-	// https://golangcode.com/get-a-url-parameter-from-a-request/
-	// https://stackoverflow.com/questions/41279297/how-to-get-all-query-parameters-from-go-gin-context-object
-	// gin: You should be able to do c.Request.URL.Query() which will return a Values which is a map[string][]string
-
-	// TODO: check this stuff for bad characters
-	// but 'auth', etc. can be parsed just by checking them against known author lists
-
-	var sv SelectValues
-
-	kvp := r.URL.Query() // map[string][]string
-
-	if _, ok := kvp["auth"]; ok {
-		sv.Auth = kvp["auth"][0]
-	}
-
-	if _, ok := kvp["work"]; ok {
-		sv.Work = kvp["work"][0]
-	}
-
-	if _, ok := kvp["locus"]; ok {
-		sv.Start = kvp["locus"][0]
-	}
-
-	if _, ok := kvp["endpoint"]; ok {
-		sv.End = kvp["endpoint"][0]
-	}
-
-	if _, ok := kvp["genre"]; ok {
-		sv.AGenre = kvp["genre"][0]
-	}
-
-	if _, ok := kvp["wkgenre"]; ok {
-		sv.WGenre = kvp["wkgenre"][0]
-	}
-
-	if _, ok := kvp["auloc"]; ok {
-		sv.ALoc = kvp["auloc"][0]
-	}
-
-	if _, ok := kvp["wkprov"]; ok {
-		sv.WLoc = kvp["wkprov"][0]
-	}
-
-	if _, ok := kvp["exclude"]; ok {
-		if kvp["exclude"][0] == "t" {
-			sv.IsExcl = true
-		} else {
-			sv.IsExcl = false
-		}
-	}
-
-	return sv
-}
-
 func rationalizeselections() {
 	// if you select "book 2" after selecting the whole, select only book 2
 	// if you select the whole after book 2, then the whole
@@ -373,19 +328,6 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 	return fl
 }
 
-type SelectionData struct {
-	TimeRestr string `json:"timeexclusions"`
-	Select    string `json:"selections"`
-	Exclude   string `json:"exclusions"`
-	NewJS     string `json:"newjs"`
-	Count     int    `json:"numberofselections"`
-}
-
-type JSData struct {
-	Pound string
-	Url   string
-}
-
 func reportcurrentselections(c echo.Context) []byte {
 	// ultimately feeding autocomplete.js
 	//    $('#timerestrictions').html(selectiondata.timeexclusions);
@@ -436,6 +378,15 @@ func reportcurrentselections(c echo.Context) []byte {
 		"au":   {"Authors", "ListedABN"},
 		"wk":   {"Works", "ListedWBN"},
 		"psg":  {"Passages", "ListedPBN"},
+	}
+
+	// JS output struct
+	type SelectionData struct {
+		TimeRestr string `json:"timeexclusions"`
+		Select    string `json:"selections"`
+		Exclude   string `json:"exclusions"`
+		NewJS     string `json:"newjs"`
+		Count     int    `json:"numberofselections"`
 	}
 
 	var jsinfo []JSData
@@ -522,7 +473,7 @@ func test_selection() {
 	var s Session
 	id := "testing"
 	sessions[id] = s
-	var sv SelectValues
+	var sv SelectionValues
 	//sv.Auth = "lt0474"
 	//sv.Work = ""
 	//sv.Start = ""

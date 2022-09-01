@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/google/uuid"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -412,6 +413,61 @@ func blankconfig() CurrentConfiguration {
 	thecfg.PGLogin.DBName = PSDefaultDB
 	thecfg.PGLogin.Host = PSDefaultHost
 	return thecfg
+}
+
+func parsesleectvals(r *http.Request) SelectionValues {
+	// https://golangcode.com/get-a-url-parameter-from-a-request/
+	// https://stackoverflow.com/questions/41279297/how-to-get-all-query-parameters-from-go-gin-context-object
+	// gin: You should be able to do c.Request.URL.Query() which will return a Values which is a map[string][]string
+
+	// TODO: check this stuff for bad characters
+	// but 'auth', etc. can be parsed just by checking them against known author lists
+
+	var sv SelectionValues
+
+	kvp := r.URL.Query() // map[string][]string
+
+	if _, ok := kvp["auth"]; ok {
+		sv.Auth = kvp["auth"][0]
+	}
+
+	if _, ok := kvp["work"]; ok {
+		sv.Work = kvp["work"][0]
+	}
+
+	if _, ok := kvp["locus"]; ok {
+		sv.Start = kvp["locus"][0]
+	}
+
+	if _, ok := kvp["endpoint"]; ok {
+		sv.End = kvp["endpoint"][0]
+	}
+
+	if _, ok := kvp["genre"]; ok {
+		sv.AGenre = kvp["genre"][0]
+	}
+
+	if _, ok := kvp["wkgenre"]; ok {
+		sv.WGenre = kvp["wkgenre"][0]
+	}
+
+	if _, ok := kvp["auloc"]; ok {
+		sv.ALoc = kvp["auloc"][0]
+	}
+
+	if _, ok := kvp["wkprov"]; ok {
+		sv.WLoc = kvp["wkprov"][0]
+	}
+
+	if _, ok := kvp["exclude"]; ok {
+		if kvp["exclude"][0] == "t" {
+			sv.IsExcl = true
+		} else {
+			sv.IsExcl = false
+		}
+	}
+
+	return sv
 }
 
 /*
