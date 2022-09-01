@@ -95,7 +95,7 @@ func makedefaultsession(id string) Session {
 	s.HitLimit = DEFAULTHITLIMIT
 	s.Inclusions.DateRange = [2]string{"-850", "1500"}
 	s.SortHitsBy = "Name"
-	s.HitContext = 0
+	s.HitContext = DEFAULTLINESOFCONTEXT
 	s.UI.BrowseCtx = DEFAULTBROWSERCTX
 	return s
 }

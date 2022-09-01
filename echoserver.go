@@ -299,9 +299,9 @@ func RtSetOption(c echo.Context) error {
 				}
 			case "linesofcontext":
 				if intval > MAXLINESHITCONTEXT {
-					s.HitContext = int(intval)
+					s.HitContext = intval
 				} else {
-					s.HitContext = MAXLINESHITCONTEXT
+					s.HitContext = intval
 				}
 			case "browsercontext":
 				if intval > MAXBROWSERCONTEXT {

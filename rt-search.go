@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
@@ -9,6 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 )
 
@@ -152,7 +154,12 @@ func RtSearchStandard(c echo.Context) error {
 
 	timetracker("D", fmt.Sprintf("search executed: %d hits", len(searches[id].Results)), start, previous)
 
-	js := string(formatnocontextresults(searches[id]))
+	var js string
+	if sessions[readUUIDCookie(c)].HitContext == 0 {
+		js = string(formatnocontextresults(searches[id]))
+	} else {
+		js = string(formatwithcontextresults(searches[id]))
+	}
 
 	srchsumm[id] = SearchSummary{start, searches[id].Summary}
 	msg(fmt.Sprintf("search count is %d", len(srchsumm)), 5)
@@ -497,20 +504,12 @@ type SearchOutputJSON struct {
 	JS            string `json:"js"`
 }
 
-type ResultPassageLine struct {
-	Locus           string
-	ShowLocus       bool
-	Contents        string
-	ContinuingStyle string
-	IsHighlight     bool
-}
-
 func formatnocontextresults(s SearchStruct) []byte {
 	var out SearchOutputJSON
 	out.JS = BROWSERJS
 	out.Title = s.Seeking
 	out.Image = ""
-	out.Searchsummary = formatfinalsearchsummary(s)
+	out.Searchsummary = formatfinalsearchsummary(&s)
 
 	TABLEROW := `
 	<tr class="%s">
@@ -551,36 +550,22 @@ func formatnocontextresults(s SearchStruct) []byte {
 }
 
 func formatwithcontextresults(ss SearchStruct) []byte {
-	// SAMPLE:
-	// <locus>
-	//			<span class="findnumber">[1]</span>&nbsp;&nbsp;
-	//			<span class="foundauthor">Frontinus, Sextus Iulius</span>,&nbsp;<span class="foundwork">De Aquis Urbis Romae</span>:
-	//			<browser id="linenumber/lt1245/002/3112"><span class="foundlocus">chapter 14, section 3, line 2</span></browser>
-	//</locus>
-	//<br>
-	//<span class="locus">14.2.3</span>&nbsp;<span class="foundtext">quotiens opus est ita sufficiat, ut adiectione sui nihil ex</span><br>
-	//<span class="locus">14.3.1</span>&nbsp;<span class="foundtext">qualitate eius mutet. Augustae fons, quia Marciam sibi</span><br>
-	//<span class="locus">14.3.2</span>&nbsp;<span class="foundtext"><span class="highlight">sufficere adparebat, in <span class="match">Claudiam</span> derivatus est, manente</span></span><br>
-	//<span class="locus">14.3.3</span>&nbsp;<span class="foundtext">nihilo minus praesidiario in Marciam, ut ita demum</span><br>
-	//<span class="locus">14.3.4</span>&nbsp;<span class="foundtext">Claudiam aquam adiuvaret Augusta, si eam ductus</span><br>
-
 	// things to worry about: formateditorialbrackets(); unbalancedspancleaner()
 
 	// unbalancedspancleaner() has to be run on the first line & after the whole block has been built
 
 	// how/when to do <span class="highlight">
 
-	//pht := `
-	//<locus>
-	//	<span class="findnumber">[{{.Findnumber}}]</span>&nbsp;&nbsp;
-	//	<span class="foundauthor">{{.Foundauthor}}</span>,&nbsp;<span class="foundwork">{{.Foundwork}}</span>:
-	//	<browser id="{{.FindURL}}"><span class="foundlocus">{{.FindLocus}}</span></browser>
-	//</locus>
-	//{{.LocusBody}}`
-	//
-	//plt := `<span class="locus">%s</span>&nbsp;<span class="foundtext">%s</span><br>`
-
 	thesession := sessions[ss.User]
+
+	type ResultPassageLine struct {
+		Locus           string
+		ShowLocus       bool
+		Contents        string
+		Hyphenated      string
+		ContinuingStyle string
+		IsHighlight     bool
+	}
 
 	type PsgFormattingTemplate struct {
 		Findnumber  int
@@ -597,21 +582,24 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	var allpassages []PsgFormattingTemplate
 	for i, r := range ss.Results {
 		var psg PsgFormattingTemplate
-		psg.Findnumber = i
-		psg.Foundwork = AllAuthors[r.FindAuthor()].Shortname
-		psg.Foundauthor = AllWorks[r.FindAuthor()].Title
+		psg.Findnumber = i + 1
+		psg.Foundauthor = AllAuthors[r.FindAuthor()].Name
+		psg.Foundwork = AllWorks[r.WkUID].Title
 		psg.FindURL = r.BuildHyperlink()
 		psg.FindLocus = basiccitation(AllWorks[r.FindAuthor()], r)
-		psg.RawCTX = simplecontextgrabber(r.FindAuthor(), r.TbIndex, int64(thesession.HitContext))
+		psg.RawCTX = simplecontextgrabber(r.FindAuthor(), r.TbIndex, int64(thesession.HitContext/2))
+
 		for j := 0; j < len(psg.RawCTX); j++ {
 			c := ResultPassageLine{}
-			c.Locus = strings.Join(r.FindLocus(), ".")
+			c.Locus = strings.Join(psg.RawCTX[j].FindLocus(), ".")
+
 			if psg.RawCTX[j].BuildHyperlink() == psg.FindURL {
-				// this is the highlight line
-				c.Contents = "<span class=\"highlight\">" + psg.RawCTX[j].MarkedUp + "</span>"
+				c.IsHighlight = true
 			} else {
-				c.Contents = psg.RawCTX[j].MarkedUp
+				c.IsHighlight = false
 			}
+			c.Contents = psg.RawCTX[j].MarkedUp
+			c.Hyphenated = psg.RawCTX[j].Hypenated
 			psg.CookedCTX = append(psg.CookedCTX, c)
 		}
 		allpassages = append(allpassages, psg)
@@ -637,7 +625,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 		}
 	}
 
-	// highlight the search term: do this at the "block" stage?
+	// highlight the search term: this includes the hyphenated_line issue
 
 	// search for brackets
 	// TODO: it's fiddly
@@ -657,13 +645,52 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 
 	// aggregate the bundles
 
+	pht := `
+	<locus>
+		<span class="findnumber">[{{.Findnumber}}]</span>&nbsp;&nbsp;
+		<span class="foundauthor">{{.Foundauthor}}</span>,&nbsp;<span class="foundwork">{{.Foundwork}}</span>:
+		<browser id="{{.FindURL}}"><span class="foundlocus">{{.FindLocus}}</span></browser>
+	</locus>
+	{{.LocusBody}}`
+
+	tmpl, e := template.New("tr").Parse(pht)
+	chke(e)
+
+	plt := `<span class="locus">%s</span>&nbsp;<span class="foundtext">%s</span><br>
+	`
+
+	var rows []string
+	for _, p := range allpassages {
+		var lines []string
+		for _, l := range p.CookedCTX {
+			c := fmt.Sprintf(plt, l.Locus, l.Contents)
+			lines = append(lines, c)
+		}
+		p.LocusBody = strings.Join(lines, "")
+		var b bytes.Buffer
+		err := tmpl.Execute(&b, p)
+		chke(err)
+
+		// fmt.Println(b.String())
+		rows = append(rows, b.String())
+	}
+
 	// ouput
 
-	b := []byte{}
-	return b
+	var out SearchOutputJSON
+	out.JS = BROWSERJS
+	out.Title = ss.Seeking
+	out.Image = ""
+	out.Searchsummary = formatfinalsearchsummary(&ss)
+	out.Found = strings.Join(rows, "")
+
+	js, e := json.Marshal(out)
+	chke(e)
+
+	return js
 }
 
-func formatfinalsearchsummary(s SearchStruct) string {
+func formatfinalsearchsummary(s *SearchStruct) string {
 
 	t := `
 	<div id="searchsummary">
@@ -754,6 +781,18 @@ func formateditorialbrackets(html string) string {
 	// types: editorialmarker_angledbrackets; editorialmarker_curlybrackets, editorialmarker_roundbrackets, editorialmarker_squarebrackets
 	//
 
+	return ""
+}
+
+func highlightsearchterm(html, ss *SearchStruct) string {
+	// 	html markup for the search term in the line so it can jump out at you
+	//
+	//	regexequivalent is compiled via compilesearchtermequivalent()
+	//
+	//	in order to properly highlight a polytonic word that you found via a unaccented search you need to convert:
+	//		ποταμον
+	//	into:
+	//		([πΠ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][τΤ][αἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάᾈᾉᾊᾋᾌᾍᾎᾏἈἉἊἋἌἍἎἏΑ][μΜ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][νΝ])
 	return ""
 }
 
