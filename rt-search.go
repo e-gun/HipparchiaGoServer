@@ -66,7 +66,10 @@ func (s SearchStruct) FmtOrderBy() string {
 func RtSearchConfirm(c echo.Context) error {
 	// not going to be needed?
 	// "test the activity of a poll so you don't start conjuring a bunch of key errors if you use wscheckpoll() prematurely"
-	return c.String(http.StatusOK, "")
+	msg("RtSearchConfirm()", 2)
+	//id := c.Param("id")
+	//msg(id, 1)
+	return c.String(http.StatusOK, "8000")
 }
 
 func RtSearchStandard(c echo.Context) error {

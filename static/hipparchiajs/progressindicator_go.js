@@ -14,7 +14,7 @@ function checkactivityviawebsocket(searchid) {
         let pd = $('#pollingdata');
         let ip = location.hostname;
         // but /etc/nginx/nginx.conf might have a WS proxy and not the actual WS host...
-        let s = new WebSocket('ws://'+ip+':'+portnumber+'/');
+        let s = new WebSocket('ws://'+ip+':'+portnumber+'/ws');
         let amready = setInterval(function(){
             if (s.readyState === 1) { s.send(JSON.stringify(searchid)); clearInterval(amready); }
             }, 10);
