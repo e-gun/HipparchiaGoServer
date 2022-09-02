@@ -249,6 +249,17 @@ func stripaccentsRUNE(u []rune) []rune {
 
 func getrunereducer() map[rune]rune {
 	// because we don't have access to python's transtable function
+	feeder := getrunefeeder()
+	reducer := make(map[rune]rune)
+	for f, _ := range feeder {
+		for _, r := range feeder[f] {
+			reducer[r] = f
+		}
+	}
+	return reducer
+}
+
+func getrunefeeder() map[rune][]rune {
 	feeder := make(map[rune][]rune)
 	feeder['α'] = []rune("αἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάᾈᾉᾊᾋᾌᾍᾎᾏἈἉἊἋἌἍἎἏΑ")
 	feeder['ε'] = []rune("εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ")
@@ -299,14 +310,7 @@ func getrunereducer() map[rune]rune {
 	feeder['x'] = []rune("xX")
 	feeder['y'] = []rune("yY")
 	feeder['z'] = []rune("zZ")
-
-	reducer := make(map[rune]rune)
-	for f, _ := range feeder {
-		for _, r := range feeder[f] {
-			reducer[r] = f
-		}
-	}
-	return reducer
+	return feeder
 }
 
 func uvσçϲ(u string) string {

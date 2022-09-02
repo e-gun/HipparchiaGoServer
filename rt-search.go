@@ -549,6 +549,15 @@ func formatnocontextresults(s SearchStruct) []byte {
 	return js
 }
 
+type ResultPassageLine struct {
+	Locus           string
+	ShowLocus       bool
+	Contents        string
+	Hyphenated      string
+	ContinuingStyle string
+	IsHighlight     bool
+}
+
 func formatwithcontextresults(ss SearchStruct) []byte {
 	// things to worry about: formateditorialbrackets(); unbalancedspancleaner()
 
@@ -557,15 +566,6 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	// how/when to do <span class="highlight">
 
 	thesession := sessions[ss.User]
-
-	type ResultPassageLine struct {
-		Locus           string
-		ShowLocus       bool
-		Contents        string
-		Hyphenated      string
-		ContinuingStyle string
-		IsHighlight     bool
-	}
 
 	type PsgFormattingTemplate struct {
 		Findnumber  int
@@ -586,7 +586,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 		psg.Foundauthor = AllAuthors[r.FindAuthor()].Name
 		psg.Foundwork = AllWorks[r.WkUID].Title
 		psg.FindURL = r.BuildHyperlink()
-		psg.FindLocus = basiccitation(AllWorks[r.FindAuthor()], r)
+		psg.FindLocus = strings.Join(r.FindLocus(), ".")
 		psg.RawCTX = simplecontextgrabber(r.FindAuthor(), r.TbIndex, int64(thesession.HitContext/2))
 
 		for j := 0; j < len(psg.RawCTX); j++ {
@@ -626,6 +626,17 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	}
 
 	// highlight the search term: this includes the hyphenated_line issue
+	// todo: priximate term
+
+	for _, p := range allpassages {
+		for i, r := range p.CookedCTX {
+			if r.IsHighlight {
+				highlightfocusline(&p.CookedCTX[i])
+				pat := searchtermfinder(ss.Seeking)
+				highlightsearchterm(pat, &p.CookedCTX[i])
+			}
+		}
+	}
 
 	// search for brackets
 	// TODO: it's fiddly
@@ -648,7 +659,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	pht := `
 	<locus>
 		<span class="findnumber">[{{.Findnumber}}]</span>&nbsp;&nbsp;
-		<span class="foundauthor">{{.Foundauthor}}</span>,&nbsp;<span class="foundwork">{{.Foundwork}}</span>:
+		<span class="foundauthor">{{.Foundauthor}}</span>,&nbsp;<span class="foundwork">{{.Foundwork}}</span>
 		<browser id="{{.FindURL}}"><span class="foundlocus">{{.FindLocus}}</span></browser>
 	</locus>
 	{{.LocusBody}}`
@@ -664,6 +675,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 		var lines []string
 		for _, l := range p.CookedCTX {
 			c := fmt.Sprintf(plt, l.Locus, l.Contents)
+			fmt.Println(c)
 			lines = append(lines, c)
 		}
 		p.LocusBody = strings.Join(lines, "")
@@ -784,16 +796,55 @@ func formateditorialbrackets(html string) string {
 	return ""
 }
 
-func highlightsearchterm(html, ss *SearchStruct) string {
-	// 	html markup for the search term in the line so it can jump out at you
-	//
-	//	regexequivalent is compiled via compilesearchtermequivalent()
-	//
-	//	in order to properly highlight a polytonic word that you found via a unaccented search you need to convert:
+func searchtermfinder(term string) *regexp.Regexp {
+	// find the universal regex equivalent of the search term
+	//	you need to convert:
 	//		ποταμον
 	//	into:
 	//		([πΠ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][τΤ][αἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάᾈᾉᾊᾋᾌᾍᾎᾏἈἉἊἋἌἍἎἏΑ][μΜ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][νΝ])
-	return ""
+
+	converter := getrunefeeder()
+	st := []rune(term)
+	var stre string
+	for _, r := range st {
+		if _, ok := converter[r]; ok {
+			re := fmt.Sprintf("[%s]", string(converter[r]))
+			stre += re
+		} else {
+			stre += string(r)
+		}
+	}
+	stre = fmt.Sprintf("(%s)", stre)
+
+	pattern, e := regexp.Compile(stre)
+	if e != nil {
+		msg(fmt.Sprintf("searchtermfinder() could not compile the following: %s", stre), 1)
+		pattern = regexp.MustCompile("FAILED_FIND_NOTHING")
+	}
+	return pattern
+}
+
+func highlightfocusline(line *ResultPassageLine) {
+	line.Contents = fmt.Sprintf(`<span class="highlight">%s</span>`, line.Contents)
+}
+
+func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
+	// 	html markup for the search term in the line so it can jump out at you
+	//
+	//	regexequivalent is compiled via searchtermfinder()
+	//
+
+	// see the warnings and caveats at highlightsearchterm() in searchformatting.py
+	if pattern.MatchString(line.Contents) {
+		line.Contents = pattern.ReplaceAllString(line.Contents, `<span class="match">$1</span>`)
+	} else {
+		// might be in the hyphenated line
+		if pattern.MatchString(line.Hyphenated) {
+			// todo: this won't look right yet
+			line.Contents += fmt.Sprintf(`&nbsp;&nbsp;(&nbsp;match:&nbsp;%s`, line.Hyphenated)
+		}
+	}
+
 }
 
 func unbalancedspancleaner(html string) string {

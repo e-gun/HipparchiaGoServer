@@ -315,11 +315,8 @@ func RtSetOption(c echo.Context) error {
 		}
 	}
 
-	st := fmt.Sprintf("set '%s' to '%s'", parsed[0], parsed[1])
 	delete(sessions, readUUIDCookie(c))
 	sessions[readUUIDCookie(c)] = s
-
-	msg(st, 1)
 
 	return c.String(http.StatusOK, "")
 }
