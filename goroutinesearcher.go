@@ -120,17 +120,20 @@ func RtWebsocket(c echo.Context) error {
 		// the bug-trap are the quotes around that string
 		bs := string(m)
 		bs = strings.Replace(bs, `"`, "", -1)
-
+		count := 0
 		if _, ok := searches[bs]; ok {
+			count += 1
+			msg(fmt.Sprintf("%d", count), 1)
+			mm := strings.Replace(searches[bs].InitSum, "Sought", "Seeking", -1)
 			var r ReplyJS
 			r.Active = "is_active"
 			r.ID = bs
-			// r.TotalWrk = 100
-			// r.Remain = 10
-			// r.Msg = searches[bs].InitSum + " (searching...)"
-			r.Msg = "..."
-			// r.Elapsed = 0.0
-			// r.Extra = ""
+			r.TotalWrk = 100
+			r.Remain = 10
+			r.Msg = mm
+			// r.Msg = "..."
+			r.Elapsed = 1.0
+			r.Extra = ""
 			// Write
 			js, y := json.Marshal(r)
 			chke(y)
