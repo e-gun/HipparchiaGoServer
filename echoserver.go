@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"golang.org/x/net/websocket"
 	"html/template"
 	"io"
 	"net/http"
@@ -326,33 +325,6 @@ func RtSetOption(c echo.Context) error {
 	sessions[readUUIDCookie(c)] = s
 
 	return c.String(http.StatusOK, "")
-}
-
-func RtWebsocket(c echo.Context) error {
-	// 	the client sends the name of a poll and this will output
-	//	the status of the poll continuously while the poll remains active
-	//
-	//	example:
-	//		progress {'active': 1, 'total': 20, 'remaining': 20, 'hits': 48, 'message': 'Putting the results in context',
-	//		'elapsed': 14.0, 'extrainfo': '<span class="small"></span>'}
-
-	// see also /static/hipparchiajs/progressindicator_go.js
-
-	// https://echo.labstack.com/cookbook/websocket/
-	msg("RtWebsocket()", 1)
-	websocket.Handler(func(ws *websocket.Conn) {
-		defer ws.Close()
-		for {
-			// Read
-			m := ""
-			err := websocket.Message.Receive(ws, &m)
-			if err != nil {
-				c.Logger().Error(err)
-			}
-			msg(fmt.Sprintf("websocket received: %s", m), 1)
-		}
-	}).ServeHTTP(c.Response(), c.Request())
-	return nil
 }
 
 func RtTest(c echo.Context) error {

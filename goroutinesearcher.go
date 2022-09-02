@@ -2,9 +2,18 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"github.com/gorilla/websocket"
+	"github.com/labstack/echo/v4"
 	"log"
 	"runtime"
+	"strings"
 	"sync"
+)
+
+var (
+	upgrader = websocket.Upgrader{}
 )
 
 func HGoSrch(ss SearchStruct) SearchStruct {
@@ -47,6 +56,96 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	ss.Results = sortresults(results, ss)
 
 	return ss
+}
+
+func zRtWebsocket(c echo.Context) error {
+	for {
+		if len(searches) != 0 {
+			msg("a search", 1)
+			for k, _ := range searches {
+				msg(k, 1)
+			}
+			break
+		}
+	}
+	msg("returning", 1)
+	return nil
+}
+func RtWebsocket(c echo.Context) error {
+	// 	the client sends the name of a poll and this will output
+	//	the status of the poll continuously while the poll remains active
+	//
+	//	example:
+	//		progress {'active': 1, 'total': 20, 'remaining': 20, 'hits': 48, 'message': 'Putting the results in context',
+	//		'elapsed': 14.0, 'extrainfo': '<span class="small"></span>'}
+
+	// see also /static/hipparchiajs/progressindicator_go.js
+
+	// https://echo.labstack.com/cookbook/websocket/
+
+	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	if err != nil {
+		return err
+	}
+	defer ws.Close()
+
+	type ReplyJS struct {
+		Active   string  `json:"active"`
+		TotalWrk int     `json:"Poolofwork"`
+		Remain   int     `json:"Remaining"`
+		Hits     int     `json:"Hitcount"`
+		Msg      string  `json:"Statusmessage"`
+		Elapsed  float32 `json:"Launchtime"`
+		Extra    string  `json:"Notes"`
+		ID       string  `json:"ID"`
+	}
+
+	for {
+		if len(searches) != 0 {
+			// msg("a search", 1)
+			break
+		}
+	}
+
+	for {
+		// Read
+		m := []byte{}
+		_, m, e := ws.ReadMessage()
+		if e != nil {
+			c.Logger().Error(err)
+		}
+
+		msg(fmt.Sprintf(`websocket received: %s`, m), 1)
+		// will yield: websocket received: "205da19d"
+		// the bug-trap are the quotes around that string
+		bs := string(m)
+		bs = strings.Replace(bs, `"`, "", -1)
+
+		if _, ok := searches[bs]; ok {
+			var r ReplyJS
+			r.Active = "is_active"
+			r.ID = bs
+			// r.TotalWrk = 100
+			// r.Remain = 10
+			// r.Msg = searches[bs].InitSum + " (searching...)"
+			r.Msg = "..."
+			// r.Elapsed = 0.0
+			// r.Extra = ""
+			// Write
+			js, y := json.Marshal(r)
+			chke(y)
+
+			er := ws.WriteMessage(websocket.TextMessage, js)
+			if er != nil {
+				c.Logger().Error(er)
+			} else {
+				msg(string(js), 1)
+			}
+		} else {
+			break
+		}
+	}
+	return nil
 }
 
 // SrchFeeder - emit items to a channel from the []PrerolledQuery that will be consumed by the SrchConsumer
