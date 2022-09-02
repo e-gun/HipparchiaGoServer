@@ -3,7 +3,7 @@ package main
 const (
 	MYNAME                = "Hipparchia Golang Server"
 	SHORTNAME             = "HGS"
-	VERSION               = "0.1.7"
+	VERSION               = "0.1.8"
 	PSQ                   = `{"Host": "localhost", "Port": 5432, "User": "hippa_wr", "Pass": "", "DBName": "hipparchiaDB"}`
 	PSDefaultHost         = "localhost"
 	PSDefaultUser         = "hippa_wr"

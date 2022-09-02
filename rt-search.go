@@ -218,9 +218,9 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	second.SkgSlice = []string{}
 	second.Seeking = second.Proximate
 	second.LemmaOne = second.LemmaTwo
-	second.Proximate = ""
+	second.Proximate = first.Seeking
 	second.PrxSlice = []string{}
-	second.LemmaTwo = ""
+	second.LemmaTwo = first.LemmaOne
 
 	setsearchtype(&second)
 
@@ -551,7 +551,6 @@ func formatnocontextresults(s SearchStruct) []byte {
 
 type ResultPassageLine struct {
 	Locus           string
-	ShowLocus       bool
 	Contents        string
 	Hyphenated      string
 	ContinuingStyle string
@@ -626,13 +625,27 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	}
 
 	// highlight the search term: this includes the hyphenated_line issue
-	// todo: priximate term
 
 	for _, p := range allpassages {
 		for i, r := range p.CookedCTX {
 			if r.IsHighlight {
 				highlightfocusline(&p.CookedCTX[i])
 				pat := searchtermfinder(ss.Seeking)
+				highlightsearchterm(pat, &p.CookedCTX[i])
+			}
+			if len(ss.LemmaTwo) > 0 {
+				// look for the proximate term
+				re := lemmaintoregexslice(ss.LemmaTwo)
+				pat, e := regexp.Compile(strings.Join(re, "|"))
+				if e != nil {
+					pat = regexp.MustCompile("FAILED_FIND_NOTHING")
+					msg(fmt.Sprintf("searchtermfinder() could not compile the following: %s", strings.Join(re, "|")), 1)
+				}
+				highlightsearchterm(pat, &p.CookedCTX[i])
+			}
+			if len(ss.Proximate) > 0 {
+				// look for the proximate term
+				pat := searchtermfinder(ss.Proximate)
 				highlightsearchterm(pat, &p.CookedCTX[i])
 			}
 		}
@@ -643,14 +656,6 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 
 	// search for span inheretance
 	// TODO: it's fiddly
-
-	// decide which lines need to display their citation info
-	// TODO: set to "all on" atm
-	for _, p := range allpassages {
-		for _, c := range p.CookedCTX {
-			c.ShowLocus = true
-		}
-	}
 
 	// build a passage bundle
 
@@ -675,7 +680,6 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 		var lines []string
 		for _, l := range p.CookedCTX {
 			c := fmt.Sprintf(plt, l.Locus, l.Contents)
-			fmt.Println(c)
 			lines = append(lines, c)
 		}
 		p.LocusBody = strings.Join(lines, "")
@@ -840,8 +844,8 @@ func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
 	} else {
 		// might be in the hyphenated line
 		if pattern.MatchString(line.Hyphenated) {
-			// todo: this won't look right yet
-			line.Contents += fmt.Sprintf(`&nbsp;&nbsp;(&nbsp;match:&nbsp;%s`, line.Hyphenated)
+			// todo: needs more fiddling
+			line.Contents += fmt.Sprintf(`&nbsp;&nbsp;(&nbsp;match:&nbsp;<span class="match">%s</span>&nbsp;)`, line.Hyphenated)
 		}
 	}
 
