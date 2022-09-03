@@ -31,14 +31,14 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	emitqueries, err := SrchFeeder(ctx, ss.Queries)
+	emitqueries, err := SrchFeeder(ctx, ss.ID, ss.Queries)
 	chke(err)
 
 	var findchannels []<-chan []DbWorkline
 
 	workers := runtime.NumCPU()
 	// to slow things down for testing...
-	workers = 2
+	// workers = 2
 
 	for i := 0; i < workers; i++ {
 		fc, e := SrchConsumer(ctx, emitqueries)
@@ -52,7 +52,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 		max = ss.Limit * 3
 	}
 
-	results := ResultCollation(ctx, max, ResultAggregator(ctx, findchannels...))
+	results := ResultCollation(ctx, ss.ID, max, ResultAggregator(ctx, findchannels...))
 	if int64(len(results)) > max {
 		results = results[0:max]
 	}
@@ -63,9 +63,10 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 }
 
 // SrchFeeder - emit items to a channel from the []PrerolledQuery that will be consumed by the SrchConsumer
-func SrchFeeder(ctx context.Context, qq []PrerolledQuery) (<-chan PrerolledQuery, error) {
+func SrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan PrerolledQuery, error) {
 	emitqueries := make(chan PrerolledQuery, cfg.WorkerCount)
 	remainder := -1
+	host := progressportpicker("pp_" + name)
 
 	// channel emitter: i.e., the actual work
 	go func() {
@@ -83,11 +84,10 @@ func SrchFeeder(ctx context.Context, qq []PrerolledQuery) (<-chan PrerolledQuery
 	}()
 
 	// tcp remainder broadcaster: i.e., the fluff
+
 	go func() {
 		// cf https://notes.shichao.io/gopl/ch8/
 		// [a] open a tcp port to broadcast on
-		host, nrp := progressportpicker(REMAINDERPORTLOW, REMAINDERPORTHIGH)
-		NextRP = nrp
 		if host == nil {
 			msg("progressportpicker() could not open any ports", 1)
 			return
@@ -176,11 +176,10 @@ func ResultAggregator(ctx context.Context, findchannels ...<-chan []DbWorkline) 
 }
 
 // ResultCollation - return the actual []DbWorkline results after pulling them from the ResultAggregator channel
-func ResultCollation(ctx context.Context, max int64, values <-chan []DbWorkline) []DbWorkline {
+func ResultCollation(ctx context.Context, name string, max int64, values <-chan []DbWorkline) []DbWorkline {
 	var allhits []DbWorkline
 	done := false
-	host, nhp := progressportpicker(HITSPORTLOW, HITSPORTHIGH)
-	NextHP = nhp
+	host := progressportpicker("rc_" + name)
 	for {
 		select {
 		case <-ctx.Done():
@@ -287,15 +286,20 @@ func sortresults(results []DbWorkline, ss SearchStruct) []DbWorkline {
 }
 
 // progressportpicker - from where should the progress info be served?
-func progressportpicker(base int, max int) (net.Listener, int) {
+func progressportpicker(name string) net.Listener {
 	// return a listener and the value of the port selected
-	for i := base; i <= max; i++ {
-		host, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", i))
-		if err != nil {
-			msg(fmt.Sprintf("progressportpicker() could not open port %d", i), 1)
-		} else {
-			return host, i
-		}
+	// ?? https://www.linode.com/docs/guides/developing-udp-and-tcp-clients-and-servers-in-go/
+	// https://eli.thegreenplace.net/2019/unix-domain-sockets-in-go/
+	// https://golangdocs.com/grpc-golang
+
+	// msg(fmt.Sprintf("progressportpicker(): /tmp/hgs_%s", name), 1)
+
+	host, err := net.Listen("unix", fmt.Sprintf("/tmp/hgs_%s", name))
+
+	if err != nil {
+		msg(fmt.Sprintf("progressportpicker() could not open '/tmp/hgs_%s'", name), 1)
+	} else {
+		return host
 	}
-	return nil, -1
+	return nil
 }
