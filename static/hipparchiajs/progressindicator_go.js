@@ -28,11 +28,12 @@ function checkactivityviawebsocket(searchid) {
 
 function displayprogress(searchid, progress){
     // note that morphologychartjs() has its own version of this function: changes here should be made there too
+    console.log(progress);
     let r = progress['Remaining'];
     let t = progress['Poolofwork'];
     let h = progress['Hitcount'];
-    // let pct = Math.round((t-r) / t * 100);
-    let pct = 100;
+    let pct = Math.round((t-r) / t * 100);
+    // let pct = 100;
     let m = progress['Statusmessage'];
     let e = progress['Elapsed'];
     let x = progress['Notes'];

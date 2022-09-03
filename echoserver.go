@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
@@ -8,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"html/template"
 	"io"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -348,6 +350,11 @@ func RtWebsocket(c echo.Context) error {
 
 	// https://echo.labstack.com/cookbook/websocket/
 
+	// as far as polling, goes, the solution to the concurrency issue is tricky
+	// you want to look inside HGoSrch and its dependents; a channel there requires us to be "in" that hierarchy
+	// but if that happens, RtWebsocket is going to have a lot of trouble being a route responding to requests
+	// the problem can be solved by redis; but if we want to minimize external dependencies, TCP ports will do
+
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		return err
@@ -357,7 +364,7 @@ func RtWebsocket(c echo.Context) error {
 	type ReplyJS struct {
 		Active   string `json:"active"`
 		TotalWrk int    `json:"Poolofwork"`
-		Remain   int    `json:"Remaining"`
+		Remain   string `json:"Remaining"`
 		Hits     int    `json:"Hitcount"`
 		Msg      string `json:"Statusmessage"`
 		Elapsed  string `json:"Elapsed"`
@@ -384,15 +391,19 @@ func RtWebsocket(c echo.Context) error {
 		bs := string(m)
 		bs = strings.Replace(bs, `"`, "", -1)
 		mm := strings.Replace(searches[bs].InitSum, "Sought", "Seeking", -1)
+
 		if _, ok := searches[bs]; ok {
-			count := 0
+			// we will grab the remainder value via TCP
+			conn, err := net.Dial("tcp", "localhost:8901")
+			chke(err)
+			defer conn.Close()
+
 			for {
-				count += 1
+
 				var r ReplyJS
 				r.Active = "is_active"
 				r.ID = bs
-				r.TotalWrk = 10 // searches[bs].SrchTables
-				r.Remain = 5    // searches[bs].Remaining
+				r.TotalWrk = searches[bs].TableSize
 				r.Msg = mm
 				r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(searches[bs].Launched).Seconds())
 				if searches[bs].IsSecSrch {
@@ -401,24 +412,37 @@ func RtWebsocket(c echo.Context) error {
 					r.Extra = ""
 				}
 
+				// ser r.Remain via TCP connection to SrchFeeder()'s broadcaster
+				r.Remain = func() string {
+					connbuf := bufio.NewReader(conn)
+					for {
+						rs, err := connbuf.ReadString('\n')
+						if err != nil {
+							break
+						}
+						if len(rs) > 0 {
+							if e != nil {
+								return rs
+							} else {
+								return "-1"
+							}
+						}
+					}
+					return ""
+				}()
+
 				// Write
 				js, y := json.Marshal(r)
 				chke(y)
 
 				er := ws.WriteMessage(websocket.TextMessage, js)
+
 				if er != nil {
 					c.Logger().Error(er)
 				}
 
-				time.Sleep(500)
 				if _, exists := searches[bs]; !exists {
-					//msg(fmt.Sprintf("breaking at %d: %s", count, string(js)), 1)
-					//var x ReplyJS
-					//x.Active = "inactive"
-					//j, e := json.Marshal(x)
-					//chke(e)
-					//e = ws.WriteMessage(websocket.TextMessage, j)
-					//chke(e)
+					conn.Close()
 					break
 				}
 			}

@@ -44,7 +44,8 @@ type SearchStruct struct {
 	Results    []DbWorkline
 	Launched   time.Time
 	TTName     string
-	SearchSize int // # of works
+	SearchSize int // # of works searched
+	TableSize  int // # of tables searched
 }
 
 func (s SearchStruct) FmtOrderBy() string {
@@ -117,6 +118,8 @@ func RtSearchStandard(c echo.Context) error {
 	previous = time.Now()
 
 	prq := searchlistintoqueries(&srch)
+	srch.TableSize = len(prq)
+
 	timetracker("C", "searchlistintoqueries()", start, previous)
 	previous = time.Now()
 

@@ -2,10 +2,14 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/gorilla/websocket"
+	"io"
 	"log"
+	"net"
 	"runtime"
 	"sync"
+	"time"
 )
 
 var (
@@ -30,11 +34,12 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	emitqueries, err := SrchFeeder(ctx, ss.Queries)
 	chke(err)
 
+	msg("here", 1)
 	var findchannels []<-chan []DbWorkline
 
 	workers := runtime.NumCPU()
 	// to slow things down for testing...
-	// workers := 2
+	workers = 2
 
 	for i := 0; i < workers; i++ {
 		fc, e := SrchConsumer(ctx, emitqueries)
@@ -61,18 +66,60 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 // SrchFeeder - emit items to a channel from the []PrerolledQuery that will be consumed by the SrchConsumer
 func SrchFeeder(ctx context.Context, qq []PrerolledQuery) (<-chan PrerolledQuery, error) {
 	emitqueries := make(chan PrerolledQuery, cfg.WorkerCount)
+	remainder := -1
+
+	// tcp broadcaster
+	go func() {
+		// cf https://notes.shichao.io/gopl/ch8/
+		// [a] open a websocket
+		host, err := net.Listen("tcp", "localhost:8901")
+		chke(err)
+
+		for {
+			// [b] wait for someone to listen
+			guest, err := host.Accept()
+			if err != nil {
+				continue
+			}
+			go func() {
+				// send remainder value to it
+				defer guest.Close()
+				for {
+					if remainder == 0 {
+						// https://stackoverflow.com/questions/61049648/getting-bind-address-already-in-use-even-after-closing-the-connection-in-golang
+						// "This connection, which is in TIME_WAIT state, can block further use of the port, making it
+						// impossible to create a new listener, unless you give the right underlying settings to the host OS..."
+						guest.Close()
+						host.Close()
+						break
+					} else if remainder > -1 {
+						// msg(fmt.Sprintf("remain: %d", remainder), 1)
+						_, err := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
+						if err != nil {
+							return // e.g., client disconnected
+						}
+						time.Sleep(100)
+					}
+				}
+			}()
+		}
+	}()
+
+	// channel emitter
 	go func() {
 		defer close(emitqueries)
-		for _, q := range qq {
+		for i, q := range qq {
 			// fmt.Println(q)
 			select {
 			case <-ctx.Done():
 				return
 			default:
+				remainder = len(qq) - i - 1
 				emitqueries <- q
 			}
 		}
 	}()
+
 	return emitqueries, nil
 }
 
