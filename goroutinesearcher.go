@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 )
 
 var (
@@ -36,7 +37,11 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 
 	var findchannels []<-chan []DbWorkline
 
-	for i := 0; i < runtime.NumCPU(); i++ {
+	workers := runtime.NumCPU()
+	// to slow things down for testing...
+	// workers := 2
+
+	for i := 0; i < workers; i++ {
 		fc, e := SrchConsumer(ctx, emitqueries)
 		chke(e)
 		findchannels = append(findchannels, fc)
@@ -58,19 +63,6 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	return ss
 }
 
-func zRtWebsocket(c echo.Context) error {
-	for {
-		if len(searches) != 0 {
-			msg("a search", 1)
-			for k, _ := range searches {
-				msg(k, 1)
-			}
-			break
-		}
-	}
-	msg("returning", 1)
-	return nil
-}
 func RtWebsocket(c echo.Context) error {
 	// 	the client sends the name of a poll and this will output
 	//	the status of the poll continuously while the poll remains active
@@ -90,14 +82,14 @@ func RtWebsocket(c echo.Context) error {
 	defer ws.Close()
 
 	type ReplyJS struct {
-		Active   string  `json:"active"`
-		TotalWrk int     `json:"Poolofwork"`
-		Remain   int     `json:"Remaining"`
-		Hits     int     `json:"Hitcount"`
-		Msg      string  `json:"Statusmessage"`
-		Elapsed  float32 `json:"Launchtime"`
-		Extra    string  `json:"Notes"`
-		ID       string  `json:"ID"`
+		Active   string `json:"active"`
+		TotalWrk int    `json:"Poolofwork"`
+		Remain   int    `json:"Remaining"`
+		Hits     int    `json:"Hitcount"`
+		Msg      string `json:"Statusmessage"`
+		Elapsed  string `json:"Elapsed"`
+		Extra    string `json:"Notes"`
+		ID       string `json:"ID"`
 	}
 
 	for {
@@ -120,32 +112,40 @@ func RtWebsocket(c echo.Context) error {
 		// the bug-trap are the quotes around that string
 		bs := string(m)
 		bs = strings.Replace(bs, `"`, "", -1)
-		count := 0
+		mm := strings.Replace(searches[bs].InitSum, "Sought", "Seeking", -1)
 		if _, ok := searches[bs]; ok {
-			count += 1
-			msg(fmt.Sprintf("%d", count), 1)
-			mm := strings.Replace(searches[bs].InitSum, "Sought", "Seeking", -1)
-			var r ReplyJS
-			r.Active = "is_active"
-			r.ID = bs
-			r.TotalWrk = 100
-			r.Remain = 10
-			r.Msg = mm
-			// r.Msg = "..."
-			r.Elapsed = 1.0
-			r.Extra = ""
-			// Write
-			js, y := json.Marshal(r)
-			chke(y)
+			count := 0
+			for {
+				count += 1
+				var r ReplyJS
+				r.Active = "is_active"
+				r.ID = bs
+				r.TotalWrk = 10 // searches[bs].SrchTables
+				r.Remain = 5    // searches[bs].Remaining
+				r.Msg = mm
+				r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(searches[bs].Launched).Seconds())
+				if searches[bs].IsSecSrch {
+					r.Extra = "(second pass)"
+				} else {
+					r.Extra = ""
+				}
 
-			er := ws.WriteMessage(websocket.TextMessage, js)
-			if er != nil {
-				c.Logger().Error(er)
-			} else {
-				msg(string(js), 1)
+				// Write
+				js, y := json.Marshal(r)
+				chke(y)
+
+				er := ws.WriteMessage(websocket.TextMessage, js)
+				if er != nil {
+					c.Logger().Error(er)
+				} else {
+					// msg(fmt.Sprintf("%d: %s", count, string(js)), 1)
+				}
+				time.Sleep(400)
+				if _, exists := searches[bs]; !exists {
+					msg(fmt.Sprintf("breaking at %d: %s", count, string(js)), 1)
+					break
+				}
 			}
-		} else {
-			break
 		}
 	}
 	return nil

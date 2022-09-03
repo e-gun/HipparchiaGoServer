@@ -31,6 +31,7 @@ type SearchStruct struct {
 	IsVector   bool
 	Twobox     bool
 	NotNear    bool
+	IsSecSrch  bool
 	SrchColumn string // usually "stripped_line", sometimes "accented_line"
 	SrchSyntax string // almost always "~="
 	OrderBy    string // almost always "index" + ASC
@@ -220,6 +221,7 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	second.Proximate = first.Seeking
 	second.PrxSlice = []string{}
 	second.LemmaTwo = first.LemmaOne
+	second.IsSecSrch = true
 
 	setsearchtype(&second)
 
