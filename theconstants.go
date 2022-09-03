@@ -38,6 +38,8 @@ const (
 	VARIADATE             = 2000
 	REMAINDERPORTLOW      = 8901
 	REMAINDERPORTHIGH     = 8921
+	HITSPORTLOW           = 8941
+	HITSPORTHIGH          = 8961
 
 	// hipparchiaDB=# select * from gr0001 limit 0;
 	// index | wkuniversalid | level_05_value | level_04_value | level_03_value | level_02_value | level_01_value | level_00_value | marked_up_line | accented_line | stripped_line | hyphenated_words | annotations

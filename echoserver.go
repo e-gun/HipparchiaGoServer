@@ -394,20 +394,30 @@ func RtWebsocket(c echo.Context) error {
 
 		if _, ok := searches[bs]; ok {
 			// we will grab the remainder value via TCP
-			hasconnection := false
-			conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%d", NextRP))
+			rtcp := false
+			rconn, err := net.Dial("tcp", fmt.Sprintf("localhost:%d", NextRP))
 			if err != nil {
 				msg("RtWebsocket() has no connection to the remainder reports", 1)
 			} else {
-				hasconnection = true
+				rtcp = true
 			}
-			defer conn.Close()
+			defer rconn.Close()
+
+			// we will grab the hits value via TCP
+			htcp := false
+			hconn, err := net.Dial("tcp", fmt.Sprintf("localhost:%d", NextHP))
+			if err != nil {
+				msg("RtWebsocket() has no connection to the hits reports", 1)
+			} else {
+				htcp = true
+			}
+			defer hconn.Close()
 
 			for {
 
 				var r ReplyJS
 
-				// the easy info to report
+				// [a] the easy info to report
 				r.Active = "is_active"
 				r.ID = bs
 				r.TotalWrk = searches[bs].TableSize
@@ -418,11 +428,11 @@ func RtWebsocket(c echo.Context) error {
 					r.Extra = ""
 				}
 
-				// the tricky info
-				// set r.Remain via TCP connection to SrchFeeder()'s broadcaster
-				if hasconnection {
+				// [b] the tricky info
+				// [b1] set r.Remain via TCP connection to SrchFeeder()'s broadcaster
+				if rtcp {
 					r.Remain = func() int {
-						connbuf := bufio.NewReader(conn)
+						connbuf := bufio.NewReader(rconn)
 						for {
 							rs, err := connbuf.ReadString('\n')
 							if err != nil {
@@ -439,13 +449,35 @@ func RtWebsocket(c echo.Context) error {
 						return -1
 					}()
 				} else {
-					r.Remain = -1
+					// see the JS: this turns off progress displays
+					r.TotalWrk = -1
 				}
 
 				if r.Remain != 0 {
 					r.Msg = mm
 				} else {
 					r.Msg = "Formatting the finds..."
+				}
+
+				// [b2] set r.Hits via TCP connection to ResultCollation()'s broadcaster
+				if htcp {
+					r.Hits = func() int {
+						connbuf := bufio.NewReader(hconn)
+						for {
+							ht, err := connbuf.ReadString('\n')
+							if err != nil {
+								break
+							} else {
+								// fmt.Println([]byte(rs)) --> [49 10]
+								// and stripping the newline via strings is not working
+								hh := []rune(ht)
+								hh = hh[0 : len(hh)-1]
+								h, _ := strconv.Atoi(string(hh))
+								return h
+							}
+						}
+						return 0
+					}()
 				}
 
 				// Write
@@ -459,7 +491,7 @@ func RtWebsocket(c echo.Context) error {
 				}
 
 				if _, exists := searches[bs]; !exists {
-					conn.Close()
+					rconn.Close()
 					break
 				}
 			}

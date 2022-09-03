@@ -86,9 +86,10 @@ func SrchFeeder(ctx context.Context, qq []PrerolledQuery) (<-chan PrerolledQuery
 	go func() {
 		// cf https://notes.shichao.io/gopl/ch8/
 		// [a] open a tcp port to broadcast on
-		host := remainderportpicker()
+		host, nrp := progressportpicker(REMAINDERPORTLOW, REMAINDERPORTHIGH)
+		NextRP = nrp
 		if host == nil {
-			msg("remainderportpicker() could not open any ports", 1)
+			msg("progressportpicker() could not open any ports", 1)
 			return
 		}
 
@@ -106,6 +107,7 @@ func SrchFeeder(ctx context.Context, qq []PrerolledQuery) (<-chan PrerolledQuery
 						// https://stackoverflow.com/questions/61049648/getting-bind-address-already-in-use-even-after-closing-the-connection-in-golang
 						// "This connection, which is in TIME_WAIT state, can block further use of the port, making it
 						// impossible to create a new listener, unless you give the right underlying settings to the host OS..."
+						// that's the issue here:
 						_, err := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
 						chke(err)
 						guest.Close()
@@ -117,7 +119,7 @@ func SrchFeeder(ctx context.Context, qq []PrerolledQuery) (<-chan PrerolledQuery
 						if err != nil {
 							return // e.g., client disconnected
 						}
-						time.Sleep(200)
+						time.Sleep(300)
 					}
 				}
 			}()
@@ -176,6 +178,9 @@ func ResultAggregator(ctx context.Context, findchannels ...<-chan []DbWorkline) 
 // ResultCollation - return the actual []DbWorkline results after pulling them from the ResultAggregator channel
 func ResultCollation(ctx context.Context, max int64, values <-chan []DbWorkline) []DbWorkline {
 	var allhits []DbWorkline
+	done := false
+	host, nhp := progressportpicker(HITSPORTLOW, HITSPORTHIGH)
+	NextHP = nhp
 	for {
 		select {
 		case <-ctx.Done():
@@ -190,12 +195,41 @@ func ResultCollation(ctx context.Context, max int64, values <-chan []DbWorkline)
 					// you popped over the cap...: this does in fact save time and exit in the middle
 					// προκατελαβον cap of one: [Δ: 0.112s] HGoSrch()
 					// προκατελαβον uncapped:   [Δ: 1.489s] HGoSrch()
+					done = true
 					return allhits
 				}
 			} else {
+				// rudundant?
+				done = true
 				return allhits
 			}
 		}
+
+		// tcp hits broadcaster: i.e., the fluff
+		go func() {
+			// cf https://notes.shichao.io/gopl/ch8/
+			// [a] open a tcp port to broadcast on
+
+			for {
+				// [b] wait for someone to listen
+				guest, err := host.Accept()
+				if err != nil {
+					continue
+				}
+				go func() {
+					// send remainder value to it
+					defer guest.Close()
+					for {
+						_, err := io.WriteString(guest, fmt.Sprintf("%d\n", len(allhits)))
+						chke(err)
+						if done == true {
+							break
+						}
+					}
+				}()
+			}
+		}()
+
 	}
 }
 
@@ -252,16 +286,16 @@ func sortresults(results []DbWorkline, ss SearchStruct) []DbWorkline {
 	}
 }
 
-func remainderportpicker() net.Listener {
-	for i := REMAINDERPORTLOW; i <= REMAINDERPORTHIGH; i++ {
+// progressportpicker - from where should the progress info be served?
+func progressportpicker(base int, max int) (net.Listener, int) {
+	// return a listener and the value of the port selected
+	for i := base; i <= max; i++ {
 		host, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", i))
 		if err != nil {
-			msg(fmt.Sprintf("remainderportpicker() could not open port %d", i), 1)
+			msg(fmt.Sprintf("progressportpicker() could not open port %d", i), 1)
 		} else {
-			NextRP = i
-			return host
+			return host, i
 		}
 	}
-	NextRP = -1
-	return nil
+	return nil, -1
 }
