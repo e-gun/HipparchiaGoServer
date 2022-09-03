@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"html/template"
@@ -9,6 +11,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type TemplateRenderer struct {
@@ -331,4 +334,95 @@ func RtTest(c echo.Context) error {
 	a := len(AllAuthors)
 	s := fmt.Sprintf("%d authors present", a)
 	return c.String(http.StatusOK, s)
+}
+
+func RtWebsocket(c echo.Context) error {
+	// 	the client sends the name of a poll and this will output
+	//	the status of the poll continuously while the poll remains active
+	//
+	//	example:
+	//		progress {'active': 1, 'total': 20, 'remaining': 20, 'hits': 48, 'message': 'Putting the results in context',
+	//		'elapsed': 14.0, 'extrainfo': '<span class="small"></span>'}
+
+	// see also /static/hipparchiajs/progressindicator_go.js
+
+	// https://echo.labstack.com/cookbook/websocket/
+
+	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	if err != nil {
+		return err
+	}
+	defer ws.Close()
+
+	type ReplyJS struct {
+		Active   string `json:"active"`
+		TotalWrk int    `json:"Poolofwork"`
+		Remain   int    `json:"Remaining"`
+		Hits     int    `json:"Hitcount"`
+		Msg      string `json:"Statusmessage"`
+		Elapsed  string `json:"Elapsed"`
+		Extra    string `json:"Notes"`
+		ID       string `json:"ID"`
+	}
+
+	for {
+		if len(searches) != 0 {
+			break
+		}
+	}
+
+	for {
+		// Read
+		m := []byte{}
+		_, m, e := ws.ReadMessage()
+		if e != nil {
+			c.Logger().Error(err)
+		}
+
+		// will yield: websocket received: "205da19d"
+		// the bug-trap are the quotes around that string
+		bs := string(m)
+		bs = strings.Replace(bs, `"`, "", -1)
+		mm := strings.Replace(searches[bs].InitSum, "Sought", "Seeking", -1)
+		if _, ok := searches[bs]; ok {
+			count := 0
+			for {
+				count += 1
+				var r ReplyJS
+				r.Active = "is_active"
+				r.ID = bs
+				r.TotalWrk = 10 // searches[bs].SrchTables
+				r.Remain = 5    // searches[bs].Remaining
+				r.Msg = mm
+				r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(searches[bs].Launched).Seconds())
+				if searches[bs].IsSecSrch {
+					r.Extra = "(second pass)"
+				} else {
+					r.Extra = ""
+				}
+
+				// Write
+				js, y := json.Marshal(r)
+				chke(y)
+
+				er := ws.WriteMessage(websocket.TextMessage, js)
+				if er != nil {
+					c.Logger().Error(er)
+				}
+
+				time.Sleep(500)
+				if _, exists := searches[bs]; !exists {
+					//msg(fmt.Sprintf("breaking at %d: %s", count, string(js)), 1)
+					//var x ReplyJS
+					//x.Active = "inactive"
+					//j, e := json.Marshal(x)
+					//chke(e)
+					//e = ws.WriteMessage(websocket.TextMessage, j)
+					//chke(e)
+					break
+				}
+			}
+		}
+	}
+	return nil
 }
