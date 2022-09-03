@@ -34,7 +34,6 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	emitqueries, err := SrchFeeder(ctx, ss.Queries)
 	chke(err)
 
-	msg("here", 1)
 	var findchannels []<-chan []DbWorkline
 
 	workers := runtime.NumCPU()
@@ -68,12 +67,30 @@ func SrchFeeder(ctx context.Context, qq []PrerolledQuery) (<-chan PrerolledQuery
 	emitqueries := make(chan PrerolledQuery, cfg.WorkerCount)
 	remainder := -1
 
-	// tcp broadcaster
+	// channel emitter: i.e., the actual work
+	go func() {
+		defer close(emitqueries)
+		for i, q := range qq {
+			// fmt.Println(q)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				remainder = len(qq) - i - 1
+				emitqueries <- q
+			}
+		}
+	}()
+
+	// tcp remainder broadcaster: i.e., the fluff
 	go func() {
 		// cf https://notes.shichao.io/gopl/ch8/
-		// [a] open a websocket
-		host, err := net.Listen("tcp", "localhost:8901")
-		chke(err)
+		// [a] open a tcp port to broadcast on
+		host := remainderportpicker()
+		if host == nil {
+			msg("remainderportpicker() could not open any ports", 1)
+			return
+		}
 
 		for {
 			// [b] wait for someone to listen
@@ -89,6 +106,8 @@ func SrchFeeder(ctx context.Context, qq []PrerolledQuery) (<-chan PrerolledQuery
 						// https://stackoverflow.com/questions/61049648/getting-bind-address-already-in-use-even-after-closing-the-connection-in-golang
 						// "This connection, which is in TIME_WAIT state, can block further use of the port, making it
 						// impossible to create a new listener, unless you give the right underlying settings to the host OS..."
+						_, err := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
+						chke(err)
 						guest.Close()
 						host.Close()
 						break
@@ -98,25 +117,10 @@ func SrchFeeder(ctx context.Context, qq []PrerolledQuery) (<-chan PrerolledQuery
 						if err != nil {
 							return // e.g., client disconnected
 						}
-						time.Sleep(100)
+						time.Sleep(200)
 					}
 				}
 			}()
-		}
-	}()
-
-	// channel emitter
-	go func() {
-		defer close(emitqueries)
-		for i, q := range qq {
-			// fmt.Println(q)
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				remainder = len(qq) - i - 1
-				emitqueries <- q
-			}
 		}
 	}()
 
@@ -246,4 +250,18 @@ func sortresults(results []DbWorkline, ss SearchStruct) []DbWorkline {
 		OrderedBy(nameIncreasing, increasingLines).Sort(results)
 		return results
 	}
+}
+
+func remainderportpicker() net.Listener {
+	for i := REMAINDERPORTLOW; i <= REMAINDERPORTHIGH; i++ {
+		host, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", i))
+		if err != nil {
+			msg(fmt.Sprintf("remainderportpicker() could not open port %d", i), 1)
+		} else {
+			NextRP = i
+			return host
+		}
+	}
+	NextRP = -1
+	return nil
 }

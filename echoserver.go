@@ -364,7 +364,7 @@ func RtWebsocket(c echo.Context) error {
 	type ReplyJS struct {
 		Active   string `json:"active"`
 		TotalWrk int    `json:"Poolofwork"`
-		Remain   string `json:"Remaining"`
+		Remain   int    `json:"Remaining"`
 		Hits     int    `json:"Hitcount"`
 		Msg      string `json:"Statusmessage"`
 		Elapsed  string `json:"Elapsed"`
@@ -394,17 +394,23 @@ func RtWebsocket(c echo.Context) error {
 
 		if _, ok := searches[bs]; ok {
 			// we will grab the remainder value via TCP
-			conn, err := net.Dial("tcp", "localhost:8901")
-			chke(err)
+			hasconnection := false
+			conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%d", NextRP))
+			if err != nil {
+				msg("RtWebsocket() has no connection to the remainder reports", 1)
+			} else {
+				hasconnection = true
+			}
 			defer conn.Close()
 
 			for {
 
 				var r ReplyJS
+
+				// the easy info to report
 				r.Active = "is_active"
 				r.ID = bs
 				r.TotalWrk = searches[bs].TableSize
-				r.Msg = mm
 				r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(searches[bs].Launched).Seconds())
 				if searches[bs].IsSecSrch {
 					r.Extra = "(second pass)"
@@ -412,24 +418,35 @@ func RtWebsocket(c echo.Context) error {
 					r.Extra = ""
 				}
 
-				// ser r.Remain via TCP connection to SrchFeeder()'s broadcaster
-				r.Remain = func() string {
-					connbuf := bufio.NewReader(conn)
-					for {
-						rs, err := connbuf.ReadString('\n')
-						if err != nil {
-							break
-						}
-						if len(rs) > 0 {
-							if e != nil {
-								return rs
+				// the tricky info
+				// set r.Remain via TCP connection to SrchFeeder()'s broadcaster
+				if hasconnection {
+					r.Remain = func() int {
+						connbuf := bufio.NewReader(conn)
+						for {
+							rs, err := connbuf.ReadString('\n')
+							if err != nil {
+								break
 							} else {
-								return "-1"
+								// fmt.Println([]byte(rs)) --> [49 10]
+								// and stripping the newline via strings is not working
+								rr := []rune(rs)
+								rr = rr[0 : len(rr)-1]
+								rs, _ := strconv.Atoi(string(rr))
+								return rs
 							}
 						}
-					}
-					return ""
-				}()
+						return -1
+					}()
+				} else {
+					r.Remain = -1
+				}
+
+				if r.Remain != 0 {
+					r.Msg = mm
+				} else {
+					r.Msg = "Formatting the finds..."
+				}
 
 				// Write
 				js, y := json.Marshal(r)

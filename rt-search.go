@@ -147,8 +147,6 @@ func RtSearchStandard(c echo.Context) error {
 		searches[id] = mod
 	}
 
-	previous = time.Now()
-
 	//hits := searches[id].Results
 	//for i, h := range hits {
 	//	t := fmt.Sprintf("%d - %srch : %srch", i, h.FindLocus(), h.MarkedUp)
@@ -156,6 +154,7 @@ func RtSearchStandard(c echo.Context) error {
 	//}
 
 	timetracker("D", fmt.Sprintf("search executed: %d hits", len(searches[id].Results)), start, previous)
+	previous = time.Now()
 
 	var js string
 	if sessions[readUUIDCookie(c)].HitContext == 0 {
@@ -163,6 +162,9 @@ func RtSearchStandard(c echo.Context) error {
 	} else {
 		js = string(formatwithcontextresults(searches[id]))
 	}
+
+	timetracker("E", fmt.Sprintf("formatted %d hits", len(searches[id].Results)), start, previous)
+	previous = time.Now()
 
 	srchsumm[id] = SearchSummary{start, searches[id].Summary}
 	msg(fmt.Sprintf("search count is %d", len(srchsumm)), 5)
