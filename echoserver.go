@@ -351,11 +351,6 @@ func RtWebsocket(c echo.Context) error {
 
 	// https://echo.labstack.com/cookbook/websocket/
 
-	// as far as polling, goes, the solution to the concurrency issue is tricky
-	// you want to look inside HGoSrch and its dependents; a channel there requires us to be "in" that hierarchy
-	// but if that happens, RtWebsocket is going to have a lot of trouble being a route responding to requests
-	// the problem can be solved by redis; but if we want to minimize external dependencies, TCP ports will do
-
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		return err
@@ -384,7 +379,7 @@ func RtWebsocket(c echo.Context) error {
 		m := []byte{}
 		_, m, e := ws.ReadMessage()
 		if e != nil {
-			c.Logger().Error(err)
+			// c.Logger().Error(err)
 			msg("RtWebsocket(): ws failed to read: breaking", 1)
 			break
 		}

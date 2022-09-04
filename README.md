@@ -2,7 +2,7 @@
 
 ## experimental...
 
-status as of `v0.2.0`:
+status as of `v0.2.1`:
 
 searching mostly works
 
@@ -16,6 +16,17 @@ cannot "unselect" yet
 
 progress polling mostly works
 
+parallelized hit context fetching
+
 ===
 
-need to parallelize hit context fetching
+TODO
+
+within X words
+
+statistics for dictionary entries
+
+pickers for author categories, genres, etx.
+
+picking date ranges
+

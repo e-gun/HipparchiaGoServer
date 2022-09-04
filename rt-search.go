@@ -600,14 +600,14 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	}
 
 	// gather all the lines you need: this is much faster than simplecontextgrabber() 200x in a single threaded loop
-	// turn it into a new search where we accept all hits as valid: ""
+	// turn it into a new search where we accept any character as enough to yield a hit: ""
 	res := clonesearch(ss, 3)
 	res.Results = ss.Results
 	res.Seeking = ""
 	res.LemmaOne = ""
 	res.Proximate = ""
 	res.LemmaTwo = ""
-	res.Limit = (ss.Limit * int64(thesession.HitContext)) * 2
+	res.Limit = (ss.Limit * int64(thesession.HitContext)) * 3
 
 	context := int64(thesession.HitContext / 2)
 	t := `%s_FROM_%d_TO_%d`
