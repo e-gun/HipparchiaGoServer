@@ -108,8 +108,8 @@ func (dbw DbWork) CountLevels() int {
 	return ll
 }
 
-func (dbw DbWork) DateInRange(b int64, a int64) bool {
-	if b <= dbw.ConvDate && dbw.ConvDate <= a {
+func (dbw DbWork) DateInRange(earliest int64, latest int64) bool {
+	if earliest >= dbw.ConvDate && dbw.ConvDate <= latest {
 		return true
 	} else {
 		return false

@@ -102,47 +102,14 @@ func sessionintosearchlist(s Session) ProcessedList {
 	var inc SearchIncExl
 	var exc SearchIncExl
 
+	inc.DateRange = [2]string{s.Earliest, s.Latest}
 	// note that we do all the initial stuff by adding WORKS to the list individually
 
 	// [a] trim mappers by active corpora
 
-	// [a1] SLOW: [Δ: 0.244s] sessionintosearchlist(): trim mappers by active corpora
-	//activeauthors := make(map[string]DbAuthor)
-	//activeworks := make(map[string]DbWork)
-	//
-	//for k, v := range s.ActiveCorp {
-	//	for _, a := range AllAuthors {
-	//		if a.UID[0:2] == k && v == true {
-	//			activeauthors[a.UID] = a
-	//		}
-	//	}
-	//	for _, w := range AllWorks {
-	//		if w.UID[0:2] == k && v == true {
-	//			activeworks[w.UID] = w
-	//		}
-	//	}
-	//}
-
 	var activeauthors []string
 	var activeworks []string
 
-	// [a2] faster, but requires a lot of edits below: [Δ: 0.116s] sessionintosearchlist(): trim mappers by active corpora
-	//for k, v := range s.ActiveCorp {
-	//	for _, a := range AllAuthors {
-	//		if a.UID[0:2] == k && v == true {
-	//			activeauthors = append(activeauthors, a.UID)
-	//		}
-	//	}
-	//}
-	//for k, v := range s.ActiveCorp {
-	//	for _, w := range AllWorks {
-	//		if w.UID[0:2] == k && v == true {
-	//			activeworks = append(activeworks, w.UID)
-	//		}
-	//	}
-	//}
-
-	// [a3] fastest via cheating...: [Δ: 0.020s] sessionintosearchlist()
 	for k, v := range s.ActiveCorp {
 		if v {
 			activeauthors = append(activeauthors, AuCorpusMap[k]...)
@@ -372,44 +339,55 @@ func sessionintosearchlist(s Session) ProcessedList {
 // prunebydate - drop items from searchlist if they are not inside the valid date range
 func prunebydate(searchlist []string, incl SearchIncExl, s Session) []string {
 	// 'varia' and 'incerta' have special dates: incerta = 2500; varia = 2000
-	before, _ := strconv.Atoi(incl.DateRange[0])
-	after, _ := strconv.Atoi(incl.DateRange[1])
-	b := int64(before)
-	a := int64(after)
+	// msg("prunebydate()", 1)
 
-	if b != MINDATE || a != MAXDATE {
+	//earliest, _ := strconv.Atoi(incl.DateRange[0])
+	//latest, _ := strconv.Atoi(incl.DateRange[1])
+	earliest, _ := strconv.Atoi(s.Earliest)
+	latest, _ := strconv.Atoi(s.Latest)
+
+	e := int64(earliest)
+	l := int64(latest)
+
+	fmt.Println(len(searchlist))
+	if e != MINDATE || l != MAXDATE {
 		// should have already been validated elsewhere...
-		if b > a {
-			b = a
+		if e > l {
+			e = l
 		}
 
 		// [b5a] first prune the bad dates
 		var trimmed []string
 		for _, uid := range searchlist {
-			if AllWorks[uid].DateInRange(b, a) {
+			cd := AllAuthors[AllWorks[uid].FindAuthor()].ConvDate
+			if cd >= e && cd <= l {
 				trimmed = append(trimmed, uid)
+				// msg(fmt.Sprintf("added: %s w/ date of %d", uid, cd), 1)
 			}
 		}
 
 		// [b5b] add back in any varia and/or incerta as needed
-		if s.VariaOK {
-			for _, uid := range searchlist {
-				if AllWorks[uid].ConvDate == VARIADATE {
-					trimmed = append(trimmed, uid)
-				}
-			}
-		}
-
-		if s.IncertaOK {
-			for _, uid := range searchlist {
-				if AllWorks[uid].ConvDate == INCERTADATE {
-					trimmed = append(trimmed, uid)
-				}
-			}
-		}
+		//if s.VariaOK {
+		//	for _, uid := range searchlist {
+		//		cd := AllAuthors[AllWorks[uid].FindAuthor()].ConvDate
+		//		if cd == VARIADATE {
+		//			trimmed = append(trimmed, uid)
+		//		}
+		//	}
+		//}
+		//
+		//if s.IncertaOK {
+		//	for _, uid := range searchlist {
+		//		cd := AllAuthors[AllWorks[uid].FindAuthor()].ConvDate
+		//		if cd == INCERTADATE {
+		//			trimmed = append(trimmed, uid)
+		//		}
+		//	}
+		//}
 
 		searchlist = trimmed
 	}
+
 	return searchlist
 }
 
