@@ -470,6 +470,129 @@ func parsesleectvals(r *http.Request) SelectionValues {
 	return sv
 }
 
+func cleanSrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan PrerolledQuery, error) {
+	emitqueries := make(chan PrerolledQuery, cfg.WorkerCount)
+	//remainder := -1
+	//host := progresssocket("pp_" + name)
+
+	// channel emitter: i.e., the actual work
+	go func() {
+		defer close(emitqueries)
+		for _, q := range qq {
+			// fmt.Println(q)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				// remainder = len(qq) - i - 1
+				emitqueries <- q
+			}
+		}
+	}()
+
+	// tcp remainder broadcaster: i.e., the fluff
+
+	//go func() {
+	//	// cf https://notes.shichao.io/gopl/ch8/
+	//	// [a] open a tcp port to broadcast on
+	//	if host == nil {
+	//		msg("progresssocket() could not open any ports", 1)
+	//		return
+	//	}
+	//
+	//	for {
+	//		// [b] wait for someone to listen
+	//		guest, err := host.Accept()
+	//		if err != nil {
+	//			continue
+	//		}
+	//		go func() {
+	//			// send remainder value to it
+	//			defer guest.Close()
+	//			for {
+	//				if remainder == 0 {
+	//					// https://stackoverflow.com/questions/61049648/getting-bind-address-already-in-use-even-after-closing-the-connection-in-golang
+	//					// "This connection, which is in TIME_WAIT state, can block further use of the port, making it
+	//					// impossible to create a new listener, unless you give the right underlying settings to the host OS..."
+	//					// that's the issue here:
+	//					_, err := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
+	//					chke(err)
+	//					guest.Close()
+	//					host.Close()
+	//					break
+	//				} else if remainder > -1 {
+	//					// msg(fmt.Sprintf("remain: %d", remainder), 1)
+	//					_, err := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
+	//					if err != nil {
+	//						return // e.g., client disconnected
+	//					}
+	//					time.Sleep(300)
+	//				}
+	//			}
+	//		}()
+	//	}
+	//}()
+
+	return emitqueries, nil
+}
+
+func cleanResultCollation(ctx context.Context, name string, max int64, values <-chan []DbWorkline) []DbWorkline {
+	var allhits []DbWorkline
+	//done := false
+	//host := progresssocket("rc_" + name)
+	for {
+		select {
+		case <-ctx.Done():
+			log.Print(ctx.Err().Error())
+			return allhits
+		case val, ok := <-values:
+			if ok {
+				// the progress poll should be attached here
+				// fmt.Println(fmt.Sprintf("current count: %d", len(allhits)))
+				allhits = append(allhits, val...)
+				if int64(len(allhits)) > max {
+					// you popped over the cap...: this does in fact save time and exit in the middle
+					// προκατελαβον cap of one: [Δ: 0.112s] HGoSrch()
+					// προκατελαβον uncapped:   [Δ: 1.489s] HGoSrch()
+					return allhits
+				}
+			} else {
+				// rudundant?
+				return allhits
+			}
+		}
+
+		// tcp hits broadcaster: i.e., the fluff
+		//go func() {
+		//	// cf https://notes.shichao.io/gopl/ch8/
+		//	// [a] open a tcp port to broadcast on
+		//
+		//	for {
+		//		// [b] wait for someone to listen
+		//		guest, err := host.Accept()
+		//		if err != nil {
+		//			continue
+		//		}
+		//		go func() {
+		//			// send remainder value to it
+		//			for {
+		//				_, err := io.WriteString(guest, fmt.Sprintf("%d\n", len(allhits)))
+		//				if err != nil {
+		//					guest.Close()
+		//					break
+		//				}
+		//				if done == true {
+		//					guest.Close()
+		//					break
+		//				}
+		//			}
+		//		}()
+		//	}
+		//}()
+
+	}
+}
+
 /*
 [a] word in an author
 

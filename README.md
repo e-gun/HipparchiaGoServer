@@ -1,8 +1,8 @@
 # HipparchiaGoServer
 
-experimental...
+## experimental...
 
-status as of 0.1.4:
+status as of `v0.2.0`:
 
 searching mostly works
 
@@ -14,8 +14,8 @@ simple selections work imperfectly
 
 cannot "unselect" yet
 
+progress polling mostly works
+
 ===
 
 need to parallelize hit context fetching
-
-need to fix the selections

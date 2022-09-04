@@ -390,7 +390,7 @@ func RtWebsocket(c echo.Context) error {
 		}
 
 		// will yield: websocket received: "205da19d"
-		// the bug-trap are the quotes around that string
+		// the bug-trap is the quotes around that string
 		bs := string(m)
 		bs = strings.Replace(bs, `"`, "", -1)
 		mm := strings.Replace(searches[bs].InitSum, "Sought", "Seeking", -1)
@@ -398,20 +398,17 @@ func RtWebsocket(c echo.Context) error {
 		_, found := searches[bs]
 
 		if found && searches[bs].IsActive {
+			// if you insist on a full poll; but the thing works without input from pp and rc
 			for {
 				_, pp := os.Stat(fmt.Sprintf("%s/hgs_pp_%s", UNIXSOCKETPATH, searches[bs].ID))
 				_, rc := os.Stat(fmt.Sprintf("%s/hgs_rc_%s", UNIXSOCKETPATH, searches[bs].ID))
 				if pp == nil && rc == nil {
-					msg("found both search activity sockets", 5)
+					// msg("found both search activity sockets", 5)
 					break
-				} else {
-					files, err := os.ReadDir(UNIXSOCKETPATH)
-					chke(err)
-					for _, f := range files {
-						if strings.Contains(f.Name(), "hgs_pp") {
-							fmt.Println(f.Name())
-						}
-					}
+				}
+				if _, ok := searches[bs]; !ok {
+					// don't wait forever
+					break
 				}
 			}
 
