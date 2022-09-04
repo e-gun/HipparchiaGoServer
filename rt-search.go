@@ -232,6 +232,7 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	second.PrxSlice = []string{}
 	second.LemmaTwo = first.LemmaOne
 	second.IsSecSrch = true
+	second.ID = first.ID + "_pr2" // progresssocketpicker() needs a new name
 
 	setsearchtype(&second)
 

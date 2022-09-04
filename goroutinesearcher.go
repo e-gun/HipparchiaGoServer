@@ -66,7 +66,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 func SrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan PrerolledQuery, error) {
 	emitqueries := make(chan PrerolledQuery, cfg.WorkerCount)
 	remainder := -1
-	host := progressportpicker("pp_" + name)
+	host := progresssocketpicker("pp_" + name)
 
 	// channel emitter: i.e., the actual work
 	go func() {
@@ -89,7 +89,7 @@ func SrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan P
 		// cf https://notes.shichao.io/gopl/ch8/
 		// [a] open a tcp port to broadcast on
 		if host == nil {
-			msg("progressportpicker() could not open any ports", 1)
+			msg("progresssocketpicker() could not open any ports", 1)
 			return
 		}
 
@@ -179,7 +179,7 @@ func ResultAggregator(ctx context.Context, findchannels ...<-chan []DbWorkline) 
 func ResultCollation(ctx context.Context, name string, max int64, values <-chan []DbWorkline) []DbWorkline {
 	var allhits []DbWorkline
 	done := false
-	host := progressportpicker("rc_" + name)
+	host := progresssocketpicker("rc_" + name)
 	for {
 		select {
 		case <-ctx.Done():
@@ -285,19 +285,19 @@ func sortresults(results []DbWorkline, ss SearchStruct) []DbWorkline {
 	}
 }
 
-// progressportpicker - from where should the progress info be served?
-func progressportpicker(name string) net.Listener {
+// progresssocketpicker - from where should the progress info be served?
+func progresssocketpicker(name string) net.Listener {
 	// return a listener and the value of the port selected
 	// ?? https://www.linode.com/docs/guides/developing-udp-and-tcp-clients-and-servers-in-go/
 	// https://eli.thegreenplace.net/2019/unix-domain-sockets-in-go/
 	// https://golangdocs.com/grpc-golang
 
-	// msg(fmt.Sprintf("progressportpicker(): /tmp/hgs_%s", name), 1)
+	// msg(fmt.Sprintf("progresssocketpicker(): /tmp/hgs_%s", name), 1)
 
 	host, err := net.Listen("unix", fmt.Sprintf("/tmp/hgs_%s", name))
 
 	if err != nil {
-		msg(fmt.Sprintf("progressportpicker() could not open '/tmp/hgs_%s'", name), 1)
+		msg(fmt.Sprintf("progresssocketpicker() could not open '/tmp/hgs_%s'", name), 1)
 	} else {
 		return host
 	}
