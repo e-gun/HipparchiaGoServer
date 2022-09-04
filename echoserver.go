@@ -397,26 +397,24 @@ func RtWebsocket(c echo.Context) error {
 		if _, ok := searches[bs]; ok {
 			// it is possible to read this before the sockets have been opened
 			time.Sleep(333 * time.Millisecond)
-			// we will grab the remainder value via TCP
-			rtcp := false
+			// we will grab the remainder value via unix socket
+			rsock := false
 			rconn, err := net.Dial("unix", fmt.Sprintf("/tmp/hgs_pp_%s", searches[bs].ID))
 			if err != nil {
-				msg("RtWebsocket() has no connection to the remainder reports", 1)
-				msg(fmt.Sprintf("/tmp/hgs_pp_%s", searches[bs].ID), 1)
+				msg(fmt.Sprintf("RtWebsocket() has no connection to the remainder reports: /tmp/hgs_pp_%s", searches[bs].ID), 1)
 			} else {
-				rtcp = true
+				rsock = true
 				defer rconn.Close()
 			}
 
-			// we will grab the hits value via TCP
-			htcp := false
+			// we will grab the hits value via unix socket
+			hsock := false
 			hconn, err := net.Dial("unix", fmt.Sprintf("/tmp/hgs_rc_%s", searches[bs].ID))
 			if err != nil {
-				msg("RtWebsocket() has no connection to the hits reports", 1)
-				msg(fmt.Sprintf("/tmp/hgs_rc_%s", searches[bs].ID), 1)
+				msg(fmt.Sprintf("RtWebsocket() has no connection to the hits reports: /tmp/hgs_rc_%s", searches[bs].ID), 1)
 			} else {
 				// if there is no connection you will get a null pointer dereference
-				htcp = true
+				hsock = true
 				defer hconn.Close()
 			}
 
@@ -436,7 +434,7 @@ func RtWebsocket(c echo.Context) error {
 
 				// [b] the tricky info
 				// [b1] set r.Remain via TCP connection to SrchFeeder()'s broadcaster
-				if rtcp {
+				if rsock {
 					r.Remain = func() int {
 						connbuf := bufio.NewReader(rconn)
 						for {
@@ -461,13 +459,13 @@ func RtWebsocket(c echo.Context) error {
 
 				if r.Remain != 0 {
 					r.Msg = mm
-				} else if rtcp {
+				} else if rsock {
 					// will be zero if you never made the connection
 					r.Msg = "Formatting the finds..."
 				}
 
 				// [b2] set r.Hits via TCP connection to ResultCollation()'s broadcaster
-				if htcp {
+				if hsock {
 					r.Hits = func() int {
 						connbuf := bufio.NewReader(hconn)
 						for {
@@ -496,12 +494,16 @@ func RtWebsocket(c echo.Context) error {
 				if er != nil {
 					c.Logger().Error(er)
 					msg("RtWebsocket(): ws failed to write: breaking", 1)
-					rconn.Close()
+					if rsock {
+						rconn.Close()
+					}
 					break
 				}
 
 				if _, exists := searches[bs]; !exists {
-					rconn.Close()
+					if rsock {
+						rconn.Close()
+					}
 					break
 				}
 			}

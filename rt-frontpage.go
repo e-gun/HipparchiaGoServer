@@ -78,6 +78,7 @@ func readUUIDCookie(c echo.Context) string {
 func writeUUIDCookie(c echo.Context) string {
 	cookie := new(http.Cookie)
 	cookie.Name = "ID"
+	cookie.Path = "/"
 	cookie.Value = uuid.New().String()
 	cookie.Expires = time.Now().Add(4800 * time.Hour)
 	c.SetCookie(cookie)
