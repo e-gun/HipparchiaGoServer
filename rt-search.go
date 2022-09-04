@@ -176,7 +176,7 @@ func RtSearchStandard(c echo.Context) error {
 	srchsumm[id] = SearchSummary{start, searches[id].Summary}
 	msg(fmt.Sprintf("search count is %d", len(srchsumm)), 5)
 
-	msg(fmt.Sprintf(`RtSearchStandard(): deleting searches["%s"]`, id), 4)
+	msg(fmt.Sprintf(`RtSearchStandard(): deleting searches["%s"]`, id), 5)
 	delete(searches, id)
 
 	return c.String(http.StatusOK, js)
@@ -539,9 +539,24 @@ func formatnocontextresults(s SearchStruct) []byte {
 		</td>
 	</tr>
 	`
+	pat := searchtermfinder(s.Seeking)
 
 	var rows []string
 	for i, r := range s.Results {
+		// highlight search term; should be folded into a single function w/ highlightsearchterm() below
+		var mu string
+		if pat.MatchString(r.MarkedUp) {
+			mu = pat.ReplaceAllString(r.MarkedUp, `<span class="match">$1</span>`)
+		} else {
+			// might be in the hyphenated line
+			if pat.MatchString(r.Hypenated) {
+				// todo: needs more fiddling
+				mu = r.MarkedUp + fmt.Sprintf(`&nbsp;&nbsp;(&nbsp;match:&nbsp;<span class="match">%s</span>&nbsp;)`, r.Hypenated)
+			} else {
+				mu = r.MarkedUp
+			}
+		}
+
 		rc := ""
 		if i%3 == 2 {
 			rc = "nthrow"
@@ -553,7 +568,7 @@ func formatnocontextresults(s SearchStruct) []byte {
 		wk := AllWorks[r.WkUID].Title
 		lk := r.BuildHyperlink()
 		lc := strings.Join(r.FindLocus(), ".")
-		fm := fmt.Sprintf(TABLEROW, rc, i+1, au, wk, lk, lc, r.MarkedUp)
+		fm := fmt.Sprintf(TABLEROW, rc, i+1, au, wk, lk, lc, mu)
 		rows = append(rows, fm)
 	}
 

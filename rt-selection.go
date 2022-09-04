@@ -188,7 +188,7 @@ func RtSelectionClear(c echo.Context) error {
 
 func RtSelectionFetch(c echo.Context) error {
 	jsbytes := reportcurrentselections(c)
-	msg(string(jsbytes), 1)
+	// msg(string(jsbytes), 1)
 	return c.String(http.StatusOK, string(jsbytes))
 }
 
