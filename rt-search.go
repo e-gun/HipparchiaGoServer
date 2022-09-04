@@ -222,20 +222,11 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	msg(fmt.Sprintf("%s findphrasesacrosslines(): %d trimmed hits", d, len(first.Results)), 4)
 	previous = time.Now()
 
-	second := first
-	second.Results = []DbWorkline{}
-	second.Queries = []PrerolledQuery{}
-	second.SearchIn = SearchIncExl{}
-	second.SearchEx = SearchIncExl{}
-	second.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
-	second.SkgSlice = []string{}
+	second := clonesearch(first, 2)
 	second.Seeking = second.Proximate
 	second.LemmaOne = second.LemmaTwo
 	second.Proximate = first.Seeking
-	second.PrxSlice = []string{}
 	second.LemmaTwo = first.LemmaOne
-	second.PhaseNum = 2
-	second.ID = first.ID + "_pt2" // progresssocket() needs a new name
 
 	setsearchtype(&second)
 
@@ -549,9 +540,9 @@ func formatnocontextresults(s SearchStruct) []byte {
 			mu = pat.ReplaceAllString(r.MarkedUp, `<span class="match">$1</span>`)
 		} else {
 			// might be in the hyphenated line
-			if pat.MatchString(r.Hypenated) {
+			if pat.MatchString(r.Hyphenated) {
 				// todo: needs more fiddling
-				mu = r.MarkedUp + fmt.Sprintf(`&nbsp;&nbsp;(&nbsp;match:&nbsp;<span class="match">%s</span>&nbsp;)`, r.Hypenated)
+				mu = r.MarkedUp + fmt.Sprintf(`&nbsp;&nbsp;(&nbsp;match:&nbsp;<span class="match">%s</span>&nbsp;)`, r.Hyphenated)
 			} else {
 				mu = r.MarkedUp
 			}
@@ -608,7 +599,36 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 		LocusBody   string
 	}
 
+	// gather all the lines you need: this is much faster than simplecontextgrabber() 200x in a single threaded loop
+	// turn it into a new search where we accept all hits as valid: ""
+	res := clonesearch(ss, 3)
+	res.Results = ss.Results
+	res.Seeking = ""
+	res.LemmaOne = ""
+	res.Proximate = ""
+	res.LemmaTwo = ""
+
+	context := int64(thesession.HitContext / 2)
+	t := `%s_FROM_%d_TO_%d`
+	for _, r := range res.Results {
+		low := r.TbIndex - context
+		high := r.TbIndex + context
+		res.SearchIn.Passages = append(res.SearchIn.Passages, fmt.Sprintf(t, r.FindAuthor(), low, high))
+	}
+
+	res.Results = []DbWorkline{}
+
+	res.Queries = searchlistintoqueries(&res)
+	res = HGoSrch(res)
+
+	// now you have all the lines you will ever need
+	linemap := make(map[string]DbWorkline)
+	for _, r := range res.Results {
+		linemap[r.BuildHyperlink()] = r
+	}
+
 	// iterate over the results to build the raw core data
+	urt := `linenumber/%s/%s/%d`
 	var allpassages []PsgFormattingTemplate
 	for i, r := range ss.Results {
 		var psg PsgFormattingTemplate
@@ -617,7 +637,12 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 		psg.Foundwork = AllWorks[r.WkUID].Title
 		psg.FindURL = r.BuildHyperlink()
 		psg.FindLocus = strings.Join(r.FindLocus(), ".")
-		psg.RawCTX = simplecontextgrabber(r.FindAuthor(), r.TbIndex, int64(thesession.HitContext/2))
+		for j := r.TbIndex - context; j <= r.TbIndex+context; j++ {
+			url := fmt.Sprintf(urt, r.FindAuthor(), r.FindWork(), j)
+			psg.RawCTX = append(psg.RawCTX, linemap[url])
+		}
+
+		// psg.RawCTX = simplecontextgrabber(r.FindAuthor(), r.TbIndex, int64(thesession.HitContext/2))
 
 		for j := 0; j < len(psg.RawCTX); j++ {
 			c := ResultPassageLine{}
@@ -629,7 +654,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 				c.IsHighlight = false
 			}
 			c.Contents = psg.RawCTX[j].MarkedUp
-			c.Hyphenated = psg.RawCTX[j].Hypenated
+			c.Hyphenated = psg.RawCTX[j].Hyphenated
 			psg.CookedCTX = append(psg.CookedCTX, c)
 		}
 		allpassages = append(allpassages, psg)
@@ -922,6 +947,22 @@ func unbalancedspancleaner(html string) string {
 		}
 	}
 	return html
+}
+
+func clonesearch(first SearchStruct, iteration int) SearchStruct {
+	second := first
+	second.Results = []DbWorkline{}
+	second.Queries = []PrerolledQuery{}
+	second.SearchIn = SearchIncExl{}
+	second.SearchEx = SearchIncExl{}
+	second.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
+	second.SkgSlice = []string{}
+	second.PrxSlice = []string{}
+	second.PhaseNum = iteration
+
+	id := fmt.Sprintf("%s_pt%d", first.ID, iteration)
+	second.ID = id // progresssocket() needs a new name
+	return second
 }
 
 /*

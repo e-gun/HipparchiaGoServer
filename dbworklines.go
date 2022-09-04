@@ -33,7 +33,7 @@ type DbWorkline struct {
 	MarkedUp    string
 	Accented    string
 	Stripped    string
-	Hypenated   string
+	Hyphenated  string
 	Annotations string
 }
 
@@ -101,7 +101,7 @@ func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Pool) []DbWorkline {
 		var thehit DbWorkline
 		err := foundrows.Scan(&thehit.WkUID, &thehit.TbIndex, &thehit.Lvl5Value, &thehit.Lvl4Value, &thehit.Lvl3Value,
 			&thehit.Lvl2Value, &thehit.Lvl1Value, &thehit.Lvl0Value, &thehit.MarkedUp, &thehit.Accented,
-			&thehit.Stripped, &thehit.Hypenated, &thehit.Annotations)
+			&thehit.Stripped, &thehit.Hyphenated, &thehit.Annotations)
 		chke(err)
 		thesefinds = append(thesefinds, thehit)
 	}
