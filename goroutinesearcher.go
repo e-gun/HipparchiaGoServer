@@ -63,7 +63,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 }
 
 // SrchFeeder - emit items to a channel from the []PrerolledQuery that will be consumed by the SrchConsumer
-func xSrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan PrerolledQuery, error) {
+func SrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan PrerolledQuery, error) {
 	emitqueries := make(chan PrerolledQuery, cfg.WorkerCount)
 	remainder := -1
 	host := progresssocketpicker("pp_" + name)
@@ -129,7 +129,7 @@ func xSrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan 
 	return emitqueries, nil
 }
 
-func SrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan PrerolledQuery, error) {
+func cleanSrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan PrerolledQuery, error) {
 	emitqueries := make(chan PrerolledQuery, cfg.WorkerCount)
 	//remainder := -1
 	//host := progresssocketpicker("pp_" + name)
@@ -242,7 +242,7 @@ func ResultAggregator(ctx context.Context, findchannels ...<-chan []DbWorkline) 
 }
 
 // ResultCollation - return the actual []DbWorkline results after pulling them from the ResultAggregator channel
-func XResultCollation(ctx context.Context, name string, max int64, values <-chan []DbWorkline) []DbWorkline {
+func ResultCollation(ctx context.Context, name string, max int64, values <-chan []DbWorkline) []DbWorkline {
 	var allhits []DbWorkline
 	done := false
 	host := progresssocketpicker("rc_" + name)
@@ -302,7 +302,7 @@ func XResultCollation(ctx context.Context, name string, max int64, values <-chan
 	}
 }
 
-func ResultCollation(ctx context.Context, name string, max int64, values <-chan []DbWorkline) []DbWorkline {
+func cleanResultCollation(ctx context.Context, name string, max int64, values <-chan []DbWorkline) []DbWorkline {
 	var allhits []DbWorkline
 	//done := false
 	//host := progresssocketpicker("rc_" + name)
