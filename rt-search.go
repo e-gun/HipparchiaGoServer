@@ -607,6 +607,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	res.LemmaOne = ""
 	res.Proximate = ""
 	res.LemmaTwo = ""
+	res.Limit = (ss.Limit * int64(thesession.HitContext)) * 2
 
 	context := int64(thesession.HitContext / 2)
 	t := `%s_FROM_%d_TO_%d`
@@ -637,11 +638,13 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 		psg.Foundwork = AllWorks[r.WkUID].Title
 		psg.FindURL = r.BuildHyperlink()
 		psg.FindLocus = strings.Join(r.FindLocus(), ".")
+
 		for j := r.TbIndex - context; j <= r.TbIndex+context; j++ {
 			url := fmt.Sprintf(urt, r.FindAuthor(), r.FindWork(), j)
 			psg.RawCTX = append(psg.RawCTX, linemap[url])
 		}
 
+		// if you want to do this the horrifyingly slow way...
 		// psg.RawCTX = simplecontextgrabber(r.FindAuthor(), r.TbIndex, int64(thesession.HitContext/2))
 
 		for j := 0; j < len(psg.RawCTX); j++ {

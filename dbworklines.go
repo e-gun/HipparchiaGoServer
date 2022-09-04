@@ -57,14 +57,26 @@ func (dbw DbWorkline) FindLocus() []string {
 }
 
 func (dbw DbWorkline) FindAuthor() string {
+	if len(dbw.WkUID) == 0 {
+		msg("FindAuthor() on empty dbworkline", 2)
+		return ""
+	}
 	return dbw.WkUID[:6]
 }
 
 func (dbw DbWorkline) FindWork() string {
+	if len(dbw.WkUID) == 0 {
+		msg("FindWork() on empty dbworkline", 2)
+		return ""
+	}
 	return dbw.WkUID[7:]
 }
 
 func (dbw DbWorkline) BuildHyperlink() string {
+	if len(dbw.WkUID) == 0 {
+		msg("BuildHyperlink() on empty dbworkline", 2)
+		return ""
+	}
 	t := `linenumber/%s/%s/%d`
 	return fmt.Sprintf(t, dbw.FindAuthor(), dbw.FindWork(), dbw.TbIndex)
 }
