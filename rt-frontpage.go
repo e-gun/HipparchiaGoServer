@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -57,10 +58,8 @@ func RtFrontpage(c echo.Context) error {
 	return err
 }
 
+// readUUIDCookie - find the ID of the client
 func readUUIDCookie(c echo.Context) string {
-	// it turns out this is a problem: different cookies for different contexts: "/browse" vs "/"
-	// we need a single master cookie
-
 	cookie, err := c.Cookie("ID")
 	if err != nil {
 		id := writeUUIDCookie(c)
@@ -75,21 +74,23 @@ func readUUIDCookie(c echo.Context) string {
 	return id
 }
 
+// writeUUIDCookie - set the ID of the client
 func writeUUIDCookie(c echo.Context) string {
+	// note that cookie.Path = "/" is essential; otherwise different cookies for different contexts: "/browse" vs "/"
 	cookie := new(http.Cookie)
 	cookie.Name = "ID"
 	cookie.Path = "/"
 	cookie.Value = uuid.New().String()
 	cookie.Expires = time.Now().Add(4800 * time.Hour)
 	c.SetCookie(cookie)
+	msg(fmt.Sprintf("new ID set: %s", cookie.Value), 4)
 	return cookie.Value
 }
 
 func makedefaultsession(id string) Session {
-	// note that sessions clear every time the server restarts
+	// note that sessions clears every time the server restarts
 	var s Session
 	s.ID = id
-	// this format is out of sync w/ the JS but necc. for the searching code ATM: lt vs latincorpus, etc
 	s.ActiveCorp = map[string]bool{"gr": true, "lt": true, "in": false, "ch": false, "dp": false}
 	s.VariaOK = true
 	s.IncertaOK = true

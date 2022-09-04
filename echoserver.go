@@ -339,6 +339,12 @@ func RtTest(c echo.Context) error {
 }
 
 func RtWebsocket(c echo.Context) error {
+	a := len(AllAuthors)
+	s := fmt.Sprintf("%d authors present", a)
+	return c.String(http.StatusOK, s)
+}
+
+func xRtWebsocket(c echo.Context) error {
 	// 	the client sends the name of a poll and this will output
 	//	the status of the poll continuously while the poll remains active
 	//

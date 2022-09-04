@@ -174,6 +174,7 @@ func RtSearchStandard(c echo.Context) error {
 	srchsumm[id] = SearchSummary{start, searches[id].Summary}
 	msg(fmt.Sprintf("search count is %d", len(srchsumm)), 5)
 
+	msg(fmt.Sprintf(`RtSearchStandard(): deleting searches["%s"]`, id), 4)
 	delete(searches, id)
 
 	return c.String(http.StatusOK, js)
