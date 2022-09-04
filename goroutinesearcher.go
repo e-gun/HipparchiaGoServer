@@ -184,6 +184,7 @@ func ResultCollation(ctx context.Context, name string, max int64, values <-chan 
 		select {
 		case <-ctx.Done():
 			log.Print(ctx.Err().Error())
+			host.Close()
 			return allhits
 		case val, ok := <-values:
 			if ok {
@@ -194,12 +195,12 @@ func ResultCollation(ctx context.Context, name string, max int64, values <-chan 
 					// you popped over the cap...: this does in fact save time and exit in the middle
 					// προκατελαβον cap of one: [Δ: 0.112s] HGoSrch()
 					// προκατελαβον uncapped:   [Δ: 1.489s] HGoSrch()
-					done = true
+					host.Close()
 					return allhits
 				}
 			} else {
 				// rudundant?
-				done = true
+				host.Close()
 				return allhits
 			}
 		}
@@ -217,11 +218,14 @@ func ResultCollation(ctx context.Context, name string, max int64, values <-chan 
 				}
 				go func() {
 					// send remainder value to it
-					defer guest.Close()
 					for {
 						_, err := io.WriteString(guest, fmt.Sprintf("%d\n", len(allhits)))
-						chke(err)
+						if err != nil {
+							guest.Close()
+							break
+						}
 						if done == true {
+							guest.Close()
 							break
 						}
 					}

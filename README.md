@@ -13,3 +13,9 @@ dictionaries mostly work
 simple selections work imperfectly
 
 cannot "unselect" yet
+
+===
+
+need to parallelize hit context fetching
+
+need to fix the selections

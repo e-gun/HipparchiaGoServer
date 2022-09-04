@@ -303,19 +303,19 @@ func RtSetOption(c echo.Context) error {
 		if e == nil {
 			switch opt {
 			case "maxresults":
-				if intval > MAXHITLIMIT {
+				if intval < MAXHITLIMIT {
 					s.HitLimit = int64(intval)
 				} else {
 					s.HitLimit = MAXHITLIMIT
 				}
 			case "linesofcontext":
-				if intval > MAXLINESHITCONTEXT {
+				if intval < MAXLINESHITCONTEXT {
 					s.HitContext = intval
 				} else {
 					s.HitContext = intval
 				}
 			case "browsercontext":
-				if intval > MAXBROWSERCONTEXT {
+				if intval < MAXBROWSERCONTEXT {
 					s.UI.BrowseCtx = int64(intval)
 				} else {
 					s.UI.BrowseCtx = MAXBROWSERCONTEXT
@@ -384,6 +384,8 @@ func RtWebsocket(c echo.Context) error {
 		_, m, e := ws.ReadMessage()
 		if e != nil {
 			c.Logger().Error(err)
+			msg("RtWebsocket(): ws failed to read: breaking", 1)
+			break
 		}
 
 		// will yield: websocket received: "205da19d"
@@ -493,6 +495,9 @@ func RtWebsocket(c echo.Context) error {
 
 				if er != nil {
 					c.Logger().Error(er)
+					msg("RtWebsocket(): ws failed to write: breaking", 1)
+					rconn.Close()
+					break
 				}
 
 				if _, exists := searches[bs]; !exists {

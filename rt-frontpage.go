@@ -58,6 +58,9 @@ func RtFrontpage(c echo.Context) error {
 }
 
 func readUUIDCookie(c echo.Context) string {
+	// it turns out this is a problem: different cookies for different contexts: "/browse" vs "/"
+	// we need a single master cookie
+
 	cookie, err := c.Cookie("ID")
 	if err != nil {
 		id := writeUUIDCookie(c)
