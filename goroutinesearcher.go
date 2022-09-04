@@ -66,7 +66,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 func SrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan PrerolledQuery, error) {
 	emitqueries := make(chan PrerolledQuery, cfg.WorkerCount)
 	remainder := -1
-	host := progresssocketpicker("pp_" + name)
+	// defer host.Close()
 
 	// channel emitter: i.e., the actual work
 	go func() {
@@ -86,10 +86,11 @@ func SrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan P
 	// tcp remainder broadcaster: i.e., the fluff
 
 	go func() {
+		host := progresssocket("pp_" + name)
 		// cf https://notes.shichao.io/gopl/ch8/
-		// [a] open a tcp port to broadcast on
+		// [a] open a unix socket to broadcast on
 		if host == nil {
-			msg("progresssocketpicker() could not open any ports", 1)
+			msg("progresssocket() has no access to a socket", 1)
 			return
 		}
 
@@ -101,7 +102,6 @@ func SrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan P
 			}
 			go func() {
 				// send remainder value to it
-				defer guest.Close()
 				for {
 					if remainder == 0 {
 						// https://stackoverflow.com/questions/61049648/getting-bind-address-already-in-use-even-after-closing-the-connection-in-golang
@@ -110,7 +110,6 @@ func SrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan P
 						// that's the issue here:
 						_, err := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
 						chke(err)
-						guest.Close()
 						break
 					} else if remainder > -1 {
 						// msg(fmt.Sprintf("remain: %d", remainder), 1)
@@ -121,17 +120,19 @@ func SrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan P
 						time.Sleep(300)
 					}
 				}
+				guest.Close()
 			}()
 		}
+		host.Close()
 	}()
-	host.Close()
+
 	return emitqueries, nil
 }
 
 func cleanSrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan PrerolledQuery, error) {
 	emitqueries := make(chan PrerolledQuery, cfg.WorkerCount)
 	//remainder := -1
-	//host := progresssocketpicker("pp_" + name)
+	//host := progresssocket("pp_" + name)
 
 	// channel emitter: i.e., the actual work
 	go func() {
@@ -154,7 +155,7 @@ func cleanSrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-c
 	//	// cf https://notes.shichao.io/gopl/ch8/
 	//	// [a] open a tcp port to broadcast on
 	//	if host == nil {
-	//		msg("progresssocketpicker() could not open any ports", 1)
+	//		msg("progresssocket() could not open any ports", 1)
 	//		return
 	//	}
 	//
@@ -244,7 +245,7 @@ func ResultAggregator(ctx context.Context, findchannels ...<-chan []DbWorkline) 
 func ResultCollation(ctx context.Context, name string, max int64, values <-chan []DbWorkline) []DbWorkline {
 	var allhits []DbWorkline
 	done := false
-	host := progresssocketpicker("rc_" + name)
+	host := progresssocket("rc_" + name)
 	for {
 		if done {
 			break
@@ -304,7 +305,7 @@ func ResultCollation(ctx context.Context, name string, max int64, values <-chan 
 func cleanResultCollation(ctx context.Context, name string, max int64, values <-chan []DbWorkline) []DbWorkline {
 	var allhits []DbWorkline
 	//done := false
-	//host := progresssocketpicker("rc_" + name)
+	//host := progresssocket("rc_" + name)
 	for {
 		select {
 		case <-ctx.Done():
@@ -411,20 +412,15 @@ func sortresults(results []DbWorkline, ss SearchStruct) []DbWorkline {
 	}
 }
 
-// progresssocketpicker - from where should the progress info be served?
-func progresssocketpicker(name string) net.Listener {
+// progresssocket - from where should the progress info be served?
+func progresssocket(name string) net.Listener {
 	// return a listener and the value of the port selected
-	// ?? https://www.linode.com/docs/guides/developing-udp-and-tcp-clients-and-servers-in-go/
-	// https://eli.thegreenplace.net/2019/unix-domain-sockets-in-go/
-	// https://golangdocs.com/grpc-golang
-
-	// msg(fmt.Sprintf("progresssocketpicker(): /tmp/hgs_%s", name), 1)
-
-	host, err := net.Listen("unix", fmt.Sprintf("/tmp/hgs_%s", name))
+	host, err := net.Listen("unix", fmt.Sprintf("%s/hgs_%s", UNIXSOCKETPATH, name))
 
 	if err != nil {
-		msg(fmt.Sprintf("progresssocketpicker() could not open '/tmp/hgs_%s'", name), 1)
+		msg(fmt.Sprintf("progresssocket() could not open '%s/hgs_%s'", UNIXSOCKETPATH, name), 1)
 	} else {
+		msg(fmt.Sprintf("progresssocket() opened '%s/hgs_%s'", UNIXSOCKETPATH, name), 1)
 		return host
 	}
 	return nil

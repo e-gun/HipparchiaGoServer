@@ -11,6 +11,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -339,12 +340,6 @@ func RtTest(c echo.Context) error {
 }
 
 func RtWebsocket(c echo.Context) error {
-	a := len(AllAuthors)
-	s := fmt.Sprintf("%d authors present", a)
-	return c.String(http.StatusOK, s)
-}
-
-func xRtWebsocket(c echo.Context) error {
 	// 	the client sends the name of a poll and this will output
 	//	the status of the poll continuously while the poll remains active
 	//
@@ -400,14 +395,31 @@ func xRtWebsocket(c echo.Context) error {
 		bs = strings.Replace(bs, `"`, "", -1)
 		mm := strings.Replace(searches[bs].InitSum, "Sought", "Seeking", -1)
 
-		if _, ok := searches[bs]; ok {
-			// it is possible to read this before the sockets have been opened
-			time.Sleep(333 * time.Millisecond)
+		_, found := searches[bs]
+
+		if found && searches[bs].IsActive {
+			for {
+				_, pp := os.Stat(fmt.Sprintf("%s/hgs_pp_%s", UNIXSOCKETPATH, searches[bs].ID))
+				_, rc := os.Stat(fmt.Sprintf("%s/hgs_rc_%s", UNIXSOCKETPATH, searches[bs].ID))
+				if pp == nil && rc == nil {
+					msg("found both search activity sockets", 5)
+					break
+				} else {
+					files, err := os.ReadDir(UNIXSOCKETPATH)
+					chke(err)
+					for _, f := range files {
+						if strings.Contains(f.Name(), "hgs_pp") {
+							fmt.Println(f.Name())
+						}
+					}
+				}
+			}
+
 			// we will grab the remainder value via unix socket
 			rsock := false
-			rconn, err := net.Dial("unix", fmt.Sprintf("/tmp/hgs_pp_%s", searches[bs].ID))
+			rconn, err := net.Dial("unix", fmt.Sprintf("%s/hgs_pp_%s", UNIXSOCKETPATH, searches[bs].ID))
 			if err != nil {
-				msg(fmt.Sprintf("RtWebsocket() has no connection to the remainder reports: /tmp/hgs_pp_%s", searches[bs].ID), 1)
+				msg(fmt.Sprintf("RtWebsocket() has no connection to the remainder reports: %s/hgs_pp_%s", UNIXSOCKETPATH, searches[bs].ID), 1)
 			} else {
 				rsock = true
 				defer rconn.Close()
@@ -415,9 +427,9 @@ func xRtWebsocket(c echo.Context) error {
 
 			// we will grab the hits value via unix socket
 			hsock := false
-			hconn, err := net.Dial("unix", fmt.Sprintf("/tmp/hgs_rc_%s", searches[bs].ID))
+			hconn, err := net.Dial("unix", fmt.Sprintf("%s/hgs_rc_%s", UNIXSOCKETPATH, searches[bs].ID))
 			if err != nil {
-				msg(fmt.Sprintf("RtWebsocket() has no connection to the hits reports: /tmp/hgs_rc_%s", searches[bs].ID), 1)
+				msg(fmt.Sprintf("RtWebsocket() has no connection to the hits reports: %s/hgs_rc_%s", UNIXSOCKETPATH, searches[bs].ID), 1)
 			} else {
 				// if there is no connection you will get a null pointer dereference
 				hsock = true
@@ -432,7 +444,7 @@ func xRtWebsocket(c echo.Context) error {
 				r.ID = bs
 				r.TotalWrk = searches[bs].TableSize
 				r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(searches[bs].Launched).Seconds())
-				if searches[bs].IsSecSrch {
+				if searches[bs].PhaseNum == 2 {
 					r.Extra = "(second pass)"
 				} else {
 					r.Extra = ""
@@ -500,6 +512,9 @@ func xRtWebsocket(c echo.Context) error {
 				if er != nil {
 					c.Logger().Error(er)
 					msg("RtWebsocket(): ws failed to write: breaking", 1)
+					if hsock {
+						hconn.Close()
+					}
 					if rsock {
 						rconn.Close()
 					}
@@ -507,6 +522,9 @@ func xRtWebsocket(c echo.Context) error {
 				}
 
 				if _, exists := searches[bs]; !exists {
+					if hsock {
+						hconn.Close()
+					}
 					if rsock {
 						rconn.Close()
 					}

@@ -34,9 +34,10 @@ type SearchStruct struct {
 	HasLemma   bool
 	HasPhrase  bool
 	IsVector   bool
+	IsActive   bool
 	Twobox     bool
 	NotNear    bool
-	IsSecSrch  bool
+	PhaseNum   int
 	SrchColumn string // usually "stripped_line", sometimes "accented_line"
 	SrchSyntax string // almost always "~="
 	OrderBy    string // almost always "index" + ASC
@@ -129,6 +130,7 @@ func RtSearchStandard(c echo.Context) error {
 	previous = time.Now()
 
 	srch.Queries = prq
+	srch.IsActive = true
 	searches[id] = srch
 
 	// return results via searches[id].Results
@@ -232,8 +234,8 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	second.Proximate = first.Seeking
 	second.PrxSlice = []string{}
 	second.LemmaTwo = first.LemmaOne
-	second.IsSecSrch = true
-	second.ID = first.ID + "_pr2" // progresssocketpicker() needs a new name
+	second.PhaseNum = 2
+	second.ID = first.ID + "_pt2" // progresssocket() needs a new name
 
 	setsearchtype(&second)
 
@@ -290,6 +292,7 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	s.Twobox = false
 	s.HasPhrase = false
 	s.HasLemma = false
+	s.PhaseNum = 1
 	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
 	return s
 }
