@@ -111,7 +111,6 @@ func SrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan P
 						_, err := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
 						chke(err)
 						guest.Close()
-						host.Close()
 						break
 					} else if remainder > -1 {
 						// msg(fmt.Sprintf("remain: %d", remainder), 1)
@@ -125,7 +124,7 @@ func SrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan P
 			}()
 		}
 	}()
-
+	host.Close()
 	return emitqueries, nil
 }
 
@@ -247,27 +246,24 @@ func ResultCollation(ctx context.Context, name string, max int64, values <-chan 
 	done := false
 	host := progresssocketpicker("rc_" + name)
 	for {
+		if done {
+			break
+		}
 		select {
 		case <-ctx.Done():
 			log.Print(ctx.Err().Error())
-			host.Close()
-			return allhits
+			done = true
 		case val, ok := <-values:
 			if ok {
-				// the progress poll should be attached here
-				// fmt.Println(fmt.Sprintf("current count: %d", len(allhits)))
 				allhits = append(allhits, val...)
 				if int64(len(allhits)) > max {
 					// you popped over the cap...: this does in fact save time and exit in the middle
 					// προκατελαβον cap of one: [Δ: 0.112s] HGoSrch()
 					// προκατελαβον uncapped:   [Δ: 1.489s] HGoSrch()
-					host.Close()
-					return allhits
+					done = true
 				}
 			} else {
-				// rudundant?
-				host.Close()
-				return allhits
+				done = true
 			}
 		}
 
@@ -277,6 +273,9 @@ func ResultCollation(ctx context.Context, name string, max int64, values <-chan 
 			// [a] open a tcp port to broadcast on
 
 			for {
+				if done == true {
+					break
+				}
 				// [b] wait for someone to listen
 				guest, err := host.Accept()
 				if err != nil {
@@ -287,11 +286,9 @@ func ResultCollation(ctx context.Context, name string, max int64, values <-chan 
 					for {
 						_, err := io.WriteString(guest, fmt.Sprintf("%d\n", len(allhits)))
 						if err != nil {
-							guest.Close()
 							break
 						}
 						if done == true {
-							guest.Close()
 							break
 						}
 					}
@@ -300,6 +297,8 @@ func ResultCollation(ctx context.Context, name string, max int64, values <-chan 
 		}()
 
 	}
+	host.Close()
+	return allhits
 }
 
 func cleanResultCollation(ctx context.Context, name string, max int64, values <-chan []DbWorkline) []DbWorkline {
