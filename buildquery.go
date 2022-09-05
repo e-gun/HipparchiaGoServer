@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package main
 
 import (
@@ -62,22 +67,17 @@ const (
 
 // onehit should be checked early: "ORDER BY index ASC LIMIT 1"
 
-// complications: temporary tables
-// these are needed
-// [a] to unnest an array of lines to search inside an inscription author
-// [b] subqueryphrasesearching
-
 // search types
-// [a] simple - basicprecomposedsqlsearcher()
-// [b] simplelemma - basicprecomposedsqlsearcher()
-// [c] proximate by words - generatepreliminaryhitlist() [via basicprecomposedsqlsearcher()] + basicprecomposedsqlsearcher()
-// [d] proximate by lines - generatepreliminaryhitlist() [via basicprecomposedsqlsearcher()] + paredowntowithinxwords()
-// [e] simple phrase - precomposedsqlsubqueryphrasesearch()
-// [f] phrase and proximity - precomposedphraseandproximitysearch() + either precomposedsqlsubqueryphrasesearch() or basicprecomposedsqlsearcher()
+// [a] simple
+// [b] simplelemma
+// [c] proximate by words
+// [d] proximate by lines
+// [e] simple phrase
+// [f] phrase and proximity
 
-// basicprecomposedsqlsearcher
-
-// searchlistintosqldict()
+//
+// CORE LOGIC
+//
 
 func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 	var prqq []PrerolledQuery
@@ -89,9 +89,6 @@ func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 	} else {
 		ss.SkgSlice = append(ss.SkgSlice, ss.Seeking)
 	}
-
-	// fmt.Println(inc)
-	// fmt.Println(ss.QueryType)
 
 	// if there are too many "in0001wXXX" type entries: requiresindextemptable()
 
@@ -230,6 +227,10 @@ func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 	}
 	return prqq
 }
+
+//
+// HELPERS
+//
 
 func acquiretails() map[string]*template.Template {
 	// this avoids recompiling them a bunch of times in a loop

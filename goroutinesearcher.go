@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package main
 
 import (
@@ -16,6 +21,11 @@ var (
 	upgrader = websocket.Upgrader{}
 )
 
+//
+// THE MANAGER
+//
+
+// HGoSrch - the core of a search: coordingates the dispatch of queries and collection of results
 func HGoSrch(ss SearchStruct) SearchStruct {
 	// NOTE: this is all much more "go-like" than HipparchiaGolangSearcher() in grabber.go,
 	// BUT python + redis + HipparchiaGolangSearcher() is marginally faster than what follows [channels produce overhead?]
@@ -67,6 +77,10 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 
 	return ss
 }
+
+//
+// THE WORKERS
+//
 
 // SrchFeeder - emit items to a channel from the []PrerolledQuery that will be consumed by the SrchConsumer
 func SrchFeeder(ctx context.Context, host net.Listener, qq []PrerolledQuery) (<-chan PrerolledQuery, error) {
@@ -230,6 +244,10 @@ func ResultCollation(ctx context.Context, host net.Listener, max int64, values <
 	}
 	return allhits
 }
+
+//
+// HELPER FUNCTIONS
+//
 
 func sortresults(results []DbWorkline, ss SearchStruct) []DbWorkline {
 	// Closures that order the DbWorkline structure:

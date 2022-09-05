@@ -1,9 +1,14 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package main
 
 const (
 	MYNAME                = "Hipparchia Golang Server"
 	SHORTNAME             = "HGS"
-	VERSION               = "0.2.2"
+	VERSION               = "0.2.3"
 	PSQ                   = `{"Host": "localhost", "Port": 5432, "User": "hippa_wr", "Pass": "", "DBName": "hipparchiaDB"}`
 	PSDefaultHost         = "localhost"
 	PSDefaultUser         = "hippa_wr"
@@ -105,7 +110,7 @@ const (
 	BROWSERJS = `
 	$('#pollingdata').hide();
 	
-	$('browser').click( function() {
+	$('%s').click( function() {
 		$.getJSON('/browse/'+this.id, function (passagereturned) {
 			$('#browseforward').unbind('click');
 			$('#browseback').unbind('click');

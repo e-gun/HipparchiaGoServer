@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package main
 
 import (
@@ -8,22 +13,6 @@ import (
 	"sort"
 	"strings"
 )
-
-func RtAuGenreHints(c echo.Context) error {
-	return basichinter(c, AuGenres)
-}
-
-func RtWkGenreHints(c echo.Context) error {
-	return basichinter(c, WkGenres)
-}
-
-func RtAuLocHints(c echo.Context) error {
-	return basichinter(c, AuLocs)
-}
-
-func RtWkLocHints(c echo.Context) error {
-	return basichinter(c, WkLocs)
-}
 
 func RtAuthorHints(c echo.Context) error {
 	// input is not validated
@@ -123,6 +112,22 @@ func RtLemmaHints(c echo.Context) error {
 	chke(e)
 
 	return c.String(http.StatusOK, string(b))
+}
+
+func RtAuGenreHints(c echo.Context) error {
+	return basichinter(c, AuGenres)
+}
+
+func RtWkGenreHints(c echo.Context) error {
+	return basichinter(c, WkGenres)
+}
+
+func RtAuLocHints(c echo.Context) error {
+	return basichinter(c, AuLocs)
+}
+
+func RtWkLocHints(c echo.Context) error {
+	return basichinter(c, WkLocs)
 }
 
 func basichinter(c echo.Context, mastermap map[string]bool) error {

@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package main
 
 import (
@@ -12,7 +17,7 @@ import (
 var (
 	// order matters
 	cfg         CurrentConfiguration
-	sessions    = make(map[string]Session)
+	sessions    = make(map[string]ServerSession)
 	searches    = make(map[string]SearchStruct)
 	srchsumm    = make(map[string]SearchSummary)
 	AllWorks    = make(map[string]DbWork)
@@ -32,8 +37,7 @@ type CurrentConfiguration struct {
 	LogLevel    int
 	PosgresInfo string
 	PSQP        string
-	EchoLog     int  // "none", "terse", "verbose"
-	SkipLemm    bool // if you are debugging and want a fast start
+	EchoLog     int // "none", "terse", "verbose"
 	PGLogin     PostgresLogin
 }
 
@@ -144,7 +148,6 @@ func makeconfig() {
 	flag.IntVar(&cfg.LogLevel, "gl", DEFAULTLOGLEVEL, "[common] golang msg logging level: 0 is silent; 5 is very noisy")
 	flag.StringVar(&cfg.PosgresInfo, "p", PSQ, "[common] psql logon information (as a JSON string)")
 	flag.IntVar(&cfg.EchoLog, "el", DEFAULTECHOLOGLEVEL, "[common] logging for the echo server: 0: 'none', 1: 'terse', or 2: 'verbose'")
-	flag.BoolVar(&cfg.SkipLemm, "skip", false, "[debugging] skip loading the lemmata for a fast launch")
 
 	cfg.PGLogin.Port = PSDefaultPort
 	// cfg.PGLogin.Pass = cfg.PSQP

@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package main
 
 import (
@@ -95,7 +100,7 @@ type ProcessedList struct {
 }
 
 // sessionintosearchlist - converts the stored set of selections into a calculated pair of SearchIncExl w/ Authors, Works, Passages
-func sessionintosearchlist(s Session) ProcessedList {
+func sessionintosearchlist(s ServerSession) ProcessedList {
 	// https://medium.com/scum-gazeta/golang-simple-optimization-notes-70bc64673980
 
 	var inc SearchIncExl
@@ -326,7 +331,7 @@ func sessionintosearchlist(s Session) ProcessedList {
 }
 
 // prunebydate - drop items from searchlist if they are not inside the valid date range
-func prunebydate(searchlist []string, incl SearchIncExl, s Session) []string {
+func prunebydate(searchlist []string, incl SearchIncExl, s ServerSession) []string {
 	// 'varia' and 'incerta' have special dates: incerta = 2500; varia = 2000
 	// msg("prunebydate()", 1)
 
@@ -425,7 +430,7 @@ func test_compilesearchlist() {
 	start := time.Now()
 	previous := time.Now()
 	fmt.Println("testing sessionintosearchlist()")
-	var s Session
+	var s ServerSession
 	s.IncertaOK = true
 	s.VariaOK = true
 	s.SpuriaOK = true

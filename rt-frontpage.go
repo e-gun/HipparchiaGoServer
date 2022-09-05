@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package main
 
 import (
@@ -8,7 +13,7 @@ import (
 	"time"
 )
 
-type Session struct {
+type ServerSession struct {
 	ID             string
 	Inclusions     SearchIncExl
 	Exclusions     SearchIncExl
@@ -58,6 +63,26 @@ func RtFrontpage(c echo.Context) error {
 	return err
 }
 
+// makedefaultsession - fill in the blanks when setting up a new session
+func makedefaultsession(id string) ServerSession {
+	// note that sessions clears every time the server restarts
+	var s ServerSession
+	s.ID = id
+	s.ActiveCorp = map[string]bool{"gr": true, "lt": true, "in": false, "ch": false, "dp": false}
+	s.VariaOK = true
+	s.IncertaOK = true
+	s.SpuriaOK = true
+	s.AvailDBs = map[string]bool{"greek_dictionary": true, "greek_lemmata": true, "greek_morphology": true, "latin_dictionary": true, "latin_lemmata": true, "latin_morphology": true, "wordcounts_0": true}
+	s.Analogyfinder = false
+	s.HitLimit = DEFAULTHITLIMIT
+	s.Earliest = MINDATESTR
+	s.Latest = MAXDATESTR
+	s.SortHitsBy = "Name"
+	s.HitContext = DEFAULTLINESOFCONTEXT
+	s.UI.BrowseCtx = DEFAULTBROWSERCTX
+	return s
+}
+
 // readUUIDCookie - find the ID of the client
 func readUUIDCookie(c echo.Context) string {
 	cookie, err := c.Cookie("ID")
@@ -85,23 +110,4 @@ func writeUUIDCookie(c echo.Context) string {
 	c.SetCookie(cookie)
 	msg(fmt.Sprintf("new ID set: %s", cookie.Value), 4)
 	return cookie.Value
-}
-
-func makedefaultsession(id string) Session {
-	// note that sessions clears every time the server restarts
-	var s Session
-	s.ID = id
-	s.ActiveCorp = map[string]bool{"gr": true, "lt": true, "in": false, "ch": false, "dp": false}
-	s.VariaOK = true
-	s.IncertaOK = true
-	s.SpuriaOK = true
-	s.AvailDBs = map[string]bool{"greek_dictionary": true, "greek_lemmata": true, "greek_morphology": true, "latin_dictionary": true, "latin_lemmata": true, "latin_morphology": true, "wordcounts_0": true}
-	s.Analogyfinder = false
-	s.HitLimit = DEFAULTHITLIMIT
-	s.Earliest = MINDATESTR
-	s.Latest = MAXDATESTR
-	s.SortHitsBy = "Name"
-	s.HitContext = DEFAULTLINESOFCONTEXT
-	s.UI.BrowseCtx = DEFAULTBROWSERCTX
-	return s
 }

@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package main
 
 import (
@@ -117,7 +122,7 @@ func RtWebsocket(c echo.Context) error {
 				}
 
 				// [b] the tricky info
-				// [b1] set r.Remain via TCP connection to SrchFeeder()'s broadcaster
+				// [b1] set r.Remain via unix socket connection to SrchFeeder()'s broadcaster
 				if rsock {
 					r.Remain = func() int {
 						connbuf := bufio.NewReader(rconn)
@@ -130,8 +135,8 @@ func RtWebsocket(c echo.Context) error {
 								// and stripping the newline via strings is not working
 								rr := []rune(rs)
 								rr = rr[0 : len(rr)-1]
-								rs, _ := strconv.Atoi(string(rr))
-								return rs
+								st, _ := strconv.Atoi(string(rr))
+								return st
 							}
 						}
 						return -1
@@ -148,7 +153,7 @@ func RtWebsocket(c echo.Context) error {
 					r.Msg = "Formatting the finds..."
 				}
 
-				// [b2] set r.Hits via TCP connection to ResultCollation()'s broadcaster
+				// [b2] set r.Hits via unix socket connection to ResultCollation()'s broadcaster
 				if hsock {
 					r.Hits = func() int {
 						connbuf := bufio.NewReader(hconn)

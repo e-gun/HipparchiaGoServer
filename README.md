@@ -13,8 +13,10 @@
 
 
 ### TODO (in vague order of priority)
+* rationalize selections
 * within X words 
 * statistics for dictionary entries
+* bracket highlighter
 * better browser formatting
 * saving/fetching searches
 * indexing

@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package main
 
 import (
@@ -261,7 +266,7 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 }
 
 //
-// SETUP
+// INITIAL SETUP
 //
 
 // builddefaultsearch - fill out the basic values for a new search
@@ -499,6 +504,50 @@ func phrasecombinations(phr string) [][2]string {
 	return trimmed
 }
 
+func clonesearch(first SearchStruct, iteration int) SearchStruct {
+	second := first
+	second.Results = []DbWorkline{}
+	second.Queries = []PrerolledQuery{}
+	second.SearchIn = SearchIncExl{}
+	second.SearchEx = SearchIncExl{}
+	second.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
+	second.SkgSlice = []string{}
+	second.PrxSlice = []string{}
+	second.PhaseNum = iteration
+
+	id := fmt.Sprintf("%s_pt%d", first.ID, iteration)
+	second.ID = id // progresssocket() needs a new name
+	return second
+}
+
+func searchtermfinder(term string) *regexp.Regexp {
+	// find the universal regex equivalent of the search term
+	//	you need to convert:
+	//		ποταμον
+	//	into:
+	//		([πΠ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][τΤ][αἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάᾈᾉᾊᾋᾌᾍᾎᾏἈἉἊἋἌἍἎἏΑ][μΜ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][νΝ])
+
+	converter := getrunefeeder()
+	st := []rune(term)
+	var stre string
+	for _, r := range st {
+		if _, ok := converter[r]; ok {
+			re := fmt.Sprintf("[%s]", string(converter[r]))
+			stre += re
+		} else {
+			stre += string(r)
+		}
+	}
+	stre = fmt.Sprintf("(%s)", stre)
+
+	pattern, e := regexp.Compile(stre)
+	if e != nil {
+		msg(fmt.Sprintf("searchtermfinder() could not compile the following: %s", stre), 1)
+		pattern = regexp.MustCompile("FAILED_FIND_NOTHING")
+	}
+	return pattern
+}
+
 //
 // FORMATTING
 //
@@ -513,7 +562,7 @@ type SearchOutputJSON struct {
 
 func formatnocontextresults(s SearchStruct) []byte {
 	var out SearchOutputJSON
-	out.JS = BROWSERJS
+	out.JS = fmt.Sprintf(BROWSERJS, "browser")
 	out.Title = s.Seeking
 	out.Image = ""
 	out.Searchsummary = formatfinalsearchsummary(&s)
@@ -757,7 +806,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	// ouput
 
 	var out SearchOutputJSON
-	out.JS = BROWSERJS
+	out.JS = fmt.Sprintf(BROWSERJS, "browser")
 	out.Title = ss.Seeking
 	out.Image = ""
 	out.Searchsummary = formatfinalsearchsummary(&ss)
@@ -863,34 +912,6 @@ func formateditorialbrackets(html string) string {
 	return ""
 }
 
-func searchtermfinder(term string) *regexp.Regexp {
-	// find the universal regex equivalent of the search term
-	//	you need to convert:
-	//		ποταμον
-	//	into:
-	//		([πΠ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][τΤ][αἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάᾈᾉᾊᾋᾌᾍᾎᾏἈἉἊἋἌἍἎἏΑ][μΜ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][νΝ])
-
-	converter := getrunefeeder()
-	st := []rune(term)
-	var stre string
-	for _, r := range st {
-		if _, ok := converter[r]; ok {
-			re := fmt.Sprintf("[%s]", string(converter[r]))
-			stre += re
-		} else {
-			stre += string(r)
-		}
-	}
-	stre = fmt.Sprintf("(%s)", stre)
-
-	pattern, e := regexp.Compile(stre)
-	if e != nil {
-		msg(fmt.Sprintf("searchtermfinder() could not compile the following: %s", stre), 1)
-		pattern = regexp.MustCompile("FAILED_FIND_NOTHING")
-	}
-	return pattern
-}
-
 func highlightfocusline(line *ResultPassageLine) {
 	line.Contents = fmt.Sprintf(`<span class="highlight">%s</span>`, line.Contents)
 }
@@ -954,22 +975,6 @@ func unbalancedspancleaner(html string) string {
 		}
 	}
 	return html
-}
-
-func clonesearch(first SearchStruct, iteration int) SearchStruct {
-	second := first
-	second.Results = []DbWorkline{}
-	second.Queries = []PrerolledQuery{}
-	second.SearchIn = SearchIncExl{}
-	second.SearchEx = SearchIncExl{}
-	second.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
-	second.SkgSlice = []string{}
-	second.PrxSlice = []string{}
-	second.PhaseNum = iteration
-
-	id := fmt.Sprintf("%s_pt%d", first.ID, iteration)
-	second.ID = id // progresssocket() needs a new name
-	return second
 }
 
 /*

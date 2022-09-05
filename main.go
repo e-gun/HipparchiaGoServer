@@ -38,11 +38,6 @@ func main() {
 			chke(e)
 			cfg.EchoLog = ll
 		}
-		if a == "-skip" {
-			cfg.SkipLemm = true
-		} else {
-			cfg.SkipLemm = false
-		}
 	}
 
 	versioninfo := fmt.Sprintf("%s CLI Debugging Interface (v.%s)", MYNAME, VERSION)
@@ -87,22 +82,20 @@ func main() {
 		timetracker("A3", "corpus maps built", start, previous)
 	}(&awaiting)
 
-	if !cfg.SkipLemm {
-		awaiting.Add(1)
-		go func(awaiting *sync.WaitGroup) {
-			defer awaiting.Done()
+	awaiting.Add(1)
+	go func(awaiting *sync.WaitGroup) {
+		defer awaiting.Done()
 
-			start := time.Now()
-			previous := time.Now()
+		start := time.Now()
+		previous := time.Now()
 
-			AllLemm = lemmamapper()
-			timetracker("B1", fmt.Sprintf("unnested lemma map built (%d items)", len(AllLemm)), start, previous)
+		AllLemm = lemmamapper()
+		timetracker("B1", fmt.Sprintf("unnested lemma map built (%d items)", len(AllLemm)), start, previous)
 
-			previous = time.Now()
-			NestedLemm = nestedlemmamapper(AllLemm)
-			timetracker("B2", "nested lemma map built", start, previous)
-		}(&awaiting)
-	}
+		previous = time.Now()
+		NestedLemm = nestedlemmamapper(AllLemm)
+		timetracker("B2", "nested lemma map built", start, previous)
+	}(&awaiting)
 
 	awaiting.Wait()
 

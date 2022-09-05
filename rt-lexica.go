@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package main
 
 import (
@@ -13,6 +18,10 @@ import (
 )
 
 // full set of verbs: lookup, findbyform, idlookup, morphologychart
+
+//
+//
+//
 
 type DbLexicon struct {
 	// skipping 'unaccented_entry' from greek_dictionary
@@ -53,6 +62,10 @@ type MorphPossib struct {
 	Xrefval  string `json:"xref_value"`
 }
 
+//
+// ROUTING
+//
+
 func RtLexFindByForm(c echo.Context) error {
 	// be able to respond to "GET /lexica/findbyform/ἀμιϲθὶ/gr0062 HTTP/1.1"
 	req := c.Param("id")
@@ -75,6 +88,10 @@ func RtLexFindByForm(c echo.Context) error {
 
 	return c.String(http.StatusOK, string(b))
 }
+
+//
+// LOOKUPS
+//
 
 func findbyform(word string, author string) []byte {
 
@@ -244,6 +261,10 @@ func findbyform(word string, author string) []byte {
 	return jsonbundle
 }
 
+//
+// FORMATTING
+//
+
 // formatprevalencedata - turn a wordcount into an HTML summary
 func formatprevalencedata(w DbWordCount, s string) string {
 	// <p class="wordcounts">Prevalence (all forms): <span class="prevalence">Ⓣ</span> 1482 / <span class="prevalence">Ⓖ</span> 1415 / <span class="prevalence">Ⓓ</span> 54 / <span class="prevalence">Ⓘ</span> 11 / <span class="prevalence">Ⓒ</span> 2</p>
@@ -408,29 +429,11 @@ func formatlexicaloutput(w DbLexicon) string {
 func insertlexicaljs() string {
 	js := `
 	<script>
-	// Chromium can send poll data after the search is done... 
-	$('#pollingdata').hide();
-	
-	$('%s').click( function() {
-		$.getJSON('/browse/'+this.id, function (passagereturned) {
-			$('#browseforward').unbind('click');
-			$('#browseback').unbind('click');
-			var fb = parsepassagereturned(passagereturned)
-			// left and right arrow keys
-			$('#browserdialogtext').keydown(function(e) {
-				switch(e.which) {
-					case 37: browseuponclick(fb[1]); break;
-					case 39: browseuponclick(fb[0]); break;
-				}
-			});
-			$('#browseforward').bind('click', function(){ browseuponclick(fb[0]); });
-			$('#browseback').bind('click', function(){ browseuponclick(fb[1]); });
-		});
-	});
+	%s
 	</script>`
 
-	tag := "bibl"
+	jscore := fmt.Sprintf(BROWSERJS, "bibl")
 
-	thejs := fmt.Sprintf(js, tag)
+	thejs := fmt.Sprintf(js, jscore)
 	return thejs
 }

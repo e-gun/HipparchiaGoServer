@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package main
 
 import (
@@ -192,7 +197,7 @@ func RtSelectionFetch(c echo.Context) error {
 	return c.String(http.StatusOK, string(jsbytes))
 }
 
-func selected(user string, sv SelectionValues) Session {
+func selected(user string, sv SelectionValues) ServerSession {
 	// have to deal with all sorts of possibilities
 	// [a] author: "GET /selection/make/_?auth=gr7000 HTTP/1.1"
 	// [b] work: "GET /selection/make/_?auth=lt0474&work=001 HTTP/1.1"
@@ -535,7 +540,7 @@ func test_selection() {
 	// SELECT index FROM lt0474 WHERE wkuniversalid='lt0474w024' AND level_01_value='1' ORDER BY index ASC
 	//{[] [] [] [] [] [] [lt0474_FROM_36136_TO_36151] [ ]}
 
-	var s Session
+	var s ServerSession
 	id := "testing"
 	sessions[id] = s
 	var sv SelectionValues

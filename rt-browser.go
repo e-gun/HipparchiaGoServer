@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package main
 
 import (
@@ -9,6 +14,10 @@ import (
 	"strconv"
 	"strings"
 )
+
+//
+// ROUTING
+//
 
 // RtBrowseline - open a browser if sent '/browse/linenumber/lt0550/001/1855'
 func RtBrowseline(c echo.Context) error {
@@ -45,6 +54,10 @@ func RtBrowsePerseus(c echo.Context) error {
 	bp := Browse(c, sep)
 	return c.String(http.StatusOK, bp)
 }
+
+//
+// BROWSING
+//
 
 func Browse(c echo.Context, sep string) string {
 	// sample input: http://localhost:8000//browse/perseus/lt0550/001/2:717
@@ -136,6 +149,10 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 
 	return js
 }
+
+//
+// HELPERS
+//
 
 func formatpublicationinfo(w DbWork) string {
 	// 	in:
