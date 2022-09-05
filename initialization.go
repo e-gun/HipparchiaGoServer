@@ -21,8 +21,10 @@ var (
 	NestedLemm  = make(map[string]map[string]DbLemma)
 	WkCorpusMap = make(map[string][]string)
 	AuCorpusMap = make(map[string][]string)
-	NextRP      = REMAINDERPORTLOW // a busy server will hand out the wrong ports in a race; not currently a priority...
-	NextHP      = HITSPORTLOW
+	AuGenres    = make(map[string]bool)
+	WkGenres    = make(map[string]bool)
+	AuLocs      = make(map[string]bool)
+	WkLocs      = make(map[string]bool)
 )
 
 type CurrentConfiguration struct {
@@ -367,17 +369,40 @@ func buildaucorpusmap() map[string][]string {
 	return aucorpusmap
 }
 
-func buildaugenreslist() {
-	// for the hinter
-
+func buildaugenresmap() map[string]bool {
+	genres := make(map[string]bool)
+	for _, a := range AllAuthors {
+		gg := strings.Split(a.Genres, ",")
+		for _, g := range gg {
+			genres[g] = true
+		}
+	}
+	return genres
 }
 
-func buildwkgenreslist() {
-	// for the hinter
-
+func buildwkgenresmap() map[string]bool {
+	genres := make(map[string]bool)
+	for _, w := range AllWorks {
+		genres[w.Genre] = true
+	}
+	return genres
 }
 
-func buildlocationlist() {
-	// for the hinter
+func buildaulocationmap() map[string]bool {
+	locations := make(map[string]bool)
+	for _, a := range AllAuthors {
+		ll := strings.Split(a.Location, ",")
+		for _, l := range ll {
+			locations[l] = true
+		}
+	}
+	return locations
+}
 
+func buildwklocationmap() map[string]bool {
+	locations := make(map[string]bool)
+	for _, w := range AllWorks {
+		locations[w.Prov] = true
+	}
+	return locations
 }

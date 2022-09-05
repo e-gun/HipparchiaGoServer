@@ -9,6 +9,22 @@ import (
 	"strings"
 )
 
+func RtAuGenreHints(c echo.Context) error {
+	return basichinter(c, AuGenres)
+}
+
+func RtWkGenreHints(c echo.Context) error {
+	return basichinter(c, WkGenres)
+}
+
+func RtAuLocHints(c echo.Context) error {
+	return basichinter(c, AuLocs)
+}
+
+func RtWkLocHints(c echo.Context) error {
+	return basichinter(c, WkLocs)
+}
+
 func RtAuthorHints(c echo.Context) error {
 	// input is not validated
 
@@ -106,5 +122,31 @@ func RtLemmaHints(c echo.Context) error {
 	b, e := json.Marshal(match)
 	chke(e)
 
+	return c.String(http.StatusOK, string(b))
+}
+
+func basichinter(c echo.Context, mastermap map[string]bool) error {
+	skg := c.QueryParam("term")
+	if len(skg) < 2 {
+		return c.String(http.StatusOK, "")
+	}
+	skg = strings.ToLower(skg)
+	skg = strings.Title(skg)
+	fmt.Println(skg)
+	// is what we have a match?
+	var ff []string
+	for f, _ := range mastermap {
+		if strings.Contains(f, skg) {
+			ff = append(ff, f)
+		}
+	}
+
+	var fs []JSStruct
+	for _, f := range ff {
+		fs = append(fs, JSStruct{f})
+	}
+	// send
+	b, e := json.Marshal(fs)
+	chke(e)
 	return c.String(http.StatusOK, string(b))
 }

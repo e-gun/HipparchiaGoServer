@@ -117,14 +117,21 @@ func StartEchoServer() {
 	//
 
 	// [g1] "GET /hints/author/_?term=au HTTP/1.1"
-	e.GET("/hints/author/:id", RtAuthorHints)
+	e.GET("/hints/author/:null", RtAuthorHints)
 
 	// [g2] authorgenre
+	e.GET("/hints/authgenre/:null", RtAuGenreHints)
 	// [g3] workgenre
+	e.GET("/hints/workgenre/:null", RtWkGenreHints)
+
 	// [g4] authorlocation
+	e.GET("/hints/authlocation/:null", RtAuLocHints)
+
 	// [g5] worklocation
+	e.GET("/hints/worklocation/:null", RtWkLocHints)
+
 	// [g6] lemmata: "GET http://localhost:8000/hints/lemmata/_?term=dol"
-	e.GET("/hints/lemmata/:id", RtLemmaHints)
+	e.GET("/hints/lemmata/:null", RtLemmaHints)
 
 	//
 	// [h] lexical

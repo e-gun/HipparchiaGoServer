@@ -80,6 +80,10 @@ func main() {
 		previous = time.Now()
 		WkCorpusMap = buildwkcorpusmap()
 		AuCorpusMap = buildaucorpusmap()
+		AuGenres = buildaugenresmap()
+		WkGenres = buildwkgenresmap()
+		AuLocs = buildaulocationmap()
+		WkLocs = buildwklocationmap()
 		timetracker("A3", "corpus maps built", start, previous)
 	}(&awaiting)
 
