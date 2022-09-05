@@ -27,6 +27,3 @@ within X words
 statistics for dictionary entries
 
 pickers for author categories, genres, etx.
-
-picking date ranges
-

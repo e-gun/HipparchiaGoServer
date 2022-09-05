@@ -31,7 +31,13 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	emitqueries, err := SrchFeeder(ctx, ss.ID, ss.Queries)
+	proghost := progresssocket("pp_" + ss.ID)
+	defer proghost.Close()
+
+	reshost := progresssocket("rc_" + ss.ID)
+	defer reshost.Close()
+
+	emitqueries, err := SrchFeeder(ctx, proghost, ss.Queries)
 	chke(err)
 
 	var findchannels []<-chan []DbWorkline
@@ -52,7 +58,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 		max = ss.Limit * 3
 	}
 
-	results := ResultCollation(ctx, ss.ID, max, ResultAggregator(ctx, findchannels...))
+	results := ResultCollation(ctx, reshost, max, ResultAggregator(ctx, findchannels...))
 	if int64(len(results)) > max {
 		results = results[0:max]
 	}
@@ -63,7 +69,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 }
 
 // SrchFeeder - emit items to a channel from the []PrerolledQuery that will be consumed by the SrchConsumer
-func SrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan PrerolledQuery, error) {
+func SrchFeeder(ctx context.Context, host net.Listener, qq []PrerolledQuery) (<-chan PrerolledQuery, error) {
 	emitqueries := make(chan PrerolledQuery, cfg.WorkerCount)
 	remainder := -1
 	// defer host.Close()
@@ -83,19 +89,15 @@ func SrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan P
 		}
 	}()
 
-	// tcp remainder broadcaster: i.e., the fluff
-
+	// unix socket remainder broadcaster: i.e., the fluff
 	go func() {
-		host := progresssocket("pp_" + name)
-		// cf https://notes.shichao.io/gopl/ch8/
-		// [a] open a unix socket to broadcast on
 		if host == nil {
 			msg("progresssocket() has no access to a socket", 1)
 			return
 		}
 
 		for {
-			// [b] wait for someone to listen
+			// [a] wait for someone to listen
 			guest, err := host.Accept()
 			if err != nil {
 				continue
@@ -104,10 +106,6 @@ func SrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan P
 				// send remainder value to it
 				for {
 					if remainder == 0 {
-						// https://stackoverflow.com/questions/61049648/getting-bind-address-already-in-use-even-after-closing-the-connection-in-golang
-						// "This connection, which is in TIME_WAIT state, can block further use of the port, making it
-						// impossible to create a new listener, unless you give the right underlying settings to the host OS..."
-						// that's the issue here:
 						_, err := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
 						chke(err)
 						break
@@ -120,10 +118,8 @@ func SrchFeeder(ctx context.Context, name string, qq []PrerolledQuery) (<-chan P
 						time.Sleep(300)
 					}
 				}
-				guest.Close()
 			}()
 		}
-		host.Close()
 	}()
 
 	return emitqueries, nil
@@ -176,11 +172,11 @@ func ResultAggregator(ctx context.Context, findchannels ...<-chan []DbWorkline) 
 }
 
 // ResultCollation - return the actual []DbWorkline results after pulling them from the ResultAggregator channel
-func ResultCollation(ctx context.Context, name string, max int64, values <-chan []DbWorkline) []DbWorkline {
+func ResultCollation(ctx context.Context, host net.Listener, max int64, values <-chan []DbWorkline) []DbWorkline {
 	var allhits []DbWorkline
 	done := false
-	host := progresssocket("rc_" + name)
 	for {
+		// the actual substance of the thing
 		if done {
 			break
 		}
@@ -202,7 +198,7 @@ func ResultCollation(ctx context.Context, name string, max int64, values <-chan 
 			}
 		}
 
-		// tcp hits broadcaster: i.e., the fluff
+		// unix socket hits broadcaster: i.e., the fluff
 		go func() {
 			// cf https://notes.shichao.io/gopl/ch8/
 			// [a] open a tcp port to broadcast on
@@ -232,7 +228,6 @@ func ResultCollation(ctx context.Context, name string, max int64, values <-chan 
 		}()
 
 	}
-	host.Close()
 	return allhits
 }
 
@@ -292,6 +287,8 @@ func sortresults(results []DbWorkline, ss SearchStruct) []DbWorkline {
 // progresssocket - from where should the progress info be served?
 func progresssocket(name string) net.Listener {
 	// return a listener and the value of the port selected
+	// socket vs tcp: tcp connection ends up in TIME_WAIT state and will block the port
+
 	host, err := net.Listen("unix", fmt.Sprintf("%s/hgs_%s", UNIXSOCKETPATH, name))
 
 	if err != nil {
