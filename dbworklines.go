@@ -69,6 +69,10 @@ func (dbw DbWorkline) FindWork() string {
 	return dbw.WkUID[7:]
 }
 
+func (dbw DbWorkline) FindCorpus() string {
+	return dbw.WkUID[0:2]
+}
+
 func (dbw DbWorkline) BuildHyperlink() string {
 	if len(dbw.WkUID) == 0 {
 		// formatwithcontextresults() will trigger this on rare occasions

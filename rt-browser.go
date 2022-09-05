@@ -199,11 +199,16 @@ func formatcitationinfo(authormap map[string]DbAuthor, w DbWork, l DbWorkline) s
 		<p class="currentlyviewing">
 		<span class="currentlyviewingauthor">%s</span>, 
 		<span class="currentlyviewingwork">%s</span><br />
-		<span class="currentlyviewingcitation">%s</span></p>`
+		<span class="currentlyviewingcitation">%s</span>
+		%s</p>`
+
+	dt := `<br>(Assigned date of %s)`
+
 	au := authormap[w.FindAuthor()].Name
 	ti := w.Title
 	fc := basiccitation(w, l)
-	cv = fmt.Sprintf(cv, au, ti, fc)
+	id := formatinscriptiondates(dt, l)
+	cv = fmt.Sprintf(cv, au, ti, fc, id)
 
 	return cv
 }

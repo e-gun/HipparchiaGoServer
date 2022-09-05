@@ -570,7 +570,7 @@ func formatnocontextresults(s SearchStruct) []byte {
 	TABLEROW := `
 	<tr class="%s">
 		<td>
-			<span class="findnumber">[%d]</span>&nbsp;&nbsp;
+			<span class="findnumber">[%d]</span>&nbsp;&nbsp;%s
 			<span class="foundauthor">%s</span>,&nbsp;<span class="foundwork">%s</span>:
 			<browser id="%s"><span class="foundlocus">%s</span></browser>
 		</td>
@@ -579,6 +579,8 @@ func formatnocontextresults(s SearchStruct) []byte {
 		</td>
 	</tr>
 	`
+	dtt := `[<span class="date">%s</span>]`
+
 	pat := searchtermfinder(s.Seeking)
 
 	var rows []string
@@ -608,7 +610,8 @@ func formatnocontextresults(s SearchStruct) []byte {
 		wk := AllWorks[r.WkUID].Title
 		lk := r.BuildHyperlink()
 		lc := strings.Join(r.FindLocus(), ".")
-		fm := fmt.Sprintf(TABLEROW, rc, i+1, au, wk, lk, lc, mu)
+		wd := formatinscriptiondates(dtt, r)
+		fm := fmt.Sprintf(TABLEROW, rc, i+1, wd, au, wk, lk, lc, mu)
 		rows = append(rows, fm)
 	}
 
@@ -641,6 +644,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 		Findnumber  int
 		Foundauthor string
 		Foundwork   string
+		FindDate    string
 		FindURL     string
 		FindLocus   string
 		RawCTX      []DbWorkline
@@ -683,6 +687,8 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 
 	// iterate over the results to build the raw core data
 	urt := `linenumber/%s/%s/%d`
+	dtt := `[<span class="date">%s</span>]`
+
 	var allpassages []PsgFormattingTemplate
 	for i, r := range ss.Results {
 		var psg PsgFormattingTemplate
@@ -691,6 +697,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 		psg.Foundwork = AllWorks[r.WkUID].Title
 		psg.FindURL = r.BuildHyperlink()
 		psg.FindLocus = strings.Join(r.FindLocus(), ".")
+		psg.FindDate = formatinscriptiondates(dtt, r)
 
 		for j := r.TbIndex - context; j <= r.TbIndex+context; j++ {
 			url := fmt.Sprintf(urt, r.FindAuthor(), r.FindWork(), j)
@@ -775,7 +782,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 
 	pht := `
 	<locus>
-		<span class="findnumber">[{{.Findnumber}}]</span>&nbsp;&nbsp;
+		<span class="findnumber">[{{.Findnumber}}]</span>&nbsp;&nbsp;{{.FindDate}}
 		<span class="foundauthor">{{.Foundauthor}}</span>,&nbsp;<span class="foundwork">{{.Foundwork}}</span>
 		<browser id="{{.FindURL}}"><span class="foundlocus">{{.FindLocus}}</span></browser>
 	</locus>
@@ -933,6 +940,21 @@ func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
 		}
 	}
 
+}
+
+func formatinscriptiondates(template string, dbw DbWorkline) string {
+	// show the years for inscriptions
+	datestring := ""
+	fc := dbw.FindCorpus()
+	dated := fc == "in" || fc == "ch" || fc == "dp"
+	if dated {
+		cd := formatbcedate(fmt.Sprintf("%d", AllWorks[dbw.WkUID].ConvDate))
+		if cd == "2500 C.E." {
+			cd = "??? BCE/CE"
+		}
+		datestring = fmt.Sprintf(template, strings.Replace(cd, ".", "", -1))
+	}
+	return datestring
 }
 
 func unbalancedspancleaner(html string) string {
