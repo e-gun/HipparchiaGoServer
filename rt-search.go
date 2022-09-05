@@ -614,6 +614,10 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	for _, r := range res.Results {
 		low := r.TbIndex - context
 		high := r.TbIndex + context
+		if low < 1 {
+			// avoid "gr0258_FROM_-1_TO_3"
+			low = 1
+		}
 		res.SearchIn.Passages = append(res.SearchIn.Passages, fmt.Sprintf(t, r.FindAuthor(), low, high))
 	}
 

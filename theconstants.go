@@ -3,13 +3,12 @@ package main
 const (
 	MYNAME                = "Hipparchia Golang Server"
 	SHORTNAME             = "HGS"
-	VERSION               = "0.2.1"
+	VERSION               = "0.2.2"
 	PSQ                   = `{"Host": "localhost", "Port": 5432, "User": "hippa_wr", "Pass": "", "DBName": "hipparchiaDB"}`
 	PSDefaultHost         = "localhost"
 	PSDefaultUser         = "hippa_wr"
 	PSDefaultPort         = 5432
 	PSDefaultDB           = "hipparchiaDB"
-	TwoPassThresh         = 100    // cicero has >70 works
 	DBAUMAPSIZE           = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
 	DBLMMAPSIZE           = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
 	DBWKMAPSIZE           = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
@@ -35,13 +34,9 @@ const (
 	MINDATE               = -850
 	MINDATESTR            = "-850"
 	ORDERBY               = "index"
-	TEMPTABLETHRESHOLD    = 100
+	TEMPTABLETHRESHOLD    = 100          // if a table requirce N "between" clauses, build a temptable instead to gather the needed lines
 	UNACCEPTABLEINPUT     = `|""'!@:,=+` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
 	VARIADATE             = 2000
-	REMAINDERPORTLOW      = 8901
-	REMAINDERPORTHIGH     = 8921
-	HITSPORTLOW           = 8941
-	HITSPORTHIGH          = 8961
 	UNIXSOCKETPATH        = "/tmp"
 
 	// hipparchiaDB=# select * from gr0001 limit 0;

@@ -132,7 +132,7 @@ func basichinter(c echo.Context, mastermap map[string]bool) error {
 	}
 	skg = strings.ToLower(skg)
 	skg = strings.Title(skg)
-	fmt.Println(skg)
+
 	// is what we have a match?
 	var ff []string
 	for f, _ := range mastermap {

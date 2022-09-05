@@ -188,7 +188,7 @@ func RtSelectionClear(c echo.Context) error {
 
 func RtSelectionFetch(c echo.Context) error {
 	jsbytes := reportcurrentselections(c)
-	msg(string(jsbytes), 1)
+	// msg(string(jsbytes), 1)
 	return c.String(http.StatusOK, string(jsbytes))
 }
 
@@ -269,7 +269,45 @@ func selected(user string, sv SelectionValues) Session {
 		}
 	}
 
-	// TODO: genres, etc
+	if len(sv.AGenre) != 0 {
+		if _, ok := AuGenres[sv.AGenre]; ok {
+			if !sv.IsExcl {
+				s.Inclusions.AuGenres = unique(append(s.Inclusions.AuGenres, sv.AGenre))
+			} else {
+				s.Exclusions.AuGenres = unique(append(s.Exclusions.AuGenres, sv.AGenre))
+			}
+		}
+	}
+
+	if len(sv.ALoc) != 0 {
+		if _, ok := AuLocs[sv.ALoc]; ok {
+			if !sv.IsExcl {
+				s.Inclusions.AuLocations = unique(append(s.Inclusions.AuLocations, sv.ALoc))
+			} else {
+				s.Exclusions.AuLocations = unique(append(s.Exclusions.AuLocations, sv.ALoc))
+			}
+		}
+	}
+
+	if len(sv.WGenre) != 0 {
+		if _, ok := WkGenres[sv.WGenre]; ok {
+			if !sv.IsExcl {
+				s.Inclusions.WkGenres = unique(append(s.Inclusions.WkGenres, sv.WGenre))
+			} else {
+				s.Exclusions.WkGenres = unique(append(s.Exclusions.WkGenres, sv.WGenre))
+			}
+		}
+	}
+
+	if len(sv.WLoc) != 0 {
+		if _, ok := WkLocs[sv.WLoc]; ok {
+			if !sv.IsExcl {
+				s.Inclusions.WkLocations = unique(append(s.Inclusions.WkLocations, sv.WLoc))
+			} else {
+				s.Exclusions.WkLocations = unique(append(s.Exclusions.WkLocations, sv.WLoc))
+			}
+		}
+	}
 
 	return s
 }
