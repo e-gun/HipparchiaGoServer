@@ -310,15 +310,6 @@ func sessionintosearchlist(s Session) ProcessedList {
 
 	// still need to clean the whole authors out of inc.Works
 
-	// SLOW: [HGS] [6: 1.221s][Δ: 0.989s] sessionintosearchlist(): clean the whole authors out of inc.Works
-	//var trim []string
-	//for _, i := range inc.Works {
-	//	if !contains(inc.Authors, i[0:6]) {
-	//		trim = append(trim, i)
-	//	}
-	//}
-
-	// FAST: [Δ: 0.045s] sessionintosearchlist(): clean the whole authors out of inc.Works
 	var trim []string
 	for _, i := range inc.Works {
 		if _, ok := prunemap[i]; !ok {
@@ -348,46 +339,52 @@ func prunebydate(searchlist []string, incl SearchIncExl, s Session) []string {
 
 	e := int64(earliest)
 	l := int64(latest)
+	//msg("prunebydate()", 1)
+	//fmt.Println(len(searchlist))
 
-	fmt.Println(len(searchlist))
 	if e != MINDATE || l != MAXDATE {
 		// should have already been validated elsewhere...
 		if e > l {
 			e = l
 		}
 
-		// [b5a] first prune the bad dates
+		// [b5a] first prune the bad dates; nb: the inscriptions have lots of work dates; the gl and lt works don't
 		var trimmed []string
 		for _, uid := range searchlist {
-			cd := AllAuthors[AllWorks[uid].FindAuthor()].ConvDate
-			if cd >= e && cd <= l {
+			cda := AllAuthors[AllWorks[uid].FindAuthor()].ConvDate
+			cdb := AllWorks[uid].ConvDate
+			if (cda >= e && cda <= l) || (cdb >= e && cdb <= l) {
 				trimmed = append(trimmed, uid)
 				// msg(fmt.Sprintf("added: %s w/ date of %d", uid, cd), 1)
 			}
 		}
 
 		// [b5b] add back in any varia and/or incerta as needed
-		//if s.VariaOK {
-		//	for _, uid := range searchlist {
-		//		cd := AllAuthors[AllWorks[uid].FindAuthor()].ConvDate
-		//		if cd == VARIADATE {
-		//			trimmed = append(trimmed, uid)
-		//		}
-		//	}
-		//}
-		//
-		//if s.IncertaOK {
-		//	for _, uid := range searchlist {
-		//		cd := AllAuthors[AllWorks[uid].FindAuthor()].ConvDate
-		//		if cd == INCERTADATE {
-		//			trimmed = append(trimmed, uid)
-		//		}
-		//	}
-		//}
+		if s.VariaOK {
+			for _, uid := range searchlist {
+				cda := AllAuthors[AllWorks[uid].FindAuthor()].ConvDate
+				cdb := AllWorks[uid].ConvDate
+				if (cda == INCERTADATE || cda == VARIADATE) && cdb == VARIADATE {
+					trimmed = append(trimmed, uid)
+				}
+			}
+		}
+
+		if s.IncertaOK {
+			for _, uid := range searchlist {
+				cda := AllAuthors[AllWorks[uid].FindAuthor()].ConvDate
+				cdb := AllWorks[uid].ConvDate
+				if (cda == INCERTADATE || cda == VARIADATE) && cdb == INCERTADATE {
+					trimmed = append(trimmed, uid)
+				}
+			}
+		}
 
 		searchlist = trimmed
 	}
 
+	//msg("prunebydate()", 1)
+	//fmt.Println(len(searchlist))
 	return searchlist
 }
 
