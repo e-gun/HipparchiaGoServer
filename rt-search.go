@@ -782,9 +782,9 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 	`
 
 	var dr string
-	if sessions[s.User].Inclusions.DateRange != [2]string{"-850", "1500"} {
-		a := formatbcedate(sessions[s.User].Inclusions.DateRange[0])
-		b := formatbcedate(sessions[s.User].Inclusions.DateRange[1])
+	if sessions[s.User].Earliest != MINDATESTR && sessions[s.User].Latest != MAXDATESTR {
+		a := formatbcedate(sessions[s.User].Earliest)
+		b := formatbcedate(sessions[s.User].Latest)
 		dr = fmt.Sprintf("<br>Searched between %s and %s", a, b)
 	} else {
 		dr = "<!-- dates did not matter -->"

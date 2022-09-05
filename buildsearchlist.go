@@ -17,7 +17,6 @@ type SearchIncExl struct {
 	Authors     []string
 	Works       []string
 	Passages    []string // "lt0474_FROM_36136_TO_36151"
-	DateRange   [2]string
 	// the next are for output to the browser
 	MappedPsgByName  map[string]string // "lt0474_FROM_36136_TO_36151": "Cicero, Pro Caelio, section 1
 	MappedAuthByName map[string]string
@@ -102,7 +101,6 @@ func sessionintosearchlist(s Session) ProcessedList {
 	var inc SearchIncExl
 	var exc SearchIncExl
 
-	inc.DateRange = [2]string{s.Earliest, s.Latest}
 	// note that we do all the initial stuff by adding WORKS to the list individually
 
 	// [a] trim mappers by active corpora
@@ -332,8 +330,6 @@ func prunebydate(searchlist []string, incl SearchIncExl, s Session) []string {
 	// 'varia' and 'incerta' have special dates: incerta = 2500; varia = 2000
 	// msg("prunebydate()", 1)
 
-	//earliest, _ := strconv.Atoi(incl.DateRange[0])
-	//latest, _ := strconv.Atoi(incl.DateRange[1])
 	earliest, _ := strconv.Atoi(s.Earliest)
 	latest, _ := strconv.Atoi(s.Latest)
 

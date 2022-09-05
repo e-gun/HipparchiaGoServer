@@ -26,12 +26,14 @@ const (
 	INCERTADATE           = 2500
 	MAXBROWSERCONTEXT     = 60
 	MAXDATE               = 1500
+	MAXDATESTR            = "1500"
 	MAXHITLIMIT           = 2500
 	MAXINPUTLEN           = 50
 	MAXLEMMACHUNKSIZE     = 20
 	MAXLINESHITCONTEXT    = 30
 	MINBROWSERWIDTH       = 90
 	MINDATE               = -850
+	MINDATESTR            = "-850"
 	ORDERBY               = "index"
 	TEMPTABLETHRESHOLD    = 100
 	UNACCEPTABLEINPUT     = `|""'!@:,=+` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;

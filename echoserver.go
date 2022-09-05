@@ -346,6 +346,9 @@ func RtSetOption(c echo.Context) error {
 				msg("RtSetOption() hit an impossible case", 1)
 			}
 		}
+		if s.Earliest > s.Latest {
+			s.Earliest = s.Latest
+		}
 	}
 
 	delete(sessions, readUUIDCookie(c))
