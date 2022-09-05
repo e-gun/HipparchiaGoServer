@@ -599,6 +599,8 @@ func formatnocontextresults(s SearchStruct) []byte {
 			}
 		}
 
+		mu = formateditorialbrackets(mu)
+
 		rc := ""
 		if i%3 == 2 {
 			rc = "nthrow"
@@ -735,6 +737,8 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 		}
 		whole := strings.Join(block, "✃✃✃")
 		whole = unbalancedspancleaner(whole)
+		// testing...
+		whole = formateditorialbrackets(whole)
 
 		// reassemble
 		block = strings.Split(whole, "✃✃✃")
@@ -916,7 +920,20 @@ func formateditorialbrackets(html string) string {
 	// types: editorialmarker_angledbrackets; editorialmarker_curlybrackets, editorialmarker_roundbrackets, editorialmarker_squarebrackets
 	//
 
-	return ""
+	// try running this against text blocks only
+
+	// see buildtext() in textbuilder.py for some regex recipies
+
+	//
+	esbboth := regexp.MustCompile("\\[(.*?)\\]")
+	//esbopens := regexp.MustCompile("\\[(.*?)(\\]|$)")
+	//esbcloses := regexp.MustCompile("(^|\\[)(.*?)\\]")
+
+	if esbboth.MatchString(html) {
+		html = esbboth.ReplaceAllString(html, `[<span class="editorialmarker_squarebrackets">$1</span>]`)
+	}
+
+	return html
 }
 
 func highlightfocusline(line *ResultPassageLine) {

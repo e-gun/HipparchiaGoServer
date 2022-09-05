@@ -271,6 +271,9 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 			bl = fmt.Sprintf("%s%s%s", fla, newline, flb)
 		}
 
+		// in progress...
+		bl = formateditorialbrackets(bl)
+
 		trr = append(trr, fmt.Sprintf(tr, lines[i].Annotations, bl, cit))
 	}
 	tab := strings.Join(trr, "")
