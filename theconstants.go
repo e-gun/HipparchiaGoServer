@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                = "Hipparchia Golang Server"
 	SHORTNAME             = "HGS"
-	VERSION               = "0.2.4"
+	VERSION               = "0.2.5"
 	PSQ                   = `{"Host": "localhost", "Port": 5432, "User": "hippa_wr", "Pass": "", "DBName": "hipparchiaDB"}`
 	PSDefaultHost         = "localhost"
 	PSDefaultUser         = "hippa_wr"
@@ -35,6 +35,7 @@ const (
 	MAXINPUTLEN           = 50
 	MAXLEMMACHUNKSIZE     = 20
 	MAXLINESHITCONTEXT    = 30
+	MAXTEXTLINEGENERATION = 7500
 	MINBROWSERWIDTH       = 90
 	MINDATE               = -850
 	MINDATESTR            = "-850"

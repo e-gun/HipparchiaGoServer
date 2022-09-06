@@ -116,7 +116,7 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 	// [d] acquire and format the HTML
 
 	// need to set lines[0] to the focus, ie the middle of the pile of lines
-	ci := formatcitationinfo(AllAuthors, w, lines[0])
+	ci := formatcitationinfo(w, lines[0])
 	tr := buildbrowsertable(fc, lines)
 
 	// [e] fill out the JSON-ready struct
@@ -236,7 +236,7 @@ func formatpublicationinfo(w DbWork) string {
 	return fmt.Sprintf(readability, pubinfo)
 }
 
-func formatcitationinfo(authormap map[string]DbAuthor, w DbWork, l DbWorkline) string {
+func formatcitationinfo(w DbWork, l DbWorkline) string {
 	cv := `
 		<p class="currentlyviewing">
 		<span class="currentlyviewingauthor">%s</span>, 
@@ -247,7 +247,7 @@ func formatcitationinfo(authormap map[string]DbAuthor, w DbWork, l DbWorkline) s
 
 	dt := `<br>(Assigned date of %s)`
 
-	au := authormap[w.FindAuthor()].Name
+	au := AllAuthors[w.FindAuthor()].Name
 	ti := w.Title
 	fc := basiccitation(w, l)
 	pi := formatpublicationinfo(AllWorks[l.WkUID])

@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+
 	// cpu profile:
 	// defer profile.Start().Stop()
 
@@ -24,6 +25,10 @@ func main() {
 	// go tool pprof --pdf ./HipparchiaGoServer /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1880749830/cpu.pprof > profile.pdf
 
 	makeconfig()
+
+	versioninfo := fmt.Sprintf("%s CLI Debugging Interface (v.%s)", MYNAME, VERSION)
+	versioninfo = versioninfo + fmt.Sprintf(" [loglevel=%d]", cfg.LogLevel)
+	msg(versioninfo, 0)
 
 	// the command line arguments are getting lost
 
@@ -35,6 +40,10 @@ func main() {
 	args := os.Args[1:len(os.Args)]
 
 	for i, a := range args {
+		if a == "-v" {
+			// version always printed anyway
+			os.Exit(1)
+		}
 		if a == "-gl" {
 			ll, e := strconv.Atoi(args[i+1])
 			chke(e)
@@ -47,9 +56,6 @@ func main() {
 		}
 	}
 
-	versioninfo := fmt.Sprintf("%s CLI Debugging Interface (v.%s)", MYNAME, VERSION)
-	versioninfo = versioninfo + fmt.Sprintf(" [loglevel=%d]", cfg.LogLevel)
-
 	if cfg.LogLevel > 5 {
 		cfg.LogLevel = 5
 	}
@@ -59,8 +65,6 @@ func main() {
 	}
 
 	cfg.PGLogin = decodepsqllogin([]byte(cfg.PosgresInfo))
-
-	msg(versioninfo, 0)
 
 	// concurrent launching
 	var awaiting sync.WaitGroup
