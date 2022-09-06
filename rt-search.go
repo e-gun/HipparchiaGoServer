@@ -371,25 +371,31 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 		return badsearch(m)
 	}
 
+	// [c4] search head and tail for the second search term
+
 	var validresults []DbWorkline
 	for idx, str := range stringmapper {
-		fmt.Printf("str: %s\n", str)
 		subs := patternone.FindStringSubmatch(str)
-		head := subs[patternone.SubexpIndex("head")]
-		tail := subs[patternone.SubexpIndex("tail")]
-		fmt.Printf("full tail: %s\n", tail)
+		head := ""
+		tail := ""
+		if len(subs) != 0 {
+			head = subs[patternone.SubexpIndex("head")]
+			tail = subs[patternone.SubexpIndex("tail")]
+		}
 
 		hh := strings.Split(head, " ")
-		hh = hh[int64(len(hh))-first.ProxVal-1:]
+		start := int64(0)
+		if int64(len(hh))-first.ProxVal-1 > 0 {
+			start = int64(len(hh)) - first.ProxVal - 1
+		}
+		hh = hh[start:]
 		head = strings.Join(hh, " ")
-		fmt.Printf("stripped head: %s\n", head)
 
 		tt := strings.Split(tail, " ")
 		if int64(len(tt)) >= first.ProxVal {
 			tt = tt[0:first.ProxVal]
 		}
 		tail = strings.Join(tt, " ")
-		fmt.Printf("stripped tail: %s\n", tail)
 
 		if patterntwo.MatchString(head) || patterntwo.MatchString(tail) {
 			validresults = append(validresults, first.Results[idx])
