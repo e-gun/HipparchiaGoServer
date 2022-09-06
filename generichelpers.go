@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -318,7 +319,14 @@ func getrunefeeder() map[rune][]rune {
 	return feeder
 }
 
-func uvσçϲ(u string) string {
+func acuteforgrave(thetext string) string {
+	swap := strings.NewReplacer("ὰ", "ά", "ὲ", "έ", "ὶ", "ί", "ὸ", "ό", "ὺ", "ύ", "ὴ", "ή", "ὼ", "ώ",
+		"ἂ", "ἄ", "ἒ", "ἔ", "ἲ", "ἴ", "ὂ", "ὄ", "ὒ", "ὔ", "ἢ", "ἤ", "ὢ", "ὤ", "ᾃ", "ᾅ", "ᾓ", "ᾕ", "ᾣ", "ᾥ",
+		"ᾂ", "ᾄ", "ᾒ", "ᾔ", "ᾢ", "ᾤ")
+	return swap.Replace(thetext)
+}
+
+func uvσςϲ(u string) string {
 	feeder := make(map[rune][]rune)
 
 	feeder['u'] = []rune("uUvVÜÚüú")

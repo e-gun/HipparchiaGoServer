@@ -69,6 +69,7 @@ func Browse(c echo.Context, sep string) string {
 		au := elem[0]
 		wk := elem[1]
 		uid := au + "w" + wk
+
 		// findendpointsfromlocus() lives in rt-selection.go
 		ln := findendpointsfromlocus(uid, elem[2], sep)
 		ctx := sessions[user].UI.BrowseCtx
@@ -84,11 +85,28 @@ func Browse(c echo.Context, sep string) string {
 func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 	// build a response to "GET /browse/linenumber/gr0062/028/14672 HTTP/1.1"
 
+	k := fmt.Sprintf("%sw%s", au, wk)
+
+	// [a] validate
+	w := DbWork{}
+	w.UID = "null"
+	if _, ok := AllWorks[k]; ok {
+		w = AllWorks[k]
+	} else {
+		if _, y := AllAuthors[au]; y {
+			// firstwork; otherwise we are still set to "null"
+			w = AllWorks[AllAuthors[au].WorkList[0]]
+		}
+	}
+
+	if w.UID == "null" {
+		msg(fmt.Sprintf("could not find a work for %s", k), 1)
+		return []byte{}
+	}
+
 	// [b] acquire the lines we need to display in the body
 
 	lines := simplecontextgrabber(au, fc, ctx/2)
-	k := fmt.Sprintf("%sw%s", au, wk)
-	w := AllWorks[k]
 
 	// [c] format the lines
 
@@ -99,7 +117,6 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 
 	// need to set lines[0] to the focus, ie the middle of the pile of lines
 	ci := formatcitationinfo(AllAuthors, w, lines[0])
-	pi := formatpublicationinfo(AllWorks[k])
 	tr := buildbrowsertable(fc, lines)
 
 	// [e] fill out the JSON-ready struct
@@ -138,7 +155,7 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 	bp.Workid = lines[0].WkUID
 	bp.Authorboxcontents = ab
 	bp.Workboxcontents = wb
-	bp.Browserhtml = ci + pi + tr
+	bp.Browserhtml = ci + tr
 	bp.Worknumber = wk
 
 	// debugging
@@ -168,12 +185,13 @@ func formatpublicationinfo(w DbWork) string {
 
 	tags := []Swapper{
 		{"volumename", "", ". "},
-		{"press", "", ", "},
-		{"city", "", ", "},
-		{"year", "", ". "},
+		{"press", " ", ", "},
+		{"city", " ", ", "},
+		{"year", " ", ". "},
 		{"yearreprinted", "[", "] "},
-		{"series", "", ""},
+		{"series", " ", ""},
 		{"editor", "(", ")"},
+		{"work", " ", " "},
 		{"pages", " pp. ", ". "},
 	}
 
@@ -185,13 +203,37 @@ func formatpublicationinfo(w DbWork) string {
 		found := pattern.MatchString(w.Pub)
 		if found {
 			subs := pattern.FindStringSubmatch(w.Pub)
-			data := strings.TrimRight(subs[pattern.SubexpIndex("data")], " ")
+			data := subs[pattern.SubexpIndex("data")]
 			pub := fmt.Sprintf(`<span class="pub%s">%s%s%s</span>`, t.Name, t.Left, data, t.Right)
 			pubinfo += pub
 		}
 	}
 
-	return pubinfo
+	//	NB: Authors like Livy can swallow the browser window by sending 351 characters worth of editors to one of the lines
+	if len(pubinfo) > (MINBROWSERWIDTH*3)/2 {
+		pubinfo = strings.Replace(pubinfo, "span class", "span_class", -1)
+		// pubinfo = strings.Replace(pubinfo, ";", ";&nbsp;", -1)
+		pi := strings.Split(pubinfo, " ")
+		var trimmings []string
+		var trimmed string
+		for _, p := range pi {
+			if len(trimmed) < (MINBROWSERWIDTH*3)/2 {
+				trimmed = trimmed + p + " "
+			} else {
+				trimmings = append(trimmings, trimmed)
+				trimmed = ""
+			}
+		}
+		pubinfo = strings.Join(trimmings, `</span> <br><span class="pubeditor">`)
+		pubinfo = strings.Replace(pubinfo, "span_class", "span class", -1)
+	}
+
+	readability := `
+	<br>
+	%s
+	`
+
+	return fmt.Sprintf(readability, pubinfo)
 }
 
 func formatcitationinfo(authormap map[string]DbAuthor, w DbWork, l DbWorkline) string {
@@ -200,6 +242,7 @@ func formatcitationinfo(authormap map[string]DbAuthor, w DbWork, l DbWorkline) s
 		<span class="currentlyviewingauthor">%s</span>, 
 		<span class="currentlyviewingwork">%s</span><br />
 		<span class="currentlyviewingcitation">%s</span>
+		%s
 		%s</p>`
 
 	dt := `<br>(Assigned date of %s)`
@@ -207,8 +250,9 @@ func formatcitationinfo(authormap map[string]DbAuthor, w DbWork, l DbWorkline) s
 	au := authormap[w.FindAuthor()].Name
 	ti := w.Title
 	fc := basiccitation(w, l)
+	pi := formatpublicationinfo(AllWorks[l.WkUID])
 	id := formatinscriptiondates(dt, l)
-	cv = fmt.Sprintf(cv, au, ti, fc, id)
+	cv = fmt.Sprintf(cv, au, ti, fc, pi, id)
 
 	return cv
 }
@@ -240,19 +284,19 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	// no handling of 'lines every' yet
 	// no handling of rollovers at new sections yet
 	// no handling of 'issamework' (for papyri, etc) yet
+	// need checkfordocumentmetadata() equivalent
+	// need samelevelas() function
 
 	// try to fix some multi-line issues by building a text block...
-	// across the whole
+
 	var block []string
 	for _, l := range lines {
 		block = append(block, l.MarkedUp)
 	}
 
 	whole := strings.Join(block, "✃✃✃")
-	whole = unbalancedspancleaner(whole)
-	whole = formateditorialbrackets(whole)
-	whole = formatmultilinebrackets(whole)
-	// fmt.Println(whole)
+
+	whole = textblockcleaner(whole)
 
 	// reassemble
 	block = strings.Split(whole, "✃✃✃")
@@ -290,6 +334,11 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 			bl = fmt.Sprintf("%s%s%s", fla, newline, flb)
 		}
 
+		// figure out whether to display a citation
+		// [a] if thisline.samelevelas(previousline) is not True:...
+		// [b] if linenumber % linesevery == 0
+		// [c] always give a citation for the focus line
+
 		trr = append(trr, fmt.Sprintf(tr, lines[i].Annotations, bl, cit))
 	}
 	tab := strings.Join(trr, "")
@@ -302,25 +351,4 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	tab = top + tab + `</tbody></table>`
 
 	return tab
-}
-
-func formatmultilinebrackets(html string) string {
-	// try to get the spanning right in a browser table for the following:
-	// porrigant; sunt qui non usque ad vitium accedant (necesse 	114.11.4
-	// est enim hoc facere aliquid grande temptanti) sed qui ipsum 	114.11.5
-
-	// we have already marked the opening w/ necesse... but it needs to close and reopen for a new table row
-	// use the block delimiter ("✃✃✃") to help with this
-
-	// sunt qui illos detineant et✃✃✃porrigant; sunt qui non usque ad vitium accedant (<span class="editorialmarker_roundbrackets">necesse✃✃✃est enim hoc facere aliquid grande temptanti</span>) sed qui ipsum✃✃✃vitium ament.✃✃✃
-
-	// also want to do this before you have a lot of "span" spam in the line...
-
-	// the next ovverruns; need to stop at "<"
-	// pattern := regexp.MustCompile("(?P<brktype><span class=\"editorialmarker_\\w+brackets\">)(?P<line_end>.*?)✃✃✃(?P<line_start>.*?</span>)")
-
-	pattern := regexp.MustCompile("(?P<brktype><span class=\"editorialmarker_\\w+brackets\">)(?P<line_end>[^\\<]*?)✃✃✃(?P<line_start>.*?</span>)")
-	html = pattern.ReplaceAllString(html, "$1$2</span>✃✃✃$1$3")
-
-	return html
 }

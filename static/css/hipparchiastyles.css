@@ -803,7 +803,7 @@ body {
 	font-weight: bold;
 	}
 
-.pubeditor, .pubpress, .pubcity, .pubyear, .pubseries {
+.pubeditor, .pubpress, .pubcity, .pubyear, .pubseries, .pubpages, .pubwork, .pubyearreprinted {
 	font-weight: normal;
 	font-size: 70%;
 	}

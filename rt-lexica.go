@@ -84,6 +84,8 @@ func RtLexFindByForm(c echo.Context) error {
 
 	word := elem[0]
 
+	word = acuteforgrave(word)
+
 	b := findbyform(word, au)
 
 	return c.String(http.StatusOK, string(b))

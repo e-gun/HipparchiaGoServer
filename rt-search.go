@@ -325,8 +325,8 @@ func parsesearchinput(s *SearchStruct) {
 		s.Proximate = string(rs[0:MAXINPUTLEN])
 	}
 
-	s.Seeking = uvσçϲ(s.Seeking)
-	s.Proximate = uvσçϲ(s.Proximate)
+	s.Seeking = uvσςϲ(s.Seeking)
+	s.Proximate = uvσςϲ(s.Proximate)
 
 	s.Seeking = purgechars(UNACCEPTABLEINPUT, s.Seeking)
 	s.Proximate = purgechars(UNACCEPTABLEINPUT, s.Proximate)
@@ -745,8 +745,8 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 			block = append(block, c.Contents)
 		}
 		whole := strings.Join(block, "✃✃✃")
-		whole = unbalancedspancleaner(whole)
-		whole = formateditorialbrackets(whole)
+
+		whole = textblockcleaner(whole)
 
 		// reassemble
 		block = strings.Split(whole, "✃✃✃")
@@ -781,16 +781,6 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 			}
 		}
 	}
-
-	// search for brackets
-	// TODO: it's fiddly
-
-	// search for span inheretance
-	// TODO: it's fiddly
-
-	// build a passage bundle
-
-	// aggregate the bundles
 
 	pht := `
 	<locus>
@@ -917,29 +907,6 @@ func formatbcedate(d string) string {
 	return d
 }
 
-func formateditorialbrackets(html string) string {
-	// sample:
-	// [<span class="editorialmarker_squarebrackets">ἔδοχϲεν τε͂ι βολε͂ι καὶ το͂ι</span>]
-
-	// special cases:
-	// [a] no "open" or "close" bracket at the head/tail of a line: ^τε͂ι βολε͂ι καὶ] το͂ι...$ / ^...ἔδοχϲεν τε͂ι βολε͂ι [καὶ το͂ι$
-	// [b] we are continuing from a previous state: no brackets here, but should insert a span; the previous line will need to notify the subsequent...
-
-	// types: editorialmarker_angledbrackets; editorialmarker_curlybrackets, editorialmarker_roundbrackets, editorialmarker_squarebrackets
-	//
-
-	// try running this against text blocks only: it probably saves plenty of trouble later
-
-	// see buildtext() in textbuilder.py for some regex recipies
-
-	html = esbboth.ReplaceAllString(html, `[<span class="editorialmarker_squarebrackets">$1</span>]`)
-	html = erbboth.ReplaceAllString(html, `(<span class="editorialmarker_roundbrackets">$1</span>)`)
-	html = eabboth.ReplaceAllString(html, `⟨<span class="editorialmarker_angledbrackets">$1</span>⟩`)
-	html = ecbboth.ReplaceAllString(html, `{<span class="editorialmarker_curlybrackets">$1</span>}`)
-
-	return html
-}
-
 func highlightfocusline(line *ResultPassageLine) {
 	line.Contents = fmt.Sprintf(`<span class="highlight">%s</span>`, line.Contents)
 }
@@ -978,6 +945,17 @@ func formatinscriptiondates(template string, dbw DbWorkline) string {
 	return datestring
 }
 
+// textblockcleaner - address multi-line formatting challenges by running a suite of clean-ups
+func textblockcleaner(html string) string {
+	// do it early and in this order
+	// presupposes the snippers are in there: "✃✃✃"
+	html = unbalancedspancleaner(html)
+	html = formatmultilinebrackets(html)
+	html = formateditorialbrackets(html)
+	return html
+}
+
+// unbalancedspancleaner - helper for textblockcleaner()
 func unbalancedspancleaner(html string) string {
 	// 	unbalanced spans inside of result chunks: ask for 4 lines of context and search for »ἀδύνατον γ[άὰ]ρ«
 	//	this will cough up two examples of the problem in Alexander, In Aristotelis analyticorum priorum librum i commentarium
@@ -1017,6 +995,52 @@ func unbalancedspancleaner(html string) string {
 			html = html + xclose
 		}
 	}
+	return html
+}
+
+// formatmultilinebrackets - helper for textblockcleaner()
+func formatmultilinebrackets(html string) string {
+	// try to get the spanning right in a browser table for the following:
+	// porrigant; sunt qui non usque ad vitium accedant (necesse 	114.11.4
+	// est enim hoc facere aliquid grande temptanti) sed qui ipsum 	114.11.5
+
+	// we have already marked the opening w/ necesse... but it needs to close and reopen for a new table row
+	// use the block delimiter ("✃✃✃") to help with this
+
+	// sunt qui illos detineant et✃✃✃porrigant; sunt qui non usque ad vitium accedant (<span class="editorialmarker_roundbrackets">necesse✃✃✃est enim hoc facere aliquid grande temptanti</span>) sed qui ipsum✃✃✃vitium ament.✃✃✃
+
+	// also want to do this before you have a lot of "span" spam in the line...
+
+	// the next ovverruns; need to stop at "<"
+	// pattern := regexp.MustCompile("(?P<brktype><span class=\"editorialmarker_\\w+brackets\">)(?P<line_end>.*?)✃✃✃(?P<line_start>.*?</span>)")
+
+	pattern := regexp.MustCompile("(?P<brktype><span class=\"editorialmarker_\\w+brackets\">)(?P<line_end>[^\\<]*?)✃✃✃(?P<line_start>.*?</span>)")
+	html = pattern.ReplaceAllString(html, "$1$2</span>✃✃✃$1$3")
+
+	return html
+}
+
+// formateditorialbrackets - helper for textblockcleaner()
+func formateditorialbrackets(html string) string {
+	// sample:
+	// [<span class="editorialmarker_squarebrackets">ἔδοχϲεν τε͂ι βολε͂ι καὶ το͂ι</span>]
+
+	// special cases:
+	// [a] no "open" or "close" bracket at the head/tail of a line: ^τε͂ι βολε͂ι καὶ] το͂ι...$ / ^...ἔδοχϲεν τε͂ι βολε͂ι [καὶ το͂ι$
+	// [b] we are continuing from a previous state: no brackets here, but should insert a span; the previous line will need to notify the subsequent...
+
+	// types: editorialmarker_angledbrackets; editorialmarker_curlybrackets, editorialmarker_roundbrackets, editorialmarker_squarebrackets
+	//
+
+	// try running this against text blocks only: it probably saves plenty of trouble later
+
+	// see buildtext() in textbuilder.py for some regex recipies
+
+	html = esbboth.ReplaceAllString(html, `[<span class="editorialmarker_squarebrackets">$1</span>]`)
+	html = erbboth.ReplaceAllString(html, `(<span class="editorialmarker_roundbrackets">$1</span>)`)
+	html = eabboth.ReplaceAllString(html, `⟨<span class="editorialmarker_angledbrackets">$1</span>⟩`)
+	html = ecbboth.ReplaceAllString(html, `{<span class="editorialmarker_curlybrackets">$1</span>}`)
+
 	return html
 }
 

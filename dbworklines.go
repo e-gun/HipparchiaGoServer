@@ -83,6 +83,20 @@ func (dbw DbWorkline) BuildHyperlink() string {
 	return fmt.Sprintf(t, dbw.FindAuthor(), dbw.FindWork(), dbw.TbIndex)
 }
 
+func (dbw DbWorkline) SameLevelAs(other DbWorkline) bool {
+	// to help toggle the counters when building texts
+	one := dbw.Lvl1Value == other.Lvl1Value
+	two := dbw.Lvl2Value == other.Lvl2Value
+	three := dbw.Lvl3Value == other.Lvl3Value
+	four := dbw.Lvl4Value == other.Lvl4Value
+	five := dbw.Lvl5Value == other.Lvl5Value
+	if one && two && three && four && five {
+		return true
+	} else {
+		return false
+	}
+}
+
 // worklinequery - use a PrerolledQuery to acquire []DbWorkline
 func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Pool) []DbWorkline {
 	// [a] build a temp table if needed
