@@ -200,8 +200,9 @@ func RtSearchStandard(c echo.Context) error {
 // TWO-PART SEARCHES
 //
 
+// withinxlinessearch - find A within N lines of B
 func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
-	// after finding x, look for y within n lines of x
+	// after finding A, look for B within N lines of A
 	// can do:
 	// [1] single + single
 	// [2] lemma + single
@@ -218,22 +219,10 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	//		HGoSrch(second)
 
 	previous := time.Now()
-	first := originalsrch
+	first := generateinitialhits(originalsrch)
 
-	first.Limit = FIRSTSEARCHLIM
-	first = HGoSrch(first)
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	msg(fmt.Sprintf("%s withinxlinessearch(): %d initial hits", d, len(first.Results)), 4)
-	previous = time.Now()
-
-	if first.HasPhrase {
-		mod := first
-		// this will cut the hits by c. 50%
-		mod.Results = findphrasesacrosslines(first)
-		first = mod
-	}
-	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf("%s findphrasesacrosslines(): %d trimmed hits", d, len(first.Results)), 4)
 	previous = time.Now()
 
 	second := clonesearch(first, 2)
@@ -272,6 +261,144 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	// findphrasesacrosslines() check happens just after you exit this function
 
 	return searches[originalsrch.ID]
+}
+
+// withinxwordssearch - find A within N words of B
+func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
+	// todo: not near logic
+
+	previous := time.Now()
+	first := generateinitialhits(originalsrch)
+
+	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
+	msg(fmt.Sprintf("%s withinxwordssearch(): %d initial hits", d, len(first.Results)), 4)
+	previous = time.Now()
+
+	// the trick is we are going to grab all lines near the initial hit; then build strings; then search those strings ourselves
+	// so the second search is "anything nearby"
+
+	// [a] build the second search
+	second := clonesearch(first, 2)
+	sskg := second.Proximate
+	slem := second.LemmaTwo
+	second.Seeking = ""
+	second.LemmaOne = ""
+	second.Proximate = first.Seeking
+	second.LemmaTwo = first.LemmaOne
+
+	setsearchtype(&second)
+
+	// [a1] hard code a suspect assumption...
+	AVERAGEWRDSPERLINE := 8
+	need := 2 + (first.ProxVal / int64(AVERAGEWRDSPERLINE))
+
+	pt := `%s_FROM_%d_TO_%d`
+	t := `linenumber/%s/%s/%d`
+	resultmapper := make(map[string]int)
+	var newpsg []string
+
+	// [a2] pick the lines to grab and associate them with the hits they go with
+	for i, r := range first.Results {
+		np := fmt.Sprintf(pt, r.FindAuthor(), r.TbIndex-need, r.TbIndex+need)
+		newpsg = append(newpsg, np)
+		for j := r.TbIndex - need; j <= r.TbIndex+need; j++ {
+			m := fmt.Sprintf(t, r.FindAuthor(), r.FindWork(), j)
+			resultmapper[m] = i
+		}
+	}
+
+	second.SearchIn.Passages = newpsg
+	prq := searchlistintoqueries(&second)
+
+	// [b] run the second "search"
+	second.Queries = prq
+	searches[originalsrch.ID] = HGoSrch(second)
+
+	// [c] convert these finds into strings and then search those strings
+	// [c1] build bundles of lines
+	bundlemapper := make(map[int][]DbWorkline)
+	for _, r := range searches[originalsrch.ID].Results {
+		url := r.BuildHyperlink()
+		bun := resultmapper[url]
+		bundlemapper[bun] = append(bundlemapper[bun], r)
+	}
+
+	// [c2] decompose them into long strings
+	stringmapper := make(map[int]string)
+	for idx, lines := range bundlemapper {
+		var bundle []string
+		for _, l := range lines {
+			bundle = append(bundle, columnpicker(first.SrchColumn, l))
+		}
+		stringmapper[idx] = strings.Join(bundle, " ")
+	}
+
+	// [c3] grab the head and tail of each
+	var re string
+	if len(first.LemmaOne) != 0 {
+		re = strings.Join(lemmaintoregexslice(first.LemmaOne), "|")
+	} else {
+		re = first.Seeking
+	}
+
+	rt := `(?P<head>.*?)%s(?P<tail>.*?)`
+	patternone, e := regexp.Compile(fmt.Sprintf(rt, re))
+	if e != nil {
+		m := fmt.Sprintf("withinxwordssearch() could not compile second pass regex term: %s", re)
+		msg(m, 1)
+		return badsearch(m)
+	}
+
+	if len(slem) != 0 {
+		re = strings.Join(lemmaintoregexslice(second.LemmaOne), "|")
+	} else {
+		re = sskg
+	}
+
+	patterntwo, e := regexp.Compile(re)
+	if e != nil {
+		m := fmt.Sprintf("withinxwordssearch() could not compile second pass regex term: %s", re)
+		msg(m, 1)
+		return badsearch(m)
+	}
+
+	var validresults []DbWorkline
+	for idx, str := range stringmapper {
+		subs := patternone.FindStringSubmatch(str)
+		head := subs[patternone.SubexpIndex("head")]
+		tail := subs[patternone.SubexpIndex("tail")]
+
+		hh := strings.Split(head, " ")
+		hh = hh[int64(len(hh))-first.ProxVal:]
+		head = strings.Join(hh, " ")
+
+		tt := strings.Split(tail, " ")
+		tt = tt[0:first.ProxVal]
+		tail = strings.Join(tt, " ")
+
+		if patterntwo.MatchString(head) || patterntwo.MatchString(tail) {
+			validresults = append(validresults, first.Results[idx])
+		}
+	}
+
+	second.Results = validresults
+
+	return second
+}
+
+func generateinitialhits(first SearchStruct) SearchStruct {
+	// part one of a two-part search
+
+	first.Limit = FIRSTSEARCHLIM
+	first = HGoSrch(first)
+
+	if first.HasPhrase {
+		mod := first
+		// this will cut the hits by c. 50%
+		mod.Results = findphrasesacrosslines(first)
+		first = mod
+	}
+	return first
 }
 
 //
@@ -363,6 +490,14 @@ func setsearchtype(srch *SearchStruct) {
 //
 // HELPERS
 //
+
+func badsearch(msg string) SearchStruct {
+	var s SearchStruct
+	var l DbWorkline
+	l.MarkedUp = msg
+	s.Results = append(s.Results, l)
+	return s
+}
 
 func lemmaintoregexslice(hdwd string) []string {
 	// rather than do one word per query, bundle things up: some words have >100 forms

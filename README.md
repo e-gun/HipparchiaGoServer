@@ -8,16 +8,13 @@
 * browsing mostly works 
 * dictionaries mostly work 
 * selections mostly work 
-* progress polling mostly works 
-* parallelized hit context fetching
-
+* progress polling mostly works
 
 ### TODO (in vague order of priority)
 * rationalize selections
 * within X words 
 * statistics for dictionary entries
 * sort results by date
-* better browser formatting
 * saving/fetching searches
 * indexing
 * simple text generation
