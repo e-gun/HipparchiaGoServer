@@ -15,6 +15,13 @@ import (
 )
 
 func main() {
+	// cpu profile:
+	// defer profile.Start().Stop()
+
+	// mem profile:
+	// defer profile.Start(profile.MemProfile).Stop()
+
+	// go tool pprof --pdf ./HipparchiaGoServer /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1880749830/cpu.pprof > profile.pdf
 
 	makeconfig()
 

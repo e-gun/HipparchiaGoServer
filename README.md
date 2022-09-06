@@ -12,7 +12,6 @@
 
 ### TODO (in vague order of priority)
 * rationalize selections
-* within X words 
 * statistics for dictionary entries
 * sort results by date
 * saving/fetching searches

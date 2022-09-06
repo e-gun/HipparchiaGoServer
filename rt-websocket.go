@@ -53,7 +53,11 @@ func RtWebsocket(c echo.Context) error {
 		}
 	}
 
+	done := false
 	for {
+		if done {
+			break
+		}
 		// Read
 		m := []byte{}
 		_, m, e := ws.ReadMessage()
@@ -199,10 +203,12 @@ func RtWebsocket(c echo.Context) error {
 					if rsock {
 						rconn.Close()
 					}
+					done = true
 					break
 				}
 			}
 		}
 	}
+
 	return nil
 }

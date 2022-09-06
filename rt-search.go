@@ -172,12 +172,6 @@ func RtSearchStandard(c echo.Context) error {
 		searches[id] = mod
 	}
 
-	//hits := searches[id].Results
-	//for i, h := range hits {
-	//	t := fmt.Sprintf("%d - %srch : %srch", i, h.FindLocus(), h.MarkedUp)
-	//	fmt.Println(t)
-	//}
-
 	timetracker("D", fmt.Sprintf("search executed: %d hits", len(searches[id].Results)), start, previous)
 	previous = time.Now()
 
@@ -350,7 +344,7 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 	}
 
 	rt := `^(?P<head>.*?)%s(?P<tail>.*?)$`
-	fmt.Printf("re: %s\n", fmt.Sprintf(rt, re))
+
 	patternone, e := regexp.Compile(fmt.Sprintf(rt, re))
 	if e != nil {
 		m := fmt.Sprintf("withinxwordssearch() could not compile second pass regex term: %s", re)

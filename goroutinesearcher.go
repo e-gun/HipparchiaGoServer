@@ -14,7 +14,6 @@ import (
 	"net"
 	"runtime"
 	"sync"
-	"time"
 )
 
 var (
@@ -74,7 +73,6 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	}
 
 	ss.Results = sortresults(results, ss)
-
 	return ss
 }
 
@@ -86,6 +84,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 func SrchFeeder(ctx context.Context, host net.Listener, qq []PrerolledQuery) (<-chan PrerolledQuery, error) {
 	emitqueries := make(chan PrerolledQuery, cfg.WorkerCount)
 	remainder := -1
+	done := false
 	// defer host.Close()
 
 	// channel emitter: i.e., the actual work
@@ -95,7 +94,8 @@ func SrchFeeder(ctx context.Context, host net.Listener, qq []PrerolledQuery) (<-
 			// fmt.Println(q)
 			select {
 			case <-ctx.Done():
-				return
+				done = true
+				break
 			default:
 				remainder = len(qq) - i - 1
 				emitqueries <- q
@@ -116,24 +116,28 @@ func SrchFeeder(ctx context.Context, host net.Listener, qq []PrerolledQuery) (<-
 			if err != nil {
 				continue
 			}
+			if done {
+				return
+			}
 			go func() {
 				// send remainder value to it
 				for {
 					if remainder == 0 {
 						_, err := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
 						chke(err)
-						break
+						return
 					} else if remainder > -1 {
 						// msg(fmt.Sprintf("remain: %d", remainder), 1)
 						_, err := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
 						if err != nil {
 							return // e.g., client disconnected
 						}
-						time.Sleep(300)
 					}
 				}
+				msg("anon func inner exit", 1)
 			}()
 		}
+		msg("anon func exits", 1)
 	}()
 
 	return emitqueries, nil
@@ -214,7 +218,6 @@ func ResultCollation(ctx context.Context, host net.Listener, max int64, values <
 
 		// unix socket hits broadcaster: i.e., the fluff
 		go func() {
-			// cf https://notes.shichao.io/gopl/ch8/
 			// [a] open a tcp port to broadcast on
 
 			for {
