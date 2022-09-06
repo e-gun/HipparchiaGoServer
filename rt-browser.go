@@ -305,9 +305,9 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	}
 
 	var trr []string
-	for i, _ := range lines {
-		cit := strings.Join(lines[i].FindLocus(), ".")
+	previous := lines[0]
 
+	for i, _ := range lines {
 		// turn "abc def" into "<observed id="abc">abc</observed> <observed id="def">def</observed>"
 		// the complication is that x.MarkedUp contains html; use x.Accented to find the words
 		wds := strings.Split(lines[i].Accented, " ")
@@ -334,12 +334,10 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 			bl = fmt.Sprintf("%s%s%s", fla, newline, flb)
 		}
 
-		// figure out whether to display a citation
-		// [a] if thisline.samelevelas(previousline) is not True:...
-		// [b] if linenumber % linesevery == 0
-		// [c] always give a citation for the focus line
+		cit := selectivelydisplaycitations(lines[i], previous, focus)
 
 		trr = append(trr, fmt.Sprintf(tr, lines[i].Annotations, bl, cit))
+		previous = lines[i]
 	}
 	tab := strings.Join(trr, "")
 
@@ -351,4 +349,26 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	tab = top + tab + `</tbody></table>`
 
 	return tab
+}
+
+func selectivelydisplaycitations(theline DbWorkline, previous DbWorkline, focus int64) string {
+	// figure out whether to display a citation
+	// pulled this out because it is common with the textbuilder (who will always send "0" as the focus)
+
+	// [a] if thisline.samelevelas(previousline) is not True:...
+	// [b] if linenumber % linesevery == 0
+	// [c] always give a citation for the focus line
+	citation := strings.Join(theline.FindLocus(), ".")
+
+	z, e := strconv.Atoi(theline.Lvl0Value)
+	if e != nil {
+		z = 0
+	}
+
+	if !theline.SameLevelAs(previous) || z%10 == 0 || theline.TbIndex == focus {
+		// display citation
+	} else {
+		citation = ""
+	}
+	return citation
 }
