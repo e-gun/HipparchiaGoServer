@@ -46,7 +46,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	reshost := progresssocket("rc_" + ss.ID)
 	defer reshost.Close()
 
-	emitqueries, err := SrchFeeder(ctx, proghost, ss.Queries)
+	emitqueries, err := SrchFeeder(ctx, proghost, &ss)
 	chke(err)
 
 	var findchannels []<-chan []DbWorkline
@@ -81,23 +81,22 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 //
 
 // SrchFeeder - emit items to a channel from the []PrerolledQuery that will be consumed by the SrchConsumer
-func SrchFeeder(ctx context.Context, host net.Listener, qq []PrerolledQuery) (<-chan PrerolledQuery, error) {
+func SrchFeeder(ctx context.Context, host net.Listener, ss *SearchStruct) (<-chan PrerolledQuery, error) {
 	emitqueries := make(chan PrerolledQuery, cfg.WorkerCount)
 	remainder := -1
-	done := false
-	// defer host.Close()
+	ctxclosed := false
 
 	// channel emitter: i.e., the actual work
 	go func() {
 		defer close(emitqueries)
-		for i, q := range qq {
+		for i, q := range ss.Queries {
 			// fmt.Println(q)
 			select {
 			case <-ctx.Done():
-				done = true
+				ctxclosed = true
 				break
 			default:
-				remainder = len(qq) - i - 1
+				remainder = len(ss.Queries) - i - 1
 				emitqueries <- q
 			}
 		}
@@ -111,33 +110,33 @@ func SrchFeeder(ctx context.Context, host net.Listener, qq []PrerolledQuery) (<-
 		}
 
 		for {
+			if ctxclosed || remainder == 0 {
+				break
+			}
+
 			// [a] wait for someone to listen
 			guest, err := host.Accept()
 			if err != nil {
 				continue
 			}
-			if done {
-				return
-			}
+
 			go func() {
 				// send remainder value to it
 				for {
-					if remainder == 0 {
-						_, err := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
-						chke(err)
-						return
-					} else if remainder > -1 {
+					if ctxclosed || remainder == 0 {
+						_, ioe := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
+						chke(ioe)
+						break
+					} else if !ctxclosed && remainder > -1 {
 						// msg(fmt.Sprintf("remain: %d", remainder), 1)
-						_, err := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
-						if err != nil {
-							return // e.g., client disconnected
+						_, ioe := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
+						if ioe != nil {
+							break // e.g., client disconnected
 						}
 					}
 				}
-				msg("anon func inner exit", 1)
 			}()
 		}
-		msg("anon func exits", 1)
 	}()
 
 	return emitqueries, nil

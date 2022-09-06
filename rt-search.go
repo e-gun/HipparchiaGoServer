@@ -433,11 +433,8 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	s.OrderBy = ORDERBY
 	s.SearchIn = sessions[user].Inclusions
 	s.SearchEx = sessions[user].Exclusions
-	// s.ProxVal = DEFAULTPROXIMITY
-	// s.ProxScope = DEFAULTPROXIMITYSCOPE
-	msg("builddefaultsearch() in notdefault status for testing", 1)
-	s.ProxScope = "words"
-	s.ProxVal = 4
+	s.ProxVal = DEFAULTPROXIMITY
+	s.ProxScope = DEFAULTPROXIMITYSCOPE
 	s.NotNear = false
 	s.Twobox = false
 	s.HasPhrase = false
