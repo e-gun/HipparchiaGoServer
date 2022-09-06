@@ -20,8 +20,17 @@ import (
 )
 
 var (
+	// regex compiled here instead of inside of various loops
 	isGreek   = regexp.MustCompile("[α-ωϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ]")
 	hasAccent = regexp.MustCompile("[äëïöüâêîôûàèìòùáéíóúᾂᾒᾢᾃᾓᾣᾄᾔᾤᾅᾕᾥᾆᾖᾦᾇᾗᾧἂἒἲὂὒἢὢἃἓἳὃὓἣὣἄἔἴὄὔἤὤἅἕἵὅὕἥὥἆἶὖἦὦἇἷὗἧὧᾲῂῲᾴῄῴᾷῇῷᾀᾐᾠᾁᾑᾡῒῢΐΰῧἀἐἰὀὐἠὠῤἁἑἱὁὑἡὡῥὰὲὶὸὺὴὼάέίόύήώᾶῖῦῆῶϊϋ]")
+	esbboth   = regexp.MustCompile("\\[(.*?)\\]")
+	erbboth   = regexp.MustCompile("\\((.*?)\\)")
+	eabboth   = regexp.MustCompile("⟨(.*?)⟩")
+	ecbboth   = regexp.MustCompile("\\{(.*?)\\}")
+	// esbopens := regexp.MustCompile("\\[(.*?)(\\]|$)")
+	// esbcloses := regexp.MustCompile("(^|\\[)(.*?)\\]")
+	// erbopens := regexp.MustCompile("\\((.*?)(\\)|$)")
+	// erbcloses := regexp.MustCompile("(^|\\()(.*?)\\)")
 )
 
 type SearchStruct struct {
@@ -737,7 +746,6 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 		}
 		whole := strings.Join(block, "✃✃✃")
 		whole = unbalancedspancleaner(whole)
-		// testing...
 		whole = formateditorialbrackets(whole)
 
 		// reassemble
@@ -920,18 +928,14 @@ func formateditorialbrackets(html string) string {
 	// types: editorialmarker_angledbrackets; editorialmarker_curlybrackets, editorialmarker_roundbrackets, editorialmarker_squarebrackets
 	//
 
-	// try running this against text blocks only
+	// try running this against text blocks only: it probably saves plenty of trouble later
 
 	// see buildtext() in textbuilder.py for some regex recipies
 
-	//
-	esbboth := regexp.MustCompile("\\[(.*?)\\]")
-	//esbopens := regexp.MustCompile("\\[(.*?)(\\]|$)")
-	//esbcloses := regexp.MustCompile("(^|\\[)(.*?)\\]")
-
-	if esbboth.MatchString(html) {
-		html = esbboth.ReplaceAllString(html, `[<span class="editorialmarker_squarebrackets">$1</span>]`)
-	}
+	html = esbboth.ReplaceAllString(html, `[<span class="editorialmarker_squarebrackets">$1</span>]`)
+	html = erbboth.ReplaceAllString(html, `(<span class="editorialmarker_roundbrackets">$1</span>)`)
+	html = eabboth.ReplaceAllString(html, `⟨<span class="editorialmarker_angledbrackets">$1</span>⟩`)
+	html = ecbboth.ReplaceAllString(html, `{<span class="editorialmarker_curlybrackets">$1</span>}`)
 
 	return html
 }

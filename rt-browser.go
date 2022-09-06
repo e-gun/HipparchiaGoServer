@@ -241,6 +241,25 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	// no handling of rollovers at new sections yet
 	// no handling of 'issamework' (for papyri, etc) yet
 
+	// try to fix some multi-line issues by building a text block...
+	// across the whole
+	var block []string
+	for _, l := range lines {
+		block = append(block, l.MarkedUp)
+	}
+
+	whole := strings.Join(block, "✃✃✃")
+	whole = unbalancedspancleaner(whole)
+	whole = formateditorialbrackets(whole)
+	whole = formatmultilinebrackets(whole)
+	// fmt.Println(whole)
+
+	// reassemble
+	block = strings.Split(whole, "✃✃✃")
+	for i, b := range block {
+		lines[i].MarkedUp = b
+	}
+
 	var trr []string
 	for i, _ := range lines {
 		cit := strings.Join(lines[i].FindLocus(), ".")
@@ -260,7 +279,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 				// you will barf if wds[w] = *
 				newline = pattern.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
 			} else {
-				msg(fmt.Sprintf("buildbrowsertable() could not regex compile %s", wds[w]), 1)
+				msg(fmt.Sprintf("buildbrowsertable() could not regex compile %s", wds[w]), 4)
 			}
 		}
 
@@ -270,9 +289,6 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		} else {
 			bl = fmt.Sprintf("%s%s%s", fla, newline, flb)
 		}
-
-		// in progress...
-		bl = formateditorialbrackets(bl)
 
 		trr = append(trr, fmt.Sprintf(tr, lines[i].Annotations, bl, cit))
 	}
@@ -286,4 +302,25 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	tab = top + tab + `</tbody></table>`
 
 	return tab
+}
+
+func formatmultilinebrackets(html string) string {
+	// try to get the spanning right in a browser table for the following:
+	// porrigant; sunt qui non usque ad vitium accedant (necesse 	114.11.4
+	// est enim hoc facere aliquid grande temptanti) sed qui ipsum 	114.11.5
+
+	// we have already marked the opening w/ necesse... but it needs to close and reopen for a new table row
+	// use the block delimiter ("✃✃✃") to help with this
+
+	// sunt qui illos detineant et✃✃✃porrigant; sunt qui non usque ad vitium accedant (<span class="editorialmarker_roundbrackets">necesse✃✃✃est enim hoc facere aliquid grande temptanti</span>) sed qui ipsum✃✃✃vitium ament.✃✃✃
+
+	// also want to do this before you have a lot of "span" spam in the line...
+
+	// the next ovverruns; need to stop at "<"
+	// pattern := regexp.MustCompile("(?P<brktype><span class=\"editorialmarker_\\w+brackets\">)(?P<line_end>.*?)✃✃✃(?P<line_start>.*?</span>)")
+
+	pattern := regexp.MustCompile("(?P<brktype><span class=\"editorialmarker_\\w+brackets\">)(?P<line_end>[^\\<]*?)✃✃✃(?P<line_start>.*?</span>)")
+	html = pattern.ReplaceAllString(html, "$1$2</span>✃✃✃$1$3")
+
+	return html
 }

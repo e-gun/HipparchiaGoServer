@@ -16,7 +16,7 @@
 * rationalize selections
 * within X words 
 * statistics for dictionary entries
-* bracket highlighter
+* sort results by date
 * better browser formatting
 * saving/fetching searches
 * indexing
