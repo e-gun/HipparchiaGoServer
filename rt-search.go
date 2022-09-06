@@ -151,7 +151,11 @@ func RtSearchStandard(c echo.Context) error {
 	if searches[id].Twobox {
 		// todo: triple-check results against python
 		// todo: "not near" syntax
-		searches[id] = withinxlinessearch(searches[id])
+		if searches[id].ProxScope == "words" {
+			searches[id] = withinxwordssearch(searches[id])
+		} else {
+			searches[id] = withinxlinessearch(searches[id])
+		}
 	} else {
 		searches[id] = HGoSrch(searches[id])
 	}
@@ -314,6 +318,10 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 	second.Queries = prq
 	searches[originalsrch.ID] = HGoSrch(second)
 
+	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
+	msg(fmt.Sprintf("%s withinxwordssearch(): %d subsequent hits", d, len(first.Results)), 4)
+	previous = time.Now()
+
 	// [c] convert these finds into strings and then search those strings
 	// [c1] build bundles of lines
 	bundlemapper := make(map[int][]DbWorkline)
@@ -341,7 +349,8 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 		re = first.Seeking
 	}
 
-	rt := `(?P<head>.*?)%s(?P<tail>.*?)`
+	rt := `^(?P<head>.*?)%s(?P<tail>.*?)$`
+	fmt.Printf("re: %s\n", fmt.Sprintf(rt, re))
 	patternone, e := regexp.Compile(fmt.Sprintf(rt, re))
 	if e != nil {
 		m := fmt.Sprintf("withinxwordssearch() could not compile second pass regex term: %s", re)
@@ -364,17 +373,23 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 
 	var validresults []DbWorkline
 	for idx, str := range stringmapper {
+		fmt.Printf("str: %s\n", str)
 		subs := patternone.FindStringSubmatch(str)
 		head := subs[patternone.SubexpIndex("head")]
 		tail := subs[patternone.SubexpIndex("tail")]
+		fmt.Printf("full tail: %s\n", tail)
 
 		hh := strings.Split(head, " ")
-		hh = hh[int64(len(hh))-first.ProxVal:]
+		hh = hh[int64(len(hh))-first.ProxVal-1:]
 		head = strings.Join(hh, " ")
+		fmt.Printf("stripped head: %s\n", head)
 
 		tt := strings.Split(tail, " ")
-		tt = tt[0:first.ProxVal]
+		if int64(len(tt)) >= first.ProxVal {
+			tt = tt[0:first.ProxVal]
+		}
 		tail = strings.Join(tt, " ")
+		fmt.Printf("stripped tail: %s\n", tail)
 
 		if patterntwo.MatchString(head) || patterntwo.MatchString(tail) {
 			validresults = append(validresults, first.Results[idx])
@@ -418,8 +433,11 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	s.OrderBy = ORDERBY
 	s.SearchIn = sessions[user].Inclusions
 	s.SearchEx = sessions[user].Exclusions
-	s.ProxVal = DEFAULTPROXIMITY
-	s.ProxScope = DEFAULTPROXIMITYSCOPE
+	// s.ProxVal = DEFAULTPROXIMITY
+	// s.ProxScope = DEFAULTPROXIMITYSCOPE
+	msg("builddefaultsearch() in notdefault status for testing", 1)
+	s.ProxScope = "words"
+	s.ProxVal = 4
 	s.NotNear = false
 	s.Twobox = false
 	s.HasPhrase = false
