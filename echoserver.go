@@ -200,6 +200,8 @@ func StartEchoServer() {
 
 	e.GET("/text/make/:null", RtTextMaker)
 
+	// [m2] "/text/index/a26ec16c"
+
 	//
 	// [n] vectors [unneeded/unimplemented ATM]
 	//
