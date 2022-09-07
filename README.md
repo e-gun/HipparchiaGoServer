@@ -2,13 +2,14 @@
 
 ## alpha status: does a lot of what you most want acceptably...
 
-### status as of `v0.2.2`:
+### status as of `v0.2.5`:
 
 * searching mostly works 
 * browsing mostly works 
 * dictionaries mostly work 
 * selections mostly work 
 * progress polling mostly works
+* basic text maker
 
 ### TODO (in vague order of priority)
 * rationalize selections
@@ -16,7 +17,6 @@
 * sort results by date
 * saving/fetching searches
 * indexing
-* simple text generation
 * vocabulary list generation
 * author info box
 * search list info box

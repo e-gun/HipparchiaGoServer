@@ -135,9 +135,6 @@ License: GNU GENERAL PUBLIC LICENSE 3
 		<button id="morechoicesbutton" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="More search choices"><span class="ui-icon ui-icon-arrowreturnthick-1-s"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
 		<button id="fewerchoicesbutton" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Fewer search choices"><span class="ui-icon ui-icon-arrowreturnthick-1-n"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
 		<button id="browseto" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Browse this location"><span class="ui-icon ui-icon-note"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
-		<button id="textofthis" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Generate a simple text of this selection"><span class="ui-icon ui-icon-bookmark"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
-		<button id="makeanindex" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Build an index to this selection"><span class="ui-icon ui-icon-calculator"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
-		<button id="makevocablist" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Build a vocabulary list for this selection"><span class="ui-icon ui-icon-lightbulb"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
 		<button id="authinfobutton" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Show/Hide local info about the works of this author"><span class="ui-icon ui-icon-person"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
 	<!-- frontpagehtmlformatting.py getsearchfieldbuttonshtml() output ends -->
 	
@@ -196,14 +193,19 @@ License: GNU GENERAL PUBLIC LICENSE 3
                     <th colspan="5" id="timerestrictions"></th>
                 </tr>
                 <tr>
-                    <td class="infocells" id="selectioninfocell" width="47%" title="Selection list">
+                    <td class="infocells" id="selectioninfocell" width="44%" title="Selection list">
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     </td>
                     <td style="text-align: center;" id="jscriptwigetcell" width="6%">
                         <p id="searchinfo"><span class="ui-button-icon ui-icon ui-icon-info" title="Show/hide details of the current search list">&nbsp;</span></p>
                     </td>
-                    <td class="infocellx" id="exclusioninfocell" width="47%" title="Exclusion list">
+                    <td class="infocellx" id="exclusioninfocell" width="44%" title="Exclusion list">
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    </td>
+                    <td style="text-align: center;" width="6%">
+                        <p id="textofthis"><span class="ui-button-icon ui-icon ui-icon-bookmark" title="Generate a simple text of this selection">&nbsp;</span></p>
+                        <p id="makeanindex"><span class="ui-button-icon ui-icon ui-icon-calculator" title="Build an index to this selection">&nbsp;</span></p>
+                        <p id="makevocablist"><span class="ui-button-icon ui-icon ui-icon-lightbulb" title="Build a vocabulary list for this selection">&nbsp;</span></p>
                     </td>
                 </tr>
             </tbody>

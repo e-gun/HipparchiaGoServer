@@ -198,7 +198,7 @@ func StartEchoServer() {
 
 	// [m1] "/text/make/_"
 
-	e.GET("/text/make/:null", RtTextMake)
+	e.GET("/text/make/:null", RtTextMaker)
 
 	//
 	// [n] vectors [unneeded/unimplemented ATM]
@@ -379,13 +379,7 @@ func RtSetOption(c echo.Context) error {
 	return c.String(http.StatusOK, "")
 }
 
-func RtTest(c echo.Context) error {
-	a := len(AllAuthors)
-	s := fmt.Sprintf("%d authors present", a)
-	return c.String(http.StatusOK, s)
-}
-
-func RtTextMake(c echo.Context) error {
+func RtTextMaker(c echo.Context) error {
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made
 
@@ -451,4 +445,10 @@ func RtTextMake(c echo.Context) error {
 	chke(e)
 
 	return c.String(http.StatusOK, string(js))
+}
+
+func RtTest(c echo.Context) error {
+	a := len(AllAuthors)
+	s := fmt.Sprintf("%d authors present", a)
+	return c.String(http.StatusOK, s)
 }

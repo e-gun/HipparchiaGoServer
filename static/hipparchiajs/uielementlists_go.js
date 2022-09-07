@@ -105,7 +105,7 @@ const infobuttons = Array('#authinfobutton', '#genreinfobutton');
 // action buttons
 
 const coreactionbuttons = Array('#addauthortosearchlist', '#excludeauthorfromsearchlist');
-const extendedactionbuttons = Array('#browseto', '#makeanindex', '#textofthis', '#fewerchoices', '#makevocablist');
+const extendedactionbuttons = Array('#browseto', '#fewerchoices');
 const genreselectbuttons = Array('#pickgenrebutton', '#excludegenrebutton');
 const actionbuttons = Array().concat(coreactionbuttons, extendedactionbuttons, genreselectbuttons);
 
