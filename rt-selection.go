@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -314,14 +315,278 @@ func selected(user string, sv SelectionValues) ServerSession {
 		}
 	}
 
+	s = rationalizeselections(s, sv)
+
 	return s
 }
 
-func rationalizeselections() {
+func rationalizeselections(original ServerSession, sv SelectionValues) ServerSession {
 	// if you select "book 2" after selecting the whole, select only book 2
 	// if you select the whole after book 2, then the whole
 	// etc...
 
+	rationalized := original
+
+	si := rationalized.Inclusions
+	se := rationalized.Exclusions
+	fmt.Println(si)
+	// there are clever ways to do this with reflection, but they won't be readable
+	fmt.Println(sv)
+	if sv.A() && !sv.IsExcl {
+		msg("rationalizeselections() 336", 1)
+		// [a] kick this author from the other column
+		var clean []string
+		for _, a := range se.Authors {
+			if a != sv.Auth {
+				clean = append(clean, a)
+			}
+		}
+		se.Authors = clean
+
+		// [b] remove the works from this column
+		clean = []string{}
+		for _, w := range si.Works {
+			fmt.Println(w[0:6])
+			if w[0:6] != sv.Auth {
+				clean = append(clean, w)
+			}
+		}
+		si.Works = clean
+
+		// [c] remove the passages from this column
+		clean = []string{}
+		for _, p := range si.Passages {
+			if p[0:6] != sv.Auth {
+				clean = append(clean, p)
+			}
+		}
+		si.Passages = clean
+	} else if sv.A() && sv.IsExcl {
+		msg("rationalizeselections() 364", 1)
+		// [a] kick this author from the other column
+		var clean []string
+		for _, a := range si.Authors {
+			if a != sv.Auth {
+				clean = append(clean, a)
+			}
+		}
+		si.Authors = clean
+
+		// [b] remove the works from both columns
+		clean = []string{}
+		for _, w := range si.Works {
+			if w[0:6] != sv.Auth {
+				clean = append(clean, w)
+			}
+		}
+		si.Works = clean
+
+		clean = []string{}
+		for _, w := range se.Works {
+			if w[0:6] != sv.Auth {
+				clean = append(clean, w)
+			}
+		}
+		se.Works = clean
+
+		// [c] remove the passages from both columns
+		clean = []string{}
+		for _, p := range si.Passages {
+			if p[0:6] != sv.Auth {
+				clean = append(clean, p)
+			}
+		}
+		si.Passages = clean
+
+		clean = []string{}
+		for _, p := range se.Passages {
+			if p[0:6] != sv.Auth {
+				clean = append(clean, p)
+			}
+		}
+		se.Passages = clean
+	} else if sv.AW() && !sv.IsExcl {
+		msg("rationalizeselections() 392", 1)
+		// [a] kick this author from both columns
+		var clean []string
+		for _, a := range si.Authors {
+			if a != sv.Auth {
+				clean = append(clean, a)
+			}
+		}
+		si.Authors = clean
+
+		clean = []string{}
+		for _, a := range se.Authors {
+			if a != sv.Auth {
+				clean = append(clean, a)
+			}
+		}
+		se.Authors = clean
+
+		// [b] kick this work from the other column
+		clean = []string{}
+		for _, w := range se.Works {
+			if w != sv.Work {
+				clean = append(clean, w)
+			}
+		}
+		se.Works = clean
+
+		// [c] remove the passages from this column
+		clean = []string{}
+		for _, p := range si.Passages {
+			if workvalueofpassage(p) != sv.Work {
+				clean = append(clean, p)
+			}
+		}
+		si.Passages = clean
+	} else if sv.AW() && sv.IsExcl {
+		msg("rationalizeselections() 428", 1)
+		// [a] kick this author from both columns
+		var clean []string
+		for _, a := range si.Authors {
+			if a != sv.Auth {
+				clean = append(clean, a)
+			}
+		}
+		si.Authors = clean
+
+		clean = []string{}
+		for _, a := range se.Authors {
+			if a != sv.WUID() {
+				clean = append(clean, a)
+			}
+		}
+		se.Authors = clean
+
+		// [b] kick this work from the other column
+		clean = []string{}
+		for _, w := range si.Works {
+			if w != sv.WUID() {
+				clean = append(clean, w)
+			}
+		}
+		si.Works = clean
+
+		// [c] remove the passages from this column
+		clean = []string{}
+		for _, p := range se.Passages {
+			if workvalueofpassage(p) != sv.WUID() {
+				clean = append(clean, p)
+			}
+		}
+		se.Passages = clean
+	} else if sv.AWP() && !sv.IsExcl {
+		msg("rationalizeselections() 464", 1)
+		// [a] kick this author from both columns
+		var clean []string
+		for _, a := range si.Authors {
+			if a != sv.Auth {
+				clean = append(clean, a)
+			}
+		}
+		si.Authors = clean
+
+		clean = []string{}
+		for _, a := range se.Authors {
+			if a != sv.Auth {
+				clean = append(clean, a)
+			}
+		}
+		se.Authors = clean
+
+		// [b] kick this work from both columns
+		clean = []string{}
+		for _, w := range si.Works {
+			if w != sv.WUID() {
+				clean = append(clean, w)
+			}
+		}
+		si.Works = clean
+
+		clean = []string{}
+		for _, w := range se.Works {
+			if w != sv.WUID() {
+				clean = append(clean, w)
+			}
+		}
+		se.Works = clean
+
+		// [c] kick this passage from the other column
+		clean = []string{}
+		t := `%s_FROM_%d_TO_%d`
+		s := fmt.Sprintf(t, sv.Auth, sv.Start, sv.End)
+		for _, p := range se.Passages {
+			if p != s {
+				clean = append(clean, p)
+			}
+		}
+		se.Passages = clean
+		// not going to sweat overlapping passages: hard to make them in the first place
+	} else if sv.AWP() && sv.IsExcl {
+		msg("rationalizeselections() 511", 1)
+		// [a] kick this author from both columns
+		var clean []string
+		for _, a := range si.Authors {
+			if a != sv.Auth {
+				clean = append(clean, a)
+			}
+		}
+		si.Authors = clean
+
+		clean = []string{}
+		for _, a := range se.Authors {
+			if a != sv.Auth {
+				clean = append(clean, a)
+			}
+		}
+		se.Authors = clean
+
+		// [b] kick this work from this column
+		clean = []string{}
+		for _, w := range se.Works {
+			if w != sv.WUID() {
+				clean = append(clean, w)
+			}
+		}
+		se.Works = clean
+
+		// [c] kick this passage from the other column
+		clean = []string{}
+		t := `%s_FROM_%d_TO_%d`
+		s := fmt.Sprintf(t, sv.Auth, sv.Start, sv.End)
+		for _, p := range si.Passages {
+			if p != s {
+				clean = append(clean, p)
+			}
+		}
+		si.Passages = clean
+	}
+
+	rationalized.Inclusions = si
+	rationalized.Exclusions = se
+	return rationalized
+}
+
+func workvalueofpassage(psg string) string {
+	// what work does "lt0474_FROM_58578_TO_61085" come from?
+	pattern := regexp.MustCompile(`(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`)
+	// "gr0032_FROM_11313_TO_11843"
+	subs := pattern.FindStringSubmatch(psg)
+	au := subs[pattern.SubexpIndex("auth")]
+	st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
+	sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
+	thework := ""
+	for _, w := range AllAuthors[au].WorkList {
+		ws := AllWorks[w].FirstLine
+		we := AllWorks[w].LastLine
+		if int64(st) >= ws && int64(sp) <= we {
+			thework = w
+		}
+	}
+	msg(fmt.Sprintf("workvalueofpassage() '%s' is: %s", psg, AllWorks[thework].UID), 1)
+	return thework
 }
 
 func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
@@ -400,24 +665,6 @@ func reportcurrentselections(c echo.Context) []byte {
 
 	i := s.Inclusions
 	e := s.Exclusions
-
-	//tb := `
-	//<table id="selectionstable" style="">
-	//<tbody>
-	//{{.TimeRestr}}
-	//<tr>
-	//	<td class="infocells" id="selectioninfocell" title="Selection list" width="47%">
-	//	{{.AuCatI}}{{.WkGenI}}{{.AuLocI}}{{.WkLocI}}{{.AuI}}{{.WksI}}{{.PsgI}}
-	//	</td>
-	//    <td style="text-align: center;" id="jscriptwigetcell" width="6%">
-	//        <p id="searchinfo"><span class="ui-button-icon ui-icon ui-icon-info" title="Show/hide details of the current search list">&nbsp;</span></p>
-	//    </td>
-	//	<td class="infocellx" id="exclusioninfocell" title="Exclusion list" width="47%">
-	//		{{.AuCatE}}{{.WkGenE}}{{.AuLocE}}{{.WkLocE}}{{.AuE}}{{.WksE}}{{.PsgE}}
-	//	</td>
-	//</tr>
-	//</tbody>
-	//</table>`
 
 	pl := `<span class="picklabel">%s</span><br>`
 	sl := `<span class="%sselections selection" id="%sselections_%02d" title="Double-click to remove this item">%s</span><br>`

@@ -50,6 +50,7 @@ func RtWebsocket(c echo.Context) error {
 	}
 
 	done := false
+
 	for {
 		if done {
 			break
@@ -64,7 +65,8 @@ func RtWebsocket(c echo.Context) error {
 		}
 
 		// will yield: websocket received: "205da19d"
-		// the bug-trap is the quotes around that string
+		// bug-trap: the quotes around that string
+
 		bs := string(m)
 		bs = strings.Replace(bs, `"`, "", -1)
 		mm := strings.Replace(searches[bs].InitSum, "Sought", "Seeking", -1)
@@ -80,7 +82,7 @@ func RtWebsocket(c echo.Context) error {
 				r.ID = bs
 				r.TotalWrk = searches[bs].TableSize
 				r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(searches[bs].Launched).Seconds())
-				if searches[bs].PhaseNum == 2 {
+				if searches[bs].PhaseNum > 1 {
 					r.Extra = "(second pass)"
 				} else {
 					r.Extra = ""
@@ -98,6 +100,8 @@ func RtWebsocket(c echo.Context) error {
 
 				if r.Remain != 0 {
 					r.Msg = mm
+				} else {
+					r.Msg = "Formatting..."
 				}
 
 				// Write
