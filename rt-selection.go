@@ -329,11 +329,11 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 
 	si := rationalized.Inclusions
 	se := rationalized.Exclusions
-	fmt.Println(si)
+
 	// there are clever ways to do this with reflection, but they won't be readable
-	fmt.Println(sv)
+
 	if sv.A() && !sv.IsExcl {
-		msg("rationalizeselections() 336", 1)
+		msg("rationalizeselections() 336", 5)
 		// [a] kick this author from the other column
 		var clean []string
 		for _, a := range se.Authors {
@@ -362,7 +362,7 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		}
 		si.Passages = clean
 	} else if sv.A() && sv.IsExcl {
-		msg("rationalizeselections() 364", 1)
+		msg("rationalizeselections() 365", 5)
 		// [a] kick this author from the other column
 		var clean []string
 		for _, a := range si.Authors {
@@ -394,6 +394,8 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		for _, p := range si.Passages {
 			if p[0:6] != sv.Auth {
 				clean = append(clean, p)
+			} else {
+				delete(si.MappedPsgByName, p)
 			}
 		}
 		si.Passages = clean
@@ -402,11 +404,13 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		for _, p := range se.Passages {
 			if p[0:6] != sv.Auth {
 				clean = append(clean, p)
+			} else {
+				delete(se.MappedPsgByName, p)
 			}
 		}
 		se.Passages = clean
 	} else if sv.AW() && !sv.IsExcl {
-		msg("rationalizeselections() 392", 1)
+		msg("rationalizeselections() 413", 5)
 		// [a] kick this author from both columns
 		var clean []string
 		for _, a := range si.Authors {
@@ -438,11 +442,13 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		for _, p := range si.Passages {
 			if workvalueofpassage(p) != sv.Work {
 				clean = append(clean, p)
+			} else {
+				delete(si.MappedPsgByName, p)
 			}
 		}
 		si.Passages = clean
 	} else if sv.AW() && sv.IsExcl {
-		msg("rationalizeselections() 428", 1)
+		msg("rationalizeselections() 451", 5)
 		// [a] kick this author from both columns
 		var clean []string
 		for _, a := range si.Authors {
@@ -469,16 +475,28 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		}
 		si.Works = clean
 
-		// [c] remove the passages from this column
+		// [c] remove the passages from both columns
+		clean = []string{}
+		for _, p := range si.Passages {
+			if workvalueofpassage(p) != sv.WUID() {
+				clean = append(clean, p)
+			} else {
+				delete(si.MappedPsgByName, p)
+			}
+		}
+		si.Passages = clean
+
 		clean = []string{}
 		for _, p := range se.Passages {
 			if workvalueofpassage(p) != sv.WUID() {
 				clean = append(clean, p)
+			} else {
+				delete(si.MappedPsgByName, p)
 			}
 		}
 		se.Passages = clean
 	} else if sv.AWP() && !sv.IsExcl {
-		msg("rationalizeselections() 464", 1)
+		msg("rationalizeselections() 499", 5)
 		// [a] kick this author from both columns
 		var clean []string
 		for _, a := range si.Authors {
@@ -520,12 +538,14 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		for _, p := range se.Passages {
 			if p != s {
 				clean = append(clean, p)
+			} else {
+				delete(se.MappedPsgByName, p)
 			}
 		}
 		se.Passages = clean
 		// not going to sweat overlapping passages: hard to make them in the first place
 	} else if sv.AWP() && sv.IsExcl {
-		msg("rationalizeselections() 511", 1)
+		msg("rationalizeselections() 548", 5)
 		// [a] kick this author from both columns
 		var clean []string
 		for _, a := range si.Authors {
@@ -559,6 +579,8 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		for _, p := range si.Passages {
 			if p != s {
 				clean = append(clean, p)
+			} else {
+				delete(si.MappedPsgByName, p)
 			}
 		}
 		si.Passages = clean
@@ -585,7 +607,8 @@ func workvalueofpassage(psg string) string {
 			thework = w
 		}
 	}
-	msg(fmt.Sprintf("workvalueofpassage() '%s' is: %s", psg, AllWorks[thework].UID), 1)
+
+	//msg(fmt.Sprintf("workvalueofpassage() '%s' is: %s", psg, AllWorks[thework].UID), 1)
 	return thework
 }
 
