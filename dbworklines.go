@@ -97,6 +97,14 @@ func (dbw DbWorkline) SameLevelAs(other DbWorkline) bool {
 	}
 }
 
+func (dbw DbWorkline) AccentedSlice() []string {
+	return strings.Split(dbw.Accented, " ")
+}
+
+func (dbw DbWorkline) Citation() string {
+	return strings.Join(dbw.FindLocus(), ".")
+}
+
 // worklinequery - use a PrerolledQuery to acquire []DbWorkline
 func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Pool) []DbWorkline {
 	// [a] build a temp table if needed

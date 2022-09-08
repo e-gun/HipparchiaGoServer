@@ -322,7 +322,7 @@ func getrunefeeder() map[rune][]rune {
 func acuteforgrave(thetext string) string {
 	swap := strings.NewReplacer("ὰ", "ά", "ὲ", "έ", "ὶ", "ί", "ὸ", "ό", "ὺ", "ύ", "ὴ", "ή", "ὼ", "ώ",
 		"ἂ", "ἄ", "ἒ", "ἔ", "ἲ", "ἴ", "ὂ", "ὄ", "ὒ", "ὔ", "ἢ", "ἤ", "ὢ", "ὤ", "ᾃ", "ᾅ", "ᾓ", "ᾕ", "ᾣ", "ᾥ",
-		"ᾂ", "ᾄ", "ᾒ", "ᾔ", "ᾢ", "ᾤ")
+		"ᾂ", "ᾄ", "ᾒ", "ᾔ", "ᾢ", "ᾤ", "á", "a", "é", "e", "í", "i", "ó", "o", "ú", "u")
 	return swap.Replace(thetext)
 }
 

@@ -26,8 +26,7 @@ function generateId (len) {
 $('#makeanindex').click( function() {
         $('#searchsummary').html('');
         $('#displayresults').html('');
-        let searchid = generateId(8);
-        let url = '/text/index/' + searchid
+        let url = '/text/index/_';
         $.getJSON(url, function (indexdata) {
             loadindexintodisplayresults(indexdata);
         });
