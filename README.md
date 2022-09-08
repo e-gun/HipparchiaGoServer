@@ -10,13 +10,13 @@
 * selections mostly work 
 * progress polling mostly works
 * basic text maker
+* very basic indexing
 
 ### TODO (in vague order of priority)
 * rationalize selections
 * statistics for dictionary entries
 * sort results by date
 * saving/fetching searches
-* indexing
 * vocabulary list generation
 * author info box
 * search list info box

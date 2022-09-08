@@ -36,7 +36,7 @@ func RtIndexMaker(c echo.Context) error {
 		for _, w := range wds {
 			this := WordInfo{
 				HW:         "",
-				Wd:         acuteforgrave(w),
+				Wd:         uvσςϲ(acuteforgrave(w)),
 				Loc:        r.BuildHyperlink(),
 				Cit:        r.Citation(),
 				IsHomonymn: false,
@@ -110,17 +110,29 @@ func RtIndexMaker(c echo.Context) error {
 		trr = append(trr, convertwordinfototablerow(wii))
 	}
 
-	htm := strings.Join(trr, "")
+	tb := `        
+		<table>
+        <tbody><tr>
+            <th class="indextable">headword</th>
+            <th class="indextable">word</th>
+            <th class="indextable">count</th>
+            <th class="indextable">passages</th>
+        </tr>
+		%s
+		</table>`
+
+	htm := fmt.Sprintf(tb, strings.Join(trr, ""))
 
 	type JSFeeder struct {
 		Au string `json:"authorname"`
 		Ti string `json:"title"`
 		WS string `json:"worksegment"`
-		HT string `json:"texthtml"`
+		HT string `json:"indexhtml"`
 		EL string `json:"elapsed"`
 		WF int    `json:"wordsfound"`
 		KY string `json:"keytoworks"`
 	}
+
 	var jso JSFeeder
 	jso.Au = "(au todo)"
 	jso.Ti = "(ti todo)"
@@ -308,16 +320,15 @@ func morphologyworker(wordlist []string, workerid int, dbpool *pgxpool.Pool) map
 
 	// a waste of time to check the language on every word; just flail/fail once
 	for _, uselang := range []string{"greek", "latin"} {
-		rndid := strings.Replace(uuid.New().String(), "-", "", -1)
-		rndid = fmt.Sprintf("%s_%s_mw_%d", rndid, uselang, workerid)
-		arr := strings.Join(wordlist, "', '")
-		arr = fmt.Sprintf("'%s'", arr)
-		tt = fmt.Sprintf(tt, rndid, arr)
+		u := strings.Replace(uuid.New().String(), "-", "", -1)
+		id := fmt.Sprintf("%s_%s_mw_%d", u, uselang, workerid)
+		a := fmt.Sprintf("'%s'", strings.Join(wordlist, "', '"))
+		t := fmt.Sprintf(tt, id, a)
 
-		_, err := dbpool.Exec(context.Background(), tt)
+		_, err := dbpool.Exec(context.Background(), t)
 		chke(err)
 
-		foundrows, e := dbpool.Query(context.Background(), fmt.Sprintf(qt, uselang, rndid, uselang))
+		foundrows, e := dbpool.Query(context.Background(), fmt.Sprintf(qt, uselang, id, uselang))
 		chke(e)
 
 		defer foundrows.Close()
@@ -361,6 +372,7 @@ func convertwordinfototablerow(ww []WordInfo) string {
 	</tr>`
 
 	tp := `<indexedlocation id="%s">%s</indexedlocation>`
+	// tph := `<span class="homonym"><indexobserved id="%s">%s</indexobserved></span>`
 
 	//<tr>
 	//<td class="headword">&nbsp;</td>
@@ -370,18 +382,32 @@ func convertwordinfototablerow(ww []WordInfo) string {
 	//</tr>
 
 	var trr []string
-
+	used := make(map[string]bool)
 	for _, k := range keys {
 		wii := indexmap[k]
+		hw := ""
+		if used[wii[0].HW] {
+			// skip
+		} else {
+			hw = wii[0].HW
+		}
+
+		// todo: not working...
+		tem := tp
+		//if wii[0].IsHomonymn {
+		//	tem = tph
+		//}
+
 		// get all passages related to this word
 		var pp []string
 		sort.Slice(wii, func(i, j int) bool { return wii[i].Loc < wii[j].Loc })
 		for i := 0; i < len(wii); i++ {
-			pp = append(pp, fmt.Sprintf(tp, wii[i].Loc, wii[i].Cit))
+			pp = append(pp, fmt.Sprintf(tem, wii[i].Loc, wii[i].Cit))
 		}
 		p := strings.Join(pp, ", ")
-		t := fmt.Sprintf(tr, wii[0].HW, wii[0].Wd, wii[0].Wd, len(wii), p)
+		t := fmt.Sprintf(tr, hw, wii[0].Wd, wii[0].Wd, len(wii), p)
 		trr = append(trr, t)
+		used[wii[0].HW] = true
 	}
 
 	out := strings.Join(trr, "")
