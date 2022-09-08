@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                = "Hipparchia Golang Server"
 	SHORTNAME             = "HGS"
-	VERSION               = "0.2.6"
+	VERSION               = "0.2.7"
 	PSQ                   = `{"Host": "localhost", "Port": 5432, "User": "hippa_wr", "Pass": "", "DBName": "hipparchiaDB"}`
 	PSDefaultHost         = "localhost"
 	PSDefaultUser         = "hippa_wr"
@@ -43,7 +43,6 @@ const (
 	TEMPTABLETHRESHOLD    = 100          // if a table requirce N "between" clauses, build a temptable instead to gather the needed lines
 	UNACCEPTABLEINPUT     = `|""'!@:,=+` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
 	VARIADATE             = 2000
-	UNIXSOCKETPATH        = "/tmp"
 	ARCHIVEFOLDER         = "~"
 	TARGETDIR             = "hipparchia-archive"
 

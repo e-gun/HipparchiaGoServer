@@ -1,12 +1,19 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
+	"github.com/labstack/echo/v4"
+	"io"
+	"net"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // buildquery.go
@@ -591,6 +598,336 @@ func cleanResultCollation(ctx context.Context, name string, max int64, values <-
 		//}()
 
 	}
+}
+
+func ODLSrchFeeder(ctx context.Context, host net.Listener, ss *SearchStruct) (<-chan PrerolledQuery, error) {
+	emitqueries := make(chan PrerolledQuery, cfg.WorkerCount)
+	remainder := -1
+	ctxclosed := false
+
+	// channel emitter: i.e., the actual work
+	go func() {
+		defer close(emitqueries)
+		for i, q := range ss.Queries {
+			// fmt.Println(q)
+			select {
+			case <-ctx.Done():
+				ctxclosed = true
+				break
+			default:
+				remainder = len(ss.Queries) - i - 1
+				emitqueries <- q
+			}
+		}
+	}()
+
+	// unix socket remainder broadcaster: i.e., the fluff
+	go func() {
+		if host == nil {
+			msg("progresssocket() has no access to a socket", 1)
+			return
+		}
+
+		for {
+			if ctxclosed || remainder == 0 {
+				break
+			}
+
+			// [a] wait for someone to listen
+			guest, err := host.Accept()
+			if err != nil {
+				continue
+			}
+
+			go func() {
+				// send remainder value to it
+				for {
+					if ctxclosed || remainder == 0 {
+						_, ioe := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
+						chke(ioe)
+						break
+					} else if !ctxclosed && remainder > -1 {
+						// msg(fmt.Sprintf("remain: %d", remainder), 1)
+						_, ioe := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
+						if ioe != nil {
+							break // e.g., client disconnected
+						}
+					}
+				}
+			}()
+		}
+	}()
+
+	return emitqueries, nil
+}
+
+func OLDResultCollation(ctx context.Context, host net.Listener, max int64, values <-chan []DbWorkline) []DbWorkline {
+	var allhits []DbWorkline
+	done := false
+	for {
+		// the actual substance of the thing
+		if done {
+			break
+		}
+		select {
+		case <-ctx.Done():
+			log.Print(ctx.Err().Error())
+			done = true
+		case val, ok := <-values:
+			if ok {
+				allhits = append(allhits, val...)
+				if int64(len(allhits)) > max {
+					// you popped over the cap...: this does in fact save time and exit in the middle
+					// προκατελαβον cap of one: [Δ: 0.112s] HGoSrch()
+					// προκατελαβον uncapped:   [Δ: 1.489s] HGoSrch()
+					done = true
+				}
+			} else {
+				done = true
+			}
+		}
+
+		// unix socket hits broadcaster: i.e., the fluff
+		go func() {
+			// [a] open a tcp port to broadcast on
+
+			for {
+				if done == true {
+					break
+				}
+				// [b] wait for someone to listen
+				guest, err := host.Accept()
+				if err != nil {
+					continue
+				}
+				go func() {
+					// send remainder value to it
+					for {
+						_, err := io.WriteString(guest, fmt.Sprintf("%d\n", len(allhits)))
+						if err != nil {
+							break
+						}
+						if done == true {
+							break
+						}
+					}
+				}()
+			}
+		}()
+
+	}
+	return allhits
+}
+
+func OLD_RtWebsocket(c echo.Context) error {
+	// 	the client sends the name of a poll and this will output
+	//	the status of the poll continuously while the poll remains active
+	//
+	//	example:
+	//		progress {'active': 1, 'total': 20, 'remaining': 20, 'hits': 48, 'message': 'Putting the results in context',
+	//		'elapsed': 14.0, 'extrainfo': '<span class="small"></span>'}
+
+	// see also /static/hipparchiajs/progressindicator_go.js
+
+	// https://echo.labstack.com/cookbook/websocket/
+
+	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	if err != nil {
+		return err
+	}
+	defer ws.Close()
+
+	type ReplyJS struct {
+		Active   string `json:"active"`
+		TotalWrk int    `json:"Poolofwork"`
+		Remain   int    `json:"Remaining"`
+		Hits     int    `json:"Hitcount"`
+		Msg      string `json:"Statusmessage"`
+		Elapsed  string `json:"Elapsed"`
+		Extra    string `json:"Notes"`
+		ID       string `json:"ID"`
+	}
+
+	for {
+		if len(searches) != 0 {
+			break
+		}
+	}
+
+	done := false
+	for {
+		if done {
+			break
+		}
+		// Read
+		m := []byte{}
+		_, m, e := ws.ReadMessage()
+		if e != nil {
+			// c.Logger().Error(err)
+			msg("RtWebsocket(): ws failed to read: breaking", 1)
+			break
+		}
+
+		// will yield: websocket received: "205da19d"
+		// the bug-trap is the quotes around that string
+		bs := string(m)
+		bs = strings.Replace(bs, `"`, "", -1)
+		mm := strings.Replace(searches[bs].InitSum, "Sought", "Seeking", -1)
+
+		_, found := searches[bs]
+
+		if found && searches[bs].IsActive {
+			// if you insist on a full poll; but the thing works without input from pp and rc
+			for {
+				_, pp := os.Stat(fmt.Sprintf("%s/hgs_pp_%s", UNIXSOCKETPATH, searches[bs].ID))
+				_, rc := os.Stat(fmt.Sprintf("%s/hgs_rc_%s", UNIXSOCKETPATH, searches[bs].ID))
+				if pp == nil && rc == nil {
+					// msg("found both search activity sockets", 5)
+					break
+				}
+				if _, ok := searches[bs]; !ok {
+					// don't wait forever
+					break
+				}
+			}
+
+			// we will grab the remainder value via unix socket
+			rsock := false
+			rconn, err := net.Dial("unix", fmt.Sprintf("%s/hgs_pp_%s", UNIXSOCKETPATH, searches[bs].ID))
+			if err != nil {
+				msg(fmt.Sprintf("RtWebsocket() has no connection to the remainder reports: %s/hgs_pp_%s", UNIXSOCKETPATH, searches[bs].ID), 1)
+			} else {
+				rsock = true
+				defer rconn.Close()
+			}
+
+			// we will grab the hits value via unix socket
+			hsock := false
+			hconn, err := net.Dial("unix", fmt.Sprintf("%s/hgs_rc_%s", UNIXSOCKETPATH, searches[bs].ID))
+			if err != nil {
+				msg(fmt.Sprintf("RtWebsocket() has no connection to the hits reports: %s/hgs_rc_%s", UNIXSOCKETPATH, searches[bs].ID), 1)
+			} else {
+				// if there is no connection you will get a null pointer dereference
+				hsock = true
+				defer hconn.Close()
+			}
+
+			for {
+				var r ReplyJS
+
+				// [a] the easy info to report
+				r.Active = "is_active"
+				r.ID = bs
+				r.TotalWrk = searches[bs].TableSize
+				r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(searches[bs].Launched).Seconds())
+				if searches[bs].PhaseNum == 2 {
+					r.Extra = "(second pass)"
+				} else {
+					r.Extra = ""
+				}
+
+				// [b] the tricky info
+				// [b1] set r.Remain via unix socket connection to SrchFeeder()'s broadcaster
+				if rsock {
+					r.Remain = func() int {
+						connbuf := bufio.NewReader(rconn)
+						for {
+							rs, err := connbuf.ReadString('\n')
+							if err != nil {
+								break
+							} else {
+								// fmt.Println([]byte(rs)) --> [49 10]
+								// and stripping the newline via strings is not working
+								rr := []rune(rs)
+								rr = rr[0 : len(rr)-1]
+								st, _ := strconv.Atoi(string(rr))
+								return st
+							}
+						}
+						return -1
+					}()
+				} else {
+					// see the JS: this turns off progress displays
+					r.TotalWrk = -1
+				}
+
+				if r.Remain != 0 {
+					r.Msg = mm
+				} else if rsock {
+					// will be zero if you never made the connection
+					r.Msg = "Formatting the finds..."
+				}
+
+				// [b2] set r.Hits via unix socket connection to ResultCollation()'s broadcaster
+				if hsock {
+					r.Hits = func() int {
+						connbuf := bufio.NewReader(hconn)
+						for {
+							ht, err := connbuf.ReadString('\n')
+							if err != nil {
+								break
+							} else {
+								// fmt.Println([]byte(rs)) --> [49 10]
+								// and stripping the newline via strings is not working
+								hh := []rune(ht)
+								hh = hh[0 : len(hh)-1]
+								h, _ := strconv.Atoi(string(hh))
+								return h
+							}
+						}
+						return 0
+					}()
+				}
+
+				// Write
+				js, y := json.Marshal(r)
+				chke(y)
+
+				er := ws.WriteMessage(websocket.TextMessage, js)
+
+				if er != nil {
+					c.Logger().Error(er)
+					msg("RtWebsocket(): ws failed to write: breaking", 1)
+					if hsock {
+						hconn.Close()
+					}
+					if rsock {
+						rconn.Close()
+					}
+					break
+				}
+
+				if _, exists := searches[bs]; !exists {
+					if hsock {
+						hconn.Close()
+					}
+					if rsock {
+						rconn.Close()
+					}
+					done = true
+					break
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// progresssocket - from where should the progress info be served?
+func progresssocket(name string) net.Listener {
+	// return a listener and the value of the port selected
+	// socket vs tcp: tcp connection ends up in TIME_WAIT state and will block the port
+
+	host, err := net.Listen("unix", fmt.Sprintf("%s/hgs_%s", UNIXSOCKETPATH, name))
+
+	if err != nil {
+		msg(fmt.Sprintf("progresssocket() could not open '%s/hgs_%s'", UNIXSOCKETPATH, name), 1)
+	} else {
+		// msg(fmt.Sprintf("progresssocket() opened '%s/hgs_%s'", UNIXSOCKETPATH, name), 1)
+		return host
+	}
+	return nil
 }
 
 /*

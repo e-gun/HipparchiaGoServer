@@ -6,14 +6,10 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
-	"net"
-	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -76,41 +72,6 @@ func RtWebsocket(c echo.Context) error {
 		_, found := searches[bs]
 
 		if found && searches[bs].IsActive {
-			// if you insist on a full poll; but the thing works without input from pp and rc
-			for {
-				_, pp := os.Stat(fmt.Sprintf("%s/hgs_pp_%s", UNIXSOCKETPATH, searches[bs].ID))
-				_, rc := os.Stat(fmt.Sprintf("%s/hgs_rc_%s", UNIXSOCKETPATH, searches[bs].ID))
-				if pp == nil && rc == nil {
-					// msg("found both search activity sockets", 5)
-					break
-				}
-				if _, ok := searches[bs]; !ok {
-					// don't wait forever
-					break
-				}
-			}
-
-			// we will grab the remainder value via unix socket
-			rsock := false
-			rconn, err := net.Dial("unix", fmt.Sprintf("%s/hgs_pp_%s", UNIXSOCKETPATH, searches[bs].ID))
-			if err != nil {
-				msg(fmt.Sprintf("RtWebsocket() has no connection to the remainder reports: %s/hgs_pp_%s", UNIXSOCKETPATH, searches[bs].ID), 1)
-			} else {
-				rsock = true
-				defer rconn.Close()
-			}
-
-			// we will grab the hits value via unix socket
-			hsock := false
-			hconn, err := net.Dial("unix", fmt.Sprintf("%s/hgs_rc_%s", UNIXSOCKETPATH, searches[bs].ID))
-			if err != nil {
-				msg(fmt.Sprintf("RtWebsocket() has no connection to the hits reports: %s/hgs_rc_%s", UNIXSOCKETPATH, searches[bs].ID), 1)
-			} else {
-				// if there is no connection you will get a null pointer dereference
-				hsock = true
-				defer hconn.Close()
-			}
-
 			for {
 				var r ReplyJS
 
@@ -125,57 +86,18 @@ func RtWebsocket(c echo.Context) error {
 					r.Extra = ""
 				}
 
-				// [b] the tricky info
-				// [b1] set r.Remain via unix socket connection to SrchFeeder()'s broadcaster
-				if rsock {
-					r.Remain = func() int {
-						connbuf := bufio.NewReader(rconn)
-						for {
-							rs, err := connbuf.ReadString('\n')
-							if err != nil {
-								break
-							} else {
-								// fmt.Println([]byte(rs)) --> [49 10]
-								// and stripping the newline via strings is not working
-								rr := []rune(rs)
-								rr = rr[0 : len(rr)-1]
-								st, _ := strconv.Atoi(string(rr))
-								return st
-							}
-						}
-						return -1
-					}()
-				} else {
-					// see the JS: this turns off progress displays
-					r.TotalWrk = -1
+				result, ok := progremain.Load(searches[bs].ID)
+				if ok {
+					r.Remain = result.(int)
+				}
+
+				result, ok = proghits.Load(searches[bs].ID)
+				if ok {
+					r.Hits = result.(int)
 				}
 
 				if r.Remain != 0 {
 					r.Msg = mm
-				} else if rsock {
-					// will be zero if you never made the connection
-					r.Msg = "Formatting the finds..."
-				}
-
-				// [b2] set r.Hits via unix socket connection to ResultCollation()'s broadcaster
-				if hsock {
-					r.Hits = func() int {
-						connbuf := bufio.NewReader(hconn)
-						for {
-							ht, err := connbuf.ReadString('\n')
-							if err != nil {
-								break
-							} else {
-								// fmt.Println([]byte(rs)) --> [49 10]
-								// and stripping the newline via strings is not working
-								hh := []rune(ht)
-								hh = hh[0 : len(hh)-1]
-								h, _ := strconv.Atoi(string(hh))
-								return h
-							}
-						}
-						return 0
-					}()
 				}
 
 				// Write
@@ -187,22 +109,10 @@ func RtWebsocket(c echo.Context) error {
 				if er != nil {
 					c.Logger().Error(er)
 					msg("RtWebsocket(): ws failed to write: breaking", 1)
-					if hsock {
-						hconn.Close()
-					}
-					if rsock {
-						rconn.Close()
-					}
 					break
 				}
 
 				if _, exists := searches[bs]; !exists {
-					if hsock {
-						hconn.Close()
-					}
-					if rsock {
-						rconn.Close()
-					}
 					done = true
 					break
 				}

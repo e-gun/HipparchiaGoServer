@@ -7,11 +7,8 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/gorilla/websocket"
-	"io"
 	"log"
-	"net"
 	"runtime"
 	"sync"
 )
@@ -40,13 +37,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	proghost := progresssocket("pp_" + ss.ID)
-	defer proghost.Close()
-
-	reshost := progresssocket("rc_" + ss.ID)
-	defer reshost.Close()
-
-	emitqueries, err := SrchFeeder(ctx, proghost, &ss)
+	emitqueries, err := SrchFeeder(ctx, &ss)
 	chke(err)
 
 	var findchannels []<-chan []DbWorkline
@@ -67,7 +58,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 		max = ss.Limit * 3
 	}
 
-	results := ResultCollation(ctx, reshost, max, ResultAggregator(ctx, findchannels...))
+	results := ResultCollation(ctx, ss.ID, max, ResultAggregator(ctx, findchannels...))
 	if int64(len(results)) > max {
 		results = results[0:max]
 	}
@@ -81,61 +72,21 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 //
 
 // SrchFeeder - emit items to a channel from the []PrerolledQuery that will be consumed by the SrchConsumer
-func SrchFeeder(ctx context.Context, host net.Listener, ss *SearchStruct) (<-chan PrerolledQuery, error) {
+func SrchFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, error) {
 	emitqueries := make(chan PrerolledQuery, cfg.WorkerCount)
 	remainder := -1
-	ctxclosed := false
 
-	// channel emitter: i.e., the actual work
 	go func() {
 		defer close(emitqueries)
 		for i, q := range ss.Queries {
-			// fmt.Println(q)
 			select {
 			case <-ctx.Done():
-				ctxclosed = true
 				break
 			default:
 				remainder = len(ss.Queries) - i - 1
+				progremain.Store(ss.ID, remainder)
 				emitqueries <- q
 			}
-		}
-	}()
-
-	// unix socket remainder broadcaster: i.e., the fluff
-	go func() {
-		if host == nil {
-			msg("progresssocket() has no access to a socket", 1)
-			return
-		}
-
-		for {
-			if ctxclosed || remainder == 0 {
-				break
-			}
-
-			// [a] wait for someone to listen
-			guest, err := host.Accept()
-			if err != nil {
-				continue
-			}
-
-			go func() {
-				// send remainder value to it
-				for {
-					if ctxclosed || remainder == 0 {
-						_, ioe := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
-						chke(ioe)
-						break
-					} else if !ctxclosed && remainder > -1 {
-						// msg(fmt.Sprintf("remain: %d", remainder), 1)
-						_, ioe := io.WriteString(guest, fmt.Sprintf("%d\n", remainder))
-						if ioe != nil {
-							break // e.g., client disconnected
-						}
-					}
-				}
-			}()
 		}
 	}()
 
@@ -189,11 +140,10 @@ func ResultAggregator(ctx context.Context, findchannels ...<-chan []DbWorkline) 
 }
 
 // ResultCollation - return the actual []DbWorkline results after pulling them from the ResultAggregator channel
-func ResultCollation(ctx context.Context, host net.Listener, max int64, values <-chan []DbWorkline) []DbWorkline {
+func ResultCollation(ctx context.Context, id string, max int64, values <-chan []DbWorkline) []DbWorkline {
 	var allhits []DbWorkline
 	done := false
 	for {
-		// the actual substance of the thing
 		if done {
 			break
 		}
@@ -204,6 +154,8 @@ func ResultCollation(ctx context.Context, host net.Listener, max int64, values <
 		case val, ok := <-values:
 			if ok {
 				allhits = append(allhits, val...)
+				proghits.Store(id, len(allhits))
+
 				if int64(len(allhits)) > max {
 					// you popped over the cap...: this does in fact save time and exit in the middle
 					// προκατελαβον cap of one: [Δ: 0.112s] HGoSrch()
@@ -214,35 +166,6 @@ func ResultCollation(ctx context.Context, host net.Listener, max int64, values <
 				done = true
 			}
 		}
-
-		// unix socket hits broadcaster: i.e., the fluff
-		go func() {
-			// [a] open a tcp port to broadcast on
-
-			for {
-				if done == true {
-					break
-				}
-				// [b] wait for someone to listen
-				guest, err := host.Accept()
-				if err != nil {
-					continue
-				}
-				go func() {
-					// send remainder value to it
-					for {
-						_, err := io.WriteString(guest, fmt.Sprintf("%d\n", len(allhits)))
-						if err != nil {
-							break
-						}
-						if done == true {
-							break
-						}
-					}
-				}()
-			}
-		}()
-
 	}
 	return allhits
 }
@@ -302,20 +225,4 @@ func sortresults(results []DbWorkline, ss SearchStruct) []DbWorkline {
 		OrderedBy(nameIncreasing, increasingLines).Sort(results)
 		return results
 	}
-}
-
-// progresssocket - from where should the progress info be served?
-func progresssocket(name string) net.Listener {
-	// return a listener and the value of the port selected
-	// socket vs tcp: tcp connection ends up in TIME_WAIT state and will block the port
-
-	host, err := net.Listen("unix", fmt.Sprintf("%s/hgs_%s", UNIXSOCKETPATH, name))
-
-	if err != nil {
-		msg(fmt.Sprintf("progresssocket() could not open '%s/hgs_%s'", UNIXSOCKETPATH, name), 1)
-	} else {
-		// msg(fmt.Sprintf("progresssocket() opened '%s/hgs_%s'", UNIXSOCKETPATH, name), 1)
-		return host
-	}
-	return nil
 }

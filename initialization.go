@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -19,6 +20,8 @@ var (
 	cfg         CurrentConfiguration
 	sessions    = make(map[string]ServerSession)
 	searches    = make(map[string]SearchStruct)
+	proghits    = sync.Map{}
+	progremain  = sync.Map{}
 	srchsumm    = make(map[string]SearchSummary)
 	AllWorks    = make(map[string]DbWork)
 	AllAuthors  = make(map[string]DbAuthor)
