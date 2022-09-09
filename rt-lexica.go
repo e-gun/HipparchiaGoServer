@@ -92,18 +92,6 @@ func RtLexFindByForm(c echo.Context) error {
 }
 
 //
-// HEADWORDS
-//
-
-func headwordinfo(word DbHeadwordCount) {}
-
-func headwordprevalence(word DbHeadwordCount) {}
-
-func headworddistrib(word DbHeadwordCount) {}
-
-func headwordgenres(word DbHeadwordCount) {}
-
-//
 // LOOKUPS
 //
 
@@ -275,144 +263,6 @@ func findbyform(word string, author string) []byte {
 	return jsonbundle
 }
 
-type DbHeadwordCount struct {
-	Entry    string
-	Total    int
-	TGrk     int
-	TLat     int
-	TDP      int
-	TIN      int
-	TCh      int
-	FrqCla   string
-	Early    int
-	Middle   int
-	Late     int
-	Acta     int
-	Agric    int
-	Alchem   int
-	Anthol   int
-	Apocal   int
-	Apocr    int
-	Apol     int
-	Astrol   int
-	Astron   int
-	Biogr    int
-	Bucol    int
-	Caten    int
-	Chron    int
-	Comic    int
-	Comm     int
-	Concil   int
-	Coq      int
-	Dial     int
-	Docu     int
-	Doxog    int
-	Eccl     int
-	Eleg     int
-	Ecom     int
-	Epic     int
-	Epigr    int
-	Epist    int
-	Evang    int
-	Exeg     int
-	Fab      int
-	Geog     int
-	Gnom     int
-	Gram     int
-	Hagiog   int
-	Hexam    int
-	Hist     int
-	Homil    int
-	Hymn     int
-	Hypoth   int
-	Iamb     int
-	Ignot    int
-	Invect   int
-	Inscr    int
-	Juris    int
-	Lexic    int
-	Litur    int
-	Lyr      int
-	Magica   int
-	Math     int
-	Mech     int
-	Med      int
-	Metro    int
-	Mim      int
-	Mus      int
-	Myth     int
-	NarrFic  int
-	NatHis   int
-	Onir     int
-	Orac     int
-	Orat     int
-	Paradox  int
-	Parod    int
-	Paroem   int
-	Perig    int
-	Phil     int
-	Physiog  int
-	Poem     int
-	Polyhist int
-	Proph    int
-	Pseud    int
-	Rhet     int
-	Satura   int
-	Schol    int
-	Tact     int
-	Test     int
-	Theol    int
-	Trag     int
-}
-
-func headwordlookup(word string) DbHeadwordCount {
-	qt := `
-	SELECT
-		entry_name , total_count, gr_count, lt_count, dp_count, in_count, ch_count,
-		frequency_classification, early_occurrences, middle_occurrences ,late_occurrences,
-		acta, agric, alchem, anthol, apocalyp, apocryph, apol, astrol, astron, biogr, bucol, caten, chronogr, comic, comm,
-		concil, coq, dialog, docu, doxogr, eccl, eleg, encom, epic, epigr, epist, evangel, exeget, fab, geogr, gnom, gramm,
-		hagiogr, hexametr, hist, homilet, hymn, hypoth, iamb, ignotum, invectiv, inscr, jurisprud, lexicogr, liturg, lyr,
-		magica, math, mech, med, metrolog, mim, mus, myth, narrfict, nathist, onir, orac, orat, paradox, parod, paroem,
-		perieg, phil, physiognom, poem, polyhist, prophet, pseudepigr, rhet, satura, satyr, schol, tact, test, theol, trag
-	FROM dictionary_headword_wordcounts WHERE entry_name='%s'`
-
-	dbpool := GetPSQLconnection()
-	defer dbpool.Close()
-
-	q := fmt.Sprintf(qt, word)
-
-	foundrows, err := dbpool.Query(context.Background(), q)
-	chke(err)
-
-	var thesefinds []DbHeadwordCount
-	defer foundrows.Close()
-	for foundrows.Next() {
-		var thehit DbHeadwordCount
-		err := foundrows.Scan(&thehit.Entry, &thehit.Total, &thehit.TGrk, &thehit.TLat, &thehit.TDP, &thehit.TIN, &thehit.TCh, &thehit.FrqCla,
-			&thehit.Early, &thehit.Middle, &thehit.Late, &thehit.Acta, &thehit.Agric, &thehit.Alchem, &thehit.Anthol, &thehit.Apol,
-			&thehit.Astrol, &thehit.Astron, &thehit.Biogr, &thehit.Bucol, &thehit.Caten, &thehit.Chron, &thehit.Comic, &thehit.Comm,
-			&thehit.Concil, &thehit.Coq, &thehit.Dial, &thehit.Docu, &thehit.Doxog, &thehit.Eccl, &thehit.Eleg, &thehit.Ecom,
-			&thehit.Epic, &thehit.Epigr, &thehit.Epist, &thehit.Evang, &thehit.Exeg, &thehit.Fab, &thehit.Geog, &thehit.Gnom,
-			&thehit.Gram, &thehit.Hagiog, &thehit.Hexam, &thehit.Hist, &thehit.Homil, &thehit.Hymn, &thehit.Hypoth, &thehit.Iamb,
-			&thehit.Ignot, &thehit.Invect, &thehit.Inscr, &thehit.Juris, &thehit.Lexic, &thehit.Litur, &thehit.Lyr, &thehit.Magica,
-			&thehit.Math, &thehit.Mech, &thehit.Med, &thehit.Metro, &thehit.Mim, &thehit.Mus, &thehit.Myth, &thehit.NarrFic,
-			&thehit.NatHis, &thehit.Onir, &thehit.Orac, &thehit.Orat, &thehit.Paradox, &thehit.Parod, &thehit.Paroem, &thehit.Perig,
-			&thehit.Phil, &thehit.Physiog, &thehit.Poem, &thehit.Polyhist, &thehit.Proph, &thehit.Pseud, &thehit.Rhet, &thehit.Satura,
-			&thehit.Schol, &thehit.Tact, &thehit.Theol, &thehit.Trag)
-		chke(err)
-		thesefinds = append(thesefinds, thehit)
-	}
-
-	var thefind DbHeadwordCount
-	if len(thesefinds) == 1 {
-		thefind = thesefinds[0]
-	} else {
-		msg(fmt.Sprintf("headwordlookup() for %s returned %d finds: this is wrong", word, len(thesefinds)), 1)
-	}
-	return thefind
-}
-
 //
 // FORMATTING
 //
@@ -505,17 +355,7 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	// [h1a] known forms in use
 
-	// requires probing dictionary_headword_wordcounts
-
-	// 		SELECT
-	//			entry_name , total_count, gr_count, lt_count, dp_count, in_count, ch_count,
-	//			frequency_classification, early_occurrences, middle_occurrences ,late_occurrences,
-	//			acta, agric, alchem, anthol, apocalyp, apocryph, apol, astrol, astron, biogr, bucol, caten, chronogr, comic, comm,
-	//			concil, coq, dialog, docu, doxogr, eccl, eleg, encom, epic, epigr, epist, evangel, exeget, fab, geogr, gnom, gramm,
-	//			hagiogr, hexametr, hist, homilet, hymn, hypoth, iamb, ignotum, invectiv, inscr, jurisprud, lexicogr, liturg, lyr,
-	//			magica, math, mech, med, metrolog, mim, mus, myth, narrfict, nathist, onir, orac, orat, paradox, parod, paroem,
-	//			perieg, phil, physiognom, poem, polyhist, prophet, pseudepigr, rhet, satura, satyr, schol, tact, test, theol, trag
-	//		FROM dictionary_headword_wordcounts WHERE entry_name='%s'
+	// TODO
 
 	// [h1b] principle parts
 
@@ -523,8 +363,9 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	// [h2] wordcounts data including weighted distributions
 
-	// TODO
-	// pd := `<span class="prevalence">%s</span> %d`
+	hwc := headwordlookup(w.Word)
+
+	elem = append(elem, headwordprevalence(hwc))
 
 	// [h4] the actual body of the entry
 
