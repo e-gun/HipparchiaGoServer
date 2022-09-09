@@ -6,11 +6,16 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 	"net/http"
+	"sort"
 	"strings"
+	"text/template"
 )
 
 func RtGetJSSession(c echo.Context) error {
@@ -92,8 +97,8 @@ func RtGetJSWorksOf(c echo.Context) error {
 	tp := "%s (%s)"
 	var titles []JSStruct
 	for _, w := range wl {
-		new := fmt.Sprintf(tp, AllWorks[w].Title, w[6:10])
-		titles = append(titles, JSStruct{new})
+		n := fmt.Sprintf(tp, AllWorks[w].Title, w[6:10])
+		titles = append(titles, JSStruct{n})
 	}
 
 	// send
@@ -143,4 +148,103 @@ func RtGetJSHelpdata(c echo.Context) error {
 	// "Interface": "(the_html)", "Browsing": "(the_html)", ...}
 	msg("called empty placeholder function: RtGetJSHelpdata()", 1)
 	return c.String(http.StatusOK, "")
+}
+
+func RtGetJSAuthorinfo(c echo.Context) error {
+	type AUTempl struct {
+		Name     string
+		ID       string
+		Gen      string
+		DateRec  string
+		DateCalc string
+		TotalWd  string
+	}
+
+	type WKTempl struct {
+		ID      string
+		Title   string
+		Genre   string
+		WdCount string
+		PubInfo string
+	}
+
+	id := c.Param("id")
+	au := AllAuthors[id]
+
+	var at AUTempl
+	at.Name = au.Name
+	at.ID = au.UID
+	at.Gen = au.Genres
+
+	if len(at.Gen) != 0 {
+		at.Gen = fmt.Sprintf("classified among: %s;", at.Gen)
+	}
+
+	if au.ConvDate != 2500 {
+		at.DateCalc = fmt.Sprintf("assigned to approx date: %s ", i64tobce(au.ConvDate))
+	} else {
+		at.DateCalc = "(date is unavalable)"
+	}
+
+	if au.RecDate == "Unavailable" {
+		at.DateRec = ""
+	} else {
+		at.DateRec = fmt.Sprintf(`(derived from "%s")`, au.RecDate)
+	}
+
+	var ww []WKTempl
+	var twc int64
+	p := message.NewPrinter(language.English)
+
+	for _, w := range au.WorkList {
+		ws := AllWorks[w]
+		var wt WKTempl
+		wt.ID = ws.UID[7:]
+		wt.Title = ws.Title
+		wt.Genre = ws.Genre
+		wt.WdCount = p.Sprintf("%d", ws.WdCount)
+		wt.PubInfo = formatpublicationinfo(ws)
+		ww = append(ww, wt)
+		twc += ws.WdCount
+	}
+
+	at.TotalWd = p.Sprintf("%d", twc)
+
+	sort.Slice(ww, func(i, j int) bool { return ww[i].ID < ww[j].ID })
+
+	mt := `
+    <span class="emph"><span class="emph">{{.Name}}</span></span>&nbsp;
+    [id: {{.ID}}]<br>&nbsp;
+    {{.Gen}}
+    {{.DateCalc}} {{.DateRec}}
+	<br>
+	Total words: {{.TotalWd}}
+	<br><br><span class="italic">work numbers:</span><br>`
+
+	wt := `({{.ID}})&nbsp;
+		<span class="title">{{.Title}}</span>
+		[{{.Genre}}]&nbsp;
+		[{{.WdCount}} wds]
+		{{.PubInfo}}<br>`
+
+	mtt, e := template.New("mt").Parse(mt)
+	chke(e)
+	wtt, e := template.New("wt").Parse(wt)
+	chke(e)
+
+	var b bytes.Buffer
+	err := mtt.Execute(&b, at)
+	chke(err)
+	for _, w := range ww {
+		err = wtt.Execute(&b, w)
+		chke(err)
+	}
+
+	info := b.String()
+
+	v := JSStruct{info}
+	j, e := json.Marshal(v)
+	chke(e)
+
+	return c.String(http.StatusOK, string(j))
 }

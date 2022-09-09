@@ -463,7 +463,7 @@ $('#authinfobutton').click(function(){
         $('#authorholdings').toggle();
         let authorid = $('#authorsautocomplete').val().slice(-7, -1);
         $.getJSON('/get/json/authorinfo/' + authorid, function (selectiondata) {
-                $('#authorholdings').html(selectiondata);
+                $('#authorholdings').html(selectiondata['value']);
                  });
     });
 

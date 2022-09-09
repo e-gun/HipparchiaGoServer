@@ -184,7 +184,7 @@ func formatpublicationinfo(w DbWork) string {
 	}
 
 	tags := []Swapper{
-		{"volumename", "", ". "},
+		{"volumename", "", " "},
 		{"press", " ", ", "},
 		{"city", " ", ", "},
 		{"year", " ", ". "},
@@ -209,27 +209,27 @@ func formatpublicationinfo(w DbWork) string {
 		}
 	}
 
-	//	NB: Authors like Livy can swallow the browser window by sending 351 characters worth of editors to one of the lines
 	if len(pubinfo) > (MINBROWSERWIDTH*3)/2 {
 		pubinfo = strings.Replace(pubinfo, "span class", "span_class", -1)
-		// pubinfo = strings.Replace(pubinfo, ";", ";&nbsp;", -1)
+		pubinfo = strings.Replace(pubinfo, ";", "; ", -1)
 		pi := strings.Split(pubinfo, " ")
-		var trimmings []string
 		var trimmed string
-		for _, p := range pi {
-			if len(trimmed) < (MINBROWSERWIDTH*3)/2 {
-				trimmed = trimmed + p + " "
-			} else {
-				trimmings = append(trimmings, trimmed)
-				trimmed = ""
+		breaks := 0
+		reset := 0
+		crop := (MINBROWSERWIDTH * 3) / 2
+		for i := 0; i < len(pi); i++ {
+			trimmed += pi[i] + " "
+			if len(trimmed) > reset+crop {
+				trimmed += "<br>"
+				breaks += 1
+				reset = len(trimmed)
 			}
 		}
-		pubinfo = strings.Join(trimmings, `</span> <br><span class="pubeditor">`)
+		pubinfo = trimmed
 		pubinfo = strings.Replace(pubinfo, "span_class", "span class", -1)
 	}
 
-	readability := `
-	<br>
+	readability := `<br>
 	%s
 	`
 

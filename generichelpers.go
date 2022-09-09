@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -351,4 +352,21 @@ func uvσςϲ(u string) string {
 	s := string(stripped)
 	return s
 
+}
+
+func formatbcedate(d string) string {
+	s, e := strconv.Atoi(d)
+	if e != nil {
+		s = 9999
+	}
+	if s > 0 {
+		d += " C.E."
+	} else {
+		d = strings.Replace(d, "-", "", -1) + " B.C.E."
+	}
+	return d
+}
+
+func i64tobce(i int64) string {
+	return formatbcedate(fmt.Sprintf("%d", i))
 }

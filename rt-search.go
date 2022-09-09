@@ -13,7 +13,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -1044,19 +1043,6 @@ func formatinitialsummary(s SearchStruct) string {
 	return sum
 }
 
-func formatbcedate(d string) string {
-	s, e := strconv.Atoi(d)
-	if e != nil {
-		s = 9999
-	}
-	if s > 0 {
-		d += " C.E."
-	} else {
-		d = strings.Replace(d, "-", "", -1) + " B.C.E."
-	}
-	return d
-}
-
 func highlightfocusline(line *ResultPassageLine) {
 	line.Contents = fmt.Sprintf(`<span class="highlight">%s</span>`, line.Contents)
 }
@@ -1086,7 +1072,7 @@ func formatinscriptiondates(template string, dbw DbWorkline) string {
 	fc := dbw.FindCorpus()
 	dated := fc == "in" || fc == "ch" || fc == "dp"
 	if dated {
-		cd := formatbcedate(fmt.Sprintf("%d", AllWorks[dbw.WkUID].ConvDate))
+		cd := i64tobce(AllWorks[dbw.WkUID].ConvDate)
 		if cd == "2500 C.E." {
 			cd = "??? BCE/CE"
 		}

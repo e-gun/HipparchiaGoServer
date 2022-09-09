@@ -111,6 +111,9 @@ func StartEchoServer() {
 
 	// [f2d] /get/json/samplecitation
 	// [f2e] /get/json/authorinfo
+
+	e.GET("/get/json/authorinfo/:id", RtGetJSAuthorinfo)
+
 	// [f2f] /get/json/searchlistcontents
 	// [f2e] /get/json/genrelistcontents
 	// [f2f] /get/json/vectorranges
