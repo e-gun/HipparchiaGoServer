@@ -11,6 +11,7 @@ import (
 
 var (
 	CORPUSWEIGTING = map[string]float32{"Ⓖ": 1.0, "Ⓛ": 12.7, "Ⓘ": 15.19, "Ⓓ": 18.14, "Ⓒ": 85.78}
+	ERAWEIGHTING   = map[string]float32{"ⓔ": 6.93, "ⓜ": 1.87, "ⓛ": 1}
 )
 
 //
@@ -58,12 +59,29 @@ func headworddistrib(wc DbHeadwordCount) string {
 		pd = append(pd, fmt.Sprintf("%s %d", c.name, int(cpt)))
 	}
 
-	p := "<br>Weighted distribution by corpus: " + strings.Join(pd, " / ")
+	p := "<br>Weighted chronological distribution: " + strings.Join(pd, " / ")
 	return p
 }
 
-func headwordchronology(wc DbHeadwordCount) {
+func headwordchronology(wc DbHeadwordCount) string {
 	// Weighted chronological distribution: ⓔ 100 / ⓛ 84 / ⓜ 62
+	cv := wc.TimeVal
+
+	for i, c := range cv {
+		cv[i].count = int(float32(c.count) * ERAWEIGHTING[c.name])
+	}
+
+	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })
+
+	max := cv[0].count
+	var pd []string
+	for _, c := range cv {
+		cpt := (float32(c.count) / float32(max)) * 100
+		pd = append(pd, fmt.Sprintf("%s %d", c.name, int(cpt)))
+	}
+
+	p := "<br>Weighted distribution by corpus: " + strings.Join(pd, " / ")
+	return p
 }
 
 func headwordgenres(wc DbHeadwordCount) {
@@ -203,7 +221,7 @@ func (hw *DbHeadwordCount) LoadCorpVals() {
 	hw.CorpVal = vv
 }
 
-func (hw *DbHeadwordCount) TimeVals() {
+func (hw *DbHeadwordCount) LoadTimeVals() {
 	// Weighted chronological distribution: ⓔ 100 / ⓛ 84 / ⓜ 62
 	var vv []HWData
 	vv = append(vv, HWData{"ⓔ", hw.Chron.Early})
@@ -275,6 +293,8 @@ func headwordlookup(word string) DbHeadwordCount {
 
 	// fmt.Println(thefind)
 	thefind.LoadCorpVals()
+	thefind.LoadTimeVals()
+
 	return thefind
 }
 

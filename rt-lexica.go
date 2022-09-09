@@ -367,6 +367,7 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	elem = append(elem, headwordprevalence(hwc))
 	elem = append(elem, headworddistrib(hwc))
+	elem = append(elem, headwordchronology(hwc))
 
 	// [h4] the actual body of the entry
 
