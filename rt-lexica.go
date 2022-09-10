@@ -266,7 +266,7 @@ func findbyform(word string, author string) string {
 			chke(err)
 			thehit.Lang = d
 			if _, dup := dedup[thehit.ID]; !dup {
-				// use ID and not Word because καρπόϲ.53442 is not καρπόϲ.53443
+				// use ID and not Lex because καρπόϲ.53442 is not καρπόϲ.53443
 				dedup[thehit.ID] = true
 				lexicalfinds = append(lexicalfinds, thehit)
 			}
@@ -315,9 +315,8 @@ func findbyform(word string, author string) string {
 func reversefind(word string, dicts []string) string {
 	// this is not the fast way to do it; just the first draft of a way to do it...
 	type EntryStruct struct {
-		Word  string
-		ID    float32
-		Count int
+		Lex   DbLexicon
+		Count DbHeadwordCount
 		HTML  string
 	}
 
@@ -326,9 +325,10 @@ func reversefind(word string, dicts []string) string {
 	defer dbpool.Close()
 
 	// [a] look for the words
+	qt := `SELECT %s FROM %s_dictionary WHERE translations ~ '%s' LIMIT %d`
+	fld := `entry_name, metrical_entry, id_number, pos, translations, html_body`
 	for _, d := range dicts {
-		qt := `SELECT entry_name, id_number FROM %s_dictionary WHERE translations ~ '%s' LIMIT %d`
-		psq := fmt.Sprintf(qt, d, word, MAXREVERSELOOKUP)
+		psq := fmt.Sprintf(qt, fld, d, word, MAXREVERSELOOKUP)
 
 		var foundrows pgx.Rows
 		var err error
@@ -336,55 +336,48 @@ func reversefind(word string, dicts []string) string {
 		chke(err)
 
 		for foundrows.Next() {
-			var newentry EntryStruct
-			err = foundrows.Scan(&newentry.Word, &newentry.ID)
+			var newword DbLexicon
+			err = foundrows.Scan(&newword.Word, &newword.Metrical, &newword.ID, &newword.POS, &newword.Transl, &newword.Entry)
 			chke(err)
+			newword.Lang = d
+
+			var newentry EntryStruct
+			newentry.Lex = newword
 			entries = append(entries, newentry)
 		}
 		foundrows.Close()
 	}
 
 	// [b] attach the counts to the finds
-	qh := `SELECT entry_name, total_count FROM dictionary_headword_wordcounts WHERE entry_name='%s' LIMIT 1`
 	for i, f := range entries {
-		var wd string // will not use this info now, but if you ran the query in an array you would need it...
-
-		var foundrows pgx.Rows
-		var err error
-		foundrows, err = dbpool.Query(context.Background(), fmt.Sprintf(qh, f))
-		chke(err)
-		for foundrows.Next() {
-			err = foundrows.Scan(&wd, &entries[i].Count)
-			chke(err)
-		}
-		foundrows.Close()
+		hwc := headwordlookup(f.Lex.Word)
+		entries[i].Count = hwc
 	}
 
 	// [c] attach the html to the entries
-	// this is the slow bit
+	// this is the slow bit and could be parallelized
 	for i, e := range entries {
-		b := findbyform(e.Word, "gr0000")
+		b := formatlexicaloutput(e.Lex)
 		entries[i].HTML = b
 	}
 
-	sort.Slice(entries, func(i, j int) bool { return entries[i].Count > entries[j].Count })
+	sort.Slice(entries, func(i, j int) bool { return entries[i].Count.Total > entries[j].Count.Total })
 
 	// [d] prepare the output
 
 	// et := `<span class="sensesum">(INDEX)&nbsp;<a class="nounderline" href="ENTRY_ENTRYID">ENTRY</a><span class="small">(COUNT)</span></span><br />`
 	et := `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="%s_%f">%s</a><span class="small">(%d)</span></span><br />`
 
+	// [d1] insert the overview
 	var htmlchunks []string
 	for i, e := range entries {
-		h := fmt.Sprintf(et, i+1, e.Word, e.ID, e.Word, e.Count)
+		h := fmt.Sprintf(et, i+1, e.Lex.Word, e.Lex.ID, e.Lex.Word, e.Count.Total)
 		htmlchunks = append(htmlchunks, h)
 	}
 
-	bt := `<hr>(%d)&nbsp;%s`
-
-	for i, e := range entries {
-		h := fmt.Sprintf(bt, i+1, e.HTML)
-		htmlchunks = append(htmlchunks, h)
+	// [d2] insert the actual entries
+	for _, e := range entries {
+		htmlchunks = append(htmlchunks, e.HTML)
 	}
 
 	thehtml := strings.Join(htmlchunks, "")

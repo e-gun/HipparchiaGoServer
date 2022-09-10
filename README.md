@@ -2,13 +2,14 @@
 
 ## alpha status: does a lot of what you most want acceptably...
 
-### status as of `v0.3.0`:
+### status as of `v0.3.1`:
 
 * searching mostly works 
-* browsing mostly works 
-* dictionaries mostly work 
+* browsing mostly works
 * selections mostly work 
 * progress polling mostly works
+* dictionaries mostly work
+* reverse lexical searches
 * basic text maker
 * very basic indexing
 
@@ -19,7 +20,6 @@
 * vocabulary list generation
 * search list info box
 * dictionary searches
-* reverse lexical searches
 * morphology searches
 * raw input style
 * onehit searching
