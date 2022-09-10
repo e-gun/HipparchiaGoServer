@@ -87,9 +87,26 @@ func RtLexFindByForm(c echo.Context) error {
 
 	word = acuteforgrave(word)
 
-	b := findbyform(word, au)
+	html := findbyform(word, au)
 
-	return c.String(http.StatusOK, string(b))
+	// html = strings.Replace(html, `"`, `\"`, -1)
+	js := insertlexicaljs()
+
+	type JSB struct {
+		HTML string `json:"newhtml"`
+		JS   string `json:"newjs"`
+	}
+
+	var jb JSB
+	jb.HTML = html
+	jb.JS = js
+
+	jsonbundle, ee := json.Marshal(jb)
+	chke(ee)
+
+	// jsonbundle := []byte(fmt.Sprintf(`{"newhtml":"%s","newjs":"%s"}`, html, js))
+
+	return c.String(http.StatusOK, string(jsonbundle))
 }
 
 func RtLexReverse(c echo.Context) error {
@@ -119,7 +136,22 @@ func RtLexReverse(c echo.Context) error {
 		return c.String(http.StatusOK, "")
 	}
 
-	jsb := reversefind(word, dd)
+	html := reversefind(word, dd)
+
+	// html = strings.Replace(html, `"`, `\"`, -1)
+	js := insertlexicaljs()
+
+	type JSB struct {
+		HTML string `json:"newhtml"`
+		JS   string `json:"newjs"`
+	}
+
+	var jb JSB
+	jb.HTML = html
+	jb.JS = js
+
+	jsb, ee := json.Marshal(jb)
+	chke(ee)
 
 	return c.String(http.StatusOK, string(jsb))
 }
@@ -128,7 +160,7 @@ func RtLexReverse(c echo.Context) error {
 // LOOKUPS
 //
 
-func findbyform(word string, author string) []byte {
+func findbyform(word string, author string) string {
 
 	// [a] clean the search term
 
@@ -276,27 +308,11 @@ func findbyform(word string, author string) []byte {
 	// [i] add the HTML + JS to inject `{"newhtml": "...", "newjs":"..."}`
 
 	html := allformpd + parsing + entries
-	// html = strings.Replace(html, `"`, `\"`, -1)
-	js := insertlexicaljs()
 
-	type JSB struct {
-		HTML string `json:"newhtml"`
-		JS   string `json:"newjs"`
-	}
-
-	var jb JSB
-	jb.HTML = html
-	jb.JS = js
-
-	jsonbundle, ee := json.Marshal(jb)
-	chke(ee)
-
-	// jsonbundle := []byte(fmt.Sprintf(`{"newhtml":"%s","newjs":"%s"}`, html, js))
-
-	return jsonbundle
+	return html
 }
 
-func reversefind(word string, dicts []string) []byte {
+func reversefind(word string, dicts []string) string {
 	// this is not the fast way to do it; just the first draft of a way to do it...
 	type EntryStruct struct {
 		Word  string
@@ -347,9 +363,8 @@ func reversefind(word string, dicts []string) []byte {
 	// [c] attach the html to the entries
 	// this is the slow bit
 	for i, e := range entries {
-		fmt.Println(i)
 		b := findbyform(e.Word, "gr0000")
-		entries[i].HTML = string(b)
+		entries[i].HTML = b
 	}
 
 	sort.Slice(entries, func(i, j int) bool { return entries[i].Count > entries[j].Count })
@@ -374,21 +389,7 @@ func reversefind(word string, dicts []string) []byte {
 
 	thehtml := strings.Join(htmlchunks, "")
 
-	js := insertlexicaljs()
-
-	type JSB struct {
-		HTML string `json:"newhtml"`
-		JS   string `json:"newjs"`
-	}
-
-	var jb JSB
-	jb.HTML = thehtml
-	jb.JS = js
-
-	jsonbundle, ee := json.Marshal(jb)
-	chke(ee)
-
-	return jsonbundle
+	return thehtml
 }
 
 //
