@@ -14,7 +14,6 @@
 
 ### TODO (in vague order of priority)
 
-* statistics for dictionary entries
 * sort results by date
 * saving/fetching searches
 * vocabulary list generation

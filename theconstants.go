@@ -8,21 +8,14 @@ package main
 const (
 	MYNAME                = "Hipparchia Golang Server"
 	SHORTNAME             = "HGS"
-	VERSION               = "0.2.9"
-	PSQ                   = `{"Host": "localhost", "Port": 5432, "User": "hippa_wr", "Pass": "", "DBName": "hipparchiaDB"}`
-	PSDefaultHost         = "localhost"
-	PSDefaultUser         = "hippa_wr"
-	PSDefaultPort         = 5432
-	PSDefaultDB           = "hipparchiaDB"
+	VERSION               = "0.3.0"
 	DBAUMAPSIZE           = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
 	DBLMMAPSIZE           = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
 	DBWKMAPSIZE           = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
 	DEFAULTBROWSERCTX     = 20
 	DEFAULTCOLUMN         = "stripped_line"
-	DEFAULTECHOLOGLEVEL   = 0
 	DEFAULTLINESOFCONTEXT = 4
 	DEFAULTHITLIMIT       = 200
-	DEFAULTLOGLEVEL       = 3
 	DEFAULTPROXIMITY      = 1
 	DEFAULTPROXIMITYSCOPE = "lines"
 	DEFAULTSYNTAX         = "~*"
@@ -46,6 +39,8 @@ const (
 	ARCHIVEFOLDER         = "~"
 	TARGETDIR             = "hipparchia-archive"
 	GENRESTOCOUNT         = 5
+	CONFIGNAME            = "config.json"
+	CONFIGLOCATION        = "."
 
 	// hipparchiaDB=# select * from gr0001 limit 0;
 	// index | wkuniversalid | level_05_value | level_04_value | level_03_value | level_02_value | level_01_value | level_00_value | marked_up_line | accented_line | stripped_line | hyphenated_words | annotations

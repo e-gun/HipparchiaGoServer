@@ -1,0 +1,4 @@
+{
+  "PosgreSQL" :
+  {"Host": "localhost", "Port": 5432, "User": "hippa_wr", "Pass": "YOURPASSWORDHERE", "DBName": "hipparchiaDB"}
+}

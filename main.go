@@ -7,6 +7,7 @@ package main
 
 import (
 	"C"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -23,50 +24,11 @@ func main() {
 	// defer profile.Start(profile.MemProfile).Stop()
 
 	// go tool pprof --pdf ./HipparchiaGoServer /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1880749830/cpu.pprof > profile.pdf
-
-	makeconfig()
+	configatlaunch()
 
 	versioninfo := fmt.Sprintf("%s CLI Debugging Interface (v.%s)", MYNAME, VERSION)
 	versioninfo = versioninfo + fmt.Sprintf(" [loglevel=%d]", cfg.LogLevel)
 	msg(versioninfo, 0)
-
-	// the command line arguments are getting lost
-
-	// main() instead has a cfg with the defaults burned into it
-	// so we do this the stupid/bound to fail way...
-
-	// fmt.Println(os.Args[1:len(os.Args)])
-
-	args := os.Args[1:len(os.Args)]
-
-	for i, a := range args {
-		if a == "-v" {
-			// version always printed anyway
-			os.Exit(1)
-		}
-		if a == "-gl" {
-			ll, e := strconv.Atoi(args[i+1])
-			chke(e)
-			cfg.LogLevel = ll
-		}
-		if a == "-el" {
-			ll, e := strconv.Atoi(args[i+1])
-			chke(e)
-			cfg.EchoLog = ll
-		}
-	}
-
-	// fmt.Printf(TERMINALTEXT, PROJ, PROJYEAR, PROJAUTH, PROJMAIL)
-
-	if cfg.LogLevel > 5 {
-		cfg.LogLevel = 5
-	}
-
-	if cfg.LogLevel < 0 {
-		cfg.LogLevel = 0
-	}
-
-	cfg.PGLogin = decodepsqllogin([]byte(cfg.PosgresInfo))
 
 	// concurrent launching
 	var awaiting sync.WaitGroup
@@ -113,4 +75,45 @@ func main() {
 	awaiting.Wait()
 
 	StartEchoServer()
+}
+
+// configatlaunch - read the configuration values from JSON and/or command line
+func configatlaunch() {
+	config := fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGNAME)
+
+	args := os.Args[1:len(os.Args)]
+
+	for i, a := range args {
+		if a == "-v" {
+			// version always printed anyway
+			os.Exit(1)
+		}
+		if a == "-gl" {
+			ll, e := strconv.Atoi(args[i+1])
+			chke(e)
+			cfg.LogLevel = ll
+		}
+		if a == "-el" {
+			ll, e := strconv.Atoi(args[i+1])
+			chke(e)
+			cfg.EchoLog = ll
+		}
+		if a == "-c" {
+			config = args[i+1]
+		}
+	}
+
+	type ConfigFile struct {
+		PosgreSQL PostgresLogin
+	}
+
+	file, _ := os.Open(config)
+	decoder := json.NewDecoder(file)
+	conf := ConfigFile{}
+	err := decoder.Decode(&conf)
+	if err != nil {
+		msg(fmt.Sprintf("failed to load configuration file: '%s'", config), 0)
+	}
+
+	cfg.PGLogin = conf.PosgreSQL
 }

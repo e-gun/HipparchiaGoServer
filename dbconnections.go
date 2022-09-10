@@ -7,7 +7,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -18,20 +17,6 @@ type PostgresLogin struct {
 	User   string
 	Pass   string
 	DBName string
-}
-
-//
-// GENERAL AUTHENTICATION
-//
-
-func decodepsqllogin(psqllogininfo []byte) PostgresLogin {
-	var ps PostgresLogin
-	err := json.Unmarshal(psqllogininfo, &ps)
-	if err != nil {
-		fmt.Println(fmt.Sprintf("CANNOT PARSE YOUR POSTGRES LOGIN CREDENTIALS AS JSON [%s v.%s] ", MYNAME, VERSION))
-		panic(err)
-	}
-	return ps
 }
 
 //

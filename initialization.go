@@ -7,7 +7,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"sort"
 	"strings"
@@ -38,8 +37,7 @@ var (
 type CurrentConfiguration struct {
 	WorkerCount int
 	LogLevel    int
-	PosgresInfo string
-	PSQP        string
+	PSQL        string
 	EchoLog     int // "none", "terse", "verbose"
 	PGLogin     PostgresLogin
 }
@@ -139,27 +137,6 @@ func (dbl DbLemma) EntryRune() []rune {
 type SearchSummary struct {
 	Time time.Time
 	Sum  string
-}
-
-//
-// STARTUP CONFIGURATION
-//
-
-func makeconfig() {
-
-	flag.StringVar(&cfg.PSQP, "psqp", "", "PSQL Password")
-	flag.IntVar(&cfg.LogLevel, "gl", DEFAULTLOGLEVEL, "[common] golang msg logging level: 0 is silent; 5 is very noisy")
-	flag.StringVar(&cfg.PosgresInfo, "p", PSQ, "[common] psql logon information (as a JSON string)")
-	flag.IntVar(&cfg.EchoLog, "el", DEFAULTECHOLOGLEVEL, "[common] logging for the echo server: 0: 'none', 1: 'terse', or 2: 'verbose'")
-
-	cfg.PGLogin.Port = PSDefaultPort
-	// cfg.PGLogin.Pass = cfg.PSQP
-	cfg.PGLogin.Pass = ""
-	cfg.PGLogin.User = PSDefaultUser
-	cfg.PGLogin.DBName = PSDefaultDB
-	cfg.PGLogin.Host = PSDefaultHost
-
-	return
 }
 
 // all functions in here should be run in order to prepare the core data
