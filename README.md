@@ -2,7 +2,7 @@
 
 ## alpha status: does a lot of what you most want acceptably...
 
-### status as of `v0.2.8`:
+### status as of `v0.3.0`:
 
 * searching mostly works 
 * browsing mostly works 

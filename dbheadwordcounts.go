@@ -29,7 +29,6 @@ var (
 		"Poem": 62.82, "Polyhist": 24.91, "Proph": 95.51, "Pseud": 611.65, "Rhet": 8.67,
 		"Satura": 291.58, "Satyr": 96.78, "Schol": 5.56, "Tact": 52.01, "Test": 66.53, "Theol": 6.28,
 		"Trag": 35.8, "AllRelig": 0.58, "AllRhet": 2.9}
-
 	LATGENREWEIGHT = map[string]float32{"Agric": 5.27, "Astron": 17.15, "Biogr": 9.88, "Bucol": 40.39, "Bomic": 4.21, "Comm": 2.25,
 		"Coq": 60.0, "Dial": 1134.73, "Docu": 6.19, "Eleg": 8.35, "Encom": 404.6, "Epic": 2.37,
 		"Epigr": 669.3, "Epist": 2.06, "Fab": 25.4, "Gnom": 147.23, "Gramm": 5.74, "Hexam": 20.06,
@@ -39,111 +38,6 @@ var (
 		"Polyhist": 4.75, "Rhet": 2.71, "Satura": 23.0, "Tact": 37.6, "Trag": 13.29, "Allrelig": 0,
 		"Allrhet": 1.08}
 )
-
-//
-// HEADWORDS
-//
-
-func headwordprevalence(wc DbHeadwordCount) string {
-	// Prevalence (all forms): Ⓖ 95,843 / Ⓛ 10 / Ⓘ 151 / Ⓓ 751 / Ⓒ 64 / Ⓣ 96,819
-	m := message.NewPrinter(language.English)
-
-	cv := wc.CorpVal
-
-	// sort.Slice(cv, func(i, j int) bool { return cv[i].count < cv[j].count })
-
-	var pd []string
-
-	for _, c := range cv {
-		pd = append(pd, m.Sprintf("%s %d", c.name, c.count))
-	}
-	pd = append(pd, m.Sprintf("%s %d", "Ⓣ", wc.Total))
-
-	p := "Prevalence (all forms): " + strings.Join(pd, " / ")
-
-	return p
-}
-
-func headworddistrib(wc DbHeadwordCount) string {
-	// Weighted distribution by corpus: Ⓖ 100 / Ⓓ 14 / Ⓒ 6 / Ⓘ 2 / Ⓛ 0
-	cv := wc.CorpVal
-
-	for i, c := range cv {
-		cv[i].count = int(float32(c.count) * CORPUSWEIGTING[c.name])
-	}
-
-	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })
-
-	max := cv[0].count
-	var pd []string
-	for _, c := range cv {
-		cpt := (float32(c.count) / float32(max)) * 100
-		pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;%d`, c.name, int(cpt)))
-	}
-
-	p := "<br>Distribution by time: " + strings.Join(pd, " / ")
-	return p
-}
-
-func headwordchronology(wc DbHeadwordCount) string {
-	// Weighted chronological distribution: ⓔ 100 / ⓛ 84 / ⓜ 62
-	cv := wc.TimeVal
-
-	for i, c := range cv {
-		cv[i].count = int(float32(c.count) * ERAWEIGHTING[c.name])
-	}
-
-	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })
-
-	max := cv[0].count
-	var pd []string
-	for _, c := range cv {
-		cpt := (float32(c.count) / float32(max)) * 100
-		pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;%d`, c.name, int(cpt)))
-	}
-
-	p := "<br>Distribution by corpus: " + strings.Join(pd, " / ")
-	return p
-}
-
-func headwordgenres(wc DbHeadwordCount) string {
-	// Predominant genres: comm (100), mech (97), jurisprud (93), med (84), mus (75), nathist (61), paroem (60), allrelig (57)
-	cv := wc.GenreVal
-
-	wt := map[string]float32{}
-	if isGreek.MatchString(wc.Entry) {
-		wt = GKGENREWEIGHT
-	} else {
-		wt = LATGENREWEIGHT
-	}
-
-	for i, c := range cv {
-		cv[i].count = int(float32(c.count) * wt[c.name])
-	}
-
-	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })
-
-	// msg("cv", 0)
-	// fmt.Println(cv)
-
-	max := cv[0].count
-	var pd []string
-	for _, c := range cv {
-		cpt := (float32(c.count) / float32(max)) * 100
-		pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;(%d)`, c.name, int(cpt)))
-	}
-
-	pd = pd[0:GENRESTOCOUNT]
-
-	p := "<br>Distribution by genre: " + strings.Join(pd, "; ")
-	return p
-}
-
-// HWData - to help sort values inside DbHeadwordCount
-type HWData struct {
-	name  string
-	count int
-}
 
 type DbHeadwordTimeCounts struct {
 	Early  int
@@ -297,6 +191,12 @@ func (hw *DbHeadwordCount) LoadGenreVals() {
 	hw.GenreVal = vv
 }
 
+// HWData - to help sort values inside DbHeadwordCount
+type HWData struct {
+	name  string
+	count int
+}
+
 func headwordlookup(word string) DbHeadwordCount {
 	// scan a headwordcount into the corresponding struct
 	// note that if you reassign a genre, this is one of the place you have to edit
@@ -342,7 +242,9 @@ func headwordlookup(word string) DbHeadwordCount {
 			&g.Math, &g.Mech, &g.Med, &g.Meteor, &g.Mim, &g.Mus, &g.Myth, &g.NarrFic, &g.NatHis, &g.Onir, &g.Orac, &rh.Orat,
 			&g.Paradox, &g.Parod, &g.Paroem, &g.Perig, &g.Phil, &g.Physiog, &g.Poem, &g.Polyhist, &th.Proph, &g.Pseud, &rh.Rhet,
 			&g.Satura, &g.Satyr, &g.Schol, &g.Tact, &g.Test, &th.Theol, &g.Trag)
-		chke(err)
+		if err != nil {
+			msg(fmt.Sprintf("headwordlookup() returned nil when looking for '%s'", word), 4)
+		}
 		thehit.Corpus = co
 		thehit.Chron = chr
 		thehit.Genre = g
@@ -364,6 +266,101 @@ func headwordlookup(word string) DbHeadwordCount {
 	thefind.LoadGenreVals()
 
 	return thefind
+}
+
+func headwordprevalence(wc DbHeadwordCount) string {
+	// Prevalence (all forms): Ⓖ 95,843 / Ⓛ 10 / Ⓘ 151 / Ⓓ 751 / Ⓒ 64 / Ⓣ 96,819
+	m := message.NewPrinter(language.English)
+
+	cv := wc.CorpVal
+
+	// sort.Slice(cv, func(i, j int) bool { return cv[i].count < cv[j].count })
+
+	var pd []string
+
+	for _, c := range cv {
+		pd = append(pd, m.Sprintf("%s %d", c.name, c.count))
+	}
+	pd = append(pd, m.Sprintf("%s %d", "Ⓣ", wc.Total))
+
+	p := "Prevalence (all forms): " + strings.Join(pd, " / ")
+
+	return p
+}
+
+func headworddistrib(wc DbHeadwordCount) string {
+	// Weighted distribution by corpus: Ⓖ 100 / Ⓓ 14 / Ⓒ 6 / Ⓘ 2 / Ⓛ 0
+	cv := wc.CorpVal
+
+	for i, c := range cv {
+		cv[i].count = int(float32(c.count) * CORPUSWEIGTING[c.name])
+	}
+
+	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })
+
+	max := cv[0].count
+	var pd []string
+	for _, c := range cv {
+		cpt := (float32(c.count) / float32(max)) * 100
+		pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;%d`, c.name, int(cpt)))
+	}
+
+	p := "<br>Distribution by time: " + strings.Join(pd, " / ")
+	return p
+}
+
+func headwordchronology(wc DbHeadwordCount) string {
+	// Weighted chronological distribution: ⓔ 100 / ⓛ 84 / ⓜ 62
+	cv := wc.TimeVal
+
+	for i, c := range cv {
+		cv[i].count = int(float32(c.count) * ERAWEIGHTING[c.name])
+	}
+
+	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })
+
+	max := cv[0].count
+	var pd []string
+	for _, c := range cv {
+		cpt := (float32(c.count) / float32(max)) * 100
+		pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;%d`, c.name, int(cpt)))
+	}
+
+	p := "<br>Distribution by corpus: " + strings.Join(pd, " / ")
+	return p
+}
+
+func headwordgenres(wc DbHeadwordCount) string {
+	// Predominant genres: comm (100), mech (97), jurisprud (93), med (84), mus (75), nathist (61), paroem (60), allrelig (57)
+	cv := wc.GenreVal
+
+	wt := map[string]float32{}
+	if isGreek.MatchString(wc.Entry) {
+		wt = GKGENREWEIGHT
+	} else {
+		wt = LATGENREWEIGHT
+	}
+
+	for i, c := range cv {
+		cv[i].count = int(float32(c.count) * wt[c.name])
+	}
+
+	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })
+
+	// msg("cv", 0)
+	// fmt.Println(cv)
+
+	max := cv[0].count
+	var pd []string
+	for _, c := range cv {
+		cpt := (float32(c.count) / float32(max)) * 100
+		pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;(%d)`, c.name, int(cpt)))
+	}
+
+	pd = pd[0:GENRESTOCOUNT]
+
+	p := "<br>Distribution by genre: " + strings.Join(pd, "; ")
+	return p
 }
 
 // "🄶": 1.0, "🄻": 12.7, "🄸": 15.19, "🄳": 18.14, "🄲": 85.78

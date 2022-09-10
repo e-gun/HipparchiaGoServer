@@ -29,6 +29,7 @@ const (
 	MAXLEMMACHUNKSIZE     = 20
 	MAXLINESHITCONTEXT    = 30
 	MAXTEXTLINEGENERATION = 7500
+	MAXREVERSELOOKUP      = 100
 	MINBROWSERWIDTH       = 90
 	MINDATE               = -850
 	MINDATESTR            = "-850"
@@ -41,6 +42,11 @@ const (
 	GENRESTOCOUNT         = 5
 	CONFIGNAME            = "config.json"
 	CONFIGLOCATION        = "."
+
+	MINCONFIG = `{
+  "PosgreSQL" :
+  {"Pass": "YOURPASSWORDHERE" ,"Host": "127.0.0.1", "Port": 5432, "DBName": "hipparchiaDB" ,"User": "hippa_wr"}
+}`
 
 	// hipparchiaDB=# select * from gr0001 limit 0;
 	// index | wkuniversalid | level_05_value | level_04_value | level_03_value | level_02_value | level_01_value | level_00_value | marked_up_line | accented_line | stripped_line | hyphenated_words | annotations
@@ -137,7 +143,6 @@ const (
 	This is free software, and you are welcome to redistribute
 	it and/or modify it under the terms of the GNU General
 	Public License version 3.
-
 `
 
 	PROJ     = MYNAME

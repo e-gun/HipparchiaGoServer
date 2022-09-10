@@ -145,11 +145,14 @@ func StartEchoServer() {
 	// [h] lexical
 	//
 
-	// [h1]
-	// [h2] GET http://localhost:8000/lexica/findbyform/sapientem/lt0474
-	e.GET("/lexica/findbyform/:id", RtLexFindByForm)
+	// [h1] uri: /lexica/lookup/dolor
 
-	// [h3]
+	// [h2] GET http://localhost:8000/lexica/findbyform/sapientem/lt0474
+	e.GET("/lexica/findbyform/:wd", RtLexFindByForm)
+
+	// [h3] uri: /lexica/reverselookup/0ae94619/sorrow
+	e.GET("/lexica/reverselookup/:wd", RtLexReverse)
+
 	// [h4]
 
 	//

@@ -81,6 +81,8 @@ func main() {
 func configatlaunch() {
 	config := fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGNAME)
 
+	msg(fmt.Sprintf(TERMINALTEXT, PROJ, PROJYEAR, PROJAUTH, PROJMAIL), -1)
+
 	args := os.Args[1:len(os.Args)]
 
 	for i, a := range args {
@@ -112,7 +114,10 @@ func configatlaunch() {
 	conf := ConfigFile{}
 	err := decoder.Decode(&conf)
 	if err != nil {
-		msg(fmt.Sprintf("failed to load configuration file: '%s'", config), 0)
+		msg(fmt.Sprintf("FAILED to load the configuration file: '%s'", config), 0)
+		msg(fmt.Sprintf("Make sure that the file exists and that it has the following format:"), 0)
+		fmt.Println(MINCONFIG)
+		os.Exit(0)
 	}
 
 	cfg.PGLogin = conf.PosgreSQL

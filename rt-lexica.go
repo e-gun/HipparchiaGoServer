@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"reflect"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -68,7 +69,7 @@ type MorphPossib struct {
 
 func RtLexFindByForm(c echo.Context) error {
 	// be able to respond to "GET /lexica/findbyform/ἀμιϲθὶ/gr0062 HTTP/1.1"
-	req := c.Param("id")
+	req := c.Param("wd")
 	elem := strings.Split(req, "/")
 
 	if len(elem) == 0 || elem[0] == "" {
@@ -82,13 +83,45 @@ func RtLexFindByForm(c echo.Context) error {
 		au = elem[1]
 	}
 
-	word := elem[0]
+	word := purgechars(UNACCEPTABLEINPUT, elem[0])
 
 	word = acuteforgrave(word)
 
 	b := findbyform(word, au)
 
 	return c.String(http.StatusOK, string(b))
+}
+
+func RtLexReverse(c echo.Context) error {
+	// be able to respond to "/lexica/reverselookup/0ae94619/sorrow"
+	req := c.Param("wd")
+	elem := strings.Split(req, "/")
+
+	if len(elem) == 0 || elem[0] == "" {
+		return c.String(http.StatusOK, "")
+	}
+
+	word := purgechars(UNACCEPTABLEINPUT, elem[1])
+
+	s := sessions[readUUIDCookie(c)]
+
+	var dd []string
+	// map[string]bool{"gr": true, "lt": true, "in": false, "ch": false, "dp": false}
+	if s.ActiveCorp["lt"] || s.ActiveCorp["ch"] {
+		dd = append(dd, "latin")
+	}
+
+	if s.ActiveCorp["gr"] || s.ActiveCorp["in"] || s.ActiveCorp["dp"] {
+		dd = append(dd, "greek")
+	}
+
+	if len(dd) == 0 {
+		return c.String(http.StatusOK, "")
+	}
+
+	jsb := reversefind(word, dd)
+
+	return c.String(http.StatusOK, string(jsb))
 }
 
 //
@@ -259,6 +292,101 @@ func findbyform(word string, author string) []byte {
 	chke(ee)
 
 	// jsonbundle := []byte(fmt.Sprintf(`{"newhtml":"%s","newjs":"%s"}`, html, js))
+
+	return jsonbundle
+}
+
+func reversefind(word string, dicts []string) []byte {
+	// this is not the fast way to do it; just the first draft of a way to do it...
+	type EntryStruct struct {
+		Word  string
+		ID    float32
+		Count int
+		HTML  string
+	}
+
+	var entries []EntryStruct
+	dbpool := GetPSQLconnection()
+	defer dbpool.Close()
+
+	// [a] look for the words
+	for _, d := range dicts {
+		qt := `SELECT entry_name, id_number FROM %s_dictionary WHERE translations ~ '%s' LIMIT %d`
+		psq := fmt.Sprintf(qt, d, word, MAXREVERSELOOKUP)
+
+		var foundrows pgx.Rows
+		var err error
+		foundrows, err = dbpool.Query(context.Background(), psq)
+		chke(err)
+
+		for foundrows.Next() {
+			var newentry EntryStruct
+			err = foundrows.Scan(&newentry.Word, &newentry.ID)
+			chke(err)
+			entries = append(entries, newentry)
+		}
+		foundrows.Close()
+	}
+
+	// [b] attach the counts to the finds
+	qh := `SELECT entry_name, total_count FROM dictionary_headword_wordcounts WHERE entry_name='%s' LIMIT 1`
+	for i, f := range entries {
+		var wd string // will not use this info now, but if you ran the query in an array you would need it...
+
+		var foundrows pgx.Rows
+		var err error
+		foundrows, err = dbpool.Query(context.Background(), fmt.Sprintf(qh, f))
+		chke(err)
+		for foundrows.Next() {
+			err = foundrows.Scan(&wd, &entries[i].Count)
+			chke(err)
+		}
+		foundrows.Close()
+	}
+
+	// [c] attach the html to the entries
+	// this is the slow bit
+	for i, e := range entries {
+		fmt.Println(i)
+		b := findbyform(e.Word, "gr0000")
+		entries[i].HTML = string(b)
+	}
+
+	sort.Slice(entries, func(i, j int) bool { return entries[i].Count > entries[j].Count })
+
+	// [d] prepare the output
+
+	// et := `<span class="sensesum">(INDEX)&nbsp;<a class="nounderline" href="ENTRY_ENTRYID">ENTRY</a><span class="small">(COUNT)</span></span><br />`
+	et := `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="%s_%f">%s</a><span class="small">(%d)</span></span><br />`
+
+	var htmlchunks []string
+	for i, e := range entries {
+		h := fmt.Sprintf(et, i+1, e.Word, e.ID, e.Word, e.Count)
+		htmlchunks = append(htmlchunks, h)
+	}
+
+	bt := `<hr>(%d)&nbsp;%s`
+
+	for i, e := range entries {
+		h := fmt.Sprintf(bt, i+1, e.HTML)
+		htmlchunks = append(htmlchunks, h)
+	}
+
+	thehtml := strings.Join(htmlchunks, "")
+
+	js := insertlexicaljs()
+
+	type JSB struct {
+		HTML string `json:"newhtml"`
+		JS   string `json:"newjs"`
+	}
+
+	var jb JSB
+	jb.HTML = thehtml
+	jb.JS = js
+
+	jsonbundle, ee := json.Marshal(jb)
+	chke(ee)
 
 	return jsonbundle
 }
