@@ -24,11 +24,14 @@ func main() {
 	// defer profile.Start(profile.MemProfile).Stop()
 
 	// go tool pprof --pdf ./HipparchiaGoServer /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1880749830/cpu.pprof > profile.pdf
+
 	configatlaunch()
 
 	versioninfo := fmt.Sprintf("%s CLI Debugging Interface (v.%s)", MYNAME, VERSION)
 	versioninfo = versioninfo + fmt.Sprintf(" [loglevel=%d]", cfg.LogLevel)
 	msg(versioninfo, 0)
+
+	msg(fmt.Sprintf(TERMINALTEXT, PROJ, PROJYEAR, PROJAUTH, PROJMAIL), -1)
 
 	// concurrent launching
 	var awaiting sync.WaitGroup
@@ -80,8 +83,6 @@ func main() {
 // configatlaunch - read the configuration values from JSON and/or command line
 func configatlaunch() {
 	config := fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGNAME)
-
-	msg(fmt.Sprintf(TERMINALTEXT, PROJ, PROJYEAR, PROJAUTH, PROJMAIL), -1)
 
 	args := os.Args[1:len(os.Args)]
 

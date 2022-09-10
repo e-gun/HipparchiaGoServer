@@ -15,6 +15,7 @@ import (
 
 type ServerSession struct {
 	ID             string
+	IsLoggedIn     bool
 	Inclusions     SearchIncExl
 	Exclusions     SearchIncExl
 	ActiveCorp     map[string]bool
@@ -79,6 +80,13 @@ func makedefaultsession(id string) ServerSession {
 	s.UI.BrowseCtx = DEFAULTBROWSERCTX
 	s.SearchScope = DEFAULTPROXIMITYSCOPE
 	s.Proximity = DEFAULTPROXIMITY
+
+	if AUTHENTICATIONREQUIRED {
+		s.IsLoggedIn = false
+	} else {
+		s.IsLoggedIn = true
+	}
+
 	return s
 }
 
@@ -93,6 +101,11 @@ func readUUIDCookie(c echo.Context) string {
 
 	if _, t := sessions[id]; !t {
 		sessions[id] = makedefaultsession(id)
+	}
+
+	if !sessions[id].IsLoggedIn {
+		// go to authentication code
+		// at the moment everyone should always be marked as logged in
 	}
 
 	return id

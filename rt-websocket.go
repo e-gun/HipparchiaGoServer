@@ -14,6 +14,13 @@ import (
 	"time"
 )
 
+func disabledRtWebsocket(c echo.Context) error {
+	// the client sends the name of a poll and this will output
+	// bypassing the websocket reveals that there is a *heavy* tax to be paid if you poll too often
+
+	return nil
+}
+
 func RtWebsocket(c echo.Context) error {
 	// 	the client sends the name of a poll and this will output
 	//	the status of the poll continuously while the poll remains active
@@ -25,6 +32,9 @@ func RtWebsocket(c echo.Context) error {
 	// see also /static/hipparchiajs/progressindicator_go.js
 
 	// https://echo.labstack.com/cookbook/websocket/
+
+	// you can spend 3.5s on a search vs 2.0 seconds of you poll as fast as possible
+	// POLLEVERYNTABLES in SrchFeeder() and WSPOLLINGPAUSE here make a huge difference and report faster than you can see
 
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
@@ -56,6 +66,7 @@ func RtWebsocket(c echo.Context) error {
 			break
 		}
 		// Read
+
 		m := []byte{}
 		_, m, e := ws.ReadMessage()
 		if e != nil {
@@ -75,6 +86,7 @@ func RtWebsocket(c echo.Context) error {
 
 		if found && searches[bs].IsActive {
 			for {
+
 				var r ReplyJS
 
 				// [a] the easy info to report
@@ -101,7 +113,7 @@ func RtWebsocket(c echo.Context) error {
 				if r.Remain != 0 {
 					r.Msg = mm
 				} else {
-					r.Msg = "Formatting..."
+					r.Msg = "Finishing..."
 				}
 
 				// Write
@@ -114,6 +126,8 @@ func RtWebsocket(c echo.Context) error {
 					c.Logger().Error(er)
 					msg("RtWebsocket(): ws failed to write: breaking", 1)
 					break
+				} else {
+					time.Sleep(WSPOLLINGPAUSE)
 				}
 
 				if _, exists := searches[bs]; !exists {

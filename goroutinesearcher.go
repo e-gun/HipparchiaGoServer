@@ -84,7 +84,7 @@ func SrchFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, e
 				break
 			default:
 				remainder = len(ss.Queries) - i - 1
-				if remainder%10 == 0 {
+				if remainder%POLLEVERYNTABLES == 0 {
 					progremain.Store(ss.ID, remainder)
 				}
 				emitqueries <- q

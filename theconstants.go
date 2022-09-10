@@ -6,43 +6,48 @@
 package main
 
 const (
-	MYNAME                = "Hipparchia Golang Server"
-	SHORTNAME             = "HGS"
-	VERSION               = "0.3.3"
-	DBAUMAPSIZE           = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
-	DBLMMAPSIZE           = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
-	DBWKMAPSIZE           = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
-	DEFAULTBROWSERCTX     = 20
-	DEFAULTCOLUMN         = "stripped_line"
-	DEFAULTLINESOFCONTEXT = 4
-	DEFAULTHITLIMIT       = 200
-	DEFAULTPROXIMITY      = 3
-	MAXDISTANCE           = 10
-	DEFAULTPROXIMITYSCOPE = "lines"
-	DEFAULTSYNTAX         = "~*"
-	FIRSTSEARCHLIM        = 500000
-	INCERTADATE           = 2500
-	MAXBROWSERCONTEXT     = 60
-	MAXDATE               = 1500
-	MAXDATESTR            = "1500"
-	MAXHITLIMIT           = 2500
-	MAXINPUTLEN           = 50
-	MAXLEMMACHUNKSIZE     = 20
-	MAXLINESHITCONTEXT    = 30
-	MAXTEXTLINEGENERATION = 7500
-	MAXDICTLOOKUP         = 100
-	MINBROWSERWIDTH       = 90
-	MINDATE               = -850
-	MINDATESTR            = "-850"
-	ORDERBY               = "index"
-	TEMPTABLETHRESHOLD    = 100          // if a table requirce N "between" clauses, build a temptable instead to gather the needed lines
-	UNACCEPTABLEINPUT     = `|""'!@:,=+` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
-	VARIADATE             = 2000
-	ARCHIVEFOLDER         = "~"
-	TARGETDIR             = "hipparchia-archive"
-	GENRESTOCOUNT         = 5
-	CONFIGNAME            = "config.json"
-	CONFIGLOCATION        = "."
+	MYNAME                 = "Hipparchia Golang Server"
+	SHORTNAME              = "HGS"
+	VERSION                = "0.3.3"
+	SERVEDFROMHOST         = ""
+	SERVEDFROMPORT         = 8000
+	DBAUMAPSIZE            = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
+	DBLMMAPSIZE            = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
+	DBWKMAPSIZE            = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
+	POLLEVERYNTABLES       = 100
+	WSPOLLINGPAUSE         = 500000
+	DEFAULTBROWSERCTX      = 20
+	DEFAULTCOLUMN          = "stripped_line"
+	DEFAULTLINESOFCONTEXT  = 4
+	DEFAULTHITLIMIT        = 200
+	DEFAULTPROXIMITY       = 3
+	MAXDISTANCE            = 10
+	DEFAULTPROXIMITYSCOPE  = "lines"
+	DEFAULTSYNTAX          = "~*"
+	FIRSTSEARCHLIM         = 500000
+	INCERTADATE            = 2500
+	MAXBROWSERCONTEXT      = 60
+	MAXDATE                = 1500
+	MAXDATESTR             = "1500"
+	MAXHITLIMIT            = 2500
+	MAXINPUTLEN            = 50
+	MAXLEMMACHUNKSIZE      = 20
+	MAXLINESHITCONTEXT     = 30
+	MAXTEXTLINEGENERATION  = 7500
+	MAXDICTLOOKUP          = 100
+	MINBROWSERWIDTH        = 90
+	MINDATE                = -850
+	MINDATESTR             = "-850"
+	ORDERBY                = "index"
+	TEMPTABLETHRESHOLD     = 100          // if a table requirce N "between" clauses, build a temptable instead to gather the needed lines
+	UNACCEPTABLEINPUT      = `|""'!@:,=+` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
+	VARIADATE              = 2000
+	AUTHENTICATIONREQUIRED = false
+	ARCHIVEFOLDER          = "~"
+	TARGETDIR              = "hipparchia-archive"
+	GENRESTOCOUNT          = 5
+	CONFIGNAME             = "config.json"
+	CONFIGLOCATION         = "."
 
 	MINCONFIG = `{
   "PosgreSQL" :
