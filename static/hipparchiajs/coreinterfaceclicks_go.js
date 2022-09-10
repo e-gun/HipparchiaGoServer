@@ -333,37 +333,12 @@ $('#moretools').click(function(){ $('#lexica').toggle(); });
 $('#alt_moretools').click(function(){ $('#lexica').toggle(); });
 $('#vectoralt_moretools').click(function(){ $('#lexica').toggle(); });
 
-// not working as expected
-// supposed to clear out the other boxes and restore the placeholder; only clears the boxes
-
-//$('#parser').on('focus', function() {
-//    var $rl = $('#reverselexicon');
-//    var $lx = $('#lexicon');
-//    $rl.val(''); $rl.removeAttr("value"); $rl.attr('placeholder', '(English to Greek or Latin)');
-//    $lx.val(''); $lx.removeAttr("value"); $lx.attr('placeholder', '(Dictionary Search)');
-//    });
-//
-//$('#reverselexicon').on('focus', function() {
-//    var $pp = $('#parser');
-//    var $lx = $('#lexicon');
-//    $pp.val(''); $pp.removeAttr("value"); $pp.attr('placeholder', '(Morphology Search)');
-//    $lx.val(''); $lx.removeAttr("value"); $lx.attr('placeholder', '(Dictionary Search)');
-//    });
-//
-//$('#lexicon').on('focus', function() {
-//    var $rl = $('#reverselexicon');
-//    var $lx = $('#lexicon');
-//    $rl.val(''); $rl.removeAttr("value"); $rl.attr('placeholder', '(English to Greek or Latin)');
-//    $lx.val(''); $lx.removeAttr("value"); $lx.attr('placeholder', '(Dictionary Search)');
-//    });
-
 $('#lexicalsearch').click(function(){
     // note that modifications to this script should be kept in sync with dictionaryentryjs() in jsformatting.py
     let dictterm = $('#lexicon').val();
     let restoreme = dictterm;
     // trailing space will be lost unless you do this: ' gladiator ' --> ' gladiator' and so you can't spearch for only that word...
     if (dictterm.slice(-1) === ' ') { dictterm = dictterm.slice(0, -1) + '%20'; }
-    let parseterm = $('#parser').val();
     let reverseterm = $('#reverselexicon').val();
     let windowWidth = $(window).width();
     let windowHeight = $(window).height();
@@ -378,12 +353,6 @@ $('#lexicalsearch').click(function(){
         url = '/lexica/lookup/';
         dialogtitle = restoreme;
         mydictfield = '#lexicon';
-    } else if ( typeof parseterm !== 'undefined' && parseterm.length > 0 ) {
-        searchterm = parseterm;
-        url = '/lexica/findbyform/';
-        dialogtitle = searchterm;
-        mydictfield = '#parser';
-        restoreme = searchterm;
     } else if ( typeof reverseterm !== 'undefined' && reverseterm.length > 0 ) {
         $('#searchsummary').html('');
         let pd = $('#pollingdata');

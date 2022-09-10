@@ -9,7 +9,6 @@
 * selections mostly work 
 * progress polling mostly works
 * dictionaries mostly work
-* reverse lexical searches
 * basic text maker
 * very basic indexing
 
@@ -19,8 +18,6 @@
 * saving/fetching searches
 * vocabulary list generation
 * search list info box
-* dictionary searches
-* morphology searches
 * raw input style
 * onehit searching
 

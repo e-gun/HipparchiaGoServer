@@ -146,6 +146,7 @@ func StartEchoServer() {
 	//
 
 	// [h1] uri: /lexica/lookup/dolor
+	e.GET("/lexica/lookup/:wd", RtLexLookup)
 
 	// [h2] GET http://localhost:8000/lexica/findbyform/sapientem/lt0474
 	e.GET("/lexica/findbyform/:wd", RtLexFindByForm)

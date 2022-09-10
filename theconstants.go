@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                = "Hipparchia Golang Server"
 	SHORTNAME             = "HGS"
-	VERSION               = "0.3.1"
+	VERSION               = "0.3.2"
 	DBAUMAPSIZE           = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
 	DBLMMAPSIZE           = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
 	DBWKMAPSIZE           = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
@@ -29,7 +29,7 @@ const (
 	MAXLEMMACHUNKSIZE     = 20
 	MAXLINESHITCONTEXT    = 30
 	MAXTEXTLINEGENERATION = 7500
-	MAXREVERSELOOKUP      = 100
+	MAXDICTLOOKUP         = 100
 	MINBROWSERWIDTH       = 90
 	MINDATE               = -850
 	MINDATESTR            = "-850"

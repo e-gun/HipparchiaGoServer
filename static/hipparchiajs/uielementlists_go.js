@@ -198,7 +198,7 @@ const hipparchiahelphtmlids = Array('#BasicSyntax', '#Browsing', '#Dictionaries'
     '#Interface', '#LemmaSearching', '#MakingSearchLists', '#Oddities', '#Openness', '#RegexSearching', '#SpeedSearching',
     '#VectorSearching', '#helptabs');
 
-const lexicahtmlids = Array('#lexica', '#lexicalsearch', '#lexicon', '#parser', '#reverselexicon');
+const lexicahtmlids = Array('#lexica', '#lexicalsearch', '#lexicon', '#reverselexicon');
 
 const miscuielementshtmlids = Array('#bottommessage', '#clear_button', '#clickforhelp', '#cookiemessage', '#helpbutton',
     '#moretools', '#openoptionsbutton', '#upperleftbuttons', '#vector_options_button');

@@ -63,9 +63,35 @@ type MorphPossib struct {
 	Xrefval  string `json:"xref_value"`
 }
 
+type JSB struct {
+	HTML string `json:"newhtml"`
+	JS   string `json:"newjs"`
+}
+
 //
 // ROUTING
 //
+
+func RtLexLookup(c echo.Context) error {
+	req := c.Param("wd")
+	seeking := purgechars(UNACCEPTABLEINPUT, req)
+	seeking = acuteforgrave(seeking)
+
+	dict := "latin"
+	if isGreek.MatchString(seeking) {
+		dict = "greek"
+	}
+
+	html := dictsearch(seeking, dict)
+
+	var jb JSB
+	jb.HTML = html
+	jb.JS = insertlexicaljs()
+
+	jsonbundle, ee := json.Marshal(jb)
+	chke(ee)
+	return c.String(http.StatusOK, string(jsonbundle))
+}
 
 func RtLexFindByForm(c echo.Context) error {
 	// be able to respond to "GET /lexica/findbyform/ἀμιϲθὶ/gr0062 HTTP/1.1"
@@ -91,11 +117,6 @@ func RtLexFindByForm(c echo.Context) error {
 
 	// html = strings.Replace(html, `"`, `\"`, -1)
 	js := insertlexicaljs()
-
-	type JSB struct {
-		HTML string `json:"newhtml"`
-		JS   string `json:"newjs"`
-	}
 
 	var jb JSB
 	jb.HTML = html
@@ -138,17 +159,9 @@ func RtLexReverse(c echo.Context) error {
 
 	html := reversefind(word, dd)
 
-	// html = strings.Replace(html, `"`, `\"`, -1)
-	js := insertlexicaljs()
-
-	type JSB struct {
-		HTML string `json:"newhtml"`
-		JS   string `json:"newjs"`
-	}
-
 	var jb JSB
 	jb.HTML = html
-	jb.JS = js
+	jb.JS = insertlexicaljs()
 
 	jsb, ee := json.Marshal(jb)
 	chke(ee)
@@ -162,26 +175,12 @@ func RtLexReverse(c echo.Context) error {
 
 func findbyform(word string, author string) string {
 
-	// [a] clean the search term
-
-	// TODO...
-
-	// [b] pick a dictionary
-
-	// naive and could/should be improved
-
-	var d string
-	if author[0:2] != "lt" {
+	d := "latin"
+	if isGreek.MatchString(word) {
 		d = "greek"
-	} else {
-		d = "latin"
 	}
 
-	// [c] search for morphology matches
-
-	// the python is funky because we need to poke at words several times and to try combinations of fixes
-	// skipping that stuff here for now because 'findbyform' should usually see a known form
-	// TODO: accute/grave issues should be handled ASAP
+	// [a] search for morphology matches
 
 	dbpool := GetPSQLconnection()
 	defer dbpool.Close()
@@ -204,7 +203,7 @@ func findbyform(word string, author string) string {
 		thesefinds = append(thesefinds, thehit)
 	}
 
-	// [c1] turn morph matches into []MorphPossib
+	// [b] turn morph matches into []MorphPossib
 
 	var mpp []MorphPossib
 
@@ -229,7 +228,7 @@ func findbyform(word string, author string) string {
 		}
 	}
 
-	// [d] take the []MorphPossib and find the set of headwords we are interested in
+	// [c] take the []MorphPossib and find the set of headwords we are interested in
 
 	var hwm []string
 	for _, p := range mpp {
@@ -241,9 +240,8 @@ func findbyform(word string, author string) string {
 	// the next is primed to produce problems: see καρποῦ which will turn καρπόϲ1 and καρπόϲ2 into just καρπόϲ; need xref_value?
 	// but we have probably taken care of this below: see the comments
 	hwm = unique(hwm)
-	// fmt.Println(hwm)
 
-	// [e] get the wordobjects for each unique headword: probedictionary()
+	// [d] get the wordobjects for each unique headword: probedictionary()
 
 	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
 	fld = `entry_name, metrical_entry, id_number, pos, translations, html_body`
@@ -273,7 +271,7 @@ func findbyform(word string, author string) string {
 		}
 	}
 
-	// [f] generate and format the prevalence data for this form: cf formatprevalencedata() in lexicalformatting.py
+	// [e] generate and format the prevalence data for this form: cf formatprevalencedata() in lexicalformatting.py
 
 	fld = `entry_name, total_count, gr_count, lt_count, dp_count, in_count, ch_count`
 	psq = `SELECT %s FROM wordcounts_%s where entry_name = '%s'`
@@ -294,18 +292,18 @@ func findbyform(word string, author string) string {
 	label := wc.Word
 	allformpd := formatprevalencedata(wc, label)
 
-	// [g] format the parsing summary
+	// [f] format the parsing summary
 
 	parsing := formatparsingdata(mpp)
 
-	// [h] generate the lexical output: multiple entries possible - <div id="δημόϲιοϲ_23337644"> ... <div id="δημοϲίᾳ_23333080"> ...
+	// [g] generate the lexical output: multiple entries possible - <div id="δημόϲιοϲ_23337644"> ... <div id="δημοϲίᾳ_23333080"> ...
 
 	var entries string
 	for _, w := range lexicalfinds {
 		entries += formatlexicaloutput(w)
 	}
 
-	// [i] add the HTML + JS to inject `{"newhtml": "...", "newjs":"..."}`
+	// [h] add the HTML + JS to inject `{"newhtml": "...", "newjs":"..."}`
 
 	html := allformpd + parsing + entries
 
@@ -328,7 +326,7 @@ func reversefind(word string, dicts []string) string {
 	qt := `SELECT %s FROM %s_dictionary WHERE translations ~ '%s' LIMIT %d`
 	fld := `entry_name, metrical_entry, id_number, pos, translations, html_body`
 	for _, d := range dicts {
-		psq := fmt.Sprintf(qt, fld, d, word, MAXREVERSELOOKUP)
+		psq := fmt.Sprintf(qt, fld, d, word, MAXDICTLOOKUP)
 
 		var foundrows pgx.Rows
 		var err error
@@ -383,6 +381,52 @@ func reversefind(word string, dicts []string) string {
 	thehtml := strings.Join(htmlchunks, "")
 
 	return thehtml
+}
+
+func dictsearch(seeking string, dict string) string {
+	dbpool := GetPSQLconnection()
+	defer dbpool.Close()
+
+	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
+	fld := `entry_name, metrical_entry, id_number, pos, translations, html_body`
+	psq := `SELECT %s FROM %s_dictionary WHERE %s ~* '%s' ORDER BY id_number ASC LIMIT %d`
+	col := "entry_name"
+	q := fmt.Sprintf(psq, fld, dict, col, seeking, MAXDICTLOOKUP)
+
+	var lexicalfinds []DbLexicon
+	var foundrows pgx.Rows
+	var err error
+	foundrows, err = dbpool.Query(context.Background(), q)
+	chke(err)
+
+	defer foundrows.Close()
+	for foundrows.Next() {
+		var thehit DbLexicon
+		err := foundrows.Scan(&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry)
+		chke(err)
+		thehit.Lang = dict
+		lexicalfinds = append(lexicalfinds, thehit)
+	}
+
+	sort.Slice(lexicalfinds, func(i, j int) bool { return lexicalfinds[i].Word < lexicalfinds[j].Word })
+
+	// [d1] insert the overview
+	et := `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="%s_%f">%s</a><br />`
+
+	var htmlchunks []string
+	for i, l := range lexicalfinds {
+		h := fmt.Sprintf(et, i+1, l.Word, l.ID, l.Word)
+		htmlchunks = append(htmlchunks, h)
+	}
+
+	// the entries
+	for _, l := range lexicalfinds {
+		htmlchunks = append(htmlchunks, formatlexicaloutput(l))
+	}
+
+	html := strings.Join(htmlchunks, "")
+
+	return html
 }
 
 //

@@ -612,7 +612,11 @@ func workvalueofpassage(psg string) string {
 	return thework
 }
 
-func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
+func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
+	// msg(fmt.Sprintf("wuid: '%s'; locus: '%s'; sep: '%s'", wuid, locus, sep), 1)
+	// [HGS] wuid: 'lt0474w049'; locus: '3|14|_0'; sep: '|'
+	// [HGS] wuid: 'lt0474w049'; locus: '4:8:18'; sep: ':'
+	success := false
 	fl := [2]int64{0, 0}
 	wk := AllWorks[wuid]
 
@@ -624,7 +628,7 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 
 	if len(ll) == 0 || ll[0] == "_0" {
 		fl = [2]int64{wk.FirstLine, wk.LastLine}
-		return fl
+		return fl, true
 	}
 
 	if ll[len(ll)-1] == "_0" {
@@ -662,10 +666,31 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 	}
 	if len(idx) == 0 {
 		// bogus input
-		msg(fmt.Sprintf("findendpointsfromlocus() failed to find the following inside of %s: %s", wuid, locus), -1)
+		msg(fmt.Sprintf("endpointer() failed to find the following inside of %s: '%s'", wuid, locus), -1)
 		fl = [2]int64{1, 1}
 	} else {
 		fl = [2]int64{idx[0], idx[len(idx)-1]}
+		success = true
+	}
+
+	return fl, success
+}
+
+func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
+	// we are wrapping endpointer() to give us a couple of bites at a perseus problem
+	// [HGS] findendpointsfromlocus() failed to find the following inside of lt0474w049: 4:8:18
+	// this should in fact be "4.18"
+
+	fl, success := endpointer(wuid, locus, sep)
+	if success || sep != ":" {
+		return fl
+	} else {
+		ll := strings.Split(locus, sep)
+		if len(ll) >= 2 {
+			newlocus := strings.Join(RemoveIndex(ll, 1), ":")
+			msg(fmt.Sprintf("findendpointsfromlocus() retrying endpointer(): '%s' --> '%s'", locus, newlocus), 1)
+			fl, success = endpointer(wuid, newlocus, sep)
+		}
 	}
 
 	return fl
