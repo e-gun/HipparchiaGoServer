@@ -56,6 +56,8 @@ func main() {
 		}
 	}
 
+	// fmt.Printf(TERMINALTEXT, PROJ, PROJYEAR, PROJAUTH, PROJMAIL)
+
 	if cfg.LogLevel > 5 {
 		cfg.LogLevel = 5
 	}

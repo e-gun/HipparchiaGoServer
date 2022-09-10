@@ -5,22 +5,44 @@ import (
 	"fmt"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
+	"reflect"
 	"sort"
 	"strings"
 )
 
+// see CALCULATEWORDWEIGHTS in HipparchiaServer's startup.py on where these really come from
 var (
 	CORPUSWEIGTING = map[string]float32{"Ⓖ": 1.0, "Ⓛ": 12.7, "Ⓘ": 15.19, "Ⓓ": 18.14, "Ⓒ": 85.78}
 	ERAWEIGHTING   = map[string]float32{"ⓔ": 6.93, "ⓜ": 1.87, "ⓛ": 1}
+	GKGENREWEIGHT  = map[string]float32{"Acta": 85.38, "Alchem": 72.13, "Anthol": 17.68, "Apocal": 117.69, "Apocr": 89.77,
+		"Apol": 7.0, "Astrol": 20.68, "Astron": 44.72, "Biogr": 6.39, "Bucol": 416.66, "Caten": 5.21,
+		"Chron": 4.55, "Comic": 29.61, "Comm": 1.0, "Concil": 16.75, "Coq": 532.74, "Dial": 7.1,
+		"Docu": 2.66, "Doxogr": 130.84, "Eccl": 7.57, "Eleg": 188.08, "Encom": 13.17, "Epic": 19.36,
+		"Epigr": 10.87, "Epist": 4.7, "Evang": 118.66, "Exeg": 1.24, "Fab": 140.87,
+		"Geog": 10.74, "Gnom": 88.54, "Gram": 8.65, "Hagiog": 22.83, "Hexam": 110.78,
+		"Hist": 1.44, "Homil": 6.87, "Hymn": 48.18, "Hypoth": 12.95, "Iamb": 122.22,
+		"Ignot": 122914.2, "Invect": 238.54, "Inscr": 1.91, "Juris": 51.42, "Lexic": 4.14,
+		"Litur": 531.5, "Lyr": 213.43, "Magica": 85.38, "Math": 9.91, "Mech": 103.44, "Med": 2.25,
+		"Metro": 276.78, "Mim": 2183.94, "Mus": 96.32, "Myth": 201.78, "NarrFic": 14.62,
+		"NatHis": 9.67, "Onir": 145.15, "Orac": 240.47, "Orat": 6.67, "Paradox": 267.32,
+		"Parod": 831.51, "Paroem": 65.58, "Perig": 220.38, "Phil": 3.69, "Physiog": 628.77,
+		"Poem": 62.82, "Polyhist": 24.91, "Proph": 95.51, "Pseud": 611.65, "Rhet": 8.67,
+		"Satura": 291.58, "Satyr": 96.78, "Schol": 5.56, "Tact": 52.01, "Test": 66.53, "Theol": 6.28,
+		"Trag": 35.8, "AllRelig": 0.58, "AllRhet": 2.9}
+
+	LATGENREWEIGHT = map[string]float32{"Agric": 5.27, "Astron": 17.15, "Biogr": 9.88, "Bucol": 40.39, "Bomic": 4.21, "Comm": 2.25,
+		"Coq": 60.0, "Dial": 1134.73, "Docu": 6.19, "Eleg": 8.35, "Encom": 404.6, "Epic": 2.37,
+		"Epigr": 669.3, "Epist": 2.06, "Fab": 25.4, "Gnom": 147.23, "Gramm": 5.74, "Hexam": 20.06,
+		"Hist": 1.0, "Hypoth": 762.59, "Ignotum": 586.58, "Inscr": 1.29, "Juris": 1.11,
+		"Lexic": 27.71, "Lyr": 24.76, "Med": 7.26, "Mim": 1045.69, "Narrfict": 11.7,
+		"Nathist": 1.94, "Orat": 1.81, "Parod": 339.23, "Phil": 2.3, "Poem": 14.34,
+		"Polyhist": 4.75, "Rhet": 2.71, "Satura": 23.0, "Tact": 37.6, "Trag": 13.29, "Allrelig": 0,
+		"Allrhet": 1.08}
 )
 
 //
 // HEADWORDS
 //
-
-func headwordinfo(wc DbHeadwordCount) {
-
-}
 
 func headwordprevalence(wc DbHeadwordCount) string {
 	// Prevalence (all forms): Ⓖ 95,843 / Ⓛ 10 / Ⓘ 151 / Ⓓ 751 / Ⓒ 64 / Ⓣ 96,819
@@ -56,10 +78,10 @@ func headworddistrib(wc DbHeadwordCount) string {
 	var pd []string
 	for _, c := range cv {
 		cpt := (float32(c.count) / float32(max)) * 100
-		pd = append(pd, fmt.Sprintf("%s %d", c.name, int(cpt)))
+		pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;%d`, c.name, int(cpt)))
 	}
 
-	p := "<br>Weighted chronological distribution: " + strings.Join(pd, " / ")
+	p := "<br>Distribution by time: " + strings.Join(pd, " / ")
 	return p
 }
 
@@ -77,15 +99,44 @@ func headwordchronology(wc DbHeadwordCount) string {
 	var pd []string
 	for _, c := range cv {
 		cpt := (float32(c.count) / float32(max)) * 100
-		pd = append(pd, fmt.Sprintf("%s %d", c.name, int(cpt)))
+		pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;%d`, c.name, int(cpt)))
 	}
 
-	p := "<br>Weighted distribution by corpus: " + strings.Join(pd, " / ")
+	p := "<br>Distribution by corpus: " + strings.Join(pd, " / ")
 	return p
 }
 
-func headwordgenres(wc DbHeadwordCount) {
+func headwordgenres(wc DbHeadwordCount) string {
 	// Predominant genres: comm (100), mech (97), jurisprud (93), med (84), mus (75), nathist (61), paroem (60), allrelig (57)
+	cv := wc.GenreVal
+
+	wt := map[string]float32{}
+	if isGreek.MatchString(wc.Entry) {
+		wt = GKGENREWEIGHT
+	} else {
+		wt = LATGENREWEIGHT
+	}
+
+	for i, c := range cv {
+		cv[i].count = int(float32(c.count) * wt[c.name])
+	}
+
+	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })
+
+	// msg("cv", 0)
+	// fmt.Println(cv)
+
+	max := cv[0].count
+	var pd []string
+	for _, c := range cv {
+		cpt := (float32(c.count) / float32(max)) * 100
+		pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;(%d)`, c.name, int(cpt)))
+	}
+
+	pd = pd[0:GENRESTOCOUNT]
+
+	p := "<br>Distribution by genre: " + strings.Join(pd, "; ")
+	return p
 }
 
 // HWData - to help sort values inside DbHeadwordCount
@@ -208,6 +259,7 @@ type DbHeadwordCount struct {
 	CorpVal   []HWData
 	TimeVal   []HWData
 	TagVal    []HWData
+	GenreVal  []HWData
 }
 
 func (hw *DbHeadwordCount) LoadCorpVals() {
@@ -228,6 +280,21 @@ func (hw *DbHeadwordCount) LoadTimeVals() {
 	vv = append(vv, HWData{"ⓛ", hw.Chron.Late})
 	vv = append(vv, HWData{"ⓜ", hw.Chron.Middle})
 	hw.TimeVal = vv
+}
+
+func (hw *DbHeadwordCount) LoadGenreVals() {
+	// Weighted genre distribution: Predominant genres: bucol (100), iamb (98), epic (95),...
+	var vv []HWData
+	gvv := reflect.ValueOf(hw.Genre)
+	gvtype := gvv.Type()
+
+	for i := 0; i < gvv.NumField(); i++ {
+		var v HWData
+		v.name = gvtype.Field(i).Name
+		v.count = gvv.Field(i).Interface().(int)
+		vv = append(vv, v)
+	}
+	hw.GenreVal = vv
 }
 
 func headwordlookup(word string) DbHeadwordCount {
@@ -294,37 +361,9 @@ func headwordlookup(word string) DbHeadwordCount {
 	// fmt.Println(thefind)
 	thefind.LoadCorpVals()
 	thefind.LoadTimeVals()
+	thefind.LoadGenreVals()
 
 	return thefind
 }
 
-/*
-	greekworderaweights = {'early': 6.93, 'middle': 1.87, 'late': 1}
-
-	corporaweights = {'gr': 1.0, 'lt': 12.7, 'in': 15.19, 'dp': 18.14, 'ch': 85.78}
-
-	greekgenreweights = {'acta': 85.38, 'alchem': 72.13, 'anthol': 17.68, 'apocalyp': 117.69, 'apocryph': 89.77,
-	                     'apol': 7.0, 'astrol': 20.68, 'astron': 44.72, 'biogr': 6.39, 'bucol': 416.66, 'caten': 5.21,
-	                     'chronogr': 4.55, 'comic': 29.61, 'comm': 1.0, 'concil': 16.75, 'coq': 532.74, 'dialog': 7.1,
-	                     'docu': 2.66, 'doxogr': 130.84, 'eccl': 7.57, 'eleg': 188.08, 'encom': 13.17, 'epic': 19.36,
-	                     'epigr': 10.87, 'epist': 4.7, 'evangel': 118.66, 'exeget': 1.24, 'fab': 140.87,
-	                     'geogr': 10.74, 'gnom': 88.54, 'gramm': 8.65, 'hagiogr': 22.83, 'hexametr': 110.78,
-	                     'hist': 1.44, 'homilet': 6.87, 'hymn': 48.18, 'hypoth': 12.95, 'iamb': 122.22,
-	                     'ignotum': 122914.2, 'invectiv': 238.54, 'inscr': 1.91, 'jurisprud': 51.42, 'lexicogr': 4.14,
-	                     'liturg': 531.5, 'lyr': 213.43, 'magica': 85.38, 'math': 9.91, 'mech': 103.44, 'med': 2.25,
-	                     'metrolog': 276.78, 'mim': 2183.94, 'mus': 96.32, 'myth': 201.78, 'narrfict': 14.62,
-	                     'nathist': 9.67, 'onir': 145.15, 'orac': 240.47, 'orat': 6.67, 'paradox': 267.32,
-	                     'parod': 831.51, 'paroem': 65.58, 'perieg': 220.38, 'phil': 3.69, 'physiognom': 628.77,
-	                     'poem': 62.82, 'polyhist': 24.91, 'prophet': 95.51, 'pseudepigr': 611.65, 'rhet': 8.67,
-	                     'satura': 291.58, 'satyr': 96.78, 'schol': 5.56, 'tact': 52.01, 'test': 66.53, 'theol': 6.28,
-	                     'trag': 35.8, 'allrelig': 0.58, 'allrhet': 2.9}
-
-	latingenreweights = {'agric': 5.27, 'astron': 17.15, 'biogr': 9.88, 'bucol': 40.39, 'comic': 4.21, 'comm': 2.25,
-	                     'coq': 60.0, 'dialog': 1134.73, 'docu': 6.19, 'eleg': 8.35, 'encom': 404.6, 'epic': 2.37,
-	                     'epigr': 669.3, 'epist': 2.06, 'fab': 25.4, 'gnom': 147.23, 'gramm': 5.74, 'hexametr': 20.06,
-	                     'hist': 1.0, 'hypoth': 762.59, 'ignotum': 586.58, 'inscr': 1.29, 'jurisprud': 1.11,
-	                     'lexicogr': 27.71, 'lyr': 24.76, 'med': 7.26, 'mim': 1045.69, 'narrfict': 11.7,
-	                     'nathist': 1.94, 'orat': 1.81, 'parod': 339.23, 'phil': 2.3, 'poem': 14.34,
-	                     'polyhist': 4.75, 'rhet': 2.71, 'satura': 23.0, 'tact': 37.6, 'trag': 13.29, 'allrelig': 0,
-	                     'allrhet': 1.08}
-*/
+// "🄶": 1.0, "🄻": 12.7, "🄸": 15.19, "🄳": 18.14, "🄲": 85.78

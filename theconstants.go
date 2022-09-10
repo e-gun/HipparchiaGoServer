@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                = "Hipparchia Golang Server"
 	SHORTNAME             = "HGS"
-	VERSION               = "0.2.8"
+	VERSION               = "0.2.9"
 	PSQ                   = `{"Host": "localhost", "Port": 5432, "User": "hippa_wr", "Pass": "", "DBName": "hipparchiaDB"}`
 	PSDefaultHost         = "localhost"
 	PSDefaultUser         = "hippa_wr"
@@ -45,6 +45,7 @@ const (
 	VARIADATE             = 2000
 	ARCHIVEFOLDER         = "~"
 	TARGETDIR             = "hipparchia-archive"
+	GENRESTOCOUNT         = 5
 
 	// hipparchiaDB=# select * from gr0001 limit 0;
 	// index | wkuniversalid | level_05_value | level_04_value | level_03_value | level_02_value | level_01_value | level_00_value | marked_up_line | accented_line | stripped_line | hyphenated_words | annotations
@@ -129,9 +130,23 @@ const (
 		});
 	});
 	`
-)
 
-/*
-corporaweights = {'gr': 1.0, 'lt': 12.7, 'in': 15.19, 'dp': 18.14, 'ch': 85.78}
-Ⓖ 95,843 / Ⓛ 10 / Ⓘ 151 / Ⓓ 751 / Ⓒ 64 / Ⓣ 96,819
-*/
+	TERMINALTEXT = `
+	%s / Copyright (C) %s / %s
+	%s
+
+	This program comes with ABSOLUTELY NO WARRANTY;
+	without even the implied warranty of MERCHANTABILITY
+	or FITNESS FOR A PARTICULAR PURPOSE.
+
+	This is free software, and you are welcome to redistribute
+	it and/or modify it under the terms of the GNU General
+	Public License version 3.
+
+`
+
+	PROJ     = MYNAME
+	PROJYEAR = "2022"
+	PROJAUTH = "E. Gunderson"
+	PROJMAIL = "Department of Classics, 125 Queen’s Park, Toronto, ON  M5S 2C7 Canada"
+)
