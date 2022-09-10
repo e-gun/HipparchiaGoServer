@@ -176,6 +176,7 @@ $(document).ready( function () {
 
     $('#proximityspinner').spinner({
         min: 1,
+        max: 10,
         value: 1,
         step: 1,
         stop: function( event, ui ) {

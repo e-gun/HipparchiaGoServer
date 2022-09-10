@@ -54,7 +54,7 @@ func StartEchoServer() {
 	}
 
 	e.Use(middleware.Recover())
-	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
+	// e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
 
 	e.File("/favicon.ico", "static/images/hipparchia_favicon.ico")
 	e.Static("/static", "static")
@@ -323,7 +323,7 @@ func RtSetOption(c echo.Context) error {
 		}
 	}
 
-	spinoptionlist := []string{"maxresults", "linesofcontext", "browsercontext"}
+	spinoptionlist := []string{"maxresults", "linesofcontext", "browsercontext", "proximity"}
 	if contains(spinoptionlist, opt) {
 		intval, e := strconv.Atoi(val)
 		if e == nil {
@@ -345,6 +345,12 @@ func RtSetOption(c echo.Context) error {
 					s.UI.BrowseCtx = int64(intval)
 				} else {
 					s.UI.BrowseCtx = MAXBROWSERCONTEXT
+				}
+			case "proximity":
+				if intval <= MAXDISTANCE {
+					s.Proximity = intval
+				} else {
+					s.HitLimit = MAXHITLIMIT
 				}
 			default:
 				msg("RtSetOption() hit an impossible case", 1)

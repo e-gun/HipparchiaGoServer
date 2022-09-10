@@ -432,8 +432,8 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	s.OrderBy = ORDERBY
 	s.SearchIn = sessions[user].Inclusions
 	s.SearchEx = sessions[user].Exclusions
-	s.ProxVal = DEFAULTPROXIMITY
-	s.ProxScope = DEFAULTPROXIMITYSCOPE
+	s.ProxVal = int64(sessions[user].Proximity)
+	s.ProxScope = sessions[user].SearchScope
 	s.NotNear = false
 	s.Twobox = false
 	s.HasPhrase = false

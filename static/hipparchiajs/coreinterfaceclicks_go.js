@@ -502,7 +502,7 @@ $('#endpointbutton-isopen').click(function(){
 
 
 //
-// COMPLEX SEARCH BUTTONS (the clicks are in documentready.js; the code is here
+// COMPLEX SEARCH BUTTONS (the clicks are in documentready_go.js; the code is here
 //
 
 function closeextendedsearcharea() {

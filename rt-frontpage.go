@@ -29,6 +29,7 @@ type ServerSession struct {
 	NearOrNot      string          `json:"nearornot"`
 	SearchScope    string          `json:"searchscope"`
 	SortHitsBy     string          `json:"sortorder"`
+	Proximity      int             `json:"proximity"`
 	Analogyfinder  bool            `json:"analogyfinder"`
 	Authorflagging bool            `json:"authorflagging"`
 	Authorssummary bool            `json:"authorssummary"`
@@ -45,10 +46,6 @@ type ServerSession struct {
 type UISettings struct {
 	BrowseCtx   int64
 	InputStyle  string
-	SummSens    bool
-	SummAuu     bool
-	SummQtt     bool
-	SummPhr     bool
 	LxFlagAu    bool
 	WCShow      bool
 	PptAndMorph bool
@@ -80,6 +77,8 @@ func makedefaultsession(id string) ServerSession {
 	s.SortHitsBy = "Name"
 	s.HitContext = DEFAULTLINESOFCONTEXT
 	s.UI.BrowseCtx = DEFAULTBROWSERCTX
+	s.SearchScope = DEFAULTPROXIMITYSCOPE
+	s.Proximity = DEFAULTPROXIMITY
 	return s
 }
 

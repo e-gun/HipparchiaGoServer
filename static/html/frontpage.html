@@ -81,14 +81,6 @@ License: GNU GENERAL PUBLIC LICENSE 3
         <input id="browserspinner" type="text" value="20" width="20px;">
     </p>
 
-    <p class="optionlabel">Index by headword</p>
-    <p class="optionitem">
-        <label for="headwordindexing_y">yes
-        <input type="radio" name="hwindex" id="headwordindexing_y" value="yes"></label>
-        <label for="headwordindexing_n">no
-        <input type="radio" name="hwindex" id="headwordindexing_n" value="no"></label>
-    </p>
-
     <p class="optionlabel">Index by frequency</p>
     <p class="optionitem">
         <label for="frequencyindexing_y">yes
@@ -423,7 +415,7 @@ License: GNU GENERAL PUBLIC LICENSE 3
 <script src="/static/hipparchiajs/browser.js"></script>
 
  <!-- load documentready last: calls on too much that is above -->
-<script src="/static/hipparchiajs/documentready.js"></script>
+<script src="/static/hipparchiajs/documentready_go.js"></script>
 
 <div id="versioning">
     <span class="unobtrusive">HGS&nbsp;{{index . "version"}}</span>
