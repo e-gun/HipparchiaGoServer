@@ -75,7 +75,7 @@ func makedefaultsession(id string) ServerSession {
 	s.HitLimit = DEFAULTHITLIMIT
 	s.Earliest = MINDATESTR
 	s.Latest = MAXDATESTR
-	s.SortHitsBy = "Name"
+	s.SortHitsBy = SORTBY
 	s.HitContext = DEFAULTLINESOFCONTEXT
 	s.UI.BrowseCtx = DEFAULTBROWSERCTX
 	s.SearchScope = DEFAULTPROXIMITYSCOPE

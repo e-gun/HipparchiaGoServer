@@ -63,7 +63,8 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 		results = results[0:max]
 	}
 
-	ss.Results = sortresults(results, ss)
+	ss.Results = results
+
 	return ss
 }
 
@@ -170,61 +171,4 @@ func ResultCollation(ctx context.Context, id string, max int64, values <-chan []
 		}
 	}
 	return allhits
-}
-
-//
-// HELPER FUNCTIONS
-//
-
-func sortresults(results []DbWorkline, ss SearchStruct) []DbWorkline {
-	// Closures that order the DbWorkline structure:
-	// see generichelpers.go and https://pkg.go.dev/sort#example__sortMultiKeys
-	nameIncreasing := func(one, two *DbWorkline) bool {
-		a1 := AllAuthors[one.FindAuthor()].Shortname
-		a2 := AllAuthors[two.FindAuthor()].Shortname
-		return a1 < a2
-	}
-
-	titleIncreasing := func(one, two *DbWorkline) bool {
-		return AllWorks[one.WkUID].Title < AllWorks[two.WkUID].Title
-	}
-
-	dateIncreasing := func(one, two *DbWorkline) bool {
-		return AllWorks[one.FindWork()].ConvDate < AllWorks[two.FindWork()].ConvDate
-	}
-
-	//dateDecreasing := func(one, two *DbWorkline) bool {
-	//	return AllWorks[one.FindWork()].ConvDate > AllWorks[two.FindWork()].ConvDate
-	//}
-
-	increasingLines := func(one, two *DbWorkline) bool {
-		return one.TbIndex < two.TbIndex
-	}
-
-	//decreasingLines := func(one, two *DbWorkline) bool {
-	//	return one.TbIndex > two.TbIndex // Note: > orders downwards.
-	//}
-
-	increasingID := func(one, two *DbWorkline) bool {
-		return one.BuildHyperlink() < two.BuildHyperlink()
-	}
-
-	crit := sessions[ss.User].SortHitsBy
-
-	switch {
-	// unhandled are "location" & "provenance"
-	case crit == "shortname":
-		OrderedBy(nameIncreasing, titleIncreasing, increasingLines).Sort(results)
-		return results
-	case crit == "converted_date":
-		OrderedBy(dateIncreasing, nameIncreasing, titleIncreasing, increasingLines).Sort(results)
-		return results
-	case crit == "universalid":
-		OrderedBy(increasingID).Sort(results)
-		return results
-	default:
-		// author nameIncreasing
-		OrderedBy(nameIncreasing, increasingLines).Sort(results)
-		return results
-	}
 }

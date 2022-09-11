@@ -161,7 +161,7 @@ func RtSearchStandard(c echo.Context) error {
 		completed = HGoSrch(searches[id])
 	}
 
-	if searches[id].HasPhrase {
+	if completed.HasPhrase {
 		// you did HGoSrch() and need to check the windowed lines
 		// withinxlinessearch() has already done the checking
 		// the cannot assign problem...
@@ -173,6 +173,8 @@ func RtSearchStandard(c echo.Context) error {
 
 	timetracker("D", fmt.Sprintf("search executed: %d hits", len(searches[id].Results)), start, previous)
 	previous = time.Now()
+
+	resultsorter(&completed)
 
 	searches[id] = completed
 
@@ -193,66 +195,6 @@ func RtSearchStandard(c echo.Context) error {
 	delete(searches, id)
 
 	return c.String(http.StatusOK, js)
-}
-
-func sr(ss *SearchStruct) {
-	// Closures that order the DbWorkline structure:
-	// see generichelpers.go and https://pkg.go.dev/sort#example__sortMultiKeys
-	nameIncreasing := func(one, two *DbWorkline) bool {
-		a1 := AllAuthors[one.FindAuthor()].Shortname
-		a2 := AllAuthors[two.FindAuthor()].Shortname
-		return a1 < a2
-	}
-
-	titleIncreasing := func(one, two *DbWorkline) bool {
-		return AllWorks[one.WkUID].Title < AllWorks[two.WkUID].Title
-	}
-
-	dateIncreasing := func(one, two *DbWorkline) bool {
-		d1 := AllWorks[one.WkUID].RecDate
-		d2 := AllWorks[two.WkUID].RecDate
-		if d1 != "Unavailable" && d2 != "Unavailable" {
-			return AllWorks[one.WkUID].ConvDate < AllWorks[two.WkUID].ConvDate
-		} else if d1 == "Unavailable" && d2 != "Unavailable" {
-			return AllAuthors[one.FindAuthor()].ConvDate < AllWorks[two.WkUID].ConvDate
-		} else if d1 != "Unavailable" && d2 == "Unavailable" {
-			return AllWorks[one.WkUID].ConvDate < AllAuthors[two.FindAuthor()].ConvDate
-		} else {
-			return AllAuthors[one.FindAuthor()].ConvDate < AllAuthors[two.FindAuthor()].ConvDate
-		}
-	}
-
-	//dateDecreasing := func(one, two *DbWorkline) bool {
-	//	return AllWorks[one.FindWork()].ConvDate > AllWorks[two.FindWork()].ConvDate
-	//}
-
-	increasingLines := func(one, two *DbWorkline) bool {
-		return one.TbIndex < two.TbIndex
-	}
-
-	//decreasingLines := func(one, two *DbWorkline) bool {
-	//	return one.TbIndex > two.TbIndex // Note: > orders downwards.
-	//}
-
-	increasingID := func(one, two *DbWorkline) bool {
-		return one.BuildHyperlink() < two.BuildHyperlink()
-	}
-
-	crit := sessions[ss.User].SortHitsBy
-
-	switch {
-	// unhandled are "location" & "provenance"
-	case crit == "shortname":
-		OrderedBy(nameIncreasing, titleIncreasing, increasingLines).Sort(ss.Results)
-	case crit == "converted_date":
-		msg("sorter: converted_date", 1)
-		OrderedBy(dateIncreasing, nameIncreasing, titleIncreasing, increasingLines).Sort(ss.Results)
-	case crit == "universalid":
-		OrderedBy(increasingID).Sort(ss.Results)
-	default:
-		// author nameIncreasing
-		OrderedBy(nameIncreasing, increasingLines).Sort(ss.Results)
-	}
 }
 
 //
@@ -675,7 +617,7 @@ func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 	for _, r := range valid {
 		slc = append(slc, r)
 	}
-	slc = sortresults(slc, ss)
+
 	return slc
 }
 
@@ -775,6 +717,65 @@ func searchtermfinder(term string) *regexp.Regexp {
 		pattern = regexp.MustCompile("FAILED_FIND_NOTHING")
 	}
 	return pattern
+}
+
+func resultsorter(ss *SearchStruct) {
+	// Closures that order the DbWorkline structure:
+	// see generichelpers.go and https://pkg.go.dev/sort#example__sortMultiKeys
+	nameIncreasing := func(one, two *DbWorkline) bool {
+		a1 := AllAuthors[one.FindAuthor()].Shortname
+		a2 := AllAuthors[two.FindAuthor()].Shortname
+		return a1 < a2
+	}
+
+	titleIncreasing := func(one, two *DbWorkline) bool {
+		return AllWorks[one.WkUID].Title < AllWorks[two.WkUID].Title
+	}
+
+	dateIncreasing := func(one, two *DbWorkline) bool {
+		d1 := AllWorks[one.WkUID].RecDate
+		d2 := AllWorks[two.WkUID].RecDate
+		if d1 != "Unavailable" && d2 != "Unavailable" {
+			return AllWorks[one.WkUID].ConvDate < AllWorks[two.WkUID].ConvDate
+		} else if d1 == "Unavailable" && d2 != "Unavailable" {
+			return AllAuthors[one.FindAuthor()].ConvDate < AllWorks[two.WkUID].ConvDate
+		} else if d1 != "Unavailable" && d2 == "Unavailable" {
+			return AllWorks[one.WkUID].ConvDate < AllAuthors[two.FindAuthor()].ConvDate
+		} else {
+			return AllAuthors[one.FindAuthor()].ConvDate < AllAuthors[two.FindAuthor()].ConvDate
+		}
+	}
+
+	//dateDecreasing := func(one, two *DbWorkline) bool {
+	//	return AllWorks[one.FindWork()].ConvDate > AllWorks[two.FindWork()].ConvDate
+	//}
+
+	increasingLines := func(one, two *DbWorkline) bool {
+		return one.TbIndex < two.TbIndex
+	}
+
+	//decreasingLines := func(one, two *DbWorkline) bool {
+	//	return one.TbIndex > two.TbIndex // Note: > orders downwards.
+	//}
+
+	increasingID := func(one, two *DbWorkline) bool {
+		return one.BuildHyperlink() < two.BuildHyperlink()
+	}
+
+	crit := sessions[ss.User].SortHitsBy
+
+	switch {
+	// unhandled are "location" & "provenance"
+	case crit == "shortname":
+		OrderedBy(nameIncreasing, titleIncreasing, increasingLines).Sort(ss.Results)
+	case crit == "converted_date":
+		OrderedBy(dateIncreasing, nameIncreasing, titleIncreasing, increasingLines).Sort(ss.Results)
+	case crit == "universalid":
+		OrderedBy(increasingID).Sort(ss.Results)
+	default:
+		// author nameIncreasing
+		OrderedBy(nameIncreasing, increasingLines).Sort(ss.Results)
+	}
 }
 
 //
@@ -1081,6 +1082,20 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 	}
 
 	so := sessions[s.User].SortHitsBy
+	// shortname, converted_date, location, provenance, universalid
+	switch so {
+	case "shortname":
+		so = "author name"
+	case "converted_date":
+		so = "date"
+	case "location":
+		so = "author location"
+	case "provenance":
+		so = "work location"
+	case "universalid":
+		so = "ID"
+	}
+
 	el := fmt.Sprintf("%.2f", time.Now().Sub(s.Launched).Seconds())
 	// need to record # of works and not # of tables somewhere & at the right moment...
 	sum := m.Sprintf(t, s.InitSum, s.SearchSize, len(s.Results), el, so, dr, hitcap)
@@ -1253,76 +1268,3 @@ func formatmultilinebrackets(html string) string {
 
 	return html
 }
-
-/*
-
-the following yields a strange problem: "&nbsp;" will render literally rather than as a space in the output. why?
-templating makes the formatting code a lot more readable...
-
-func formatnocontextresults(s SearchStruct) []byte {
-	var out SearchOutputJSON
-	out.JS = BROWSERJS
-	out.Title = s.Seeking
-	out.Image = ""
-	out.Searchsummary = formatfinalsearchsummary(s)
-
-	type TR struct {
-		RC string
-		NU int
-		AU string
-		WK string
-		LK string
-		LC string
-		MU string
-	}
-
-	TABLEROW := `
-	<tr class="{{.RC}}">
-		<td>
-			<span class="findnumber">[{{.NU}}]</span>&nbsp;&nbsp;
-			<span class="foundauthor">{{.AU}}</span>,&nbsp;<span class="foundwork">{{.WK}}</span>:
-			<browser id="{{.LK}}"><span class="foundlocus">{{.LC}}</span></browser>
-		</td>
-		<td class="leftpad">
-			<span class="foundtext">{{.MU}}</span>
-		</td>
-	</tr>
-	`
-
-	tmpl, e := template.New("tr").Parse(TABLEROW)
-	chke(e)
-
-	var rows []string
-	for i, r := range s.Results {
-		rc := ""
-		if i%3 == 2 {
-			rc = "nthrow"
-		} else {
-			rc = "regular"
-		}
-
-		var tr TR
-		tr.RC = rc
-		tr.AU = AllAuthors[r.FindAuthor()].Shortname
-		tr.WK = AllWorks[r.WkUID].Title
-		tr.LK = r.BuildHyperlink()
-		tr.LC = strings.Join(r.FindLocus(), ".")
-		tr.MU = r.MarkedUp
-
-		var b bytes.Buffer
-		err := tmpl.Execute(&b, tr)
-		chke(err)
-
-		fmt.Println(b.String())
-		rows = append(rows, b.String())
-	}
-
-	out.Found = "<tbody>" + strings.Join(rows, "") + "</tbody>"
-
-	js, e := json.Marshal(out)
-	chke(e)
-
-	return js
-}
-
-*/

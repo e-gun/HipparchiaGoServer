@@ -2,7 +2,7 @@
 
 ## alpha status: does a lot of what you most want acceptably...
 
-### status as of `v0.3.1`:
+### status as of `v0.3.5`:
 
 * searching mostly works 
 * browsing mostly works
@@ -15,7 +15,6 @@
 ### TODO (in vague order of priority)
 
 * "not near" logic
-* sort results by date
 * saving/fetching searches
 * vocabulary list generation
 * search list info box
