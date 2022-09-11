@@ -195,11 +195,13 @@ func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 			t.SYN = ss.SrchSyntax
 			t.SK = skg
 			t.LIM = fmt.Sprintf("%d", ss.Limit)
+
 			if ss.NotNear {
 				t.IDX = qb.WhrIdxExc
 			} else {
 				t.IDX = qb.WhrIdxInc
 			}
+
 			t.TTN = ss.TTName
 			t.PSCol = ss.SrchColumn
 

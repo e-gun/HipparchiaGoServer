@@ -50,6 +50,7 @@ type SearchStruct struct {
 	HasPhrase  bool
 	IsVector   bool
 	IsActive   bool
+	OneHit     bool
 	Twobox     bool
 	NotNear    bool
 	PhaseNum   int
@@ -451,6 +452,7 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	s.Twobox = false
 	s.HasPhrase = false
 	s.HasLemma = false
+	s.OneHit = sessions[user].OneHit
 	s.PhaseNum = 1
 	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
 	return s
@@ -1056,8 +1058,8 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 		<br>
 		Searched %d works and found %d passages (%ss)
 		<br>
-		<!-- unlimited hits per author -->
 		Sorted by %s
+		%s
 		<br>
 		%s
 		%s
@@ -1081,6 +1083,11 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 		hitcap = "<!-- did not hit the results cap -->"
 	}
 
+	oh := "<!-- unlimited hits per author -->"
+	if s.OneHit {
+		oh = `<br><span class="small">(only one hit allowed per author table)</span>`
+	}
+
 	so := sessions[s.User].SortHitsBy
 	// shortname, converted_date, location, provenance, universalid
 	switch so {
@@ -1098,7 +1105,7 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 
 	el := fmt.Sprintf("%.2f", time.Now().Sub(s.Launched).Seconds())
 	// need to record # of works and not # of tables somewhere & at the right moment...
-	sum := m.Sprintf(t, s.InitSum, s.SearchSize, len(s.Results), el, so, dr, hitcap)
+	sum := m.Sprintf(t, s.InitSum, s.SearchSize, len(s.Results), el, so, oh, dr, hitcap)
 	return sum
 }
 

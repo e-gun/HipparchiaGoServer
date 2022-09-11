@@ -15,11 +15,11 @@
 ### TODO (in vague order of priority)
 
 * "not near" logic
+* fix wonky lemma highlighting
 * saving/fetching searches
 * vocabulary list generation
 * search list info box
 * raw input style
-* onehit searching
 
 ### DISTANT FANTASIES
 * vectors

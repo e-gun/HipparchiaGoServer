@@ -58,7 +58,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 		max = ss.Limit * 3
 	}
 
-	results := ResultCollation(ctx, ss.ID, max, ResultAggregator(ctx, findchannels...))
+	results := ResultCollation(ctx, &ss, max, ResultAggregator(ctx, findchannels...))
 	if int64(len(results)) > max {
 		results = results[0:max]
 	}
@@ -143,7 +143,7 @@ func ResultAggregator(ctx context.Context, findchannels ...<-chan []DbWorkline) 
 }
 
 // ResultCollation - return the actual []DbWorkline results after pulling them from the ResultAggregator channel
-func ResultCollation(ctx context.Context, id string, max int64, values <-chan []DbWorkline) []DbWorkline {
+func ResultCollation(ctx context.Context, ss *SearchStruct, max int64, values <-chan []DbWorkline) []DbWorkline {
 	var allhits []DbWorkline
 	done := false
 	for {
@@ -156,8 +156,12 @@ func ResultCollation(ctx context.Context, id string, max int64, values <-chan []
 			done = true
 		case val, ok := <-values:
 			if ok {
-				allhits = append(allhits, val...)
-				proghits.Store(id, len(allhits))
+				if ss.OneHit && ss.PhaseNum == 1 && len(val) > 0 {
+					allhits = append(allhits, val[0])
+				} else {
+					allhits = append(allhits, val...)
+				}
+				proghits.Store(ss.ID, len(allhits))
 
 				if int64(len(allhits)) > max {
 					// you popped over the cap...: this does in fact save time and exit in the middle
