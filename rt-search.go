@@ -234,7 +234,12 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 
 	var newpsg []string
 	for _, r := range first.Results {
-		np := fmt.Sprintf(pt, r.FindAuthor(), r.TbIndex-first.ProxVal, r.TbIndex+first.ProxVal)
+		// avoid "gr0028_FROM_-1_TO_5"
+		low := r.TbIndex - first.ProxVal
+		if low < 1 {
+			low = 1
+		}
+		np := fmt.Sprintf(pt, r.FindAuthor(), low, r.TbIndex+first.ProxVal)
 		newpsg = append(newpsg, np)
 	}
 
@@ -296,7 +301,11 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 
 	// [a2] pick the lines to grab and associate them with the hits they go with
 	for i, r := range first.Results {
-		np := fmt.Sprintf(pt, r.FindAuthor(), r.TbIndex-need, r.TbIndex+need)
+		low := r.TbIndex - need
+		if low < 1 {
+			low = 1
+		}
+		np := fmt.Sprintf(pt, r.FindAuthor(), low, r.TbIndex+need)
 		newpsg = append(newpsg, np)
 		for j := r.TbIndex - need; j <= r.TbIndex+need; j++ {
 			m := fmt.Sprintf(t, r.FindAuthor(), r.FindWork(), j)
@@ -1009,7 +1018,7 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 	}
 
 	so := sessions[s.User].SortHitsBy
-	el := fmt.Sprintf("%.3f", time.Now().Sub(s.Launched).Seconds())
+	el := fmt.Sprintf("%.2f", time.Now().Sub(s.Launched).Seconds())
 	// need to record # of works and not # of tables somewhere & at the right moment...
 	sum := fmt.Sprintf(t, s.InitSum, s.SearchSize, len(s.Results), el, so, dr, hitcap)
 	return sum

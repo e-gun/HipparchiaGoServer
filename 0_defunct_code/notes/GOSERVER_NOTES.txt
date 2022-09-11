@@ -1,0 +1,13 @@
+our first big win:
+
+go:
+    Sought all 76 forms of »νέοϲ« within 3 lines of » φιλεῖ «
+    Searched 7461 works and found 35 passages (11.41s)
+    Sorted by Name
+
+py:
+    Sought all 76 known forms of »νέοϲ« within 1 lines of » φιλεῖ «
+    Searched 7,461 works and found 33 passages (45.56s)
+    Sorted by name
+
+

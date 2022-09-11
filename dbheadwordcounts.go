@@ -33,7 +33,7 @@ var (
 		"Coq": 60.0, "Dial": 1134.73, "Docu": 6.19, "Eleg": 8.35, "Encom": 404.6, "Epic": 2.37,
 		"Epigr": 669.3, "Epist": 2.06, "Fab": 25.4, "Gnom": 147.23, "Gramm": 5.74, "Hexam": 20.06,
 		"Hist": 1.0, "Hypoth": 762.59, "Ignotum": 586.58, "Inscr": 1.29, "Juris": 1.11,
-		"Lexic": 27.71, "Lyr": 24.76, "Med": 7.26, "Mim": 1045.69, "Narrfict": 11.7,
+		"Lexic": 27.71, "Lyr": 24.76, "Med": 7.26, "Mim": 1045.69, "NarrFic": 11.7,
 		"Nathist": 1.94, "Orat": 1.81, "Parod": 339.23, "Phil": 2.3, "Poem": 14.34,
 		"Polyhist": 4.75, "Rhet": 2.71, "Satura": 23.0, "Tact": 37.6, "Trag": 13.29, "Allrelig": 0,
 		"Allrhet": 1.08}
@@ -178,10 +178,25 @@ func (hw *DbHeadwordCount) LoadTimeVals() {
 
 func (hw *DbHeadwordCount) LoadGenreVals() {
 	// Weighted genre distribution: Predominant genres: bucol (100), iamb (98), epic (95),...
-	var vv []HWData
-	gvv := reflect.ValueOf(hw.Genre)
+	gvv := reflect.ValueOf(hw.Rhetorica)
 	gvtype := gvv.Type()
+	sum := 0
+	for i := 0; i < gvv.NumField(); i++ {
+		sum += gvv.Field(i).Interface().(int)
+	}
+	hw.Genre.AllRhet = sum
 
+	gvv = reflect.ValueOf(hw.Theology)
+	gvtype = gvv.Type()
+	sum = 0
+	for i := 0; i < gvv.NumField(); i++ {
+		sum += gvv.Field(i).Interface().(int)
+	}
+	hw.Genre.AllRelig = sum
+
+	gvv = reflect.ValueOf(hw.Genre)
+	gvtype = gvv.Type()
+	var vv []HWData
 	for i := 0; i < gvv.NumField(); i++ {
 		var v HWData
 		v.name = gvtype.Field(i).Name
@@ -257,10 +272,9 @@ func headwordlookup(word string) DbHeadwordCount {
 	if len(thesefinds) == 1 {
 		thefind = thesefinds[0]
 	} else {
-		msg(fmt.Sprintf("headwordlookup() for %s returned %d finds: this is wrong", word, len(thesefinds)), 1)
+		msg(fmt.Sprintf("headwordlookup() for %s returned %d finds", word, len(thesefinds)), 4)
 	}
 
-	// fmt.Println(thefind)
 	thefind.LoadCorpVals()
 	thefind.LoadTimeVals()
 	thefind.LoadGenreVals()
@@ -342,7 +356,11 @@ func headwordgenres(wc DbHeadwordCount) string {
 	}
 
 	for i, c := range cv {
-		cv[i].count = int(float32(c.count) * wt[c.name])
+		w := wt[c.name]
+		if w > MINORGENREWTCAP {
+			w = 0
+		}
+		cv[i].count = int(float32(c.count) * w)
 	}
 
 	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })

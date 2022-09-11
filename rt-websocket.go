@@ -113,7 +113,7 @@ func RtWebsocket(c echo.Context) error {
 				if r.Remain != 0 {
 					r.Msg = mm
 				} else {
-					r.Msg = "Finishing..."
+					r.Msg = mm + "&nbsp;(finishing up...)"
 				}
 
 				// Write

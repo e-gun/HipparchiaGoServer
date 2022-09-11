@@ -119,6 +119,7 @@ func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 	pattern := regexp.MustCompile(`(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`)
 	for _, p := range inc.Passages {
 		// "gr0032_FROM_11313_TO_11843"
+		// there is an "index out of range" panic you will see in here if "gr0028_FROM_-1_TO_5" arrives
 		subs := pattern.FindStringSubmatch(p)
 		au := subs[pattern.SubexpIndex("auth")]
 		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
@@ -396,7 +397,7 @@ func windowandttprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 func requiresindextemptable(au string, bb []Boundaries, ss *SearchStruct) string {
 	// mimic wholeworktemptablecontents() in whereclauses.py
 	m := fmt.Sprintf("%s requiresindextemptable(): %d []Boundaries", au, len(bb))
-	msg(m, 4)
+	msg(m, 5)
 	var required []int64
 	for _, b := range bb {
 		for i := b.Start; i <= b.Stop; i++ {

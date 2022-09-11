@@ -8,19 +8,19 @@ package main
 const (
 	MYNAME                 = "Hipparchia Golang Server"
 	SHORTNAME              = "HGS"
-	VERSION                = "0.3.3"
+	VERSION                = "0.3.4"
 	SERVEDFROMHOST         = ""
 	SERVEDFROMPORT         = 8000
 	DBAUMAPSIZE            = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
 	DBLMMAPSIZE            = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
 	DBWKMAPSIZE            = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
-	POLLEVERYNTABLES       = 100
-	WSPOLLINGPAUSE         = 500000
+	POLLEVERYNTABLES       = 150    // 3455 is the max number of tables in a search...
+	WSPOLLINGPAUSE         = 600000
 	DEFAULTBROWSERCTX      = 20
 	DEFAULTCOLUMN          = "stripped_line"
 	DEFAULTLINESOFCONTEXT  = 4
 	DEFAULTHITLIMIT        = 200
-	DEFAULTPROXIMITY       = 3
+	DEFAULTPROXIMITY       = 2
 	MAXDISTANCE            = 10
 	DEFAULTPROXIMITYSCOPE  = "lines"
 	DEFAULTSYNTAX          = "~*"
@@ -37,14 +37,13 @@ const (
 	MAXDICTLOOKUP          = 100
 	MINBROWSERWIDTH        = 90
 	MINDATE                = -850
+	MINORGENREWTCAP        = 250
 	MINDATESTR             = "-850"
 	ORDERBY                = "index"
-	TEMPTABLETHRESHOLD     = 100          // if a table requirce N "between" clauses, build a temptable instead to gather the needed lines
+	TEMPTABLETHRESHOLD     = 100          // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
 	UNACCEPTABLEINPUT      = `|""'!@:,=+` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
 	VARIADATE              = 2000
 	AUTHENTICATIONREQUIRED = false
-	ARCHIVEFOLDER          = "~"
-	TARGETDIR              = "hipparchia-archive"
 	GENRESTOCOUNT          = 5
 	CONFIGNAME             = "config.json"
 	CONFIGLOCATION         = "."
