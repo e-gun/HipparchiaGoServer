@@ -148,33 +148,33 @@ func RtSearchStandard(c echo.Context) error {
 	srch.IsActive = true
 	searches[id] = srch
 
-	// return results via searches[id].Results
+	var completed SearchStruct
 	if searches[id].Twobox {
 		// todo: triple-check results against python
 		// todo: "not near" syntax
 		if searches[id].ProxScope == "words" {
-			searches[id] = withinxwordssearch(searches[id])
+			completed = withinxwordssearch(searches[id])
 		} else {
-			searches[id] = withinxlinessearch(searches[id])
+			completed = withinxlinessearch(searches[id])
 		}
 	} else {
-		searches[id] = HGoSrch(searches[id])
+		completed = HGoSrch(searches[id])
 	}
 
 	if searches[id].HasPhrase {
 		// you did HGoSrch() and need to check the windowed lines
 		// withinxlinessearch() has already done the checking
 		// the cannot assign problem...
-		mod := searches[id]
-		mod.Results = findphrasesacrosslines(searches[id])
-		if int64(len(mod.Results)) > reallimit {
-			mod.Results = mod.Results[0:reallimit]
+		completed.Results = findphrasesacrosslines(completed)
+		if int64(len(completed.Results)) > reallimit {
+			completed.Results = completed.Results[0:reallimit]
 		}
-		searches[id] = mod
 	}
 
 	timetracker("D", fmt.Sprintf("search executed: %d hits", len(searches[id].Results)), start, previous)
 	previous = time.Now()
+
+	searches[id] = completed
 
 	var js string
 	if sessions[readUUIDCookie(c)].HitContext == 0 {
@@ -193,6 +193,66 @@ func RtSearchStandard(c echo.Context) error {
 	delete(searches, id)
 
 	return c.String(http.StatusOK, js)
+}
+
+func sr(ss *SearchStruct) {
+	// Closures that order the DbWorkline structure:
+	// see generichelpers.go and https://pkg.go.dev/sort#example__sortMultiKeys
+	nameIncreasing := func(one, two *DbWorkline) bool {
+		a1 := AllAuthors[one.FindAuthor()].Shortname
+		a2 := AllAuthors[two.FindAuthor()].Shortname
+		return a1 < a2
+	}
+
+	titleIncreasing := func(one, two *DbWorkline) bool {
+		return AllWorks[one.WkUID].Title < AllWorks[two.WkUID].Title
+	}
+
+	dateIncreasing := func(one, two *DbWorkline) bool {
+		d1 := AllWorks[one.WkUID].RecDate
+		d2 := AllWorks[two.WkUID].RecDate
+		if d1 != "Unavailable" && d2 != "Unavailable" {
+			return AllWorks[one.WkUID].ConvDate < AllWorks[two.WkUID].ConvDate
+		} else if d1 == "Unavailable" && d2 != "Unavailable" {
+			return AllAuthors[one.FindAuthor()].ConvDate < AllWorks[two.WkUID].ConvDate
+		} else if d1 != "Unavailable" && d2 == "Unavailable" {
+			return AllWorks[one.WkUID].ConvDate < AllAuthors[two.FindAuthor()].ConvDate
+		} else {
+			return AllAuthors[one.FindAuthor()].ConvDate < AllAuthors[two.FindAuthor()].ConvDate
+		}
+	}
+
+	//dateDecreasing := func(one, two *DbWorkline) bool {
+	//	return AllWorks[one.FindWork()].ConvDate > AllWorks[two.FindWork()].ConvDate
+	//}
+
+	increasingLines := func(one, two *DbWorkline) bool {
+		return one.TbIndex < two.TbIndex
+	}
+
+	//decreasingLines := func(one, two *DbWorkline) bool {
+	//	return one.TbIndex > two.TbIndex // Note: > orders downwards.
+	//}
+
+	increasingID := func(one, two *DbWorkline) bool {
+		return one.BuildHyperlink() < two.BuildHyperlink()
+	}
+
+	crit := sessions[ss.User].SortHitsBy
+
+	switch {
+	// unhandled are "location" & "provenance"
+	case crit == "shortname":
+		OrderedBy(nameIncreasing, titleIncreasing, increasingLines).Sort(ss.Results)
+	case crit == "converted_date":
+		msg("sorter: converted_date", 1)
+		OrderedBy(dateIncreasing, nameIncreasing, titleIncreasing, increasingLines).Sort(ss.Results)
+	case crit == "universalid":
+		OrderedBy(increasingID).Sort(ss.Results)
+	default:
+		// author nameIncreasing
+		OrderedBy(nameIncreasing, increasingLines).Sort(ss.Results)
+	}
 }
 
 //
