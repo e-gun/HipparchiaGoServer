@@ -110,6 +110,7 @@ func StartEchoServer() {
 	e.GET("/get/json/workstructure/:locus", RtGetJSWorksStruct)
 
 	// [f2d] /get/json/samplecitation
+	e.GET("/get/json/samplecitation/:locus", RtGetJSSampCit)
 	// [f2e] /get/json/authorinfo
 
 	e.GET("/get/json/authorinfo/:id", RtGetJSAuthorinfo)

@@ -75,8 +75,8 @@ func (dbw DbWorkline) FindCorpus() string {
 
 func (dbw DbWorkline) BuildHyperlink() string {
 	if len(dbw.WkUID) == 0 {
-		// formatwithcontextresults() will trigger this on rare occasions
-		msg("BuildHyperlink() on empty dbworkline", 4)
+		// formatwithcontextresults() will trigger this
+		msg("BuildHyperlink() on empty dbworkline", 5)
 		return ""
 	}
 	t := `linenumber/%s/%s/%d`

@@ -113,8 +113,6 @@ func RtGetJSWorksStruct(c echo.Context) error {
 	//{"totallevels": 4, "level": 3, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
 	// that is a top: interiors look like "1|3" for "book one", "subheading_val 3"
 
-	// TODO: input sanitization
-
 	locus := c.Param("locus")
 	parsed := strings.Split(locus, "/")
 
@@ -247,4 +245,36 @@ func RtGetJSAuthorinfo(c echo.Context) error {
 	chke(e)
 
 	return c.String(http.StatusOK, string(j))
+}
+
+func RtGetJSSampCit(c echo.Context) error {
+	// in: http://localhost:5000/get/json/samplecitation/lt0474/001
+	// out: {"firstline": "1.1", "lastline": "99.9"}
+	locus := c.Param("locus")
+	parsed := strings.Split(locus, "/")
+
+	if len(parsed) < 2 || len(parsed) > 3 {
+		return c.String(http.StatusOK, "")
+	}
+	wkid := parsed[0] + "w" + parsed[1]
+
+	if _, ok := AllWorks[wkid]; !ok {
+		return c.String(http.StatusOK, "")
+	}
+
+	w := AllWorks[wkid]
+	f := graboneline(w.FindAuthor(), w.FirstLine)
+	l := graboneline(w.FindAuthor(), w.LastLine)
+
+	cf := strings.Join(f.FindLocus(), ".")
+	cl := strings.Join(l.FindLocus(), ".")
+
+	type JSO struct {
+		F string `json:"firstline"`
+		L string `json:"lastline"`
+	}
+	j := JSO{cf, cl}
+	b, e := json.Marshal(j)
+	chke(e)
+	return c.String(http.StatusOK, string(b))
 }

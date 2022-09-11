@@ -256,9 +256,11 @@ func selected(user string, sv SelectionValues) ServerSession {
 	}
 
 	if sv.AWPR() {
+		msg("sv.AWPR()", 1)
 		// [2]int64 comes back: first and last lines found via the query
 		b := findendpointsfromlocus(sv.WUID(), sv.Start, sep)
 		e := findendpointsfromlocus(sv.WUID(), sv.End, sep)
+		fmt.Println(e)
 		ra := AllAuthors[sv.Auth].Shortname
 		rw := AllWorks[sv.WUID()].Title
 		rs := strings.Replace(sv.Start, "|", ".", -1)
