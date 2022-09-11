@@ -181,26 +181,14 @@ func findbyform(word string, author string) string {
 	}
 
 	// [a] search for morphology matches
+	thesefinds := getmorphmatch(strings.ToLower(word), d)
+	if len(thesefinds) == 0 {
+		// Νέαιρα can be found, νέαιρα can't
+		thesefinds = getmorphmatch(word, d)
+	}
 
-	dbpool := GetPSQLconnection()
-	defer dbpool.Close()
-
-	fld := `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
-	psq := fmt.Sprintf("SELECT %s FROM %s_morphology WHERE observed_form = '%s'", fld, d, word)
-
-	var foundrows pgx.Rows
-	var err error
-
-	foundrows, err = dbpool.Query(context.Background(), psq)
-	chke(err)
-
-	var thesefinds []DbMorphology
-	defer foundrows.Close()
-	for foundrows.Next() {
-		var thehit DbMorphology
-		err := foundrows.Scan(&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW)
-		chke(err)
-		thesefinds = append(thesefinds, thehit)
+	if len(thesefinds) == 0 {
+		return "(nothing found)"
 	}
 
 	// [b] turn morph matches into []MorphPossib
@@ -242,10 +230,11 @@ func findbyform(word string, author string) string {
 	hwm = unique(hwm)
 
 	// [d] get the wordobjects for each unique headword: probedictionary()
-
+	dbpool := GetPSQLconnection()
+	defer dbpool.Close()
 	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
-	fld = `entry_name, metrical_entry, id_number, pos, translations, html_body`
-	psq = `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴)$' ORDER BY id_number ASC`
+	fld := `entry_name, metrical_entry, id_number, pos, translations, html_body`
+	psq := `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴)$' ORDER BY id_number ASC`
 	col := "entry_name"
 
 	var lexicalfinds []DbLexicon
@@ -254,7 +243,7 @@ func findbyform(word string, author string) string {
 		// var foundrows pgx.Rows
 		var err error
 		q := fmt.Sprintf(psq, fld, d, col, w)
-		foundrows, err = dbpool.Query(context.Background(), q)
+		foundrows, err := dbpool.Query(context.Background(), q)
 		chke(err)
 
 		defer foundrows.Close()
@@ -279,7 +268,7 @@ func findbyform(word string, author string) string {
 	c := []rune(word)
 	q := fmt.Sprintf(psq, fld, stripaccentsSTR(string(c[0])), word)
 
-	foundrows, err = dbpool.Query(context.Background(), q)
+	foundrows, err := dbpool.Query(context.Background(), q)
 	chke(err)
 	var wc DbWordCount
 	defer foundrows.Close()
@@ -429,6 +418,30 @@ func dictsearch(seeking string, dict string) string {
 	return html
 }
 
+func getmorphmatch(word string, lang string) []DbMorphology {
+	dbpool := GetPSQLconnection()
+	defer dbpool.Close()
+
+	fld := `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
+	psq := fmt.Sprintf("SELECT %s FROM %s_morphology WHERE observed_form = '%s'", fld, lang, word)
+
+	var foundrows pgx.Rows
+	var err error
+
+	foundrows, err = dbpool.Query(context.Background(), psq)
+	chke(err)
+
+	var thesefinds []DbMorphology
+	defer foundrows.Close()
+	for foundrows.Next() {
+		var thehit DbMorphology
+		e := foundrows.Scan(&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW)
+		chke(e)
+		thesefinds = append(thesefinds, thehit)
+	}
+	return thesefinds
+}
+
 //
 // FORMATTING
 //
@@ -473,22 +486,28 @@ func formatparsingdata(mpp []MorphPossib) string {
 
 	var html string
 	usecounter := false
-	if len(mpp) > 1 {
+	// on mpp is always empty: why?
+	if len(mpp) > 2 {
 		usecounter = true
 	}
 	ct := 0
+	memo := ""
 	for _, m := range mpp {
 		if strings.TrimSpace(m.Headwd) == "" {
 			continue
 		}
-		if usecounter {
+		if usecounter && m.Xrefval != memo {
 			ct += 1
 			html += fmt.Sprintf("(%d)&nbsp;", ct)
 		}
-		html += fmt.Sprintf(obs, m.Headwd, m.Xrefval, m.Headwd)
-		if strings.TrimSpace(m.Transl) != "" {
-			html += fmt.Sprintf(bft, m.Transl)
+
+		if m.Xrefval != memo {
+			html += fmt.Sprintf(obs, m.Headwd, m.Xrefval, m.Headwd)
+			if strings.TrimSpace(m.Transl) != "" {
+				html += fmt.Sprintf(bft, m.Transl)
+			}
 		}
+
 		pos := strings.Split(m.Anal, " ")
 		var tab string
 		for _, p := range pos {
@@ -497,6 +516,7 @@ func formatparsingdata(mpp []MorphPossib) string {
 		tab = fmt.Sprintf(mtr, tab)
 		tab = fmt.Sprintf(mtb, tab)
 		html += tab
+		memo = m.Xrefval
 	}
 
 	return html

@@ -310,6 +310,9 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	for i, _ := range lines {
 		// turn "abc def" into "<observed id="abc">abc</observed> <observed id="def">def</observed>"
 		// the complication is that x.MarkedUp contains html; use x.Accented to find the words
+
+		// further complications: hyphenated words & capitalized words
+
 		wds := strings.Split(lines[i].Accented, " ")
 		wds = unique(wds)
 
@@ -318,13 +321,28 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 			// this is going to have a problem if something already abuts markup...
 			// will need to keep track of the complete list of terminating items.
 
-			pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s)(%s)(\\s|\\.|,|;|·|$)", wds[w]))
+			cv := capsvariants(wds[w])
+
+			pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s)(%s)(\\s|\\.|’|,|;|·|$)", cv))
 			if e == nil {
 				// you will barf if wds[w] = *
 				newline = pattern.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
 			} else {
 				msg(fmt.Sprintf("buildbrowsertable() could not regex compile %s", wds[w]), 4)
 			}
+
+			// complication: elision: <observed id="ἀλλ">ἀλλ</observed>’
+			// but you can't deal with that here: the ’ will not turn up a find in the dictionary; the ' will yield bad SQL
+			// so the dictionary lookup has to be reworked
+
+			//o := fmt.Sprintf(`<observed id="%s">%s</observed>’`, wds[w], wds[w])
+			//n := fmt.Sprintf(`<observed id="%s’">%s</observed>’`, wds[w], wds[w])
+			//newline = strings.Replace(newline, o, n, -1)
+
+			// complication: hyphenated words at the end of a line
+			pattern = regexp.MustCompile("\\s([^\\s]+-)$")
+			r := fmt.Sprintf(` <observed id="%s">$1</observed>`, wds[len(wds)-1])
+			newline = pattern.ReplaceAllString(newline, r)
 		}
 
 		var bl string

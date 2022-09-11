@@ -328,6 +328,18 @@ func acuteforgrave(thetext string) string {
 	return swap.Replace(thetext)
 }
 
+func capsvariants(word string) string {
+	// build regex compilation template for a word and its capitalized variant
+	cv := ""
+	rr := []rune(word)
+	for _, r := range rr {
+		rs := string(r)
+		c := strings.ToUpper(rs)
+		cv += fmt.Sprintf("[%s%s]", rs, c)
+	}
+	return cv
+}
+
 func uvσςϲ(u string) string {
 	feeder := make(map[rune][]rune)
 

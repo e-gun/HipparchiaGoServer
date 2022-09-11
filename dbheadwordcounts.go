@@ -288,12 +288,12 @@ func headwordprevalence(wc DbHeadwordCount) string {
 
 	cv := wc.CorpVal
 
-	// sort.Slice(cv, func(i, j int) bool { return cv[i].count < cv[j].count })
-
 	var pd []string
 
 	for _, c := range cv {
-		pd = append(pd, m.Sprintf("%s %d", c.name, c.count))
+		if c.count > 0 {
+			pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;%d`, c.name, c.count))
+		}
 	}
 	pd = append(pd, m.Sprintf("%s %d", "Ⓣ", wc.Total))
 
@@ -316,10 +316,12 @@ func headworddistrib(wc DbHeadwordCount) string {
 	var pd []string
 	for _, c := range cv {
 		cpt := (float32(c.count) / float32(max)) * 100
-		pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;%d`, c.name, int(cpt)))
+		if int(cpt) > 0 {
+			pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;%d`, c.name, int(cpt)))
+		}
 	}
 
-	p := "<br>Distribution by time: " + strings.Join(pd, " / ")
+	p := "<br>Distribution by corpus: " + strings.Join(pd, " / ")
 	return p
 }
 
@@ -337,10 +339,12 @@ func headwordchronology(wc DbHeadwordCount) string {
 	var pd []string
 	for _, c := range cv {
 		cpt := (float32(c.count) / float32(max)) * 100
-		pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;%d`, c.name, int(cpt)))
+		if int(cpt) > 0 {
+			pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;%d`, c.name, int(cpt)))
+		}
 	}
 
-	p := "<br>Distribution by corpus: " + strings.Join(pd, " / ")
+	p := "<br>Distribution by time: " + strings.Join(pd, " / ")
 	return p
 }
 

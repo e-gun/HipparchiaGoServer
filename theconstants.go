@@ -40,8 +40,8 @@ const (
 	MINORGENREWTCAP        = 250
 	MINDATESTR             = "-850"
 	ORDERBY                = "index"
-	TEMPTABLETHRESHOLD     = 100          // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
-	UNACCEPTABLEINPUT      = `|""'!@:,=+` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
+	TEMPTABLETHRESHOLD     = 100         // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
+	UNACCEPTABLEINPUT      = `|"'!@:,=+` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
 	VARIADATE              = 2000
 	AUTHENTICATIONREQUIRED = false
 	GENRESTOCOUNT          = 5
