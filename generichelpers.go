@@ -21,7 +21,7 @@ import (
 func chke(err error) {
 	if err != nil {
 		red := color.New(color.FgHiRed).PrintfFunc()
-		red("UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE [%s v.%s]\n", MYNAME, VERSION)
+		red("[%s v.%s] UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE\n", MYNAME, VERSION)
 		panic(err)
 	}
 }
@@ -58,7 +58,7 @@ func msg(message string, threshold int) {
 func timetracker(letter string, m string, start time.Time, previous time.Time) {
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	m = fmt.Sprintf("[%s: %.3fs]", letter, time.Now().Sub(start).Seconds()) + d + m
-	msg(m, 3)
+	msg(m, TIMETRACKERMSGTHRESH)
 }
 
 //

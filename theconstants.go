@@ -8,13 +8,13 @@ package main
 const (
 	MYNAME                 = "Hipparchia Golang Server"
 	SHORTNAME              = "HGS"
-	VERSION                = "0.3.4"
+	VERSION                = "0.3.5"
 	SERVEDFROMHOST         = ""
 	SERVEDFROMPORT         = 8000
 	DBAUMAPSIZE            = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
 	DBLMMAPSIZE            = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
 	DBWKMAPSIZE            = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
-	POLLEVERYNTABLES       = 150    // 3455 is the max number of tables in a search...
+	POLLEVERYNTABLES       = 50     // 3455 is the max number of tables in a search...
 	WSPOLLINGPAUSE         = 600000
 	DEFAULTBROWSERCTX      = 20
 	DEFAULTCOLUMN          = "stripped_line"
@@ -38,6 +38,7 @@ const (
 	MINBROWSERWIDTH        = 90
 	MINDATE                = -850
 	MINORGENREWTCAP        = 250
+	TIMETRACKERMSGTHRESH   = 3
 	MINDATESTR             = "-850"
 	ORDERBY                = "index"
 	TEMPTABLETHRESHOLD     = 100         // if a table requires N "between" clauses, build a temptable instead to gather the needed lines

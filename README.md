@@ -14,6 +14,7 @@
 
 ### TODO (in vague order of priority)
 
+* "not near" logic
 * sort results by date
 * saving/fetching searches
 * vocabulary list generation

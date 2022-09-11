@@ -54,7 +54,8 @@ function displayprogress(searchid, progress){
             }
 
             if (h > 0) {
-                thehtml += '<br />(<span class="progress">' + h + '</span> found)';
+                let hc = h.toLocaleString();
+                thehtml += '<br />(<span class="progress">' + hc + '</span> found)';
             }
 
             thehtml += '<br />' + x;

@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v4"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 	"net/http"
 	"reflect"
 	"regexp"
@@ -449,6 +451,7 @@ func getmorphmatch(word string, lang string) []DbMorphology {
 // formatprevalencedata - turn a wordcount into an HTML summary
 func formatprevalencedata(w DbWordCount, s string) string {
 	// <p class="wordcounts">Prevalence (all forms): <span class="prevalence">Ⓣ</span> 1482 / <span class="prevalence">Ⓖ</span> 1415 / <span class="prevalence">Ⓓ</span> 54 / <span class="prevalence">Ⓘ</span> 11 / <span class="prevalence">Ⓒ</span> 2</p>
+	m := message.NewPrinter(language.English)
 
 	pdp := `<p class="wordcounts">Prevalence of %s: %s</p>`
 	pds := `<span class="prevalence">%s</span> %d`
@@ -458,7 +461,7 @@ func formatprevalencedata(w DbWordCount, s string) string {
 	for _, l := range []string{"Total", "Gr", "Lt", "Dp", "In", "Ch"} {
 		v := reflect.ValueOf(w).FieldByName(l).Int()
 		if v > 0 {
-			pd := fmt.Sprintf(pds, labels[l], v)
+			pd := m.Sprintf(pds, labels[l], v)
 			pdd = append(pdd, pd)
 		}
 	}

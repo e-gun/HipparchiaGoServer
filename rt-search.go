@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 	"net/http"
 	"regexp"
 	"strings"
@@ -1000,12 +1002,13 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 		%s
 	</div>
 	`
+	m := message.NewPrinter(language.English)
 
 	var dr string
-	if sessions[s.User].Earliest != MINDATESTR && sessions[s.User].Latest != MAXDATESTR {
+	if sessions[s.User].Earliest != MINDATESTR || sessions[s.User].Latest != MAXDATESTR {
 		a := formatbcedate(sessions[s.User].Earliest)
 		b := formatbcedate(sessions[s.User].Latest)
-		dr = fmt.Sprintf("<br>Searched between %s and %s", a, b)
+		dr = fmt.Sprintf("Searched between %s and %s<br>", a, b)
 	} else {
 		dr = "<!-- dates did not matter -->"
 	}
@@ -1020,7 +1023,7 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 	so := sessions[s.User].SortHitsBy
 	el := fmt.Sprintf("%.2f", time.Now().Sub(s.Launched).Seconds())
 	// need to record # of works and not # of tables somewhere & at the right moment...
-	sum := fmt.Sprintf(t, s.InitSum, s.SearchSize, len(s.Results), el, so, dr, hitcap)
+	sum := m.Sprintf(t, s.InitSum, s.SearchSize, len(s.Results), el, so, dr, hitcap)
 	return sum
 }
 

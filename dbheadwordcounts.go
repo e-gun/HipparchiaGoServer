@@ -292,7 +292,7 @@ func headwordprevalence(wc DbHeadwordCount) string {
 
 	for _, c := range cv {
 		if c.count > 0 {
-			pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;%d`, c.name, c.count))
+			pd = append(pd, m.Sprintf(`<span class="emph">%s</span>&nbsp;%d`, c.name, c.count))
 		}
 	}
 	pd = append(pd, m.Sprintf("%s %d", "Ⓣ", wc.Total))
