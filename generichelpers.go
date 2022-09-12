@@ -318,13 +318,89 @@ func getrunefeeder() map[rune][]rune {
 	feeder['x'] = []rune("xX")
 	feeder['y'] = []rune("yY")
 	feeder['z'] = []rune("zZ")
+	feeder['ά'] = []rune("ὰά")
+	feeder['έ'] = []rune("ὲέ")
+	feeder['ή'] = []rune("ὴή")
+	feeder['ί'] = []rune("ὶί")
+	feeder['ό'] = []rune("όὸ")
+	feeder['ύ'] = []rune("ύὺ")
+	feeder['ώ'] = []rune("ώὼ")
+	feeder['ἂ'] = []rune("ἂἄ")
+	feeder['ἒ'] = []rune("ἒἔ")
+	feeder['ἢ'] = []rune("ἢἤ")
+	feeder['ἲ'] = []rune("ἲἴ")
+	feeder['ὂ'] = []rune("ὂὄ")
+	feeder['ὒ'] = []rune("ὒὔ")
+	feeder['ὓ'] = []rune("ὓὕ")
+	feeder['ὢ'] = []rune("ὢὤ")
+	feeder['ὣ'] = []rune("ὣὥ")
+	feeder['ἃ'] = []rune("ἅἃ")
+	feeder['ᾲ'] = []rune("ᾲᾴ")
+	feeder['ᾂ'] = []rune("ᾂᾄ")
+	feeder['ἣ'] = []rune("ἣἥ")
+	feeder['ᾒ'] = []rune("ᾒᾔ")
+	feeder['ᾓ'] = []rune("ᾓᾕ")
+	feeder['ὃ'] = []rune("ὃὅ")
+	feeder['ὂ'] = []rune("ὂὄ")
+	feeder['ὒ'] = []rune("ὒὔ")
+	feeder['ᾂ'] = []rune("ᾂᾄ")
+	feeder['ᾃ'] = []rune("ᾃᾅ")
+	feeder['ᾢ'] = []rune("ᾢᾤ")
+	feeder['ᾣ'] = []rune("ᾣᾥ")
 	return feeder
 }
 
-func acuteforgrave(thetext string) string {
+func findacuteorgrave(s string) string {
+	// prepare regex equiv: ά -> [άὰ]
+	feeder := make(map[rune][]rune)
+	feeder['ά'] = []rune("ὰά")
+	feeder['έ'] = []rune("ὲέ")
+	feeder['ή'] = []rune("ὴή")
+	feeder['ί'] = []rune("ὶί")
+	feeder['ό'] = []rune("όὸ")
+	feeder['ύ'] = []rune("ύὺ")
+	feeder['ώ'] = []rune("ώὼ")
+	feeder['ἂ'] = []rune("ἂἄ")
+	feeder['ἒ'] = []rune("ἒἔ")
+	feeder['ἢ'] = []rune("ἢἤ")
+	feeder['ἲ'] = []rune("ἲἴ")
+	feeder['ὂ'] = []rune("ὂὄ")
+	feeder['ὒ'] = []rune("ὒὔ")
+	feeder['ὓ'] = []rune("ὓὕ")
+	feeder['ὢ'] = []rune("ὢὤ")
+	feeder['ὣ'] = []rune("ὣὥ")
+	feeder['ἃ'] = []rune("ἅἃ")
+	feeder['ᾲ'] = []rune("ᾲᾴ")
+	feeder['ᾂ'] = []rune("ᾂᾄ")
+	feeder['ἣ'] = []rune("ἣἥ")
+	feeder['ᾒ'] = []rune("ᾒᾔ")
+	feeder['ᾓ'] = []rune("ᾓᾕ")
+	feeder['ὃ'] = []rune("ὃὅ")
+	feeder['ὂ'] = []rune("ὂὄ")
+	feeder['ὒ'] = []rune("ὒὔ")
+	feeder['ᾂ'] = []rune("ᾂᾄ")
+	feeder['ᾃ'] = []rune("ᾃᾅ")
+	feeder['ᾢ'] = []rune("ᾢᾤ")
+	feeder['ᾣ'] = []rune("ᾣᾥ")
+
+	rr := []rune(s)
+	var mod []rune
+	for _, r := range rr {
+		if _, ok := feeder[r]; ok {
+			st := fmt.Sprintf("[%s]", string(feeder[r]))
+			mod = append(mod, []rune(st)...)
+		} else {
+			mod = append(mod, r)
+		}
+	}
+	return string(mod)
+}
+
+func swapacuteforgrave(thetext string) string {
 	swap := strings.NewReplacer("ὰ", "ά", "ὲ", "έ", "ὶ", "ί", "ὸ", "ό", "ὺ", "ύ", "ὴ", "ή", "ὼ", "ώ",
-		"ἂ", "ἄ", "ἒ", "ἔ", "ἲ", "ἴ", "ὂ", "ὄ", "ὒ", "ὔ", "ἢ", "ἤ", "ὢ", "ὤ", "ᾃ", "ᾅ", "ᾓ", "ᾕ", "ᾣ", "ᾥ",
-		"ᾂ", "ᾄ", "ᾒ", "ᾔ", "ᾢ", "ᾤ", "á", "a", "é", "e", "í", "i", "ó", "o", "ú", "u")
+		"ἂ", "ἄ", "ἃ", "ἅ", "ᾲ", "ᾴ", "ᾂ", "ᾄ", "ᾃ", "ᾅ", "ἒ", "ἔ", "ἲ", "ἴ", "ὂ", "ὄ", "ὃ", "ὅ", "ὒ", "ὔ", "ὓ", "ὕ",
+		"ἢ", "ἤ", "ἣ", "ἥ", "ᾓ", "ᾕ", "ᾒ", "ᾔ", "ὢ", "ὤ", "ὣ", "ὥ", "ᾣ", "ᾥ", "ᾢ", "ᾤ", "á", "a", "é", "e",
+		"í", "i", "ó", "o", "ú", "u")
 	return swap.Replace(thetext)
 }
 

@@ -36,7 +36,7 @@ func RtIndexMaker(c echo.Context) error {
 		for _, w := range wds {
 			this := WordInfo{
 				HW:         "",
-				Wd:         uvσςϲ(acuteforgrave(w)),
+				Wd:         uvσςϲ(swapacuteforgrave(w)),
 				Loc:        r.BuildHyperlink(),
 				Cit:        r.Citation(),
 				IsHomonymn: false,

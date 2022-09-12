@@ -17,7 +17,7 @@
 ### TODO (in vague order of priority)
 
 * UI needs to reflect settings better
-* fix wonky lemma highlighting
+* fix the less wonky lemma highlighting
 * saving/fetching searches
 * vocabulary list generation
 * maximize fixed length slices

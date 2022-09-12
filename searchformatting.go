@@ -12,10 +12,6 @@ import (
 	"time"
 )
 
-//
-// FORMATTING
-//
-
 type SearchOutputJSON struct {
 	Title         string `json:"title"`
 	Searchsummary string `json:"searchsummary"`
@@ -384,7 +380,8 @@ func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
 
 	// see the warnings and caveats at highlightsearchterm() in searchformatting.py
 	if pattern.MatchString(line.Contents) {
-		line.Contents = pattern.ReplaceAllString(line.Contents, `<span class="match">$1</span>`)
+		// line.Contents = pattern.ReplaceAllString(line.Contents, `<span class="match">$1</span>`)
+		line.Contents = pattern.ReplaceAllString(line.Contents, `<span class="match">$0</span>`)
 	} else {
 		// might be in the hyphenated line
 		if pattern.MatchString(line.Hyphenated) {
@@ -557,8 +554,10 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 	//	fmt.Println(pat.MatchString(l))
 	// "true"
 
-	tp := `(^|\s)%s(\s|$)`
+	// now you also need to worry about punctuation that abuts the find
+	tp := `[\^\s]%s[\s\.,;·’$]`
 	lemm := AllLemm[lm].Deriv
+
 	whole := strings.Join(lemm, ")✃✃✃(")
 	st := universalpatternmaker(whole)
 	lup := strings.Split(st, "✃✃✃")

@@ -562,6 +562,7 @@ func badsearch(msg string) SearchStruct {
 func lemmaintoregexslice(hdwd string) []string {
 	// rather than do one word per query, bundle things up: some words have >100 forms
 	// ...(^|\\s)ἐδηλώϲαντο(\\s|$)|(^|\\s)δεδηλωμένοϲ(\\s|$)|(^|\\s)δήλουϲ(\\s|$)|(^|\\s)δηλούϲαϲ(\\s|$)...
+
 	var qq []string
 	if _, ok := AllLemm[hdwd]; !ok {
 		msg(fmt.Sprintf("lemmaintoregexslice() could not find '%s'", hdwd), 1)
@@ -569,7 +570,13 @@ func lemmaintoregexslice(hdwd string) []string {
 	}
 
 	tp := `(^|\s)%s(\s|$)`
-	lemm := AllLemm[hdwd].Deriv
+
+	// there is a problem: unless you do something, "(^|\s)ἁλιεύϲ(\s|$)" will be a search term but this will not find "ἁλιεὺϲ"
+	var lemm []string
+	for _, l := range AllLemm[hdwd].Deriv {
+		lemm = append(lemm, findacuteorgrave(l))
+	}
+
 	ct := 0
 	for true {
 		var bnd []string

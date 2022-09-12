@@ -77,7 +77,7 @@ type JSB struct {
 func RtLexLookup(c echo.Context) error {
 	req := c.Param("wd")
 	seeking := purgechars(UNACCEPTABLEINPUT, req)
-	seeking = acuteforgrave(seeking)
+	seeking = swapacuteforgrave(seeking)
 
 	dict := "latin"
 	if isGreek.MatchString(seeking) {
@@ -113,7 +113,7 @@ func RtLexFindByForm(c echo.Context) error {
 
 	word := purgechars(UNACCEPTABLEINPUT, elem[0])
 
-	word = acuteforgrave(word)
+	word = swapacuteforgrave(word)
 
 	html := findbyform(word, au)
 
