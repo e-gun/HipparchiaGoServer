@@ -58,15 +58,6 @@ const (
 				concat(%s, ' ', lead(%s) OVER (ORDER BY index ASC) ) AS linebundle`
 )
 
-// findselectionboundaries() stuff should all be handled when making the selections, not here
-// and everything should be in the "gr0032w002_FROM_11313_TO_11843" format
-
-// take a searchlist and its exceptionlist and convert them into a collection of sql queries
-
-// the collection of work will be either map[string]PrerolledQuery []PrerolledQuery
-
-// onehit should be checked early: "ORDER BY index ASC LIMIT 1"
-
 // search types
 // [a] simple
 // [b] simplelemma
@@ -234,6 +225,8 @@ func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 			prqq = append(prqq, prq)
 		}
 	}
+
+	// fmt.Println(prqq)
 	return prqq
 }
 

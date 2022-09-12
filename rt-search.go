@@ -243,8 +243,6 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 		newpsg = append(newpsg, np)
 	}
 
-	// todo: not near logic
-
 	second.Limit = originalsrch.Limit
 	second.SearchIn.Passages = newpsg
 
@@ -255,13 +253,29 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	previous = time.Now()
 
 	second.Queries = prq
-	searches[originalsrch.ID] = HGoSrch(second)
+	second = HGoSrch(second)
+
+	// was this a "notnear" search?
+	if second.NotNear {
+		var actualhits []DbWorkline
+		// any original hits that match lines from pt2 are the "real" hits
+		mapper := make(map[string]bool)
+		for _, r := range first.Results {
+			mapper[r.Citation()] = true
+		}
+		for _, r := range second.Results {
+			if _, ok := mapper[r.Citation()]; ok {
+				actualhits = append(actualhits, r)
+			}
+		}
+		second.Results = actualhits
+	}
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	msg(fmt.Sprintf("%s withinxlinessearch(): %d subsequent hits", d, len(first.Results)), 4)
 
 	// findphrasesacrosslines() check happens just after you exit this function
-
+	searches[originalsrch.ID] = second
 	return searches[originalsrch.ID]
 }
 
