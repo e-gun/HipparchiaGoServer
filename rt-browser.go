@@ -342,9 +342,19 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 			// this is going to have a problem if something already abuts markup...
 			// will need to keep track of the complete list of terminating items.
 
-			cv := capsvariants(wds[w])
+			//  TEST:
+			// 	newline := `[Πῶϲ ⟨ἅρπαγα⟩ ἄνθρωπον ⟨καὶ⟩ ἀνενέργητον ϲημαίνουϲιν].`
+			//	cv := "[ἅἍ][ρΡ][πΠ][αΑ][γΓ][αΑ]"
+			//	pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s|⟨)(%s)(\\s|\\.|⟩|’|,|;|·|$)", cv))
+			// --> [Πῶϲ ⟨<observed id="ἅρπαγα">ἅρπαγα</observed>⟩ ἄνθρωπον ⟨καὶ⟩ ἀνενέργητον ϲημαίνουϲιν].
+			// cv := "[ϲϹ][ηΗ][μΜ][αΑ][ίΊ][νΝ][οΟ][υΥ][ϲϹ][ιΙ][νΝ]"
+			// --> [Πῶϲ ⟨ἅρπαγα⟩ ἄνθρωπον ⟨καὶ⟩ ἀνενέργητον <observed id="ϲημαίνουϲιν">ϲημαίνουϲιν</observed>].
+			// BUT what follows does not in fact yield that: because of the bracket html already present
+			// <td class="browsedline"><hmutitle>[<span class="editorialmarker_squarebrackets">Πῶϲ ⟨<span class="editorialmarker_angledbrackets">ἅρπαγα</span>⟩ ...
 
-			pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s)(%s)(\\s|\\.|’|,|;|·|$)", cv))
+			cv := capsvariants(wds[w])
+			fmt.Println(newline)
+			pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s|\\[|\\>|⟨|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|,|;|·|$)", cv))
 			if e == nil {
 				// you will barf if wds[w] = *
 				newline = pattern.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
