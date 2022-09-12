@@ -372,14 +372,6 @@ func convertwordinfototablerow(ww []WordInfo) string {
 	</tr>`
 
 	tp := `<indexedlocation id="%s">%s</indexedlocation>`
-	// tph := `<span class="homonym"><indexobserved id="%s">%s</indexobserved></span>`
-
-	//<tr>
-	//<td class="headword">&nbsp;</td>
-	//<td class="word"><indexobserved id="possedisse">possedisse</indexobserved></td>
-	//<td class="count">5</td>
-	//<td class="passages"><indexedlocation id="linenumber/lt0474/001/314">36.1</indexedlocation>, <indexedlocation id="linenumber/lt0474/001/318">36.5</indexedlocation>, <indexedlocation id="linenumber/lt0474/001/324">36.11</indexedlocation>, <indexedlocation id="linenumber/lt0474/001/739">73.6</indexedlocation>, <indexedlocation id="linenumber/lt0474/001/954">89.3</indexedlocation></td>
-	//</tr>
 
 	var trr []string
 	used := make(map[string]bool)
@@ -413,20 +405,3 @@ func convertwordinfototablerow(ww []WordInfo) string {
 	out := strings.Join(trr, "")
 	return out
 }
-
-// 	var trr []string
-//	for _, k := range keys {
-//		ww := indexmap[k]
-//		if len(ww) == 1 {
-//
-//		}
-//
-//		for _, w := range ww {
-//			r := fmt.Sprintf(tr, w.HW, w.HW)
-//		}
-//		// first the summary
-//		ww := indexmap[k]
-//		il := fmt.Sprintf(tp, ww[0].HW, ww[0].HW)
-//		s := fmt.Sprintf(tr, ww[0].HW, il, len(ww))
-//
-//	}

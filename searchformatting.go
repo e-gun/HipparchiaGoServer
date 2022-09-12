@@ -41,11 +41,11 @@ func formatnocontextresults(ss SearchStruct) []byte {
 	`
 	dtt := `[<span class="date">%s</span>]`
 
-	searchterm := sethighlighter(ss)
+	searchterm := gethighlighter(ss)
 
-	var rows []string
+	rows := make([]string, len(ss.Results))
 	for i, r := range ss.Results {
-		// highlight search term; should be folded into a single function w/ highlightsearchterm() below
+		// highlight search term; should be folded into a single function w/ highlightsearchterm() below [type problem now]
 		mu := r.MarkedUp
 		if searchterm != nil && searchterm.MatchString(r.MarkedUp) {
 			mu = searchterm.ReplaceAllString(r.MarkedUp, `<span class="match">$1</span>`)
@@ -149,6 +149,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	urt := `linenumber/%s/%s/%d`
 	dtt := `[<span class="date">%s</span>]`
 
+	// allpassages := make([]PsgFormattingTemplate, len(ss.Results))
 	var allpassages []PsgFormattingTemplate
 	for i, r := range ss.Results {
 		var psg PsgFormattingTemplate
@@ -205,12 +206,13 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	}
 
 	// highlight the search term: this includes the hyphenated_line issue
-	searchterm := sethighlighter(ss)
+	searchterm := gethighlighter(ss)
 
 	for _, p := range allpassages {
 		for i, r := range p.CookedCTX {
 			if r.IsHighlight && searchterm != nil {
-				highlightfocusline(&p.CookedCTX[i])
+				p.CookedCTX[i].Contents = fmt.Sprintf(`<span class="highlight">%s</span>`, p.CookedCTX[i].Contents)
+				// highlightfocusline(&p.CookedCTX[i])
 				highlightsearchterm(searchterm, &p.CookedCTX[i])
 			}
 			if len(ss.LemmaTwo) > 0 {
@@ -245,7 +247,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	plt := `<span class="locus">%s</span>&nbsp;<span class="foundtext">%s</span><br>
 	`
 
-	var rows []string
+	rows := make([]string, len(allpassages))
 	for _, p := range allpassages {
 		var lines []string
 		for _, l := range p.CookedCTX {
@@ -366,10 +368,6 @@ func formatinitialsummary(s SearchStruct) string {
 	sum := fmt.Sprintf(tmp, af1, sk, two)
 
 	return sum
-}
-
-func highlightfocusline(line *ResultPassageLine) {
-	line.Contents = fmt.Sprintf(`<span class="highlight">%s</span>`, line.Contents)
 }
 
 func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
@@ -508,22 +506,8 @@ func formatmultilinebrackets(html string) string {
 	return html
 }
 
-// sethighlighter - set regex to highlight the search term
-func sethighlighter(ss SearchStruct) *regexp.Regexp {
-	// this should be unneeded now, but...
-	// the problem is that some two-stage ss will arrive at the formatter missing their original search term
-
-	// 		msg(fmt.Sprintf("formatnocontextresults() has emptly ss.Seeking\n\t%ss", ss.InitSum), 1)
-	//		fmt.Println(ss.Proximate)
-	//		fmt.Println(ss.SkgSlice)
-	//		fmt.Println(ss.PrxSlice)
-
-	// [HGS] formatnocontextresults() has emptly ss.Seeking
-	// Sought <span class="sought">»τρία«</span> not  within 2 words of <span class="sought">»δύο«</span>s
-	//τρία
-	//[]
-	//[]
-
+// gethighlighter - set regex to highlight the search term
+func gethighlighter(ss SearchStruct) *regexp.Regexp {
 	var re *regexp.Regexp
 
 	if len(ss.Seeking) != 0 {
@@ -533,10 +517,9 @@ func sethighlighter(ss SearchStruct) *regexp.Regexp {
 	} else if len(ss.Proximate) != 0 {
 		re = searchtermfinder(ss.Proximate)
 	} else if len(ss.LemmaTwo) != 0 {
-		msg("sethighlighter(): 4", 1)
 		re = lemmahighlighter(ss.LemmaTwo)
 	} else {
-		msg(fmt.Sprintf("sethighlighter() cannot find anything to highlight\n\t%ss", ss.InitSum), 1)
+		msg(fmt.Sprintf("gethighlighter() cannot find anything to highlight\n\t%ss", ss.InitSum), 1)
 		re = nil
 	}
 
@@ -554,8 +537,10 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 	//	fmt.Println(pat.MatchString(l))
 	// "true"
 
+	// abutting markup is killing off some items, but adding "<" and ">" produces worse problems still
+
 	// now you also need to worry about punctuation that abuts the find
-	tp := `[\^\s]%s[\s\.,;·’$]`
+	tp := `[\^\s;]%s[\s\.,;·’$]`
 	lemm := AllLemm[lm].Deriv
 
 	whole := strings.Join(lemm, ")✃✃✃(")
@@ -568,7 +553,7 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 
 	r, e := regexp.Compile(rec)
 	if e != nil {
-		msg("sethighlighter() could not compile LemmaOne into regex", 1)
+		msg("gethighlighter() could not compile LemmaOne into regex", 1)
 	}
 	return r
 }

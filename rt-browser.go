@@ -325,9 +325,8 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		lines[i].MarkedUp = b
 	}
 
-	var trr []string
+	trr := make([]string, len(lines))
 	previous := lines[0]
-
 	for i, _ := range lines {
 		// turn "abc def" into "<observed id="abc">abc</observed> <observed id="def">def</observed>"
 		// the complication is that x.MarkedUp contains html; use x.Accented to find the words
@@ -339,16 +338,6 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 
 		newline := lines[i].MarkedUp
 		for w, _ := range wds {
-			//  TEST:
-			// 	newline := `[Πῶϲ ⟨ἅρπαγα⟩ ἄνθρωπον ⟨καὶ⟩ ἀνενέργητον ϲημαίνουϲιν].`
-			//	cv := "[ἅἍ][ρΡ][πΠ][αΑ][γΓ][αΑ]"
-			//	pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s|⟨)(%s)(\\s|\\.|⟩|’|,|;|·|$)", cv))
-			// --> [Πῶϲ ⟨<observed id="ἅρπαγα">ἅρπαγα</observed>⟩ ἄνθρωπον ⟨καὶ⟩ ἀνενέργητον ϲημαίνουϲιν].
-			// cv := "[ϲϹ][ηΗ][μΜ][αΑ][ίΊ][νΝ][οΟ][υΥ][ϲϹ][ιΙ][νΝ]"
-			// --> [Πῶϲ ⟨ἅρπαγα⟩ ἄνθρωπον ⟨καὶ⟩ ἀνενέργητον <observed id="ϲημαίνουϲιν">ϲημαίνουϲιν</observed>].
-			// BUT what follows does not in fact yield that: because of the bracket html already present
-			// <td class="browsedline"><hmutitle>[<span class="editorialmarker_squarebrackets">Πῶϲ ⟨<span class="editorialmarker_angledbrackets">ἅρπαγα</span>⟩ ...
-
 			cv := capsvariants(wds[w])
 
 			pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s|\\[|\\>|⟨|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|,|;|·|$)", cv))
