@@ -186,24 +186,26 @@ func formatpublicationinfo(w DbWork) string {
 
 	type Swapper struct {
 		Name  string
+		Sub   int
 		Left  string
 		Right string
 	}
 
 	tags := []Swapper{
-		{"volumename", "", " "},
-		{"press", " ", ", "},
-		{"city", " ", ", "},
-		{"year", " ", ". "},
-		{"yearreprinted", "[", "] "},
-		{"series", " ", ""},
-		{"editor", "(", ")"},
-		{"work", " ", " "},
-		{"pages", " pp. ", ". "},
+		{"volumename", 1, "", " "},
+		{"press", 2, " ", ", "},
+		{"city", 3, " ", ", "},
+		{"year", 4, " ", ". "},
+		{"yearreprinted", 5, "[", "] "},
+		{"series", 6, " ", ""},
+		{"editor", 7, "(", ")"},
+		{"work", 8, " ", " "},
+		{"pages", 9, " pp. ", ". "},
 	}
 
 	pubinfo := ""
 
+	// shorten the strings so you can split
 	for _, t := range tags {
 		tag := fmt.Sprintf("<%s>(?P<data>.*?)</%s>", t.Name, t.Name)
 		pattern := regexp.MustCompile(tag)
@@ -211,19 +213,19 @@ func formatpublicationinfo(w DbWork) string {
 		if found {
 			subs := pattern.FindStringSubmatch(w.Pub)
 			data := subs[pattern.SubexpIndex("data")]
-			pub := fmt.Sprintf(`<span class="pub%s">%s%s%s</span>`, t.Name, t.Left, data, t.Right)
+			pub := fmt.Sprintf(`<%d>%s%s%s</%d>`, t.Sub, t.Left, data, t.Right, t.Sub)
 			pubinfo += pub
 		}
 	}
 
-	if len(pubinfo) > (MINBROWSERWIDTH*3)/2 {
-		pubinfo = strings.Replace(pubinfo, "span class", "span_class", -1)
+	// do the splits
+	if len(pubinfo) > MINBROWSERWIDTH+(MINBROWSERWIDTH/2) {
 		pubinfo = strings.Replace(pubinfo, ";", "; ", -1)
 		pi := strings.Split(pubinfo, " ")
 		var trimmed string
 		breaks := 0
 		reset := 0
-		crop := (MINBROWSERWIDTH * 3) / 2
+		crop := MINBROWSERWIDTH + (MINBROWSERWIDTH / 2)
 		for i := 0; i < len(pi); i++ {
 			trimmed += pi[i] + " "
 			if len(trimmed) > reset+crop {
@@ -233,14 +235,26 @@ func formatpublicationinfo(w DbWork) string {
 			}
 		}
 		pubinfo = trimmed
-		pubinfo = strings.Replace(pubinfo, "span_class", "span class", -1)
+	}
+
+	// restore the strings
+	var reconstituted string
+	for _, t := range tags {
+		tag := fmt.Sprintf("<%d>(?P<data>.*?)</%d>", t.Sub, t.Sub)
+		pattern := regexp.MustCompile(tag)
+		found := pattern.MatchString(pubinfo)
+		if found {
+			subs := pattern.FindStringSubmatch(pubinfo)
+			data := subs[pattern.SubexpIndex("data")]
+			pub := fmt.Sprintf(`<span class="pub%s">%s</span>`, t.Name, data)
+			reconstituted += pub
+		}
 	}
 
 	readability := `<br>
 	%s
 	`
-
-	return fmt.Sprintf(readability, pubinfo)
+	return fmt.Sprintf(readability, reconstituted)
 }
 
 func formatcitationinfo(w DbWork, l DbWorkline) string {
