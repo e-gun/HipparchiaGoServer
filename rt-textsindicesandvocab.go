@@ -22,16 +22,36 @@ type WordInfo struct {
 	IsHomonymn bool
 }
 
-func RtIndexMaker(c echo.Context) error {
+func RtVocabmaker(c echo.Context) error {
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
-
-	// user := readUUIDCookie(c)
 	srch := sessionintobulksearch(c)
 
+	morphmap, slicedwords := buildmorphmap(&srch)
+
+	type JSFeeder struct {
+		Au string `json:"authorname"`
+		Ti string `json:"title"`
+		ST string `json:"structure"`
+		WS string `json:"worksegment"`
+		HT string `json:"texthtml"`
+		EL string `json:"elapsed"`
+		WF int    `json:"wordsfound"`
+		KY string `json:"keytoworks"`
+		NJ string `json:"newjs"`
+	}
+
+	fmt.Println(len(morphmap))
+	fmt.Println(len(slicedwords))
+	return c.String(http.StatusOK, "")
+}
+
+// buildmorphmap- acquire a complete collection of words and a complete DbMorphology collection for your needs
+func buildmorphmap(ss *SearchStruct) (map[string]DbMorphology, []WordInfo) {
 	// [a] take every word and build WordInfo for it [can parallelize]
+
 	var slicedwords []WordInfo
-	for _, r := range srch.Results {
+	for _, r := range ss.Results {
 		wds := r.AccentedSlice()
 		for _, w := range wds {
 			this := WordInfo{
@@ -46,7 +66,7 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	// [b] find the unique values
-	distinct := make(map[string]bool)
+	distinct := make(map[string]bool, len(slicedwords))
 	for _, w := range slicedwords {
 		distinct[w.Wd] = true
 	}
@@ -61,6 +81,18 @@ func RtIndexMaker(c echo.Context) error {
 	distinct = make(map[string]bool)
 
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
+
+	return morphmap, slicedwords
+}
+
+func RtIndexMaker(c echo.Context) error {
+	// diverging from the way the python works
+	// build not via the selection boxes but via the actual selection made and stored in the session
+
+	// user := readUUIDCookie(c)
+	srch := sessionintobulksearch(c)
+
+	morphmap, slicedwords := buildmorphmap(&srch)
 
 	var slicedlookups []WordInfo
 	for _, w := range slicedwords {
@@ -78,10 +110,6 @@ func RtIndexMaker(c echo.Context) error {
 			}
 		}
 	}
-
-	// delete after use
-	morphmap = make(map[string]DbMorphology)
-	slicedwords = []WordInfo{}
 
 	// [d] the final map
 	// [d1] build it

@@ -149,7 +149,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	urt := `linenumber/%s/%s/%d`
 	dtt := `[<span class="date">%s</span>]`
 
-	// allpassages := make([]PsgFormattingTemplate, len(ss.Results))
+	// allpassages := make([]PsgFormattingTemplate, len(res.Results))
 	var allpassages []PsgFormattingTemplate
 	for i, r := range ss.Results {
 		var psg PsgFormattingTemplate

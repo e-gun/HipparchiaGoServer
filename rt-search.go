@@ -147,7 +147,6 @@ func RtSearchStandard(c echo.Context) error {
 	var completed SearchStruct
 	if searches[id].Twobox {
 		// todo: triple-check results against python
-		// todo: "not near" syntax
 		if searches[id].ProxScope == "words" {
 			completed = withinxwordssearch(searches[id])
 		} else {
@@ -311,7 +310,8 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 
 	pt := `%s_FROM_%d_TO_%d`
 	t := `linenumber/%s/%s/%d`
-	resultmapper := make(map[string]int)
+
+	resultmapper := make(map[string]int, len(first.Results))
 	var newpsg []string
 
 	// [a2] pick the lines to grab and associate them with the hits they go with
@@ -605,7 +605,7 @@ func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 	// [HGS] [Δ: 1.474s]  withinxlinessearch(): 1631 initial hits
 	// [HGS] [Δ: 7.433s]  findphrasesacrosslines(): 855 trimmed hits
 
-	var valid = make(map[string]DbWorkline)
+	var valid = make(map[string]DbWorkline, len(ss.Results))
 
 	find := regexp.MustCompile(`^\s`)
 	re := find.ReplaceAllString(ss.Seeking, "(^|\\s)")

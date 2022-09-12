@@ -316,11 +316,6 @@ func nestedlemmamapper(unnested map[string]DbLemma) map[string]map[string]DbLemm
 			nested[bag][k] = v
 		}
 	}
-
-	//fmt.Println("lemmata count")
-	//fmt.Println(len(nested))
-	//fmt.Println(nested["ζω"])
-	// fmt.Println(nested["hy"])
 	return nested
 }
 
