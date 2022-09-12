@@ -55,6 +55,13 @@ func RtBrowsePerseus(c echo.Context) error {
 	return c.String(http.StatusOK, bp)
 }
 
+func RtBrowseRaw(c echo.Context) error {
+	// uri: /browse/rawlocus/lt0474/055/1.1.1
+	sep := "."
+	bp := Browse(c, sep)
+	return c.String(http.StatusOK, bp)
+}
+
 //
 // BROWSING
 //

@@ -2,7 +2,7 @@
 
 ## alpha status: does a lot of what you most want acceptably...
 
-### status as of `v0.3.5`:
+### status as of `v0.3.7`:
 
 * searching mostly works 
 * browsing mostly works
@@ -19,7 +19,6 @@
 * saving/fetching searches
 * vocabulary list generation
 * search list info box
-* raw input style
 
 ### DISTANT FANTASIES
 * vectors

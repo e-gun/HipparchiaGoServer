@@ -213,6 +213,9 @@ func selected(user string, sv SelectionValues) ServerSession {
 
 	s := sessions[user]
 	sep := "|"
+	if s.RawInput {
+		sep = "."
+	}
 
 	if s.Inclusions.MappedPsgByName == nil {
 		s.Inclusions.MappedPsgByName = make(map[string]string)
@@ -256,7 +259,6 @@ func selected(user string, sv SelectionValues) ServerSession {
 	}
 
 	if sv.AWPR() {
-		msg("sv.AWPR()", 1)
 		// [2]int64 comes back: first and last lines found via the query
 		b := findendpointsfromlocus(sv.WUID(), sv.Start, sep)
 		e := findendpointsfromlocus(sv.WUID(), sv.End, sep)
@@ -614,6 +616,26 @@ func workvalueofpassage(psg string) string {
 	return thework
 }
 
+func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
+	// we are wrapping endpointer() to give us a couple of bites at a perseus problem
+	// [HGS] findendpointsfromlocus() failed to find the following inside of lt0474w049: 4:8:18
+	// this should in fact be "4.18"
+
+	fl, success := endpointer(wuid, locus, sep)
+	if success || sep != ":" {
+		return fl
+	} else {
+		ll := strings.Split(locus, sep)
+		if len(ll) >= 2 {
+			newlocus := strings.Join(RemoveIndex(ll, 1), ":")
+			msg(fmt.Sprintf("findendpointsfromlocus() retrying endpointer(): '%s' --> '%s'", locus, newlocus), 1)
+			fl, success = endpointer(wuid, newlocus, sep)
+		}
+	}
+
+	return fl
+}
+
 func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
 	// msg(fmt.Sprintf("wuid: '%s'; locus: '%s'; sep: '%s'", wuid, locus, sep), 1)
 	// [HGS] wuid: 'lt0474w049'; locus: '3|14|_0'; sep: '|'
@@ -676,26 +698,6 @@ func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
 	}
 
 	return fl, success
-}
-
-func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
-	// we are wrapping endpointer() to give us a couple of bites at a perseus problem
-	// [HGS] findendpointsfromlocus() failed to find the following inside of lt0474w049: 4:8:18
-	// this should in fact be "4.18"
-
-	fl, success := endpointer(wuid, locus, sep)
-	if success || sep != ":" {
-		return fl
-	} else {
-		ll := strings.Split(locus, sep)
-		if len(ll) >= 2 {
-			newlocus := strings.Join(RemoveIndex(ll, 1), ":")
-			msg(fmt.Sprintf("findendpointsfromlocus() retrying endpointer(): '%s' --> '%s'", locus, newlocus), 1)
-			fl, success = endpointer(wuid, newlocus, sep)
-		}
-	}
-
-	return fl
 }
 
 func reportcurrentselections(c echo.Context) []byte {

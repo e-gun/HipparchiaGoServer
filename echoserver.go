@@ -84,6 +84,7 @@ func StartEchoServer() {
 	e.GET("/browse/perseus/:locus", RtBrowsePerseus)
 
 	// [b4] sample input: '/browse/rawlocus/lt0474/037/2.10.4'
+	e.GET("/browse/rawlocus/:locus", RtBrowseRaw)
 
 	// [c] css
 	// [d] debugging

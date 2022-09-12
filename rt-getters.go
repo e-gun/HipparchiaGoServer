@@ -263,10 +263,18 @@ func RtGetJSSampCit(c echo.Context) error {
 	}
 
 	w := AllWorks[wkid]
-	f := graboneline(w.FindAuthor(), w.FirstLine)
+	// because "t" is going to be the first line's citation you have to hunt for the real place where the text starts
+	ff := simplecontextgrabber(w.FindAuthor(), w.FirstLine, 2)
+	var actualfirst DbWorkline
+	for i := len(ff) - 1; i > 0; i-- {
+		loc := strings.Join(ff[i].FindLocus(), ".")
+		if loc[0] != 't' && ff[i].TbIndex >= w.FirstLine {
+			actualfirst = ff[i]
+		}
+	}
 	l := graboneline(w.FindAuthor(), w.LastLine)
 
-	cf := strings.Join(f.FindLocus(), ".")
+	cf := strings.Join(actualfirst.FindLocus(), ".")
 	cl := strings.Join(l.FindLocus(), ".")
 
 	type JSO struct {
