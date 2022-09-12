@@ -45,26 +45,19 @@ func formatnocontextresults(ss SearchStruct) []byte {
 	`
 	dtt := `[<span class="date">%s</span>]`
 
-	if len(ss.Seeking) == 0 {
-		// flag for debugging: len(ss.Seeking) should not have been zero...
-		msg(fmt.Sprintf("formatnocontextresults() has emptly ss.Seeking\n\t%ss", ss.InitSum), 1)
-	}
-
-	pat := searchtermfinder(ss.Seeking)
+	searchterm := sethighlighter(ss)
 
 	var rows []string
 	for i, r := range ss.Results {
 		// highlight search term; should be folded into a single function w/ highlightsearchterm() below
 		mu := r.MarkedUp
-		if pat.MatchString(r.MarkedUp) && len(ss.Seeking) != 0 {
-			mu = pat.ReplaceAllString(r.MarkedUp, `<span class="match">$1</span>`)
-		} else if len(ss.Seeking) != 0 {
+		if searchterm != nil && searchterm.MatchString(r.MarkedUp) {
+			mu = searchterm.ReplaceAllString(r.MarkedUp, `<span class="match">$1</span>`)
+		} else {
 			// ought to be in the hyphenated line
-			if pat.MatchString(r.Hyphenated) {
+			if searchterm.MatchString(r.Hyphenated) {
 				// todo: needs more fiddling
 				mu = r.MarkedUp + fmt.Sprintf(`&nbsp;&nbsp;(&nbsp;match:&nbsp;<span class="match">%ss</span>&nbsp;)`, r.Hyphenated)
-			} else {
-				mu = r.MarkedUp
 			}
 		}
 
@@ -216,17 +209,13 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	}
 
 	// highlight the search term: this includes the hyphenated_line issue
-	if len(ss.Seeking) == 0 {
-		// flag for debugging: len(ss.Seeking) should not have been zero...
-		msg(fmt.Sprintf("formatwithcontextresults() has emptly ss.Seeking\n\t%s", ss.InitSum), 1)
-	}
+	searchterm := sethighlighter(ss)
 
 	for _, p := range allpassages {
 		for i, r := range p.CookedCTX {
-			if r.IsHighlight && len(ss.Seeking) != 0 {
+			if r.IsHighlight && searchterm != nil {
 				highlightfocusline(&p.CookedCTX[i])
-				pat := searchtermfinder(ss.Seeking)
-				highlightsearchterm(pat, &p.CookedCTX[i])
+				highlightsearchterm(searchterm, &p.CookedCTX[i])
 			}
 			if len(ss.LemmaTwo) > 0 {
 				// look for the proximate term
@@ -520,4 +509,67 @@ func formatmultilinebrackets(html string) string {
 	html = pattern.ReplaceAllString(html, "$1$2</span>✃✃✃$1$3")
 
 	return html
+}
+
+// sethighlighter - set regex to highlight the search term
+func sethighlighter(ss SearchStruct) *regexp.Regexp {
+	// this should be unneeded now, but...
+	// the problem is that some two-stage ss will arrive at the formatter missing their original search term
+
+	// 		msg(fmt.Sprintf("formatnocontextresults() has emptly ss.Seeking\n\t%ss", ss.InitSum), 1)
+	//		fmt.Println(ss.Proximate)
+	//		fmt.Println(ss.SkgSlice)
+	//		fmt.Println(ss.PrxSlice)
+
+	// [HGS] formatnocontextresults() has emptly ss.Seeking
+	// Sought <span class="sought">»τρία«</span> not  within 2 words of <span class="sought">»δύο«</span>s
+	//τρία
+	//[]
+	//[]
+
+	var re *regexp.Regexp
+
+	if len(ss.Seeking) != 0 {
+		re = searchtermfinder(ss.Seeking)
+	} else if len(ss.LemmaOne) != 0 {
+		re = lemmahighlighter(ss.LemmaOne)
+	} else if len(ss.Proximate) != 0 {
+		re = searchtermfinder(ss.Proximate)
+	} else if len(ss.LemmaTwo) != 0 {
+		msg("sethighlighter(): 4", 1)
+		re = lemmahighlighter(ss.LemmaTwo)
+	} else {
+		msg(fmt.Sprintf("sethighlighter() cannot find anything to highlight\n\t%ss", ss.InitSum), 1)
+		re = nil
+	}
+
+	return re
+}
+
+func lemmahighlighter(lm string) *regexp.Regexp {
+	// don't let "(^|\s)τρεῖϲ(\s|$)|(^|\s)τρία(\s|$)|(^|\s)τριϲίν(\s|$)|(^|\s)τριῶν(\s|$)|(^|\s)τρί(\s|$)|(^|\s)τριϲί(\s|$)"
+	// turn into "(^|\[sS])[τΤ][ρῤῥῬ][εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ]ῖ[ϲσΣςϹ](\[sS]|$)|(^|\[sS])..."
+	// can't send "(^|\s)" through universalpatternmaker()
+
+	// 	p := `(^|\s)([τΤ][ρῤῥῬ][εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ]ῖ[ϲσΣςϹ])(\s|$)|(^|\s)([τΤ][ρῤῥῬ]ί[αἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάᾈᾉᾊᾋᾌᾍᾎᾏἈἉἊἋἌἍἎἏΑ])(\s|$)|(^|\s)([τΤ][ρῤῥῬ][ιἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗΐἸἹἺἻἼἽἾἿΙ][ϲσΣςϹ]ί[νΝ])(\s|$)|(^|\s)([τΤ][ρῤῥῬ][ιἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗΐἸἹἺἻἼἽἾἿΙ]ῶ[νΝ])(\s|$)|(^|\s)([τΤ][ρῤῥῬ]ί)(\s|$)|(^|\s)([τΤ][ρῤῥῬ][ιἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗΐἸἹἺἻἼἽἾἿΙ][ϲσΣςϹ]ί)(\s|$)`
+	//	l := `καὶ νήχεται αὖθιϲ. πολλάκιϲ οὖν καὶ δύο καὶ τρία`
+	//	pat := regexp.MustCompile(p)
+	//	fmt.Println(pat.MatchString(l))
+	// "true"
+
+	tp := `(^|\s)%s(\s|$)`
+	lemm := AllLemm[lm].Deriv
+	whole := strings.Join(lemm, ")✃✃✃(")
+	st := universalpatternmaker(whole)
+	lup := strings.Split(st, "✃✃✃")
+	for i, l := range lup {
+		lup[i] = fmt.Sprintf(tp, l)
+	}
+	rec := strings.Join(lup, "|")
+
+	r, e := regexp.Compile(rec)
+	if e != nil {
+		msg("sethighlighter() could not compile LemmaOne into regex", 1)
+	}
+	return r
 }

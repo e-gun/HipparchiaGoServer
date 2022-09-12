@@ -429,6 +429,10 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 
 	second.Results = validresults
 
+	// restore deleted search info
+	second.Seeking = sskg
+	second.LemmaOne = slem
+
 	return second
 }
 
@@ -720,13 +724,8 @@ func clonesearch(first SearchStruct, iteration int) SearchStruct {
 	return second
 }
 
-func searchtermfinder(term string) *regexp.Regexp {
-	// find the universal regex equivalent of the search term
-	//	you need to convert:
-	//		ποταμον
-	//	into:
-	//		([πΠ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][τΤ][αἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάᾈᾉᾊᾋᾌᾍᾎᾏἈἉἊἋἌἍἎἏΑ][μΜ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][νΝ])
-
+func universalpatternmaker(term string) string {
+	// feeder for searchtermfinder() also used by searchformatting.go
 	converter := getrunefeeder()
 	st := []rune(term)
 	var stre string
@@ -739,7 +738,17 @@ func searchtermfinder(term string) *regexp.Regexp {
 		}
 	}
 	stre = fmt.Sprintf("(%s)", stre)
+	return stre
+}
 
+func searchtermfinder(term string) *regexp.Regexp {
+	// find the universal regex equivalent of the search term
+	//	you need to convert:
+	//		ποταμον
+	//	into:
+	//		([πΠ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][τΤ][αἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάᾈᾉᾊᾋᾌᾍᾎᾏἈἉἊἋἌἍἎἏΑ][μΜ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][νΝ])
+
+	stre := universalpatternmaker(term)
 	pattern, e := regexp.Compile(stre)
 	if e != nil {
 		msg(fmt.Sprintf("searchtermfinder() could not compile the following: %s", stre), 1)
