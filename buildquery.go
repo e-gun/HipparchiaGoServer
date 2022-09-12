@@ -90,6 +90,11 @@ func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 		ss.SkgSlice = append(ss.SkgSlice, ss.Seeking)
 	}
 
+	syn := ss.SrchSyntax
+	if ss.PhaseNum == 2 && ss.NotNear {
+		syn = "!~"
+	}
+
 	// if there are too many "in0001wXXX" type entries: requiresindextemptable()
 
 	// au query looks like: SELECTFROM + WHERETERM + WHEREINDEX + ORDERBY&LIMIT
@@ -113,6 +118,7 @@ func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 		b := Boundaries{wk.FirstLine, wk.LastLine}
 		boundedexcl[wk.FindAuthor()] = append(boundedexcl[wk.FindAuthor()], b)
 	}
+	// fmt.Println(boundedincl) --> map[gr0545:[{13717 19042}]]
 
 	// [a2] individual passages included/excluded
 
@@ -192,18 +198,18 @@ func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 			var t PRQTemplate
 			t.AU = au
 			t.COL = ss.SrchColumn
-			t.SYN = ss.SrchSyntax
+			t.SYN = syn
 			t.SK = skg
 			t.LIM = fmt.Sprintf("%d", ss.Limit)
-
-			if ss.NotNear {
-				t.IDX = qb.WhrIdxExc
-			} else {
-				t.IDX = qb.WhrIdxInc
-			}
-
 			t.TTN = ss.TTName
 			t.PSCol = ss.SrchColumn
+
+			if len(qb.WhrIdxExc) != 0 && len(qb.WhrIdxInc) != 0 {
+				t.IDX = fmt.Sprintf("%s AND %s", qb.WhrIdxInc, qb.WhrIdxExc)
+			} else {
+				// safe because at least one of these is ""
+				t.IDX = qb.WhrIdxInc + qb.WhrIdxExc
+			}
 
 			if nott && noph && noidx {
 				t.Tail = tails["basic"]
@@ -430,6 +436,8 @@ func andorwhereclause(bounds []Boundaries, templ string, negation string, syntax
 		i := fmt.Sprintf(templ, negation, v.Start, v.Stop)
 		in = append(in, i)
 	}
+
+	// msg(fmt.Sprintf("andorwhereclause(): '%s'", strings.Join(in, syntax)), 1)
 	return strings.Join(in, syntax)
 }
 

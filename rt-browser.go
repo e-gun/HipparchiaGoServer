@@ -339,9 +339,6 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 
 		newline := lines[i].MarkedUp
 		for w, _ := range wds {
-			// this is going to have a problem if something already abuts markup...
-			// will need to keep track of the complete list of terminating items.
-
 			//  TEST:
 			// 	newline := `[Πῶϲ ⟨ἅρπαγα⟩ ἄνθρωπον ⟨καὶ⟩ ἀνενέργητον ϲημαίνουϲιν].`
 			//	cv := "[ἅἍ][ρΡ][πΠ][αΑ][γΓ][αΑ]"
@@ -353,7 +350,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 			// <td class="browsedline"><hmutitle>[<span class="editorialmarker_squarebrackets">Πῶϲ ⟨<span class="editorialmarker_angledbrackets">ἅρπαγα</span>⟩ ...
 
 			cv := capsvariants(wds[w])
-			fmt.Println(newline)
+
 			pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s|\\[|\\>|⟨|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|,|;|·|$)", cv))
 			if e == nil {
 				// you will barf if wds[w] = *
@@ -365,10 +362,6 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 			// complication: elision: <observed id="ἀλλ">ἀλλ</observed>’
 			// but you can't deal with that here: the ’ will not turn up a find in the dictionary; the ' will yield bad SQL
 			// so the dictionary lookup has to be reworked
-
-			//o := fmt.Sprintf(`<observed id="%s">%s</observed>’`, wds[w], wds[w])
-			//n := fmt.Sprintf(`<observed id="%s’">%s</observed>’`, wds[w], wds[w])
-			//newline = strings.Replace(newline, o, n, -1)
 
 			// complication: hyphenated words at the end of a line
 			pattern = regexp.MustCompile("\\s([^\\s]+-)$")
@@ -414,7 +407,7 @@ func selectivelydisplaycitations(theline DbWorkline, previous DbWorkline, focus 
 		z = 0
 	}
 
-	if !theline.SameLevelAs(previous) || z%10 == 0 || theline.TbIndex == focus {
+	if !theline.SameLevelAs(previous) || z%SHOWCITATIONEVERYNLINES == 0 || theline.TbIndex == focus {
 		// display citation
 	} else {
 		citation = ""

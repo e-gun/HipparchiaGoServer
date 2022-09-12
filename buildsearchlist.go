@@ -327,6 +327,7 @@ func sessionintosearchlist(s ServerSession) ProcessedList {
 	proc.Excl = exc
 	proc.Size = sl
 
+	// fmt.Println(fmt.Sprintf("sessionintosearchlist(): proc is\n\t%s\n", proc))
 	return proc
 }
 
