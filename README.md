@@ -2,12 +2,13 @@
 
 ## alpha status: does a lot of what you most want acceptably...
 
-### status as of `v0.3.9`:
+### status as of `v0.4.0`:
 
 * searching mostly works 
 * browsing mostly works
 * selections mostly work 
 * exclusions mostly work
+* not-near ok
 * progress polling mostly works
 * dictionaries mostly work
 * basic text maker
@@ -15,11 +16,11 @@
 
 ### TODO (in vague order of priority)
 
-* not-near in progress: failing in the second pass
 * UI needs to reflect settings better
 * fix wonky lemma highlighting
 * saving/fetching searches
 * vocabulary list generation
+* maximize fixed length slices
 * search list info box
 
 ### DISTANT FANTASIES

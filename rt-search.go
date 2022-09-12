@@ -281,7 +281,6 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 
 // withinxwordssearch - find A within N words of B
 func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
-	// todo: not near logic
 
 	previous := time.Now()
 	first := generateinitialhits(originalsrch)
@@ -301,6 +300,8 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 	second.LemmaOne = ""
 	second.Proximate = first.Seeking
 	second.LemmaTwo = first.LemmaOne
+	// avoid "WHERE accented_line !~ ''" : force the type and make sure to check "first.NotNear" below
+	second.NotNear = false
 
 	setsearchtype(&second)
 
@@ -331,6 +332,7 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 	prq := searchlistintoqueries(&second)
 
 	// [b] run the second "search"
+
 	second.Queries = prq
 	searches[originalsrch.ID] = HGoSrch(second)
 
@@ -388,7 +390,6 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 	}
 
 	// [c4] search head and tail for the second search term
-
 	var validresults []DbWorkline
 	for idx, str := range stringmapper {
 		subs := patternone.FindStringSubmatch(str)
@@ -413,8 +414,16 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 		}
 		tail = strings.Join(tt, " ")
 
-		if patterntwo.MatchString(head) || patterntwo.MatchString(tail) {
-			validresults = append(validresults, first.Results[idx])
+		if first.NotNear {
+			// toss hits
+			if !patterntwo.MatchString(head) && !patterntwo.MatchString(tail) {
+				validresults = append(validresults, first.Results[idx])
+			}
+		} else {
+			// collect hits
+			if patterntwo.MatchString(head) || patterntwo.MatchString(tail) {
+				validresults = append(validresults, first.Results[idx])
+			}
 		}
 	}
 
@@ -468,6 +477,10 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	if sessions[user].NearOrNot == "notnear" {
 		s.NotNear = true
 	}
+
+	//msg("nonstandard builddefaultsearch() for testing", 1)
+	//s.NotNear = true
+	//s.ProxScope = "words"
 
 	return s
 }
