@@ -24,12 +24,12 @@ type SearchOutputJSON struct {
 	JS            string `json:"js"`
 }
 
-func formatnocontextresults(s SearchStruct) []byte {
+func formatnocontextresults(ss SearchStruct) []byte {
 	var out SearchOutputJSON
 	out.JS = fmt.Sprintf(BROWSERJS, "browser")
-	out.Title = s.Seeking
+	out.Title = ss.Seeking
 	out.Image = ""
-	out.Searchsummary = formatfinalsearchsummary(&s)
+	out.Searchsummary = formatfinalsearchsummary(&ss)
 
 	TABLEROW := `
 	<tr class="%s">
@@ -45,19 +45,24 @@ func formatnocontextresults(s SearchStruct) []byte {
 	`
 	dtt := `[<span class="date">%s</span>]`
 
-	pat := searchtermfinder(s.Seeking)
+	if len(ss.Seeking) == 0 {
+		// flag for debugging: len(ss.Seeking) should not have been zero...
+		msg(fmt.Sprintf("formatnocontextresults() has emptly ss.Seeking\n\t%ss", ss.InitSum), 1)
+	}
+
+	pat := searchtermfinder(ss.Seeking)
 
 	var rows []string
-	for i, r := range s.Results {
+	for i, r := range ss.Results {
 		// highlight search term; should be folded into a single function w/ highlightsearchterm() below
-		var mu string
-		if pat.MatchString(r.MarkedUp) {
+		mu := r.MarkedUp
+		if pat.MatchString(r.MarkedUp) && len(ss.Seeking) != 0 {
 			mu = pat.ReplaceAllString(r.MarkedUp, `<span class="match">$1</span>`)
-		} else {
-			// might be in the hyphenated line
+		} else if len(ss.Seeking) != 0 {
+			// ought to be in the hyphenated line
 			if pat.MatchString(r.Hyphenated) {
 				// todo: needs more fiddling
-				mu = r.MarkedUp + fmt.Sprintf(`&nbsp;&nbsp;(&nbsp;match:&nbsp;<span class="match">%s</span>&nbsp;)`, r.Hyphenated)
+				mu = r.MarkedUp + fmt.Sprintf(`&nbsp;&nbsp;(&nbsp;match:&nbsp;<span class="match">%ss</span>&nbsp;)`, r.Hyphenated)
 			} else {
 				mu = r.MarkedUp
 			}
@@ -211,10 +216,14 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	}
 
 	// highlight the search term: this includes the hyphenated_line issue
+	if len(ss.Seeking) == 0 {
+		// flag for debugging: len(ss.Seeking) should not have been zero...
+		msg(fmt.Sprintf("formatwithcontextresults() has emptly ss.Seeking\n\t%s", ss.InitSum), 1)
+	}
 
 	for _, p := range allpassages {
 		for i, r := range p.CookedCTX {
-			if r.IsHighlight {
+			if r.IsHighlight && len(ss.Seeking) != 0 {
 				highlightfocusline(&p.CookedCTX[i])
 				pat := searchtermfinder(ss.Seeking)
 				highlightsearchterm(pat, &p.CookedCTX[i])
@@ -381,7 +390,7 @@ func highlightfocusline(line *ResultPassageLine) {
 func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
 	// 	html markup for the search term in the line so it can jump out at you
 	//
-	//	regexequivalent is compiled via searchtermfinder()
+	//	regexequivalent is compiled via searchtermfinder() in rt-search.go
 	//
 
 	// see the warnings and caveats at highlightsearchterm() in searchformatting.py
