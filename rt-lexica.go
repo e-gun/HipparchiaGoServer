@@ -389,32 +389,36 @@ func getmorphmatch(word string, lang string) []DbMorphology {
 	return thesefinds
 }
 
-// dbmorthintomorphpossib - []DbMorphology into []MorphPossib
+// dbmorthintomorphpossib - from []DbMorphology yield up []MorphPossib
 func dbmorthintomorphpossib(dbmm []DbMorphology) []MorphPossib {
 	var mpp []MorphPossib
+	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 
 	for _, d := range dbmm {
-		// RawPossib is JSON + JSON; nested JSON is a PITA, but the structure is: {"1": {...}, "2": {...}, ...}
-		// that is splittable
-		// just need to clean the '}}' at the end
+		mpp = append(mpp, extractmorphpossibilities(d.RawPossib, boundary)...)
+	}
 
-		// fmt.Println(d.RawPossib)
+	return mpp
+}
 
-		boundary := regexp.MustCompile(`(\{|, )"\d": `)
-		possible := boundary.Split(d.RawPossib, -1)
+func extractmorphpossibilities(raw string, boundary *regexp.Regexp) []MorphPossib {
+	// RawPossib is JSON + JSON; nested JSON is a PITA, but the structure is: {"1": {...}, "2": {...}, ...}
+	// that is splittable
+	// just need to clean the '}}' at the end
+	possible := boundary.Split(raw, -1)
 
-		for _, p := range possible {
-			p = strings.Replace(p, "}}", "}", -1)
-			p = strings.TrimSpace(p)
-			var mp MorphPossib
-			if len(p) > 0 {
-				err := json.Unmarshal([]byte(p), &mp)
-				if err != nil {
-					msg(fmt.Sprintf("dbmorthintomorphpossib() could not unmarshal %s", p), 5)
-				}
+	var mpp []MorphPossib
+	for _, p := range possible {
+		p = strings.Replace(p, "}}", "}", -1)
+		p = strings.TrimSpace(p)
+		var mp MorphPossib
+		if len(p) > 0 {
+			err := json.Unmarshal([]byte(p), &mp)
+			if err != nil {
+				msg(fmt.Sprintf("dbmorthintomorphpossib() could not unmarshal %s", p), 5)
 			}
-			mpp = append(mpp, mp)
 		}
+		mpp = append(mpp, mp)
 	}
 
 	return mpp

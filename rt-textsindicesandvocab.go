@@ -8,10 +8,12 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"regexp"
 	"runtime"
 	"sort"
 	"strings"
 	"sync"
+	"time"
 )
 
 type WordInfo struct {
@@ -20,128 +22,180 @@ type WordInfo struct {
 	Loc        string
 	Cit        string
 	IsHomonymn bool
+	Trans      string
 }
 
-//func RtVocabMaker(c echo.Context) error {
-//	// diverging from the way the python works
-//	// build not via the selection boxes but via the actual selection made and stored in the session
-//	start := time.Now()
-//	srch := sessionintobulksearch(c)
-//
-//	slicedlookups := buildmorphmap(&srch)
-//
-//	type VocInf struct {
-//		W  string
-//		C  int
-//		TR string
-//	}
-//
-//	// [a] map all the words
-//	wmi := make(map[string]int)
-//	// "cannot assign" issues being dodged
-//	for _, w := range slicedwords {
-//		if _, ok := wmi[w.HW]; ok {
-//			wmi[w.HW] += 1
-//		} else {
-//			wmi[w.HW] = 1
-//		}
-//	}
-//
-//	// [b] convert to []DbMorphology
-//
-//	msl := make([]DbMorphology, len(morphmap))
-//	for _, m := range morphmap {
-//		msl = append(msl, m)
-//	}
-//
-//	mpp := dbmorthintomorphpossib(msl)
-//
-//	// [c] map onto VocInf; unmap; sort
-//
-//	vim := make(map[string]VocInf, len(wmi))
-//	for _, m := range mpp {
-//		if _, ok := vim[m.Headwd]; !ok {
-//			vim[m.Headwd] = VocInf{
-//				W:  m.Headwd,
-//				C:  wmi[m.Headwd],
-//				TR: m.Transl,
-//			}
-//		}
-//	}
-//
-//	vis := make([]VocInf, len(vim))
-//	for _, v := range vim {
-//		vis = append(vis, v)
-//	}
-//
-//	sort.Slice(vis, func(i, j int) bool { return vis[i].W < vis[j].W })
-//
-//	// [d] format
-//
-//	th := `
-//	<table>
-//	<tr>
-//			<th class="vocabtable">word</th>
-//			<th class="vocabtable">count</th>
-//			<th class="vocabtable">definitions</th>
-//	</tr>`
-//
-//	tr := `
-//		<tr>
-//			<td class="word"><vocabobserved id="%s">%s</vocabobserved></td>
-//			<td class="count">%d</td>
-//			<td class="trans">%s</td>
-//		</tr>`
-//
-//	tf := `</table>`
-//
-//	trr := make([]string, len(vis)+2)
-//	trr = append(trr, th)
-//
-//	for _, v := range vis {
-//		nt := fmt.Sprintf(tr, v.W, v.W, v.C, v.TR)
-//		trr = append(trr, nt)
-//	}
-//
-//	trr = append(trr, tf)
-//
-//	thehtml := strings.Join(trr, "")
-//
-//	type JSFeeder struct {
-//		Au string `json:"authorname"`
-//		Ti string `json:"title"`
-//		ST string `json:"structure"`
-//		WS string `json:"worksegment"`
-//		HT string `json:"texthtml"`
-//		EL string `json:"elapsed"`
-//		WF int    `json:"wordsfound"`
-//		KY string `json:"keytoworks"`
-//		NJ string `json:"newjs"`
-//	}
-//
-//	var jso JSFeeder
-//	jso.Au = AllAuthors[srch.Results[0].FindAuthor()].Cleaname
-//	if srch.TableSize > 1 {
-//		jso.Au = jso.Au + fmt.Sprintf(" and %d more author(s)", srch.TableSize-1)
-//	}
-//
-//	jso.Ti = AllWorks[srch.Results[0].WkUID].Title
-//	if srch.SearchSize > 1 {
-//		jso.Ti = jso.Ti + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
-//	}
-//
-//	jso.ST = strings.Join(AllWorks[srch.Results[0].WkUID].CitationFormat(), ", ")
-//	jso.HT = thehtml
-//	jso.EL = fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
-//	jso.WF = srch.SearchSize
-//	jso.KY = "(TODO)"
-//	jso.NJ = ""
-//
-//	js, e := json.Marshal(jso)
-//	chke(e)
-//
-//	return c.String(http.StatusOK, string(js))
-//}
+func RtVocabMaker(c echo.Context) error {
+	// diverging from the way the python works
+	// build not via the selection boxes but via the actual selection made and stored in the session
+	start := time.Now()
+
+	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
+	srch := sessionintobulksearch(c)
+
+	var slicedwords []WordInfo
+	for _, r := range srch.Results {
+		wds := r.AccentedSlice()
+		for _, w := range wds {
+			this := WordInfo{
+				HW:         "",
+				Wd:         uvσςϲ(swapacuteforgrave(w)),
+				Loc:        r.BuildHyperlink(),
+				Cit:        r.Citation(),
+				IsHomonymn: false,
+			}
+			slicedwords = append(slicedwords, this)
+		}
+	}
+
+	// [b] find the unique values we are working with
+	distinct := make(map[string]bool, len(slicedwords))
+	for _, w := range slicedwords {
+		distinct[w.Wd] = true
+	}
+
+	// [c] prepare to find the headwords for all of these distinct words
+	morphslice := make([]string, len(distinct))
+	for w := range distinct {
+		morphslice = append(morphslice, w)
+	}
+
+	// [c1] get and map all the DbMorphology
+	morphmap := arraytogetrequiredmorphobjects(morphslice)
+
+	// map[Μίλωνοϲ:{Μίλωνοϲ 68157568  Μίλων } αὐτοῦ:{αὐτοῦ 16977949, 17064750  αὐτοῦ αὐτόϲ } αὐτῶν:{αὐτῶν 16977949  αὐτόϲ }
+	fmt.Println(morphmap)
+
+	boundary := regexp.MustCompile(`(\{|, )"\d": `)
+
+	// [c2] map observed words to possibilities
+	poss := make(map[string][]MorphPossib)
+	for k, v := range morphmap {
+		poss[k] = extractmorphpossibilities(v.RawPossib, boundary)
+	}
+
+	// BAD: map[Μίλωνοϲ:[{     }] αὐτοῦ:[{     }] αὐτῶν:[{     }]
+	fmt.Println(poss)
+
+	// [c3] build a new slice of seen words with headwords attached
+	var parsedwords []WordInfo
+	for _, s := range slicedwords {
+		hww := poss[s.Wd]
+		if len(hww) > 1 {
+			s.IsHomonymn = true
+		}
+		for _, h := range hww {
+			newwd := s
+			newwd.HW = h.Headwd
+			newwd.Trans = h.Transl
+			parsedwords = append(parsedwords, newwd)
+		}
+	}
+
+	// fmt.Println(parsedwords)
+
+	// [d] get the counts
+	vic := make(map[string]int)
+	for _, p := range parsedwords {
+		vic[p.HW]++
+	}
+
+	// [e] get the translations
+	vit := make(map[string]string)
+	for _, p := range parsedwords {
+		vit[p.HW] = p.Trans
+	}
+
+	// [f] consolidate the information
+
+	type VocInf struct {
+		W  string
+		C  int
+		TR string
+	}
+
+	vim := make(map[string]VocInf)
+	for k, v := range vic {
+		vim[k] = VocInf{
+			W:  k,
+			C:  v,
+			TR: vit[k],
+		}
+	}
+
+	vis := make([]VocInf, len(vim))
+	for _, v := range vim {
+		vis = append(vis, v)
+	}
+
+	sort.Slice(vis, func(i, j int) bool { return vis[i].W < vis[j].W })
+
+	// [g] format
+
+	th := `
+	<table>
+	<tr>
+			<th class="vocabtable">word</th>
+			<th class="vocabtable">count</th>
+			<th class="vocabtable">definitions</th>
+	</tr>`
+
+	tr := `
+		<tr>
+			<td class="word"><vocabobserved id="%s">%s</vocabobserved></td>
+			<td class="count">%d</td>
+			<td class="trans">%s</td>
+		</tr>`
+
+	tf := `</table>`
+
+	trr := make([]string, len(vis)+2)
+	trr = append(trr, th)
+
+	for _, v := range vis {
+		nt := fmt.Sprintf(tr, v.W, v.W, v.C, v.TR)
+		trr = append(trr, nt)
+	}
+
+	trr = append(trr, tf)
+
+	thehtml := strings.Join(trr, "")
+
+	type JSFeeder struct {
+		Au string `json:"authorname"`
+		Ti string `json:"title"`
+		ST string `json:"structure"`
+		WS string `json:"worksegment"`
+		HT string `json:"texthtml"`
+		EL string `json:"elapsed"`
+		WF int    `json:"wordsfound"`
+		KY string `json:"keytoworks"`
+		NJ string `json:"newjs"`
+	}
+
+	var jso JSFeeder
+	jso.Au = AllAuthors[srch.Results[0].FindAuthor()].Cleaname
+	if srch.TableSize > 1 {
+		jso.Au = jso.Au + fmt.Sprintf(" and %d more author(s)", srch.TableSize-1)
+	}
+
+	jso.Ti = AllWorks[srch.Results[0].WkUID].Title
+	if srch.SearchSize > 1 {
+		jso.Ti = jso.Ti + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
+	}
+
+	jso.ST = strings.Join(AllWorks[srch.Results[0].WkUID].CitationFormat(), ", ")
+	jso.HT = thehtml
+	jso.EL = fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
+	jso.WF = srch.SearchSize
+	jso.KY = "(TODO)"
+	jso.NJ = ""
+
+	js, e := json.Marshal(jso)
+	chke(e)
+
+	return c.String(http.StatusOK, string(js))
+}
 
 // buildmorphmap- acquire a complete collection of words and a complete DbMorphology collection for your needs
 func buildmorphmap(ss *SearchStruct) []WordInfo {
@@ -439,7 +493,7 @@ func morphologyworker(wordlist []string, workerid int, dbpool *pgxpool.Pool) map
 	//    "greek_morphology_idx" btree (observed_form)
 
 	tt := `CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words`
-	qt := `SELECT observed_form, xrefs, prefixrefs, related_headwords FROM %s_morphology WHERE EXISTS 
+	qt := `SELECT observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords FROM %s_morphology WHERE EXISTS 
 		(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = %s_morphology.observed_form)`
 
 	foundmorph := make(map[string]DbMorphology)
@@ -462,7 +516,7 @@ func morphologyworker(wordlist []string, workerid int, dbpool *pgxpool.Pool) map
 		for foundrows.Next() {
 			count += 1
 			var thehit DbMorphology
-			err = foundrows.Scan(&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib)
+			err = foundrows.Scan(&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW)
 			chke(err)
 			foundmorph[thehit.Observed] = thehit
 		}
