@@ -12,7 +12,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"time"
 )
 
 type WordInfo struct {
@@ -23,129 +22,129 @@ type WordInfo struct {
 	IsHomonymn bool
 }
 
-func RtVocabMaker(c echo.Context) error {
-	// diverging from the way the python works
-	// build not via the selection boxes but via the actual selection made and stored in the session
-	start := time.Now()
-	srch := sessionintobulksearch(c)
-
-	morphmap, slicedwords := buildmorphmap(&srch)
-
-	type VocInf struct {
-		W  string
-		C  int
-		TR string
-	}
-
-	// [a] map all the words
-	wmi := make(map[string]int)
-	// "cannot assign" issues being dodged
-	for _, w := range slicedwords {
-		if _, ok := wmi[w.HW]; ok {
-			wmi[w.HW] += 1
-		} else {
-			wmi[w.HW] = 1
-		}
-	}
-
-	// [b] convert to []DbMorphology
-
-	msl := make([]DbMorphology, len(morphmap))
-	for _, m := range morphmap {
-		msl = append(msl, m)
-	}
-
-	mpp := dbmorthintomorphpossib(msl)
-
-	// [c] map onto VocInf; unmap; sort
-
-	vim := make(map[string]VocInf, len(wmi))
-	for _, m := range mpp {
-		if _, ok := vim[m.Headwd]; !ok {
-			vim[m.Headwd] = VocInf{
-				W:  m.Headwd,
-				C:  wmi[m.Headwd],
-				TR: m.Transl,
-			}
-		}
-	}
-
-	vis := make([]VocInf, len(vim))
-	for _, v := range vim {
-		vis = append(vis, v)
-	}
-
-	sort.Slice(vis, func(i, j int) bool { return vis[i].W < vis[j].W })
-
-	// [d] format
-
-	th := `
-	<table>
-	<tr>
-			<th class="vocabtable">word</th>
-			<th class="vocabtable">count</th>
-			<th class="vocabtable">definitions</th>
-	</tr>`
-
-	tr := `
-		<tr>
-			<td class="word"><vocabobserved id="%s">%s</vocabobserved></td>
-			<td class="count">%d</td>
-			<td class="trans">%s</td>
-		</tr>`
-
-	tf := `</table>`
-
-	trr := make([]string, len(vis)+2)
-	trr = append(trr, th)
-
-	for _, v := range vis {
-		nt := fmt.Sprintf(tr, v.W, v.W, v.C, v.TR)
-		trr = append(trr, nt)
-	}
-
-	trr = append(trr, tf)
-
-	thehtml := strings.Join(trr, "")
-
-	type JSFeeder struct {
-		Au string `json:"authorname"`
-		Ti string `json:"title"`
-		ST string `json:"structure"`
-		WS string `json:"worksegment"`
-		HT string `json:"texthtml"`
-		EL string `json:"elapsed"`
-		WF int    `json:"wordsfound"`
-		KY string `json:"keytoworks"`
-		NJ string `json:"newjs"`
-	}
-
-	var jso JSFeeder
-	jso.Au = AllAuthors[srch.Results[0].FindAuthor()].Cleaname
-	if srch.TableSize > 1 {
-		jso.Au = jso.Au + fmt.Sprintf(" and %d more author(s)", srch.TableSize-1)
-	}
-
-	jso.Ti = AllWorks[srch.Results[0].WkUID].Title
-	if srch.SearchSize > 1 {
-		jso.Ti = jso.Ti + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
-	}
-
-	jso.ST = strings.Join(AllWorks[srch.Results[0].WkUID].CitationFormat(), ", ")
-	jso.HT = thehtml
-	jso.EL = fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
-	jso.WF = srch.SearchSize
-	jso.KY = "(TODO)"
-	jso.NJ = ""
-
-	js, e := json.Marshal(jso)
-	chke(e)
-
-	return c.String(http.StatusOK, string(js))
-}
+//func RtVocabMaker(c echo.Context) error {
+//	// diverging from the way the python works
+//	// build not via the selection boxes but via the actual selection made and stored in the session
+//	start := time.Now()
+//	srch := sessionintobulksearch(c)
+//
+//	slicedlookups := buildmorphmap(&srch)
+//
+//	type VocInf struct {
+//		W  string
+//		C  int
+//		TR string
+//	}
+//
+//	// [a] map all the words
+//	wmi := make(map[string]int)
+//	// "cannot assign" issues being dodged
+//	for _, w := range slicedwords {
+//		if _, ok := wmi[w.HW]; ok {
+//			wmi[w.HW] += 1
+//		} else {
+//			wmi[w.HW] = 1
+//		}
+//	}
+//
+//	// [b] convert to []DbMorphology
+//
+//	msl := make([]DbMorphology, len(morphmap))
+//	for _, m := range morphmap {
+//		msl = append(msl, m)
+//	}
+//
+//	mpp := dbmorthintomorphpossib(msl)
+//
+//	// [c] map onto VocInf; unmap; sort
+//
+//	vim := make(map[string]VocInf, len(wmi))
+//	for _, m := range mpp {
+//		if _, ok := vim[m.Headwd]; !ok {
+//			vim[m.Headwd] = VocInf{
+//				W:  m.Headwd,
+//				C:  wmi[m.Headwd],
+//				TR: m.Transl,
+//			}
+//		}
+//	}
+//
+//	vis := make([]VocInf, len(vim))
+//	for _, v := range vim {
+//		vis = append(vis, v)
+//	}
+//
+//	sort.Slice(vis, func(i, j int) bool { return vis[i].W < vis[j].W })
+//
+//	// [d] format
+//
+//	th := `
+//	<table>
+//	<tr>
+//			<th class="vocabtable">word</th>
+//			<th class="vocabtable">count</th>
+//			<th class="vocabtable">definitions</th>
+//	</tr>`
+//
+//	tr := `
+//		<tr>
+//			<td class="word"><vocabobserved id="%s">%s</vocabobserved></td>
+//			<td class="count">%d</td>
+//			<td class="trans">%s</td>
+//		</tr>`
+//
+//	tf := `</table>`
+//
+//	trr := make([]string, len(vis)+2)
+//	trr = append(trr, th)
+//
+//	for _, v := range vis {
+//		nt := fmt.Sprintf(tr, v.W, v.W, v.C, v.TR)
+//		trr = append(trr, nt)
+//	}
+//
+//	trr = append(trr, tf)
+//
+//	thehtml := strings.Join(trr, "")
+//
+//	type JSFeeder struct {
+//		Au string `json:"authorname"`
+//		Ti string `json:"title"`
+//		ST string `json:"structure"`
+//		WS string `json:"worksegment"`
+//		HT string `json:"texthtml"`
+//		EL string `json:"elapsed"`
+//		WF int    `json:"wordsfound"`
+//		KY string `json:"keytoworks"`
+//		NJ string `json:"newjs"`
+//	}
+//
+//	var jso JSFeeder
+//	jso.Au = AllAuthors[srch.Results[0].FindAuthor()].Cleaname
+//	if srch.TableSize > 1 {
+//		jso.Au = jso.Au + fmt.Sprintf(" and %d more author(s)", srch.TableSize-1)
+//	}
+//
+//	jso.Ti = AllWorks[srch.Results[0].WkUID].Title
+//	if srch.SearchSize > 1 {
+//		jso.Ti = jso.Ti + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
+//	}
+//
+//	jso.ST = strings.Join(AllWorks[srch.Results[0].WkUID].CitationFormat(), ", ")
+//	jso.HT = thehtml
+//	jso.EL = fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
+//	jso.WF = srch.SearchSize
+//	jso.KY = "(TODO)"
+//	jso.NJ = ""
+//
+//	js, e := json.Marshal(jso)
+//	chke(e)
+//
+//	return c.String(http.StatusOK, string(js))
+//}
 
 // buildmorphmap- acquire a complete collection of words and a complete DbMorphology collection for your needs
-func buildmorphmap(ss *SearchStruct) (map[string]DbMorphology, []WordInfo) {
+func buildmorphmap(ss *SearchStruct) []WordInfo {
 	// [a] take every word and build WordInfo for it [can parallelize]
 
 	var slicedwords []WordInfo
@@ -177,18 +176,6 @@ func buildmorphmap(ss *SearchStruct) (map[string]DbMorphology, []WordInfo) {
 
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
-	return morphmap, slicedwords
-}
-
-func RtIndexMaker(c echo.Context) error {
-	// diverging from the way the python works
-	// build not via the selection boxes but via the actual selection made and stored in the session
-
-	// user := readUUIDCookie(c)
-	srch := sessionintobulksearch(c)
-
-	morphmap, slicedwords := buildmorphmap(&srch)
-
 	var slicedlookups []WordInfo
 	for _, w := range slicedwords {
 		if m, ok := morphmap[w.Wd]; !ok {
@@ -206,6 +193,18 @@ func RtIndexMaker(c echo.Context) error {
 		}
 	}
 
+	return slicedlookups
+}
+
+func RtIndexMaker(c echo.Context) error {
+	// diverging from the way the python works
+	// build not via the selection boxes but via the actual selection made and stored in the session
+
+	// user := readUUIDCookie(c)
+	srch := sessionintobulksearch(c)
+
+	slicedlookups := buildmorphmap(&srch)
+
 	// [d] the final map
 	// [d1] build it
 	indexmap := make(map[string][]WordInfo)
@@ -221,11 +220,6 @@ func RtIndexMaker(c echo.Context) error {
 	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 
 	// now you have a sorted index...
-
-	//// [d2] sort the []WordInfo entries
-	//for k, v := range indexmap {
-	//	sort.Slice(indexmap[k], func(i, j int) bool { return v[i].Loc < v[j].Loc })
-	//}
 
 	var trr []string
 	for _, k := range keys {
@@ -257,8 +251,16 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	var jso JSFeeder
-	jso.Au = "(au todo)"
-	jso.Ti = "(ti todo)"
+	jso.Au = AllAuthors[srch.Results[0].FindAuthor()].Cleaname
+	if srch.TableSize > 1 {
+		jso.Au = jso.Au + fmt.Sprintf(" and %d more author(s)", srch.TableSize-1)
+	}
+
+	jso.Ti = AllWorks[srch.Results[0].WkUID].Title
+	if srch.SearchSize > 1 {
+		jso.Ti = jso.Ti + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
+	}
+
 	jso.WS = "(ws todo)"
 	jso.HT = htm
 	jso.EL = "(el todo)"

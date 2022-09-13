@@ -198,7 +198,7 @@ func findbyform(word string, author string) string {
 
 	mpp := dbmorthintomorphpossib(thesefinds)
 
-	// [c] take the []MorphPossib and find the set of headwords we are interested in
+	// [c] take the []MorphPossib and find the set of headwords we are interested in; store this in a []dblexicon
 
 	lexicalfinds := morphpossibintolexpossib(d, mpp)
 
