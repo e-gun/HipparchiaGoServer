@@ -200,56 +200,18 @@ func findbyform(word string, author string) string {
 
 	// [c] take the []MorphPossib and find the set of headwords we are interested in
 
-	var hwm []string
-	for _, p := range mpp {
-		if strings.TrimSpace(p.Headwd) != "" {
-			hwm = append(hwm, p.Headwd)
-		}
-	}
+	lexicalfinds := morphpossibintolexpossib(d, mpp)
 
-	// the next is primed to produce problems: see καρποῦ which will turn καρπόϲ1 and καρπόϲ2 into just καρπόϲ; need xref_value?
-	// but we have probably taken care of this below: see the comments
-	hwm = unique(hwm)
+	// [d] generate and format the prevalence data for this form: cf formatprevalencedata() in lexicalformatting.py
 
-	// [d] get the wordobjects for each unique headword: probedictionary()
-	dbpool := GetPSQLconnection()
-	defer dbpool.Close()
-	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
-	fld := `entry_name, metrical_entry, id_number, pos, translations, html_body`
-	psq := `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴)$' ORDER BY id_number ASC`
-	col := "entry_name"
-
-	var lexicalfinds []DbLexicon
-	dedup := make(map[float32]bool)
-	for _, w := range hwm {
-		// var foundrows pgx.Rows
-		var err error
-		q := fmt.Sprintf(psq, fld, d, col, w)
-		foundrows, err := dbpool.Query(context.Background(), q)
-		chke(err)
-
-		defer foundrows.Close()
-		for foundrows.Next() {
-			var thehit DbLexicon
-			err := foundrows.Scan(&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry)
-			chke(err)
-			thehit.Lang = d
-			if _, dup := dedup[thehit.ID]; !dup {
-				// use ID and not Lex because καρπόϲ.53442 is not καρπόϲ.53443
-				dedup[thehit.ID] = true
-				lexicalfinds = append(lexicalfinds, thehit)
-			}
-		}
-	}
-
-	// [e] generate and format the prevalence data for this form: cf formatprevalencedata() in lexicalformatting.py
-
-	fld = `entry_name, total_count, gr_count, lt_count, dp_count, in_count, ch_count`
-	psq = `SELECT %s FROM wordcounts_%s where entry_name = '%s'`
+	fld := `entry_name, total_count, gr_count, lt_count, dp_count, in_count, ch_count`
+	psq := `SELECT %s FROM wordcounts_%s where entry_name = '%s'`
 	// golang hates indexing unicode strings: strings are bytes, and unicode chars take more than one byte
 	c := []rune(word)
 	q := fmt.Sprintf(psq, fld, stripaccentsSTR(string(c[0])), word)
 
+	dbpool := GetPSQLconnection()
+	defer dbpool.Close()
 	foundrows, err := dbpool.Query(context.Background(), q)
 	chke(err)
 	var wc DbWordCount
@@ -263,18 +225,18 @@ func findbyform(word string, author string) string {
 	label := wc.Word
 	allformpd := formatprevalencedata(wc, label)
 
-	// [f] format the parsing summary
+	// [e] format the parsing summary
 
 	parsing := formatparsingdata(mpp)
 
-	// [g] generate the lexical output: multiple entries possible - <div id="δημόϲιοϲ_23337644"> ... <div id="δημοϲίᾳ_23333080"> ...
+	// [f] generate the lexical output: multiple entries possible - <div id="δημόϲιοϲ_23337644"> ... <div id="δημοϲίᾳ_23333080"> ...
 
 	var entries string
 	for _, w := range lexicalfinds {
 		entries += formatlexicaloutput(w)
 	}
 
-	// [h] add the HTML + JS to inject `{"newhtml": "...", "newjs":"..."}`
+	// [g] add the HTML + JS to inject `{"newhtml": "...", "newjs":"..."}`
 
 	html := allformpd + parsing + entries
 
@@ -436,23 +398,72 @@ func dbmorthintomorphpossib(dbmm []DbMorphology) []MorphPossib {
 		// that is splittable
 		// just need to clean the '}}' at the end
 
+		// fmt.Println(d.RawPossib)
+
 		boundary := regexp.MustCompile(`(\{|, )"\d": `)
 		possible := boundary.Split(d.RawPossib, -1)
 
 		for _, p := range possible {
-			// fmt.Println(p)
 			p = strings.Replace(p, "}}", "}", -1)
 			p = strings.TrimSpace(p)
 			var mp MorphPossib
 			if len(p) > 0 {
 				err := json.Unmarshal([]byte(p), &mp)
-				chke(err)
+				if err != nil {
+					msg(fmt.Sprintf("dbmorthintomorphpossib() could not unmarshal %s", p), 5)
+				}
 			}
 			mpp = append(mpp, mp)
 		}
 	}
 
 	return mpp
+}
+
+// morphpossibintolexpossib - []MorphPossib into []DbLexicon
+func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
+	var hwm []string
+	for _, p := range mpp {
+		if strings.TrimSpace(p.Headwd) != "" {
+			hwm = append(hwm, p.Headwd)
+		}
+	}
+
+	// the next is primed to produce problems: see καρποῦ which will turn καρπόϲ1 and καρπόϲ2 into just καρπόϲ; need xref_value?
+	// but we have probably taken care of this below: see the comments
+	hwm = unique(hwm)
+
+	// [d] get the wordobjects for each unique headword: probedictionary()
+	dbpool := GetPSQLconnection()
+	defer dbpool.Close()
+	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
+	fld := `entry_name, metrical_entry, id_number, pos, translations, html_body`
+	psq := `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴)$' ORDER BY id_number ASC`
+	col := "entry_name"
+
+	var lexicalfinds []DbLexicon
+	dedup := make(map[float32]bool)
+	for _, w := range hwm {
+		// var foundrows pgx.Rows
+		var err error
+		q := fmt.Sprintf(psq, fld, d, col, w)
+		foundrows, err := dbpool.Query(context.Background(), q)
+		chke(err)
+
+		defer foundrows.Close()
+		for foundrows.Next() {
+			var thehit DbLexicon
+			err := foundrows.Scan(&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry)
+			chke(err)
+			thehit.Lang = d
+			if _, dup := dedup[thehit.ID]; !dup {
+				// use ID and not Lex because καρπόϲ.53442 is not καρπόϲ.53443
+				dedup[thehit.ID] = true
+				lexicalfinds = append(lexicalfinds, thehit)
+			}
+		}
+	}
+	return lexicalfinds
 }
 
 //
