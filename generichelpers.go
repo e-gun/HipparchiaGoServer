@@ -267,6 +267,7 @@ func getrunereducer() map[rune]rune {
 	return reducer
 }
 
+// getrunefeeder - this one will de-capitalize and de-accentuate (needed for various strippers)
 func getrunefeeder() map[rune][]rune {
 	feeder := make(map[rune][]rune)
 	feeder['α'] = []rune("αἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάᾈᾉᾊᾋᾌᾍᾎᾏἈἉἊἋἌἍἎἏΑ")
@@ -318,6 +319,12 @@ func getrunefeeder() map[rune][]rune {
 	feeder['x'] = []rune("xX")
 	feeder['y'] = []rune("yY")
 	feeder['z'] = []rune("zZ")
+	return feeder
+}
+
+// extendedrunefeeder - this one will do acute for grave (needed for lemma highlighting)
+func extendedrunefeeder() map[rune][]rune {
+	feeder := getrunefeeder()
 	feeder['ά'] = []rune("ὰά")
 	feeder['έ'] = []rune("ὲέ")
 	feeder['ή'] = []rune("ὴή")

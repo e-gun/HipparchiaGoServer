@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 )
 
 type WordInfo struct {
@@ -22,12 +23,90 @@ type WordInfo struct {
 	IsHomonymn bool
 }
 
-func RtVocabmaker(c echo.Context) error {
+func RtVocabMaker(c echo.Context) error {
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
+	start := time.Now()
 	srch := sessionintobulksearch(c)
 
 	morphmap, slicedwords := buildmorphmap(&srch)
+
+	type VocInf struct {
+		W  string
+		C  int
+		TR string
+	}
+
+	// [a] map all the words
+	wmi := make(map[string]int)
+	// "cannot assign" issues being dodged
+	for _, w := range slicedwords {
+		if _, ok := wmi[w.HW]; ok {
+			wmi[w.HW] += 1
+		} else {
+			wmi[w.HW] = 1
+		}
+	}
+
+	// [b] convert to []DbMorphology
+
+	msl := make([]DbMorphology, len(morphmap))
+	for _, m := range morphmap {
+		msl = append(msl, m)
+	}
+
+	mpp := dbmorthintomorphpossib(msl)
+
+	// [c] map onto VocInf; unmap; sort
+
+	vim := make(map[string]VocInf, len(wmi))
+	for _, m := range mpp {
+		if _, ok := vim[m.Headwd]; !ok {
+			vim[m.Headwd] = VocInf{
+				W:  m.Headwd,
+				C:  wmi[m.Headwd],
+				TR: m.Transl,
+			}
+		}
+	}
+
+	vis := make([]VocInf, len(vim))
+	for _, v := range vim {
+		vis = append(vis, v)
+	}
+
+	sort.Slice(vis, func(i, j int) bool { return vis[i].W < vis[j].W })
+
+	// [d] format
+
+	th := `
+	<table>
+	<tr>
+			<th class="vocabtable">word</th>
+			<th class="vocabtable">count</th>
+			<th class="vocabtable">definitions</th>
+	</tr>`
+
+	tr := `
+		<tr>
+			<td class="word"><vocabobserved id="%s">%s</vocabobserved></td>
+			<td class="count">%d</td>
+			<td class="trans">%s</td>
+		</tr>`
+
+	tf := `</table>`
+
+	trr := make([]string, len(vis)+2)
+	trr = append(trr, th)
+
+	for _, v := range vis {
+		nt := fmt.Sprintf(tr, v.W, v.W, v.C, v.TR)
+		trr = append(trr, nt)
+	}
+
+	trr = append(trr, tf)
+
+	thehtml := strings.Join(trr, "")
 
 	type JSFeeder struct {
 		Au string `json:"authorname"`
@@ -41,9 +120,28 @@ func RtVocabmaker(c echo.Context) error {
 		NJ string `json:"newjs"`
 	}
 
-	fmt.Println(len(morphmap))
-	fmt.Println(len(slicedwords))
-	return c.String(http.StatusOK, "")
+	var jso JSFeeder
+	jso.Au = AllAuthors[srch.Results[0].FindAuthor()].Cleaname
+	if srch.TableSize > 1 {
+		jso.Au = jso.Au + fmt.Sprintf(" and %d more author(s)", srch.TableSize-1)
+	}
+
+	jso.Ti = AllWorks[srch.Results[0].WkUID].Title
+	if srch.SearchSize > 1 {
+		jso.Ti = jso.Ti + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
+	}
+
+	jso.ST = strings.Join(AllWorks[srch.Results[0].WkUID].CitationFormat(), ", ")
+	jso.HT = thehtml
+	jso.EL = fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
+	jso.WF = srch.SearchSize
+	jso.KY = "(TODO)"
+	jso.NJ = ""
+
+	js, e := json.Marshal(jso)
+	chke(e)
+
+	return c.String(http.StatusOK, string(js))
 }
 
 // buildmorphmap- acquire a complete collection of words and a complete DbMorphology collection for your needs
@@ -72,13 +170,10 @@ func buildmorphmap(ss *SearchStruct) (map[string]DbMorphology, []WordInfo) {
 	}
 
 	// [c] find the headwords for all of these distinct words
-	var morphslice []string
+	morphslice := make([]string, len(distinct))
 	for w := range distinct {
 		morphslice = append(morphslice, w)
 	}
-
-	// delete after use
-	distinct = make(map[string]bool)
 
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
@@ -248,6 +343,7 @@ func sessionintobulksearch(c echo.Context) SearchStruct {
 	srch.IsActive = true
 	searches[srch.ID] = srch
 	searches[srch.ID] = HGoSrch(searches[srch.ID])
+	srch.TableSize = len(prq)
 
 	return searches[srch.ID]
 }

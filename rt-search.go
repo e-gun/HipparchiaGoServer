@@ -65,19 +65,6 @@ type SearchStruct struct {
 	TableSize  int // # of tables searched
 }
 
-func (s SearchStruct) FmtOrderBy() string {
-	var ob string
-	a := `ORDER BY %s ASC %s`
-	b := `LIMIT %d`
-	if s.Limit > 0 {
-		c := fmt.Sprintf(b, s.Limit)
-		ob = fmt.Sprintf(a, s.OrderBy, c)
-	} else {
-		ob = fmt.Sprintf(a, s.OrderBy, "")
-	}
-	return ob
-}
-
 //
 // ROUTING
 //
@@ -733,7 +720,7 @@ func clonesearch(first SearchStruct, iteration int) SearchStruct {
 
 func universalpatternmaker(term string) string {
 	// feeder for searchtermfinder() also used by searchformatting.go
-	converter := getrunefeeder()
+	converter := extendedrunefeeder()
 	st := []rune(term)
 	var stre string
 	for _, r := range st {

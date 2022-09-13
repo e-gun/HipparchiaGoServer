@@ -175,6 +175,7 @@ func RtLexReverse(c echo.Context) error {
 // LOOKUPS
 //
 
+// findbyform - observed word into HTML dictionary entry
 func findbyform(word string, author string) string {
 
 	d := "latin"
@@ -195,28 +196,7 @@ func findbyform(word string, author string) string {
 
 	// [b] turn morph matches into []MorphPossib
 
-	var mpp []MorphPossib
-
-	for _, h := range thesefinds {
-		// RawPossib is JSON + JSON; nested JSON is a PITA, but the structure is: {"1": {...}, "2": {...}, ...}
-		// that is splittable
-		// just need to clean the '}}' at the end
-
-		boundary := regexp.MustCompile(`(\{|, )"\d": `)
-		possible := boundary.Split(h.RawPossib, -1)
-
-		for _, p := range possible {
-			// fmt.Println(p)
-			p = strings.Replace(p, "}}", "}", -1)
-			p = strings.TrimSpace(p)
-			var mp MorphPossib
-			if len(p) > 0 {
-				err := json.Unmarshal([]byte(p), &mp)
-				chke(err)
-			}
-			mpp = append(mpp, mp)
-		}
-	}
+	mpp := dbmorthintomorphpossib(thesefinds)
 
 	// [c] take the []MorphPossib and find the set of headwords we are interested in
 
@@ -301,6 +281,7 @@ func findbyform(word string, author string) string {
 	return html
 }
 
+// reversefind - english word into collection of HTML dictionary entries
 func reversefind(word string, dicts []string) string {
 	// this is not the fast way to do it; just the first draft of a way to do it...
 	type EntryStruct struct {
@@ -374,6 +355,7 @@ func reversefind(word string, dicts []string) string {
 	return thehtml
 }
 
+// dictsearch - word into HTML dictionary entry
 func dictsearch(seeking string, dict string) string {
 	dbpool := GetPSQLconnection()
 	defer dbpool.Close()
@@ -420,6 +402,7 @@ func dictsearch(seeking string, dict string) string {
 	return html
 }
 
+// getmorphmatch - word into []DbMorphology
 func getmorphmatch(word string, lang string) []DbMorphology {
 	dbpool := GetPSQLconnection()
 	defer dbpool.Close()
@@ -442,6 +425,34 @@ func getmorphmatch(word string, lang string) []DbMorphology {
 		thesefinds = append(thesefinds, thehit)
 	}
 	return thesefinds
+}
+
+// dbmorthintomorphpossib - []DbMorphology into []MorphPossib
+func dbmorthintomorphpossib(dbmm []DbMorphology) []MorphPossib {
+	var mpp []MorphPossib
+
+	for _, d := range dbmm {
+		// RawPossib is JSON + JSON; nested JSON is a PITA, but the structure is: {"1": {...}, "2": {...}, ...}
+		// that is splittable
+		// just need to clean the '}}' at the end
+
+		boundary := regexp.MustCompile(`(\{|, )"\d": `)
+		possible := boundary.Split(d.RawPossib, -1)
+
+		for _, p := range possible {
+			// fmt.Println(p)
+			p = strings.Replace(p, "}}", "}", -1)
+			p = strings.TrimSpace(p)
+			var mp MorphPossib
+			if len(p) > 0 {
+				err := json.Unmarshal([]byte(p), &mp)
+				chke(err)
+			}
+			mpp = append(mpp, mp)
+		}
+	}
+
+	return mpp
 }
 
 //
