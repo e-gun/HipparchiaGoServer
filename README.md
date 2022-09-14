@@ -2,7 +2,7 @@
 
 ## alpha status: does a lot of what you most want acceptably...
 
-### status as of `v0.4.0`:
+### status as of `v0.4.2`:
 
 * searching mostly works 
 * browsing mostly works
@@ -13,14 +13,14 @@
 * dictionaries mostly work
 * basic text maker
 * very basic indexing
+* very basic vocabulary list generation
 
 ### TODO (in vague order of priority)
 
 * UI needs to reflect settings better
-* polytonic sorting
 * fix the less wonky lemma highlighting
+* index and vocab maker could use a lot of polishing
 * saving/fetching searches
-* vocabulary list generation
 * maximize fixed length slices
 * search list info box
 

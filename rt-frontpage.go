@@ -54,9 +54,15 @@ type UISettings struct {
 
 func RtFrontpage(c echo.Context) error {
 	// will set if missing
-	readUUIDCookie(c)
+	s := sessions[readUUIDCookie(c)]
 
-	subs := map[string]interface{}{"version": VERSION, "authentic": ""}
+	subs := map[string]interface{}{
+		"version":       VERSION,
+		"authentic":     "",
+		"resultcontext": s.HitContext,
+		"browsecontext": s.UI.BrowseCtx,
+		"proxval":       s.Proximity}
+
 	err := c.Render(http.StatusOK, "frontpage.html", subs)
 	return err
 }
@@ -72,6 +78,7 @@ func makedefaultsession(id string) ServerSession {
 	s.SpuriaOK = true
 	s.AvailDBs = map[string]bool{"greek_dictionary": true, "greek_lemmata": true, "greek_morphology": true, "latin_dictionary": true, "latin_lemmata": true, "latin_morphology": true, "wordcounts_0": true}
 	s.Analogyfinder = false
+	s.NearOrNot = "near"
 	s.HitLimit = DEFAULTHITLIMIT
 	s.Earliest = MINDATESTR
 	s.Latest = MAXDATESTR

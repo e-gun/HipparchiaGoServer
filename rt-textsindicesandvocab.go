@@ -106,12 +106,23 @@ func RtVocabMaker(c echo.Context) error {
 		TR string
 	}
 
+	var highlighttrans = func(x string, pat *regexp.Regexp) string {
+		elem := strings.Split(x, "; ")
+		for i, e := range elem {
+			elem[i] = pat.ReplaceAllString(e, `<span class="transtree">$1</span> `)
+		}
+		return strings.Join(elem, "; ")
+	}
+
+	pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
+
 	vim := make(map[string]VocInf)
 	for k, v := range vic {
 		vim[k] = VocInf{
-			W:  k,
-			C:  v,
-			TR: vit[k],
+			W: k,
+			C: v,
+			// TR: vit[k],
+			TR: highlighttrans(vit[k], pat),
 		}
 	}
 
@@ -120,7 +131,7 @@ func RtVocabMaker(c echo.Context) error {
 		vis = append(vis, v)
 	}
 
-	sort.Slice(vis, func(i, j int) bool { return vis[i].W < vis[j].W })
+	sort.Slice(vis, func(i, j int) bool { return stripaccentsSTR(vis[i].W) < stripaccentsSTR(vis[j].W) })
 
 	// [g] format
 
@@ -192,7 +203,7 @@ func RtVocabMaker(c echo.Context) error {
 func RtIndexMaker(c echo.Context) error {
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
-
+	start := time.Now()
 	// user := readUUIDCookie(c)
 	srch := sessionintobulksearch(c)
 
@@ -224,8 +235,8 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
-	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 
+	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 	var slicedlookups []WordInfo
 	for _, w := range slicedwords {
 		if m, ok := morphmap[w.Wd]; !ok {
@@ -255,7 +266,9 @@ func RtIndexMaker(c echo.Context) error {
 	for k, _ := range indexmap {
 		keys = append(keys, k)
 	}
-	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+
+	// sort can't do polytonic greek
+	sort.Slice(keys, func(i, j int) bool { return stripaccentsSTR(keys[i]) < stripaccentsSTR(keys[j]) })
 
 	// now you have a sorted index...
 
@@ -286,6 +299,7 @@ func RtIndexMaker(c echo.Context) error {
 		EL string `json:"elapsed"`
 		WF int    `json:"wordsfound"`
 		KY string `json:"keytoworks"`
+		ST string `json:"structure"`
 	}
 
 	var jso JSFeeder
@@ -299,11 +313,30 @@ func RtIndexMaker(c echo.Context) error {
 		jso.Ti = jso.Ti + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
 	}
 
-	jso.WS = "(ws todo)"
+	if srch.SearchSize == 1 && srch.TableSize == 1 {
+		jso.KY = ""
+	} else {
+		// todo: build the key to the works...
+	}
+
+	if len(searches[readUUIDCookie(c)].SearchIn.ListedPBN) == 0 {
+		jso.WS = ""
+	} else {
+		jso.WS = strings.Join(searches[readUUIDCookie(c)].SearchIn.ListedPBN, "; ")
+	}
+
+	cf := AllWorks[srch.Results[0].WkUID].CitationFormat()
+	var tc []string
+	for _, x := range cf {
+		if len(x) != 0 {
+			tc = append(tc, x)
+		}
+	}
+
+	jso.ST = strings.Join(tc, ", ")
 	jso.HT = htm
-	jso.EL = "(el todo)"
+	jso.EL = fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
 	jso.WF = len(slicedlookups)
-	jso.KY = "(ky todo)"
 
 	js, e := json.Marshal(jso)
 	chke(e)

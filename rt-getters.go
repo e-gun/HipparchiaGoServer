@@ -77,7 +77,7 @@ func RtGetJSSession(c echo.Context) error {
 	jso.Maxresults = i64s(s.HitLimit)
 	jso.Nearornot = s.NearOrNot
 	jso.Papyruscorpus = t2y(s.ActiveCorp["dp"])
-	jso.Proximity = is(s.HitContext)
+	jso.Proximity = is(s.Proximity)
 	jso.Rawinputstyle = t2y(s.RawInput)
 	jso.Searchscope = s.SearchScope
 	jso.Sortorder = s.SortHitsBy
