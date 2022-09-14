@@ -7,6 +7,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 	"net/http"
 	"regexp"
 	"runtime"
@@ -30,6 +32,17 @@ func RtVocabMaker(c echo.Context) error {
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
 	start := time.Now()
+
+	id := c.Param("id")
+	id = purgechars(UNACCEPTABLEINPUT, id)
+
+	// for progress reporting
+	si := builddefaultsearch(c)
+	si.ID = id
+	si.InitSum = "Grabbing the lines... (part 1 of 4)"
+	si.IsActive = true
+	searches[si.ID] = si
+	progremain.Store(si.ID, 1)
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
 	srch := sessionintobulksearch(c)
@@ -66,8 +79,10 @@ func RtVocabMaker(c echo.Context) error {
 	// [c1] get and map all the DbMorphology
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
-	boundary := regexp.MustCompile(`(\{|, )"\d": `)
+	si.InitSum = "Parsing the vocabulary...(part 2 of 4)"
+	searches[si.ID] = si
 
+	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 	// [c2] map observed words to possibilities
 	poss := make(map[string][]MorphPossib)
 	for k, v := range morphmap {
@@ -134,7 +149,13 @@ func RtVocabMaker(c echo.Context) error {
 		vis = append(vis, v)
 	}
 
+	si.InitSum = "Sifting the vocabulary...(part 3 of 4)"
+	searches[si.ID] = si
+
 	sort.Slice(vis, func(i, j int) bool { return stripaccentsSTR(vis[i].W) < stripaccentsSTR(vis[j].W) })
+
+	si.InitSum = "Building the HTML...(part 4 of 4)"
+	searches[si.ID] = si
 
 	// [g] format
 
@@ -211,6 +232,10 @@ func RtVocabMaker(c echo.Context) error {
 	js, e := json.Marshal(jso)
 	chke(e)
 
+	// clean up progress reporting
+	delete(searches, si.ID)
+	progremain.Delete(si.ID)
+
 	return c.String(http.StatusOK, string(js))
 }
 
@@ -283,7 +308,7 @@ func RtIndexMaker(c echo.Context) error {
 					var additionalword WordInfo
 					additionalword = w
 					additionalword.HW = mps[i].Headwd
-					additionalword.Stripped = stripaccentsSTR(additionalword.HW)
+					// additionalword.Stripped = stripaccentsSTR(additionalword.HW)
 					slicedlookups = append(slicedlookups, additionalword)
 				}
 			}
@@ -315,7 +340,7 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	// sort can't do polytonic greek
-	// but this is a very slow way to sort...
+	// but this is a very slow way to sort, esp when looped like this...TODO
 	sort.Slice(keys, func(i, j int) bool { return stripaccentsSTR(keys[i]) < stripaccentsSTR(keys[j]) })
 
 	// now you have a sorted index...
@@ -348,7 +373,7 @@ func RtIndexMaker(c echo.Context) error {
 		WS string `json:"worksegment"`
 		HT string `json:"indexhtml"`
 		EL string `json:"elapsed"`
-		WF int    `json:"wordsfound"`
+		WF string `json:"wordsfound"`
 		KY string `json:"keytoworks"`
 		ST string `json:"structure"`
 		NJ string `json:"newjs"`
@@ -388,7 +413,9 @@ func RtIndexMaker(c echo.Context) error {
 	jso.ST = strings.Join(tc, ", ")
 	jso.HT = htm
 	jso.EL = fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
-	jso.WF = len(trimslices)
+
+	m := message.NewPrinter(language.English)
+	jso.WF = m.Sprintf("%d", len(trimslices))
 
 	j := fmt.Sprintf(LEXFINDJS, "indexobserved") + fmt.Sprintf(BROWSERJS, "indexedlocation")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
@@ -396,6 +423,7 @@ func RtIndexMaker(c echo.Context) error {
 	js, e := json.Marshal(jso)
 	chke(e)
 
+	// clean up progress reporting
 	delete(searches, si.ID)
 	progremain.Delete(si.ID)
 

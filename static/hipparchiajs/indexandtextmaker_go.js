@@ -76,6 +76,7 @@ $('#makevocablist').click( function() {
     $('#displayresults').html('');
     let searchid = generateId(8);
     let url = '/text/vocab/' + searchid;
+    simpleactivityviawebsocket(searchid);
     $.getJSON(url, function (returnedtext) {
         loadtextintodisplayresults(returnedtext);
     });

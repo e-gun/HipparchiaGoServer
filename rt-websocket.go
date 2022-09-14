@@ -99,7 +99,7 @@ func RtWebsocket(c echo.Context) error {
 					r.Hits = result.(int)
 				}
 
-				// inside the loop because indexing modifies InitSum to send simple messages
+				// inside the loop because indexing modifies InitSum to send simple progress messages
 				mm := strings.Replace(searches[bs].InitSum, "Sought", "Seeking", -1)
 				if r.Remain != 0 {
 					r.Msg = mm
