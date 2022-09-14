@@ -108,7 +108,10 @@ func RtVocabMaker(c echo.Context) error {
 		TR string
 	}
 
-	var highlighttrans = func(x string, pat *regexp.Regexp) string {
+	pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
+	var polishtrans = func(x string, pat *regexp.Regexp) string {
+		x = strings.Replace(x, "<tr>", "", 1)
+		x = strings.Replace(x, "</tr>", "", 1)
 		elem := strings.Split(x, "; ")
 		for i, e := range elem {
 			elem[i] = pat.ReplaceAllString(e, `<span class="transtree">$1</span> `)
@@ -116,15 +119,12 @@ func RtVocabMaker(c echo.Context) error {
 		return strings.Join(elem, "; ")
 	}
 
-	pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
-
 	vim := make(map[string]VocInf)
 	for k, v := range vic {
 		vim[k] = VocInf{
-			W: k,
-			C: v,
-			// TR: vit[k],
-			TR: highlighttrans(vit[k], pat),
+			W:  k,
+			C:  v,
+			TR: polishtrans(vit[k], pat),
 		}
 	}
 
@@ -190,14 +190,24 @@ func RtVocabMaker(c echo.Context) error {
 		jso.Ti = jso.Ti + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
 	}
 
-	j := fmt.Sprintf(LEXFINDJS, "vocabobserved") + fmt.Sprintf(BROWSERJS, "vocabobserved")
+	cf := AllWorks[srch.Results[0].WkUID].CitationFormat()
+	var tc []string
+	for _, x := range cf {
+		if len(x) != 0 {
+			tc = append(tc, x)
+		}
+	}
 
-	jso.ST = strings.Join(AllWorks[srch.Results[0].WkUID].CitationFormat(), ", ")
+	jso.ST = strings.Join(tc, ", ")
 	jso.HT = thehtml
 	jso.EL = fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
 	jso.WF = srch.SearchSize
 	jso.KY = "(TODO)"
+
+	j := fmt.Sprintf(LEXFINDJS, "vocabobserved") + fmt.Sprintf(BROWSERJS, "vocabobserved")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
+
+	fmt.Println(thehtml)
 
 	js, e := json.Marshal(jso)
 	chke(e)
@@ -240,6 +250,7 @@ func RtIndexMaker(c echo.Context) error {
 		count += 1
 	}
 
+	// [c1] map words to a dbMorphology
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
 	boundary := regexp.MustCompile(`(\{|, )"\d": `)
@@ -253,8 +264,10 @@ func RtIndexMaker(c echo.Context) error {
 			if len(mps) > 1 {
 				w.IsHomonymn = true
 				for i := 0; i < len(mps); i++ {
-					w.HW = mps[i].Headwd
-					slicedlookups = append(slicedlookups, w)
+					var additionalword WordInfo
+					additionalword = w
+					additionalword.HW = mps[i].Headwd
+					slicedlookups = append(slicedlookups, additionalword)
 				}
 			}
 		}
