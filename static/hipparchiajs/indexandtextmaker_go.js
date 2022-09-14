@@ -26,7 +26,8 @@ function generateId (len) {
 $('#makeanindex').click( function() {
         $('#searchsummary').html('');
         $('#displayresults').html('');
-        let url = '/text/index/_';
+        let searchid = generateId(8);
+        let url = '/text/index/' + searchid;
         $.getJSON(url, function (indexdata) {
             loadindexintodisplayresults(indexdata);
         });
@@ -72,8 +73,8 @@ function loadindexintodisplayresults(indexdata) {
 $('#makevocablist').click( function() {
     $('#searchsummary').html('');
     $('#displayresults').html('');
-
-    let url = '/text/vocab/_';
+    let searchid = generateId(8);
+    let url = '/text/vocab/' + searchid;
     $.getJSON(url, function (returnedtext) {
         loadtextintodisplayresults(returnedtext);
     });

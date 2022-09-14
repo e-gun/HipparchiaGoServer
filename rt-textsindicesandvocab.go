@@ -217,6 +217,15 @@ func RtIndexMaker(c echo.Context) error {
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
 	start := time.Now()
+
+	id := c.Param("id")
+	id = purgechars(UNACCEPTABLEINPUT, id)
+
+	// for progress reporting
+	si := builddefaultsearch(c)
+	si.InitSum = "Building the index..."
+	searches[id] = si
+
 	srch := sessionintobulksearch(c)
 
 	var slicedwords []WordInfo
@@ -363,7 +372,7 @@ func RtIndexMaker(c echo.Context) error {
 	jso.EL = fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
 	jso.WF = len(trimslices)
 
-	j := fmt.Sprintf(LEXFINDJS, "indexobserved") + fmt.Sprintf(BROWSERJS, "indexobserved")
+	j := fmt.Sprintf(LEXFINDJS, "indexobserved") + fmt.Sprintf(BROWSERJS, "indexedlocation")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
 	js, e := json.Marshal(jso)

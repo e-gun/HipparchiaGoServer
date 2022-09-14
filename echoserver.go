@@ -212,7 +212,7 @@ func StartEchoServer() {
 	e.GET("/text/index/:id", RtIndexMaker)
 
 	// [m3] "http://localhost:5000/text/vocab_rawloc/9f9a0e80/lt0474/002/20
-	e.GET("/text/vocab/:null", RtVocabMaker)
+	e.GET("/text/vocab/:id", RtVocabMaker)
 
 	//
 	// [n] vectors [unneeded/unimplemented ATM]

@@ -103,7 +103,7 @@ func RtSearchStandard(c echo.Context) error {
 	srch.LemmaOne = lem
 	srch.LemmaTwo = plm
 	srch.User = user
-	srch.ID = id
+	srch.ID = purgechars(UNACCEPTABLEINPUT, id)
 	srch.IsVector = false
 
 	parsesearchinput(&srch)

@@ -12,14 +12,13 @@
 * progress polling mostly works
 * dictionaries mostly work
 * basic text maker
-* very basic indexing
-* very basic vocabulary list generation
+* basic indexing
+* basic vocabulary list generation
 
 ### TODO (in vague order of priority)
 
 * UI needs to reflect settings better
 * fix the less wonky lemma highlighting
-* index and vocab maker could use a lot of polishing
 * saving/fetching searches
 * maximize fixed length slices
 * search list info box
