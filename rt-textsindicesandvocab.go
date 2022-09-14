@@ -63,9 +63,6 @@ func RtVocabMaker(c echo.Context) error {
 	// [c1] get and map all the DbMorphology
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
-	// map[Μίλωνοϲ:{Μίλωνοϲ 68157568  Μίλων } αὐτοῦ:{αὐτοῦ 16977949, 17064750  αὐτοῦ αὐτόϲ } αὐτῶν:{αὐτῶν 16977949  αὐτόϲ }
-	fmt.Println(morphmap)
-
 	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 
 	// [c2] map observed words to possibilities
@@ -73,9 +70,6 @@ func RtVocabMaker(c echo.Context) error {
 	for k, v := range morphmap {
 		poss[k] = extractmorphpossibilities(v.RawPossib, boundary)
 	}
-
-	// BAD: map[Μίλωνοϲ:[{     }] αὐτοῦ:[{     }] αὐτῶν:[{     }]
-	fmt.Println(poss)
 
 	// [c3] build a new slice of seen words with headwords attached
 	var parsedwords []WordInfo
@@ -91,8 +85,6 @@ func RtVocabMaker(c echo.Context) error {
 			parsedwords = append(parsedwords, newwd)
 		}
 	}
-
-	// fmt.Println(parsedwords)
 
 	// [d] get the counts
 	vic := make(map[string]int)
@@ -123,7 +115,7 @@ func RtVocabMaker(c echo.Context) error {
 		}
 	}
 
-	vis := make([]VocInf, len(vim))
+	var vis []VocInf
 	for _, v := range vim {
 		vis = append(vis, v)
 	}
@@ -197,12 +189,15 @@ func RtVocabMaker(c echo.Context) error {
 	return c.String(http.StatusOK, string(js))
 }
 
-// buildmorphmap- acquire a complete collection of words and a complete DbMorphology collection for your needs
-func buildmorphmap(ss *SearchStruct) []WordInfo {
-	// [a] take every word and build WordInfo for it [can parallelize]
+func RtIndexMaker(c echo.Context) error {
+	// diverging from the way the python works
+	// build not via the selection boxes but via the actual selection made and stored in the session
+
+	// user := readUUIDCookie(c)
+	srch := sessionintobulksearch(c)
 
 	var slicedwords []WordInfo
-	for _, r := range ss.Results {
+	for _, r := range srch.Results {
 		wds := r.AccentedSlice()
 		for _, w := range wds {
 			this := WordInfo{
@@ -229,6 +224,7 @@ func buildmorphmap(ss *SearchStruct) []WordInfo {
 	}
 
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
+	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 
 	var slicedlookups []WordInfo
 	for _, w := range slicedwords {
@@ -236,28 +232,16 @@ func buildmorphmap(ss *SearchStruct) []WordInfo {
 			w.HW = "(unparsed)"
 			slicedlookups = append(slicedlookups, w)
 		} else {
-			mps := m.PossibSlice()
+			mps := extractmorphpossibilities(m.RawPossib, boundary)
 			if len(mps) > 1 {
 				w.IsHomonymn = true
 				for i := 0; i < len(mps); i++ {
-					w.HW = mps[i]
+					w.HW = mps[i].Headwd
 					slicedlookups = append(slicedlookups, w)
 				}
 			}
 		}
 	}
-
-	return slicedlookups
-}
-
-func RtIndexMaker(c echo.Context) error {
-	// diverging from the way the python works
-	// build not via the selection boxes but via the actual selection made and stored in the session
-
-	// user := readUUIDCookie(c)
-	srch := sessionintobulksearch(c)
-
-	slicedlookups := buildmorphmap(&srch)
 
 	// [d] the final map
 	// [d1] build it
