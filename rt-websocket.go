@@ -14,13 +14,7 @@ import (
 	"time"
 )
 
-func disabledRtWebsocket(c echo.Context) error {
-	// the client sends the name of a poll and this will output
-	// bypassing the websocket reveals that there is a *heavy* tax to be paid if you poll too often
-
-	return nil
-}
-
+// RtWebsocket - progress info for searches
 func RtWebsocket(c echo.Context) error {
 	// 	the client sends the name of a poll and this will output
 	//	the status of the poll continuously while the poll remains active
@@ -33,8 +27,8 @@ func RtWebsocket(c echo.Context) error {
 
 	// https://echo.labstack.com/cookbook/websocket/
 
-	// you can spend 3.5s on a search vs 2.0 seconds of you poll as fast as possible
-	// POLLEVERYNTABLES in SrchFeeder() and WSPOLLINGPAUSE here make a huge difference and report faster than you can see
+	// you can spend 3.5s on a search vs 2.0 seconds if you poll as fast as possible
+	// POLLEVERYNTABLES in SrchFeeder() and WSPOLLINGPAUSE here make a huge difference
 
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
@@ -86,10 +80,7 @@ func RtWebsocket(c echo.Context) error {
 
 		if found && searches[bs].IsActive {
 			for {
-
 				var r ReplyJS
-
-				// [a] the easy info to report
 				r.Active = "is_active"
 				r.ID = bs
 				r.TotalWrk = searches[bs].TableSize
@@ -137,6 +128,5 @@ func RtWebsocket(c echo.Context) error {
 			}
 		}
 	}
-
 	return nil
 }

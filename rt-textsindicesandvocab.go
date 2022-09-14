@@ -56,8 +56,10 @@ func RtVocabMaker(c echo.Context) error {
 
 	// [c] prepare to find the headwords for all of these distinct words
 	morphslice := make([]string, len(distinct))
+	count := 0
 	for w := range distinct {
-		morphslice = append(morphslice, w)
+		morphslice[count] = w
+		count += 1
 	}
 
 	// [c1] get and map all the DbMorphology
@@ -152,15 +154,16 @@ func RtVocabMaker(c echo.Context) error {
 
 	tf := `</table>`
 
+	// preallocation means assign to index vs append
 	trr := make([]string, len(vis)+2)
-	trr = append(trr, th)
+	trr[0] = th
 
-	for _, v := range vis {
+	for i, v := range vis {
 		nt := fmt.Sprintf(tr, v.W, v.W, v.C, v.TR)
-		trr = append(trr, nt)
+		trr[i+1] = nt
 	}
 
-	trr = append(trr, tf)
+	trr[len(trr)-1] = tf
 
 	thehtml := strings.Join(trr, "")
 
@@ -206,7 +209,6 @@ func RtIndexMaker(c echo.Context) error {
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
 	start := time.Now()
-	// user := readUUIDCookie(c)
 	srch := sessionintobulksearch(c)
 
 	var slicedwords []WordInfo
@@ -232,8 +234,10 @@ func RtIndexMaker(c echo.Context) error {
 
 	// [c] find the headwords for all of these distinct words
 	morphslice := make([]string, len(distinct))
+	count := 0
 	for w := range distinct {
-		morphslice = append(morphslice, w)
+		morphslice[count] = w
+		count += 1
 	}
 
 	morphmap := arraytogetrequiredmorphobjects(morphslice)

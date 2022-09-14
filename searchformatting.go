@@ -72,7 +72,7 @@ func formatnocontextresults(ss SearchStruct) []byte {
 		lc := strings.Join(r.FindLocus(), ".")
 		wd := formatinscriptiondates(dtt, r)
 		fm := fmt.Sprintf(TABLEROW, rc, i+1, wd, au, wk, lk, lc, mu)
-		rows = append(rows, fm)
+		rows[i] = fm
 	}
 
 	out.Found = "<tbody>" + strings.Join(rows, "") + "</tbody>"
@@ -149,8 +149,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	urt := `linenumber/%s/%s/%d`
 	dtt := `[<span class="date">%s</span>]`
 
-	// allpassages := make([]PsgFormattingTemplate, len(res.Results))
-	var allpassages []PsgFormattingTemplate
+	allpassages := make([]PsgFormattingTemplate, len(ss.Results))
 	for i, r := range ss.Results {
 		var psg PsgFormattingTemplate
 		psg.Findnumber = i + 1
@@ -181,7 +180,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 			c.Hyphenated = psg.RawCTX[j].Hyphenated
 			psg.CookedCTX = append(psg.CookedCTX, c)
 		}
-		allpassages = append(allpassages, psg)
+		allpassages[i] = psg
 	}
 
 	// fix the unmattched spans
@@ -248,7 +247,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	`
 
 	rows := make([]string, len(allpassages))
-	for _, p := range allpassages {
+	for i, p := range allpassages {
 		var lines []string
 		for _, l := range p.CookedCTX {
 			c := fmt.Sprintf(plt, l.Locus, l.Contents)
@@ -260,7 +259,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 		chke(err)
 
 		// fmt.Println(b.String())
-		rows = append(rows, b.String())
+		rows[i] = b.String()
 	}
 
 	// ouput

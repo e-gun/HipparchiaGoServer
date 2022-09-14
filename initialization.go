@@ -224,17 +224,21 @@ func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[stri
 
 	// [2] decompose aa and rebuild but this time be in possession of all relevant data...
 	// [2a] find all keys and sort them
-	keys := make([]string, 0, len(aa))
+	keys := make([]string, len(aa))
+	ct := 0
 	for _, a := range aa {
-		keys = append(keys, a.UID)
+		keys[ct] = a.UID
+		ct += 1
 	}
 	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 	// fmt.Printf("wl %d vs al %d", len(worklists), len(keys))  : wl 3455 vs al 3455
 
 	// [2b] build a *slice* of []DbAuthor since we can's modify a.WorkList in a map VERSION
-	asl := make([]DbAuthor, 0, len(keys))
+	asl := make([]DbAuthor, len(keys))
+	ct = 0
 	for _, k := range keys {
-		asl = append(asl, aa[k])
+		asl[ct] = aa[k]
+		ct += 1
 	}
 
 	// [2c] add the worklists to the slice

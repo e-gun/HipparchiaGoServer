@@ -316,6 +316,10 @@ func reversefind(word string, dicts []string) string {
 
 	thehtml := strings.Join(htmlchunks, "")
 
+	if len(thehtml) == 0 {
+		thehtml = "(nothing found)"
+	}
+
 	return thehtml
 }
 
@@ -362,6 +366,10 @@ func dictsearch(seeking string, dict string) string {
 	}
 
 	html := strings.Join(htmlchunks, "")
+
+	if len(html) == 0 {
+		html = "(nothing found)"
+	}
 
 	return html
 }
