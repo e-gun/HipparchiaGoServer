@@ -23,6 +23,7 @@ type WordInfo struct {
 	Cit        string
 	IsHomonymn bool
 	Trans      string
+	Stripped   string
 }
 
 func RtVocabMaker(c echo.Context) error {
@@ -223,8 +224,11 @@ func RtIndexMaker(c echo.Context) error {
 
 	// for progress reporting
 	si := builddefaultsearch(c)
-	si.InitSum = "Building the index..."
-	searches[id] = si
+	si.ID = id
+	si.InitSum = "Grabbing the lines... (part 1 of 4)"
+	si.IsActive = true
+	searches[si.ID] = si
+	progremain.Store(si.ID, 1)
 
 	srch := sessionintobulksearch(c)
 
@@ -258,13 +262,18 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	// [c1] map words to a dbMorphology
+
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
+
+	si.InitSum = "Parsing the vocabulary...(part 2 of 4)"
+	searches[si.ID] = si
 
 	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 	var slicedlookups []WordInfo
 	for _, w := range slicedwords {
 		if m, ok := morphmap[w.Wd]; !ok {
-			w.HW = "﹙unparsed﹚"
+			w.HW = "•unparsed•"
+			w.Stripped = "•unparsed•"
 			slicedlookups = append(slicedlookups, w)
 		} else {
 			mps := extractmorphpossibilities(m.RawPossib, boundary)
@@ -274,6 +283,7 @@ func RtIndexMaker(c echo.Context) error {
 					var additionalword WordInfo
 					additionalword = w
 					additionalword.HW = mps[i].Headwd
+					additionalword.Stripped = stripaccentsSTR(additionalword.HW)
 					slicedlookups = append(slicedlookups, additionalword)
 				}
 			}
@@ -289,6 +299,10 @@ func RtIndexMaker(c echo.Context) error {
 
 	// [d] the final map
 	// [d1] build it
+
+	si.InitSum = "Sifting the index...(part 3 of 4)"
+	searches[si.ID] = si
+
 	indexmap := make(map[string][]WordInfo)
 	for _, w := range trimslices {
 		indexmap[w.HW] = append(indexmap[w.HW], w)
@@ -301,9 +315,13 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	// sort can't do polytonic greek
+	// but this is a very slow way to sort...
 	sort.Slice(keys, func(i, j int) bool { return stripaccentsSTR(keys[i]) < stripaccentsSTR(keys[j]) })
 
 	// now you have a sorted index...
+
+	si.InitSum = "Building the HTML...(part 4 of 4)"
+	searches[si.ID] = si
 
 	var trr []string
 	for _, k := range keys {
@@ -378,6 +396,9 @@ func RtIndexMaker(c echo.Context) error {
 	js, e := json.Marshal(jso)
 	chke(e)
 
+	delete(searches, si.ID)
+	progremain.Delete(si.ID)
+
 	return c.String(http.StatusOK, string(js))
 }
 
@@ -451,11 +472,11 @@ func sessionintobulksearch(c echo.Context) SearchStruct {
 	prq := searchlistintoqueries(&srch)
 	srch.Queries = prq
 	srch.IsActive = true
-	searches[srch.ID] = srch
-	searches[srch.ID] = HGoSrch(searches[srch.ID])
+	// searches[srch.ID] = srch
+	// searches[srch.ID] = HGoSrch(searches[srch.ID])
 	srch.TableSize = len(prq)
-
-	return searches[srch.ID]
+	srch = HGoSrch(srch)
+	return srch
 }
 
 func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {

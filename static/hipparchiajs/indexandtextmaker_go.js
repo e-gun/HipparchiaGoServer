@@ -28,6 +28,7 @@ $('#makeanindex').click( function() {
         $('#displayresults').html('');
         let searchid = generateId(8);
         let url = '/text/index/' + searchid;
+        simpleactivityviawebsocket(searchid);
         $.getJSON(url, function (indexdata) {
             loadindexintodisplayresults(indexdata);
         });

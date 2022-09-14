@@ -74,8 +74,6 @@ func RtWebsocket(c echo.Context) error {
 
 		bs := string(m)
 		bs = strings.Replace(bs, `"`, "", -1)
-		mm := strings.Replace(searches[bs].InitSum, "Sought", "Seeking", -1)
-
 		_, found := searches[bs]
 
 		if found && searches[bs].IsActive {
@@ -101,6 +99,8 @@ func RtWebsocket(c echo.Context) error {
 					r.Hits = result.(int)
 				}
 
+				// inside the loop because indexing modifies InitSum to send simple messages
+				mm := strings.Replace(searches[bs].InitSum, "Sought", "Seeking", -1)
 				if r.Remain != 0 {
 					r.Msg = mm
 				} else {

@@ -66,3 +66,38 @@ function displayprogress(searchid, progress){
         console.log("searchid", searchid);
     }
 }
+
+
+function simpleactivityviawebsocket(searchid) {
+    $.getJSON('/search/confirm/'+searchid, function(portnumber) {
+        let pd = $('#pollingdata');
+        let ip = location.hostname;
+        // but /etc/nginx/nginx.conf might have a WS proxy and not the actual WS host...
+        let s = new WebSocket('ws://'+ip+':'+portnumber+'/ws');
+        let amready = setInterval(function(){
+            if (s.readyState === 1) { s.send(JSON.stringify(searchid)); clearInterval(amready); }
+        }, 10);
+        s.onmessage = function(e){
+            let progress = JSON.parse(e.data);
+            simpleprogress(searchid, progress);
+            if  (progress['active'] === 'inactive') { pd.html(''); s.close(); s = null; }
+        }
+    });
+}
+
+function simpleprogress(searchid, progress) {
+    let m = progress['Statusmessage'];
+    let e = progress['Elapsed'];
+    let x = progress['Notes'];
+    let id = progress['ID'];
+    let a = progress['Activity'];
+
+    // console.log("id", id);
+    // console.log("searchid", searchid);
+
+    if (id === searchid) {
+        let thehtml = '';
+        thehtml += m + '&nbsp;(' + e + ')';
+        $('#pollingdata').html(thehtml);
+    }
+}
