@@ -414,7 +414,7 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		}
 		se.Passages = clean
 	} else if sv.AW() && !sv.IsExcl {
-		msg("rationalizeselections() 413", 5)
+		msg("rationalizeselections() 417", 5)
 		// [a] kick this author from both columns
 		var clean []string
 		for _, a := range si.Authors {
@@ -444,7 +444,7 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		// [c] remove the passages from this column
 		clean = []string{}
 		for _, p := range si.Passages {
-			if workvalueofpassage(p) != sv.Work {
+			if workvalueofpassage(p) != sv.WUID() {
 				clean = append(clean, p)
 			} else {
 				delete(si.MappedPsgByName, p)
@@ -537,7 +537,7 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 
 		// [c] kick this passage from the other column
 		clean = []string{}
-		t := `%s_FROM_%d_TO_%d`
+		t := `%s_FROM_%s_TO_%s`
 		s := fmt.Sprintf(t, sv.Auth, sv.Start, sv.End)
 		for _, p := range se.Passages {
 			if p != s {
@@ -578,7 +578,7 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 
 		// [c] kick this passage from the other column
 		clean = []string{}
-		t := `%s_FROM_%d_TO_%d`
+		t := `%s_FROM_%s_TO_%s`
 		s := fmt.Sprintf(t, sv.Auth, sv.Start, sv.End)
 		for _, p := range si.Passages {
 			if p != s {

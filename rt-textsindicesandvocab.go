@@ -28,6 +28,59 @@ type WordInfo struct {
 	Stripped   string
 }
 
+func RtTextMaker(c echo.Context) error {
+	// diverging from the way the python works
+	// build not via the selection boxes but via the actual selection made and stored in the session
+
+	// this has the downside of allowing for insanely large text generation
+	// but, on the other hand, this now works like a simple search
+
+	// then it gets output as a big browser table...
+
+	user := readUUIDCookie(c)
+	srch := sessionintobulksearch(c)
+	searches[srch.ID] = srch
+
+	// now we have the lines we need....
+	firstline := searches[srch.ID].Results[0]
+	firstwork := AllWorks[firstline.WkUID]
+	firstauth := AllAuthors[firstwork.FindAuthor()]
+
+	// ci := formatcitationinfo(firstwork, firstline)
+	tr := buildbrowsertable(-1, searches[srch.ID].Results)
+
+	type JSFeeder struct {
+		Au string `json:"authorname"`
+		Ti string `json:"title"`
+		St string `json:"structure"`
+		WS string `json:"worksegment"`
+		HT string `json:"texthtml"`
+	}
+
+	sui := sessions[user].Inclusions
+	var jso JSFeeder
+
+	jso.Au = firstauth.Shortname
+
+	if len(sui.Authors) > 1 || len(sui.AuGenres) > 0 || len(sui.AuLocations) > 0 {
+		jso.Au += " (and others)"
+	}
+
+	jso.Ti = firstwork.Title
+	if len(sui.Works) > 1 || len(sui.WkGenres) > 0 || len(sui.WkLocations) > 0 {
+		jso.Ti += " (and others)"
+	}
+
+	jso.St = basiccitation(firstwork, firstline)
+	jso.WS = "" // unused for now
+	jso.HT = tr
+
+	js, e := json.Marshal(jso)
+	chke(e)
+
+	return c.String(http.StatusOK, string(js))
+}
+
 func RtVocabMaker(c echo.Context) error {
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
@@ -126,8 +179,8 @@ func RtVocabMaker(c echo.Context) error {
 
 	pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
 	var polishtrans = func(x string, pat *regexp.Regexp) string {
-		x = strings.Replace(x, "<tr>", "", 1)
-		x = strings.Replace(x, "</tr>", "", 1)
+		x = strings.Replace(x, `<tr opt="n">`, ``, 1)
+		x = strings.Replace(x, `</tr>`, ``, 1)
 		elem := strings.Split(x, "; ")
 		for i, e := range elem {
 			elem[i] = pat.ReplaceAllString(e, `<span class="transtree">$1</span> `)
@@ -426,59 +479,6 @@ func RtIndexMaker(c echo.Context) error {
 	// clean up progress reporting
 	delete(searches, si.ID)
 	progremain.Delete(si.ID)
-
-	return c.String(http.StatusOK, string(js))
-}
-
-func RtTextMaker(c echo.Context) error {
-	// diverging from the way the python works
-	// build not via the selection boxes but via the actual selection made and stored in the session
-
-	// this has the downside of allowing for insanely large text generation
-	// but, on the other hand, this now works like a simple search
-
-	// then it gets output as a big browser table...
-
-	user := readUUIDCookie(c)
-	srch := sessionintobulksearch(c)
-	searches[srch.ID] = srch
-
-	// now we have the lines we need....
-	firstline := searches[srch.ID].Results[0]
-	firstwork := AllWorks[firstline.WkUID]
-	firstauth := AllAuthors[firstwork.FindAuthor()]
-
-	// ci := formatcitationinfo(firstwork, firstline)
-	tr := buildbrowsertable(-1, searches[srch.ID].Results)
-
-	type JSFeeder struct {
-		Au string `json:"authorname"`
-		Ti string `json:"title"`
-		St string `json:"structure"`
-		WS string `json:"worksegment"`
-		HT string `json:"texthtml"`
-	}
-
-	sui := sessions[user].Inclusions
-	var jso JSFeeder
-
-	jso.Au = firstauth.Shortname
-
-	if len(sui.Authors) > 1 || len(sui.AuGenres) > 0 || len(sui.AuLocations) > 0 {
-		jso.Au += " (and others)"
-	}
-
-	jso.Ti = firstwork.Title
-	if len(sui.Works) > 1 || len(sui.WkGenres) > 0 || len(sui.WkLocations) > 0 {
-		jso.Ti += " (and others)"
-	}
-
-	jso.St = basiccitation(firstwork, firstline)
-	jso.WS = "" // unused for now
-	jso.HT = tr
-
-	js, e := json.Marshal(jso)
-	chke(e)
 
 	return c.String(http.StatusOK, string(js))
 }
