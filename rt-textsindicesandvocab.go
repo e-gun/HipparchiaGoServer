@@ -207,8 +207,6 @@ func RtVocabMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "vocabobserved") + fmt.Sprintf(BROWSERJS, "vocabobserved")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	fmt.Println(thehtml)
-
 	js, e := json.Marshal(jso)
 	chke(e)
 
@@ -257,7 +255,7 @@ func RtIndexMaker(c echo.Context) error {
 	var slicedlookups []WordInfo
 	for _, w := range slicedwords {
 		if m, ok := morphmap[w.Wd]; !ok {
-			w.HW = "(unparsed)"
+			w.HW = "﹙unparsed﹚"
 			slicedlookups = append(slicedlookups, w)
 		} else {
 			mps := extractmorphpossibilities(m.RawPossib, boundary)
@@ -273,10 +271,17 @@ func RtIndexMaker(c echo.Context) error {
 		}
 	}
 
+	var trimslices []WordInfo
+	for _, w := range slicedlookups {
+		if len(w.HW) != 0 {
+			trimslices = append(trimslices, w)
+		}
+	}
+
 	// [d] the final map
 	// [d1] build it
 	indexmap := make(map[string][]WordInfo)
-	for _, w := range slicedlookups {
+	for _, w := range trimslices {
 		indexmap[w.HW] = append(indexmap[w.HW], w)
 	}
 
@@ -356,7 +361,7 @@ func RtIndexMaker(c echo.Context) error {
 	jso.ST = strings.Join(tc, ", ")
 	jso.HT = htm
 	jso.EL = fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
-	jso.WF = len(slicedlookups)
+	jso.WF = len(trimslices)
 
 	j := fmt.Sprintf(LEXFINDJS, "indexobserved") + fmt.Sprintf(BROWSERJS, "indexobserved")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
