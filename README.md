@@ -1,6 +1,6 @@
 # HipparchiaGoServer
 
-## alpha status: does a lot of what you most want acceptably...
+## alpha status: mostly does most of what you most want...
 
 ### status as of `v0.4.2`:
 

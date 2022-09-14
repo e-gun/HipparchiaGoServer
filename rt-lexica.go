@@ -115,6 +115,8 @@ func RtLexFindByForm(c echo.Context) error {
 
 	word = swapacuteforgrave(word)
 
+	word = uvσςϲ(word)
+
 	html := findbyform(word, au)
 
 	// html = strings.Replace(html, `"`, `\"`, -1)
@@ -346,7 +348,7 @@ func dictsearch(seeking string, dict string) string {
 	sort.Slice(lexicalfinds, func(i, j int) bool { return lexicalfinds[i].Word < lexicalfinds[j].Word })
 
 	// [d1] insert the overview
-	et := `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="%s_%f">%s</a><br />`
+	et := `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="#%s_%f">%s</a><br />`
 
 	var htmlchunks []string
 	for i, l := range lexicalfinds {

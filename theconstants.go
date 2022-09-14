@@ -43,8 +43,8 @@ const (
 	MINDATESTR              = "-850"
 	ORDERBY                 = "index"
 	SORTBY                  = "shortname"
-	TEMPTABLETHRESHOLD      = 100         // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
-	UNACCEPTABLEINPUT       = `|"'!@:,=+` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
+	TEMPTABLETHRESHOLD      = 100            // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
+	UNACCEPTABLEINPUT       = `|"'!@:,=+_\/` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
 	VARIADATE               = 2000
 	AUTHENTICATIONREQUIRED  = false
 	GENRESTOCOUNT           = 5
@@ -118,6 +118,31 @@ const (
 		firstline,
 		lastline,
 		authentic`
+
+	LEXFINDJS = `
+		$('%s').click( function(e) {
+			e.preventDefault();
+			var windowWidth = $(window).width();
+			var windowHeight = $(window).height();
+			$( '#lexicadialogtext' ).dialog({
+				closeOnEscape: true, 
+				autoOpen: false,
+				minWidth: windowWidth*.33,
+				maxHeight: windowHeight*.9,
+				// position: { my: "left top", at: "left top", of: window },
+				title: this.id,
+				draggable: true,
+				icons: { primary: 'ui-icon-close' },
+				click: function() { $( this ).dialog( 'close' ); }
+				});
+			$( '#lexicadialogtext' ).dialog( 'open' );
+			$( '#lexicadialogtext' ).html('[searching...]');
+			$.getJSON('/lexica/findbyform/'+this.id, function (definitionreturned) {
+				$( '#lexicadialogtext' ).html(definitionreturned['newhtml']);
+				$( '#lexicaljsscriptholder' ).html(definitionreturned['newjs']);
+			});
+		return false;
+		});`
 
 	BROWSERJS = `
 	$('#pollingdata').hide();

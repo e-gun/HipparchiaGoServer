@@ -187,12 +187,14 @@ func RtVocabMaker(c echo.Context) error {
 		jso.Ti = jso.Ti + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
 	}
 
+	j := fmt.Sprintf(LEXFINDJS, "vocabobserved") + fmt.Sprintf(BROWSERJS, "vocabobserved")
+
 	jso.ST = strings.Join(AllWorks[srch.Results[0].WkUID].CitationFormat(), ", ")
 	jso.HT = thehtml
 	jso.EL = fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
 	jso.WF = srch.SearchSize
 	jso.KY = "(TODO)"
-	jso.NJ = ""
+	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
 	js, e := json.Marshal(jso)
 	chke(e)
@@ -300,6 +302,7 @@ func RtIndexMaker(c echo.Context) error {
 		WF int    `json:"wordsfound"`
 		KY string `json:"keytoworks"`
 		ST string `json:"structure"`
+		NJ string `json:"newjs"`
 	}
 
 	var jso JSFeeder
@@ -337,6 +340,9 @@ func RtIndexMaker(c echo.Context) error {
 	jso.HT = htm
 	jso.EL = fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
 	jso.WF = len(slicedlookups)
+
+	j := fmt.Sprintf(LEXFINDJS, "indexobserved") + fmt.Sprintf(BROWSERJS, "indexobserved")
+	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
 	js, e := json.Marshal(jso)
 	chke(e)
