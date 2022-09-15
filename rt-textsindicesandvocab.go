@@ -378,13 +378,22 @@ func RtIndexMaker(c echo.Context) error {
 	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 	var slicedlookups []WordInfo
 	for _, w := range slicedwords {
-		if m, ok := morphmap[w.Wd]; !ok {
+		emm := false
+		mme := w.Wd
+		if _, ok := morphmap[w.Wd]; !ok {
 			// here is where you should check to see if the word + an apostrophe can be found: γ is really γ' (i.e. γε)
-			w.HW = "•unparsed•"
-			w.Stripped = "•unparsed•"
-			slicedlookups = append(slicedlookups, w)
-		} else {
-			mps := extractmorphpossibilities(m.RawPossib, boundary)
+			if _, y := morphmap[w.Wd+"'"]; y {
+				emm = true
+				mme = w.Wd + "'"
+			} else {
+				w.HW = "•unparsed•"
+				w.Stripped = "•unparsed•"
+				slicedlookups = append(slicedlookups, w)
+			}
+		}
+
+		if emm {
+			mps := extractmorphpossibilities(morphmap[mme].RawPossib, boundary)
 			if len(mps) > 1 {
 				w.IsHomonymn = true
 				for i := 0; i < len(mps); i++ {
@@ -553,12 +562,22 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 	// but the implementation pattern is likely useful for some place where it will make a difference
 
 	// look for the upper case matches too: Ϲωκράτηϲ and not just ϲωκρατέω (!)
-	var uppers []string
+	uppers := make([]string, len(wordlist))
 	for i := 0; i < len(wordlist); i++ {
-		uppers = append(uppers, strings.Title(wordlist[i]))
+		uppers[i] = strings.Title(wordlist[i])
+	}
+
+	// γ': a lot of cycles looking for a small number of words...
+	apo := make([]string, len(wordlist))
+	for i := 0; i < len(wordlist); i++ {
+		// need to escape the single quote
+		// hipparchiaDB=# select * from greek_morphology where observed_form = 'οὑφ'''
+		apo[i] = wordlist[i] + "''"
 	}
 
 	wordlist = append(wordlist, uppers...)
+	wordlist = append(wordlist, apo...)
+
 	// note that we are hereby going to feed some of the workers huge lists of capitalized words that will return few hits
 	workers := runtime.NumCPU()
 
