@@ -8,14 +8,14 @@ package main
 const (
 	MYNAME                  = "Hipparchia Golang Server"
 	SHORTNAME               = "HGS"
-	VERSION                 = "0.4.4"
+	VERSION                 = "0.4.5"
 	SERVEDFROMHOST          = ""
 	SERVEDFROMPORT          = 8000
 	DBAUMAPSIZE             = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
 	DBLMMAPSIZE             = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
 	DBWKMAPSIZE             = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
 	POLLEVERYNTABLES        = 50     // 3455 is the max number of tables in a search...
-	WSPOLLINGPAUSE          = 600000
+	WSPOLLINGPAUSE          = 800000
 	DEFAULTBROWSERCTX       = 20
 	DEFAULTCOLUMN           = "stripped_line"
 	DEFAULTLINESOFCONTEXT   = 4

@@ -1,8 +1,8 @@
 # HipparchiaGoServer
 
-## alpha status: mostly does most of what you most want...
+## late alpha status: mostly does most of what you most want...
 
-### status as of `v0.4.2`:
+### status as of `v0.4.5`:
 
 * searching mostly works 
 * browsing mostly works
@@ -17,10 +17,12 @@
 
 ### TODO (in vague order of priority)
 
-* UI needs to reflect settings better
 * fix the less wonky lemma highlighting
+* get the sorting right (and fast) on the index/vocab code
+* properly associate elided words when indexing
+* index by frequency
+* fix js so index will do status updates w/out needing to reload the page
 * saving/fetching searches
-* maximize fixed length slices
 * search list info box
 
 ### DISTANT FANTASIES
@@ -41,4 +43,4 @@ tar -jxf /ARCHIVEFOLDER/TARGETDIR.tar.bz2
 cat /ARCHIVEFOLDER/TARGETDIR/hipparchiaDB-* | psql hipparchiaDB
 ```
 
-an uncompressed archive is c. 3.6GB
+an uncompressed archive is c. `3.6GB`

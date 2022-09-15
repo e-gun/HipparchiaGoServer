@@ -101,6 +101,10 @@ func (dbw DbWorkline) AccentedSlice() []string {
 	return strings.Split(dbw.Accented, " ")
 }
 
+func (dbw DbWorkline) MarkedUpSlice() []string {
+	return strings.Split(dbw.MarkedUp, " ")
+}
+
 func (dbw DbWorkline) Citation() string {
 	return strings.Join(dbw.FindLocus(), ".")
 }

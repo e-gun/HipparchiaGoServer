@@ -244,7 +244,9 @@ func RtResetSession(c echo.Context) error {
 
 	// then reset it
 	readUUIDCookie(c)
-	return RtFrontpage(c)
+	e := c.Redirect(http.StatusFound, "/")
+	chke(e)
+	return nil
 }
 
 func RtSetOption(c echo.Context) error {

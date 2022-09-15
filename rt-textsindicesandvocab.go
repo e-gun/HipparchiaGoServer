@@ -295,6 +295,28 @@ func RtVocabMaker(c echo.Context) error {
 func RtIndexMaker(c echo.Context) error {
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
+
+	// there is a big problem: need εἴτ’, but can't find it in the accented line; but the marked up line is full of
+	// really tricky stuff
+
+	// see worklineobject.py:
+
+	// 	def indexablewordlist(self) -> List[str]:
+	//		# don't use set() - that will yield undercounts
+	//		polytonicwords = self.wordlist('polytonic')
+	//		polytonicgreekwords = [tidyupterm(w, dbWorkLine.greekpunct).lower() for w in polytonicwords if re.search(dbWorkLine.minimumgreek, w)]
+	//		polytoniclatinwords = [tidyupterm(w, dbWorkLine.latinpunct).lower() for w in polytonicwords if not re.search(dbWorkLine.minimumgreek, w)]
+	//		polytonicwords = polytonicgreekwords + polytoniclatinwords
+	//		# need to figure out how to grab τ’ and δ’ and the rest
+	//		# but you can't say that 'me' is elided in a line like 'inquam, ‘teque laudo. sed quando?’ ‘nihil ad me’ inquit ‘de'
+	//		unformattedwords = set(self.wordlist('marked_up_line'))
+	//		listofwords = [w for w in polytonicwords if w+'’' not in unformattedwords or not re.search(dbWorkLine.minimumgreek, w)]
+	//		elisions = [w+"'" for w in polytonicwords if w+'’' in unformattedwords and re.search(dbWorkLine.minimumgreek, w)]
+	//		listofwords.extend(elisions)
+	//		listofwords = [w.translate(dbWorkLine.gravetoacute) for w in listofwords]
+	//		listofwords = [w.replace('v', 'u') for w in listofwords]
+	//		return listofwords
+
 	start := time.Now()
 
 	id := c.Param("id")
