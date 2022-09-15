@@ -482,34 +482,6 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	return s
 }
 
-func restorewhitespace(skg string) string {
-	// will have a problem rewriting regex inside phrasecombinations() if you don't clear whitespacer() products out
-	// even though we are about to put exactly this back in again...
-	skg = strings.Replace(skg, "(^| )", " ", 1)
-	skg = strings.Replace(skg, "( |$)", " ", -1)
-	return skg
-}
-
-func whitespacer(skg string, ss *SearchStruct) string {
-	// whitespace issue: " ἐν Ὀρέϲτῃ " cannot be found at the start of a line where it is "ἐν Ὀρέϲτῃ "
-	// do not run this before formatinitialsummary()
-	if strings.Contains(skg, " ") {
-		ss.SkgRewritten = true
-		rs := []rune(skg)
-		a := ""
-		if rs[0] == ' ' {
-			a = "(^| )"
-		}
-		z := ""
-		if rs[len(rs)-1] == ' ' {
-			z = "( |$)"
-		}
-		skg = strings.TrimSpace(skg)
-		skg = a + skg + z
-	}
-	return skg
-}
-
 func parsesearchinput(s *SearchStruct) {
 	// remove bad chars
 	// address uv issues; lunate issues; ...
@@ -571,6 +543,34 @@ func setsearchtype(srch *SearchStruct) {
 	}
 
 	return
+}
+
+func restorewhitespace(skg string) string {
+	// will have a problem rewriting regex inside phrasecombinations() if you don't clear whitespacer() products out
+	// even though we are about to put exactly this back in again...
+	skg = strings.Replace(skg, "(^| )", " ", 1)
+	skg = strings.Replace(skg, "( |$)", " ", -1)
+	return skg
+}
+
+func whitespacer(skg string, ss *SearchStruct) string {
+	// whitespace issue: " ἐν Ὀρέϲτῃ " cannot be found at the start of a line where it is "ἐν Ὀρέϲτῃ "
+	// do not run this before formatinitialsummary()
+	if strings.Contains(skg, " ") {
+		ss.SkgRewritten = true
+		rs := []rune(skg)
+		a := ""
+		if rs[0] == ' ' {
+			a = "(^|\\s)"
+		}
+		z := ""
+		if rs[len(rs)-1] == ' ' {
+			z = "(\\s|$)"
+		}
+		skg = strings.TrimSpace(skg)
+		skg = a + skg + z
+	}
+	return skg
 }
 
 //
@@ -635,7 +635,7 @@ func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 
 	skg := ss.Seeking
 	if ss.SkgRewritten {
-		ss.Seeking = restorewhitespace(ss.Seeking)
+		skg = restorewhitespace(ss.Seeking)
 	}
 
 	find := regexp.MustCompile(`^ `)
@@ -643,6 +643,7 @@ func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 	find = regexp.MustCompile(` $`)
 	re = find.ReplaceAllString(re, "(\\s|$)")
 	fp := regexp.MustCompile(re)
+	altfp := regexp.MustCompile(ss.Seeking)
 
 	for i, r := range ss.Results {
 		// do the "it's all on this line" case separately
@@ -650,9 +651,10 @@ func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 		f := fp.MatchString(li)
 		if f {
 			valid[r.BuildHyperlink()] = r
-		} else if ss.SkgRewritten {
-			// this is here to allow a second pass at the "f" above before moving to the combinator
-			ss.SkgRewritten = false
+		} else if ss.SkgRewritten && altfp.MatchString(li) {
+			// i.e. "it's all on this line" (second try)
+			// msg("althit", 1)
+			valid[r.BuildHyperlink()] = r
 		} else {
 			// msg("'else'", 4)
 			var nxt DbWorkline

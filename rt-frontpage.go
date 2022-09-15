@@ -72,10 +72,7 @@ func makedefaultsession(id string) ServerSession {
 	// note that sessions clears every time the server restarts
 	var s ServerSession
 	s.ID = id
-	msg("makedefaultsession() in non-default state for testing", 1)
 	s.ActiveCorp = map[string]bool{"gr": true, "lt": true, "in": false, "ch": false, "dp": false}
-	// s.ActiveCorp = map[string]bool{"gr": false, "lt": false, "in": false, "ch": false, "dp": true}
-	s.Inclusions.Passages = []string{"gr5030_FROM_10106_TO_10122"}
 	s.VariaOK = true
 	s.IncertaOK = true
 	s.SpuriaOK = true
@@ -96,6 +93,9 @@ func makedefaultsession(id string) ServerSession {
 	} else {
 		s.IsLoggedIn = true
 	}
+
+	//msg("makedefaultsession() in non-default state for testing", 1)
+	//s.Inclusions.Passages = []string{"gr5030_FROM_10106_TO_10122"}
 
 	return s
 }
