@@ -403,6 +403,7 @@ func RtIndexMaker(c echo.Context) error {
 	type SorterStruct struct {
 		sorter string
 		value  string
+		count  int
 	}
 
 	si.InitSum = "Sifting the index...(part 3 of 4)"
@@ -422,7 +423,8 @@ func RtIndexMaker(c echo.Context) error {
 	// [d2] sort the keys
 
 	var keys []SorterStruct
-	for k, _ := range indexmap {
+	for k, v := range indexmap {
+		k.count = len(v)
 		keys = append(keys, k)
 	}
 

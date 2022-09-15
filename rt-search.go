@@ -471,9 +471,7 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 		s.NotNear = true
 	}
 
-	//msg("nonstandard builddefaultsearch() for testing", 1)
-	//s.NotNear = true
-	//s.ProxScope = "words"
+	// msg("nonstandard builddefaultsearch() for testing", 1)
 
 	return s
 }
@@ -520,11 +518,16 @@ func setsearchtype(srch *SearchStruct) {
 	}
 
 	// will not find greek...
-	// pattern := regexp.MustCompile(`\w\s\w`)
+	// twowords := regexp.MustCompile(`\w\s\w`)
+	// will not find `τῷ φίλῳ` or `πλάντᾳ ἵνα`
+	// twowords := regexp.MustCompile(`[A-Za-zΑ-ΩϹα-ωϲ]\s[A-Za-zΑ-ΩϹα-ωϲ]`)
 
-	pattern := regexp.MustCompile(`[A-Za-zΑ-ΩϹα-ωϲ]\s[A-Za-zΑ-ΩϹα-ωϲ]`)
+	acc := `ϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ`
+	reg := `a-zα-ω`
+	comp := fmt.Sprintf(`[%s%s]\s[%s%s]`, reg, acc, reg, acc)
+	twowords := regexp.MustCompile(comp)
 
-	if pattern.MatchString(srch.Seeking) {
+	if twowords.MatchString(srch.Seeking) {
 		srch.HasPhrase = true
 	}
 
