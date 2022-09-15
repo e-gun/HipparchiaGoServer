@@ -26,6 +26,7 @@ type WordInfo struct {
 	IsHomonymn bool
 	Trans      string
 	Stripped   string
+	Marked     string
 }
 
 func RtTextMaker(c echo.Context) error {
@@ -317,6 +318,8 @@ func RtIndexMaker(c echo.Context) error {
 	//		listofwords = [w.replace('v', 'u') for w in listofwords]
 	//		return listofwords
 
+	// can use the other line data to forestall some problems with endless parsing
+
 	start := time.Now()
 
 	id := c.Param("id")
@@ -335,13 +338,17 @@ func RtIndexMaker(c echo.Context) error {
 	var slicedwords []WordInfo
 	for _, r := range srch.Results {
 		wds := r.AccentedSlice()
-		for _, w := range wds {
+		str := r.StrippedSlice()
+		mu := r.MarkedUpSlice() // will have hyphen issues, but can find apostrophes
+		for i, w := range wds {
 			this := WordInfo{
 				HW:         "",
 				Wd:         uvσςϲ(swapacuteforgrave(w)),
 				Loc:        r.BuildHyperlink(),
 				Cit:        r.Citation(),
 				IsHomonymn: false,
+				Stripped:   str[i],
+				Marked:     mu[i],
 			}
 			slicedwords = append(slicedwords, this)
 		}
@@ -372,6 +379,7 @@ func RtIndexMaker(c echo.Context) error {
 	var slicedlookups []WordInfo
 	for _, w := range slicedwords {
 		if m, ok := morphmap[w.Wd]; !ok {
+			// here is where you should check to see if the word + an apostrophe can be found: γ is really γ' (i.e. γε)
 			w.HW = "•unparsed•"
 			w.Stripped = "•unparsed•"
 			slicedlookups = append(slicedlookups, w)
@@ -400,23 +408,34 @@ func RtIndexMaker(c echo.Context) error {
 	// [d] the final map
 	// [d1] build it
 
+	type SorterStruct struct {
+		sorter string
+		value  string
+	}
+
 	si.InitSum = "Sifting the index...(part 3 of 4)"
 	searches[si.ID] = si
 
-	indexmap := make(map[string][]WordInfo)
+	indexmap := make(map[SorterStruct][]WordInfo)
 	for _, w := range trimslices {
-		indexmap[w.HW] = append(indexmap[w.HW], w)
+		// lunate sigma sorts after omega
+		sigma := strings.Replace(stripaccentsSTR(w.HW), "ϲ", "σ", -1)
+		ss := SorterStruct{
+			sorter: sigma + w.HW,
+			value:  w.HW,
+		}
+		indexmap[ss] = append(indexmap[ss], w)
 	}
 
 	// [d2] sort the keys
-	var keys []string
+
+	var keys []SorterStruct
 	for k, _ := range indexmap {
 		keys = append(keys, k)
 	}
 
-	// sort can't do polytonic greek
-	// but this is a very slow way to sort, esp when looped like this...TODO
-	sort.Slice(keys, func(i, j int) bool { return stripaccentsSTR(keys[i]) < stripaccentsSTR(keys[j]) })
+	// sort can't do polytonic greek: so there is a lot of (slow) extra stuff that has to happen
+	sort.Slice(keys, func(i, j int) bool { return keys[i].sorter < keys[j].sorter })
 
 	// now you have a sorted index...
 

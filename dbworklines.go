@@ -10,9 +10,14 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
+)
+
+var (
+	nohtml = regexp.MustCompile("<[^>]*>") // crude, and will not do all of everything
 )
 
 type LevelValues struct {
@@ -97,12 +102,17 @@ func (dbw DbWorkline) SameLevelAs(other DbWorkline) bool {
 	}
 }
 
+func (dbw DbWorkline) StrippedSlice() []string {
+	return strings.Split(dbw.Stripped, " ")
+}
+
 func (dbw DbWorkline) AccentedSlice() []string {
 	return strings.Split(dbw.Accented, " ")
 }
 
 func (dbw DbWorkline) MarkedUpSlice() []string {
-	return strings.Split(dbw.MarkedUp, " ")
+	cln := nohtml.ReplaceAllString(dbw.MarkedUp, "")
+	return strings.Split(cln, " ")
 }
 
 func (dbw DbWorkline) Citation() string {
