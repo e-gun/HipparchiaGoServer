@@ -512,10 +512,12 @@ func gethighlighter(ss SearchStruct) *regexp.Regexp {
 	skg := ss.Seeking
 	prx := ss.Proximate
 	if ss.SkgRewritten {
-		// bugged because of \s
+		// quasi-bugged because of "\s" --> "\[sS]"; meanwhile whitespacer() can't use " " for its own reasons...
 		// ((^|\[sS])[εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ][νΝ] [οὀὁὂὃὄὅόὸὈὉὊὋὌὍΟ][ρῤῥῬ][εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ][ϲσΣςϹ][τΤ][ηᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧᾘᾙᾚᾛᾜᾝᾞᾟἨἩἪἫἬἭἮἯΗ](\[sS]|$))
-		skg = whitespacer(skg, &ss)
-		prx = whitespacer(skg, &ss)
+		skg = strings.Replace(whitespacer(skg, &ss), "(^|\\s)", "(^| )", 1)
+		skg = strings.Replace(whitespacer(skg, &ss), "(\\s|$)", "( |$)", 1)
+		prx = strings.Replace(whitespacer(prx, &ss), "(^|\\s)", "(^| )", 1)
+		prx = strings.Replace(whitespacer(prx, &ss), "(\\s|$)", "( |$)", 1)
 	}
 
 	if len(ss.Seeking) != 0 {
