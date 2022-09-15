@@ -548,8 +548,8 @@ func setsearchtype(srch *SearchStruct) {
 func restorewhitespace(skg string) string {
 	// will have a problem rewriting regex inside phrasecombinations() if you don't clear whitespacer() products out
 	// even though we are about to put exactly this back in again...
-	skg = strings.Replace(skg, "(^| )", " ", 1)
-	skg = strings.Replace(skg, "( |$)", " ", -1)
+	skg = strings.Replace(skg, "(^|\\s)", " ", 1)
+	skg = strings.Replace(skg, "(\\s|$)", " ", -1)
 	return skg
 }
 

@@ -266,7 +266,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 
 	var out SearchOutputJSON
 	out.JS = fmt.Sprintf(BROWSERJS, "browser")
-	out.Title = ss.Seeking
+	out.Title = restorewhitespace(ss.Seeking)
 	out.Image = ""
 	out.Searchsummary = formatfinalsearchsummary(&ss)
 	out.Found = strings.Join(rows, "")
@@ -509,12 +509,21 @@ func formatmultilinebrackets(html string) string {
 func gethighlighter(ss SearchStruct) *regexp.Regexp {
 	var re *regexp.Regexp
 
+	skg := ss.Seeking
+	prx := ss.Proximate
+	if ss.SkgRewritten {
+		// bugged because of \s
+		// ((^|\[sS])[εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ][νΝ] [οὀὁὂὃὄὅόὸὈὉὊὋὌὍΟ][ρῤῥῬ][εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ][ϲσΣςϹ][τΤ][ηᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧᾘᾙᾚᾛᾜᾝᾞᾟἨἩἪἫἬἭἮἯΗ](\[sS]|$))
+		skg = whitespacer(skg, &ss)
+		prx = whitespacer(skg, &ss)
+	}
+
 	if len(ss.Seeking) != 0 {
-		re = searchtermfinder(ss.Seeking)
+		re = searchtermfinder(skg)
 	} else if len(ss.LemmaOne) != 0 {
 		re = lemmahighlighter(ss.LemmaOne)
 	} else if len(ss.Proximate) != 0 {
-		re = searchtermfinder(ss.Proximate)
+		re = searchtermfinder(prx)
 	} else if len(ss.LemmaTwo) != 0 {
 		re = lemmahighlighter(ss.LemmaTwo)
 	} else {
