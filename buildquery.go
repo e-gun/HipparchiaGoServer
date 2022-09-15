@@ -190,10 +190,10 @@ func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 			t.AU = au
 			t.COL = ss.SrchColumn
 			t.SYN = syn
-			t.SK = skg
 			t.LIM = fmt.Sprintf("%d", ss.Limit)
 			t.TTN = ss.TTName
 			t.PSCol = ss.SrchColumn
+			t.SK = skg
 
 			if len(qb.WhrIdxExc) != 0 && len(qb.WhrIdxInc) != 0 {
 				t.IDX = fmt.Sprintf("%s AND %s", qb.WhrIdxInc, qb.WhrIdxExc)

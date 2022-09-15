@@ -30,39 +30,40 @@ var (
 )
 
 type SearchStruct struct {
-	User       string
-	ID         string
-	Seeking    string
-	Proximate  string
-	LemmaOne   string
-	LemmaTwo   string
-	InitSum    string
-	Summary    string
-	ProxScope  string // "lines" or "words"
-	ProxType   string // "near" or "not near"
-	ProxVal    int64
-	HasLemma   bool
-	HasPhrase  bool
-	IsVector   bool
-	IsActive   bool
-	OneHit     bool
-	Twobox     bool
-	NotNear    bool
-	PhaseNum   int
-	SrchColumn string // usually "stripped_line", sometimes "accented_line"
-	SrchSyntax string // almost always "~"
-	OrderBy    string // almost always "index" + ASC
-	Limit      int64
-	SkgSlice   []string // either just Seeking or a decomposed version of a Lemma's possibilities
-	PrxSlice   []string
-	SearchIn   SearchIncExl
-	SearchEx   SearchIncExl
-	Queries    []PrerolledQuery
-	Results    []DbWorkline
-	Launched   time.Time
-	TTName     string
-	SearchSize int // # of works searched
-	TableSize  int // # of tables searched
+	User         string
+	ID           string
+	Seeking      string
+	Proximate    string
+	LemmaOne     string
+	LemmaTwo     string
+	InitSum      string
+	Summary      string
+	ProxScope    string // "lines" or "words"
+	ProxType     string // "near" or "not near"
+	ProxVal      int64
+	HasLemma     bool
+	HasPhrase    bool
+	IsVector     bool
+	IsActive     bool
+	OneHit       bool
+	Twobox       bool
+	NotNear      bool
+	SkgRewritten bool
+	PhaseNum     int
+	SrchColumn   string // usually "stripped_line", sometimes "accented_line"
+	SrchSyntax   string // almost always "~"
+	OrderBy      string // almost always "index" + ASC
+	Limit        int64
+	SkgSlice     []string // either just Seeking or a decomposed version of a Lemma's possibilities
+	PrxSlice     []string
+	SearchIn     SearchIncExl
+	SearchEx     SearchIncExl
+	Queries      []PrerolledQuery
+	Results      []DbWorkline
+	Launched     time.Time
+	TTName       string
+	SearchSize   int // # of works searched
+	TableSize    int // # of tables searched
 }
 
 //
@@ -112,6 +113,10 @@ func RtSearchStandard(c echo.Context) error {
 	setsearchtype(&srch)
 
 	srch.InitSum = formatinitialsummary(srch)
+
+	// now safe to rewrite skg so that "^|\s", etc. can be added
+	srch.Seeking = whitespacer(srch.Seeking, &srch)
+	srch.Proximate = whitespacer(srch.Proximate, &srch)
 
 	sl := sessionintosearchlist(sessions[user])
 	srch.SearchIn = sl.Inc
@@ -463,6 +468,7 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	s.Twobox = false
 	s.HasPhrase = false
 	s.HasLemma = false
+	s.SkgRewritten = false
 	s.OneHit = sessions[user].OneHit
 	s.PhaseNum = 1
 	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
@@ -474,6 +480,34 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	// msg("nonstandard builddefaultsearch() for testing", 1)
 
 	return s
+}
+
+func restorewhitespace(skg string) string {
+	// will have a problem rewriting regex inside phrasecombinations() if you don't clear whitespacer() products out
+	// even though we are about to put exactly this back in again...
+	skg = strings.Replace(skg, "(^| )", " ", 1)
+	skg = strings.Replace(skg, "( |$)", " ", -1)
+	return skg
+}
+
+func whitespacer(skg string, ss *SearchStruct) string {
+	// whitespace issue: " ἐν Ὀρέϲτῃ " cannot be found at the start of a line where it is "ἐν Ὀρέϲτῃ "
+	// do not run this before formatinitialsummary()
+	if strings.Contains(skg, " ") {
+		ss.SkgRewritten = true
+		rs := []rune(skg)
+		a := ""
+		if rs[0] == ' ' {
+			a = "(^| )"
+		}
+		z := ""
+		if rs[len(rs)-1] == ' ' {
+			z = "( |$)"
+		}
+		skg = strings.TrimSpace(skg)
+		skg = a + skg + z
+	}
+	return skg
 }
 
 func parsesearchinput(s *SearchStruct) {
@@ -599,18 +633,26 @@ func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 
 	var valid = make(map[string]DbWorkline, len(ss.Results))
 
-	find := regexp.MustCompile(`^\s`)
-	re := find.ReplaceAllString(ss.Seeking, "(^|\\s)")
-	find = regexp.MustCompile(`\s$`)
-	re = find.ReplaceAllString(ss.Seeking, "(\\s|$)")
+	skg := ss.Seeking
+	if ss.SkgRewritten {
+		ss.Seeking = restorewhitespace(ss.Seeking)
+	}
+
+	find := regexp.MustCompile(`^ `)
+	re := find.ReplaceAllString(skg, "(^|\\s)")
+	find = regexp.MustCompile(` $`)
+	re = find.ReplaceAllString(re, "(\\s|$)")
+	fp := regexp.MustCompile(re)
 
 	for i, r := range ss.Results {
 		// do the "it's all on this line" case separately
 		li := columnpicker(ss.SrchColumn, r)
-		fp := regexp.MustCompile(re)
 		f := fp.MatchString(li)
 		if f {
 			valid[r.BuildHyperlink()] = r
+		} else if ss.SkgRewritten {
+			// this is here to allow a second pass at the "f" above before moving to the combinator
+			ss.SkgRewritten = false
 		} else {
 			// msg("'else'", 4)
 			var nxt DbWorkline
