@@ -2,24 +2,22 @@
 
 ## late alpha status: mostly does most of what you most want...
 
-### status as of `v0.4.5`:
+### status as of `v0.4.6`:
 
-* searching mostly works 
-* browsing mostly works
-* selections mostly work 
-* exclusions mostly work
-* not-near ok
-* progress polling mostly works
-* dictionaries mostly work
-* basic text maker
-* basic indexing
-* basic vocabulary list generation
+* searching theoretically fine but needs more testing/checking
+* browsing 
+* selections 
+* exclusions 
+* not-near
+* progress polling 
+* dictionaries
+* text maker
+* indexing (needs more polish)
+* vocabulary list generation (needs more polish)
 
 ### TODO (in vague order of priority)
 
 * fix the less wonky lemma highlighting
-* get the sorting right (and fast) on the index/vocab code
-* properly associate elided words when indexing
 * index by frequency
 * fix js so index will do status updates w/out needing to reload the page
 * saving/fetching searches

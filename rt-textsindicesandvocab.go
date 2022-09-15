@@ -25,8 +25,6 @@ type WordInfo struct {
 	Cit        string
 	IsHomonymn bool
 	Trans      string
-	Stripped   string
-	Marked     string
 }
 
 func RtTextMaker(c echo.Context) error {
@@ -85,6 +83,7 @@ func RtTextMaker(c echo.Context) error {
 func RtVocabMaker(c echo.Context) error {
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
+	// todo: worry about γ' for γε
 	start := time.Now()
 
 	id := c.Param("id")
@@ -173,15 +172,17 @@ func RtVocabMaker(c echo.Context) error {
 	// [f] consolidate the information
 
 	type VocInf struct {
-		W  string
-		C  int
-		TR string
+		Wd    string
+		C     int
+		TR    string
+		Strip string
 	}
 
 	pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
 	var polishtrans = func(x string, pat *regexp.Regexp) string {
-		x = strings.Replace(x, `<tr opt="n">`, ``, 1)
-		x = strings.Replace(x, `</tr>`, ``, 1)
+		//x = strings.Replace(x, `<tr opt="n">`, ``, 1)
+		//x = strings.Replace(x, `</tr>`, ``, 1)
+		x = nohtml.ReplaceAllString(x, "")
 		elem := strings.Split(x, "; ")
 		for i, e := range elem {
 			elem[i] = pat.ReplaceAllString(e, `<span class="transtree">$1</span> `)
@@ -192,21 +193,24 @@ func RtVocabMaker(c echo.Context) error {
 	vim := make(map[string]VocInf)
 	for k, v := range vic {
 		vim[k] = VocInf{
-			W:  k,
-			C:  v,
-			TR: polishtrans(vit[k], pat),
+			Wd:    k,
+			C:     v,
+			TR:    polishtrans(vit[k], pat),
+			Strip: strings.Replace(stripaccentsSTR(k), "ϲ", "σ", -1),
 		}
 	}
 
-	var vis []VocInf
+	vis := make([]VocInf, len(vim))
+	ct := 0
 	for _, v := range vim {
-		vis = append(vis, v)
+		vis[ct] = v
+		ct += 1
 	}
 
 	si.InitSum = "Sifting the vocabulary...(part 3 of 4)"
 	searches[si.ID] = si
 
-	sort.Slice(vis, func(i, j int) bool { return stripaccentsSTR(vis[i].W) < stripaccentsSTR(vis[j].W) })
+	sort.Slice(vis, func(i, j int) bool { return vis[i].Strip < vis[j].Strip })
 
 	si.InitSum = "Building the HTML...(part 4 of 4)"
 	searches[si.ID] = si
@@ -235,7 +239,7 @@ func RtVocabMaker(c echo.Context) error {
 	trr[0] = th
 
 	for i, v := range vis {
-		nt := fmt.Sprintf(tr, v.W, v.W, v.C, v.TR)
+		nt := fmt.Sprintf(tr, v.Wd, v.Wd, v.C, v.TR)
 		trr[i+1] = nt
 	}
 
@@ -300,26 +304,6 @@ func RtIndexMaker(c echo.Context) error {
 	// there is a big problem: need εἴτ’, but can't find it in the accented line; but the marked up line is full of
 	// really tricky stuff
 
-	// see worklineobject.py:
-
-	// 	def indexablewordlist(self) -> List[str]:
-	//		# don't use set() - that will yield undercounts
-	//		polytonicwords = self.wordlist('polytonic')
-	//		polytonicgreekwords = [tidyupterm(w, dbWorkLine.greekpunct).lower() for w in polytonicwords if re.search(dbWorkLine.minimumgreek, w)]
-	//		polytoniclatinwords = [tidyupterm(w, dbWorkLine.latinpunct).lower() for w in polytonicwords if not re.search(dbWorkLine.minimumgreek, w)]
-	//		polytonicwords = polytonicgreekwords + polytoniclatinwords
-	//		# need to figure out how to grab τ’ and δ’ and the rest
-	//		# but you can't say that 'me' is elided in a line like 'inquam, ‘teque laudo. sed quando?’ ‘nihil ad me’ inquit ‘de'
-	//		unformattedwords = set(self.wordlist('marked_up_line'))
-	//		listofwords = [w for w in polytonicwords if w+'’' not in unformattedwords or not re.search(dbWorkLine.minimumgreek, w)]
-	//		elisions = [w+"'" for w in polytonicwords if w+'’' in unformattedwords and re.search(dbWorkLine.minimumgreek, w)]
-	//		listofwords.extend(elisions)
-	//		listofwords = [w.translate(dbWorkLine.gravetoacute) for w in listofwords]
-	//		listofwords = [w.replace('v', 'u') for w in listofwords]
-	//		return listofwords
-
-	// can use the other line data to forestall some problems with endless parsing
-
 	start := time.Now()
 
 	id := c.Param("id")
@@ -338,17 +322,13 @@ func RtIndexMaker(c echo.Context) error {
 	var slicedwords []WordInfo
 	for _, r := range srch.Results {
 		wds := r.AccentedSlice()
-		str := r.StrippedSlice()
-		mu := r.MarkedUpSlice() // will have hyphen issues, but can find apostrophes
-		for i, w := range wds {
+		for _, w := range wds {
 			this := WordInfo{
 				HW:         "",
 				Wd:         uvσςϲ(swapacuteforgrave(w)),
 				Loc:        r.BuildHyperlink(),
 				Cit:        r.Citation(),
 				IsHomonymn: false,
-				Stripped:   str[i],
-				Marked:     mu[i],
 			}
 			slicedwords = append(slicedwords, this)
 		}
@@ -381,15 +361,18 @@ func RtIndexMaker(c echo.Context) error {
 		emm := false
 		mme := w.Wd
 		if _, ok := morphmap[w.Wd]; !ok {
-			// here is where you should check to see if the word + an apostrophe can be found: γ is really γ' (i.e. γε)
+			// here is where you check to see if the word + an apostrophe can be found: γ is really γ' (i.e. γε)
+			// this also means that you had to grab all of those extra forms in the first plac
 			if _, y := morphmap[w.Wd+"'"]; y {
 				emm = true
-				mme = w.Wd + "'"
+				w.Wd = w.Wd + "'"
+				mme = w.Wd
 			} else {
-				w.HW = "•unparsed•"
-				w.Stripped = "•unparsed•"
+				w.HW = "ϙϙϙϙϙϙϙϙ<br>unparsed words"
 				slicedlookups = append(slicedlookups, w)
 			}
+		} else {
+			emm = true
 		}
 
 		if emm {
