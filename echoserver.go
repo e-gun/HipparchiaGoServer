@@ -87,6 +87,9 @@ func StartEchoServer() {
 	e.GET("/browse/rawlocus/:locus", RtBrowseRaw)
 
 	// [c] css
+
+	e.GET("/emb/:file", RtEmbHCSS)
+
 	// [d] debugging
 
 	//
@@ -223,6 +226,15 @@ func StartEchoServer() {
 	//
 
 	e.GET("/ws", RtWebsocket)
+
+	//
+	// [p] embedded FS
+	//
+
+	e.GET("/emb/extrajs/:file", RtEmbExtraJS)
+	e.GET("/emb/jq/:file", RtEmbJQuery)
+	e.GET("/emb/jq/images/:file", RtEmbJQueryImg)
+	e.GET("/emb/js/:file", RtEmbJS)
 
 	// [z] testing
 	e.GET("/t", RtTest)

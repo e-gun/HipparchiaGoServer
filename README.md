@@ -22,6 +22,7 @@
 * fix js so index will do status updates w/out needing to reload the page
 * saving/fetching searches
 * search list info box
+* monolithic binary: no need for extra files/folders beyond `config.json`
 
 ### DISTANT FANTASIES
 * vectors

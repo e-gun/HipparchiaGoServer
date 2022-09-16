@@ -6,10 +6,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"text/template"
 	"time"
 )
 
@@ -63,8 +65,17 @@ func RtFrontpage(c echo.Context) error {
 		"browsecontext": s.UI.BrowseCtx,
 		"proxval":       s.Proximity}
 
-	err := c.Render(http.StatusOK, "frontpage.html", subs)
-	return err
+	f, e := efs.ReadFile("emb/frontpage.html")
+	chke(e)
+
+	tmpl, e := template.New("fp").Parse(string(f))
+	chke(e)
+
+	var b bytes.Buffer
+	err := tmpl.Execute(&b, subs)
+	chke(err)
+
+	return c.HTML(http.StatusOK, b.String())
 }
 
 // makedefaultsession - fill in the blanks when setting up a new session

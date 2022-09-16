@@ -301,8 +301,7 @@ func RtIndexMaker(c echo.Context) error {
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
 
-	// there is a big problem: need εἴτ’, but can't find it in the accented line; but the marked up line is full of
-	// really tricky stuff
+	// a lot of code duplication with RtVocabMaker() but consolidation is not as direct a matter as one might guess
 
 	start := time.Now()
 
