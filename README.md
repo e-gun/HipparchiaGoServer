@@ -2,8 +2,9 @@
 
 ## late alpha status: mostly does most of what you most want...
 
-### status as of `v0.4.6`:
+### status as of `v0.5.0`:
 
+* monolithic binary: no need for extra files/folders beyond `config.json`
 * searching theoretically fine but needs more testing/checking
 * browsing 
 * selections 
@@ -22,7 +23,6 @@
 * fix js so index will do status updates w/out needing to reload the page
 * saving/fetching searches
 * search list info box
-* monolithic binary: no need for extra files/folders beyond `config.json`
 
 ### DISTANT FANTASIES
 * vectors

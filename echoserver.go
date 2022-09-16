@@ -42,8 +42,14 @@ func StartEchoServer() {
 
 	e := echo.New()
 
+	fp, err := efs.ReadFile("emb/frontpage.html")
+	chke(err)
+
+	fpt, err := template.New("fp").Parse(string(fp))
+	chke(err)
+
 	renderer := &TemplateRenderer{
-		templates: template.Must(template.ParseGlob("static/html/frontpage.html")),
+		templates: fpt,
 	}
 	e.Renderer = renderer
 
@@ -228,13 +234,14 @@ func StartEchoServer() {
 	e.GET("/ws", RtWebsocket)
 
 	//
-	// [p] embedded FS
+	// [p] serve via the embedded FS
 	//
 
 	e.GET("/emb/extrajs/:file", RtEmbExtraJS)
 	e.GET("/emb/jq/:file", RtEmbJQuery)
 	e.GET("/emb/jq/images/:file", RtEmbJQueryImg)
 	e.GET("/emb/js/:file", RtEmbJS)
+	e.GET("/emb/ttf/:file", RtEmbTTF)
 
 	// [z] testing
 	e.GET("/t", RtTest)
