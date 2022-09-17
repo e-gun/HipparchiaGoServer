@@ -24,9 +24,7 @@ type PostgresLogin struct {
 //
 
 func GetPSQLconnection() *pgxpool.Pool {
-	var pl PostgresLogin
-
-	pl = cfg.PGLogin
+	pl := cfg.PGLogin
 
 	url := fmt.Sprintf("postgres://%s:%s@%s:%d/%s", pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName)
 
@@ -42,8 +40,5 @@ func GetPSQLconnection() *pgxpool.Pool {
 		msg(fmt.Sprintf("Could not connect to PostgreSQL via %s", url), -1)
 		panic(err)
 	}
-
-	// msg(fmt.Sprintf("Connected to %s on PostgreSQL", pl.DBName), 5)
-
 	return pooledconnection
 }

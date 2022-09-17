@@ -8,8 +8,8 @@ package main
 const (
 	MYNAME                  = "Hipparchia Golang Server"
 	SHORTNAME               = "HGS"
-	VERSION                 = "0.5.1"
-	SERVEDFROMHOST          = ""
+	VERSION                 = "0.5.2"
+	SERVEDFROMHOST          = "127.0.0.1"
 	SERVEDFROMPORT          = 8000
 	DBAUMAPSIZE             = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
 	DBLMMAPSIZE             = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
@@ -50,6 +50,8 @@ const (
 	GENRESTOCOUNT           = 5
 	CONFIGNAME              = "hgo-conf.json"
 	CONFIGLOCATION          = "."
+	DEFAULTECHOLOGLEVEL     = 0
+	DEFAULTGOLOGLEVEL       = 0
 
 	PSQLHOST  = "127.0.0.1"
 	PSQLUSER  = "hippa_wr"
@@ -123,11 +125,13 @@ const (
 	PROJMAIL = "Department of Classics, 125 Queen’s Park, Toronto, ON  M5S 2C7 Canada"
 
 	HELPTEXT = `command line options:
-		-cf {file}   read PSQL password from file [default is './hgo-conf.json']
-		-el {num}    set echo server log level (0-2)
-		-gl {num}    set golang log level (0-5)
+		-cf {file}   read PSQL password from file [default: './%s']
+		-el {num}    set echo server log level (0-2) [default: %d]
+		-gl {num}    set golang log level (0-5) [default: %d]
 		-h           print this help information
 		-p  {string} supply full PostgreSQL credentials(*)
+		-sa {string} server IP address [default: '%s']
+		-sp {num}    server port [default: %d]
 		-v           print version and exit
 
 	(*) example: "{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"

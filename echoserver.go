@@ -246,7 +246,7 @@ func StartEchoServer() {
 	// [z] testing
 	e.GET("/t", RtTest)
 
-	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", SERVEDFROMHOST, SERVEDFROMPORT)))
+	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", cfg.HostIP, cfg.HostPort)))
 }
 
 //

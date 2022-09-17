@@ -25,11 +25,11 @@ func main() {
 
 	// go tool pprof --pdf ./HipparchiaGoServer /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1880749830/cpu.pprof > profile.pdf
 
-	configatlaunch()
-
 	versioninfo := fmt.Sprintf("%s CLI Debugging Interface (v.%s)", MYNAME, VERSION)
 	versioninfo = versioninfo + fmt.Sprintf(" [loglevel=%d]", cfg.LogLevel)
 	msg(versioninfo, 0)
+
+	configatlaunch()
 
 	msg(fmt.Sprintf(TERMINALTEXT, PROJ, PROJYEAR, PROJAUTH, PROJMAIL), -1)
 
@@ -82,7 +82,11 @@ func main() {
 
 // configatlaunch - read the configuration values from JSON and/or command line
 func configatlaunch() {
-	config := fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGNAME)
+	cfg.HostIP = SERVEDFROMHOST
+	cfg.HostPort = SERVEDFROMPORT
+
+	cf := fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGNAME)
+
 	var pl PostgresLogin
 
 	args := os.Args[1:len(os.Args)]
@@ -101,9 +105,9 @@ func configatlaunch() {
 			chke(e)
 			cfg.EchoLog = ll
 		case "-cf":
-			config = args[i+1]
+			cf = args[i+1]
 		case "-h":
-			fmt.Println(HELPTEXT)
+			fmt.Println(fmt.Sprintf(HELPTEXT, CONFIGNAME, DEFAULTECHOLOGLEVEL, DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT))
 			os.Exit(1)
 		case "-p":
 			js := args[i+1]
@@ -112,6 +116,12 @@ func configatlaunch() {
 				msg("Could not parse your information as a valid collection of credentials. Use the following template:", -1)
 				msg(`"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"`, 0)
 			}
+		case "-sa":
+			cfg.HostIP = args[i+1]
+		case "-sp":
+			p, e := strconv.Atoi(args[i+1])
+			chke(e)
+			cfg.HostPort = p
 		default:
 			// don't need any arguments to run...
 		}
@@ -125,12 +135,12 @@ func configatlaunch() {
 	if pl.Pass != "" {
 		cfg.PGLogin = pl
 	} else {
-		file, _ := os.Open(config)
+		file, _ := os.Open(cf)
 		decoder := json.NewDecoder(file)
 		conf := ConfigFile{}
 		err := decoder.Decode(&conf)
 		if err != nil {
-			msg(fmt.Sprintf("FAILED to load the configuration file: '%s'", config), 0)
+			msg(fmt.Sprintf("FAILED to load the configuration file: '%s'", cf), 0)
 			msg(fmt.Sprintf("Make sure that the file exists and that it has the following format:"), 0)
 			fmt.Println(MINCONFIG)
 			os.Exit(0)

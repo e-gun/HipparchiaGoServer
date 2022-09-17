@@ -54,9 +54,10 @@ var (
 type CurrentConfiguration struct {
 	WorkerCount int
 	LogLevel    int
-	PSQL        string
 	EchoLog     int // "none", "terse", "verbose"
 	PGLogin     PostgresLogin
+	HostIP      string
+	HostPort    int
 }
 
 type DbAuthor struct {

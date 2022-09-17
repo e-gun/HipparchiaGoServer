@@ -2,7 +2,7 @@
 
 ## late alpha status: mostly does most of what you most want...
 
-### status as of `v0.5.0`:
+### status as of `v0.5.2`:
 
 * monolithic binary: no need for extra files/folders beyond `config.json`
 * searching theoretically fine but needs more testing/checking
@@ -52,7 +52,7 @@ an uncompressed archive is c. `3.6GB`
   - add a user named `hippa_wr` to postgresql
   - create a database named `hipparchiaDB`
 - load an archive into the database: (as per the above) `cat /ARCHIVEFOLDER/TARGETDIR/hipparchiaDB-* | psql hipparchiaDB`
-- download a binary of `HipparchiaGoServer`
+- compile or download a binary of `HipparchiaGoServer`
 - set up `config.json` (as per `sample_config.json`)
 - run `HipparchiaGoServer` via a terminal
 
@@ -66,4 +66,4 @@ an uncompressed archive is c. `3.6GB`
   - exit postgresql by telling it `\q`
 - loading the archive is also easy if you are in the right directory; but you need to know where you are...
   - loading can take several minutes
-- if no configuration is present when you launch `HipparchiaGoServer`, you will be given a prompt about what it should look like. all you should really need to do is set the password (avoid adding "smart quotes" instead of straight quotes to this file)
+- if no configuration is present when you launch `HipparchiaGoServer`, you will be given a prompt about what it should look like; all you should really need to do is set the password (avoid adding "smart quotes" instead of straight quotes to this file)
