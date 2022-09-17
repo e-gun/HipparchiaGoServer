@@ -1,4 +1,0 @@
-{
-  "PosgreSQL" :
-  {"Pass": "YOURPASSWORDHERE" ,"Host": "127.0.0.1", "Port": 5432, "DBName": "hipparchiaDB" ,"User": "hippa_wr"}
-}

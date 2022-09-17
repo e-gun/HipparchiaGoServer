@@ -14,6 +14,24 @@ import (
 	"time"
 )
 
+const (
+	// hipparchiaDB=# select * from authors limit 0;
+	// universalid | language | idxname | akaname | shortname | cleanname | genres | recorded_date | converted_date | location
+	//-------------+----------+---------+---------+-----------+-----------+--------+---------------+----------------+----------
+
+	AUTHORTEMPLATE = ` universalid, language, idxname, akaname, shortname, cleanname, genres, recorded_date, converted_date, location `
+
+	// hipparchiaDB=# select * from works limit 0;
+	// universalid | title | language | publication_info | levellabels_00 | levellabels_01 | levellabels_02 | levellabels_03 | levellabels_04 | levellabels_05 | workgenre | transmission | worktype | provenance | recorded_date | converted_date | wordcount | firstline | lastline | authentic
+	//-------------+-------+----------+------------------+----------------+----------------+----------------+----------------+----------------+----------------+-----------+--------------+----------+------------+---------------+----------------+-----------+-----------+----------+-----------
+	//(0 rows)
+
+	WORKTEMPLATE = ` universalid, title, language, publication_info,
+		levellabels_00, levellabels_01, levellabels_02, levellabels_03, levellabels_04, levellabels_05,
+		workgenre, transmission, worktype, provenance, recorded_date, converted_date, wordcount,
+		firstline, lastline, authentic`
+)
+
 var (
 	// order matters
 	cfg         CurrentConfiguration
@@ -21,7 +39,6 @@ var (
 	searches    = make(map[string]SearchStruct)
 	proghits    = sync.Map{}
 	progremain  = sync.Map{}
-	srchsumm    = make(map[string]SearchSummary)
 	AllWorks    = make(map[string]DbWork)
 	AllAuthors  = make(map[string]DbAuthor)
 	AllLemm     = make(map[string]DbLemma)

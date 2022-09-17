@@ -83,43 +83,64 @@ func main() {
 // configatlaunch - read the configuration values from JSON and/or command line
 func configatlaunch() {
 	config := fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGNAME)
+	var pl PostgresLogin
 
 	args := os.Args[1:len(os.Args)]
 
 	for i, a := range args {
-		if a == "-v" {
+		switch a {
+		case "-v":
 			// version always printed anyway
 			os.Exit(1)
-		}
-		if a == "-gl" {
+		case "-gl":
 			ll, e := strconv.Atoi(args[i+1])
 			chke(e)
 			cfg.LogLevel = ll
-		}
-		if a == "-el" {
+		case "-el":
 			ll, e := strconv.Atoi(args[i+1])
 			chke(e)
 			cfg.EchoLog = ll
-		}
-		if a == "-c" {
+		case "-cf":
 			config = args[i+1]
+		case "-h":
+			fmt.Println(HELPTEXT)
+			os.Exit(1)
+		case "-p":
+			js := args[i+1]
+			err := json.Unmarshal([]byte(js), &pl)
+			if err != nil {
+				msg("Could not parse your information as a valid collection of credentials. Use the following template:", -1)
+				msg(`"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"`, 0)
+			}
+		default:
+			// don't need any arguments to run...
 		}
 	}
 
 	type ConfigFile struct {
-		PosgreSQL PostgresLogin
+		PosgreSQLPassword string
 	}
 
-	file, _ := os.Open(config)
-	decoder := json.NewDecoder(file)
-	conf := ConfigFile{}
-	err := decoder.Decode(&conf)
-	if err != nil {
-		msg(fmt.Sprintf("FAILED to load the configuration file: '%s'", config), 0)
-		msg(fmt.Sprintf("Make sure that the file exists and that it has the following format:"), 0)
-		fmt.Println(MINCONFIG)
-		os.Exit(0)
+	cfg.PGLogin = PostgresLogin{}
+	if pl.Pass != "" {
+		cfg.PGLogin = pl
+	} else {
+		file, _ := os.Open(config)
+		decoder := json.NewDecoder(file)
+		conf := ConfigFile{}
+		err := decoder.Decode(&conf)
+		if err != nil {
+			msg(fmt.Sprintf("FAILED to load the configuration file: '%s'", config), 0)
+			msg(fmt.Sprintf("Make sure that the file exists and that it has the following format:"), 0)
+			fmt.Println(MINCONFIG)
+			os.Exit(0)
+		}
+		cfg.PGLogin = PostgresLogin{
+			Host:   PSQLHOST,
+			Port:   PSQLPORT,
+			User:   PSQLUSER,
+			Pass:   conf.PosgreSQLPassword,
+			DBName: PSQLDB,
+		}
 	}
-
-	cfg.PGLogin = conf.PosgreSQL
 }

@@ -20,7 +20,10 @@ import (
 	"strings"
 )
 
-// full set of verbs: lookup, findbyform, idlookup, morphologychart
+var (
+	// regex compiled here instead of inside of various loops
+	isGreek = regexp.MustCompile("[α-ωϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ]")
+)
 
 type DbLexicon struct {
 	// skipping 'unaccented_entry' from greek_dictionary

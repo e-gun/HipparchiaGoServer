@@ -16,17 +16,7 @@ import (
 )
 
 var (
-	// regex compiled here instead of inside of various loops
-	isGreek   = regexp.MustCompile("[α-ωϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ]")
 	hasAccent = regexp.MustCompile("[äëïöüâêîôûàèìòùáéíóúᾂᾒᾢᾃᾓᾣᾄᾔᾤᾅᾕᾥᾆᾖᾦᾇᾗᾧἂἒἲὂὒἢὢἃἓἳὃὓἣὣἄἔἴὄὔἤὤἅἕἵὅὕἥὥἆἶὖἦὦἇἷὗἧὧᾲῂῲᾴῄῴᾷῇῷᾀᾐᾠᾁᾑᾡῒῢΐΰῧἀἐἰὀὐἠὠῤἁἑἱὁὑἡὡῥὰὲὶὸὺὴὼάέίόύήώᾶῖῦῆῶϊϋ]")
-	esbboth   = regexp.MustCompile("\\[(.*?)\\]")
-	erbboth   = regexp.MustCompile("\\((.*?)\\)")
-	eabboth   = regexp.MustCompile("⟨(.*?)⟩")
-	ecbboth   = regexp.MustCompile("\\{(.*?)\\}")
-	// esbopens := regexp.MustCompile("\\[(.*?)(\\]|$)")
-	// esbcloses := regexp.MustCompile("(^|\\[)(.*?)\\]")
-	// erbopens := regexp.MustCompile("\\((.*?)(\\)|$)")
-	// erbcloses := regexp.MustCompile("(^|\\()(.*?)\\)")
 )
 
 type SearchStruct struct {
@@ -71,18 +61,16 @@ type SearchStruct struct {
 //
 
 func RtSearchConfirm(c echo.Context) error {
-	// not going to be needed?
-
 	return c.String(http.StatusOK, "8000")
 }
 
 func RtSearchStandard(c echo.Context) error {
-	start := time.Now()
-	previous := time.Now()
 	// "GET /search/standard/5446b840?skg=sine%20dolore HTTP/1.1"
 	// "GET /search/standard/c2fba8e8?skg=%20dolore&prx=manif HTTP/1.1"
 	// "GET /search/standard/2ad866e2?prx=manif&lem=dolor HTTP/1.1"
 	// "GET /search/standard/02f3610f?lem=dolor&plm=manifesta HTTP/1.1"
+	start := time.Now()
+	previous := time.Now()
 	user := readUUIDCookie(c)
 
 	id := c.Param("id")
@@ -95,9 +83,6 @@ func RtSearchStandard(c echo.Context) error {
 
 	// HasPhrase makes us use a fake limit temporarily
 	reallimit := srch.Limit
-
-	timetracker("A", "builddefaultsearch()", start, previous)
-	previous = time.Now()
 
 	srch.Seeking = skg
 	srch.Proximate = prx
@@ -123,13 +108,13 @@ func RtSearchStandard(c echo.Context) error {
 	srch.SearchEx = sl.Excl
 	srch.SearchSize = sl.Size
 
-	timetracker("B", "sessionintosearchlist()", start, previous)
+	timetracker("A", "sessionintosearchlist()", start, previous)
 	previous = time.Now()
 
 	prq := searchlistintoqueries(&srch)
 	srch.TableSize = len(prq)
 
-	timetracker("C", "searchlistintoqueries()", start, previous)
+	timetracker("B", "searchlistintoqueries()", start, previous)
 	previous = time.Now()
 
 	srch.Queries = prq
@@ -158,7 +143,7 @@ func RtSearchStandard(c echo.Context) error {
 		}
 	}
 
-	timetracker("D", fmt.Sprintf("search executed: %d hits", len(searches[id].Results)), start, previous)
+	timetracker("C", fmt.Sprintf("search executed: %d hits", len(searches[id].Results)), start, previous)
 	previous = time.Now()
 
 	resultsorter(&completed)
@@ -172,13 +157,8 @@ func RtSearchStandard(c echo.Context) error {
 		js = string(formatwithcontextresults(searches[id]))
 	}
 
-	timetracker("E", fmt.Sprintf("formatted %d hits", len(searches[id].Results)), start, previous)
+	timetracker("D", fmt.Sprintf("formatted %d hits", len(searches[id].Results)), start, previous)
 	previous = time.Now()
-
-	srchsumm[id] = SearchSummary{start, searches[id].Summary}
-	msg(fmt.Sprintf("search count is %d", len(srchsumm)), 5)
-
-	msg(fmt.Sprintf(`RtSearchStandard(): deleting searches["%s"]`, id), 5)
 
 	delete(searches, id)
 	progremain.Delete(id)

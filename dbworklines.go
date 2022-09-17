@@ -16,6 +16,12 @@ import (
 	"strings"
 )
 
+const (
+	WORLINETEMPLATE = `wkuniversalid, index,
+			level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
+			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations`
+)
+
 var (
 	nohtml = regexp.MustCompile("<[^>]*>") // crude, and will not do all of everything
 )

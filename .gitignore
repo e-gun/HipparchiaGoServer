@@ -4,6 +4,7 @@ go.mod
 go.sum
 .DS_Store
 config*
+hgo-conf*
 z_*
 /HipparchiaGoServer
 /HipparchiaGoServer-*
