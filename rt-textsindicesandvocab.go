@@ -430,15 +430,24 @@ func RtIndexMaker(c echo.Context) error {
 	// sort can't do polytonic greek: so there is a lot of (slow) extra stuff that has to happen
 	sort.Slice(keys, func(i, j int) bool { return keys[i].sorter < keys[j].sorter })
 
-	// now you have a sorted index...
+	// now you have a sorted index...; but a SorterStruct does not make for a usable map key...
+
+	plainkeys := make([]string, len(keys))
+	for i, k := range keys {
+		plainkeys[i] = k.value
+	}
+
+	plainmap := make(map[string][]WordInfo, len(indexmap))
+	for k, _ := range indexmap {
+		plainmap[k.value] = indexmap[k]
+	}
 
 	si.InitSum = "Building the HTML...(part 4 of 4)"
 	searches[si.ID] = si
 
 	var trr []string
-	for _, k := range keys {
-		wii := indexmap[k]
-		trr = append(trr, convertwordinfototablerow(wii))
+	for _, k := range plainkeys {
+		trr = append(trr, convertwordinfototablerow(plainmap[k]))
 	}
 
 	tb := `        
