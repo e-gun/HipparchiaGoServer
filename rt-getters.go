@@ -13,10 +13,17 @@ import (
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"net/http"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"text/template"
 )
+
+// JSStruct - this is for generating a specific ultra-boring brand of JSON
+type JSStruct struct {
+	V string `json:"value"`
+}
 
 func RtGetJSSession(c echo.Context) error {
 	// see hipparchiajs/coreinterfaceclicks_go.js
@@ -282,6 +289,68 @@ func RtGetJSSampCit(c echo.Context) error {
 		L string `json:"lastline"`
 	}
 	j := JSO{cf, cl}
+	b, e := json.Marshal(j)
+	chke(e)
+	return c.String(http.StatusOK, string(b))
+}
+
+func RtGetJSSearchlist(c echo.Context) error {
+	m := message.NewPrinter(language.English)
+	sl := sessionintosearchlist(sessions[readUUIDCookie(c)])
+	tw := int64(0)
+
+	var wkk []string
+	for _, a := range sl.Inc.Authors {
+		for _, w := range AllAuthors[a].WorkList {
+			ct := `%s, <span class="italic">%s</span> [%d words]`
+			cf := m.Sprintf(ct, AllAuthors[a].Cleaname, AllWorks[w].Title, AllWorks[w].WdCount)
+			wkk = append(wkk, cf)
+			tw += AllWorks[w].WdCount
+		}
+	}
+
+	for _, w := range sl.Inc.Works {
+		ct := `%s, <span class="italic">%s</span> [%d words]`
+		cf := m.Sprintf(ct, AllAuthors[AllWorks[w].FindAuthor()].Cleaname, AllWorks[w].Title, AllWorks[w].WdCount)
+		wkk = append(wkk, cf)
+		tw += AllWorks[w].WdCount
+	}
+
+	pattern := regexp.MustCompile(`(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`)
+	for _, p := range sl.Inc.Passages {
+		// "gr0032_FROM_11313_TO_11843"
+		subs := pattern.FindStringSubmatch(p)
+		au := subs[pattern.SubexpIndex("auth")]
+		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
+		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
+		f := graboneline(au, int64(st))
+		l := graboneline(au, int64(sp))
+		s := buildhollowsearch()
+		s.SearchIn.Passages = []string{p}
+		s.Queries = searchlistintoqueries(&s)
+		lines := HGoSrch(s)
+		count := 0
+		for _, ln := range lines.Results {
+			count += len(strings.Split(ln.Stripped, " "))
+		}
+		ct := m.Sprintf(`%s, <span class="italic">%s</span> %s - %s [%d words]`, AllAuthors[au].Cleaname, AllWorks[f.WkUID].Title, f.Citation(), l.Citation(), count)
+		wkk = append(wkk, ct)
+		tw += int64(count)
+	}
+
+	if len(wkk) > MAXSEARCHINFOLISTLEN {
+		diff := len(wkk) - MAXSEARCHINFOLISTLEN
+		wkk = wkk[0:MAXSEARCHINFOLISTLEN]
+		wkk = append(wkk, m.Sprintf(`<br>(and <span class="emph">%d</span> additional works)`, diff))
+	}
+
+	wkk = append(wkk, m.Sprintf(`<br><span class="emph">%d</span> total words`, tw))
+
+	ht := strings.Join(wkk, "<br>\n")
+	var j JSStruct
+	j.V = ht
+
+	// send
 	b, e := json.Marshal(j)
 	chke(e)
 	return c.String(http.StatusOK, string(b))

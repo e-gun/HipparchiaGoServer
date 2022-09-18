@@ -31,14 +31,13 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
-// JSStruct - this is for generating a specific brand of JSON
-type JSStruct struct {
-	V string `json:"value"`
-}
-
 func StartEchoServer() {
 	// https://echo.labstack.com/guide/
 	// cf https://medium.com/cuddle-ai/building-microservice-using-golang-echo-framework-ff10ba06d508
+
+	//
+	// SETUP
+	//
 
 	e := echo.New()
 
@@ -65,7 +64,9 @@ func StartEchoServer() {
 	e.File("/favicon.ico", "static/images/hipparchia_favicon.ico")
 	e.Static("/static", "static")
 
-	// hipparchia routes
+	//
+	// HIPPARCHIA ROUTES
+	//
 
 	//
 	// [a] authentication
@@ -98,6 +99,8 @@ func StartEchoServer() {
 
 	// [d] debugging
 
+	// empty
+
 	//
 	// [e] frontpage
 	//
@@ -121,11 +124,15 @@ func StartEchoServer() {
 
 	// [f2d] /get/json/samplecitation
 	e.GET("/get/json/samplecitation/:locus", RtGetJSSampCit)
+
 	// [f2e] /get/json/authorinfo
 
 	e.GET("/get/json/authorinfo/:id", RtGetJSAuthorinfo)
 
 	// [f2f] /get/json/searchlistcontents
+
+	e.GET("/get/json/searchlistcontents", RtGetJSSearchlist)
+
 	// [f2e] /get/json/genrelistcontents
 	// [f2f] /get/json/vectorranges
 	// [f2g] /get/json/helpdata
@@ -242,6 +249,8 @@ func StartEchoServer() {
 	e.GET("/emb/jq/images/:file", RtEmbJQueryImg)
 	e.GET("/emb/js/:file", RtEmbJS)
 	e.GET("/emb/ttf/:file", RtEmbTTF)
+	e.GET("/favicon.ico", RtEbmFavicon)
+	e.GET("/apple-touch-icon-precomposed.png", RtEbmTouchIcon)
 
 	// [z] testing
 	e.GET("/t", RtTest)

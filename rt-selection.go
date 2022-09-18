@@ -592,6 +592,7 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 
 	rationalized.Inclusions = si
 	rationalized.Exclusions = se
+
 	return rationalized
 }
 

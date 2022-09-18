@@ -443,10 +443,9 @@ $('#searchinfo').click(function(){
             slc.hide();
             slc.html('<p class="center"><span class="small>(this might take a second...)</span></p>');
         } else {
-            slc.html('');
-            slc.show();
             $.getJSON('/get/json/searchlistcontents', function (selectiondata) {
-                slc.html(selectiondata);
+                document.getElementById('searchlistcontents').innerHTML = selectiondata["value"];
+                slc.show();
                 });
             }
     });

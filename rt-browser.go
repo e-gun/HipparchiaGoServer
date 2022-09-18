@@ -178,6 +178,7 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 // HELPERS
 //
 
+// formatpublicationinfo - does just what you think it does
 func formatpublicationinfo(w DbWork) string {
 	// 	in:
 	//		<volumename>FHG </volumename>4 <press>Didot </press><city>Paris </city><year>1841–1870</year><pages>371 </pages><pagesintocitations>Frr. 1–2</pagesintocitations><editor>Müller, K. </editor>
@@ -257,6 +258,7 @@ func formatpublicationinfo(w DbWork) string {
 	return fmt.Sprintf(readability, reconstituted)
 }
 
+// formatcitationinfo - the prolix bibliographic info for a line/work
 func formatcitationinfo(w DbWork, l DbWorkline) string {
 	cv := `
 		<p class="currentlyviewing">
@@ -278,6 +280,7 @@ func formatcitationinfo(w DbWork, l DbWorkline) string {
 	return cv
 }
 
+// basiccitation - produce a comma-separated citation from a DbWorkline
 func basiccitation(w DbWork, l DbWorkline) string {
 	cf := w.CitationFormat()
 	loc := l.FindLocus()
@@ -291,6 +294,7 @@ func basiccitation(w DbWork, l DbWorkline) string {
 	return fullcit
 }
 
+// buildbrowsertable - where the actual HTML gets generated
 func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	tr := `
             <tr class="browser">
@@ -382,6 +386,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	return tab
 }
 
+// selectivelydisplaycitations - only show line numbers every N lines, etc.
 func selectivelydisplaycitations(theline DbWorkline, previous DbWorkline, focus int64) string {
 	// figure out whether to display a citation
 	// pulled this out because it is common with the textbuilder (who will always send "0" as the focus)

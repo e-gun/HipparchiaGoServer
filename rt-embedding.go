@@ -13,35 +13,35 @@ var efs embed.FS
 
 func RtEmbJQuery(c echo.Context) error {
 	d := "emb/jq/"
-	return genericembedder(c, d)
+	return pathembedder(c, d)
 }
 
 func RtEmbExtraJS(c echo.Context) error {
 	d := "emb/extrajs/"
-	return genericembedder(c, d)
+	return pathembedder(c, d)
 }
 
 func RtEmbJS(c echo.Context) error {
 	d := "emb/js/"
-	return genericembedder(c, d)
+	return pathembedder(c, d)
 }
 
 func RtEmbHCSS(c echo.Context) error {
 	d := "emb/"
-	return genericembedder(c, d)
+	return pathembedder(c, d)
 }
 
 func RtEmbJQueryImg(c echo.Context) error {
 	d := "emb/jq/images/"
-	return genericembedder(c, d)
+	return pathembedder(c, d)
 }
 
 func RtEmbTTF(c echo.Context) error {
 	d := "emb/ttf/"
-	return genericembedder(c, d)
+	return pathembedder(c, d)
 }
 
-func genericembedder(c echo.Context, d string) error {
+func pathembedder(c echo.Context, d string) error {
 	f := c.Param("file")
 	j, e := efs.ReadFile(d + f)
 	if e != nil {
@@ -54,6 +54,25 @@ func genericembedder(c echo.Context, d string) error {
 		c.Response().Header().Add("Content-Type", "text/css")
 	}
 
+	return c.String(http.StatusOK, string(j))
+}
+
+func RtEbmFavicon(c echo.Context) error {
+	f := "emb/images/hipparchia_favicon.ico"
+	return fileembedder(c, f)
+}
+
+func RtEbmTouchIcon(c echo.Context) error {
+	f := "emb/images/hipparchia_apple-touch-icon-precomposed.png"
+	return fileembedder(c, f)
+}
+
+func fileembedder(c echo.Context, f string) error {
+	j, e := efs.ReadFile(f)
+	if e != nil {
+		msg(fmt.Sprintf("can't find %s", f), 1)
+		return c.String(http.StatusNotFound, "")
+	}
 	return c.String(http.StatusOK, string(j))
 }
 

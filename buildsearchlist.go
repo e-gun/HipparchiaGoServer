@@ -322,12 +322,20 @@ func sessionintosearchlist(s ServerSession) ProcessedList {
 
 	inc.Works = trim
 
+	inc.Passages = unique(inc.Passages)
+	inc.Works = unique(inc.Works)
+	inc.Authors = unique(inc.Authors)
+
+	exc.Passages = unique(exc.Passages)
+	exc.Works = unique(exc.Works)
+	exc.Authors = unique(exc.Authors)
+
 	var proc ProcessedList
 	proc.Inc = inc
 	proc.Excl = exc
 	proc.Size = sl
 
-	// fmt.Println(fmt.Sprintf("sessionintosearchlist(): proc is\n\t%s\n", proc))
+	// fmt.Println(fmt.Sprintf("sessionintosearchlist(): proc is\n\t%s\n", proc.Inc))
 	return proc
 }
 

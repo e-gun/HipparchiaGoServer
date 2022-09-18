@@ -462,6 +462,47 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	return s
 }
 
+// buildhollowsearch - is really a way to grab line collections via synthetic searchlists
+func buildhollowsearch() SearchStruct {
+	s := SearchStruct{
+		User:         "",
+		ID:           strings.Replace(uuid.New().String(), "-", "", -1),
+		Seeking:      "",
+		Proximate:    "",
+		LemmaOne:     "",
+		LemmaTwo:     "",
+		InitSum:      "",
+		Summary:      "",
+		ProxScope:    "",
+		ProxType:     "",
+		ProxVal:      0,
+		HasLemma:     false,
+		HasPhrase:    false,
+		IsVector:     false,
+		IsActive:     false,
+		OneHit:       false,
+		Twobox:       false,
+		NotNear:      false,
+		SkgRewritten: false,
+		PhaseNum:     0,
+		SrchColumn:   DEFAULTCOLUMN,
+		SrchSyntax:   DEFAULTSYNTAX,
+		OrderBy:      ORDERBY,
+		Limit:        FIRSTSEARCHLIM,
+		SkgSlice:     nil,
+		PrxSlice:     nil,
+		SearchIn:     SearchIncExl{},
+		SearchEx:     SearchIncExl{},
+		Queries:      nil,
+		Results:      nil,
+		Launched:     time.Now(),
+		TTName:       strings.Replace(uuid.New().String(), "-", "", -1),
+		SearchSize:   0,
+		TableSize:    0,
+	}
+	return s
+}
+
 func parsesearchinput(s *SearchStruct) {
 	// remove bad chars
 	// address uv issues; lunate issues; ...
