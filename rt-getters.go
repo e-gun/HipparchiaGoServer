@@ -318,24 +318,15 @@ func RtGetJSSearchlist(c echo.Context) error {
 
 	pattern := regexp.MustCompile(`(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`)
 	for _, p := range sl.Inc.Passages {
-		// "gr0032_FROM_11313_TO_11843"
-		subs := pattern.FindStringSubmatch(p)
-		au := subs[pattern.SubexpIndex("auth")]
-		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
-		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
-		f := graboneline(au, int64(st))
-		l := graboneline(au, int64(sp))
-		s := buildhollowsearch()
-		s.SearchIn.Passages = []string{p}
-		s.Queries = searchlistintoqueries(&s)
-		lines := HGoSrch(s)
-		count := 0
-		for _, ln := range lines.Results {
-			count += len(strings.Split(ln.Stripped, " "))
-		}
-		ct := m.Sprintf(`%s, <span class="italic">%s</span> %s - %s [%d words]`, AllAuthors[au].Cleaname, AllWorks[f.WkUID].Title, f.Citation(), l.Citation(), count)
-		wkk = append(wkk, ct)
+		cit, count := searchlistpassages(pattern, p)
+		wkk = append(wkk, cit)
 		tw += int64(count)
+	}
+
+	for _, p := range sl.Excl.Passages {
+		cit, count := searchlistpassages(pattern, p)
+		wkk = append(wkk, cit+"[EXCLUDED]")
+		tw -= int64(count)
 	}
 
 	if len(wkk) > MAXSEARCHINFOLISTLEN {
@@ -354,4 +345,25 @@ func RtGetJSSearchlist(c echo.Context) error {
 	b, e := json.Marshal(j)
 	chke(e)
 	return c.String(http.StatusOK, string(b))
+}
+
+func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
+	// "gr0032_FROM_11313_TO_11843"
+	m := message.NewPrinter(language.English)
+	subs := pattern.FindStringSubmatch(p)
+	au := subs[pattern.SubexpIndex("auth")]
+	st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
+	sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
+	f := graboneline(au, int64(st))
+	l := graboneline(au, int64(sp))
+	s := buildhollowsearch()
+	s.SearchIn.Passages = []string{p}
+	s.Queries = searchlistintoqueries(&s)
+	lines := HGoSrch(s)
+	count := 0
+	for _, ln := range lines.Results {
+		count += len(strings.Split(ln.Stripped, " "))
+	}
+	ct := m.Sprintf(`%s, <span class="italic">%s</span> %s - %s [%d words]`, AllAuthors[au].Cleaname, AllWorks[f.WkUID].Title, f.Citation(), l.Citation(), count)
+	return ct, count
 }
