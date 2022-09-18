@@ -1,10 +1,9 @@
-HipparchiaGoDBHelper
 .idea
 go.mod
 go.sum
 .DS_Store
 config*
-hgo-conf*
+hgs-conf*
 z_*
 /HipparchiaGoServer
 /HipparchiaGoServer-*

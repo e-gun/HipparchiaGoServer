@@ -25,11 +25,9 @@ func main() {
 
 	// go tool pprof --pdf ./HipparchiaGoServer /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1880749830/cpu.pprof > profile.pdf
 
-	versioninfo := fmt.Sprintf("%s CLI Debugging Interface (v.%s)", MYNAME, VERSION)
-	versioninfo = versioninfo + fmt.Sprintf(" [loglevel=%d]", cfg.LogLevel)
-	msg(versioninfo, 0)
-
 	configatlaunch()
+
+	printversion()
 
 	msg(fmt.Sprintf(TERMINALTEXT, PROJ, PROJYEAR, PROJAUTH, PROJMAIL), -1)
 
@@ -94,7 +92,7 @@ func configatlaunch() {
 	for i, a := range args {
 		switch a {
 		case "-v":
-			// version always printed anyway
+			printversion()
 			os.Exit(1)
 		case "-gl":
 			ll, e := strconv.Atoi(args[i+1])
@@ -153,4 +151,10 @@ func configatlaunch() {
 			DBName: PSQLDB,
 		}
 	}
+}
+
+func printversion() {
+	versioninfo := fmt.Sprintf("%s CLI Debugging Interface (v.%s)", MYNAME, VERSION)
+	versioninfo = versioninfo + fmt.Sprintf(" [loglevel=%d]", cfg.LogLevel)
+	msg(versioninfo, 0)
 }

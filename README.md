@@ -4,7 +4,7 @@
 
 ### status as of `v0.5.2`:
 
-* monolithic binary: no need for extra files/folders beyond `config.json`
+* monolithic binary: no need for extra files/folders beyond `hgs-conf.json`
 * searching theoretically fine but needs more testing/checking
 * browsing 
 * selections 

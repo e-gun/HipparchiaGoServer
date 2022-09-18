@@ -48,7 +48,7 @@ const (
 	VARIADATE               = 2000
 	AUTHENTICATIONREQUIRED  = false
 	GENRESTOCOUNT           = 5
-	CONFIGNAME              = "hgo-conf.json"
+	CONFIGNAME              = "hgs-conf.json"
 	CONFIGLOCATION          = "."
 	DEFAULTECHOLOGLEVEL     = 0
 	DEFAULTGOLOGLEVEL       = 0
