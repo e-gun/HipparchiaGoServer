@@ -26,10 +26,10 @@ $(document).ready( function () {
         if (document.getElementById('Interface').innerHTML === '<!-- placeholder -->') {
             $.getJSON('/get/json/helpdata', function (data) {
                 let l = data.helpcategories.length;
+                let hc = data.helpcategories;
                 for (let i = 0; i < l; i++) {
-                    let divname = data.helpcategories[i];
-                    if (data[divname].length > 0) {
-                        document.getElementById(divname).innerHTML = data[divname];
+                    if (data["HT"][hc[i]].length > 0) {
+                        document.getElementById(hc[i]).innerHTML = data["HT"][hc[i]];
                         }
                     }
                 });

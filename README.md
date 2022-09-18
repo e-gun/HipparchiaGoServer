@@ -1,8 +1,8 @@
 # HipparchiaGoServer
 
-## late alpha status: mostly does most of what you most want...
+## late alpha status: basically usable
 
-### status as of `v0.5.4`:
+### status as of `v0.5.6`:
 
 * monolithic binary: no need for extra files/folders beyond `hgs-conf.json`
 * searching theoretically fine but needs more testing/checking
@@ -18,9 +18,9 @@
 
 ### TODO (in vague order of priority)
 
+* update the help files so that they reflect HGS vs the python server
 * fix the less wonky lemma highlighting
 * index by frequency
-* help file loading
 * fix js so index will do status updates w/out needing to reload the page
 * saving/fetching searches
 
@@ -76,7 +76,10 @@ an uncompressed archive is c. `3.6GB`
 - you will be installing `Xcode` from apple first; then you can get `homebrew`; then you can ask for `postgresql`
   - so: `xcode-select --install` (say "yes" to all the stuff you have to agree to; it might take a while for this to download and install) 
   - then: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"` (will require your admin password)
-  - then: `brew install postgresql`
+  - then one of the following: 
+    - `/opt/homebrew/bin/brew install postgresql` (M1 macs) 
+    - `/usr/local/bin/brew install postgresql` (intel macs)
+  - then `brew services restart postgresql`
 
 ## notes on the EDB PostgreSQL Setup Wizard
 

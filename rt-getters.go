@@ -147,12 +147,48 @@ func RtGetJSWorksStruct(c echo.Context) error {
 }
 
 func RtGetJSHelpdata(c echo.Context) error {
-	// needs to return:
-	//{"helpcategories": ["Interface", "Browsing", "Dictionaries", "MakingSearchLists", "BasicSyntax", "RegexSearching",
-	// "SpeedSearching", "LemmaSearching", "VectorSearching", "Oddities", "Extending", "IncludedMaterials", "Openness"],
-	// "Interface": "(the_html)", "Browsing": "(the_html)", ...}
-	msg("called empty placeholder function: RtGetJSHelpdata()", 1)
-	return c.String(http.StatusOK, "")
+	// populate <div id="helptabs"> on frontpage.html via $('#helpbutton').click in documentready_go.js
+
+	cat := []string{"Interface", "Browsing", "Dictionaries", "MakingSearchLists", "BasicSyntax", "RegexSearching",
+		"SpeedSearching", "LemmaSearching", "Oddities", "Extending", "IncludedMaterials"}
+
+	fm := make(map[string]string)
+	fm["Browsing"] = "helpbrowsing.html"
+	fm["Dictionaries"] = "helpdictionaries.html"
+	fm["MakingSearchLists"] = "helpsearchlists.html"
+	fm["BasicSyntax"] = "helpbasicsyntax.html"
+	fm["RegexSearching"] = "helpregex.html"
+	fm["SpeedSearching"] = "helpspeed.html"
+	fm["LemmaSearching"] = "helplemmata.html"
+	// fm["VectorSearching"] = "helpvectors.html"
+	fm["Oddities"] = "helpoddities.html"
+	fm["Extending"] = "helpextending.html"
+	fm["IncludedMaterials"] = "includedmaterials.html"
+	// fm["Openness"] = "helpopenness.html"
+	fm["Interface"] = "helpinterface.html"
+
+	type JSOut struct {
+		HC []string `json:"helpcategories"`
+		HT map[string]string
+	}
+
+	hc := make(map[string]string)
+
+	for k, v := range fm {
+		b, e := efs.ReadFile("emb/h/" + v)
+		chke(e)
+		hc[k] = string(b)
+	}
+
+	var j JSOut
+	j.HC = cat
+	j.HT = hc
+
+	js, e := json.Marshal(j)
+	chke(e)
+
+	return c.String(http.StatusOK, string(js))
+
 }
 
 func RtGetJSAuthorinfo(c echo.Context) error {

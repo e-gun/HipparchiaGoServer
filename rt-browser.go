@@ -344,7 +344,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		for w, _ := range wds {
 			cv := capsvariants(wds[w])
 
-			pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s|\\[|\\>|⟨|‘|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|,|;|\\?|·|$)", cv))
+			pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s|\\[|\\>|⟨|‘|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|\\!|,|;|\\?|·|$)", cv))
 			if e == nil {
 				// you will barf if wds[w] = *
 				newline = pattern.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)

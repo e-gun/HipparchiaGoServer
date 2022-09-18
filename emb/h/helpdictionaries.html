@@ -1,0 +1,379 @@
+
+<br />
+The dictionary data is connected to a parser table. This enables you to <span class="emph">click on a word</span> in the text browser and to (ideally) get a
+morphological analysis as well as a definition. See also <span class="emph">Peculiarities and Gotchas</span> for more about the force of "ideally"
+in the previous sentence.
+<br />
+The window that pops up will contain:
+<ul class="numbered">
+    <li>a line with a count of <span class="emph">all occurrences of this form</span> in the available data. For example <code>ὑμᾶϲ</code> yields:
+        <ul class="roman">
+            <li>Prevalence (this form): Ⓖ 22,231 / Ⓛ 1 / Ⓘ 361 / Ⓓ 985 / Ⓒ 39 / Ⓣ 23,617</li>
+            <li>each circled letter corresponds to a database:
+                <ul>
+                    <li>Ⓖreek</li>
+                    <li>Ⓛatin</li>
+                    <li>Ⓘnscriptions I</li>
+                    <li>Ⓓocumentary Papyri</li>
+                    <li>(Ⓒhristian Era) Inscriptions II</li>
+                    <li>There is also a Ⓣotal</li>
+                </ul>
+            </li>
+        </ul>
+        NB: some texts (and their attendant vocabulary) appear more than once in the data.
+        This is not just an issue of later authors quoting earlier ones.
+        Plato Comicus is present both in all of the authors who quote him and as an author in his own right.
+        Similarly the same inscription might be in two different editions that are both part present in the corpus.
+        An example of <span class="emph">"four occurrences" that are really just one</span>. [A dating issue that
+        becomes apparant as well]:
+        <ul>
+            <li>[1]   [50 CE] Attica (Suppl. Epigr. Gr. 1-41 [SEG]), 19:222: line 9	[οὔ]τι γὰρ εὐπαλέϲ ἐϲτι· Δᾶτίϲ τ’ ἀγαϲ — —</li>
+            <li>[2]   [100 CE] Attica (Pouilloux, Forteresse de Rhamnonte), 52: line 9	[οὔ]τι γὰρ εὐπαλέϲ ἐϲτι· Δᾶτιϲ τ’ ἀγαϲ[ —</li>
+            <li>[3]   Lyrica Adespota, Fragmenta: 14.1.9	οὔ]τι γὰρ εὐπαλέϲ ἐϲτι· Δατιϲ τ’ ἀγα∙[</li>
+            <li>[4]   [date unknown] Attica (Peek, "Nachträge", MDAI(A) 67 (1942)), 159,333: line 9	[οὔ]τι γὰρ εὐπαλέϲ ἐϲτι· Δᾶτιϲ τ’ ἀγαϲ —</li>
+        </ul>
+    </li>
+    <li>then you will see a list of <span class="emph">parsing analyses</span> for this form
+        <ul>
+            <li>(1) ὑμᾶϲ (from ϲύ, thou): acc 2nd pl </li>
+            <li>(2) ὑμᾶϲ (from ὑμόϲ, your): fem gen sg (epic doric aeolic) </li>
+        </ul>
+    </li>
+    <li>next you will see the start of the dictionary entry to the first matching headword</li>
+    <li>after this you see a second set of <span class="emph">prevalence data</span>. This time the numbers reflect
+        <span class="emph">all occurrences of all (known) forms</span> of the word.
+        The results for <code>εἰμι</code> are a composite of the results for
+        <span class="emph">413</span> individual forms:
+        <code>... 'ἔϲται', 'ἔϲτε', 'ἔϲτι', 'ἔϲτιν', 'ἔϲτον', 'ἔϲτω' ...</code>. NB: <span class="emph">homonyms</span>
+        will get swept up in this net.
+        That means that "to eat" will be marked as a very prevalent verb because "he/she/it eats" (<code>est</code>)
+        is an astoundingly common verb form.
+        Meanwhile there are words are in the database that are not <span class="emph">'known' forms</span> of a
+        headword even though a clever person will be able to parse them: <code> ⒣εκατόν</code> and <code>ϲιδε̄ραῖ</code>,
+        for example. The latter word might not even display properly because it violates 'the rules'.
+        See <span class="italic">Peculiarities and Gotchas</span> for more about this issue.
+    </li>
+    <li>
+        The <span class="emph">weighted chronological distribution</span> combines a series of assumptions and calculations.
+        <ul class="roman">
+            <li>All forms of all words are sorted into three eras. <span class="emph">Early</span> or ⓔ is 850BCE to 300BCE.
+                <span class="emph">Middle</span> or ⓜ is 299BCE to 300CE. <span class="emph">Late</span> or ⓛ is 301CE to 1500CE.</li>
+            <li>Words that have no date associated with them are ignored. Moreover as <span class="emph">Peculiarities and Gotchas</span> will tell you,
+                <span class="emph">"The margin of error is at least 50 years."</span></li>
+            <li>After the results for all forms of each word have been sifted into three chronological piles a
+                <span class="emph">weight</span> is applied to this number.</li>
+            <li>This wieght is derived from the fact that there are roughly 1/8 as many words preserved from the early
+                period as there are from the late period. Similarly there are about 1/2 as many words in the middle era
+                as there are in the late era. Accordingly, <span class="emph">100 early hits have the weight of about 800 late hits</span> when
+                it comes time to decide if the word is, relatively speaking, more of an 'early' word than a 'late' word.
+            </li>
+            <li>The final weighting score normalizes all three numbers to make them comparable to one another. Then
+            <span class="emph">the maximum of the three is given a value of 100</span>. Then the other two are represented in relation to that 100.</li>
+            <li><code>τύμμα</code> yields: ⓜ 100  / ⓔ 37 / ⓛ 35. This means that, relative to the middle period, the early and late periods are only
+                about 1/3 as likely to use the word. And so one would plausibly describe it as more typical of that era than of the others. </li>
+            <li>No account is taken of which words exist in later periods only via quotations of earlier periods. </li>
+            <li>These figures are meant to give you general ideas about further queries, not to be some sort of final word. The results are
+                quite accurate, but there are a number of quirks in the data from which they are derived that you would need to appreciate before
+                making a categorical statement on the basis of these figures.</li>
+        </ul>
+    </li>
+
+    <li>
+        <span class="emph">Weighted distribution by corpus</span> is calculated according to the same logic as the weight is applied to the chronological
+        distribution of words. The <span class="emph">radical disparity in the size of the various corpora</span> can distort
+        the results if a rare word appears in a small corpus.
+        <ul class="roman">
+            <li>Ⓖ is the largest with 98,957,805 words.</li>
+            <li>Compared to Ⓖ, Ⓛ is only about 1/11 as large, Ⓘ is 1/28th as large, Ⓓ is 1/28th as large, and Ⓒ is 1/130th as large.
+            Furthermore Ⓒ is strongly bilingual, so this further distorts the weight of an individual word in it as against
+                some other largely monolingual corpus.</li>
+            <li>The final weighting score normalizes all five numbers to make them comparable to one another. Then
+                <span class="emph">the maximum of the five is given a value of 100</span>. </li>
+            <li>Many words are strongly associated with one corpus or another. And in that sense one can say that they are
+            more 'literary' or 'civic' or 'legal' or 'religious' depending on the pattern.</li>
+            <ul class="forexample">
+                <li><code>ψήφιϲμα</code> yields: Ⓘ 100 / Ⓖ 2 / Ⓒ 1 / Ⓓ 1 / Ⓛ 0. Even though there are over 2100 examples in the Greek
+                    literary corpus, there are 4000 examples among the inscriptions. And <span class="emph">each of those 4000 'weighs' 28x as much</span> as
+                each of the 2100. Accordingly the word, though quite common in the Greek corpus comes across looking like it might
+                be somehow rare. Well, it is, at least when compared to its ubiquity in the inscriptions.</li>
+                <li><code>οἶδα</code> yields: Ⓓ 100 / Ⓖ 85 / Ⓘ 25 / Ⓒ 11 / Ⓛ 0. This probably tells you something about the documentary papyri.</li>
+                <li>It comes as little surprise that <code>δυϲτυχήϲ</code> is weighted towards the literary authors: Ⓖ 100 / Ⓒ 25 / Ⓘ 13 / Ⓓ 2 / Ⓛ 0.
+                    If you search for it among the inscriptions the results will generally be gravestones.</li>
+                <li><code>requies</code> is so common in epitaphs that this drowns out the Latin literary uses:  Ⓒ 100 / Ⓛ 6 / Ⓓ 0 / Ⓘ 0 / Ⓖ 0.</li>
+            </ul>
+
+        </ul>
+    <li>
+        <span class="emph">Weighted distribution by genre</span> is calculated as are its kindred categories above. There are a few of twists.
+        The TLG assigned (almost every) work to one of 75(!) genres. 15 of these genres were 'theological'. And several were 'rhetorical'.
+        The default is to aggregate 'Acta', 'Apocalyp.', 'Apol.', etc. under the heading <span class="emph">allrel</span>. Similarly 'Encom.' and 'Invect.' become
+        part of <span class="emph">allrhet</span>. But you can turn this behavior off in <code>config.py</code>. The LAT data was not assigned to genres.
+        It has been forced into the TLG genres with one addition: 'Agric.'. But often the fit is not all that tidy. And some works
+        should probably be shifted.
+        Words are distributed among genres differently in Latin and Greek: for example, "History" dominates the one and "Commentary" the other.
+        And there is no "Agric." in the Greek corpus, but these comprise a major set of writings in the Latin corpus. 'Jurisprud.'
+        is proportionally a much more significant body of writing in Latin than it is in Greek.
+        So there are two sets of weighting scores, one for each language.
+        Many genres have a small number of words in them. This is especially true for the LAT data in that the only
+        words for a given genre are often Latin editorial notes in a Greek text. One match will have a totally unrealistic weight score. A 'vel sim.'
+        inserted into a greek meterorological text would make it seem like 'vel' is an incredibly important word for
+        meteorologists if you allow 'meterolog' to have a weight of 21714.12 relative to 'hist' owing to the disparity in size
+        between the corpora: huge vs. basically non-existant (since no Latin works are actually tagged as meteorological).
+        The default is to suppress genre weighting for any genre that is <1/500th the size of the top genre.
+        The most represented genres are compared to one another in descending order.
+        <ul class="forexample">
+            <li><code>παράδειϲοϲ</code> yields: docu (100) / hymn (85) / orac (30) / narrfict (24) / hexametr (23)</li>
+            <li><code>κατεϲθίω</code> yields: fab (100) / comic (44) / paradox (29) / polyhist (28) / myth (20)</li>
+            <li><code>contio</code> yields: hist (100) / allrhet (79) / biogr (75) / polyhist (69) / tact (56)</li>
+            <li><code>letifer</code> yields: epic (100) / lyr (30) / hexametr (23) / astron (20) / poem (17)</li>
+        </ul>
+        And so one can say that you are about 4x as likely to see παράδειϲοϲ in one of the documentary papyri as you are
+        to see it in an ancient novel even though the novel is itself one of the most likely places to find the word. Similarly
+        "gobbling up" is something that happens in fables and in comedy, but it is more common in the one than the other.
+        <span class="italic">Contiones</span> are likely events among a variety of prose genres.
+        "Death-bringing" is a poetic conceit, but it is especially an epic one.
+    </li>
+
+    <li>
+        You may also be shown a <span class="emph">relative frequency</span> label. This label will not be shown for 'core vocabulary' as defined below.
+        <ul class="roman">
+            <li>The corpora have been sliced into <span class="emph">five subdivisions</span>: top 250, top 2500, core vocabulary, rare, and very rare</li>
+            <ul class="forexample">
+                <li><span class="emph">Core</span> corresponds to the semi-arbitrary cut-off of >50 uses of a word.</li>
+                <li><span class="emph">Rare</span> implies between 50 and 5 uses.</li>
+                <li><span class="emph">Very rare</span> words are used fewer than 5 times.</li>
+            </ul>
+            <li>These divisions reflect the <span class="emph">logarithmic distribution</span> of word frequencies. A small number of words are
+            exceptionally common. A large number of words are extremely uncommon. But the curve shape of the word distributions means that
+                <span class="emph">the averages and the medians tend to be
+                    severly disparate</span> within each class.</li>
+            <li> Some raw data follows. These numbers will change as the parser is adjusted, but not so much as to distort the general shape of the data.
+                <code>count</code> is the number of dictionary entries inside of a heading. The other numbers are the distribution of occurrences.
+                If <code>low</code> is 39356, then you need at least 39356 uses to make it into that category
+            </li>
+        </ul>
+    </li>
+
+<pre>
+
+per corpus counts
+    'gr': 98,970,519
+    'lt': 9,435,706
+    'in': 3,540,624
+    'dp': 3,606,545
+    'ch': 808,509
+
+greek
+
+    full set
+    count	113010
+    high	3649037 [it's καί, FYI]
+    low	1
+    average	794
+    median	7
+
+top 250
+    count	250
+    high	3649037
+    low	39356
+    average	218482
+    median	78551
+
+top 2500
+    count	2250
+    high	38891
+    low	3486
+    average	9912
+    median	7026
+
+core (not in top 2500; >50 occurrences)
+    count	25901
+    high	3479
+    low	51
+    average	466
+    median	196
+
+rare (between 50 and 5 occurrences)
+    count	32614
+    high	50
+    low	6
+    average	18
+    median	15
+
+very rare (fewer than 5 occurrences)
+    count	48003
+    high	4
+    low	1
+    average	1
+    median	2
+
+
+latin
+
+full set
+    count	27960
+    high	244812
+    low	1
+    average	348
+    median	11
+
+top 250
+    count	250
+    high	244812
+    low	5859
+    average	19725
+    median	10358
+
+top 2500
+    count	2250
+    high	5843
+    low	541
+    average	1565
+    median	1120
+
+core (not in top 2500; >50 occurrences)
+    count	6149
+    high	541
+    low	51
+    average	181
+    median	139
+
+rare (between 50 and 5 occurrences)
+    count	8095
+    high	50
+    low	6
+    average	19
+    median	16
+
+very rare (fewer than 5 occurrences)
+    count	10404
+    high	4
+    low	1
+    average	1
+    median	2
+
+GREEK
+Comm.		10,939,364
+Exeget.		8,846,704
+Hist.		7,622,971
+Inscr.		5,736,904
+Med.		4,863,957
+Docu.		4,108,146
+Phil.		2,960,832
+Lexicogr.	2,645,407
+Chronogr.	2,403,380
+Epist.		2,325,234
+Caten.		2,101,547
+Schol.		1,968,642
+Theol.		1,742,265
+Biogr.		1,712,397
+Orat.		1,640,409
+Homilet.	1,593,483
+Apol.		1,562,718
+Dialog.		1,540,843
+Eccl.		1,445,473
+Gramm.		1,265,294
+Rhet.		1,261,290
+Nat. Hist.	1,130,914
+Math.		1,103,492
+Geogr.		1,018,141
+Epigr.		1,006,589
+Hypoth.		844,452
+Encom.		830,935
+Narr. Fict.	748,164
+Concil.		653,271
+Anthol.		618,917
+Epic.		564,955
+Astrol.		528,929
+Hagiogr.	479,241
+Polyhist.	439,216
+Comic.		369,416
+Trag.		305,584
+Astron.		244,611
+Hymn.		227,033
+Jurisprud.	212,761
+Tact.		210,323
+Poem.		174,143
+Paroem.		166,820
+Test.		164,425
+Alchem.		151,659
+Magica		128,128
+Acta		128,126
+Gnom.		123,554
+Apocryph.	121,854
+Prophet.	114,531
+Mus.		113,577
+Satyr.		113,029
+Mech.		105,758
+Hexametr.	98,752
+Apocalyp.	92,952
+Evangel.	92,189
+Iamb.		89,502
+Doxogr.		83,611
+Fab.		77,654
+Onir.		75,365
+Eleg.		58,163
+Myth.		54,213
+Lyr.		51,255
+Perieg.		49,638
+Invectiv.	45,859
+Orac.		45,491
+Paradox.	40,923
+Metrolog.	39,523
+Satura		37,517
+Bucol.		26,255
+Liturg.		20,582
+Coq.		20,534
+Pseudepigr.	17,885
+Physiognom.	17,398
+Parod.		13,156
+Mim.		5,009
+Ignotum		89
+Agric.		0
+
+
+LATIN
+Hist.		1,040,043
+Jurisprud.	936,812
+Inscr.		801,908
+Orat.		573,366
+Nat. Hist.	535,714
+Epist.		505,214
+Comm.		462,756
+Phil.		452,337
+Epic.		438,017
+Rhet.		384,113
+Comic.		246,612
+Polyhist.	218,891
+Agric.		197,449
+Gramm.		181,030
+Docu.		167,928
+Med.		143,202
+Eleg.		124,507
+Biogr.		105,398
+Narr. Fict.	88,986
+Trag.		78,188
+Poem.		72,498
+Astron.		60,652
+Hexametr.	51,826
+Satura		45,194
+Lyr.		41,989
+Fab.		40,934
+Lexicogr.	37,569
+Tact.		27,663
+Bucol.		25,732
+Coq.		17,334
+Gnom.		7,061
+Parod.		3,064
+Encom.		2,569
+Ignotum		1,772
+Epigr.		1,553
+Hypoth.		1,363
+Mim.		994
+Dialog.		918
+
+
+            </pre></li>
+        </ul>
+    </li>
+</ul>
