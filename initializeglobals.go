@@ -173,8 +173,7 @@ func workmapper() map[string]DbWork {
 
 	defer foundrows.Close()
 	for foundrows.Next() {
-		// fmt.Println(foundrows.Values())
-		// this will die if <nil> comes back inside any of the columns
+		// this will die if <nil> comes back inside any of the columns; and so you have to use builds from HipparchiaBuilder 1.6.0+
 		var thehit DbWork
 		err := foundrows.Scan(&thehit.UID, &thehit.Title, &thehit.Language, &thehit.Pub, &thehit.LL0,
 			&thehit.LL1, &thehit.LL2, &thehit.LL3, &thehit.LL4, &thehit.LL5, &thehit.Genre,
@@ -205,9 +204,7 @@ func authormapper() map[string]DbAuthor {
 
 	defer foundrows.Close()
 	for foundrows.Next() {
-		// fmt.Println(foundrows.Values())
-		// this will die if <nil> comes back inside any of the columns: "cannot scan null into *string"
-		// the builder should address this: fixing it here is less ideal
+		// this will die if <nil> comes back inside any of the columns; and so you have to use builds from HipparchiaBuilder 1.6.0+
 		var thehit DbAuthor
 		err := foundrows.Scan(&thehit.UID, &thehit.Language, &thehit.IDXname, &thehit.Name, &thehit.Shortname,
 			&thehit.Cleaname, &thehit.Genres, &thehit.RecDate, &thehit.ConvDate, &thehit.Location)

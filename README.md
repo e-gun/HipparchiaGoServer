@@ -59,10 +59,10 @@ an uncompressed archive is c. `3.6GB`
 ## some further notes
 
 - ask google about adding a user and database to postgresql; but the easiest way is probably:
-  - execute `psql` from the command line of a terminal. NB: `Postgres.app` on macOS will install `psql` somewhere where you can't just type `psql` to get into the database...
-  - then send the next two commands from the postgres shell
+  - execute `psql` from the command line of a terminal. NB: `Postgres.app` on macOS will install `psql` somewhere where you can't just type `psql postgres` to get into the database...
+  - then send the next two commands from the postgres shell:
     - `CREATE USER hippa_wr;`
-    - `CREATE DATABASE hipparchiaDB;`
+    - `CREATE DATABASE "hipparchiaDB";`
   - exit postgresql by telling it `\q`
 - loading the archive is also easy if you are in the right directory; but you need to know where you are...
   - loading can take several minutes
