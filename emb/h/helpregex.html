@@ -1,7 +1,6 @@
 
 Regular expressions allow you to search for patterns and to use wildcards. Regex is a dark art unto itself.
-Consult the <a href="https://www.postgresql.org/docs/9.6/static/functions-matching.html">manual directly</a>.
-Or consider looking at a <a href="https://github.com/zeeshanu/learn-regex">tutorial</a>.
+Consider looking at a <a href="https://github.com/zeeshanu/learn-regex">tutorial</a>.
 Regex searching remains a bit glitchy given the inherent complexity of regex itself when combined with the complex
 internal structure of the data you are searching: double-checking your results is recommended.
 <br /><br />
@@ -27,7 +26,7 @@ Here are some examples that give you an idea of the sort of things that are poss
     <li><code>\s\w\w\s\w\w\s\w\w\s\w\w\s</code> will find all runs of four words of two letters each.</li>
     <li><code>t.t.t.t.t.</code> will find places where you have 't + anything' five times in a row. Another way
         of writing this same expression is <code>(t.){5}</code>. <span class="emph">Note:</span> some of these
-        characters have likely beed disabled: <code>(</code> is disallowed by default.
+        characters have likely been disabled.
         Your results will be <span class="lat">heres ei extitit Titius</span>; and <span class="lat">nec diu restitit: tota...</span>
         Note that the whitespace between <span class="lat">extitit</span> and <span class="lat">Titius</span> qualified
         as 'anything' in the first match. But you might have composed the search with something else in mind.</li>
@@ -66,8 +65,6 @@ A search like
 <span class="emph">your regex (typically) cannot look outside of a single database line</span>. The sort of multi-line searching via
 regex that one might do in a flat text file will fail to find all occurrences of the expression.
 But this can find things like "τὼ δέ οἱ οὔ" and "δὲ μή τί με" in Homer.
-[NB: if you have <code>TLGASSUMESBETACODE</code> set to "yes" and only the Greek corpus active, then your seach will "magically" turn into
-<code>\ϲ\ὼὼϲ\ὼὼϲ\ὼὼϲ\ὼὼϲ</code>. Either change your settings or add a corpus to dodge this issue.]
 <br />
 <br />
 What <span class="emph">typically</span> really means in that notice above is this: a "phrase search" will open up a three line window and can catch multi-line runs:

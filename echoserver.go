@@ -6,6 +6,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -112,6 +113,7 @@ func StartEchoServer() {
 	//
 
 	// [f1a] /get/response/cookie
+
 	// [f1b] /get/response/vectorfigure
 	// [f2a] /get/json/sessionvariables
 	e.GET("/get/json/sessionvariables", RtGetJSSession)
@@ -252,6 +254,14 @@ func StartEchoServer() {
 	e.GET("/favicon.ico", RtEbmFavicon)
 	e.GET("/apple-touch-icon-precomposed.png", RtEbmTouchIcon)
 
+	// [q] cookies
+
+	// [q1] set
+	e.GET("/sc/set", RtSessionSetsCookie)
+
+	// [q2] get
+	e.GET("/sc/get/:num", RtSessionGetCookie)
+
 	// [z] testing
 	e.GET("/t", RtTest)
 
@@ -264,6 +274,45 @@ func StartEchoServer() {
 
 func RtAuthChkuser(c echo.Context) error {
 	return c.String(http.StatusOK, "")
+}
+
+func RtSessionSetsCookie(c echo.Context) error {
+	user := readUUIDCookie(c)
+	s := sessions[user]
+	o, e := json.Marshal(s)
+	chke(e)
+	return c.String(http.StatusOK, string(o))
+}
+
+func RtSessionGetCookie(c echo.Context) error {
+	// this code has input trust issues...
+	user := readUUIDCookie(c)
+	num := c.Param("num")
+	cookie, err := c.Cookie("session" + num)
+	if err != nil {
+		msg(fmt.Sprintf("RtSessionGetsCookie failed to read cookie %s for %s", num, user), 1)
+		return c.String(http.StatusOK, "")
+	}
+
+	var s ServerSession
+	// invalid character '%' looking for beginning of object key string:
+	// {%22ID%22:%22723073ae-09a7-4b24-a5d6-7e20603d8c44%22%2C%22IsLoggedIn%22:true%2C...}
+	cv := strings.Replace(cookie.Value, `%22`, `"`, -1)
+	cv = strings.Replace(cv, `%2C`, `,`, -1)
+
+	err = json.Unmarshal([]byte(cv), &s)
+	if err != nil {
+		// invalid character '%' looking for beginning of object key string
+		msg(fmt.Sprintf("RtSessionGetsCookie failed to unmarshal cookie %s for %s", num, user), 1)
+		fmt.Println(err)
+		return c.String(http.StatusOK, "")
+	}
+
+	sessions[user] = s
+
+	e := c.Redirect(http.StatusFound, "/")
+	chke(e)
+	return nil
 }
 
 func RtResetSession(c echo.Context) error {

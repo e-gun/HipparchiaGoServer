@@ -22,7 +22,6 @@
 * fix the less wonky lemma highlighting
 * index by frequency
 * fix js so index will do status updates w/out needing to reload the page
-* saving/fetching searches
 
 ### DISTANT FANTASIES
 * vectors

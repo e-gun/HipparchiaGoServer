@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                  = "Hipparchia Golang Server"
 	SHORTNAME               = "HGS"
-	VERSION                 = "0.5.6"
+	VERSION                 = "0.5.7"
 	SERVEDFROMHOST          = "127.0.0.1"
 	SERVEDFROMPORT          = 8000
 	DBAUMAPSIZE             = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
@@ -44,15 +44,16 @@ const (
 	MINDATESTR              = "-850"
 	ORDERBY                 = "index"
 	SORTBY                  = "shortname"
-	TEMPTABLETHRESHOLD      = 100            // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
-	UNACCEPTABLEINPUT       = `|"'!@:,=+_\/` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
-	VARIADATE               = 2000
-	AUTHENTICATIONREQUIRED  = false
-	GENRESTOCOUNT           = 5
-	CONFIGNAME              = "hgs-conf.json"
-	CONFIGLOCATION          = "."
-	DEFAULTECHOLOGLEVEL     = 0
-	DEFAULTGOLOGLEVEL       = 0
+	TEMPTABLETHRESHOLD      = 100 // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
+	// UNACCEPTABLEINPUT       = `|"'!@:,=+_\/` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
+	UNACCEPTABLEINPUT      = `"'!@:,=+_/` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
+	VARIADATE              = 2000
+	AUTHENTICATIONREQUIRED = false
+	GENRESTOCOUNT          = 5
+	CONFIGNAME             = "hgs-conf.json"
+	CONFIGLOCATION         = "."
+	DEFAULTECHOLOGLEVEL    = 0
+	DEFAULTGOLOGLEVEL      = 0
 
 	PSQLHOST  = "127.0.0.1"
 	PSQLUSER  = "hippa_wr"
