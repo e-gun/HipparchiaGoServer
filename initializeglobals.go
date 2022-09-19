@@ -248,7 +248,7 @@ func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[stri
 	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 	// fmt.Printf("wl %d vs al %d", len(worklists), len(keys))  : wl 3455 vs al 3455
 
-	// [2b] build a *slice* of []DbAuthor since we can's modify a.WorkList in a map VERSION
+	// [2b] build a *slice* of []DbAuthor since we can's modify a.WorkList in a map version
 	asl := make([]DbAuthor, len(keys))
 	ct = 0
 	for _, k := range keys {
@@ -284,15 +284,14 @@ func lemmamapper() map[string]DbLemma {
 	// a list of 140k words is too long to send to 'getlemmahint' without offering quicker access
 	// [HGS] [D: 0.199s][Δ: 0.199s] unnested lemma map built
 
-	unnested := make(map[string]DbLemma, DBLMMAPSIZE)
-
 	langs := [2]string{"greek", "latin"}
 	t := `SELECT dictionary_entry, xref_number, derivative_forms FROM %s_lemmata`
 
 	dbpool := GetPSQLconnection()
 	defer dbpool.Close()
 
-	var thefinds []DbLemma
+	thefinds := make([]DbLemma, DBLEMMACOUNT)
+	count := 0
 	for _, lg := range langs {
 		q := fmt.Sprintf(t, lg)
 		foundrows, err := dbpool.Query(context.Background(), q)
@@ -302,11 +301,14 @@ func lemmamapper() map[string]DbLemma {
 			var thehit DbLemma
 			err := foundrows.Scan(&thehit.Entry, &thehit.Xref, &thehit.Deriv)
 			chke(err)
-			thefinds = append(thefinds, thehit)
+			thefinds[count] = thehit
+			count += 1
 		}
 	}
+
 	clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "", "j", "i", "v", "u")
 
+	unnested := make(map[string]DbLemma, DBLMMAPSIZE)
 	for _, lm := range thefinds {
 		cl := clean.Replace(lm.Entry)
 		lm.Entry = cl
@@ -320,21 +322,22 @@ func lemmamapper() map[string]DbLemma {
 
 // nestedlemmamapper - map[string]map[string]DbLemma for the hinter
 func nestedlemmamapper(unnested map[string]DbLemma) map[string]map[string]DbLemma {
-	// you need both a nested and the unnested VERSION; nested for the hinter
-	// [HGS] [E: 2.284s][Δ: 2.284s] nested lemma map built
-	nested := make(map[string]map[string]DbLemma)
+	// you need both a nested and the unnested version; nested for the hinter
+	nested := make(map[string]map[string]DbLemma, NESTEDLEMMASIZE)
+	swap := strings.NewReplacer("j", "i", "v", "u")
 	for k, v := range unnested {
 		bag := string([]rune(v.Entry)[0:2])
 		bag = stripaccentsSTR(bag)
 		bag = strings.ToLower(bag)
-		bag = strings.Replace(bag, "j", "i", -1)
-		bag = strings.Replace(bag, "v", "u", -1)
+		bag = swap.Replace(bag)
 		if _, y := nested[bag]; !y {
 			nested[bag] = make(map[string]DbLemma)
+			nested[bag][k] = v
 		} else {
 			nested[bag][k] = v
 		}
 	}
+
 	return nested
 }
 

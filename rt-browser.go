@@ -19,27 +19,6 @@ import (
 // ROUTING
 //
 
-// RtBrowseline - open a browser if sent '/browse/linenumber/lt0550/001/1855'
-func RtBrowseline(c echo.Context) error {
-	// sample input: '/browse/linenumber/lt0550/001/1855'
-	user := readUUIDCookie(c)
-
-	locus := c.Param("locus")
-	elem := strings.Split(locus, "/")
-	if len(elem) == 3 {
-		au := elem[0]
-		wk := elem[1]
-		ln, e := strconv.Atoi(elem[2])
-		chke(e)
-		ctx := sessions[user].UI.BrowseCtx
-		js := HipparchiaBrowser(au, wk, int64(ln), ctx)
-		return c.String(http.StatusOK, string(js))
-	} else {
-		msg(fmt.Sprintf("RtBrowseline() could not parse %s", locus), 3)
-		return c.String(http.StatusOK, "")
-	}
-}
-
 // RtBrowseLocus - open a browser if sent '/browse/locus/gr0086/025/999a|_0'
 func RtBrowseLocus(c echo.Context) error {
 	// sample input: http://localhost:8000/browse/locus/gr0086/025/999a|_0
@@ -60,6 +39,29 @@ func RtBrowseRaw(c echo.Context) error {
 	sep := "."
 	bp := Browse(c, sep)
 	return c.String(http.StatusOK, bp)
+}
+
+// RtBrowseline - open a browser if sent '/browse/linenumber/lt0550/001/1855'
+func RtBrowseline(c echo.Context) error {
+	// sample input: '/browse/linenumber/lt0550/001/1855'
+	// the one route that calls HipparchiaBrowser() directly
+
+	user := readUUIDCookie(c)
+
+	locus := c.Param("locus")
+	elem := strings.Split(locus, "/")
+	if len(elem) == 3 {
+		au := elem[0]
+		wk := elem[1]
+		ln, e := strconv.Atoi(elem[2])
+		chke(e)
+		ctx := sessions[user].UI.BrowseCtx
+		js := HipparchiaBrowser(au, wk, int64(ln), ctx)
+		return c.String(http.StatusOK, string(js))
+	} else {
+		msg(fmt.Sprintf("RtBrowseline() could not parse %s", locus), 3)
+		return c.String(http.StatusOK, "")
+	}
 }
 
 //

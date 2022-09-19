@@ -1,8 +1,8 @@
 # HipparchiaGoServer
 
-## late alpha status: basically usable
+## late alpha status: usable, but needs polish in many quarters
 
-### status as of `v0.5.6`:
+### status as of `v0.5.9`:
 
 * monolithic binary: no need for extra files/folders beyond `hgs-conf.json`
 * searching theoretically fine but needs more testing/checking
@@ -21,8 +21,17 @@
 * update the help files so that they reflect HGS vs the python server
 * fix the less wonky lemma highlighting
 * index by frequency
+* keying for multiple author/work indexing (this will also show that not all works of an author are being indexed ATM)
 * next/previous clicks don't work in dictionary 
 * fix js so index will do status updates w/out needing to reload the page
+* fix bracket formatting for "Bull. corr. hellénique \[BCH\], 1964﹕388" and its ilk: ∙∙ι μαρτύρων μηδ’ ἔχο̣ι τῶν ∙ ∙ ∙ΠΛ∙∙Ν∙∙ΑΙ ἐλεύθ\[class="editorialmarker_squarebrackets">ε\]-
+* fix formatting error at C. ad fam 9.19.sa.1, etc: `hmu_metadata_`
+```hipparchiaDB=# select index, marked_up_line from lt0474 where index = 116946;
+    index  |                                                                                                         marked_up_line
+    --------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    116946 | <hmu_metadata_documentnumber value="177" /><hmu_metadata_provenance value="in Cumano" /><hmu_metadata_date value="xiii Kal. Dec.(?) 46" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CICERO PAETO
+    (1 row)
+```
 
 ### DISTANT FANTASIES
 * vectors
