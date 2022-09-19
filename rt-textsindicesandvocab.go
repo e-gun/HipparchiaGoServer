@@ -45,8 +45,46 @@ func RtTextMaker(c echo.Context) error {
 	firstwork := AllWorks[firstline.WkUID]
 	firstauth := AllAuthors[firstwork.FindAuthor()]
 
-	// ci := formatcitationinfo(firstwork, firstline)
-	tr := buildbrowsertable(-1, searches[srch.ID].Results)
+	tr := `
+            <tr class="browser">
+                <td class="browserembeddedannotations">%s</td>
+                <td class="browsedline">%s</td>
+                <td class="browsercite">%s</td>
+            </tr>
+		`
+
+	lines := searches[srch.ID].Results
+	block := make([]string, len(lines))
+	for i, l := range lines {
+		block[i] = l.MarkedUp
+	}
+
+	whole := strings.Join(block, "✃✃✃")
+
+	whole = textblockcleaner(whole)
+
+	// reassemble
+	block = strings.Split(whole, "✃✃✃")
+	for i, b := range block {
+		lines[i].MarkedUp = b
+	}
+
+	trr := make([]string, len(lines))
+	previous := lines[0]
+	for i, _ := range lines {
+		cit := selectivelydisplaycitations(lines[i], previous, -1)
+		trr[i] = fmt.Sprintf(tr, lines[i].Annotations, lines[i].MarkedUp, cit)
+		previous = lines[i]
+	}
+	tab := strings.Join(trr, "")
+	// that was the body, now do the head and tail
+	top := fmt.Sprintf(`<div id="browsertableuid" uid="%s"></div>`, lines[0].FindAuthor())
+	top += `<table><tbody>`
+	top += `<tr class="spacing">` + strings.Repeat("&nbsp;", MINBROWSERWIDTH) + `</tr>`
+
+	tab = top + tab + `</tbody></table>`
+
+	// but we don't want/need "observed" tags
 
 	type JSFeeder struct {
 		Au string `json:"authorname"`
@@ -72,7 +110,7 @@ func RtTextMaker(c echo.Context) error {
 
 	jso.St = basiccitation(firstwork, firstline)
 	jso.WS = "" // unused for now
-	jso.HT = tr
+	jso.HT = tab
 
 	js, e := json.Marshal(jso)
 	chke(e)

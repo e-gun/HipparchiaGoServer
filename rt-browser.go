@@ -306,17 +306,9 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	fla := `<span class="focusline">`
 	flb := `</span>`
 
-	// no handling of 'lines every' yet
-	// no handling of rollovers at new sections yet
-	// no handling of 'issamework' (for papyri, etc) yet
-	// need checkfordocumentmetadata() equivalent
-	// need samelevelas() function
-
-	// try to fix some multi-line issues by building a text block...
-
-	var block []string
-	for _, l := range lines {
-		block = append(block, l.MarkedUp)
+	block := make([]string, len(lines))
+	for i, l := range lines {
+		block[i] = l.MarkedUp
 	}
 
 	whole := strings.Join(block, "✃✃✃")
@@ -371,7 +363,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 
 		cit := selectivelydisplaycitations(lines[i], previous, focus)
 
-		trr = append(trr, fmt.Sprintf(tr, lines[i].Annotations, bl, cit))
+		trr[i] = fmt.Sprintf(tr, lines[i].Annotations, bl, cit)
 		previous = lines[i]
 	}
 	tab := strings.Join(trr, "")
