@@ -130,17 +130,17 @@ const (
 	PROJMAIL = "Department of Classics, 125 Queen’s Park, Toronto, ON  M5S 2C7 Canada"
 
 	HELPTEXT = `command line options:
-		-cf {file}   read PSQL password from file [default: '%s/%s']
-		-el {num}    set echo server log level (0-2) [default: %d]
-		-ft {name}   use a client font instead of serving Noto fonts
-						use quotes in names with spaces: -ft "Gentium Plus Compact"
-		-gl {num}    set golang log level (0-5) [default: %d]
-		-h           print this help information
-		-p  {string} supply full PostgreSQL credentials(*)
-		-sa {string} server IP address [default: '%s']
-		-sp {num}    server port [default: %d]
-		-v           print version and exit
+   -cf {file}   read PSQL password from file [default: '%s/%s']
+   -el {num}    set echo server log level (0-2) [default: %d]
+   -ft {name}   force a client-side font instead of serving Noto fonts
+                   names with spaces need quotes: "Gentium Plus Compact"
+   -gl {num}    set golang log level (0-5) [default: %d]
+   -h           print this help information
+   -p  {string} supply full PostgreSQL credentials(*)
+   -sa {string} server IP address [default: '%s']
+   -sp {num}    server port [default: %d]
+   -v           print version and exit
 
-	(*) example: "{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"
+     (*) example: "{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"
 `
 )

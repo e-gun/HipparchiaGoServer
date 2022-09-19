@@ -108,6 +108,7 @@ func configatlaunch() {
 		case "-ft":
 			cfg.Font = args[i+1]
 		case "-h":
+			printversion()
 			fmt.Println(fmt.Sprintf(HELPTEXT, CONFIGLOCATION, CONFIGNAME, DEFAULTECHOLOGLEVEL, DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT))
 			os.Exit(1)
 		case "-p":
@@ -124,7 +125,7 @@ func configatlaunch() {
 			chke(e)
 			cfg.HostPort = p
 		default:
-			// don't need any arguments to run...
+			// do nothing
 		}
 	}
 
@@ -157,7 +158,7 @@ func configatlaunch() {
 }
 
 func printversion() {
-	versioninfo := fmt.Sprintf("%s CLI Debugging Interface (v.%s)", MYNAME, VERSION)
+	versioninfo := fmt.Sprintf("%s (v%s)", MYNAME, VERSION)
 	versioninfo = versioninfo + fmt.Sprintf(" [loglevel=%d]", cfg.LogLevel)
 	msg(versioninfo, 0)
 }

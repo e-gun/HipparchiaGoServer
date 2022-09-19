@@ -25,6 +25,7 @@ const (
 var (
 	nohtml   = regexp.MustCompile("<[^>]*>") // crude, and will not do all of everything
 	metadata = regexp.MustCompile(`<hmu_metadata_(.*?) value="(.*?)" />`)
+	mdformat = regexp.MustCompile(`&3(.*?)&`) // see andsubstitutes in betacodefontshifts.py
 )
 
 type LevelValues struct {
@@ -107,6 +108,9 @@ func (dbw *DbWorkline) GatherMetadata() {
 			md[m[1]] = m[2]
 		}
 		dbw.MarkedUp = metadata.ReplaceAllString(dbw.MarkedUp, "")
+		for k, v := range md {
+			md[k] = mdformat.ReplaceAllString(v, `<span class="foundwork">$1</span>`)
+		}
 	}
 	dbw.EmbNotes = md
 }
