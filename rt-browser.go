@@ -363,8 +363,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 			if e == nil && w != lastword {
 				// you will barf if wds[w] = *
 				newline = pattern.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
-			} else if e != nil {
-				// i.e. w == lastword
+			} else if e == nil && w == lastword {
 				if terminalhyph.MatchString(wds[w]) {
 					r := fmt.Sprintf(` <observed id="%s">$1</observed>`, wds[len(wds)-1])
 					newline = terminalhyph.ReplaceAllString(newline, r)
