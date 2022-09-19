@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"embed"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strings"
+	"text/template"
 )
 
 //go:embed emb
@@ -27,8 +29,26 @@ func RtEmbJS(c echo.Context) error {
 }
 
 func RtEmbHCSS(c echo.Context) error {
-	d := "emb/"
-	return pathembedder(c, d)
+	f := "emb/hipparchiastyles.css"
+	j, e := efs.ReadFile(f)
+	if e != nil {
+		msg(fmt.Sprintf("RtEmbHCSS() can't find %s", f), 1)
+		return c.String(http.StatusNotFound, "")
+	}
+
+	subs := map[string]interface{}{
+		"fontname": cfg.Font,
+	}
+
+	tmpl, e := template.New("fp").Parse(string(j))
+	chke(e)
+
+	var b bytes.Buffer
+	err := tmpl.Execute(&b, subs)
+	chke(err)
+
+	c.Response().Header().Add("Content-Type", "text/css")
+	return c.String(http.StatusOK, b.String())
 }
 
 func RtEmbJQueryImg(c echo.Context) error {

@@ -58,6 +58,7 @@ type CurrentConfiguration struct {
 	PGLogin     PostgresLogin
 	HostIP      string
 	HostPort    int
+	Font        string
 }
 
 type DbAuthor struct {

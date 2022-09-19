@@ -82,6 +82,7 @@ func main() {
 func configatlaunch() {
 	cfg.HostIP = SERVEDFROMHOST
 	cfg.HostPort = SERVEDFROMPORT
+	cfg.Font = FONTSETTING
 
 	cf := fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGNAME)
 
@@ -104,8 +105,10 @@ func configatlaunch() {
 			cfg.EchoLog = ll
 		case "-cf":
 			cf = args[i+1]
+		case "-ft":
+			cfg.Font = args[i+1]
 		case "-h":
-			fmt.Println(fmt.Sprintf(HELPTEXT, CONFIGNAME, DEFAULTECHOLOGLEVEL, DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT))
+			fmt.Println(fmt.Sprintf(HELPTEXT, CONFIGLOCATION, CONFIGNAME, DEFAULTECHOLOGLEVEL, DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT))
 			os.Exit(1)
 		case "-p":
 			js := args[i+1]

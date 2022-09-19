@@ -96,7 +96,7 @@ func StartEchoServer() {
 
 	// [c] css
 
-	e.GET("/emb/:file", RtEmbHCSS)
+	e.GET("/emb/hipparchiastyles.css", RtEmbHCSS)
 
 	// [d] debugging
 

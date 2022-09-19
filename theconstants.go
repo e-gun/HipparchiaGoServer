@@ -8,54 +8,55 @@ package main
 const (
 	MYNAME                  = "Hipparchia Golang Server"
 	SHORTNAME               = "HGS"
-	VERSION                 = "0.6.1"
-	SERVEDFROMHOST          = "127.0.0.1"
-	SERVEDFROMPORT          = 8000
-	DBAUMAPSIZE             = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
+	VERSION                 = "0.6.2"
+	AUTHENTICATIONREQUIRED  = false
+	CONFIGLOCATION          = "."
+	CONFIGNAME              = "hgs-conf.json"
+	DBAUMAPSIZE             = 3455 //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
+	DBLEMMACOUNT            = 152759
 	DBLMMAPSIZE             = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
 	DBWKMAPSIZE             = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
-	DBLEMMACOUNT            = 152759
-	NESTEDLEMMASIZE         = 543
-	POLLEVERYNTABLES        = 50 // 3455 is the max number of tables in a search...
-	WSPOLLINGPAUSE          = 800000
 	DEFAULTBROWSERCTX       = 20
 	DEFAULTCOLUMN           = "stripped_line"
-	DEFAULTLINESOFCONTEXT   = 4
+	DEFAULTECHOLOGLEVEL     = 0
+	DEFAULTGOLOGLEVEL       = 0
 	DEFAULTHITLIMIT         = 200
+	DEFAULTLINESOFCONTEXT   = 4
 	DEFAULTPROXIMITY        = 2
-	MAXDISTANCE             = 10
 	DEFAULTPROXIMITYSCOPE   = "lines"
 	DEFAULTSYNTAX           = "~"
 	FIRSTSEARCHLIM          = 500000 // 149570 lines in Cicero (lt0474)
+	FONTSETTING             = "SERVEALLFONTS"
+	GENRESTOCOUNT           = 5
 	INCERTADATE             = 2500
 	MAXBROWSERCONTEXT       = 60
 	MAXDATE                 = 1500
 	MAXDATESTR              = "1500"
+	MAXDICTLOOKUP           = 100
+	MAXDISTANCE             = 10
 	MAXHITLIMIT             = 2500
 	MAXINPUTLEN             = 50
 	MAXLEMMACHUNKSIZE       = 20
 	MAXLINESHITCONTEXT      = 30
-	MAXTEXTLINEGENERATION   = 7500
-	MAXDICTLOOKUP           = 100
 	MAXSEARCHINFOLISTLEN    = 100
+	MAXTEXTLINEGENERATION   = 7500
 	MINBROWSERWIDTH         = 90
 	MINDATE                 = -850
-	MINORGENREWTCAP         = 250
-	TIMETRACKERMSGTHRESH    = 3
-	SHOWCITATIONEVERYNLINES = 10
 	MINDATESTR              = "-850"
+	MINORGENREWTCAP         = 250
+	NESTEDLEMMASIZE         = 543
 	ORDERBY                 = "index"
+	POLLEVERYNTABLES        = 50 // 3455 is the max number of tables in a search...
+	SERVEDFROMHOST          = "127.0.0.1"
+	SERVEDFROMPORT          = 8000
+	SHOWCITATIONEVERYNLINES = 10
 	SORTBY                  = "shortname"
 	TEMPTABLETHRESHOLD      = 100 // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
+	TIMETRACKERMSGTHRESH    = 3
 	// UNACCEPTABLEINPUT       = `|"'!@:,=+_\/` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
-	UNACCEPTABLEINPUT      = `"'!@:,=+_/` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
-	VARIADATE              = 2000
-	AUTHENTICATIONREQUIRED = false
-	GENRESTOCOUNT          = 5
-	CONFIGNAME             = "hgs-conf.json"
-	CONFIGLOCATION         = "."
-	DEFAULTECHOLOGLEVEL    = 0
-	DEFAULTGOLOGLEVEL      = 0
+	UNACCEPTABLEINPUT = `"'!@:,=_/` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
+	VARIADATE         = 2000
+	WSPOLLINGPAUSE    = 800000
 
 	PSQLHOST  = "127.0.0.1"
 	PSQLUSER  = "hippa_wr"
@@ -129,8 +130,10 @@ const (
 	PROJMAIL = "Department of Classics, 125 Queen’s Park, Toronto, ON  M5S 2C7 Canada"
 
 	HELPTEXT = `command line options:
-		-cf {file}   read PSQL password from file [default: './%s']
+		-cf {file}   read PSQL password from file [default: '%s/%s']
 		-el {num}    set echo server log level (0-2) [default: %d]
+		-ft {name}   use a client font instead of serving Noto fonts
+						use quotes in names with spaces: -ft "Gentium Plus Compact"
 		-gl {num}    set golang log level (0-5) [default: %d]
 		-h           print this help information
 		-p  {string} supply full PostgreSQL credentials(*)
