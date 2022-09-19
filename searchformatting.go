@@ -57,6 +57,7 @@ func formatnocontextresults(ss SearchStruct) []byte {
 	rows := make([]string, len(ss.Results))
 	for i, r := range ss.Results {
 		// highlight search term; should be folded into a single function w/ highlightsearchterm() below [type problem now]
+		r.PurgeMetadata()
 		mu := r.MarkedUp
 		if searchterm != nil && searchterm.MatchString(r.MarkedUp) {
 			mu = searchterm.ReplaceAllString(r.MarkedUp, `<span class="match">$1</span>`)
@@ -187,6 +188,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 			} else {
 				c.IsHighlight = false
 			}
+			psg.RawCTX[j].PurgeMetadata()
 			c.Contents = psg.RawCTX[j].MarkedUp
 			c.Hyphenated = psg.RawCTX[j].Hyphenated
 			psg.CookedCTX = append(psg.CookedCTX, c)

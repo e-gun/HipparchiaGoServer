@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                  = "Hipparchia Golang Server"
 	SHORTNAME               = "HGS"
-	VERSION                 = "0.5.9"
+	VERSION                 = "0.6.0"
 	SERVEDFROMHOST          = "127.0.0.1"
 	SERVEDFROMPORT          = 8000
 	DBAUMAPSIZE             = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor

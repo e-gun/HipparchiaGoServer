@@ -111,6 +111,12 @@ func (dbw *DbWorkline) GatherMetadata() {
 	dbw.EmbNotes = md
 }
 
+func (dbw *DbWorkline) PurgeMetadata() {
+	if metadata.MatchString(dbw.MarkedUp) {
+		dbw.MarkedUp = metadata.ReplaceAllString(dbw.MarkedUp, "")
+	}
+}
+
 func (dbw DbWorkline) SameLevelAs(other DbWorkline) bool {
 	// to help toggle the counters when building texts
 	one := dbw.Lvl1Value == other.Lvl1Value

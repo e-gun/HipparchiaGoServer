@@ -117,6 +117,27 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 
 	lines := simplecontextgrabber(au, fc, ctx/2)
 
+	// [b1] drop lines that are part of another work (matters in DP, IN, and CH)
+	var trimmed []DbWorkline
+	for _, l := range lines {
+		if l.WkUID == w.UID {
+			trimmed = append(trimmed, l)
+		}
+	}
+
+	lines = trimmed
+
+	for i, _ := range lines {
+		lines[i].GatherMetadata()
+		if len(lines[i].EmbNotes) != 0 {
+			nt := `<span class="red">%s:</span> %s<br>`
+			lines[i].Annotations = ""
+			for key, v := range lines[i].EmbNotes {
+				lines[i].Annotations += fmt.Sprintf(nt, key, v)
+			}
+		}
+	}
+
 	// [c] acquire and format the HTML
 
 	// need to set lines[0] to the focus, ie the middle of the pile of lines
@@ -302,16 +323,6 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	fla := `<span class="focusline">`
 	flb := `</span>`
 
-	for i, _ := range lines {
-		lines[i].GatherMetadata()
-		if len(lines[i].EmbNotes) != 0 {
-			nt := `<span class="emph">%s:</span> %s<br>`
-			for k, v := range lines[i].EmbNotes {
-				lines[i].Annotations += fmt.Sprintf(nt, k, v)
-			}
-		}
-	}
-
 	block := make([]string, len(lines))
 	for i, l := range lines {
 		block[i] = l.MarkedUp
@@ -329,6 +340,12 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 
 	trr := make([]string, len(lines))
 	previous := lines[0]
+
+	// complication: hyphenated words at the end of a line
+	// this will already have markup from bracketformatting and so have to be handled carefully
+
+	terminalhyph := regexp.MustCompile("\\s([^\\s]+-)$")
+
 	for i, _ := range lines {
 		// turn "abc def" into "<observed id="abc">abc</observed> <observed id="def">def</observed>"
 		// the complication is that x.MarkedUp contains html; use x.Accented to find the words
@@ -339,13 +356,21 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		wds = unique(wds)
 
 		newline := lines[i].MarkedUp
+		lastword := len(wds) - 1
 		for w, _ := range wds {
 			cv := capsvariants(wds[w])
-
 			pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s|\\[|\\>|⟨|‘|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|\\!|,|;|\\?|·|$)", cv))
-			if e == nil {
+			if e == nil && w != lastword {
 				// you will barf if wds[w] = *
 				newline = pattern.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
+			} else if e != nil {
+				// i.e. w == lastword
+				if terminalhyph.MatchString(wds[w]) {
+					r := fmt.Sprintf(` <observed id="%s">$1</observed>`, wds[len(wds)-1])
+					newline = terminalhyph.ReplaceAllString(newline, r)
+				} else {
+					newline = pattern.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
+				}
 			} else {
 				msg(fmt.Sprintf("buildbrowsertable() could not regex compile %s", wds[w]), 4)
 			}
@@ -354,10 +379,6 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 			// but you can't deal with that here: the ’ will not turn up a find in the dictionary; the ' will yield bad SQL
 			// so the dictionary lookup has to be reworked
 
-			// complication: hyphenated words at the end of a line
-			pattern = regexp.MustCompile("\\s([^\\s]+-)$")
-			r := fmt.Sprintf(` <observed id="%s">$1</observed>`, wds[len(wds)-1])
-			newline = pattern.ReplaceAllString(newline, r)
 		}
 
 		var bl string
