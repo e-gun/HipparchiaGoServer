@@ -115,18 +115,13 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 
 	lines := simplecontextgrabber(au, fc, ctx/2)
 
-	// [c] format the lines
-
-	// not yet implemented
-	// lines = paragraphformatting(lines)
-
-	// [d] acquire and format the HTML
+	// [c] acquire and format the HTML
 
 	// need to set lines[0] to the focus, ie the middle of the pile of lines
 	ci := formatcitationinfo(w, lines[0])
 	tr := buildbrowsertable(fc, lines)
 
-	// [e] fill out the JSON-ready struct
+	// [d] fill out the JSON-ready struct
 	p := fc - ctx
 	if p < AllWorks[k].FirstLine {
 		p = AllWorks[k].FirstLine
@@ -144,7 +139,6 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 
 	// a JSON output struct
 	type BrowsedPassage struct {
-		// marshal will not do lc names
 		Browseforwards    string `json:"browseforwards"`
 		Browseback        string `json:"browseback"`
 		Authornumber      string `json:"authornumber"`

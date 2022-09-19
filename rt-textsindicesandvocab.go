@@ -483,9 +483,9 @@ func RtIndexMaker(c echo.Context) error {
 	si.InitSum = "Building the HTML...(part 4 of 4)"
 	searches[si.ID] = si
 
-	var trr []string
-	for _, k := range plainkeys {
-		trr = append(trr, convertwordinfototablerow(plainmap[k]))
+	trr := make([]string, len(plainkeys))
+	for i, k := range plainkeys {
+		trr[i] = convertwordinfototablerow(plainmap[k])
 	}
 
 	tb := `        
@@ -581,8 +581,6 @@ func sessionintobulksearch(c echo.Context) SearchStruct {
 	prq := searchlistintoqueries(&srch)
 	srch.Queries = prq
 	srch.IsActive = true
-	// searches[srch.ID] = srch
-	// searches[srch.ID] = HGoSrch(searches[srch.ID])
 	srch.TableSize = len(prq)
 	srch = HGoSrch(srch)
 	return srch
@@ -724,15 +722,17 @@ func convertwordinfototablerow(ww []WordInfo) string {
 	// now we build a sub-map after the pattern of the main map: but now the keys are the words, not the headwords
 
 	// build it
-	indexmap := make(map[string][]WordInfo)
+	indexmap := make(map[string][]WordInfo, len(ww))
 	for _, w := range ww {
 		indexmap[w.Wd] = append(indexmap[w.Wd], w)
 	}
 
 	// sort the keys
-	var keys []string
+	keys := make([]string, len(indexmap))
+	count := 0
 	for k, _ := range indexmap {
-		keys = append(keys, k)
+		keys[count] = k
+		count += 1
 	}
 
 	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
@@ -747,9 +747,9 @@ func convertwordinfototablerow(ww []WordInfo) string {
 
 	tp := `<indexedlocation id="%s">%s</indexedlocation>`
 
-	var trr []string
+	trr := make([]string, len(keys))
 	used := make(map[string]bool)
-	for _, k := range keys {
+	for i, k := range keys {
 		wii := indexmap[k]
 		hw := ""
 		if used[wii[0].HW] {
@@ -772,7 +772,7 @@ func convertwordinfototablerow(ww []WordInfo) string {
 		}
 		p := strings.Join(pp, ", ")
 		t := fmt.Sprintf(tr, hw, wii[0].Wd, wii[0].Wd, len(wii), p)
-		trr = append(trr, t)
+		trr[i] = t
 		used[wii[0].HW] = true
 	}
 

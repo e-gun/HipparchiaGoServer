@@ -111,7 +111,7 @@ HipparchiaGoServer/emb/ % tree
 │   ├── authentication.js
 │   ├── autocomplete.js
 │   ├── browser.js
-│   ├── cookieclicks.js
+│   ├── cookieclicks_go.js
 │   ├── coreinterfaceclicks_go.js
 │   ├── documentready_go.js
 │   ├── indexandtextmaker_go.js

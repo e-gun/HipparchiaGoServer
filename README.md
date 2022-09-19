@@ -21,6 +21,7 @@
 * update the help files so that they reflect HGS vs the python server
 * fix the less wonky lemma highlighting
 * index by frequency
+* next/previous clicks don't work in dictionary 
 * fix js so index will do status updates w/out needing to reload the page
 
 ### DISTANT FANTASIES
