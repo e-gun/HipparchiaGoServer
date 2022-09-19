@@ -23,7 +23,8 @@ const (
 )
 
 var (
-	nohtml = regexp.MustCompile("<[^>]*>") // crude, and will not do all of everything
+	nohtml   = regexp.MustCompile("<[^>]*>") // crude, and will not do all of everything
+	metadata = regexp.MustCompile(`<hmu_metadata_(.*?) value="(.*?)" />`)
 )
 
 type LevelValues struct {
@@ -51,6 +52,8 @@ type DbWorkline struct {
 	Stripped    string
 	Hyphenated  string
 	Annotations string
+	// beyond the db stuff
+	EmbNotes map[string]string
 }
 
 func (dbw DbWorkline) FindLocus() []string {
@@ -92,6 +95,20 @@ func (dbw DbWorkline) BuildHyperlink() string {
 	}
 	t := `linenumber/%s/%s/%d`
 	return fmt.Sprintf(t, dbw.FindAuthor(), dbw.FindWork(), dbw.TbIndex)
+}
+
+func (dbw *DbWorkline) GatherMetadata() {
+	md := make(map[string]string)
+	if metadata.MatchString(dbw.MarkedUp) {
+		mm := metadata.FindAllStringSubmatch(dbw.MarkedUp, -1)
+		for _, m := range mm {
+			// sample location:
+			// hipparchiaDB=# select index, marked_up_line from lt0474 where index = 116946;
+			md[m[1]] = m[2]
+		}
+		dbw.MarkedUp = metadata.ReplaceAllString(dbw.MarkedUp, "")
+	}
+	dbw.EmbNotes = md
 }
 
 func (dbw DbWorkline) SameLevelAs(other DbWorkline) bool {

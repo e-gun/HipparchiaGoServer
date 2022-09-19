@@ -302,6 +302,16 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	fla := `<span class="focusline">`
 	flb := `</span>`
 
+	for i, _ := range lines {
+		lines[i].GatherMetadata()
+		if len(lines[i].EmbNotes) != 0 {
+			nt := `<span class="emph">%s:</span> %s<br>`
+			for k, v := range lines[i].EmbNotes {
+				lines[i].Annotations += fmt.Sprintf(nt, k, v)
+			}
+		}
+	}
+
 	block := make([]string, len(lines))
 	for i, l := range lines {
 		block[i] = l.MarkedUp
