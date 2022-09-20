@@ -73,25 +73,11 @@ $('#textofthis').click( function() {
     $.getJSON(url, function (returnedtext) {
         loadtextintodisplayresults(returnedtext);
     });
-
-    });
+});
 
 
 function loadtextintodisplayresults(returnedtext) {
-    let linesreturned = '';
-    linesreturned +=  returnedtext['authorname'];
-    linesreturned += ',&nbsp;<span class="foundwork">' + returnedtext['title'] + '</span>';
-    if (returnedtext['worksegment'] === '') {
-        linesreturned += '<br /><br />';
-        } else {
-        linesreturned += '&nbsp;' + returnedtext['worksegment'] + '<br /><br />';
-        }
-    linesreturned += 'citation format:&nbsp;' + returnedtext['structure'] + '<br />';
-
-    $('#searchsummary').html(linesreturned);
-
+    $('#searchsummary').html(returnedtext['searchsummary']);
     $('#displayresults').html(returnedtext['texthtml']);
-
     $('#indexclickscriptholder').html(returnedtext['newjs']);
-
     }

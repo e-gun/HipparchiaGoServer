@@ -87,31 +87,37 @@ func RtTextMaker(c echo.Context) error {
 
 	// but we don't want/need "observed" tags
 
-	type JSFeeder struct {
-		Au string `json:"authorname"`
-		Ti string `json:"title"`
-		St string `json:"structure"`
-		WS string `json:"worksegment"`
-		HT string `json:"texthtml"`
-	}
+	// <div id="searchsummary">Cicero,&nbsp;<span class="foundwork">Philippicae</span><br><br>citation format:&nbsp;oration 3, section 13, line 1<br></div>
+	st := `
+	<div id="searchsummary">Cicero,&nbsp;<span class="foundwork">Philippicae</span><br>
+	citation format:&nbsp;%s<br></div>`
 
 	sui := sessions[user].Inclusions
-	var jso JSFeeder
 
-	jso.Au = firstauth.Shortname
-
+	au := firstauth.Shortname
 	if len(sui.Authors) > 1 || len(sui.AuGenres) > 0 || len(sui.AuLocations) > 0 {
-		jso.Au += " (and others)"
+		au += " (and others)"
 	}
 
-	jso.Ti = firstwork.Title
+	ti := firstwork.Title
 	if len(sui.Works) > 1 || len(sui.WkGenres) > 0 || len(sui.WkLocations) > 0 {
-		jso.Ti += " (and others)"
+		ti += " (and others)"
 	}
 
-	jso.St = basiccitation(firstwork, firstline)
-	jso.WS = "" // unused for now
+	ct := basiccitation(firstwork, firstline)
+
+	sum := fmt.Sprintf(st, au, ti, ct)
+
+	type JSFeeder struct {
+		SU string `json:"searchsummary"`
+		HT string `json:"texthtml"`
+		JS string `json:"newjs"`
+	}
+
+	var jso JSFeeder
+	jso.SU = sum
 	jso.HT = tab
+	jso.JS = ""
 
 	js, e := json.Marshal(jso)
 	chke(e)

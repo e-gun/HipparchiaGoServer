@@ -60,7 +60,7 @@ func StartEchoServer() {
 	}
 
 	e.Use(middleware.Recover())
-	// e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
+	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
 
 	e.File("/favicon.ico", "static/images/hipparchia_favicon.ico")
 	e.Static("/static", "static")
@@ -298,8 +298,8 @@ func RtSessionGetCookie(c echo.Context) error {
 	var s ServerSession
 	// invalid character '%' looking for beginning of object key string:
 	// {%22ID%22:%22723073ae-09a7-4b24-a5d6-7e20603d8c44%22%2C%22IsLoggedIn%22:true%2C...}
-	cv := strings.Replace(cookie.Value, `%22`, `"`, -1)
-	cv = strings.Replace(cv, `%2C`, `,`, -1)
+	swap := strings.NewReplacer("%22", `"`, "%2C", ",", "%20", " ")
+	cv := swap.Replace(cookie.Value)
 
 	err = json.Unmarshal([]byte(cv), &s)
 	if err != nil {
