@@ -89,7 +89,7 @@ func RtTextMaker(c echo.Context) error {
 
 	// <div id="searchsummary">Cicero,&nbsp;<span class="foundwork">Philippicae</span><br><br>citation format:&nbsp;oration 3, section 13, line 1<br></div>
 	st := `
-	<div id="searchsummary">Cicero,&nbsp;<span class="foundwork">Philippicae</span><br>
+	<div id="searchsummary">%s,&nbsp;<span class="foundwork">%s</span><br>
 	citation format:&nbsp;%s<br></div>`
 
 	sui := sessions[user].Inclusions
@@ -110,7 +110,7 @@ func RtTextMaker(c echo.Context) error {
 
 	type JSFeeder struct {
 		SU string `json:"searchsummary"`
-		HT string `json:"texthtml"`
+		HT string `json:"thehtml"`
 		JS string `json:"newjs"`
 	}
 
@@ -336,7 +336,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	type JSFeeder struct {
 		SU string `json:"searchsummary"`
-		HT string `json:"indexhtml"`
+		HT string `json:"thehtml"`
 		NJ string `json:"newjs"`
 	}
 
@@ -569,7 +569,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	type JSFeeder struct {
 		SU string `json:"searchsummary"`
-		HT string `json:"indexhtml"`
+		HT string `json:"thehtml"`
 		NJ string `json:"newjs"`
 	}
 

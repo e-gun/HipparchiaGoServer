@@ -234,4 +234,65 @@ $.getJSON('/authentication/checkuser', function(data){
         }
     });
 
+function dec2hex (dec) {
+    return ('0' + dec.toString(16)).substr(-2);
+}
 
+// generateId :: Integer -> String
+function generateId (len) {
+    let arr = new Uint8Array((len || 40) / 2);
+    window.crypto.getRandomValues(arr);
+    return Array.from(arr, dec2hex).join('');
+}
+
+
+$('#makeanindex').click( function() {
+    $('#searchsummary').html('');
+    $('#displayresults').html('');
+    let searchid = generateId(8);
+    let url = '/text/index/' + searchid;
+    simpleactivityviawebsocket(searchid);
+    $.getJSON(url, function (indexdata) {
+        loadintodisplayresults(indexdata);
+    });
+});
+
+//
+// VOCABLISTS
+//
+
+$('#makevocablist').click( function() {
+    $('#searchsummary').html('');
+    $('#displayresults').html('');
+    let searchid = generateId(8);
+    let url = '/text/vocab/' + searchid;
+    simpleactivityviawebsocket(searchid);
+    $.getJSON(url, function (returnedtext) {
+        loadintodisplayresults(returnedtext);
+    });
+
+});
+
+
+//
+// TEXTMAKER
+//
+
+$('#textofthis').click( function() {
+    $('#searchsummary').html('');
+    $('#displayresults').html('');
+
+    let url = '/text/make/_';
+    $.getJSON(url, function (returnedtext) {
+        loadintodisplayresults(returnedtext);
+    });
+});
+
+
+function loadintodisplayresults(indexdata) {
+    $('#searchsummary').html(indexdata['searchsummary']);
+    $('#displayresults').html(indexdata['thehtml']);
+    let bcsh = document.getElementById("indexclickscriptholder");
+    if (bcsh.hasChildNodes()) { bcsh.removeChild(bcsh.firstChild); }
+    $('#indexclickscriptholder').html(indexdata['newjs']);
+}
