@@ -83,6 +83,7 @@ func RtWebsocket(c echo.Context) error {
 				r.ID = bs
 				r.TotalWrk = searches[bs].TableSize
 				r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(searches[bs].Launched).Seconds())
+
 				if searches[bs].PhaseNum > 1 {
 					r.Extra = "(second pass)"
 				} else {
@@ -139,11 +140,13 @@ func RtWebsocket(c echo.Context) error {
 	return nil
 }
 
+// formatpoll - build HTML to send to the JS on the other side
 func formatpoll(pd PollData) string {
 	pctd := ((float32(pd.TotalWrk) - float32(pd.Remain)) / float32(pd.TotalWrk)) * 100
 	pcts := fmt.Sprintf("%.0f", pctd) + "%"
 
 	htm := pd.Msg
+
 	if pctd != 0 && pd.Remain != 0 && pd.TotalWrk != 0 {
 		// normal in progress
 		htm += fmt.Sprintf(`: <span class="progress">%s</span> completed&nbsp;(%s)<br>`, pcts, pd.Elapsed)
@@ -151,7 +154,7 @@ func formatpoll(pd PollData) string {
 		// finished, mostly
 		htm += fmt.Sprintf(`&nbsp;(%s)<br>Finishing up...&nbsp;`, pd.Elapsed)
 	} else if pd.TotalWrk == 0 {
-		// vocab or index run
+		// vocab or index run have no "total work"
 		htm += fmt.Sprintf(`&nbsp;(%s)`, pd.Elapsed)
 	} else {
 		// fallback

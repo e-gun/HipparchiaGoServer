@@ -2,7 +2,7 @@
 
 ## late alpha status: usable, but needs polish in many quarters
 
-### status as of `v0.6.6`:
+### status as of `v0.6.7`:
 
 * monolithic binary: no need for extra files/folders beyond `hgs-conf.json`
 * searching theoretically fine but needs more testing/checking
@@ -21,7 +21,6 @@
 * update the help files so that they reflect HGS vs the python server
 * fix the less wonky lemma highlighting
 * keying for multiple author/work indexing (this will also show that not all works of an author are being indexed ATM)
-* fix js so index will do status updates w/out needing to reload the page
 
 ### DISTANT FANTASIES
 * vectors

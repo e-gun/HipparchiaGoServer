@@ -83,10 +83,6 @@ $(document).ready( function () {
         $('#searchsummary').html('');
         $('#displayresults').html('');
 
-        let pd = $('#pollingdata');
-        pd.html('');
-        pd.show();
-
         // the script additions can pile up: so first kill off any scripts we have already added
         let bcsh = document.getElementById("browserclickscriptholder");
         if (bcsh.hasChildNodes()) { bcsh.removeChild(bcsh.firstChild); }
@@ -217,6 +213,41 @@ if ($('#termoneisalemma').is(":checked")) {
     $('#termonecheckbox').show(); }
 
 
+
+//
+// PROGRESS INDICATOR
+//
+
+function checkactivityviawebsocket(searchid) {
+    $.getJSON('/search/confirm/'+searchid, function(portnumber) {
+        let pd = $('#pollingdata');
+        pd.html('');
+        pd.show();
+        let ip = location.hostname;
+        // but /etc/nginx/nginx.conf might have a WS proxy and not the actual WS host...
+        let s = new WebSocket('ws://'+ip+':'+portnumber+'/ws');
+        let amready = setInterval(function(){
+            if (s.readyState === 1) { s.send(JSON.stringify(searchid)); clearInterval(amready); }
+        }, 10);
+        s.onmessage = function(e){
+            let progress = JSON.parse(e.data);
+            displayprogress(searchid, progress);
+            // if  (progress['active'] === 'inactive') { pd.html(''); s.close(); s = null; }
+        }
+    });
+}
+
+function displayprogress(searchid, progress){
+    if (progress['ID'] === searchid) {
+        console.log("id", progress['ID']);
+        $('#pollingdata').html(progress['value']);
+    } else {
+        console.log("id", progress['ID']);
+        console.log("searchid", searchid);
+    }
+}
+
+
 //
 // authentication
 //
@@ -250,13 +281,12 @@ function generateId (len) {
     return Array.from(arr, dec2hex).join('');
 }
 
-
 $('#makeanindex').click( function() {
     $('#searchsummary').html('');
     $('#displayresults').html('');
     let searchid = generateId(8);
     let url = '/text/index/' + searchid;
-    simpleactivityviawebsocket(searchid);
+    checkactivityviawebsocket(searchid);
     $.getJSON(url, function (indexdata) {
         loadintodisplayresults(indexdata);
     });
@@ -271,7 +301,7 @@ $('#makevocablist').click( function() {
     $('#displayresults').html('');
     let searchid = generateId(8);
     let url = '/text/vocab/' + searchid;
-    simpleactivityviawebsocket(searchid);
+    checkactivityviawebsocket(searchid);
     $.getJSON(url, function (returnedtext) {
         loadintodisplayresults(returnedtext);
     });

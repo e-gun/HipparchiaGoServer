@@ -69,9 +69,9 @@ func pathembedder(c echo.Context, d string) error {
 		return c.String(http.StatusNotFound, "")
 	}
 
-	if strings.Contains(f, ".css") {
-		// jquery-ui.css
-		c.Response().Header().Add("Content-Type", "text/css")
+	add := addresponsehead(f)
+	if len(add) != 0 {
+		c.Response().Header().Add("Content-Type", add)
 	}
 
 	return c.String(http.StatusOK, string(j))
@@ -93,7 +93,40 @@ func fileembedder(c echo.Context, f string) error {
 		msg(fmt.Sprintf("can't find %s", f), 1)
 		return c.String(http.StatusNotFound, "")
 	}
+
+	add := addresponsehead(f)
+	if len(add) != 0 {
+		c.Response().Header().Add("Content-Type", add)
+	}
+
 	return c.String(http.StatusOK, string(j))
+}
+
+func addresponsehead(f string) string {
+	// c.Response().Header().Add("Content-Type", "text/css")
+	add := ""
+
+	if strings.Contains(f, ".css") {
+		// jquery-ui.css
+		add = "text/css"
+	}
+
+	if strings.Contains(f, ".js") {
+		add = "text/javascript"
+	}
+
+	if strings.Contains(f, ".ttf") {
+		add = "font/ttf"
+	}
+
+	if strings.Contains(f, ".png") {
+		add = "image/png"
+	}
+
+	if strings.Contains(f, ".ico") {
+		add = "image/vnd.microsoft.icon"
+	}
+	return add
 }
 
 /*
