@@ -239,11 +239,7 @@ function checkactivityviawebsocket(searchid) {
 
 function displayprogress(searchid, progress){
     if (progress['ID'] === searchid) {
-        console.log("id", progress['ID']);
         $('#pollingdata').html(progress['value']);
-    } else {
-        console.log("id", progress['ID']);
-        console.log("searchid", searchid);
     }
 }
 

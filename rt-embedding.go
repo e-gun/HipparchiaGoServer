@@ -111,21 +111,22 @@ func addresponsehead(f string) string {
 		add = "text/css"
 	}
 
-	if strings.Contains(f, ".js") {
-		add = "text/javascript"
+	if strings.Contains(f, ".ico") {
+		add = "image/vnd.microsoft.icon"
 	}
 
-	if strings.Contains(f, ".ttf") {
-		add = "font/ttf"
+	if strings.Contains(f, ".js") {
+		add = "text/javascript"
 	}
 
 	if strings.Contains(f, ".png") {
 		add = "image/png"
 	}
 
-	if strings.Contains(f, ".ico") {
-		add = "image/vnd.microsoft.icon"
+	if strings.Contains(f, ".ttf") {
+		add = "font/ttf"
 	}
+
 	return add
 }
 
@@ -137,6 +138,18 @@ HipparchiaGoServer/emb/ % tree
 │   ├── jsd3.js
 │   └── jsforldavis.js
 ├── frontpage.html
+├── h
+│   ├── helpbasicsyntax.html
+│   ├── helpbrowsing.html
+│   ├── helpdictionaries.html
+│   ├── helpextending.html
+│   ├── helpinterface.html
+│   ├── helplemmata.html
+│   ├── helpoddities.html
+│   ├── helpregex.html
+│   ├── helpsearchlists.html
+│   ├── helpspeed.html
+│   └── includedmaterials.html
 ├── hipparchiastyles.css
 ├── images
 │   ├── hipparchia_apple-touch-icon-precomposed.png
@@ -166,7 +179,6 @@ HipparchiaGoServer/emb/ % tree
 │   ├── browser.js
 │   ├── coreinterfaceclicks_go.js
 │   ├── documentready_go.js
-│   ├── progressindicator_go.js
 │   ├── radioclicks.js
 │   ├── uielementlists_go.js
 │   └── vectorclicks.js
@@ -183,4 +195,6 @@ HipparchiaGoServer/emb/ % tree
     ├── NotoSansDisplay_ExtraCondensed-SemiBold.ttf
     ├── NotoSansMono-Regular.ttf
     └── license_for_noto_fonts.txt
+
+7 directories, 55 files
 */

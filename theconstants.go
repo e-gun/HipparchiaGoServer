@@ -56,7 +56,7 @@ const (
 	// UNACCEPTABLEINPUT       = `|"'!@:,=+_\/` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
 	UNACCEPTABLEINPUT = `"'!@:,=_/̣` // we want to be able to do regex...; note the subscript dot at the end; echo+net/url means some can't make it into a parser: #%&;
 	VARIADATE         = 2000
-	WSPOLLINGPAUSE    = 800000
+	WSPOLLINGPAUSE    = 1500000
 
 	PSQLHOST  = "127.0.0.1"
 	PSQLUSER  = "hippa_wr"

@@ -542,7 +542,7 @@ func gethighlighter(ss SearchStruct) *regexp.Regexp {
 	} else if len(ss.LemmaTwo) != 0 {
 		re = lemmahighlighter(ss.LemmaTwo)
 	} else {
-		msg(fmt.Sprintf("gethighlighter() cannot find anything to highlight\n\t%ss", ss.InitSum), 1)
+		msg(fmt.Sprintf("gethighlighter() cannot find anything to highlight\n\t%ss", ss.InitSum), 3)
 		re = nil
 	}
 
@@ -554,16 +554,10 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 	// turn into "(^|\[sS])[τΤ][ρῤῥῬ][εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ]ῖ[ϲσΣςϹ](\[sS]|$)|(^|\[sS])..."
 	// can't send "(^|\s)" through universalpatternmaker()
 
-	// 	p := `(^|\s)([τΤ][ρῤῥῬ][εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ]ῖ[ϲσΣςϹ])(\s|$)|(^|\s)([τΤ][ρῤῥῬ]ί[αἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάᾈᾉᾊᾋᾌᾍᾎᾏἈἉἊἋἌἍἎἏΑ])(\s|$)|(^|\s)([τΤ][ρῤῥῬ][ιἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗΐἸἹἺἻἼἽἾἿΙ][ϲσΣςϹ]ί[νΝ])(\s|$)|(^|\s)([τΤ][ρῤῥῬ][ιἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗΐἸἹἺἻἼἽἾἿΙ]ῶ[νΝ])(\s|$)|(^|\s)([τΤ][ρῤῥῬ]ί)(\s|$)|(^|\s)([τΤ][ρῤῥῬ][ιἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗΐἸἹἺἻἼἽἾἿΙ][ϲσΣςϹ]ί)(\s|$)`
-	//	l := `καὶ νήχεται αὖθιϲ. πολλάκιϲ οὖν καὶ δύο καὶ τρία`
-	//	pat := regexp.MustCompile(p)
-	//	fmt.Println(pat.MatchString(l))
-	// "true"
-
 	// abutting markup is killing off some items, but adding "<" and ">" produces worse problems still
 
 	// now you also need to worry about punctuation that abuts the find
-	tp := `[\^\s;]%s[\s\.,;·’$]`
+	tp := `[\^\s;>]%s[\s\.<,;·’$]`
 	lemm := AllLemm[lm].Deriv
 
 	whole := strings.Join(lemm, ")✃✃✃(")
@@ -576,7 +570,7 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 
 	r, e := regexp.Compile(rec)
 	if e != nil {
-		msg("gethighlighter() could not compile LemmaOne into regex", 1)
+		msg("gethighlighter() could not compile LemmaOne into regex", 3)
 	}
 	return r
 }

@@ -240,24 +240,7 @@ func formatpublicationinfo(w DbWork) string {
 		}
 	}
 
-	// do the splits
-	if len(pubinfo) > MINBROWSERWIDTH+(MINBROWSERWIDTH/2) {
-		pubinfo = strings.Replace(pubinfo, ";", "; ", -1)
-		pi := strings.Split(pubinfo, " ")
-		var trimmed string
-		breaks := 0
-		reset := 0
-		crop := MINBROWSERWIDTH + (MINBROWSERWIDTH / 2)
-		for i := 0; i < len(pi); i++ {
-			trimmed += pi[i] + " "
-			if len(trimmed) > reset+crop {
-				trimmed += "<br>"
-				breaks += 1
-				reset = len(trimmed)
-			}
-		}
-		pubinfo = trimmed
-	}
+	pubinfo = avoidlonglines(pubinfo, MINBROWSERWIDTH+(MINBROWSERWIDTH/2))
 
 	// restore the strings
 	var reconstituted string
@@ -283,20 +266,26 @@ func formatpublicationinfo(w DbWork) string {
 func formatcitationinfo(w DbWork, l DbWorkline) string {
 	cv := `
 		<p class="currentlyviewing">
-		<span class="currentlyviewingauthor">%s</span>, 
-		<span class="currentlyviewingwork">%s</span><br />
+		%s
 		<span class="currentlyviewingcitation">%s</span>
 		%s
 		%s</p>`
 
-	dt := `<br>(Assigned date of %s)`
+	ct := `<cvauthor">%s</span>, <cvwork">%s</span>`
 
 	au := AllAuthors[w.FindAuthor()].Name
 	ti := w.Title
+
+	ci := fmt.Sprintf(ct, au, ti)
+	ci = avoidlonglines(ci, MINBROWSERWIDTH)
+	ci = strings.Replace(ci, "<cv", `<span class="currentlyviewing`, -1)
+
+	dt := `<br>(Assigned date of %s)`
 	fc := basiccitation(w, l)
 	pi := formatpublicationinfo(AllWorks[l.WkUID])
 	id := formatinscriptiondates(dt, l)
-	cv = fmt.Sprintf(cv, au, ti, fc, pi, id)
+
+	cv = fmt.Sprintf(cv, ci, fc, pi, id)
 
 	return cv
 }
@@ -429,4 +418,25 @@ func selectivelydisplaycitations(theline DbWorkline, previous DbWorkline, focus 
 		citation = ""
 	}
 	return citation
+}
+
+func avoidlonglines(untrimmed string, maxlen int) string {
+	if len(untrimmed) > maxlen {
+		untrimmed = strings.Replace(untrimmed, ";", "; ", -1)
+		pi := strings.Split(untrimmed, " ")
+		var trimmed string
+		breaks := 0
+		reset := 0
+		crop := maxlen
+		for i := 0; i < len(pi); i++ {
+			trimmed += pi[i] + " "
+			if len(trimmed) > reset+crop {
+				trimmed += "<br>"
+				breaks += 1
+				reset = len(trimmed)
+			}
+		}
+		untrimmed = trimmed
+	}
+	return untrimmed
 }
