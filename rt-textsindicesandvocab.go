@@ -290,29 +290,25 @@ func RtVocabMaker(c echo.Context) error {
 
 	trr[len(trr)-1] = tf
 
-	thehtml := strings.Join(trr, "")
+	htm := strings.Join(trr, "")
 
-	type JSFeeder struct {
-		Au string `json:"authorname"`
-		Ti string `json:"title"`
-		ST string `json:"structure"`
-		WS string `json:"worksegment"`
-		HT string `json:"texthtml"`
-		EL string `json:"elapsed"`
-		WF int    `json:"wordsfound"`
-		KY string `json:"keytoworks"`
-		NJ string `json:"newjs"`
-	}
+	st := `
+	<div id="searchsummary">Vocabulary for %s,&nbsp;<span class="foundwork">%s</span><br>
+	citation format:&nbsp;%s<br>
+	%s words found<br>
+	<span class="small">(%ss)</span><br>
+	%s
+	</div>
+	`
 
-	var jso JSFeeder
-	jso.Au = AllAuthors[srch.Results[0].FindAuthor()].Cleaname
+	an := AllAuthors[srch.Results[0].FindAuthor()].Cleaname
 	if srch.TableSize > 1 {
-		jso.Au = jso.Au + fmt.Sprintf(" and %d more author(s)", srch.TableSize-1)
+		an = an + fmt.Sprintf(" and %d more author(s)", srch.TableSize-1)
 	}
 
-	jso.Ti = AllWorks[srch.Results[0].WkUID].Title
+	wn := AllWorks[srch.Results[0].WkUID].Title
 	if srch.SearchSize > 1 {
-		jso.Ti = jso.Ti + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
+		wn = wn + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
 	}
 
 	cf := AllWorks[srch.Results[0].WkUID].CitationFormat()
@@ -323,11 +319,30 @@ func RtVocabMaker(c echo.Context) error {
 		}
 	}
 
-	jso.ST = strings.Join(tc, ", ")
-	jso.HT = thehtml
-	jso.EL = fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
-	jso.WF = srch.SearchSize
-	jso.KY = "(TODO)"
+	cit := strings.Join(tc, ", ")
+
+	m := message.NewPrinter(language.English)
+	wf := m.Sprintf("%d", len(parsedwords))
+
+	el := fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
+
+	ky := ""
+	if srch.SearchSize == 1 || srch.TableSize == 1 {
+		// todo: build the key to the works...
+		ky = ""
+	}
+
+	sum := fmt.Sprintf(st, an, wn, cit, wf, el, ky)
+
+	type JSFeeder struct {
+		SU string `json:"searchsummary"`
+		HT string `json:"indexhtml"`
+		NJ string `json:"newjs"`
+	}
+
+	var jso JSFeeder
+	jso.SU = sum
+	jso.HT = htm
 
 	j := fmt.Sprintf(LEXFINDJS, "vocabobserved") + fmt.Sprintf(BROWSERJS, "vocabobserved")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)

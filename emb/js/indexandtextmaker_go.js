@@ -30,19 +30,9 @@ $('#makeanindex').click( function() {
         let url = '/text/index/' + searchid;
         simpleactivityviawebsocket(searchid);
         $.getJSON(url, function (indexdata) {
-            loadindexintodisplayresults(indexdata);
+            loadintodisplayresults(indexdata);
         });
 });
-
-
-function loadindexintodisplayresults(indexdata) {
-        $('#searchsummary').html(indexdata['searchsummary']);
-        $('#displayresults').html(indexdata['indexhtml']);
-        let bcsh = document.getElementById("indexclickscriptholder");
-        if (bcsh.hasChildNodes()) { bcsh.removeChild(bcsh.firstChild); }
-        $('#indexclickscriptholder').html(indexdata['newjs']);
-}
-
 
 //
 // VOCABLISTS
@@ -55,7 +45,7 @@ $('#makevocablist').click( function() {
     let url = '/text/vocab/' + searchid;
     simpleactivityviawebsocket(searchid);
     $.getJSON(url, function (returnedtext) {
-        loadtextintodisplayresults(returnedtext);
+        loadintodisplayresults(returnedtext);
     });
 
 });
@@ -71,13 +61,15 @@ $('#textofthis').click( function() {
 
     let url = '/text/make/_';
     $.getJSON(url, function (returnedtext) {
-        loadtextintodisplayresults(returnedtext);
+        loadintodisplayresults(returnedtext);
     });
 });
 
 
-function loadtextintodisplayresults(returnedtext) {
-    $('#searchsummary').html(returnedtext['searchsummary']);
-    $('#displayresults').html(returnedtext['texthtml']);
-    $('#indexclickscriptholder').html(returnedtext['newjs']);
-    }
+function loadintodisplayresults(indexdata) {
+    $('#searchsummary').html(indexdata['searchsummary']);
+    $('#displayresults').html(indexdata['indexhtml']);
+    let bcsh = document.getElementById("indexclickscriptholder");
+    if (bcsh.hasChildNodes()) { bcsh.removeChild(bcsh.firstChild); }
+    $('#indexclickscriptholder').html(indexdata['newjs']);
+}
