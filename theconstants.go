@@ -54,7 +54,7 @@ const (
 	TEMPTABLETHRESHOLD      = 100 // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
 	TIMETRACKERMSGTHRESH    = 3
 	// UNACCEPTABLEINPUT       = `|"'!@:,=+_\/` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
-	UNACCEPTABLEINPUT = `"'!@:,=_/` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
+	UNACCEPTABLEINPUT = `"'!@:,=_/̣` // we want to be able to do regex...; note the subscript dot at the end; echo+net/url means some can't make it into a parser: #%&;
 	VARIADATE         = 2000
 	WSPOLLINGPAUSE    = 800000
 

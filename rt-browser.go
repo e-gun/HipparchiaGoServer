@@ -126,14 +126,18 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 	}
 
 	lines = trimmed
+	// want to do what follows in some sort of regular order
+	nk := []string{"#", "", "loc", "pub"}
 
 	for i, _ := range lines {
 		lines[i].GatherMetadata()
 		if len(lines[i].EmbNotes) != 0 {
-			nt := `<span class="red">%s</span> %s<br>`
+			nt := `%s %s<br>`
 			lines[i].Annotations = ""
-			for key, v := range lines[i].EmbNotes {
-				lines[i].Annotations += fmt.Sprintf(nt, key, v)
+			for _, key := range nk {
+				if v, y := lines[i].EmbNotes[key]; y {
+					lines[i].Annotations += fmt.Sprintf(nt, key, v)
+				}
 			}
 		}
 	}

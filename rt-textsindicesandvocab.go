@@ -56,6 +56,7 @@ func RtTextMaker(c echo.Context) error {
 	lines := searches[srch.ID].Results
 	block := make([]string, len(lines))
 	for i, l := range lines {
+		l.PurgeMetadata()
 		block[i] = l.MarkedUp
 	}
 

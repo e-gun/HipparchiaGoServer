@@ -26,7 +26,7 @@ var (
 	nohtml   = regexp.MustCompile("<[^>]*>") // crude, and will not do all of everything
 	metadata = regexp.MustCompile(`<hmu_metadata_(.*?) value="(.*?)" />`)
 	mdformat = regexp.MustCompile(`&3(.*?)&`) // see andsubstitutes in betacodefontshifts.py
-	mdremap  = map[string]string{"provenance": "loc", "documentnumber": "num", "publicationinfo": "pub", "notes": "cf"}
+	mdremap  = map[string]string{"provenance": "loc", "documentnumber": "#", "publicationinfo": "pub", "notes": ""}
 )
 
 type LevelValues struct {
