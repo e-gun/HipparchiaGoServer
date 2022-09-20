@@ -234,6 +234,11 @@ $.getJSON('/authentication/checkuser', function(data){
         }
     });
 
+
+//
+// INDEXING, VOCAB LISTS, TEXT GENERATION
+//
+
 function dec2hex (dec) {
     return ('0' + dec.toString(16)).substr(-2);
 }
@@ -296,3 +301,32 @@ function loadintodisplayresults(indexdata) {
     if (bcsh.hasChildNodes()) { bcsh.removeChild(bcsh.firstChild); }
     $('#indexclickscriptholder').html(indexdata['newjs']);
 }
+
+//
+// COOKIES
+//
+
+$('#togglesaveslots').click( function(){ $('#saveslots').toggle()});
+
+$('#toggleloadslots').click( function(){ $('#loadslots').toggle()});
+
+function javascriptsessionintocookie(cookienumberstr){
+    $.getJSON('/sc/set', function (data) {
+        Cookies.set('session'+cookienumberstr, data, { sameSite: 'strict' });
+    });
+}
+
+$('#save01').click( function(){ javascriptsessionintocookie('01'); $('#setoptions').hide(); $('#saveslots').hide(); });
+$('#save02').click( function(){ javascriptsessionintocookie('02'); $('#setoptions').hide(); $('#saveslots').hide(); });
+$('#save03').click( function(){ javascriptsessionintocookie('03'); $('#setoptions').hide(); $('#saveslots').hide(); });
+$('#save04').click( function(){ javascriptsessionintocookie('04'); $('#setoptions').hide(); $('#saveslots').hide(); });
+$('#save05').click( function(){ javascriptsessionintocookie('05'); $('#setoptions').hide(); $('#saveslots').hide(); });
+
+// timing issues: you will get the cookie properly, but the selections will not show up right unless you use the misleadingly named .always()
+//  'the .always() method replaces the deprecated .complete() method.'
+
+$('#load01').click( function(){ $.getJSON('/sc/get/01').always( function() { $.getJSON('/selection/fetch', function(selectiondata) { reloadselections(selectiondata); }); location.reload(); }); });
+$('#load02').click( function(){ $.getJSON('/sc/get/02').always( function() { $.getJSON('/selection/fetch', function(selectiondata) { reloadselections(selectiondata); }); location.reload(); }); });
+$('#load03').click( function(){ $.getJSON('/sc/get/03').always( function() { $.getJSON('/selection/fetch', function(selectiondata) { reloadselections(selectiondata); }); location.reload(); }); });
+$('#load04').click( function(){ $.getJSON('/sc/get/04').always( function() { $.getJSON('/selection/fetch', function(selectiondata) { reloadselections(selectiondata); }); location.reload(); }); });
+$('#load05').click( function(){ $.getJSON('/sc/get/05').always( function() { $.getJSON('/selection/fetch', function(selectiondata) { reloadselections(selectiondata); }); location.reload(); }); });
