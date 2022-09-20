@@ -133,7 +133,6 @@ HipparchiaGoServer/emb/ % tree
 │   ├── browser.js
 │   ├── coreinterfaceclicks_go.js
 │   ├── documentready_go.js
-│   ├── nonvectorspinners.js
 │   ├── progressindicator_go.js
 │   ├── radioclicks.js
 │   ├── uielementlists_go.js
