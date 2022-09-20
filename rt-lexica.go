@@ -137,6 +137,37 @@ func RtLexFindByForm(c echo.Context) error {
 	return c.String(http.StatusOK, string(jsonbundle))
 }
 
+// RtLexId - grab a word by its entry value
+func RtLexId(c echo.Context) error {
+	// http://127.0.0.1:8000/lexica/idlookup/latin/24236.0
+	req := c.Param("wd")
+	elem := strings.Split(req, "/")
+	if len(elem) != 2 {
+		msg(fmt.Sprintf("RtLexId() received bad request: '%s'", req), 1)
+		return c.String(http.StatusOK, "")
+	}
+	d := purgechars(UNACCEPTABLEINPUT, elem[0])
+	w := purgechars(UNACCEPTABLEINPUT, elem[1])
+
+	f := dictgrabber(w, d, "id_number", "=")
+	if len(f) == 0 {
+		msg(fmt.Sprintf("RtLexId() found nothing at id_number '%s'", w), 1)
+		return c.String(http.StatusOK, "")
+	}
+
+	html := formatlexicaloutput(f[0])
+	js := insertlexicaljs()
+
+	var jb JSB
+	jb.HTML = html
+	jb.JS = js
+
+	jsonbundle, ee := json.Marshal(jb)
+	chke(ee)
+
+	return c.String(http.StatusOK, string(jsonbundle))
+}
+
 func RtLexReverse(c echo.Context) error {
 	// be able to respond to "/lexica/reverselookup/0ae94619/sorrow"
 	req := c.Param("wd")
@@ -326,16 +357,14 @@ func reversefind(word string, dicts []string) string {
 	return thehtml
 }
 
-// dictsearch - word into HTML dictionary entry
-func dictsearch(seeking string, dict string) string {
+func dictgrabber(seeking string, dict string, col string, syntax string) []DbLexicon {
 	dbpool := GetPSQLconnection()
 	defer dbpool.Close()
 
 	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
 	fld := `entry_name, metrical_entry, id_number, pos, translations, html_body`
-	psq := `SELECT %s FROM %s_dictionary WHERE %s ~* '%s' ORDER BY id_number ASC LIMIT %d`
-	col := "entry_name"
-	q := fmt.Sprintf(psq, fld, dict, col, seeking, MAXDICTLOOKUP)
+	psq := `SELECT %s FROM %s_dictionary WHERE %s %s '%s' ORDER BY id_number ASC LIMIT %d`
+	q := fmt.Sprintf(psq, fld, dict, col, syntax, seeking, MAXDICTLOOKUP)
 
 	var lexicalfinds []DbLexicon
 	var foundrows pgx.Rows
@@ -351,6 +380,13 @@ func dictsearch(seeking string, dict string) string {
 		thehit.Lang = dict
 		lexicalfinds = append(lexicalfinds, thehit)
 	}
+	return lexicalfinds
+}
+
+// dictsearch - word into HTML dictionary entry
+func dictsearch(seeking string, dict string) string {
+
+	lexicalfinds := dictgrabber(seeking, dict, "entry_name", "~*")
 
 	sort.Slice(lexicalfinds, func(i, j int) bool { return lexicalfinds[i].Word < lexicalfinds[j].Word })
 
@@ -656,10 +692,11 @@ func insertlexicaljs() string {
 	js := `
 	<script>
 	%s
+	%s
 	</script>`
 
 	jscore := fmt.Sprintf(BROWSERJS, "bibl")
 
-	thejs := fmt.Sprintf(js, jscore)
+	thejs := fmt.Sprintf(js, jscore, DICTIDJS)
 	return thejs
 }

@@ -130,7 +130,7 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 	for i, _ := range lines {
 		lines[i].GatherMetadata()
 		if len(lines[i].EmbNotes) != 0 {
-			nt := `<span class="red">%s:</span> %s<br>`
+			nt := `<span class="red">%s</span> %s<br>`
 			lines[i].Annotations = ""
 			for key, v := range lines[i].EmbNotes {
 				lines[i].Annotations += fmt.Sprintf(nt, key, v)

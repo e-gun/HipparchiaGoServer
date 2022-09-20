@@ -8,8 +8,8 @@ package main
 const (
 	MYNAME                  = "Hipparchia Golang Server"
 	SHORTNAME               = "HGS"
-	VERSION                 = "0.6.2"
-	AUTHENTICATIONREQUIRED  = false
+	VERSION                 = "0.6.4"
+	AUTHENTICATIONREQUIRED  = false // unused ATM
 	CONFIGLOCATION          = "."
 	CONFIGNAME              = "hgs-conf.json"
 	DBAUMAPSIZE             = 3455 //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
@@ -65,6 +65,38 @@ const (
 	MINCONFIG = `
 {"PosgreSQLPassword": "YOURPASSWORDHERE"}
 `
+	TERMINALTEXT = `
+	%s / Copyright (C) %s / %s
+	%s
+
+	This program comes with ABSOLUTELY NO WARRANTY;
+	without even the implied warranty of MERCHANTABILITY
+	or FITNESS FOR A PARTICULAR PURPOSE.
+
+	This is free software, and you are welcome to redistribute
+	it and/or modify it under the terms of the GNU General
+	Public License version 3.
+`
+
+	PROJ     = MYNAME
+	PROJYEAR = "2022"
+	PROJAUTH = "E. Gunderson"
+	PROJMAIL = "Department of Classics, 125 Queen’s Park, Toronto, ON  M5S 2C7 Canada"
+
+	HELPTEXT = `command line options:
+   -cf {file}   read PSQL password from file [default: '%s/%s']
+   -el {num}    set echo server log level (0-2) [default: %d]
+   -ft {name}   force a client-side font instead of serving Noto fonts
+                   names with spaces need quotes: "Gentium Plus Compact"
+   -gl {num}    set golang log level (0-5) [default: %d]
+   -h           print this help information
+   -p  {string} supply full PostgreSQL credentials(*)
+   -sa {string} server IP address [default: '%s']
+   -sp {num}    server port [default: %d]
+   -v           print version and exit
+
+     (*) example: "{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"
+`
 	LEXFINDJS = `
 		$('%s').click( function(e) {
 			e.preventDefault();
@@ -111,36 +143,86 @@ const (
 	});
 	`
 
-	TERMINALTEXT = `
-	%s / Copyright (C) %s / %s
-	%s
+	DICTIDJS = `
+	$('dictionaryentry').click( function(e) {
+		e.preventDefault();
+		var windowWidth = $(window).width();
+		var windowHeight = $(window).height();
+		let ldt = $('#lexicadialogtext');
+		let jshld = $('#lexicaljsscriptholder');
+		
+		ldt.dialog({
+			closeOnEscape: true,
+			autoOpen: false,
+			minWidth: windowWidth*.33,
+			maxHeight: windowHeight*.9,
+			// position: { my: "left top", at: "left top", of: window },
+			title: this.id,
+			draggable: true,
+			icons: { primary: 'ui-icon-close' },
+			click: function() { $(this).dialog('close'); }
+			});
+		
+		ldt.dialog('open');
+		ldt.html('[searching...]');
+		
+		$.getJSON('/lexica/lookup/^'+this.id+'$', function (definitionreturned) {
+			ldt.html(definitionreturned['newhtml']);
+			jshld.html(definitionreturned['newjs']);		
+			});
+		return false;
+		
+		});
 
-	This program comes with ABSOLUTELY NO WARRANTY;
-	without even the implied warranty of MERCHANTABILITY
-	or FITNESS FOR A PARTICULAR PURPOSE.
+	$('dictionaryidsearch').click( function(){
+			$('#imagearea').empty();
 
-	This is free software, and you are welcome to redistribute
-	it and/or modify it under the terms of the GNU General
-	Public License version 3.
-`
+			let ldt = $('#lexicadialogtext');
+			let jshld = $('#lexicaljsscriptholder');
+	
+			let entryid = this.getAttribute("entryid");
+			let language = this.getAttribute("language");
 
-	PROJ     = MYNAME
-	PROJYEAR = "2022"
-	PROJAUTH = "E. Gunderson"
-	PROJMAIL = "Department of Classics, 125 Queen’s Park, Toronto, ON  M5S 2C7 Canada"
-
-	HELPTEXT = `command line options:
-   -cf {file}   read PSQL password from file [default: '%s/%s']
-   -el {num}    set echo server log level (0-2) [default: %d]
-   -ft {name}   force a client-side font instead of serving Noto fonts
-                   names with spaces need quotes: "Gentium Plus Compact"
-   -gl {num}    set golang log level (0-5) [default: %d]
-   -h           print this help information
-   -p  {string} supply full PostgreSQL credentials(*)
-   -sa {string} server IP address [default: '%s']
-   -sp {num}    server port [default: %d]
-   -v           print version and exit
-
-     (*) example: "{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"
+			let url = '/lexica/idlookup/' + language + '/' + entryid;
+			
+			$.getJSON(url, function (definitionreturned) { 
+				ldt.html(definitionreturned['newhtml']);
+				jshld.html(definitionreturned['newjs']);	
+			});
+		});
+	
+	$('formsummary').click( function(e) {
+		e.preventDefault();
+		var windowWidth = $(window).width();
+		var windowHeight = $(window).height();
+		let ldt = $('#lexicadialogtext');
+		let jshld = $('#lexicaljsscriptholder');
+		let headword = this.getAttribute("headword");
+		let parserxref = this.getAttribute("parserxref");
+		let lexid = this.getAttribute("lexicalid");
+		
+		ldt.dialog({
+			closeOnEscape: true,
+			autoOpen: false,
+			minWidth: windowWidth*.33,
+			maxHeight: windowHeight*.9,
+			// position: { my: "left top", at: "left top", of: window },
+			title: headword,
+			draggable: true,
+			icons: { primary: 'ui-icon-close' },
+			click: function() { $(this).dialog('close'); }
+			});
+		
+		ldt.dialog('open');
+		ldt.html('[searching...]');
+		
+		$.getJSON('/lexica/morphologychart/'+this.lang+'/'+lexid+'/'+parserxref+'/'+headword, function (definitionreturned) {
+			ldt.html(definitionreturned['newhtml']);
+			jshld.html(definitionreturned['newjs']);		
+			});
+			
+		return false;
+		
+		});
 `
 )

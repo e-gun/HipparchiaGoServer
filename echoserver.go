@@ -174,7 +174,8 @@ func StartEchoServer() {
 	// [h3] uri: /lexica/reverselookup/0ae94619/sorrow
 	e.GET("/lexica/reverselookup/:wd", RtLexReverse)
 
-	// [h4]
+	// [h4] http://127.0.0.1:8000/lexica/idlookup/latin/24236.0
+	e.GET("/lexica/idlookup/:wd", RtLexId)
 
 	//
 	// [i] resets

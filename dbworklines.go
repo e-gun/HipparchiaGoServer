@@ -26,6 +26,7 @@ var (
 	nohtml   = regexp.MustCompile("<[^>]*>") // crude, and will not do all of everything
 	metadata = regexp.MustCompile(`<hmu_metadata_(.*?) value="(.*?)" />`)
 	mdformat = regexp.MustCompile(`&3(.*?)&`) // see andsubstitutes in betacodefontshifts.py
+	mdremap  = map[string]string{"provenance": "loc", "documentnumber": "num", "publicationinfo": "pub", "notes": "cf"}
 )
 
 type LevelValues struct {
@@ -107,10 +108,16 @@ func (dbw *DbWorkline) GatherMetadata() {
 			// hipparchiaDB=# select index, marked_up_line from lt0474 where index = 116946;
 			md[m[1]] = m[2]
 		}
+
 		dbw.MarkedUp = metadata.ReplaceAllString(dbw.MarkedUp, "")
 		for k, v := range md {
 			md[k] = mdformat.ReplaceAllString(v, `<span class="foundwork">$1</span>`)
+			if _, y := mdremap[k]; y {
+				md[mdremap[k]] = md[k]
+				delete(md, k)
+			}
 		}
+
 	}
 	dbw.EmbNotes = md
 }

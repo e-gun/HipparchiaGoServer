@@ -5,5 +5,4 @@ go.sum
 config*
 hgs-conf*
 z_*
-/HipparchiaGoServer
-/HipparchiaGoServer-*
+/HipparchiaGoServer*
