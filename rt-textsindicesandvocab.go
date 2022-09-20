@@ -502,39 +502,25 @@ func RtIndexMaker(c echo.Context) error {
 
 	htm := fmt.Sprintf(tb, strings.Join(trr, ""))
 
-	type JSFeeder struct {
-		Au string `json:"authorname"`
-		Ti string `json:"title"`
-		WS string `json:"worksegment"`
-		HT string `json:"indexhtml"`
-		EL string `json:"elapsed"`
-		WF string `json:"wordsfound"`
-		KY string `json:"keytoworks"`
-		ST string `json:"structure"`
-		NJ string `json:"newjs"`
-	}
+	// <div id="searchsummary">Index to Cicero - Cicero, Marcus Tullius,&nbsp;<span class="foundwork">Philippicae</span>
+	// <br>citation format:&nbsp;oration, section, line<br>236 words found<br><span class="small">(0.10s)</span><br></div>
+	st := `
+	<div id="searchsummary">Index to %s,&nbsp;<span class="foundwork">%s</span><br>
+	citation format:&nbsp;%s<br>
+	%s words found<br>
+	<span class="small">(%ss)</span><br>
+	%s
+	</div>
+	`
 
-	var jso JSFeeder
-	jso.Au = AllAuthors[srch.Results[0].FindAuthor()].Cleaname
+	an := AllAuthors[srch.Results[0].FindAuthor()].Cleaname
 	if srch.TableSize > 1 {
-		jso.Au = jso.Au + fmt.Sprintf(" and %d more author(s)", srch.TableSize-1)
+		an = an + fmt.Sprintf(" and %d more author(s)", srch.TableSize-1)
 	}
 
-	jso.Ti = AllWorks[srch.Results[0].WkUID].Title
+	wn := AllWorks[srch.Results[0].WkUID].Title
 	if srch.SearchSize > 1 {
-		jso.Ti = jso.Ti + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
-	}
-
-	if srch.SearchSize == 1 && srch.TableSize == 1 {
-		jso.KY = ""
-	} else {
-		// todo: build the key to the works...
-	}
-
-	if len(searches[readUUIDCookie(c)].SearchIn.ListedPBN) == 0 {
-		jso.WS = ""
-	} else {
-		jso.WS = strings.Join(searches[readUUIDCookie(c)].SearchIn.ListedPBN, "; ")
+		wn = wn + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
 	}
 
 	cf := AllWorks[srch.Results[0].WkUID].CitationFormat()
@@ -545,12 +531,30 @@ func RtIndexMaker(c echo.Context) error {
 		}
 	}
 
-	jso.ST = strings.Join(tc, ", ")
-	jso.HT = htm
-	jso.EL = fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
+	cit := strings.Join(tc, ", ")
 
 	m := message.NewPrinter(language.English)
-	jso.WF = m.Sprintf("%d", len(trimslices))
+	wf := m.Sprintf("%d", len(trimslices))
+
+	el := fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
+
+	ky := ""
+	if srch.SearchSize == 1 || srch.TableSize == 1 {
+		// todo: build the key to the works...
+		ky = ""
+	}
+
+	sum := fmt.Sprintf(st, an, wn, cit, wf, el, ky)
+
+	type JSFeeder struct {
+		SU string `json:"searchsummary"`
+		HT string `json:"indexhtml"`
+		NJ string `json:"newjs"`
+	}
+
+	var jso JSFeeder
+	jso.SU = sum
+	jso.HT = htm
 
 	j := fmt.Sprintf(LEXFINDJS, "indexobserved") + fmt.Sprintf(BROWSERJS, "indexedlocation")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)

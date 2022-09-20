@@ -36,33 +36,10 @@ $('#makeanindex').click( function() {
 
 
 function loadindexintodisplayresults(indexdata) {
-        let linesreturned = '';
-        linesreturned += 'Index to ' + indexdata['authorname'];
-        if (indexdata['title'] !== '') { linesreturned += ',&nbsp;<span class="foundwork">'+indexdata['title']+'</span>'; }
-        if (indexdata['worksegment'] === '') {
-            linesreturned += '<br />';
-            } else {
-            linesreturned += '&nbsp;'+indexdata['worksegment']+'<br />';
-            }
-        if (indexdata['title'] !== '') { linesreturned += 'citation format:&nbsp;'+indexdata['structure']+'<br />'; }
-        linesreturned += indexdata['wordsfound']+' words found<br />';
-
-        let dLen = indexdata['keytoworks'].length;
-        if (dLen > 0) {
-            linesreturned += '<br />Key to works:<br />';
-            for (let i = 0; i < dLen; i++) {
-                linesreturned += indexdata['keytoworks'][i]+'<br />';
-            }
-        }
-
-        linesreturned += '<span class="small">(' + indexdata['elapsed']+ 's)</span><br />';
-
-        $('#searchsummary').html(linesreturned);
+        $('#searchsummary').html(indexdata['searchsummary']);
         $('#displayresults').html(indexdata['indexhtml']);
-
         let bcsh = document.getElementById("indexclickscriptholder");
         if (bcsh.hasChildNodes()) { bcsh.removeChild(bcsh.firstChild); }
-
         $('#indexclickscriptholder').html(indexdata['newjs']);
 }
 
