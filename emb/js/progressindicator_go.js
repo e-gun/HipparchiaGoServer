@@ -27,40 +27,10 @@ function checkactivityviawebsocket(searchid) {
 }
 
 function displayprogress(searchid, progress){
-    // note that morphologychartjs() has its own version of this function: changes here should be made there too
-    // console.log(progress);
-    let r = progress['Remaining'];
-    let t = progress['Poolofwork'];
-    let h = progress['Hitcount'];
-    let pct = Math.round((t-r) / t * 100);
-    // let pct = 100;
-    let m = progress['Statusmessage'];
-    let e = progress['Elapsed'];
-    let x = progress['Notes'];
-    let id = progress['ID'];
-    let a = progress['Activity'];
-
-    // let thehtml = '[' + id + '] ';
-
-    if (id === searchid) {
-        let thehtml = '';
-        if (r !== undefined && t !== undefined && !isNaN(pct)) {
-            if (t !== -1 && pct < 100) {
-                thehtml += m + ': <span class="progress">' + pct + '%</span> completed&nbsp;(' + e + ')';
-            } else {
-                thehtml += m + '&nbsp;(' + e + ')';
-            }
-
-            if (h > 0) {
-                let hc = h.toLocaleString();
-                thehtml += '<br />(<span class="progress">' + hc + '</span> found)';
-            }
-
-            thehtml += '<br />' + x;
-        }
-        $('#pollingdata').html(thehtml);
+    if (progress['ID'] === searchid) {
+        $('#pollingdata').html(progress['value']);
     } else {
-        console.log("id", id);
+        console.log("id", progress['ID']);
         console.log("searchid", searchid);
     }
 }
@@ -77,25 +47,8 @@ function simpleactivityviawebsocket(searchid) {
         }, 10);
         s.onmessage = function(e){
             let progress = JSON.parse(e.data);
-            simpleprogress(searchid, progress);
+            displayprogress(searchid, progress);
             if  (progress['active'] === 'inactive') { pd.html(''); s.close(); s = null; }
         }
     });
-}
-
-function simpleprogress(searchid, progress) {
-    let m = progress['Statusmessage'];
-    let e = progress['Elapsed'];
-    let x = progress['Notes'];
-    let id = progress['ID'];
-    let a = progress['Activity'];
-
-    // console.log("id", id);
-    // console.log("searchid", searchid);
-
-    if (id === searchid) {
-        let thehtml = '';
-        thehtml += m + '&nbsp;(' + e + ')';
-        $('#pollingdata').html(thehtml);
-    }
 }

@@ -14,6 +14,17 @@ import (
 	"time"
 )
 
+type PollData struct {
+	Active   string `json:"active"`
+	TotalWrk int    `json:"Poolofwork"`
+	Remain   int    `json:"Remaining"`
+	Hits     int    `json:"Hitcount"`
+	Msg      string `json:"Statusmessage"`
+	Elapsed  string `json:"Elapsed"`
+	Extra    string `json:"Notes"`
+	ID       string `json:"ID"`
+}
+
 // RtWebsocket - progress info for searches
 func RtWebsocket(c echo.Context) error {
 	// 	the client sends the name of a poll and this will output
@@ -35,17 +46,6 @@ func RtWebsocket(c echo.Context) error {
 		return err
 	}
 	defer ws.Close()
-
-	type ReplyJS struct {
-		Active   string `json:"active"`
-		TotalWrk int    `json:"Poolofwork"`
-		Remain   int    `json:"Remaining"`
-		Hits     int    `json:"Hitcount"`
-		Msg      string `json:"Statusmessage"`
-		Elapsed  string `json:"Elapsed"`
-		Extra    string `json:"Notes"`
-		ID       string `json:"ID"`
-	}
 
 	for {
 		if len(searches) != 0 {
@@ -78,7 +78,7 @@ func RtWebsocket(c echo.Context) error {
 
 		if found && searches[bs].IsActive {
 			for {
-				var r ReplyJS
+				var r PollData
 				r.Active = "is_active"
 				r.ID = bs
 				r.TotalWrk = searches[bs].TableSize
@@ -100,15 +100,22 @@ func RtWebsocket(c echo.Context) error {
 				}
 
 				// inside the loop because indexing modifies InitSum to send simple progress messages
-				mm := strings.Replace(searches[bs].InitSum, "Sought", "Seeking", -1)
-				if r.Remain != 0 {
-					r.Msg = mm
-				} else {
-					r.Msg = mm + "&nbsp;(finishing up...)"
-				}
+				r.Msg = strings.Replace(searches[bs].InitSum, "Sought", "Seeking", -1)
 
 				// Write
-				js, y := json.Marshal(r)
+				pd := formatpoll(r)
+
+				type JSOut struct {
+					V  string `json:"value"`
+					ID string `json:"ID"`
+				}
+
+				jso := JSOut{
+					V:  pd,
+					ID: r.ID,
+				}
+
+				js, y := json.Marshal(jso)
 				chke(y)
 
 				er := ws.WriteMessage(websocket.TextMessage, js)
@@ -116,6 +123,7 @@ func RtWebsocket(c echo.Context) error {
 				if er != nil {
 					c.Logger().Error(er)
 					msg("RtWebsocket(): ws failed to write: breaking", 1)
+					done = true
 					break
 				} else {
 					time.Sleep(WSPOLLINGPAUSE)
@@ -129,4 +137,34 @@ func RtWebsocket(c echo.Context) error {
 		}
 	}
 	return nil
+}
+
+func formatpoll(pd PollData) string {
+	pctd := ((float32(pd.TotalWrk) - float32(pd.Remain)) / float32(pd.TotalWrk)) * 100
+	pcts := fmt.Sprintf("%.0f", pctd) + "%"
+
+	htm := pd.Msg
+	if pctd != 0 && pd.Remain != 0 && pd.TotalWrk != 0 {
+		// normal in progress
+		htm += fmt.Sprintf(`: <span class="progress">%s</span> completed&nbsp;(%s)<br>`, pcts, pd.Elapsed)
+	} else if pd.Remain == 0 && pd.TotalWrk != 0 {
+		// finished, mostly
+		htm += fmt.Sprintf(`&nbsp;(%s)<br>Finishing up...&nbsp;`, pd.Elapsed)
+	} else if pd.TotalWrk == 0 {
+		// vocab or index run
+		htm += fmt.Sprintf(`&nbsp;(%s)`, pd.Elapsed)
+	} else {
+		// fallback
+		htm += fmt.Sprintf(`&nbsp;(%s)`, pd.Elapsed)
+	}
+
+	if pd.Hits > 0 {
+		htm += fmt.Sprintf(`(<span class="progress">%d</span> found)<br>`, pd.Hits)
+	}
+
+	if len(pd.Extra) != 0 {
+		htm += pd.Extra
+	}
+
+	return htm
 }
