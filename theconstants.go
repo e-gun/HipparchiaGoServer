@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                  = "Hipparchia Golang Server"
 	SHORTNAME               = "HGS"
-	VERSION                 = "0.6.7"
+	VERSION                 = "0.6.8"
 	AUTHENTICATIONREQUIRED  = false // unused ATM
 	CONFIGLOCATION          = "."
 	CONFIGNAME              = "hgs-conf.json"
@@ -25,8 +25,8 @@ const (
 	DEFAULTPROXIMITY        = 2
 	DEFAULTPROXIMITYSCOPE   = "lines"
 	DEFAULTSYNTAX           = "~"
-	FIRSTSEARCHLIM          = 500000 // 149570 lines in Cicero (lt0474)
-	FONTSETTING             = "SERVEALLFONTS"
+	FIRSTSEARCHLIM          = 500000          // 149570 lines in Cicero (lt0474)
+	FONTSETTING             = "SERVEALLFONTS" // will send Noto when this "font" is not found
 	GENRESTOCOUNT           = 5
 	INCERTADATE             = 2500
 	MAXBROWSERCONTEXT       = 60
@@ -40,6 +40,7 @@ const (
 	MAXLINESHITCONTEXT      = 30
 	MAXSEARCHINFOLISTLEN    = 100
 	MAXTEXTLINEGENERATION   = 7500
+	MAXTITLELENGTH          = 110
 	MINBROWSERWIDTH         = 90
 	MINDATE                 = -850
 	MINDATESTR              = "-850"
@@ -53,7 +54,7 @@ const (
 	SORTBY                  = "shortname"
 	TEMPTABLETHRESHOLD      = 100 // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
 	TIMETRACKERMSGTHRESH    = 3
-	// UNACCEPTABLEINPUT       = `|"'!@:,=+_\/` // we want to be able to do regex...; echo+net/url means some can't make it into a parser: #%&;
+	// UNACCEPTABLEINPUT       = `|"'!@:,=+_\/`
 	UNACCEPTABLEINPUT = `"'!@:,=_/̣` // we want to be able to do regex...; note the subscript dot at the end; echo+net/url means some can't make it into a parser: #%&;
 	VARIADATE         = 2000
 	WSPOLLINGPAUSE    = 1500000

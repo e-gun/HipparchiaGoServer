@@ -2,7 +2,7 @@
 
 ## late alpha status: usable, but needs polish in many quarters
 
-### status as of `v0.6.7`:
+### status as of `v0.6.8`:
 
 * monolithic binary: no need for extra files/folders beyond `hgs-conf.json`
 * searching theoretically fine but needs more testing/checking

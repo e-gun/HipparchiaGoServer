@@ -127,7 +127,7 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 
 	lines = trimmed
 	// want to do what follows in some sort of regular order
-	nk := []string{"#", "", "loc", "pub"}
+	nk := []string{"#", "", "loc", "pub", "c:", "r:", "d:"}
 
 	for i, _ := range lines {
 		lines[i].GatherMetadata()

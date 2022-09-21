@@ -42,8 +42,7 @@ func formatnocontextresults(ss SearchStruct) []byte {
 	<tr class="%s">
 		<td>
 			<span class="findnumber">[%d]</span>&nbsp;&nbsp;%s
-			<span class="foundauthor">%s</span>,&nbsp;<span class="foundwork">%s</span>:
-			<browser id="%s"><span class="foundlocus">%s</span></browser>
+			%s
 		</td>
 		<td class="leftpad">
 			<span class="foundtext">%s</span>
@@ -83,7 +82,15 @@ func formatnocontextresults(ss SearchStruct) []byte {
 		lk := r.BuildHyperlink()
 		lc := strings.Join(r.FindLocus(), ".")
 		wd := formatinscriptiondates(dtt, r)
-		fm := fmt.Sprintf(TABLEROW, rc, i+1, wd, au, wk, lk, lc, mu)
+
+		// <span class="foundauthor">%s</span>,&nbsp;<span class="foundwork">%s</span>: <browser id="%s"><span class="foundlocus">%s</span></browser>
+		ct := `<spcauthor">%s</span>,&nbsp;<spcwork">%s</span>: <browser_id="%s"><spclocus">%s</span></browser>`
+		ci := fmt.Sprintf(ct, au, wk, lk, lc)
+		ci = avoidlonglines(ci, MAXTITLELENGTH)
+		ci = strings.Replace(ci, "<spc", `<span class="found`, -1)
+		ci = strings.Replace(ci, `browser_id`, `browser id`, -1)
+
+		fm := fmt.Sprintf(TABLEROW, rc, i+1, wd, ci, mu)
 		rows[i] = fm
 	}
 
