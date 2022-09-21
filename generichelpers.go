@@ -16,9 +16,10 @@ import (
 
 var (
 	// to avoid looping this in hot code
-	runef   = getrunefeeder()
-	erunef  = extendedrunefeeder()
-	runered = getrunereducer()
+	runef    = getrunefeeder()
+	erunef   = extendedrunefeeder()
+	runered  = getrunereducer()
+	uvσςϲred = uvσςϲreducer()
 )
 
 //
@@ -436,7 +437,8 @@ func capsvariants(word string) string {
 	return cv
 }
 
-func uvσςϲ(u string) string {
+// uvσςϲreducer - provide map to uvσςϲ
+func uvσςϲreducer() map[rune]rune {
 	feeder := make(map[rune][]rune)
 
 	feeder['u'] = []rune("uUvVÜÚüú")
@@ -449,11 +451,17 @@ func uvσςϲ(u string) string {
 			reducer[r] = f
 		}
 	}
+	return reducer
+}
+
+// uvσςϲ - v to u, etc
+func uvσςϲ(u string) string {
+	// uvσςϲred at top of file
 
 	var stripped []rune
 	for _, x := range []rune(u) {
-		if _, ok := reducer[x]; ok {
-			stripped = append(stripped, reducer[x])
+		if _, ok := uvσςϲred[x]; ok {
+			stripped = append(stripped, uvσςϲred[x])
 		} else {
 			stripped = append(stripped, x)
 		}
