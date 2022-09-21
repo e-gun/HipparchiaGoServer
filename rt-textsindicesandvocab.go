@@ -109,6 +109,13 @@ func RtTextMaker(c echo.Context) error {
 
 	sum := fmt.Sprintf(st, au, ti, ct)
 
+	cp := ""
+	if len(srch.Results) == MAXTEXTLINEGENERATION {
+		m := message.NewPrinter(language.English)
+		cp = m.Sprintf(`<span class="small">text generation incomplete: hit the cap of %d on allowed lines</span>`, MAXTEXTLINEGENERATION)
+	}
+	sum = sum + cp
+
 	type JSFeeder struct {
 		SU string `json:"searchsummary"`
 		HT string `json:"thehtml"`
@@ -201,6 +208,11 @@ func RtVocabMaker(c echo.Context) error {
 			newwd.Trans = h.Transl
 			parsedwords = append(parsedwords, newwd)
 		}
+	}
+
+	mp := make(map[string]rune)
+	if srch.SearchSize > 1 {
+		parsedwords, mp = addkeystowordinfo(parsedwords)
 	}
 
 	// [d] get the counts
@@ -299,6 +311,7 @@ func RtVocabMaker(c echo.Context) error {
 	%s words found<br>
 	<span class="small">(%ss)</span><br>
 	%s
+	%s
 	</div>
 	`
 
@@ -328,12 +341,29 @@ func RtVocabMaker(c echo.Context) error {
 	el := fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
 
 	ky := ""
-	if srch.SearchSize == 1 || srch.TableSize == 1 {
-		// todo: build the key to the works...
-		ky = ""
+	auu := srch.SearchSize > 1
+	wkk := srch.TableSize > 1
+
+	if auu || wkk {
+		var out []string
+		for k, v := range mp {
+			t := fmt.Sprintf(`<span class="italic">%s</span>`, AllWorks[k].Title)
+			if auu {
+				t = AllAuthors[AllWorks[k].FindAuthor()].Name + ", " + t
+			}
+			out = append(out, fmt.Sprintf("%s: %s", string(v), t))
+		}
+		sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
+		ky = strings.Join(out, "; ")
+		ky = `<br><span class="emph">Key to works:</span> ` + ky
 	}
 
-	sum := fmt.Sprintf(st, an, wn, cit, wf, el, ky)
+	cp := ""
+	if len(srch.Results) == MAXTEXTLINEGENERATION {
+		cp = m.Sprintf(`<span class="small">vocabulary generation incomplete: hit the cap of %d on allowed lines</span>`, MAXTEXTLINEGENERATION)
+	}
+
+	sum := fmt.Sprintf(st, an, wn, cit, wf, el, cp, ky)
 
 	type JSFeeder struct {
 		SU string `json:"searchsummary"`
@@ -539,6 +569,7 @@ func RtIndexMaker(c echo.Context) error {
 	%s words found<br>
 	<span class="small">(%ss)</span><br>
 	%s
+	%s
 	</div>
 	`
 
@@ -568,17 +599,29 @@ func RtIndexMaker(c echo.Context) error {
 	el := fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
 
 	ky := ""
-	if srch.SearchSize == 1 || srch.TableSize == 1 {
+	auu := srch.SearchSize > 1
+	wkk := srch.TableSize > 1
+
+	if auu || wkk {
 		var out []string
 		for k, v := range mp {
-			out = append(out, fmt.Sprintf("%s: %s", string(v), AllWorks[k].Title))
+			t := fmt.Sprintf(`<span class="italic">%s</span>`, AllWorks[k].Title)
+			if auu {
+				t = AllAuthors[AllWorks[k].FindAuthor()].Name + ", " + t
+			}
+			out = append(out, fmt.Sprintf("%s: %s", string(v), t))
 		}
 		sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
 		ky = strings.Join(out, "; ")
 		ky = `<br><span class="emph">Key to works:</span> ` + ky
 	}
 
-	sum := fmt.Sprintf(st, an, wn, cit, wf, el, ky)
+	cp := ""
+	if len(srch.Results) == MAXTEXTLINEGENERATION {
+		cp = m.Sprintf(`<span class="small">indexing incomplete: hit the cap of %d on allowed lines</span>`, MAXTEXTLINEGENERATION)
+	}
+
+	sum := fmt.Sprintf(st, an, wn, cit, wf, el, cp, ky)
 
 	type JSFeeder struct {
 		SU string `json:"searchsummary"`

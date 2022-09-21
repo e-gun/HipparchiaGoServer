@@ -39,7 +39,7 @@ const (
 	MAXLEMMACHUNKSIZE       = 20
 	MAXLINESHITCONTEXT      = 30
 	MAXSEARCHINFOLISTLEN    = 100
-	MAXTEXTLINEGENERATION   = 7500
+	MAXTEXTLINEGENERATION   = 10000
 	MAXTITLELENGTH          = 110
 	MINBROWSERWIDTH         = 90
 	MINDATE                 = -850
@@ -58,7 +58,7 @@ const (
 	UNACCEPTABLEINPUT = `"'!@:,=_/̣` // we want to be able to do regex...; note the subscript dot at the end; echo+net/url means some can't make it into a parser: #%&;
 	USEGZIP           = false
 	VARIADATE         = 2000
-	WSPOLLINGPAUSE    = 2000000
+	WSPOLLINGPAUSE    = 99999999
 
 	PSQLHOST  = "127.0.0.1"
 	PSQLUSER  = "hippa_wr"
