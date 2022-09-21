@@ -25,6 +25,8 @@
 ### DISTANT FANTASIES
 * vectors
 
+![launch](gitimg/launch.png)
+
 ---
 
 the password for `hippa_wr` will be requested when archiving/loading
@@ -44,6 +46,8 @@ cat /ARCHIVEFOLDER/TARGETDIR/hipparchiaDB-* | psql "hipparchiaDB" --user hippa_w
 
 an uncompressed archive is c. `3.6GB`
 
+![archive](gitimg/archived.png)
+
 ---
 
 ## minimal installation overview
@@ -56,11 +60,10 @@ an uncompressed archive is c. `3.6GB`
 - compile or download a binary of `HipparchiaGoServer`
 - set up `config.json` (as per `sample_config.json`)
 - run `HipparchiaGoServer` via a terminal
-
 ## some further notes
 
 - ask google about adding a user and database to postgresql; but the easiest way is probably:
-  - from the command line of a terminal execute `psql postgres` (or `sudo su postgres psql postgres` if you do not have permission to do the first). NB: `Postgres.app` on macOS will install `psql` somewhere where you can't just type `psql postgres` to get into the database...
+  - from the command line of a terminal execute `psql postgres` (or `sudo -u postgres psql postgres` if you do not have permission to do the first). NB: `Postgres.app` on macOS will install `psql` somewhere where you can't just type `psql postgres` to get into the database...
   - then send the next two commands from the postgres shell:
     - `CREATE USER hippa_wr WITH PASSWORD 'some_random_password';`
     - `CREATE DATABASE "hipparchiaDB";`
@@ -68,6 +71,9 @@ an uncompressed archive is c. `3.6GB`
 - loading the archive is also easy if you are in the right directory; but you need to know where you are...
   - loading can take several minutes
 - if no configuration is present when you launch `HipparchiaGoServer`, you will be given a prompt about what it should look like; all you should really need to do is set the password (avoid adding “smart quotes” instead of straight quotes to this file)
+  
+![archive](gitimg/postreslogin.png)
+
 
 
 ## notes on installing homebrew in order to acquire postgresql
