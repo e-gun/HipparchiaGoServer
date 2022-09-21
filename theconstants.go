@@ -56,8 +56,9 @@ const (
 	TIMETRACKERMSGTHRESH    = 3
 	// UNACCEPTABLEINPUT       = `|"'!@:,=+_\/`
 	UNACCEPTABLEINPUT = `"'!@:,=_/̣` // we want to be able to do regex...; note the subscript dot at the end; echo+net/url means some can't make it into a parser: #%&;
+	USEGZIP           = false
 	VARIADATE         = 2000
-	WSPOLLINGPAUSE    = 1500000
+	WSPOLLINGPAUSE    = 2000000
 
 	PSQLHOST  = "127.0.0.1"
 	PSQLUSER  = "hippa_wr"

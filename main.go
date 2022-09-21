@@ -83,6 +83,7 @@ func configatlaunch() {
 	cfg.HostIP = SERVEDFROMHOST
 	cfg.HostPort = SERVEDFROMPORT
 	cfg.Font = FONTSETTING
+	cfg.Gzip = USEGZIP
 
 	cf := fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGNAME)
 

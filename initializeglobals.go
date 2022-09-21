@@ -59,6 +59,7 @@ type CurrentConfiguration struct {
 	HostIP      string
 	HostPort    int
 	Font        string
+	Gzip        bool
 }
 
 type DbAuthor struct {

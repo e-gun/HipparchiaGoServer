@@ -26,7 +26,7 @@ var (
 	nohtml   = regexp.MustCompile("<[^>]*>") // crude, and will not do all of everything
 	metadata = regexp.MustCompile(`<hmu_metadata_(.*?) value="(.*?)" />`)
 	mdformat = regexp.MustCompile(`&3(.*?)&`) // see andsubstitutes in betacodefontshifts.py
-	mdremap  = map[string]string{"provenance": "loc", "documentnumber": "#", "publicationinfo": "pub", "notes": "",
+	mdremap  = map[string]string{"provenance": "loc:", "documentnumber": "#", "publicationinfo": "pub:", "notes": "",
 		"city": "c:", "region": "r:", "date": "d:"}
 	// the above has to be kept in sync w/ l 130 of rt-browser.go ()
 )

@@ -60,7 +60,10 @@ func StartEchoServer() {
 	}
 
 	e.Use(middleware.Recover())
-	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
+
+	if cfg.Gzip {
+		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
+	}
 
 	e.File("/favicon.ico", "static/images/hipparchia_favicon.ico")
 	e.Static("/static", "static")

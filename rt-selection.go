@@ -618,14 +618,26 @@ func workvalueofpassage(psg string) string {
 }
 
 func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
-	// we are wrapping endpointer() to give us a couple of bites at a perseus problem
-	// [HGS] findendpointsfromlocus() failed to find the following inside of lt0474w049: 4:8:18
-	// this should in fact be "4.18"
+	// we are wrapping endpointer() to give us a couple of bites at perseus citaiton problems
 
 	fl, success := endpointer(wuid, locus, sep)
 	if success || sep != ":" {
 		return fl
+	}
+
+	dc := regexp.MustCompile("(\\d+)([a-f])$")
+	if dc.MatchString(locus) {
+		// plato, et al
+		// [HGS] endpointer() failed to find the following inside of gr0059w030: '407e'
+		// [HGS] findendpointsfromlocus() retrying endpointer(): '407e' --> '407:e'
+		r := fmt.Sprintf("$1%s$2", sep)
+		newlocus := dc.ReplaceAllString(locus, r)
+		msg(fmt.Sprintf("findendpointsfromlocus() retrying endpointer(): '%s' --> '%s'", locus, newlocus), 1)
+		fl, success = endpointer(wuid, newlocus, sep)
 	} else {
+		// cicero, et.al
+		// [HGS] findendpointsfromlocus() failed to find the following inside of lt0474w049: 4:8:18
+		// this should in fact be "4.18"
 		ll := strings.Split(locus, sep)
 		if len(ll) >= 2 {
 			newlocus := strings.Join(RemoveIndex(ll, 1), ":")

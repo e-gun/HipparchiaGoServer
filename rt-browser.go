@@ -126,6 +126,12 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 	}
 
 	lines = trimmed
+
+	if len(lines) == 0 {
+		msg(fmt.Sprintf("HipparchiaBrowser() called simplecontextgrabber() and failed: %s, %d, %d", au, fc, ctx/2), 1)
+		return []byte{}
+	}
+
 	// want to do what follows in some sort of regular order
 	nk := []string{"#", "", "loc", "pub", "c:", "r:", "d:"}
 
@@ -266,7 +272,7 @@ func formatpublicationinfo(w DbWork) string {
 func formatcitationinfo(w DbWork, l DbWorkline) string {
 	cv := `
 		<p class="currentlyviewing">
-		%s
+		%s<br>
 		<span class="currentlyviewingcitation">%s</span>
 		%s
 		%s</p>`
@@ -355,25 +361,24 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		lmw := mw[len(mw)-1]
 		for w, _ := range wds {
 			cv := capsvariants(wds[w])
-			if w == lastwordindex && terminalhyph.MatchString(lmw) {
+			if w == len(wds)-1 && terminalhyph.MatchString(lmw) {
 				cv = capsvariants(lmw)
 			}
 			pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s|\\[|\\>|⟨|‘|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|\\!|,|;|\\?|·|$)", cv))
-			if e == nil && !terminalhyph.MatchString(lmw) {
-				// you will barf if wds[w] = *
-				newline = pattern.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
-			} else if e == nil && terminalhyph.MatchString(lmw) {
+			if e == nil && w == len(wds)-1 && terminalhyph.MatchString(lmw) {
 				// wds[lastwordindex] is the unhyphenated word
 				r := fmt.Sprintf(`$1<observed id="%s">$2</observed>$3`, lwd)
 				newline = pattern.ReplaceAllString(newline, r)
+			} else if e == nil {
+				newline = pattern.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
 			} else {
+				// you will barf if wds[w] = *
 				msg(fmt.Sprintf("buildbrowsertable() could not regex compile %s", wds[w]), 4)
 			}
 
 			// complication: elision: <observed id="ἀλλ">ἀλλ</observed>’
 			// but you can't deal with that here: the ’ will not turn up a find in the dictionary; the ' will yield bad SQL
 			// so the dictionary lookup has to be reworked
-
 		}
 
 		var bl string
