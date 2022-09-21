@@ -1,8 +1,8 @@
 # HipparchiaGoServer
 
-## late alpha status: usable, but needs polish in many quarters
+## early beta status: rough edges, (allegedly) solid core
 
-### status as of `v0.6.8`:
+### status as of `v0.7.0`:
 
 * monolithic binary: no need for extra files/folders beyond `hgs-conf.json`
 * searching theoretically fine but needs more testing/checking
@@ -18,7 +18,6 @@
 
 ### TODO (in vague order of priority)
 
-* browserclick on hypenated word-ends broken
 * update the help files so that they reflect HGS vs the python server
 * fix the less wonky lemma highlighting
 * keying for multiple author/work indexing (this will also show that not all works of an author are being indexed ATM)

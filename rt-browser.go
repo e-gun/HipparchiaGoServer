@@ -337,7 +337,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	// complication: hyphenated words at the end of a line
 	// this will already have markup from bracketformatting and so have to be handled carefully
 
-	terminalhyph := regexp.MustCompile("\\s([^\\s]+-)$")
+	terminalhyph := regexp.MustCompile("(\\S+-)$")
 
 	for i, _ := range lines {
 		// turn "abc def" into "<observed id="abc">abc</observed> <observed id="def">def</observed>"
@@ -346,23 +346,26 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		// further complications: hyphenated words & capitalized words
 
 		wds := strings.Split(lines[i].Accented, " ")
+		lastwordindex := len(wds) - 1
+		lwd := wds[lastwordindex] // preserve this before potentially shrinking wds
 		wds = unique(wds)
 
 		newline := lines[i].MarkedUp
-		lastword := len(wds) - 1
+		mw := strings.Split(lines[i].MarkedUp, " ")
+		lmw := mw[len(mw)-1]
 		for w, _ := range wds {
 			cv := capsvariants(wds[w])
+			if w == lastwordindex && terminalhyph.MatchString(lmw) {
+				cv = capsvariants(lmw)
+			}
 			pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s|\\[|\\>|⟨|‘|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|\\!|,|;|\\?|·|$)", cv))
-			if e == nil && w != lastword {
+			if e == nil && !terminalhyph.MatchString(lmw) {
 				// you will barf if wds[w] = *
 				newline = pattern.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
-			} else if e == nil && w == lastword {
-				if terminalhyph.MatchString(wds[w]) {
-					r := fmt.Sprintf(` <observed id="%s">$1</observed>`, wds[len(wds)-1])
-					newline = terminalhyph.ReplaceAllString(newline, r)
-				} else {
-					newline = pattern.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
-				}
+			} else if e == nil && terminalhyph.MatchString(lmw) {
+				// wds[lastwordindex] is the unhyphenated word
+				r := fmt.Sprintf(`$1<observed id="%s">$2</observed>$3`, lwd)
+				newline = pattern.ReplaceAllString(newline, r)
 			} else {
 				msg(fmt.Sprintf("buildbrowsertable() could not regex compile %s", wds[w]), 4)
 			}

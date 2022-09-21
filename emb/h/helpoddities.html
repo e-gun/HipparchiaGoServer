@@ -256,15 +256,6 @@ Various oddities and peculiarities ensue.
         when the index has 128k items...)
     </p>
 
-<p><span class="label">Betacode syntax conflicts with regex syntax</span></p>
-    <p class="explanation">
-        Only <code>yes</code> for the <code>TLGASSUMESBETACODE</code> or <code>UNIVERSALASSUMESBETACODE</code> options will trigger this issue.
-        <code>e(i|a)n</code> will become <code>ἑι|ἀν</code> if it hits the betacode converter. But you
-        were probably hoping to search for <code>epsilon + either iota or alpha + nu</code>. You will have to type
-        <code>ε(ι|α)ν</code> if you want to do that. And, in general, you should either type only with
-        betacode in mind or with regular expressions syntax in mind. In the latter case you will use
-        Greek characters, in the former you can use Latin characters.
-
 <p><span class="label">Search list save size cap</span></p>
     <p class="explanation">
         The cookie that stores the session is only allowed to be c. 4000 characters long. A collection of search
