@@ -16,10 +16,10 @@ import (
 
 var (
 	// to avoid looping this in hot code
-	runef    = getrunefeeder()
-	erunef   = extendedrunefeeder()
-	runered  = getrunereducer()
-	uvσςϲred = uvσςϲreducer()
+	runef   = getrunefeeder()
+	erunef  = extendedrunefeeder()
+	runered = getrunereducer()
+	// uvσςϲred = uvσςϲreducer()
 )
 
 //
@@ -245,11 +245,9 @@ func purgechars(bad string, checking string) string {
 // stripaccentsSTR - ὀκνεῖϲ --> οκνειϲ, etc.
 func stripaccentsSTR(u string) string {
 	// reducer := getrunereducer()
-	// runered a var at top of file
-
-	stripped := make([]rune, len(u))
-	for i, x := range []rune(u) {
-		stripped[i] = runered[x]
+	var stripped []rune
+	for _, x := range []rune(u) {
+		stripped = append(stripped, runered[x])
 	}
 	s := string(stripped)
 	return s
@@ -258,11 +256,9 @@ func stripaccentsSTR(u string) string {
 // stripaccentsRUNE - ὀκνεῖϲ --> οκνειϲ, etc.
 func stripaccentsRUNE(u []rune) []rune {
 	// reducer := getrunereducer()
-	// runered a var at top of file
-
-	stripped := make([]rune, len(u))
-	for i, x := range u {
-		stripped[i] = runered[x]
+	var stripped []rune
+	for _, x := range u {
+		stripped = append(stripped, runered[x])
 	}
 	return stripped
 }
@@ -437,8 +433,7 @@ func capsvariants(word string) string {
 	return cv
 }
 
-// uvσςϲreducer - provide map to uvσςϲ
-func uvσςϲreducer() map[rune]rune {
+func uvσςϲ(u string) string {
 	feeder := make(map[rune][]rune)
 
 	feeder['u'] = []rune("uUvVÜÚüú")
@@ -451,17 +446,11 @@ func uvσςϲreducer() map[rune]rune {
 			reducer[r] = f
 		}
 	}
-	return reducer
-}
-
-// uvσςϲ - v to u, etc
-func uvσςϲ(u string) string {
-	// uvσςϲred at top of file
 
 	var stripped []rune
 	for _, x := range []rune(u) {
-		if _, ok := uvσςϲred[x]; ok {
-			stripped = append(stripped, uvσςϲred[x])
+		if _, ok := reducer[x]; ok {
+			stripped = append(stripped, reducer[x])
 		} else {
 			stripped = append(stripped, x)
 		}
