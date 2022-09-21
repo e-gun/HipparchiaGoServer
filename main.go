@@ -100,6 +100,8 @@ func configatlaunch() {
 			ll, e := strconv.Atoi(args[i+1])
 			chke(e)
 			cfg.LogLevel = ll
+		case "-gz":
+			cfg.Gzip = true
 		case "-el":
 			ll, e := strconv.Atoi(args[i+1])
 			chke(e)

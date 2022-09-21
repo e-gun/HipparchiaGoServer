@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                  = "Hipparchia Golang Server"
 	SHORTNAME               = "HGS"
-	VERSION                 = "0.7.0"
+	VERSION                 = "0.7.1"
 	AUTHENTICATIONREQUIRED  = false // unused ATM
 	CONFIGLOCATION          = "."
 	CONFIGNAME              = "hgs-conf.json"
@@ -91,6 +91,7 @@ const (
    -ft {name}   force a client-side font instead of serving Noto fonts
                    names with spaces need quotes: "Gentium Plus Compact"
    -gl {num}    set golang log level (0-5) [default: %d]
+   -gz          enable gzip compression of the server's output
    -h           print this help information
    -p  {string} supply full PostgreSQL credentials(*)
    -sa {string} server IP address [default: '%s']

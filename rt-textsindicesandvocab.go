@@ -25,6 +25,7 @@ type WordInfo struct {
 	Cit        string
 	IsHomonymn bool
 	Trans      string
+	Wk         string
 }
 
 func RtTextMaker(c echo.Context) error {
@@ -371,7 +372,7 @@ func RtIndexMaker(c echo.Context) error {
 	// for progress reporting
 	si := builddefaultsearch(c)
 	si.ID = id
-	si.InitSum = "Grabbing the lines... (part 1 of 4)"
+	si.InitSum = "Grabbing the lines...&nbsp;(part 1 of 4)"
 	si.IsActive = true
 	searches[si.ID] = si
 	progremain.Store(si.ID, 1)
@@ -388,6 +389,7 @@ func RtIndexMaker(c echo.Context) error {
 				Loc:        r.BuildHyperlink(),
 				Cit:        r.Citation(),
 				IsHomonymn: false,
+				Wk:         r.WkUID,
 			}
 			slicedwords = append(slicedwords, this)
 		}
@@ -411,7 +413,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
-	si.InitSum = "Parsing the vocabulary...(part 2 of 4)"
+	si.InitSum = "Parsing the vocabulary...&nbsp;(part 2 of 4)"
 	searches[si.ID] = si
 
 	boundary := regexp.MustCompile(`(\{|, )"\d": `)
@@ -456,6 +458,12 @@ func RtIndexMaker(c echo.Context) error {
 		}
 	}
 
+	// last chance to add in keys for multiple work indices
+	mp := make(map[string]rune)
+	if srch.SearchSize > 1 {
+		trimslices, mp = addkeystowordinfo(trimslices)
+	}
+
 	// [d] the final map
 	// [d1] build it
 
@@ -465,7 +473,7 @@ func RtIndexMaker(c echo.Context) error {
 		count  int
 	}
 
-	si.InitSum = "Sifting the index...(part 3 of 4)"
+	si.InitSum = "Sifting the index...&nbsp;(part 3 of 4)"
 	searches[si.ID] = si
 
 	indexmap := make(map[SorterStruct][]WordInfo)
@@ -502,7 +510,7 @@ func RtIndexMaker(c echo.Context) error {
 		plainmap[k.value] = indexmap[k]
 	}
 
-	si.InitSum = "Building the HTML...(part 4 of 4)"
+	si.InitSum = "Building the HTML...&nbsp;(part 4 of 4)"
 	searches[si.ID] = si
 
 	trr := make([]string, len(plainkeys))
@@ -561,8 +569,13 @@ func RtIndexMaker(c echo.Context) error {
 
 	ky := ""
 	if srch.SearchSize == 1 || srch.TableSize == 1 {
-		// todo: build the key to the works...
-		ky = ""
+		var out []string
+		for k, v := range mp {
+			out = append(out, fmt.Sprintf("%s: %s", string(v), AllWorks[k].Title))
+		}
+		sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
+		ky = strings.Join(out, "; ")
+		ky = `<br><span class="emph">Key to works:</span> ` + ky
 	}
 
 	sum := fmt.Sprintf(st, an, wn, cit, wf, el, ky)
@@ -804,4 +817,24 @@ func convertwordinfototablerow(ww []WordInfo) string {
 
 	out := strings.Join(trr, "")
 	return out
+}
+
+func addkeystowordinfo(wii []WordInfo) ([]WordInfo, map[string]rune) {
+	// build the key: 9372 = ⒜
+	var uu []string
+	for _, w := range wii {
+		uu = append(uu, w.Wk)
+	}
+	uu = unique(uu)
+	sort.Slice(uu, func(i, j int) bool { return uu[i] < uu[j] })
+	mp := make(map[string]rune)
+	for i, u := range uu {
+		mp[u] = rune(i + 9372)
+	}
+
+	for i, w := range wii {
+		wii[i].Cit = fmt.Sprintf("%s %s", string(mp[w.Wk]), wii[i].Cit)
+	}
+
+	return wii, mp
 }
