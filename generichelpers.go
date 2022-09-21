@@ -19,7 +19,7 @@ var (
 	runef   = getrunefeeder()
 	erunef  = extendedrunefeeder()
 	runered = getrunereducer()
-	// uvσςϲred = uvσςϲreducer()
+	uvred   = uvσςϲreducer()
 )
 
 //
@@ -433,19 +433,9 @@ func capsvariants(word string) string {
 	return cv
 }
 
+// uvσςϲ - v to u, etc
 func uvσςϲ(u string) string {
-	feeder := make(map[rune][]rune)
-
-	feeder['u'] = []rune("uUvVÜÚüú")
-	feeder['ϲ'] = []rune("ϲσΣςϹ")
-	feeder['i'] = []rune("iIÍÏíïJj")
-
-	reducer := make(map[rune]rune)
-	for f, _ := range feeder {
-		for _, r := range feeder[f] {
-			reducer[r] = f
-		}
-	}
+	reducer := uvred
 
 	var stripped []rune
 	for _, x := range []rune(u) {
@@ -458,6 +448,23 @@ func uvσςϲ(u string) string {
 	s := string(stripped)
 	return s
 
+}
+
+// uvσςϲreducer - provide map to uvσςϲ
+func uvσςϲreducer() map[rune]rune {
+	feeder := make(map[rune][]rune)
+
+	feeder['u'] = []rune("uUvVÜÚüú")
+	feeder['ϲ'] = []rune("ϲσΣςϹ")
+	feeder['i'] = []rune("iIÍÏíïJj")
+
+	reducer := make(map[rune]rune)
+	for f, _ := range feeder {
+		for _, r := range feeder[f] {
+			reducer[r] = f
+		}
+	}
+	return reducer
 }
 
 func formatbcedate(d string) string {
