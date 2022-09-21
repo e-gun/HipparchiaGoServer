@@ -2,7 +2,7 @@
 
 ## early beta status: rough edges, (allegedly) solid core
 
-### status as of `v0.7.1`:
+### status as of `v0.7.0`:
 
 * monolithic binary: no need for extra files/folders beyond `hgs-conf.json`
 * searching theoretically fine but needs more testing/checking
@@ -24,6 +24,8 @@
 
 ### DISTANT FANTASIES
 * vectors
+
+![options](gitimg/hgscli.png)
 
 ![launch](gitimg/launch.png)
 
