@@ -18,6 +18,7 @@
 
 ### TODO (in vague order of priority)
 
+* browserclick on hypenated word-ends broken
 * update the help files so that they reflect HGS vs the python server
 * fix the less wonky lemma highlighting
 * keying for multiple author/work indexing (this will also show that not all works of an author are being indexed ATM)

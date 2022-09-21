@@ -14,6 +14,13 @@ import (
 	"time"
 )
 
+var (
+	// to avoid looping this in hot code
+	runef   = getrunefeeder()
+	erunef  = extendedrunefeeder()
+	runered = getrunereducer()
+)
+
 //
 // DEBUGGING
 //
@@ -236,10 +243,12 @@ func purgechars(bad string, checking string) string {
 
 // stripaccentsSTR - ὀκνεῖϲ --> οκνειϲ, etc.
 func stripaccentsSTR(u string) string {
-	reducer := getrunereducer()
-	var stripped []rune
-	for _, x := range []rune(u) {
-		stripped = append(stripped, reducer[x])
+	// reducer := getrunereducer()
+	// runered a var at top of file
+
+	stripped := make([]rune, len(u))
+	for i, x := range []rune(u) {
+		stripped[i] = runered[x]
 	}
 	s := string(stripped)
 	return s
@@ -247,20 +256,24 @@ func stripaccentsSTR(u string) string {
 
 // stripaccentsRUNE - ὀκνεῖϲ --> οκνειϲ, etc.
 func stripaccentsRUNE(u []rune) []rune {
-	reducer := getrunereducer()
-	var stripped []rune
-	for _, x := range u {
-		stripped = append(stripped, reducer[x])
+	// reducer := getrunereducer()
+	// runered a var at top of file
+
+	stripped := make([]rune, len(u))
+	for i, x := range u {
+		stripped[i] = runered[x]
 	}
 	return stripped
 }
 
 func getrunereducer() map[rune]rune {
 	// because we don't have access to python's transtable function
-	feeder := getrunefeeder()
+	// runef := getrunefeeder()
+	// runef now a var at top of file
+
 	reducer := make(map[rune]rune)
-	for f, _ := range feeder {
-		for _, r := range feeder[f] {
+	for f, _ := range runef {
+		for _, r := range runef[f] {
 			reducer[r] = f
 		}
 	}
