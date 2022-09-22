@@ -452,7 +452,6 @@ func RtSetOption(c echo.Context) error {
 		if e == nil {
 			switch opt {
 			case "earliestdate":
-				msg(s.Earliest, 2)
 				if intval > MAXDATE {
 					s.Earliest = fmt.Sprintf("%d", MAXDATE)
 				} else if intval < MINDATE {
@@ -460,9 +459,7 @@ func RtSetOption(c echo.Context) error {
 				} else {
 					s.Earliest = val
 				}
-				msg(s.Earliest, 2)
 			case "latestdate":
-				msg(s.Latest, 3)
 				if intval > MAXDATE {
 					s.Latest = fmt.Sprintf("%d", MAXDATE)
 				} else if intval < MINDATE {
@@ -470,13 +467,28 @@ func RtSetOption(c echo.Context) error {
 				} else {
 					s.Latest = val
 				}
-				msg(s.Latest, 3)
 			default:
 				msg("RtSetOption() hit an impossible case", 1)
 			}
 		}
-		if s.Earliest > s.Latest {
-			s.Earliest = s.Latest
+
+		// this does not work because it is string comparison...
+		//if s.Earliest > s.Latest {
+		//	s.Earliest = s.Latest
+		//}
+
+		ee, e1 := strconv.Atoi(s.Earliest)
+		ll, e2 := strconv.Atoi(s.Latest)
+		if e1 != nil {
+			s.Earliest = MINDATESTR
+		}
+		if e2 != nil {
+			s.Latest = MAXDATESTR
+		}
+		if e1 == nil && e2 == nil {
+			if ee > ll {
+				s.Earliest = s.Latest
+			}
 		}
 	}
 

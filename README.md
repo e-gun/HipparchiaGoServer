@@ -2,7 +2,7 @@
 
 ## early beta status: rough edges, (allegedly) solid core
 
-### status as of `v0.7.2`:
+### status as of `v0.7.3`:
 
 * monolithic binary: no need for extra files/folders beyond `hgs-conf.json`
 * searching theoretically fine but needs more testing/checking
@@ -21,8 +21,7 @@
 * update the help files so that they reflect HGS vs the python server
 * fix the less wonky lemma highlighting
 * deal with the homonymns issue in the index and vocab
-* ending year date spinner ruins "start" if you go < 0
-* 
+
 ### DISTANT FANTASIES
 * vectors
 
