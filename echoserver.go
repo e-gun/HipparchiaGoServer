@@ -452,6 +452,7 @@ func RtSetOption(c echo.Context) error {
 		if e == nil {
 			switch opt {
 			case "earliestdate":
+				msg(s.Earliest, 2)
 				if intval > MAXDATE {
 					s.Earliest = fmt.Sprintf("%d", MAXDATE)
 				} else if intval < MINDATE {
@@ -459,7 +460,9 @@ func RtSetOption(c echo.Context) error {
 				} else {
 					s.Earliest = val
 				}
+				msg(s.Earliest, 2)
 			case "latestdate":
+				msg(s.Latest, 3)
 				if intval > MAXDATE {
 					s.Latest = fmt.Sprintf("%d", MAXDATE)
 				} else if intval < MINDATE {
@@ -467,6 +470,7 @@ func RtSetOption(c echo.Context) error {
 				} else {
 					s.Latest = val
 				}
+				msg(s.Latest, 3)
 			default:
 				msg("RtSetOption() hit an impossible case", 1)
 			}

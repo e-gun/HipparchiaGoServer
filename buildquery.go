@@ -173,7 +173,8 @@ func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 
 		// [b3] search term might be lemmatized, hence the range
 
-		for _, skg := range ss.SkgSlice {
+		for i, skg := range ss.SkgSlice {
+			sprq := prq
 			// there are fancier ways to do this, but debugging and maintaining become overwhelming...
 
 			// map to the %s items in the qtmpl below:
@@ -186,12 +187,17 @@ func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 			noidx := len(qb.WhrIdxExc) == 0 && len(qb.WhrIdxInc) == 0
 			yesidx := len(qb.WhrIdxExc) != 0 || len(qb.WhrIdxInc) != 0
 
+			// lemmata need unique tt names otherwise "ERROR: relation "gr5002_includelist_e83674d70344428bbb1feab0919bc2c6" already exists"
+			// cbf6f9746f2a46d080aa988c8c6bfd16_0, cbf6f9746f2a46d080aa988c8c6bfd16_1, ...
+			ntt := fmt.Sprintf("%s_%d", ss.TTName, i)
+			sprq.TempTable = strings.Replace(prq.TempTable, ss.TTName, ntt, -1)
+
 			var t PRQTemplate
 			t.AU = au
 			t.COL = ss.SrchColumn
 			t.SYN = syn
 			t.LIM = fmt.Sprintf("%d", ss.Limit)
-			t.TTN = ss.TTName
+			t.TTN = ntt
 			t.PSCol = ss.SrchColumn
 			t.SK = skg
 
@@ -204,25 +210,25 @@ func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 
 			if nott && noph && noidx {
 				t.Tail = tails["basic"]
-				prq = basicprq(t, prq)
+				sprq = basicprq(t, sprq)
 			} else if nott && noph && yesidx {
 				// word in work(s)/passage(s): AND ( (index BETWEEN 481 AND 483) OR (index BETWEEN 501 AND 503) ... )
 				t.Tail = tails["basic_and_indices"]
-				prq = basicidxprq(t, prq)
+				sprq = basicidxprq(t, sprq)
 			} else if nott && yesphr && noidx {
 				t.Tail = tails["basic_window"]
-				prq = basicwindowprq(t, prq)
+				sprq = basicwindowprq(t, sprq)
 			} else if nott && yesphr && yesidx {
 				t.Tail = tails["window_with_indices"]
-				prq = windandidxprq(t, prq)
+				sprq = windandidxprq(t, sprq)
 			} else if yestt && noph {
 				t.Tail = tails["simple_tt"]
-				prq = simplettprq(t, prq)
+				sprq = simplettprq(t, sprq)
 			} else {
 				t.Tail = tails["window_with_tt"]
-				prq = windowandttprq(t, prq)
+				sprq = windowandttprq(t, sprq)
 			}
-			prqq = append(prqq, prq)
+			prqq = append(prqq, sprq)
 		}
 	}
 
