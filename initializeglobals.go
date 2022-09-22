@@ -51,17 +51,6 @@ var (
 	WkLocs      = make(map[string]bool)
 )
 
-type CurrentConfiguration struct {
-	WorkerCount int
-	LogLevel    int
-	EchoLog     int // "none", "terse", "verbose"
-	PGLogin     PostgresLogin
-	HostIP      string
-	HostPort    int
-	Font        string
-	Gzip        bool
-}
-
 type DbAuthor struct {
 	UID       string
 	Language  string

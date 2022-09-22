@@ -121,7 +121,7 @@ func RtTextMaker(c echo.Context) error {
 	cp := ""
 	if len(srch.Results) == MAXTEXTLINEGENERATION {
 		m := message.NewPrinter(language.English)
-		cp = m.Sprintf(`<span class="small">text generation incomplete: hit the cap of %d on allowed lines</span>`, MAXTEXTLINEGENERATION)
+		cp = m.Sprintf(`<span class="small"><span class="red emph">text generation incomplete:</span> hit the cap of %d on allowed lines</span>`, MAXTEXTLINEGENERATION)
 	}
 	sum = sum + cp
 
@@ -149,7 +149,7 @@ func RtVocabMaker(c echo.Context) error {
 	start := time.Now()
 
 	id := c.Param("id")
-	id = purgechars(UNACCEPTABLEINPUT, id)
+	id = purgechars(cfg.BadChars, id)
 
 	// for progress reporting
 	si := builddefaultsearch(c)
@@ -354,7 +354,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	cp := ""
 	if len(srch.Results) == MAXTEXTLINEGENERATION {
-		cp = m.Sprintf(`<span class="small">vocabulary generation incomplete: hit the cap of %d on allowed lines</span>`, MAXTEXTLINEGENERATION)
+		cp = m.Sprintf(`<span class="small"><span class="red emph">vocabulary generation incomplete:</span>: hit the cap of %d on allowed lines</span>`, MAXTEXTLINEGENERATION)
 	}
 
 	sum := fmt.Sprintf(st, an, wn, cit, wf, el, cp, ky)
@@ -391,7 +391,7 @@ func RtIndexMaker(c echo.Context) error {
 	start := time.Now()
 
 	id := c.Param("id")
-	id = purgechars(UNACCEPTABLEINPUT, id)
+	id = purgechars(cfg.BadChars, id)
 
 	// for progress reporting
 	si := builddefaultsearch(c)
@@ -595,7 +595,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	cp := ""
 	if len(srch.Results) == MAXTEXTLINEGENERATION {
-		cp = m.Sprintf(`<span class="small">indexing incomplete: hit the cap of %d on allowed lines</span>`, MAXTEXTLINEGENERATION)
+		cp = m.Sprintf(`<span class="small"><span class="red emph">indexing incomplete:</span>: hit the cap of %d on allowed lines</span>`, MAXTEXTLINEGENERATION)
 	}
 
 	sum := fmt.Sprintf(st, an, wn, cit, wf, el, cp, ky)
@@ -866,8 +866,8 @@ func addkeystowordinfo(wii []WordInfo) ([]WordInfo, map[string]rune) {
 
 func multiworkkeymaker(mapper map[string]rune, srch *SearchStruct) string {
 	ky := ""
-	auu := srch.SearchSize > 1
-	wkk := srch.TableSize > 1
+	wkk := srch.SearchSize > 1
+	auu := srch.TableSize > 1
 
 	if auu || wkk {
 		var out []string

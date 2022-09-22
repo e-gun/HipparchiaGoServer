@@ -350,7 +350,6 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		// [b] remove the works from this column
 		clean = []string{}
 		for _, w := range si.Works {
-			fmt.Println(w[0:6])
 			if w[0:6] != sv.Auth {
 				clean = append(clean, w)
 			}

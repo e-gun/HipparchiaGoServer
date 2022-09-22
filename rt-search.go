@@ -89,7 +89,7 @@ func RtSearchStandard(c echo.Context) error {
 	srch.LemmaOne = lem
 	srch.LemmaTwo = plm
 	srch.User = user
-	srch.ID = purgechars(UNACCEPTABLEINPUT, id)
+	srch.ID = purgechars(cfg.BadChars, id)
 	srch.IsVector = false
 
 	parsesearchinput(&srch)
@@ -529,8 +529,8 @@ func parsesearchinput(s *SearchStruct) {
 	s.Seeking = uvσςϲ(s.Seeking)
 	s.Proximate = uvσςϲ(s.Proximate)
 
-	s.Seeking = purgechars(UNACCEPTABLEINPUT, s.Seeking)
-	s.Proximate = purgechars(UNACCEPTABLEINPUT, s.Proximate)
+	s.Seeking = purgechars(cfg.BadChars, s.Seeking)
+	s.Proximate = purgechars(cfg.BadChars, s.Proximate)
 
 }
 

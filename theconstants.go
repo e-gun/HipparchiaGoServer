@@ -39,7 +39,7 @@ const (
 	MAXLEMMACHUNKSIZE       = 20
 	MAXLINESHITCONTEXT      = 30
 	MAXSEARCHINFOLISTLEN    = 100
-	MAXTEXTLINEGENERATION   = 10000
+	MAXTEXTLINEGENERATION   = 20000 // all of euripides is 33517, all of sophocles is 15729, e.g.
 	MAXTITLELENGTH          = 110
 	MINBROWSERWIDTH         = 90
 	MINDATE                 = -850
@@ -96,6 +96,8 @@ const (
    -p  {string} supply full PostgreSQL credentials(*)
    -sa {string} server IP address [default: '%s']
    -sp {num}    server port [default: %d]
+   -ti {num}    maximum # of lines that text/index/vocab maker will ingest [default: %d]
+   -ui {string} unacceptable input characters [default: %s]
    -v           print version and exit
 
      (*) example: "{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"

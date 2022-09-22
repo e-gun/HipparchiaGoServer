@@ -78,12 +78,27 @@ func main() {
 	StartEchoServer()
 }
 
+type CurrentConfiguration struct {
+	WorkerCount int
+	LogLevel    int
+	EchoLog     int // "none", "terse", "verbose"
+	PGLogin     PostgresLogin
+	HostIP      string
+	HostPort    int
+	Font        string
+	Gzip        bool
+	MaxText     int
+	BadChars    string
+}
+
 // configatlaunch - read the configuration values from JSON and/or command line
 func configatlaunch() {
 	cfg.HostIP = SERVEDFROMHOST
 	cfg.HostPort = SERVEDFROMPORT
 	cfg.Font = FONTSETTING
 	cfg.Gzip = USEGZIP
+	cfg.MaxText = MAXTEXTLINEGENERATION
+	cfg.BadChars = UNACCEPTABLEINPUT
 
 	cf := fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGNAME)
 
@@ -112,7 +127,8 @@ func configatlaunch() {
 			cfg.Font = args[i+1]
 		case "-h":
 			printversion()
-			fmt.Println(fmt.Sprintf(HELPTEXT, CONFIGLOCATION, CONFIGNAME, DEFAULTECHOLOGLEVEL, DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT))
+			fmt.Println(fmt.Sprintf(HELPTEXT, CONFIGLOCATION, CONFIGNAME, DEFAULTECHOLOGLEVEL, DEFAULTGOLOGLEVEL,
+				SERVEDFROMHOST, SERVEDFROMPORT, MAXTEXTLINEGENERATION, UNACCEPTABLEINPUT))
 			os.Exit(1)
 		case "-p":
 			js := args[i+1]
@@ -127,6 +143,12 @@ func configatlaunch() {
 			p, e := strconv.Atoi(args[i+1])
 			chke(e)
 			cfg.HostPort = p
+		case "-ti":
+			tt, e := strconv.Atoi(args[i+1])
+			chke(e)
+			cfg.MaxText = tt
+		case "-ui":
+			cfg.BadChars = args[i+1]
 		default:
 			// do nothing
 		}

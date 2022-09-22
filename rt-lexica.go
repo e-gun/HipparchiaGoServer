@@ -79,7 +79,7 @@ type JSB struct {
 
 func RtLexLookup(c echo.Context) error {
 	req := c.Param("wd")
-	seeking := purgechars(UNACCEPTABLEINPUT, req)
+	seeking := purgechars(cfg.BadChars, req)
 	seeking = swapacuteforgrave(seeking)
 
 	dict := "latin"
@@ -114,7 +114,7 @@ func RtLexFindByForm(c echo.Context) error {
 		au = elem[1]
 	}
 
-	word := purgechars(UNACCEPTABLEINPUT, elem[0])
+	word := purgechars(cfg.BadChars, elem[0])
 
 	word = swapacuteforgrave(word)
 
@@ -146,8 +146,8 @@ func RtLexId(c echo.Context) error {
 		msg(fmt.Sprintf("RtLexId() received bad request: '%s'", req), 1)
 		return c.String(http.StatusOK, "")
 	}
-	d := purgechars(UNACCEPTABLEINPUT, elem[0])
-	w := purgechars(UNACCEPTABLEINPUT, elem[1])
+	d := purgechars(cfg.BadChars, elem[0])
+	w := purgechars(cfg.BadChars, elem[1])
 
 	f := dictgrabber(w, d, "id_number", "=")
 	if len(f) == 0 {
@@ -177,7 +177,7 @@ func RtLexReverse(c echo.Context) error {
 		return c.String(http.StatusOK, "")
 	}
 
-	word := purgechars(UNACCEPTABLEINPUT, elem[1])
+	word := purgechars(cfg.BadChars, elem[1])
 
 	s := sessions[readUUIDCookie(c)]
 
