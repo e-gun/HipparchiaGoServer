@@ -71,6 +71,7 @@ const (
 //
 
 func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
+
 	var prqq []PrerolledQuery
 	inc := ss.SearchIn
 	exc := ss.SearchEx
@@ -232,7 +233,6 @@ func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 		}
 	}
 
-	// fmt.Println(prqq)
 	return prqq
 }
 

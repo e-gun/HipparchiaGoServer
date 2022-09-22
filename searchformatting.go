@@ -316,8 +316,6 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 
 	var dr string
 	if sessions[s.User].Earliest != MINDATESTR || sessions[s.User].Latest != MAXDATESTR {
-		fmt.Println(sessions[s.User].Earliest)
-		fmt.Println(sessions[s.User].Latest)
 		a := formatbcedate(sessions[s.User].Earliest)
 		b := formatbcedate(sessions[s.User].Latest)
 		dr = fmt.Sprintf("Searched between %s and %s<br>", a, b)

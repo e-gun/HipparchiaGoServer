@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                  = "Hipparchia Golang Server"
 	SHORTNAME               = "HGS"
-	VERSION                 = "0.7.3"
+	VERSION                 = "0.7.4"
 	AUTHENTICATIONREQUIRED  = false // unused ATM
 	CONFIGLOCATION          = "."
 	CONFIGNAME              = "hgs-conf.json"

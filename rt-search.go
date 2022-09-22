@@ -64,7 +64,7 @@ func RtSearchConfirm(c echo.Context) error {
 	return c.String(http.StatusOK, "8000")
 }
 
-func RtSearchStandard(c echo.Context) error {
+func RtSearch(c echo.Context) error {
 	// "GET /search/standard/5446b840?skg=sine%20dolore HTTP/1.1"
 	// "GET /search/standard/c2fba8e8?skg=%20dolore&prx=manif HTTP/1.1"
 	// "GET /search/standard/2ad866e2?prx=manif&lem=dolor HTTP/1.1"

@@ -365,6 +365,11 @@ func RtGetJSSearchlist(c echo.Context) error {
 		tw -= int64(count)
 	}
 
+	// todo: a new feature, really: open date range searches; but the real spot to do it is in "buildsearchlist.go"
+	if len(wkk) == 0 && (sessions[readUUIDCookie(c)].Latest != MAXDATESTR || sessions[readUUIDCookie(c)].Earliest != MINDATESTR) {
+		// handle the case where only dates have been restricted
+	}
+
 	if len(wkk) > MAXSEARCHINFOLISTLEN {
 		diff := len(wkk) - MAXSEARCHINFOLISTLEN
 		wkk = wkk[0:MAXSEARCHINFOLISTLEN]

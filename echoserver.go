@@ -197,7 +197,7 @@ func StartEchoServer() {
 	e.GET("/search/confirm/:id", RtSearchConfirm)
 
 	// [j2] standard: "GET /search/standard/1f8f1d22?skg=dolor HTTP/1.1"
-	e.GET("/search/standard/:id", RtSearchStandard)
+	e.GET("/search/standard/:id", RtSearch)
 
 	// [j3] singleword
 	// [j4] lemmatized
