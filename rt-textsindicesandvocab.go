@@ -73,9 +73,18 @@ func RtTextMaker(c echo.Context) error {
 
 	trr := make([]string, len(lines))
 	previous := lines[0]
-	for i, _ := range lines {
+	workcount := 1
+	for i, l := range lines {
 		cit := selectivelydisplaycitations(lines[i], previous, -1)
 		trr[i] = fmt.Sprintf(tr, lines[i].Annotations, lines[i].MarkedUp, cit)
+		if l.WkUID != previous.WkUID {
+			// you were doing multi-text generation
+			workcount += 1
+			aw := AllAuthors[AllWorks[l.WkUID].FindAuthor()].Name + fmt.Sprintf(`, <span class="italic">%s</span>`, AllWorks[l.WkUID].Title)
+			aw = fmt.Sprintf(`<hr><span class="emph">[%d] %s</span>`, workcount, aw)
+			extra := fmt.Sprintf(tr, "", aw, "")
+			trr[i] = extra + trr[i]
+		}
 		previous = lines[i]
 	}
 	tab := strings.Join(trr, "")
@@ -163,6 +172,7 @@ func RtVocabMaker(c echo.Context) error {
 				Loc:        r.BuildHyperlink(),
 				Cit:        r.Citation(),
 				IsHomonymn: false,
+				Wk:         r.WkUID,
 			}
 			slicedwords = append(slicedwords, this)
 		}
@@ -340,23 +350,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	el := fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
 
-	ky := ""
-	auu := srch.SearchSize > 1
-	wkk := srch.TableSize > 1
-
-	if auu || wkk {
-		var out []string
-		for k, v := range mp {
-			t := fmt.Sprintf(`<span class="italic">%s</span>`, AllWorks[k].Title)
-			if auu {
-				t = AllAuthors[AllWorks[k].FindAuthor()].Name + ", " + t
-			}
-			out = append(out, fmt.Sprintf("%s: %s", string(v), t))
-		}
-		sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
-		ky = strings.Join(out, "; ")
-		ky = `<br><span class="emph">Key to works:</span> ` + ky
-	}
+	ky := multiworkkeymaker(mp, &srch)
 
 	cp := ""
 	if len(srch.Results) == MAXTEXTLINEGENERATION {
@@ -529,7 +523,6 @@ func RtIndexMaker(c echo.Context) error {
 	sort.Slice(keys, func(i, j int) bool { return keys[i].sorter < keys[j].sorter })
 
 	// now you have a sorted index...; but a SorterStruct does not make for a usable map key...
-
 	plainkeys := make([]string, len(keys))
 	for i, k := range keys {
 		plainkeys[i] = k.value
@@ -598,23 +591,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	el := fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
 
-	ky := ""
-	auu := srch.SearchSize > 1
-	wkk := srch.TableSize > 1
-
-	if auu || wkk {
-		var out []string
-		for k, v := range mp {
-			t := fmt.Sprintf(`<span class="italic">%s</span>`, AllWorks[k].Title)
-			if auu {
-				t = AllAuthors[AllWorks[k].FindAuthor()].Name + ", " + t
-			}
-			out = append(out, fmt.Sprintf("%s: %s", string(v), t))
-		}
-		sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
-		ky = strings.Join(out, "; ")
-		ky = `<br><span class="emph">Key to works:</span> ` + ky
-	}
+	ky := multiworkkeymaker(mp, &srch)
 
 	cp := ""
 	if len(srch.Results) == MAXTEXTLINEGENERATION {
@@ -821,10 +798,10 @@ func convertwordinfototablerow(ww []WordInfo) string {
 
 	tr := `
 	<tr>
-	<td class="headword">%s</td>
-	<td class="word"><indexobserved id="%s">%s</indexobserved></td>
-	<td class="count">%d</td>
-	<td class="passages">%s</td>
+		<td class="headword">%s</td>
+		<td class="word"><indexobserved id="%s">%s</indexobserved></td>
+		<td class="count">%d</td>
+		<td class="passages">%s</td>
 	</tr>`
 
 	tp := `<indexedlocation id="%s">%s</indexedlocation>`
@@ -849,8 +826,13 @@ func convertwordinfototablerow(ww []WordInfo) string {
 		// get all passages related to this word
 		var pp []string
 		sort.Slice(wii, func(i, j int) bool { return wii[i].Loc < wii[j].Loc })
-		for i := 0; i < len(wii); i++ {
-			pp = append(pp, fmt.Sprintf(tem, wii[i].Loc, wii[i].Cit))
+
+		dedup := make(map[string]bool) // this is hacky: why are their duplicates to begin with?
+		for j := 0; j < len(wii); j++ {
+			if _, ok := dedup[wii[j].Loc]; !ok {
+				pp = append(pp, fmt.Sprintf(tem, wii[j].Loc, wii[j].Cit))
+				dedup[wii[j].Loc] = true
+			}
 		}
 		p := strings.Join(pp, ", ")
 		t := fmt.Sprintf(tr, hw, wii[0].Wd, wii[0].Wd, len(wii), p)
@@ -880,4 +862,25 @@ func addkeystowordinfo(wii []WordInfo) ([]WordInfo, map[string]rune) {
 	}
 
 	return wii, mp
+}
+
+func multiworkkeymaker(mapper map[string]rune, srch *SearchStruct) string {
+	ky := ""
+	auu := srch.SearchSize > 1
+	wkk := srch.TableSize > 1
+
+	if auu || wkk {
+		var out []string
+		for k, v := range mapper {
+			t := fmt.Sprintf(`<span class="italic">%s</span>`, AllWorks[k].Title)
+			if auu {
+				t = AllAuthors[AllWorks[k].FindAuthor()].Name + ", " + t
+			}
+			out = append(out, fmt.Sprintf("%s: %s", string(v), t))
+		}
+		sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
+		ky = strings.Join(out, "; ")
+		ky = `<br><span class="emph">Works:</span> ` + ky
+	}
+	return ky
 }
