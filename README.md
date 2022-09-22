@@ -21,6 +21,7 @@
 * update the help files so that they reflect HGS vs the python server
 * fix the less wonky lemma highlighting
 * deal with the homonymns issue in the index and vocab
+* reset route kills the websocket
 
 ### DISTANT FANTASIES
 * vectors
@@ -77,7 +78,6 @@ an uncompressed archive is c. `3.6GB`
 - if no configuration is present when you launch `HipparchiaGoServer`, you will be given a prompt about what it should look like; all you should really need to do is set the password (avoid adding “smart quotes” instead of straight quotes to this file)
   
 ![archive](gitimg/postreslogin.png)
-
 
 
 ## notes on installing homebrew in order to acquire postgresql

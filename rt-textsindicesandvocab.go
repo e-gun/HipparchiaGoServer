@@ -35,7 +35,7 @@ func RtTextMaker(c echo.Context) error {
 	// this has the downside of allowing for insanely large text generation
 	// but, on the other hand, this now works like a simple search
 
-	// then it gets output as a big browser table...
+	// then it gets output as a big "browser table"...
 
 	user := readUUIDCookie(c)
 	srch := sessionintobulksearch(c)
@@ -317,11 +317,11 @@ func RtVocabMaker(c echo.Context) error {
 
 	st := `
 	<div id="searchsummary">Vocabulary for %s,&nbsp;<span class="foundwork">%s</span><br>
-	citation format:&nbsp;%s<br>
-	%s words found<br>
-	<span class="small">(%ss)</span><br>
-	%s
-	%s
+		citation format:&nbsp;%s<br>
+		%s words found<br>
+		<span class="small">(%ss)</span><br>
+		%s
+		%s
 	</div>
 	`
 
@@ -475,12 +475,16 @@ func RtIndexMaker(c echo.Context) error {
 		}
 	}
 
+	slicedwords = []WordInfo{} // drop after use
+
 	var trimslices []WordInfo
 	for _, w := range slicedlookups {
 		if len(w.HW) != 0 {
 			trimslices = append(trimslices, w)
 		}
 	}
+
+	slicedlookups = []WordInfo{} // drop after use
 
 	// last chance to add in keys for multiple work indices
 	mp := make(map[string]rune)
@@ -511,6 +515,10 @@ func RtIndexMaker(c echo.Context) error {
 		indexmap[ss] = append(indexmap[ss], w)
 	}
 
+	m := message.NewPrinter(language.English)
+	wf := m.Sprintf("%d", len(trimslices))
+	trimslices = []WordInfo{} // drop after use
+
 	// [d2] sort the keys
 
 	keys := make([]SorterStruct, len(indexmap))
@@ -534,6 +542,8 @@ func RtIndexMaker(c echo.Context) error {
 	for k, _ := range indexmap {
 		plainmap[k.value] = indexmap[k]
 	}
+
+	indexmap = make(map[SorterStruct][]WordInfo, 1) // drop after use
 
 	si.InitSum = "Building the HTML...&nbsp;(part 4 of 4)"
 	searches[si.ID] = si
@@ -560,11 +570,11 @@ func RtIndexMaker(c echo.Context) error {
 	// <br>citation format:&nbsp;oration, section, line<br>236 words found<br><span class="small">(0.10s)</span><br></div>
 	st := `
 	<div id="searchsummary">Index to %s,&nbsp;<span class="foundwork">%s</span><br>
-	citation format:&nbsp;%s<br>
-	%s words found<br>
-	<span class="small">(%ss)</span><br>
-	%s
-	%s
+		citation format:&nbsp;%s<br>
+		%s words found<br>
+		<span class="small">(%ss)</span><br>
+		%s
+		%s
 	</div>
 	`
 
@@ -588,8 +598,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	cit := strings.Join(tc, ", ")
 
-	m := message.NewPrinter(language.English)
-	wf := m.Sprintf("%d", len(trimslices))
+	// wf := m.Sprintf("%d", len(trimslices))
 
 	el := fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
 

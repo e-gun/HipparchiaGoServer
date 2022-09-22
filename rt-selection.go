@@ -336,7 +336,7 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 	// there are clever ways to do this with reflection, but they won't be readable
 
 	if sv.A() && !sv.IsExcl {
-		msg("rationalizeselections() 336", 5)
+		msg("rationalizeselections() 339", 5)
 		// [a] kick this author from the other column
 		var clean []string
 		for _, a := range se.Authors {
@@ -364,7 +364,7 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		}
 		si.Passages = clean
 	} else if sv.A() && sv.IsExcl {
-		msg("rationalizeselections() 365", 5)
+		msg("rationalizeselections() 367", 5)
 		// [a] kick this author from the other column
 		var clean []string
 		for _, a := range si.Authors {
@@ -594,8 +594,8 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 	return rationalized
 }
 
+// workvalueofpassage - what work does "lt0474_FROM_58578_TO_61085" come from?
 func workvalueofpassage(psg string) string {
-	// what work does "lt0474_FROM_58578_TO_61085" come from?
 	pattern := regexp.MustCompile(`(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`)
 	// "gr0032_FROM_11313_TO_11843"
 	subs := pattern.FindStringSubmatch(psg)
@@ -647,6 +647,7 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 	return fl
 }
 
+// endpinter - given a locus, what index values correspond to the start and end of that text segment?
 func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
 	// msg(fmt.Sprintf("wuid: '%s'; locus: '%s'; sep: '%s'", wuid, locus, sep), 1)
 	// [HGS] wuid: 'lt0474w049'; locus: '3|14|_0'; sep: '|'
@@ -711,6 +712,7 @@ func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
 	return fl, success
 }
 
+// reportcurrentselections - prepare JSON for the page re. current selections
 func reportcurrentselections(c echo.Context) []byte {
 	// ultimately feeding autocomplete.js
 	//    $('#timerestrictions').html(selectiondata.timeexclusions);

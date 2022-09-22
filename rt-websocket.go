@@ -43,7 +43,8 @@ func RtWebsocket(c echo.Context) error {
 
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		return err
+		msg("RtWebsocket(): ws connection failed", 1)
+		return nil
 	}
 	defer ws.Close()
 
@@ -142,6 +143,8 @@ func RtWebsocket(c echo.Context) error {
 
 // formatpoll - build HTML to send to the JS on the other side
 func formatpoll(pd PollData) string {
+	// example:
+	// Seeking <span class="sought">»μελιϲϲα«</span>: <span class="progress">31%</span> completed&nbsp;(0.3s)<br>(<span class="progress">199</span> found)<br>
 	pctd := ((float32(pd.TotalWrk) - float32(pd.Remain)) / float32(pd.TotalWrk)) * 100
 	pcts := fmt.Sprintf("%.0f", pctd) + "%"
 

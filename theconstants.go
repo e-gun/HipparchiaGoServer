@@ -25,7 +25,7 @@ const (
 	DEFAULTPROXIMITY        = 2
 	DEFAULTPROXIMITYSCOPE   = "lines"
 	DEFAULTSYNTAX           = "~"
-	FIRSTSEARCHLIM          = 500000          // 149570 lines in Cicero (lt0474)
+	FIRSTSEARCHLIM          = 750000          // 149570 lines in Cicero (lt0474); all 485 forms of »δείκνυμι« will pass 50k
 	FONTSETTING             = "SERVEALLFONTS" // will send Noto when this "font" is not found
 	GENRESTOCOUNT           = 5
 	INCERTADATE             = 2500
@@ -39,7 +39,7 @@ const (
 	MAXLEMMACHUNKSIZE       = 20
 	MAXLINESHITCONTEXT      = 30
 	MAXSEARCHINFOLISTLEN    = 100
-	MAXTEXTLINEGENERATION   = 20000 // all of euripides is 33517, all of sophocles is 15729, e.g.
+	MAXTEXTLINEGENERATION   = 25000 // all of euripides is 33517, all of sophocles is 15729, e.g.
 	MAXTITLELENGTH          = 110
 	MINBROWSERWIDTH         = 90
 	MINDATE                 = -850
