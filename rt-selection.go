@@ -792,24 +792,22 @@ func reportcurrentselections(c echo.Context) []byte {
 		}
 	}
 
-	if s.Earliest != MINDATESTR && s.Latest != MAXDATESTR {
-		t := `Unless specifically listed, authors/works must come from %s %sC.E to %s %sC.E`
-		ee, _ := strconv.Atoi(s.Earliest)
-		ll, _ := strconv.Atoi(s.Latest)
-		be := ""
-		bl := ""
-		if ee < 0 {
-			be = "B."
-		}
-		if ll < 0 {
-			bl = "B."
-		}
-		sd.TimeRestr = fmt.Sprintf(t, formatbcedate(s.Earliest), be, formatbcedate(s.Latest), bl)
+	mustshow := false
+
+	if s.Earliest != MINDATESTR || s.Latest != MAXDATESTR {
+		mustshow = true
+		t := `Unless specifically listed, authors/works must come from %s to %s`
+		sd.TimeRestr = fmt.Sprintf(t, formatbcedate(s.Earliest), formatbcedate(s.Latest))
 	}
 
 	sd.Select = strings.Join(rows[0], "")
 	sd.Exclude = strings.Join(rows[1], "")
 	sd.Count = i.CountItems() + e.CountItems()
+	if sd.Count == 0 && mustshow {
+		// no author selections, but date selections
+		// force the JS to do: $('#selectionstable').show();
+		sd.Count = 1
+	}
 	sd.NewJS = formatnewselectionjs(jsinfo)
 
 	js, err := json.Marshal(sd)

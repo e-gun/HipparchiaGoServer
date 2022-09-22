@@ -500,7 +500,7 @@ func RtIndexMaker(c echo.Context) error {
 	si.InitSum = "Sifting the index...&nbsp;(part 3 of 4)"
 	searches[si.ID] = si
 
-	indexmap := make(map[SorterStruct][]WordInfo)
+	indexmap := make(map[SorterStruct][]WordInfo, len(trimslices))
 	for _, w := range trimslices {
 		// lunate sigma sorts after omega
 		sigma := strings.Replace(stripaccentsSTR(w.HW), "ϲ", "σ", -1)
@@ -513,10 +513,12 @@ func RtIndexMaker(c echo.Context) error {
 
 	// [d2] sort the keys
 
-	var keys []SorterStruct
+	keys := make([]SorterStruct, len(indexmap))
+	counter := 0
 	for k, v := range indexmap {
 		k.count = len(v)
-		keys = append(keys, k)
+		keys[counter] = k
+		counter += 1
 	}
 
 	// sort can't do polytonic greek: so there is a lot of (slow) extra stuff that has to happen
