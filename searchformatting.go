@@ -60,20 +60,20 @@ func formatnocontextresults(ss SearchStruct) []byte {
 
 	rows := make([]string, len(ss.Results))
 	for i, r := range ss.Results {
-		// highlight search term; should be folded into a single function w/ highlightsearchterm() below [type problem now]
 		r.PurgeMetadata()
-		mu := r.MarkedUp
-		if searchterm != nil && searchterm.MatchString(r.MarkedUp) {
-			mu = searchterm.ReplaceAllString(r.MarkedUp, `<span class="match">$1</span>`)
+		// highlight search term; should be folded into a single function w/ highlightsearchterm() below [type problem now]
+		if searchterm.MatchString(r.MarkedUp) {
+			// line.Contents = pattern.ReplaceAllString(line.Contents, `<span class="match">$1</span>`)
+			r.MarkedUp = searchterm.ReplaceAllString(r.MarkedUp, `<span class="match">$0</span>`)
 		} else {
-			// ought to be in the hyphenated line
+			// might be in the hyphenated line
 			if searchterm.MatchString(r.Hyphenated) {
 				// todo: needs more fiddling
-				mu = r.MarkedUp + fmt.Sprintf(`&nbsp;&nbsp;(&nbsp;match:&nbsp;<span class="match">%ss</span>&nbsp;)`, r.Hyphenated)
+				r.MarkedUp += fmt.Sprintf(`&nbsp;&nbsp;(&nbsp;match:&nbsp;<span class="match">%s</span>&nbsp;)`, r.Hyphenated)
 			}
 		}
 
-		mu = formateditorialbrackets(mu)
+		mu := formateditorialbrackets(r.MarkedUp)
 
 		rc := ""
 		if i%3 == 2 {
@@ -411,7 +411,6 @@ func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
 			line.Contents += fmt.Sprintf(`&nbsp;&nbsp;(&nbsp;match:&nbsp;<span class="match">%s</span>&nbsp;)`, line.Hyphenated)
 		}
 	}
-
 }
 
 func formatinscriptiondates(template string, dbw DbWorkline) string {
@@ -557,7 +556,6 @@ func gethighlighter(ss SearchStruct) *regexp.Regexp {
 		msg(fmt.Sprintf("gethighlighter() cannot find anything to highlight\n\t%ss", ss.InitSum), 3)
 		re = nil
 	}
-
 	return re
 }
 
