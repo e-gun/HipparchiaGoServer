@@ -2,7 +2,7 @@
 
 ## early beta status: rough edges, (allegedly) solid core
 
-### status as of `v0.7.4`:
+### status as of `v0.7.6`:
 
 * monolithic binary: no need for extra files/folders beyond `hgs-conf.json`
 * searching theoretically fine but needs more testing/checking
@@ -19,8 +19,7 @@
 ### TODO (in vague order of priority)
 
 * update the help files so that they reflect HGS vs the python server
-* fix the less wonky lemma highlighting
-* deal with the homonymns issue in the index and vocab
+* room to improve lemma highlighting
 * reset route kills the websocket
 
 ### DISTANT FANTASIES

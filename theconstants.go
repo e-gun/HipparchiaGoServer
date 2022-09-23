@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                  = "Hipparchia Golang Server"
 	SHORTNAME               = "HGS"
-	VERSION                 = "0.7.5"
+	VERSION                 = "0.7.6"
 	AUTHENTICATIONREQUIRED  = false // unused ATM
 	AVGWORDSPERLINE         = 8     // hard coding a suspect assumption
 	CONFIGLOCATION          = "."
@@ -83,7 +83,7 @@ const (
 	PROJMAIL = "Department of Classics, 125 Queen’s Park, Toronto, ON  M5S 2C7 Canada"
 
 	HELPTEXT = `command line options:
-   -cf {file}   read PSQL password from file [default: '%s/%s']
+   -cf {file}   read PSQL password from file [default: '%s/%s' or '%s/%s']
    -el {num}    set echo server log level (0-2) [default: %d]
    -ft {string} force a client-side font instead of serving Noto fonts
                    names with spaces need quotes: "Gentium Plus Compact"

@@ -468,7 +468,6 @@ func RtIndexMaker(c echo.Context) error {
 		if emm {
 			mps := extractmorphpossibilities(morphmap[mme].RawPossib, boundary)
 			if len(mps) > 1 {
-				w.IsHomonymn = true
 				for i := 0; i < len(mps); i++ {
 					var additionalword WordInfo
 					additionalword = w
@@ -490,6 +489,33 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	slicedlookups = []WordInfo{} // drop after use
+
+	// calculate homonyms: two maps
+
+	// map ishom: [string]bool
+	// map tester: [string]string: [word]headword
+	// iterate
+	// 	if word not in map: add
+	// 	if word in map: is assoc w/ this headword?
+	// 	if not: w is homonym
+
+	ishom := make(map[string]bool)
+	htest := make(map[string]string)
+	for _, t := range trimslices {
+		if _, ok := htest[t.Wd]; !ok {
+			htest[t.Wd] = t.HW
+		} else {
+			if htest[t.Wd] != t.HW {
+				ishom[t.Wd] = true
+			}
+		}
+	}
+
+	for i, t := range trimslices {
+		if ishom[t.Wd] {
+			trimslices[i].IsHomonymn = true
+		}
+	}
 
 	// last chance to add in keys for multiple work indices
 	mp := make(map[string]rune)
@@ -580,6 +606,8 @@ func RtIndexMaker(c echo.Context) error {
 		<span class="small">(%ss)</span><br>
 		%s
 		%s
+		<br>
+		(NB: <span class="homonym">homonymns</span> will appear under more than one headword)
 	</div>
 	`
 
@@ -811,11 +839,20 @@ func convertwordinfototablerow(ww []WordInfo) string {
 	}
 
 	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
-
+	// standard TR
 	tr := `
 	<tr>
 		<td class="headword">%s</td>
 		<td class="word"><indexobserved id="%s">%s</indexobserved></td>
+		<td class="count">%d</td>
+		<td class="passages">%s</td>
+	</tr>`
+
+	// homonymn TR
+	trh := `
+	<tr>
+		<td class="headword">%s</td>
+		<td class="word"><span class="homonym"><indexobserved id="%s">%s</indexobserved></span></td>
 		<td class="count">%d</td>
 		<td class="passages">%s</td>
 	</tr>`
@@ -833,11 +870,7 @@ func convertwordinfototablerow(ww []WordInfo) string {
 			hw = wii[0].HW
 		}
 
-		// todo: not working...
 		tem := tp
-		//if wii[0].IsHomonymn {
-		//	tem = tph
-		//}
 
 		// get all passages related to this word
 		var pp []string
@@ -851,7 +884,13 @@ func convertwordinfototablerow(ww []WordInfo) string {
 			}
 		}
 		p := strings.Join(pp, ", ")
-		t := fmt.Sprintf(tr, hw, wii[0].Wd, wii[0].Wd, len(wii), p)
+
+		templ := tr
+		if wii[0].IsHomonymn {
+			templ = trh
+		}
+
+		t := fmt.Sprintf(templ, hw, wii[0].Wd, wii[0].Wd, len(wii), p)
 		trr[i] = t
 		used[wii[0].HW] = true
 	}

@@ -116,12 +116,6 @@ type ResultPassageLine struct {
 }
 
 func formatwithcontextresults(ss SearchStruct) []byte {
-	// things to worry about: formateditorialbrackets(); unbalancedspancleaner()
-
-	// unbalancedspancleaner() has to be run on the first line & after the whole block has been built
-
-	// how/when to do <span class="highlight">
-
 	thesession := sessions[ss.User]
 
 	type PsgFormattingTemplate struct {
@@ -283,7 +277,6 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 		err := tmpl.Execute(&b, p)
 		chke(err)
 
-		// fmt.Println(b.String())
 		rows[i] = b.String()
 	}
 
@@ -298,7 +291,6 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 
 	js, e := json.Marshal(out)
 	chke(e)
-
 	return js
 }
 
