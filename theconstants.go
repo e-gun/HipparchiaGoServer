@@ -12,6 +12,7 @@ const (
 	AUTHENTICATIONREQUIRED  = false // unused ATM
 	AVGWORDSPERLINE         = 8     // hard coding a suspect assumption
 	CONFIGLOCATION          = "."
+	CONFIGALTAPTH           = "%s/.config/"
 	CONFIGNAME              = "hgs-conf.json"
 	DBAUMAPSIZE             = 3455 //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
 	DBLEMMACOUNT            = 152759
@@ -84,7 +85,7 @@ const (
 	HELPTEXT = `command line options:
    -cf {file}   read PSQL password from file [default: '%s/%s']
    -el {num}    set echo server log level (0-2) [default: %d]
-   -ft {name}   force a client-side font instead of serving Noto fonts
+   -ft {string} force a client-side font instead of serving Noto fonts
                    names with spaces need quotes: "Gentium Plus Compact"
    -gl {num}    set golang log level (0-5) [default: %d]
    -gz          enable gzip compression of the server's output

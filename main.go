@@ -102,6 +102,10 @@ func configatlaunch() {
 
 	cf := fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGNAME)
 
+	uh, _ := os.UserHomeDir()
+	h := fmt.Sprintf(CONFIGALTAPTH, uh)
+	acf := fmt.Sprintf("%s/%s", h, CONFIGNAME)
+
 	var pl PostgresLogin
 
 	args := os.Args[1:len(os.Args)]
@@ -162,16 +166,30 @@ func configatlaunch() {
 	if pl.Pass != "" {
 		cfg.PGLogin = pl
 	} else {
-		file, _ := os.Open(cf)
-		decoder := json.NewDecoder(file)
-		conf := ConfigFile{}
-		err := decoder.Decode(&conf)
-		if err != nil {
-			msg(fmt.Sprintf("FAILED to load the configuration file: '%s'", cf), 0)
+		cfa, _ := os.Open(cf)
+		cfb, _ := os.Open(acf)
+
+		decodera := json.NewDecoder(cfa)
+		confa := ConfigFile{}
+		erra := decodera.Decode(&confa)
+
+		decoderb := json.NewDecoder(cfb)
+		confb := ConfigFile{}
+		errb := decoderb.Decode(&confb)
+
+		if erra != nil && errb != nil {
+			msg(fmt.Sprintf("FAILED to load the configuration from either '%s' or '%s'", cf, acf), 0)
 			msg(fmt.Sprintf("Make sure that the file exists and that it has the following format:"), 0)
 			fmt.Println(MINCONFIG)
 			os.Exit(0)
 		}
+		conf := ConfigFile{}
+		if erra == nil {
+			conf = confa
+		} else {
+			conf = confb
+		}
+
 		cfg.PGLogin = PostgresLogin{
 			Host:   PSQLHOST,
 			Port:   PSQLPORT,
