@@ -76,7 +76,7 @@ func timetracker(letter string, m string, start time.Time, previous time.Time) {
 // RemoveIndex - remove item #N from a slice
 func RemoveIndex[T any](s []T, index int) []T {
 	// https://stackoverflow.com/questions/37334119/how-to-delete-an-element-from-a-slice-in-golang
-	if len(s) < index {
+	if len(s) == 0 || len(s) < index {
 		msg("RemoveIndex() tried to drop an out of range element", 1)
 		return s
 	}
