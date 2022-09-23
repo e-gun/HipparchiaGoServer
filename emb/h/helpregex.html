@@ -17,8 +17,7 @@ The more salient things to know/use:
         <code>co[nl]laud</code> to make sure you got alternate spellings of <span class="lat">conlaudare</span>.</li>
     <li><code>.</code> any character: <code>laud.nt</code> will find <span class="lat">laudant</span>, <span class="lat">laudent</span>,
         and, theoretically, <span class="lat">laudZnt</span></li>
-    <li><code>\w</code> is any 'word' character and is roughly equivalent to <code>[a-z]</code>. <code>\w</code> will also find any unaccented
-    letter in the Greek alphabet: α, β, γ, ...</li>
+    <li><code>\w</code> is any 'word' character and is roughly equivalent to <code>[a-z]</code>. Greek is not covered by <code>\w</code></li>
     <li><code>\s</code> whitespace: <code>\ssed\setiam\s</code> is a search for <code>' sed etiam '</code>.
 </ul>
 Here are some examples that give you an idea of the sort of things that are possible. But major caveats follow.
@@ -56,7 +55,7 @@ Here are some examples that give you an idea of the sort of things that are poss
         <span class="lat">non solum... sed etiam...</span> bracket just a single word.</li>
     <li><code> magis\s\w{1,}ns\s</code> will find all places where <span class="lat">" magis XXXns "</span> appears.
         That is it finds a specific adverb immediately followed by a word with a specific word-ending. Note that your security settings
-        need to be modified from the defaults to achieve this. Specifically <code>FOOLISHLYALLOWREGEX</code> needs to include <code>+</code></li>
+        need to be modified from the defaults to achieve this.</li>
 </ul>
 <br />
 Unfortunately a lot of swanky heavy duty regex searches with lookaheads and conditionals do not make sense: the DB is organized as a collection of 'lines'.

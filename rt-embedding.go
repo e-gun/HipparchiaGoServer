@@ -153,7 +153,6 @@ HipparchiaGoServer/emb/ % tree
 │   ├── helpoddities.html
 │   ├── helpregex.html
 │   ├── helpsearchlists.html
-│   ├── helpspeed.html
 │   └── includedmaterials.html
 ├── hipparchiastyles.css
 ├── images

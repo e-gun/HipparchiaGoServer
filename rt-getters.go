@@ -150,7 +150,7 @@ func RtGetJSHelpdata(c echo.Context) error {
 	// populate <div id="helptabs"> on frontpage.html via $('#helpbutton').click in documentready_go.js
 
 	cat := []string{"Interface", "Browsing", "Dictionaries", "MakingSearchLists", "BasicSyntax", "RegexSearching",
-		"SpeedSearching", "LemmaSearching", "Oddities", "Extending", "IncludedMaterials"}
+		"LemmaSearching", "Oddities", "Extending", "IncludedMaterials"}
 
 	fm := make(map[string]string)
 	fm["Browsing"] = "helpbrowsing.html"
@@ -158,7 +158,7 @@ func RtGetJSHelpdata(c echo.Context) error {
 	fm["MakingSearchLists"] = "helpsearchlists.html"
 	fm["BasicSyntax"] = "helpbasicsyntax.html"
 	fm["RegexSearching"] = "helpregex.html"
-	fm["SpeedSearching"] = "helpspeed.html"
+	// fm["SpeedSearching"] = "helpspeed.html"
 	fm["LemmaSearching"] = "helplemmata.html"
 	// fm["VectorSearching"] = "helpvectors.html"
 	fm["Oddities"] = "helpoddities.html"

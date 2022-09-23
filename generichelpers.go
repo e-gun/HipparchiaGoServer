@@ -77,7 +77,7 @@ func timetracker(letter string, m string, start time.Time, previous time.Time) {
 func RemoveIndex[T any](s []T, index int) []T {
 	// https://stackoverflow.com/questions/37334119/how-to-delete-an-element-from-a-slice-in-golang
 	if len(s) == 0 || len(s) < index {
-		msg("RemoveIndex() tried to drop an out of range element", 1)
+		msg("RemoveIndex() tried to drop an out of range element", 3)
 		return s
 	}
 
@@ -102,7 +102,7 @@ func unique[T comparable](s []T) []T {
 
 // setsubtraction - returns [](set(aa) - set(bb))
 func setsubtraction[T comparable](aa []T, bb []T) []T {
-	//  NB this seems to be SLOW: be careful looping it 10k times
+	//  NB this is SLOW: be careful looping it 10k times
 	// 	aa := []string{"a", "b", "c", "d"}
 	//	bb := []string{"a", "b", "e", "f"}
 	//	dd := setsubtraction(aa, bb)
@@ -435,12 +435,10 @@ func capsvariants(word string) string {
 
 // uvσςϲ - v to u, etc
 func uvσςϲ(u string) string {
-	reducer := uvred
-
 	var stripped []rune
 	for _, x := range []rune(u) {
-		if _, ok := reducer[x]; ok {
-			stripped = append(stripped, reducer[x])
+		if _, ok := uvred[x]; ok {
+			stripped = append(stripped, uvred[x])
 		} else {
 			stripped = append(stripped, x)
 		}
