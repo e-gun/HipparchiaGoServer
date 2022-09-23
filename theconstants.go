@@ -10,6 +10,7 @@ const (
 	SHORTNAME               = "HGS"
 	VERSION                 = "0.7.4"
 	AUTHENTICATIONREQUIRED  = false // unused ATM
+	AVGWORDSPERLINE         = 8     // hard coding a suspect assumption
 	CONFIGLOCATION          = "."
 	CONFIGNAME              = "hgs-conf.json"
 	DBAUMAPSIZE             = 3455 //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
@@ -67,20 +68,15 @@ const (
 	MINCONFIG = `
 {"PosgreSQLPassword": "YOURPASSWORDHERE"}
 `
-	TERMINALTEXT = `
-	%s / Copyright (C) %s / %s
-	%s
+	TERMINALTEXT = `Copyright (C) %s / %s
+      %s
 
-	This program comes with ABSOLUTELY NO WARRANTY;
-	without even the implied warranty of MERCHANTABILITY
-	or FITNESS FOR A PARTICULAR PURPOSE.
+      This program comes with ABSOLUTELY NO WARRANTY; without even the implied 
+      warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-	This is free software, and you are welcome to redistribute
-	it and/or modify it under the terms of the GNU General
-	Public License version 3.
-`
+      This is free software, and you are welcome to redistribute it and/or modify
+      it under the terms of the GNU General Public License version 3.`
 
-	PROJ     = MYNAME
 	PROJYEAR = "2022"
 	PROJAUTH = "E. Gunderson"
 	PROJMAIL = "Department of Classics, 125 Queen’s Park, Toronto, ON  M5S 2C7 Canada"

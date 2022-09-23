@@ -69,8 +69,6 @@ func RtSearch(c echo.Context) error {
 	// "GET /search/standard/c2fba8e8?skg=%20dolore&prx=manif HTTP/1.1"
 	// "GET /search/standard/2ad866e2?prx=manif&lem=dolor HTTP/1.1"
 	// "GET /search/standard/02f3610f?lem=dolor&plm=manifesta HTTP/1.1"
-	start := time.Now()
-	previous := time.Now()
 	user := readUUIDCookie(c)
 
 	id := c.Param("id")
@@ -108,14 +106,8 @@ func RtSearch(c echo.Context) error {
 	srch.SearchEx = sl.Excl
 	srch.SearchSize = sl.Size
 
-	timetracker("A", "sessionintosearchlist()", start, previous)
-	previous = time.Now()
-
 	prq := searchlistintoqueries(&srch)
 	srch.TableSize = len(prq)
-
-	timetracker("B", "searchlistintoqueries()", start, previous)
-	previous = time.Now()
 
 	srch.Queries = prq
 	srch.IsActive = true
@@ -143,9 +135,6 @@ func RtSearch(c echo.Context) error {
 		}
 	}
 
-	timetracker("C", fmt.Sprintf("search executed: %d hits", len(searches[id].Results)), start, previous)
-	previous = time.Now()
-
 	resultsorter(&completed)
 
 	searches[id] = completed
@@ -156,9 +145,6 @@ func RtSearch(c echo.Context) error {
 	} else {
 		js = string(formatwithcontextresults(searches[id]))
 	}
-
-	timetracker("D", fmt.Sprintf("formatted %d hits", len(searches[id].Results)), start, previous)
-	previous = time.Now()
 
 	delete(searches, id)
 	progremain.Delete(id)
@@ -279,8 +265,7 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 	setsearchtype(&second)
 
 	// [a1] hard code a suspect assumption...
-	AVERAGEWRDSPERLINE := 8
-	need := 2 + (first.ProxVal / int64(AVERAGEWRDSPERLINE))
+	need := 2 + (first.ProxVal / int64(AVGWORDSPERLINE))
 
 	pt := `%s_FROM_%d_TO_%d`
 	t := `linenumber/%s/%s/%d`

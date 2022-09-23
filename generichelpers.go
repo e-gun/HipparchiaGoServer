@@ -40,17 +40,17 @@ func msg(message string, threshold int) {
 	switch threshold {
 	case -1:
 		// c = color.FgHiRed
-		c = color.FgGreen
+		c = color.FgCyan
 	case 0:
 		c = color.FgRed
 	case 1:
-		c = color.FgHiYellow
+		c = color.FgMagenta
 	case 2:
 		c = color.FgYellow
 	case 3:
 		c = color.FgWhite
 	case 4:
-		c = color.FgHiBlack
+		c = color.FgHiBlue
 	case 5:
 		c = color.FgHiBlack
 	default:

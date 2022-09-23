@@ -29,7 +29,7 @@ func main() {
 
 	printversion()
 
-	msg(fmt.Sprintf(TERMINALTEXT, PROJ, PROJYEAR, PROJAUTH, PROJMAIL), -1)
+	msg(fmt.Sprintf(TERMINALTEXT, PROJYEAR, PROJAUTH, PROJMAIL), -1)
 
 	// concurrent launching
 	var awaiting sync.WaitGroup
