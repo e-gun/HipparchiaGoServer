@@ -18,7 +18,6 @@
 
 ### TODO (in vague order of priority)
 
-* update the help files so that they reflect HGS vs the python server
 * room to improve lemma highlighting
 * reset route kills the websocket
 

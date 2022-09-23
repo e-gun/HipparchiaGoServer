@@ -142,14 +142,15 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 
 	context := int64(thesession.HitContext / 2)
 	t := `%s_FROM_%d_TO_%d`
-	for _, r := range res.Results {
+	res.SearchIn.Passages = make([]string, len(res.Results))
+	for i, r := range res.Results {
 		low := r.TbIndex - context
 		high := r.TbIndex + context
 		if low < 1 {
 			// avoid "gr0258_FROM_-1_TO_3"
 			low = 1
 		}
-		res.SearchIn.Passages = append(res.SearchIn.Passages, fmt.Sprintf(t, r.FindAuthor(), low, high))
+		res.SearchIn.Passages[i] = fmt.Sprintf(t, r.FindAuthor(), low, high)
 	}
 
 	res.Results = []DbWorkline{}
@@ -185,6 +186,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 		// if you want to do this the horrifyingly slow way...
 		// psg.RawCTX = simplecontextgrabber(r.FindAuthor(), r.TbIndex, int64(thesession.HitContext/2))
 
+		psg.CookedCTX = make([]ResultPassageLine, len(psg.RawCTX))
 		for j := 0; j < len(psg.RawCTX); j++ {
 			c := ResultPassageLine{}
 			c.Locus = strings.Join(psg.RawCTX[j].FindLocus(), ".")
@@ -197,7 +199,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 			psg.RawCTX[j].PurgeMetadata()
 			c.Contents = psg.RawCTX[j].MarkedUp
 			c.Hyphenated = psg.RawCTX[j].Hyphenated
-			psg.CookedCTX = append(psg.CookedCTX, c)
+			psg.CookedCTX[j] = c
 		}
 		allpassages[i] = psg
 	}
@@ -208,9 +210,9 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 		p.CookedCTX[0].Contents = unbalancedspancleaner(p.CookedCTX[0].Contents)
 
 		// across the whole
-		var block []string
-		for _, c := range p.CookedCTX {
-			block = append(block, c.Contents)
+		block := make([]string, len(p.CookedCTX))
+		for j, c := range p.CookedCTX {
+			block[j] = c.Contents
 		}
 		whole := strings.Join(block, "✃✃✃")
 
@@ -267,10 +269,10 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 
 	rows := make([]string, len(allpassages))
 	for i, p := range allpassages {
-		var lines []string
-		for _, l := range p.CookedCTX {
+		lines := make([]string, len(p.CookedCTX))
+		for j, l := range p.CookedCTX {
 			c := fmt.Sprintf(plt, l.Locus, l.Contents)
-			lines = append(lines, c)
+			lines[j] = c
 		}
 		p.LocusBody = strings.Join(lines, "")
 		var b bytes.Buffer
