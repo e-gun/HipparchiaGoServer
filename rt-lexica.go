@@ -284,71 +284,58 @@ func findbyform(word string, author string) string {
 // reversefind - english word into collection of HTML dictionary entries
 func reversefind(word string, dicts []string) string {
 	// this is not the fast way to do it; just the first draft of a way to do it...
-	type EntryStruct struct {
-		Lex   DbLexicon
-		Count DbHeadwordCount
-		HTML  string
-	}
 
-	var entries []EntryStruct
 	dbpool := GetPSQLconnection()
 	defer dbpool.Close()
 
+	var lexicalfinds []DbLexicon
 	// [a] look for the words
-	qt := `SELECT %s FROM %s_dictionary WHERE translations ~ '%s' LIMIT %d`
-	fld := `entry_name, metrical_entry, id_number, pos, translations, html_body`
 	for _, d := range dicts {
-		psq := fmt.Sprintf(qt, fld, d, word, MAXDICTLOOKUP)
+		ff := dictgrabber(word, d, "translations", "~")
+		lexicalfinds = append(lexicalfinds, ff...)
+	}
 
-		var foundrows pgx.Rows
-		var err error
-		foundrows, err = dbpool.Query(context.Background(), psq)
-		chke(err)
-
-		for foundrows.Next() {
-			var newword DbLexicon
-			err = foundrows.Scan(&newword.Word, &newword.Metrical, &newword.ID, &newword.POS, &newword.Transl, &newword.Entry)
-			chke(err)
-			newword.Lang = d
-
-			var newentry EntryStruct
-			newentry.Lex = newword
-			entries = append(entries, newentry)
+	// [b] the counts for the finds
+	countmap := make(map[float32]DbHeadwordCount)
+	for _, f := range lexicalfinds {
+		ct := headwordlookup(f.Word)
+		if ct.Entry == "" {
+			ct.Entry = f.Word
 		}
-		foundrows.Close()
+		countmap[f.ID] = ct
 	}
 
-	// [b] attach the counts to the finds
-	for i, f := range entries {
-		hwc := headwordlookup(f.Lex.Word)
-		entries[i].Count = hwc
+	// [c] get the html for the entries
+
+	htmlmap := paralleldictformatter(lexicalfinds)
+
+	var keys []float32
+	for k, _ := range htmlmap {
+		keys = append(keys, k)
 	}
 
-	// [c] attach the html to the entries
-	// this is the slow bit and could be parallelized
-	for i, e := range entries {
-		b := formatlexicaloutput(e.Lex)
-		entries[i].HTML = b
-	}
-
-	sort.Slice(entries, func(i, j int) bool { return entries[i].Count.Total > entries[j].Count.Total })
+	// sort by number of hits
+	sort.Slice(keys, func(i, j int) bool { return countmap[keys[i]].Total > countmap[keys[j]].Total })
 
 	// [d] prepare the output
 
 	// et := `<span class="sensesum">(INDEX)&nbsp;<a class="nounderline" href="ENTRY_ENTRYID">ENTRY</a><span class="small">(COUNT)</span></span><br />`
-	et := `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="%s_%f">%s</a><span class="small">(%d)</span></span><br />`
+	et := `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="#%s_%f">%s</a><span class="small">&nbsp;(%d)</span></span><br />`
 
 	// [d1] insert the overview
-	var htmlchunks []string
-	for i, e := range entries {
-		h := fmt.Sprintf(et, i+1, e.Lex.Word, e.Lex.ID, e.Lex.Word, e.Count.Total)
-		htmlchunks = append(htmlchunks, h)
+	ov := make([]string, len(lexicalfinds))
+	for i, k := range keys {
+		ov[i] = fmt.Sprintf(et, i+1, countmap[k].Entry, k, countmap[k].Entry, countmap[k].Total)
 	}
 
-	// [d2] insert the actual entries
-	for _, e := range entries {
-		htmlchunks = append(htmlchunks, e.HTML)
+	htmlchunks := make([]string, len(keys))
+	for i, k := range keys {
+		n := fmt.Sprintf(`<hr><span class="small">(%d)</span>`, i+1)
+		h := strings.Replace(htmlmap[k], "<hr>", n, 1)
+		htmlchunks[i] = h
 	}
+
+	htmlchunks = append(ov, htmlchunks...)
 
 	thehtml := strings.Join(htmlchunks, "")
 
@@ -391,6 +378,40 @@ func dictsearch(seeking string, dict string) string {
 
 	lexicalfinds := dictgrabber(seeking, dict, "entry_name", "~*")
 
+	htmlmap := paralleldictformatter(lexicalfinds)
+
+	var keys []float32
+	for k, _ := range htmlmap {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+
+	htmlchunks := make([]string, len(keys))
+	for i, k := range keys {
+		n := fmt.Sprintf(`<hr><span class="small">(%d)</span>`, i+1)
+		h := strings.Replace(htmlmap[k], "<hr>", n, 1)
+		htmlchunks[i] = h
+	}
+
+	// [d1] insert the overview
+	et := `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="#%s_%f">%s</a><br />`
+	ov := make([]string, len(lexicalfinds))
+	for i, e := range lexicalfinds {
+		ov[i] = fmt.Sprintf(et, i+1, e.Word, e.ID, e.Word)
+	}
+
+	htmlchunks = append(ov, htmlchunks...)
+
+	html := strings.Join(htmlchunks, "")
+
+	if len(html) == 0 {
+		html = "(nothing found)"
+	}
+
+	return html
+}
+
+func paralleldictformatter(lexicalfinds []DbLexicon) map[float32]string {
 	workers := runtime.NumCPU()
 	totalwork := len(lexicalfinds)
 	chunksize := totalwork / workers
@@ -435,40 +456,14 @@ func dictsearch(seeking string, dict string) string {
 
 	// map the results
 	htmlmap := make(map[float32]string)
-	var keys []float32
 
 	for _, hmap := range collector {
 		for w := range hmap {
 			htmlmap[w] = hmap[w]
-			keys = append(keys, w)
 		}
 	}
 
-	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
-
-	htmlchunks := make([]string, len(keys))
-	for i, k := range keys {
-		n := fmt.Sprintf(`<hr><span class="small">(%d)</span>`, i+1)
-		h := strings.Replace(htmlmap[k], "<hr>", n, 1)
-		htmlchunks[i] = h
-	}
-
-	// [d1] insert the overview
-	et := `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="#%s_%f">%s</a><br />`
-	ov := make([]string, len(lexicalfinds))
-	for i, e := range lexicalfinds {
-		ov[i] = fmt.Sprintf(et, i+1, e.Word, e.ID, e.Word)
-	}
-
-	htmlchunks = append(ov, htmlchunks...)
-
-	html := strings.Join(htmlchunks, "")
-
-	if len(html) == 0 {
-		html = "(nothing found)"
-	}
-
-	return html
+	return htmlmap
 }
 
 func multipleentriesashtml(workerid int, ee []DbLexicon) map[float32]string {
