@@ -327,6 +327,11 @@ func headworddistrib(wc DbHeadwordCount) string {
 	}
 
 	p := "<br>Distribution by corpus: " + strings.Join(pd, " / ")
+
+	if max == 0 {
+		p = ""
+	}
+
 	return p
 }
 
@@ -350,6 +355,11 @@ func headwordchronology(wc DbHeadwordCount) string {
 	}
 
 	p := "<br>Distribution by time: " + strings.Join(pd, " / ")
+
+	if max == 0 {
+		p = ""
+	}
+
 	return p
 }
 
@@ -387,6 +397,11 @@ func headwordgenres(wc DbHeadwordCount) string {
 	pd = pd[0:GENRESTOCOUNT]
 
 	p := "<br>Distribution by genre: " + strings.Join(pd, "; ")
+
+	if max == 0 {
+		p = ""
+	}
+
 	return p
 }
 
