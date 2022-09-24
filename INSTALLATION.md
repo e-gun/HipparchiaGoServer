@@ -54,9 +54,10 @@ an uncompressed archive is c. `3.6GB`
 - a binary can either be downloaded or built
   - builders will need to clone the source code in this archive and then compile it
 - `HipparchiaGoServer` will run if you double-click it; or it can be launched from a terminal
-- on first run it will complain that you do not have a `configuration` file. 
-  - Follow the instructions to create a configuration: this file tells `HipparchiaGoServer` the password for `hippa_wr`
-  - the name has to be correct; the location correct; and the layout of the file correct
+- on first run it will complain that you do not have a `configuration` file: `hgs-conf.json`
+  - this file tells `HipparchiaGoServer` the password for `hippa_wr`
+  - Follow the template to create the configuration
+  - the file name has to be correct; the file location correct; and the layout of the file correct
   
 ![launch](gitimg/launch.png)
 
