@@ -67,7 +67,7 @@ an uncompressed archive is c. `3.6GB`
 - the little `gear icon` at the top right corner will let you adjust settings
 
 
-### mac PostgreSQL installation via homebrew
+### mac PostgreSQL installation via homebrew (best option)
 
 - on a mac `homebrew`: [https://docs.brew.sh/Installation](https://docs.brew.sh/Installation)
 - you will be installing `Xcode` from apple first; then you can get `homebrew`; then you can ask for `postgresql`
@@ -79,7 +79,7 @@ an uncompressed archive is c. `3.6GB`
     - then `brew services restart postgresql`
 - return to the instructions above
 
-### mac PostgreSQL installation via postgressapp
+### mac PostgreSQL installation via postgressapp (slightly easier at first; after than noticeably worse)
 
 - on a mac [https://postgresapp.com/](https://postgresapp.com/) is another possibility: download and install
 - make sure to do **step 3**: `sudo mkdir -p /etc/paths.d &&
