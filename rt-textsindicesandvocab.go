@@ -30,6 +30,11 @@ type WordInfo struct {
 	Wk         string
 }
 
+//
+// ROUTES
+//
+
+// RtTextMaker - make a text of whatever collection of lines you would be searching
 func RtTextMaker(c echo.Context) error {
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
@@ -144,6 +149,7 @@ func RtTextMaker(c echo.Context) error {
 	return c.String(http.StatusOK, string(js))
 }
 
+// RtVocabMaker - get the vocabulary for whatever collection of lines you would be searching
 func RtVocabMaker(c echo.Context) error {
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
@@ -381,6 +387,7 @@ func RtVocabMaker(c echo.Context) error {
 	return c.String(http.StatusOK, string(js))
 }
 
+// RtIndexMaker - build an index for whatever collection of lines you would be searching
 func RtIndexMaker(c echo.Context) error {
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
@@ -661,13 +668,18 @@ func RtIndexMaker(c echo.Context) error {
 	return c.String(http.StatusOK, string(js))
 }
 
+//
+// HELPERS
+//
+
+// sessionintobulksearch - grab every line of text in the currently selected set of authors, works, and passages
 func sessionintobulksearch(c echo.Context) SearchStruct {
 	user := readUUIDCookie(c)
 
 	srch := builddefaultsearch(c)
 	srch.Seeking = ""
 	srch.Limit = MAXTEXTLINEGENERATION
-	srch.InitSum = "(gathering and formatting line of text)"
+	srch.InitSum = "(gathering and formatting lines of text)"
 	srch.ID = strings.Replace(uuid.New().String(), "-", "", -1)
 
 	parsesearchinput(&srch)
@@ -683,6 +695,7 @@ func sessionintobulksearch(c echo.Context) SearchStruct {
 	return srch
 }
 
+// arraytogetrequiredmorphobjects - map a slice of words to the corresponding DbMorphology
 func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 	// hipparchiaDB=# \d greek_morphology
 	//                           Table "public.greek_morphology"
@@ -747,6 +760,51 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 		}
 	}
 	return foundmorph
+}
+
+//
+// FORMATTING
+//
+
+func addkeystowordinfo(wii []WordInfo) ([]WordInfo, map[string]rune) {
+	// build the key: 9372 = ⒜
+	uu := make([]string, len(wii))
+	for i, w := range wii {
+		uu[i] = w.Wk
+	}
+	uu = unique(uu)
+	sort.Slice(uu, func(i, j int) bool { return uu[i] < uu[j] })
+	mp := make(map[string]rune)
+	for i, u := range uu {
+		mp[u] = rune(i + 9372)
+	}
+
+	for i, w := range wii {
+		wii[i].Cit = fmt.Sprintf("%s %s", string(mp[w.Wk]), wii[i].Cit)
+	}
+
+	return wii, mp
+}
+
+func multiworkkeymaker(mapper map[string]rune, srch *SearchStruct) string {
+	ky := ""
+	wkk := srch.SearchSize > 1
+	auu := srch.TableSize > 1
+
+	if auu || wkk {
+		var out []string
+		for k, v := range mapper {
+			t := fmt.Sprintf(`<span class="italic">%s</span>`, AllWorks[k].Title)
+			if auu {
+				t = AllAuthors[AllWorks[k].FindAuthor()].Name + ", " + t
+			}
+			out = append(out, fmt.Sprintf("%s: %s", string(v), t))
+		}
+		sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
+		ky = strings.Join(out, "; ")
+		ky = `<br><span class="emph">Works:</span> ` + ky
+	}
+	return ky
 }
 
 func convertwordinfototablerow(ww []WordInfo) string {
@@ -826,45 +884,4 @@ func convertwordinfototablerow(ww []WordInfo) string {
 
 	out := strings.Join(trr, "")
 	return out
-}
-
-func addkeystowordinfo(wii []WordInfo) ([]WordInfo, map[string]rune) {
-	// build the key: 9372 = ⒜
-	uu := make([]string, len(wii))
-	for i, w := range wii {
-		uu[i] = w.Wk
-	}
-	uu = unique(uu)
-	sort.Slice(uu, func(i, j int) bool { return uu[i] < uu[j] })
-	mp := make(map[string]rune)
-	for i, u := range uu {
-		mp[u] = rune(i + 9372)
-	}
-
-	for i, w := range wii {
-		wii[i].Cit = fmt.Sprintf("%s %s", string(mp[w.Wk]), wii[i].Cit)
-	}
-
-	return wii, mp
-}
-
-func multiworkkeymaker(mapper map[string]rune, srch *SearchStruct) string {
-	ky := ""
-	wkk := srch.SearchSize > 1
-	auu := srch.TableSize > 1
-
-	if auu || wkk {
-		var out []string
-		for k, v := range mapper {
-			t := fmt.Sprintf(`<span class="italic">%s</span>`, AllWorks[k].Title)
-			if auu {
-				t = AllAuthors[AllWorks[k].FindAuthor()].Name + ", " + t
-			}
-			out = append(out, fmt.Sprintf("%s: %s", string(v), t))
-		}
-		sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
-		ky = strings.Join(out, "; ")
-		ky = `<br><span class="emph">Works:</span> ` + ky
-	}
-	return ky
 }
