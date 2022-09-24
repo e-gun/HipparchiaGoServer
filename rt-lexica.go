@@ -283,11 +283,6 @@ func findbyform(word string, author string) string {
 
 // reversefind - english word into collection of HTML dictionary entries
 func reversefind(word string, dicts []string) string {
-	// this is not the fast way to do it; just the first draft of a way to do it...
-
-	dbpool := GetPSQLconnection()
-	defer dbpool.Close()
-
 	var lexicalfinds []DbLexicon
 	// [a] look for the words
 	for _, d := range dicts {
@@ -346,6 +341,55 @@ func reversefind(word string, dicts []string) string {
 	return thehtml
 }
 
+// dictsearch - word into HTML dictionary entry
+func dictsearch(seeking string, dict string) string {
+	// this is pretty slow if you do 100 entries... so run it in parallel
+
+	lexicalfinds := dictgrabber(seeking, dict, "entry_name", "~*")
+
+	htmlmap := paralleldictformatter(lexicalfinds)
+
+	var keys []float32
+	for k, _ := range htmlmap {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+
+	htmlchunks := make([]string, len(keys))
+	for i, k := range keys {
+		n := fmt.Sprintf(`<hr><span class="small">(%d)</span>`, i+1)
+		h := strings.Replace(htmlmap[k], "<hr>", n, 1)
+		htmlchunks[i] = h
+	}
+
+	countmap := make(map[float32]DbHeadwordCount)
+	for _, f := range lexicalfinds {
+		ct := headwordlookup(f.Word)
+		if ct.Entry == "" {
+			ct.Entry = f.Word
+		}
+		countmap[f.ID] = ct
+	}
+
+	// [d1] insert the overview
+	et := `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="#%s_%f">%s</a><span class="small">&nbsp;(%d)</span><br />`
+	ov := make([]string, len(lexicalfinds))
+	for i, e := range lexicalfinds {
+		ov[i] = fmt.Sprintf(et, i+1, e.Word, e.ID, e.Word, countmap[e.ID].Total)
+	}
+
+	htmlchunks = append(ov, htmlchunks...)
+
+	html := strings.Join(htmlchunks, "")
+
+	if len(html) == 0 {
+		html = "(nothing found)"
+	}
+
+	return html
+}
+
+// dictgrabber - search postgres tables and return []DbLexicon
 func dictgrabber(seeking string, dict string, col string, syntax string) []DbLexicon {
 	dbpool := GetPSQLconnection()
 	defer dbpool.Close()
@@ -370,116 +414,6 @@ func dictgrabber(seeking string, dict string, col string, syntax string) []DbLex
 		lexicalfinds = append(lexicalfinds, thehit)
 	}
 	return lexicalfinds
-}
-
-// dictsearch - word into HTML dictionary entry
-func dictsearch(seeking string, dict string) string {
-	// this is pretty slow if you do 100 entries... so run it in parallel
-
-	lexicalfinds := dictgrabber(seeking, dict, "entry_name", "~*")
-
-	htmlmap := paralleldictformatter(lexicalfinds)
-
-	var keys []float32
-	for k, _ := range htmlmap {
-		keys = append(keys, k)
-	}
-	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
-
-	htmlchunks := make([]string, len(keys))
-	for i, k := range keys {
-		n := fmt.Sprintf(`<hr><span class="small">(%d)</span>`, i+1)
-		h := strings.Replace(htmlmap[k], "<hr>", n, 1)
-		htmlchunks[i] = h
-	}
-
-	// [d1] insert the overview
-	et := `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="#%s_%f">%s</a><br />`
-	ov := make([]string, len(lexicalfinds))
-	for i, e := range lexicalfinds {
-		ov[i] = fmt.Sprintf(et, i+1, e.Word, e.ID, e.Word)
-	}
-
-	htmlchunks = append(ov, htmlchunks...)
-
-	html := strings.Join(htmlchunks, "")
-
-	if len(html) == 0 {
-		html = "(nothing found)"
-	}
-
-	return html
-}
-
-func paralleldictformatter(lexicalfinds []DbLexicon) map[float32]string {
-	workers := runtime.NumCPU()
-	totalwork := len(lexicalfinds)
-	chunksize := totalwork / workers
-	leftover := totalwork % workers
-	entrymap := make(map[int][]DbLexicon, workers)
-
-	thestart := 0
-	for i := 0; i < workers; i++ {
-		entrymap[i] = lexicalfinds[thestart : thestart+chunksize]
-		thestart = thestart + chunksize
-	}
-
-	if leftover > 0 {
-		entrymap[workers-1] = append(entrymap[workers-1], lexicalfinds[totalwork-leftover-1:totalwork-1]...)
-	}
-
-	var wg sync.WaitGroup
-	var collector []map[float32]string
-
-	outputchannels := make(chan map[float32]string, workers)
-
-	for i := 0; i < workers; i++ {
-		wg.Add(1)
-		j := i
-		go func(lexlist []DbLexicon, workerid int) {
-			defer wg.Done()
-			dbp := GetPSQLconnection()
-			defer dbp.Close()
-			outputchannels <- multipleentriesashtml(j, entrymap[j])
-		}(entrymap[i], i)
-	}
-
-	go func() {
-		wg.Wait()
-		close(outputchannels)
-	}()
-
-	// merge the results into []map[float32]string
-	for c := range outputchannels {
-		collector = append(collector, c)
-	}
-
-	// map the results
-	htmlmap := make(map[float32]string)
-
-	for _, hmap := range collector {
-		for w := range hmap {
-			htmlmap[w] = hmap[w]
-		}
-	}
-
-	return htmlmap
-}
-
-func multipleentriesashtml(workerid int, ee []DbLexicon) map[float32]string {
-	msg(fmt.Sprintf("multipleentriesashtml() - worker %d sent %d entries", workerid, len(ee)), 5)
-
-	oneentry := func(e DbLexicon) (float32, string) {
-		body := formatlexicaloutput(e)
-		return e.ID, body
-	}
-
-	entries := make(map[float32]string, len(ee))
-	for _, e := range ee {
-		id, ent := oneentry(e)
-		entries[id] = ent
-	}
-	return entries
 }
 
 // getmorphmatch - word into []DbMorphology
@@ -591,6 +525,77 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 //
 // FORMATTING
 //
+
+func paralleldictformatter(lexicalfinds []DbLexicon) map[float32]string {
+	workers := runtime.NumCPU()
+	totalwork := len(lexicalfinds)
+	chunksize := totalwork / workers
+	leftover := totalwork % workers
+	entrymap := make(map[int][]DbLexicon, workers)
+
+	thestart := 0
+	for i := 0; i < workers; i++ {
+		entrymap[i] = lexicalfinds[thestart : thestart+chunksize]
+		thestart = thestart + chunksize
+	}
+
+	if leftover > 0 {
+		entrymap[workers-1] = append(entrymap[workers-1], lexicalfinds[totalwork-leftover-1:totalwork-1]...)
+	}
+
+	var wg sync.WaitGroup
+	var collector []map[float32]string
+
+	outputchannels := make(chan map[float32]string, workers)
+
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		j := i
+		go func(lexlist []DbLexicon, workerid int) {
+			defer wg.Done()
+			dbp := GetPSQLconnection()
+			defer dbp.Close()
+			outputchannels <- multipleentriesashtml(j, entrymap[j])
+		}(entrymap[i], i)
+	}
+
+	go func() {
+		wg.Wait()
+		close(outputchannels)
+	}()
+
+	// merge the results into []map[float32]string
+	for c := range outputchannels {
+		collector = append(collector, c)
+	}
+
+	// map the results
+	htmlmap := make(map[float32]string)
+
+	for _, hmap := range collector {
+		for w := range hmap {
+			htmlmap[w] = hmap[w]
+		}
+	}
+
+	return htmlmap
+}
+
+func multipleentriesashtml(workerid int, ee []DbLexicon) map[float32]string {
+	msg(fmt.Sprintf("multipleentriesashtml() - worker %d sent %d entries", workerid, len(ee)), 5)
+
+	oneentry := func(e DbLexicon) (float32, string) {
+		body := formatlexicaloutput(e)
+		return e.ID, body
+	}
+
+	entries := make(map[float32]string, len(ee))
+	for _, e := range ee {
+		id, ent := oneentry(e)
+		entries[id] = ent
+	}
+	return entries
+}
 
 // formatprevalencedata - turn a wordcount into an HTML summary
 func formatprevalencedata(w DbWordCount, s string) string {
