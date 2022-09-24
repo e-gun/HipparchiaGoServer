@@ -16,8 +16,10 @@ import (
 	"net/http"
 	"reflect"
 	"regexp"
+	"runtime"
 	"sort"
 	"strings"
+	"sync"
 )
 
 var (
@@ -385,24 +387,80 @@ func dictgrabber(seeking string, dict string, col string, syntax string) []DbLex
 
 // dictsearch - word into HTML dictionary entry
 func dictsearch(seeking string, dict string) string {
+	// this is pretty slow if you do 100 entries... so run it in parallel
 
 	lexicalfinds := dictgrabber(seeking, dict, "entry_name", "~*")
 
-	sort.Slice(lexicalfinds, func(i, j int) bool { return lexicalfinds[i].Word < lexicalfinds[j].Word })
+	workers := runtime.NumCPU()
+	totalwork := len(lexicalfinds)
+	chunksize := totalwork / workers
+	leftover := totalwork % workers
+	entrymap := make(map[int][]DbLexicon, workers)
+
+	thestart := 0
+	for i := 0; i < workers; i++ {
+		entrymap[i] = lexicalfinds[thestart : thestart+chunksize]
+		thestart = thestart + chunksize
+	}
+
+	if leftover > 0 {
+		entrymap[workers-1] = append(entrymap[workers-1], lexicalfinds[totalwork-leftover-1:totalwork-1]...)
+	}
+
+	var wg sync.WaitGroup
+	var collector []map[float32]string
+
+	outputchannels := make(chan map[float32]string, workers)
+
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		j := i
+		go func(lexlist []DbLexicon, workerid int) {
+			defer wg.Done()
+			dbp := GetPSQLconnection()
+			defer dbp.Close()
+			outputchannels <- multipleentriesashtml(j, entrymap[j])
+		}(entrymap[i], i)
+	}
+
+	go func() {
+		wg.Wait()
+		close(outputchannels)
+	}()
+
+	// merge the results into []map[float32]string
+	for c := range outputchannels {
+		collector = append(collector, c)
+	}
+
+	// map the results
+	htmlmap := make(map[float32]string)
+	var keys []float32
+
+	for _, hmap := range collector {
+		for w := range hmap {
+			htmlmap[w] = hmap[w]
+			keys = append(keys, w)
+		}
+	}
+
+	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+
+	htmlchunks := make([]string, len(keys))
+	for i, k := range keys {
+		n := fmt.Sprintf(`<hr><span class="small">(%d)</span>`, i+1)
+		h := strings.Replace(htmlmap[k], "<hr>", n, 1)
+		htmlchunks[i] = h
+	}
 
 	// [d1] insert the overview
 	et := `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="#%s_%f">%s</a><br />`
-
-	var htmlchunks []string
-	for i, l := range lexicalfinds {
-		h := fmt.Sprintf(et, i+1, l.Word, l.ID, l.Word)
-		htmlchunks = append(htmlchunks, h)
+	ov := make([]string, len(lexicalfinds))
+	for i, e := range lexicalfinds {
+		ov[i] = fmt.Sprintf(et, i+1, e.Word, e.ID, e.Word)
 	}
 
-	// the entries
-	for _, l := range lexicalfinds {
-		htmlchunks = append(htmlchunks, formatlexicaloutput(l))
-	}
+	htmlchunks = append(ov, htmlchunks...)
 
 	html := strings.Join(htmlchunks, "")
 
@@ -411,6 +469,22 @@ func dictsearch(seeking string, dict string) string {
 	}
 
 	return html
+}
+
+func multipleentriesashtml(workerid int, ee []DbLexicon) map[float32]string {
+	msg(fmt.Sprintf("multipleentriesashtml() - worker %d sent %d entries", workerid, len(ee)), 5)
+
+	oneentry := func(e DbLexicon) (float32, string) {
+		body := formatlexicaloutput(e)
+		return e.ID, body
+	}
+
+	entries := make(map[float32]string, len(ee))
+	for _, e := range ee {
+		id, ent := oneentry(e)
+		entries[id] = ent
+	}
+	return entries
 }
 
 // getmorphmatch - word into []DbMorphology

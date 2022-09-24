@@ -214,9 +214,6 @@ func RtVocabMaker(c echo.Context) error {
 	var parsedwords []WordInfo
 	for _, s := range slicedwords {
 		hww := poss[s.Wd]
-		if len(hww) > 1 {
-			s.IsHomonymn = true
-		}
 		for _, h := range hww {
 			newwd := s
 			newwd.HW = h.Headwd
@@ -872,10 +869,10 @@ func convertwordinfototablerow(ww []WordInfo) string {
 
 		tem := tp
 
-		// get all passages related to this word
-		var pp []string
 		sort.Slice(wii, func(i, j int) bool { return wii[i].Loc < wii[j].Loc })
 
+		// get all passages related to this word
+		var pp []string
 		dedup := make(map[string]bool) // this is hacky: why are their duplicates to begin with?
 		for j := 0; j < len(wii); j++ {
 			if _, ok := dedup[wii[j].Loc]; !ok {
@@ -901,9 +898,9 @@ func convertwordinfototablerow(ww []WordInfo) string {
 
 func addkeystowordinfo(wii []WordInfo) ([]WordInfo, map[string]rune) {
 	// build the key: 9372 = ⒜
-	var uu []string
-	for _, w := range wii {
-		uu = append(uu, w.Wk)
+	uu := make([]string, len(wii))
+	for i, w := range wii {
+		uu[i] = w.Wk
 	}
 	uu = unique(uu)
 	sort.Slice(uu, func(i, j int) bool { return uu[i] < uu[j] })
