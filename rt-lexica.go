@@ -79,6 +79,7 @@ type JSB struct {
 // ROUTING
 //
 
+// RtLexLookup - search the dictionary for a headword substring
 func RtLexLookup(c echo.Context) error {
 	req := c.Param("wd")
 	seeking := purgechars(cfg.BadChars, req)
@@ -100,6 +101,7 @@ func RtLexLookup(c echo.Context) error {
 	return c.String(http.StatusOK, string(jsonbundle))
 }
 
+// RtLexFindByForm - search the dictionary for a specific headword
 func RtLexFindByForm(c echo.Context) error {
 	// be able to respond to "GET /lexica/findbyform/ἀμιϲθὶ/gr0062 HTTP/1.1"
 	req := c.Param("wd")
@@ -170,6 +172,7 @@ func RtLexId(c echo.Context) error {
 	return c.String(http.StatusOK, string(jsonbundle))
 }
 
+// RtLexReverse - look for the headwords that have the sought word in their body
 func RtLexReverse(c echo.Context) error {
 	// be able to respond to "/lexica/reverselookup/0ae94619/sorrow"
 	req := c.Param("wd")
@@ -526,6 +529,7 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 // FORMATTING
 //
 
+// paralleldictformatter - send N workers off to turn []DbLexicon into a map: [entryid]entryhtml
 func paralleldictformatter(lexicalfinds []DbLexicon) map[float32]string {
 	workers := runtime.NumCPU()
 	totalwork := len(lexicalfinds)
@@ -581,6 +585,7 @@ func paralleldictformatter(lexicalfinds []DbLexicon) map[float32]string {
 	return htmlmap
 }
 
+// multipleentriesashtml - turn []DbLexicon into a map: [entryid]entryhtml
 func multipleentriesashtml(workerid int, ee []DbLexicon) map[float32]string {
 	msg(fmt.Sprintf("multipleentriesashtml() - worker %d sent %d entries", workerid, len(ee)), 5)
 

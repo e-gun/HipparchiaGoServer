@@ -10,16 +10,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"net/http"
 	"regexp"
-	"runtime"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -687,8 +684,18 @@ func sessionintobulksearch(c echo.Context) SearchStruct {
 }
 
 func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
-	// NB: this goroutine version not in fact that much faster with Cicero than doing it without goroutines as one giant array
-	// but the implementation pattern is likely useful for some place where it will make a difference
+	// hipparchiaDB=# \d greek_morphology
+	//                           Table "public.greek_morphology"
+	//          Column           |          Type          | Collation | Nullable | Default
+	//---------------------------+------------------------+-----------+----------+---------
+	// observed_form             | character varying(64)  |           |          |
+	// xrefs                     | character varying(128) |           |          |
+	// prefixrefs                | character varying(128) |           |          |
+	// possible_dictionary_forms | jsonb                  |           |          |
+	// related_headwords         | character varying(256) |           |          |
+	//Indexes:
+	//    "greek_analysis_trgm_idx" gin (related_headwords gin_trgm_ops)
+	//    "greek_morphology_idx" btree (observed_form)
 
 	// look for the upper case matches too: Ϲωκράτηϲ and not just ϲωκρατέω (!)
 	uppers := make([]string, len(wordlist))
@@ -707,82 +714,8 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 	wordlist = append(wordlist, uppers...)
 	wordlist = append(wordlist, apo...)
 
-	// note that we are hereby going to feed some of the workers huge lists of capitalized words that will return few hits
-	workers := runtime.NumCPU()
-
-	totalwork := len(wordlist)
-	chunksize := totalwork / workers
-	leftover := totalwork % workers
-	wordmap := make(map[int][]string, workers)
-
-	if totalwork <= workers {
-		wordmap[0] = wordlist
-	} else {
-		thestart := 0
-		for i := 0; i < workers; i++ {
-			wordmap[i] = wordlist[thestart : thestart+chunksize]
-			thestart = thestart + chunksize
-		}
-
-		// leave no sentence behind!
-		if leftover > 0 {
-			wordmap[workers-1] = append(wordmap[workers-1], wordlist[totalwork-leftover-1:totalwork-1]...)
-		}
-	}
-
-	// https://stackoverflow.com/questions/46010836/using-goroutines-to-process-values-and-gather-results-into-a-slice
-	// see the comments of Paul Hankin re. building an anonymous function
-
-	var wg sync.WaitGroup
-	var collector []map[string]DbMorphology
-	outputchannels := make(chan map[string]DbMorphology, workers)
-
-	for i := 0; i < workers; i++ {
-		wg.Add(1)
-		// "i" will be captured if sent into the function
-		j := i
-		go func(wordlist []string, workerid int) {
-			defer wg.Done()
-			dbp := GetPSQLconnection()
-			defer dbp.Close()
-			outputchannels <- morphologyworker(wordmap[j], j, dbp)
-		}(wordmap[i], i)
-	}
-
-	go func() {
-		wg.Wait()
-		close(outputchannels)
-	}()
-
-	// merge the results
-	for c := range outputchannels {
-		collector = append(collector, c)
-	}
-
-	// map the results
-	foundmorph := make(map[string]DbMorphology)
-	for _, mmap := range collector {
-		for w := range mmap {
-			foundmorph[w] = mmap[w]
-		}
-	}
-
-	return foundmorph
-}
-
-func morphologyworker(wordlist []string, workerid int, dbpool *pgxpool.Pool) map[string]DbMorphology {
-	// hipparchiaDB=# \d greek_morphology
-	//                           Table "public.greek_morphology"
-	//          Column           |          Type          | Collation | Nullable | Default
-	//---------------------------+------------------------+-----------+----------+---------
-	// observed_form             | character varying(64)  |           |          |
-	// xrefs                     | character varying(128) |           |          |
-	// prefixrefs                | character varying(128) |           |          |
-	// possible_dictionary_forms | jsonb                  |           |          |
-	// related_headwords         | character varying(256) |           |          |
-	//Indexes:
-	//    "greek_analysis_trgm_idx" gin (related_headwords gin_trgm_ops)
-	//    "greek_morphology_idx" btree (observed_form)
+	dbpool := GetPSQLconnection()
+	defer dbpool.Close()
 
 	tt := `CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words`
 	qt := `SELECT observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords FROM %s_morphology WHERE EXISTS 
@@ -793,7 +726,7 @@ func morphologyworker(wordlist []string, workerid int, dbpool *pgxpool.Pool) map
 	// a waste of time to check the language on every word; just flail/fail once
 	for _, uselang := range []string{"greek", "latin"} {
 		u := strings.Replace(uuid.New().String(), "-", "", -1)
-		id := fmt.Sprintf("%s_%s_mw_%d", u, uselang, workerid)
+		id := fmt.Sprintf("%s_%s_mw", u, uselang)
 		a := fmt.Sprintf("'%s'", strings.Join(wordlist, "', '"))
 		t := fmt.Sprintf(tt, id, a)
 
@@ -813,7 +746,6 @@ func morphologyworker(wordlist []string, workerid int, dbpool *pgxpool.Pool) map
 			foundmorph[thehit.Observed] = thehit
 		}
 	}
-
 	return foundmorph
 }
 
