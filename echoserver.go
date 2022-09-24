@@ -278,6 +278,7 @@ func StartEchoServer() {
 //
 
 func RtAuthChkuser(c echo.Context) error {
+	// currently unused
 	return c.String(http.StatusOK, "")
 }
 

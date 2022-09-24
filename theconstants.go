@@ -34,7 +34,7 @@ const (
 	MAXBROWSERCONTEXT       = 60
 	MAXDATE                 = 1500
 	MAXDATESTR              = "1500"
-	MAXDICTLOOKUP           = 100
+	MAXDICTLOOKUP           = 125
 	MAXDISTANCE             = 10
 	MAXHITLIMIT             = 2500
 	MAXINPUTLEN             = 50

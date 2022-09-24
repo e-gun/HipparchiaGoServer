@@ -6,7 +6,7 @@
     <script src="/emb/jq/jquery-ui.min.js"></script>
     <script src="/emb/extrajs/js.cookie.js"></script>
 
-    <title>HipparchiaGoServer</title>
+    <title>Hipparchia</title>
     <link rel=stylesheet type=text/css href="/emb/hipparchiastyles.css">
     <link rel=stylesheet type=text/css href="/emb/jq/jquery-ui.css">
 </head>
@@ -99,7 +99,7 @@ License: GNU GENERAL PUBLIC LICENSE 3
 
 <div id="mainbody">
     <!-- "mainbody" allows the option sidebar to push the page contents right -->
-        <div id="searchfield">
+    <div id="searchfield">
         <span id="endpointbutton-isclosed" class="ui-icon ui-icon-caret-1-e" title="Open endpoint selection options"></span>
         <span id="endpointbutton-isopen" class="ui-icon ui-icon-caret-1-s" title="Close endpoint selection options"></span>
         <span id="fromnotice" class="unobtrusive">[span start]</span>
@@ -157,6 +157,7 @@ License: GNU GENERAL PUBLIC LICENSE 3
 	<!-- frontpagehtmlformatting.py getdaterangefieldhtml() output ends -->
 	
     </div>
+
     <div id="selectionendpoint">
         <span id="endpointnotice" class="unobtrusive">[span end]</span>
         <input type="text" name="authors" class="authorinput" id="authorendpoint" placeholder="[should be pre-filled]">
@@ -169,8 +170,10 @@ License: GNU GENERAL PUBLIC LICENSE 3
         <input type="text" name="level01" class="worklevel" id="level01endpoint" placeholder="---">
         <input type="text" name="level00" class="worklevel" id="level00endpoint" placeholder="---">
     </div>
+
     <br>
-        <div id="outputbox">
+
+    <div id="outputbox">
         <table id="selectionstable">
             <tbody>
                 <tr>
@@ -197,24 +200,26 @@ License: GNU GENERAL PUBLIC LICENSE 3
         <p id="authoroutputcontent"></p>
         <div id="searchlistcontents">(this might take a second...)</div>
     </div>
+
     <div id="savedprofiles">
-    <span id="togglesaveslots" class="ui-icon ui-icon-disk" title="Pick a save slot into which to save your current session"></span><br />
-    <div id="saveslots">
-        <span class="saveoptions" title="Save to slot 1" id="save01">➊</span><br />
-        <span class="saveoptions" title="Save to slot 2" id="save02">➋</span><br />
-        <span class="saveoptions" title="Save to slot 3" id="save03">➌</span><br />
-        <span class="saveoptions" title="Save to slot 4" id="save04">➍</span><br />
-        <span class="saveoptions" title="Save to slot 5" id="save05">➎</span><br />
+        <span id="togglesaveslots" class="ui-icon ui-icon-disk" title="Pick a save slot into which to save your current session"></span><br />
+        <div id="saveslots">
+            <span class="saveoptions" title="Save to slot 1" id="save01">➊</span><br />
+            <span class="saveoptions" title="Save to slot 2" id="save02">➋</span><br />
+            <span class="saveoptions" title="Save to slot 3" id="save03">➌</span><br />
+            <span class="saveoptions" title="Save to slot 4" id="save04">➍</span><br />
+            <span class="saveoptions" title="Save to slot 5" id="save05">➎</span><br />
+        </div>
+        <span id="toggleloadslots" class="ui-icon ui-icon-folder-open" title="Pick a save slot from which to load stored session"></span><br />
+        <div id="loadslots">
+            <span class="loadoptions" title="Load from slot 1" id="load01">➀</span><br />
+            <span class="loadoptions" title="Load from slot 2" id="load02">➁</span><br />
+            <span class="loadoptions" title="Load from slot 3" id="load03">➂</span><br />
+            <span class="loadoptions" title="Load from slot 4" id="load04">➃</span><br />
+            <span class="loadoptions" title="Load from slot 5" id="load05">➄</span>
+        </div>
     </div>
-    <span id="toggleloadslots" class="ui-icon ui-icon-folder-open" title="Pick a save slot from which to load stored session"></span><br />
-    <div id="loadslots">
-        <span class="loadoptions" title="Load from slot 1" id="load01">➀</span><br />
-        <span class="loadoptions" title="Load from slot 2" id="load02">➁</span><br />
-        <span class="loadoptions" title="Load from slot 3" id="load03">➂</span><br />
-        <span class="loadoptions" title="Load from slot 4" id="load04">➃</span><br />
-        <span class="loadoptions" title="Load from slot 5" id="load05">➄</span>
-    </div>
-</div>
+
     <div id="activeoptions">
         <div id="grkisactive" title="Greek corpus is active"><span class="activeoption">Ⓖ</span></div>
         <div id="grkisnotactive"></div>
@@ -256,20 +261,20 @@ License: GNU GENERAL PUBLIC LICENSE 3
         <div id="winnertakesall-ison"><span class="activeoption">🅆</span></div>
     </div>
 
-<script>
-    // GENERIC
-    var optionids = Array('#onehitistrue', '#onehitisfalse', '#spuriaistrue',
-        '#spuriaisfalse', '#undatedistrue', '#undatedisfalse',
-        '#variaistrue', '#variaisfalse', '#headwordindexingactive',
-        '#headwordindexiningactive', '#frequencyindexingactive',
-        '#frequencyindexinginactive', '#grkisactive', '#latisactive',
-        '#ddpisactive', '#insisactive', '#chrisactive');
+    <script>
+        // GENERIC
+        var optionids = Array('#onehitistrue', '#onehitisfalse', '#spuriaistrue',
+            '#spuriaisfalse', '#undatedistrue', '#undatedisfalse',
+            '#variaistrue', '#variaisfalse', '#headwordindexingactive',
+            '#headwordindexiningactive', '#frequencyindexingactive',
+            '#frequencyindexinginactive', '#grkisactive', '#latisactive',
+            '#ddpisactive', '#insisactive', '#chrisactive');
 
-    for (var i = 0; i < optionids.length; i++) { $(optionids[i]).hide(); }
-</script>
+        for (var i = 0; i < optionids.length; i++) { $(optionids[i]).hide(); }
+    </script>
 
     <div id="helptabs">
-    <ul>
+        <ul>
         <li><a href="#Interface"><span>Interface</span></a></li>
         <li><a href="#Browsing"><span>Browsing</span></a></li>
         <li><a href="#Dictionaries"><span>Dictionaries and word counts</span></a></li>
@@ -292,39 +297,42 @@ License: GNU GENERAL PUBLIC LICENSE 3
         <div id="Extending"><!-- placeholder --></div>
         <div id="IncludedMaterials"><!-- placeholder --></div>
     </div>
+
     <div id="wordsearchfields" class="center">
-    <button id="executesearch" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Execute the search"><span class="ui-button-icon ui-icon ui-icon-search"></span><span class="ui-button-icon-space"> </span>&nbsp;</button>
-        <input id="wordsearchform" type="text" name="seeking" placeholder="(looking for...)" size=25>
-        <input id="lemmatasearchform" type="text" name="lemmata" placeholder="(all forms of...)" size=25>
-        <span id="termonecheckbox">
-            <span class="small">λ</span><input type="checkbox" id="termoneisalemma" value="yes">
-        </span>
-    <button id="extendsearchbutton-ispresentlyopen" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Complicate the search"><span class="ui-button-icon ui-icon ui-icon-arrow-1-e"></span><span class="ui-button-icon-space"> </span>&nbsp;</button>
-    <button id="extendsearchbutton-ispresentlyclosed" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Complicate the search"><span class="ui-button-icon ui-icon ui-icon-arrow-1-e"></span><span class="ui-button-icon-space"> </span>&nbsp;</button>
-    <br />
-    <div id="complexsearching">
-        <div id="nearornot">
-            <label for="wordisnear">near
-            <input type="radio" name="near" id="wordisnear" value="T"></label>
-            <label for="wordisnotnear">not near
-            <input type="radio" name="near" id="wordisnotnear" value="F"></label>
+        <button id="executesearch" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Execute the search"><span class="ui-button-icon ui-icon ui-icon-search"></span><span class="ui-button-icon-space"> </span>&nbsp;</button>
+            <input id="wordsearchform" type="text" name="seeking" placeholder="(looking for...)" size=25>
+            <input id="lemmatasearchform" type="text" name="lemmata" placeholder="(all forms of...)" size=25>
+            <span id="termonecheckbox">
+                <span class="small">λ</span><input type="checkbox" id="termoneisalemma" value="yes">
+            </span>
+        <button id="extendsearchbutton-ispresentlyopen" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Complicate the search"><span class="ui-button-icon ui-icon ui-icon-arrow-1-e"></span><span class="ui-button-icon-space"> </span>&nbsp;</button>
+        <button id="extendsearchbutton-ispresentlyclosed" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Complicate the search"><span class="ui-button-icon ui-icon ui-icon-arrow-1-e"></span><span class="ui-button-icon-space"> </span>&nbsp;</button>
+        <br />
+
+        <div id="complexsearching">
+            <div id="nearornot">
+                <label for="wordisnear">near
+                <input type="radio" name="near" id="wordisnear" value="T"></label>
+                <label for="wordisnotnear">not near
+                <input type="radio" name="near" id="wordisnotnear" value="F"></label>
+            </div>
+
+            <input id="proximatesearchform" type="text" name="proximate" placeholder="(near... and within...)" size=25>
+            <input id="proximatelemmatasearchform" type="text" name="lemmata" placeholder="(near all forms of... and within...)" size=25>
+            <span id="termtwocheckbox">
+                <span class="small">λ</span><input type="checkbox" id="termtwoisalemma" value="yes">
+            </span>
+
+            <input id="proximityspinner" type="text" value="{{index . "proxval"}}" width="25px;">
+            <label for="searchlines">lines
+            <input type="radio" name="searchfor" id="searchlines" value="L"></label>
+            <label for="searchwords">words
+            <input type="radio" name="searchfor" id="searchwords" value="W"></label>
         </div>
-
-        <input id="proximatesearchform" type="text" name="proximate" placeholder="(near... and within...)" size=25>
-        <input id="proximatelemmatasearchform" type="text" name="lemmata" placeholder="(near all forms of... and within...)" size=25>
-        <span id="termtwocheckbox">
-            <span class="small">λ</span><input type="checkbox" id="termtwoisalemma" value="yes">
-        </span>
-
-        <input id="proximityspinner" type="text" value="{{index . "proxval"}}" width="25px;">
-        <label for="searchlines">lines
-        <input type="radio" name="searchfor" id="searchlines" value="L"></label>
-        <label for="searchwords">words
-        <input type="radio" name="searchfor" id="searchwords" value="W"></label>
     </div>
 
-
     <br />
+
     <div id="browserdialog">
         <div id="browserdialogtext"></div>
         <div id="browsernavigationbuttons">
@@ -354,6 +362,7 @@ License: GNU GENERAL PUBLIC LICENSE 3
     </div>
 
     <div id="searchsummary"></div>
+
     <div id="pollingdata"></div>
 
     <!--
@@ -368,9 +377,13 @@ License: GNU GENERAL PUBLIC LICENSE 3
 
     <!-- blank divs just to hold scripts for injection later -->
     <div id="browserclickscriptholder"> </div>
+
     <div id="indexclickscriptholder"> </div>
+
     <div id="vectorspinnerscriptholder"> </div>
+
     <div id="selectionscriptholder"> </div>
+
     <div id="lexicaljsscriptholder"> </div>
 
     <!-- misc ui elements -->
@@ -387,8 +400,6 @@ License: GNU GENERAL PUBLIC LICENSE 3
     <div id="bottommessage">
         <span id="cookiemessage">Enable <span class="outline red">cookies</span> and/or <span class="outline red">javascript</span> in your browser and then reload this page.</span>
     </div>
-    
-</div>
 
 <!-- optional authentication html begins -->
     {{index . "authentic"}}

@@ -573,7 +573,7 @@ func paralleldictformatter(lexicalfinds []DbLexicon) map[float32]string {
 		collector = append(collector, c)
 	}
 
-	// map the results
+	// reduce the results map
 	htmlmap := make(map[float32]string)
 
 	for _, hmap := range collector {
