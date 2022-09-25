@@ -34,7 +34,11 @@ func RtEmbJS(c echo.Context) error {
 }
 
 func RtEmbHCSS(c echo.Context) error {
-	f := "emb/hipparchiastyles.css"
+	f := "emb/css/servedfont.css"
+	if cfg.Font != FONTSETTING {
+		f = "emb/css/localfont.css"
+	}
+
 	j, e := efs.ReadFile(f)
 	if e != nil {
 		msg(fmt.Sprintf("RtEmbHCSS() can't find %s", f), 1)
