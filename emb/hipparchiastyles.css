@@ -820,6 +820,10 @@ body {
 	color: var(--red);
 	}
 
+.rust {
+	color: var(--rustedorange);
+}
+
 .romannumerals {
 	font-variant: small-caps;
 	color: var(--red);

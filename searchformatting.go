@@ -43,10 +43,10 @@ func formatnocontextresults(ss SearchStruct) []byte {
 	out.Image = ""
 	out.Searchsummary = formatfinalsearchsummary(&ss)
 
-	TABLEROW := `
+	tablerow := `
 	<tr class="%s">
 		<td>
-			<span class="findnumber">[%d]</span>&nbsp;&nbsp;%s
+			<span class="findnumber">[%d]</span>&nbsp;&nbsp;%s%s
 			%s
 		</td>
 		<td class="leftpad">
@@ -87,6 +87,7 @@ func formatnocontextresults(ss SearchStruct) []byte {
 		lk := r.BuildHyperlink()
 		lc := strings.Join(r.FindLocus(), ".")
 		wd := formatinscriptiondates(dtt, r)
+		pl := formatinscriptionplaces(r)
 
 		// <span class="foundauthor">%s</span>,&nbsp;<span class="foundwork">%s</span>: <browser id="%s"><span class="foundlocus">%s</span></browser>
 		ct := `<spcauthor">%s</span>,&nbsp;<spcwork">%s</span>: <browser_id="%s"><spclocus">%s</span></browser>`
@@ -95,7 +96,7 @@ func formatnocontextresults(ss SearchStruct) []byte {
 		ci = strings.Replace(ci, "<spc", `<span class="found`, -1)
 		ci = strings.Replace(ci, `browser_id`, `browser id`, -1)
 
-		fm := fmt.Sprintf(TABLEROW, rc, i+1, wd, ci, mu)
+		fm := fmt.Sprintf(tablerow, rc, i+1, wd, pl, ci, mu)
 		rows[i] = fm
 	}
 
@@ -125,6 +126,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 		FindDate    string
 		FindURL     string
 		FindLocus   string
+		FindCity    string
 		RawCTX      []DbWorkline
 		CookedCTX   []ResultPassageLine
 		LocusBody   string
@@ -177,6 +179,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 		psg.FindURL = r.BuildHyperlink()
 		psg.FindLocus = strings.Join(r.FindLocus(), ".")
 		psg.FindDate = formatinscriptiondates(dtt, r)
+		psg.FindCity = formatinscriptionplaces(r)
 
 		for j := r.TbIndex - context; j <= r.TbIndex+context; j++ {
 			url := fmt.Sprintf(urt, r.FindAuthor(), r.FindWork(), j)
@@ -255,7 +258,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 
 	pht := `
 	<locus>
-		<span class="findnumber">[{{.Findnumber}}]</span>&nbsp;&nbsp;{{.FindDate}}
+		<span class="findnumber">[{{.Findnumber}}]</span>&nbsp;&nbsp;{{.FindDate}}{{.FindCity}}
 		<span class="foundauthor">{{.Foundauthor}}</span>,&nbsp;<span class="foundwork">{{.Foundwork}}</span>
 		<browser id="{{.FindURL}}"><span class="foundlocus">{{.FindLocus}}</span></browser>
 	</locus>
@@ -335,14 +338,12 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 	}
 
 	so := sessions[s.User].SortHitsBy
-	// shortname, converted_date, location, provenance, universalid
+	// shortname, converted_date, provenance, universalid
 	switch so {
 	case "shortname":
 		so = "author name"
 	case "converted_date":
 		so = "date"
-	case "location":
-		so = "author location"
 	case "provenance":
 		so = "work location"
 	case "universalid":
@@ -420,6 +421,17 @@ func formatinscriptiondates(template string, dbw DbWorkline) string {
 		datestring = fmt.Sprintf(template, strings.Replace(cd, ".", "", -1))
 	}
 	return datestring
+}
+
+func formatinscriptionplaces(dbw DbWorkline) string {
+	// show the years for inscriptions
+	placestring := ""
+	fc := dbw.FindCorpus()
+	placed := fc == "in" || fc == "ch" || fc == "dp"
+	if placed {
+		placestring = fmt.Sprintf(` [<span class="rust">%s</span>] `, AllWorks[dbw.WkUID].Prov)
+	}
+	return placestring
 }
 
 // textblockcleaner - address multi-line formatting challenges by running a suite of clean-ups

@@ -403,8 +403,7 @@ func RtSetOption(c echo.Context) error {
 				s.SearchScope = val
 			}
 		case "sortorder":
-			// unhandled are "location" & "provenance": see goroutinesearcher.go
-			valid := []string{"shortname", "converted_date", "location", "provenance", "universalid"}
+			valid := []string{"shortname", "converted_date", "provenance", "universalid"}
 			if contains(valid, val) {
 				s.SortHitsBy = val
 			}

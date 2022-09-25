@@ -850,6 +850,14 @@ func resultsorter(ss *SearchStruct) {
 		return one.BuildHyperlink() < two.BuildHyperlink()
 	}
 
+	//increasingALOC := func(one, two *DbWorkline) bool {
+	//	return AllAuthors[one.FindAuthor()].Location < AllAuthors[two.FindAuthor()].Location
+	//}
+
+	increasingWLOC := func(one, two *DbWorkline) bool {
+		return AllWorks[one.WkUID].Prov < AllWorks[two.WkUID].Prov
+	}
+
 	crit := sessions[ss.User].SortHitsBy
 
 	switch {
@@ -860,6 +868,9 @@ func resultsorter(ss *SearchStruct) {
 		OrderedBy(dateIncreasing, nameIncreasing, titleIncreasing, increasingLines).Sort(ss.Results)
 	case crit == "universalid":
 		OrderedBy(increasingID).Sort(ss.Results)
+	case crit == "provenance":
+		// as this is likely an inscription search, why not sort next by date?
+		OrderedBy(increasingWLOC, dateIncreasing).Sort(ss.Results)
 	default:
 		// author nameIncreasing
 		OrderedBy(nameIncreasing, increasingLines).Sort(ss.Results)
