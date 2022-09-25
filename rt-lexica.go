@@ -89,6 +89,12 @@ func RtLexLookup(c echo.Context) error {
 		dict = "greek"
 	}
 
+	seeking = uvσςϲ(seeking)
+	seeking = universalpatternmaker(seeking)
+	// universalpatternmaker() returns the term with brackets around it
+	seeking = strings.Replace(seeking, "(", "", -1)
+	seeking = strings.Replace(seeking, ")", "", -1)
+
 	initialspace := regexp.MustCompile("^\\s")
 	if initialspace.MatchString(seeking) {
 		seeking = "^" + initialspace.ReplaceAllString(seeking, "")
