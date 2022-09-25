@@ -61,7 +61,8 @@ type SearchStruct struct {
 //
 
 func RtSearchConfirm(c echo.Context) error {
-	return c.String(http.StatusOK, "8000")
+	pt := fmt.Sprintf("%d", cfg.HostPort)
+	return c.String(http.StatusOK, pt)
 }
 
 func RtSearch(c echo.Context) error {

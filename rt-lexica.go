@@ -16,7 +16,6 @@ import (
 	"net/http"
 	"reflect"
 	"regexp"
-	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -531,7 +530,7 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 
 // paralleldictformatter - send N workers off to turn []DbLexicon into a map: [entryid]entryhtml
 func paralleldictformatter(lexicalfinds []DbLexicon) map[float32]string {
-	workers := runtime.NumCPU()
+	workers := cfg.WorkerCount
 	totalwork := len(lexicalfinds)
 	chunksize := totalwork / workers
 	leftover := totalwork % workers

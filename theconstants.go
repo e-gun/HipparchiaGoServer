@@ -100,6 +100,7 @@ const (
    -ti {num}    maximum # of lines that text/index/vocab maker will ingest [default: %d]
    -ui {string} unacceptable input characters [default: %s]
    -v           print version and exit
+   -wc {int}    maximum number of workers [default: cpu_count]
 
      (*) example: "{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"
      (†) example: "{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"

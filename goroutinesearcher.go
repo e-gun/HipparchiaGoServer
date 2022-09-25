@@ -9,7 +9,6 @@ import (
 	"context"
 	"github.com/gorilla/websocket"
 	"log"
-	"runtime"
 	"sync"
 )
 
@@ -42,7 +41,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 
 	var findchannels []<-chan []DbWorkline
 
-	workers := runtime.NumCPU()
+	workers := cfg.WorkerCount
 	// to slow things down for testing...
 	// workers = 2
 

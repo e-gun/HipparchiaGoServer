@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"runtime"
 	"strconv"
 	"sync"
 	"time"
@@ -104,6 +105,7 @@ func configatlaunch() {
 	cfg.MaxText = MAXTEXTLINEGENERATION
 	cfg.BadChars = UNACCEPTABLEINPUT
 	cfg.QuietStart = false
+	cfg.WorkerCount = runtime.NumCPU()
 
 	e := json.Unmarshal([]byte(DEFAULTCORPORA), &cfg.DefCorp)
 	chke(e)
@@ -168,6 +170,10 @@ func configatlaunch() {
 			cfg.MaxText = tt
 		case "-ui":
 			cfg.BadChars = args[i+1]
+		case "-wc":
+			wc, err := strconv.Atoi(args[i+1])
+			chke(err)
+			cfg.WorkerCount = wc
 		default:
 			// do nothing
 		}
