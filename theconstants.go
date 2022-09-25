@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                  = "Hipparchia Golang Server"
 	SHORTNAME               = "HGS"
-	VERSION                 = "0.8.2"
+	VERSION                 = "0.8.3"
 	AUTHENTICATIONREQUIRED  = false // unused ATM
 	AVGWORDSPERLINE         = 8     // hard coding a suspect assumption
 	CONFIGLOCATION          = "."
@@ -20,6 +20,7 @@ const (
 	DBWKMAPSIZE             = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
 	DEFAULTBROWSERCTX       = 20
 	DEFAULTCOLUMN           = "stripped_line"
+	DEFAULTCORPORA          = "{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"
 	DEFAULTECHOLOGLEVEL     = 0
 	DEFAULTGOLOGLEVEL       = 0
 	DEFAULTHITLIMIT         = 200
@@ -83,21 +84,23 @@ const (
 	PROJMAIL = "Department of Classics, 125 Queen’s Park, Toronto, ON  M5S 2C7 Canada"
 
 	HELPTEXT = `command line options:
-   -cf {file}   read PSQL password from file [default: '%s/%s' or '%s/%s']
+   -ac {string} set corpora active on startup and reset (*)
+   -cf {file}   read PSQL password from file [default: "%s/%s" or "%s/%s"]
    -el {num}    set echo server log level (0-2) [default: %d]
    -ft {string} force a client-side font instead of serving Noto fonts
                    names with spaces need quotes: "Gentium Plus Compact"
    -gl {num}    set golang log level (0-5) [default: %d]
    -gz          enable gzip compression of the server's output
    -h           print this help information
-   -p  {string} supply full PostgreSQL credentials(*)
-   -sa {string} server IP address [default: '%s']
+   -p  {string} supply full PostgreSQL credentials (†)
+   -sa {string} server IP address [default: "%s"]
    -sp {num}    server port [default: %d]
    -ti {num}    maximum # of lines that text/index/vocab maker will ingest [default: %d]
    -ui {string} unacceptable input characters [default: %s]
    -v           print version and exit
 
-     (*) example: "{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"
+     (*) example: "{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"
+     (†) example: "{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"
 `
 	LEXFINDJS = `
 		$('%s').click( function(e) {

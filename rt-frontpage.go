@@ -16,41 +16,30 @@ import (
 )
 
 type ServerSession struct {
-	ID             string
-	IsLoggedIn     bool
-	Inclusions     SearchIncExl
-	Exclusions     SearchIncExl
-	ActiveCorp     map[string]bool
-	VariaOK        bool   `json:"varia"`
-	IncertaOK      bool   `json:"incerta"`
-	SpuriaOK       bool   `json:"spuria"`
-	RawInput       bool   `json:"rawinputstyle"`
-	OneHit         bool   `json:"onehit"`
-	HeadwordIdx    bool   `json:"headwordindexing"`
-	FrqIdx         bool   `json:"indexbyfrequency"`
-	NearOrNot      string `json:"nearornot"`
-	SearchScope    string `json:"searchscope"`
-	SortHitsBy     string `json:"sortorder"`
-	Proximity      int    `json:"proximity"`
-	Analogyfinder  bool   `json:"analogyfinder"`
-	Authorflagging bool   `json:"authorflagging"`
-	Authorssummary bool   `json:"authorssummary"`
-	Baggingmethod  string `json:"baggingmethod"`
-	HitLimit       int64
-	HitContext     int
-	Earliest       string
-	Latest         string
-	TmpInt         int
-	TmpStr         string
-	UI             UISettings
-}
-
-type UISettings struct {
+	ID          string
+	IsLoggedIn  bool
+	Inclusions  SearchIncExl
+	Exclusions  SearchIncExl
+	ActiveCorp  map[string]bool
+	VariaOK     bool   `json:"varia"`
+	IncertaOK   bool   `json:"incerta"`
+	SpuriaOK    bool   `json:"spuria"`
+	RawInput    bool   `json:"rawinputstyle"`
+	OneHit      bool   `json:"onehit"`
+	HeadwordIdx bool   `json:"headwordindexing"`
+	FrqIdx      bool   `json:"indexbyfrequency"`
+	NearOrNot   string `json:"nearornot"`
+	SearchScope string `json:"searchscope"`
+	SortHitsBy  string `json:"sortorder"`
+	Proximity   int    `json:"proximity"`
 	BrowseCtx   int64
 	InputStyle  string
-	LxFlagAu    bool
-	WCShow      bool
-	PptAndMorph bool
+	HitLimit    int64
+	HitContext  int
+	Earliest    string
+	Latest      string
+	TmpInt      int
+	TmpStr      string
 }
 
 func RtFrontpage(c echo.Context) error {
@@ -61,7 +50,7 @@ func RtFrontpage(c echo.Context) error {
 		"version":       VERSION,
 		"authentic":     "",
 		"resultcontext": s.HitContext,
-		"browsecontext": s.UI.BrowseCtx,
+		"browsecontext": s.BrowseCtx,
 		"proxval":       s.Proximity}
 
 	f, e := efs.ReadFile("emb/frontpage.html")
@@ -80,20 +69,20 @@ func RtFrontpage(c echo.Context) error {
 // makedefaultsession - fill in the blanks when setting up a new session
 func makedefaultsession(id string) ServerSession {
 	// note that sessions clears every time the server restarts
+
 	var s ServerSession
 	s.ID = id
-	s.ActiveCorp = map[string]bool{"gr": true, "lt": true, "in": false, "ch": false, "dp": false}
+	s.ActiveCorp = cfg.DefCorp
 	s.VariaOK = true
 	s.IncertaOK = true
 	s.SpuriaOK = true
-	s.Analogyfinder = false
 	s.NearOrNot = "near"
 	s.HitLimit = DEFAULTHITLIMIT
 	s.Earliest = MINDATESTR
 	s.Latest = MAXDATESTR
 	s.SortHitsBy = SORTBY
 	s.HitContext = DEFAULTLINESOFCONTEXT
-	s.UI.BrowseCtx = DEFAULTBROWSERCTX
+	s.BrowseCtx = DEFAULTBROWSERCTX
 	s.SearchScope = DEFAULTPROXIMITYSCOPE
 	s.Proximity = DEFAULTPROXIMITY
 

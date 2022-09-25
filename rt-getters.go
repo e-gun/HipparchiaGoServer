@@ -70,7 +70,7 @@ func RtGetJSSession(c echo.Context) error {
 	is := func(i int) string { return fmt.Sprintf("%d", i) }
 
 	var jso JSO
-	jso.Browsercontext = i64s(s.UI.BrowseCtx)
+	jso.Browsercontext = i64s(s.BrowseCtx)
 	jso.Christiancorpus = t2y(s.ActiveCorp["ch"])
 	jso.Earliestdate = s.Earliest
 	jso.Greekcorpus = t2y(s.ActiveCorp["gr"])

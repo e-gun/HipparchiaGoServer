@@ -89,6 +89,7 @@ type CurrentConfiguration struct {
 	Gzip        bool
 	MaxText     int
 	BadChars    string
+	DefCorp     map[string]bool
 }
 
 // configatlaunch - read the configuration values from JSON and/or command line
@@ -99,6 +100,9 @@ func configatlaunch() {
 	cfg.Gzip = USEGZIP
 	cfg.MaxText = MAXTEXTLINEGENERATION
 	cfg.BadChars = UNACCEPTABLEINPUT
+
+	e := json.Unmarshal([]byte(DEFAULTCORPORA), &cfg.DefCorp)
+	chke(e)
 
 	cf := fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGNAME)
 
@@ -115,15 +119,20 @@ func configatlaunch() {
 		case "-v":
 			printversion()
 			os.Exit(1)
+		case "-ac":
+			err := json.Unmarshal([]byte(args[i+1]), &cfg.DefCorp)
+			if err != nil {
+				msg(fmt.Sprintf("Improperly formatted corpus list. Using:\n\t%s", DEFAULTCORPORA), 0)
+			}
 		case "-gl":
-			ll, e := strconv.Atoi(args[i+1])
-			chke(e)
+			ll, err := strconv.Atoi(args[i+1])
+			chke(err)
 			cfg.LogLevel = ll
 		case "-gz":
 			cfg.Gzip = true
 		case "-el":
-			ll, e := strconv.Atoi(args[i+1])
-			chke(e)
+			ll, err := strconv.Atoi(args[i+1])
+			chke(err)
 			cfg.EchoLog = ll
 		case "-cf":
 			cf = args[i+1]
@@ -131,8 +140,8 @@ func configatlaunch() {
 			cfg.Font = args[i+1]
 		case "-h":
 			printversion()
-			fmt.Println(fmt.Sprintf(HELPTEXT, CONFIGLOCATION, CONFIGNAME, h, CONFIGNAME, DEFAULTECHOLOGLEVEL, DEFAULTGOLOGLEVEL,
-				SERVEDFROMHOST, SERVEDFROMPORT, MAXTEXTLINEGENERATION, UNACCEPTABLEINPUT))
+			fmt.Println(fmt.Sprintf(HELPTEXT, CONFIGLOCATION, CONFIGNAME, h, CONFIGNAME, DEFAULTECHOLOGLEVEL,
+				DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT, MAXTEXTLINEGENERATION, UNACCEPTABLEINPUT))
 			os.Exit(1)
 		case "-p":
 			js := args[i+1]
@@ -144,12 +153,12 @@ func configatlaunch() {
 		case "-sa":
 			cfg.HostIP = args[i+1]
 		case "-sp":
-			p, e := strconv.Atoi(args[i+1])
-			chke(e)
+			p, err := strconv.Atoi(args[i+1])
+			chke(err)
 			cfg.HostPort = p
 		case "-ti":
-			tt, e := strconv.Atoi(args[i+1])
-			chke(e)
+			tt, err := strconv.Atoi(args[i+1])
+			chke(err)
 			cfg.MaxText = tt
 		case "-ui":
 			cfg.BadChars = args[i+1]

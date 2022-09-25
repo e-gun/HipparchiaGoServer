@@ -55,7 +55,7 @@ func RtBrowseline(c echo.Context) error {
 		wk := elem[1]
 		ln, e := strconv.Atoi(elem[2])
 		chke(e)
-		ctx := sessions[user].UI.BrowseCtx
+		ctx := sessions[user].BrowseCtx
 		js := HipparchiaBrowser(au, wk, int64(ln), ctx)
 		return c.String(http.StatusOK, string(js))
 	} else {
@@ -81,7 +81,7 @@ func Browse(c echo.Context, sep string) string {
 
 		// findendpointsfromlocus() lives in rt-selection.go
 		ln := findendpointsfromlocus(uid, elem[2], sep)
-		ctx := sessions[user].UI.BrowseCtx
+		ctx := sessions[user].BrowseCtx
 		js := HipparchiaBrowser(au, wk, ln[0], ctx)
 		return string(js)
 	} else {

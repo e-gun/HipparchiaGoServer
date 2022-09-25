@@ -431,9 +431,9 @@ func RtSetOption(c echo.Context) error {
 				}
 			case "browsercontext":
 				if intval < MAXBROWSERCONTEXT {
-					s.UI.BrowseCtx = int64(intval)
+					s.BrowseCtx = int64(intval)
 				} else {
-					s.UI.BrowseCtx = MAXBROWSERCONTEXT
+					s.BrowseCtx = MAXBROWSERCONTEXT
 				}
 			case "proximity":
 				if intval <= MAXDISTANCE {
