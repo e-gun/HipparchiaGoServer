@@ -79,17 +79,17 @@
 
 @font-face {
 	font-family: 'hipparchiacondensedstatic';
-	src: url('/emb/ttf/NotoSansDisplay_ExtraCondensed-Regular.ttf') format('truetype');
+	src: url('/emb/ttf/NotoSans-CondensedMedium.ttf') format('truetype');
 	}
 
 @font-face {
 	font-family: 'hipparchiacondensedboldstatic';
-	src: url('/emb/ttf/NotoSansDisplay_ExtraCondensed-SemiBold.ttf') format('truetype');
+	src: url('/emb/ttf/NotoSans-CondensedSemiBold.ttf') format('truetype');
 	}
 
 @font-face {
 	font-family: 'hipparchiacondenseditalicstatic';
-	src: url('/emb/ttf/NotoSansDisplay_ExtraCondensed-Italic.ttf') format('truetype');
+	src: url('/emb/ttf/NotoSans-CondensedItalic.ttf') format('truetype');
 	}
 
 @font-face {
