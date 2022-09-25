@@ -29,7 +29,9 @@ func main() {
 
 	printversion()
 
-	msg(fmt.Sprintf(TERMINALTEXT, PROJYEAR, PROJAUTH, PROJMAIL), -1)
+	if !cfg.QuietStart {
+		msg(fmt.Sprintf(TERMINALTEXT, PROJYEAR, PROJAUTH, PROJMAIL), -1)
+	}
 
 	// concurrent launching
 	var awaiting sync.WaitGroup
@@ -90,6 +92,7 @@ type CurrentConfiguration struct {
 	MaxText     int
 	BadChars    string
 	DefCorp     map[string]bool
+	QuietStart  bool
 }
 
 // configatlaunch - read the configuration values from JSON and/or command line
@@ -100,6 +103,7 @@ func configatlaunch() {
 	cfg.Gzip = USEGZIP
 	cfg.MaxText = MAXTEXTLINEGENERATION
 	cfg.BadChars = UNACCEPTABLEINPUT
+	cfg.QuietStart = false
 
 	e := json.Unmarshal([]byte(DEFAULTCORPORA), &cfg.DefCorp)
 	chke(e)
@@ -143,13 +147,15 @@ func configatlaunch() {
 			fmt.Println(fmt.Sprintf(HELPTEXT, CONFIGLOCATION, CONFIGNAME, h, CONFIGNAME, DEFAULTECHOLOGLEVEL,
 				DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT, MAXTEXTLINEGENERATION, UNACCEPTABLEINPUT))
 			os.Exit(1)
-		case "-p":
+		case "-pg":
 			js := args[i+1]
 			err := json.Unmarshal([]byte(js), &pl)
 			if err != nil {
 				msg("Could not parse your information as a valid collection of credentials. Use the following template:", -1)
 				msg(`"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"`, 0)
 			}
+		case "-q":
+			cfg.QuietStart = true
 		case "-sa":
 			cfg.HostIP = args[i+1]
 		case "-sp":
@@ -210,7 +216,8 @@ func configatlaunch() {
 }
 
 func printversion() {
+	ll := fmt.Sprintf("[logs: gl=%d; el=%d]", cfg.LogLevel, cfg.EchoLog)
 	versioninfo := fmt.Sprintf("%s (v%s)", MYNAME, VERSION)
-	versioninfo = versioninfo + fmt.Sprintf(" [loglevel=%d]", cfg.LogLevel)
+	versioninfo = versioninfo + ll
 	msg(versioninfo, 0)
 }

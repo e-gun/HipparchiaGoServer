@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                  = "Hipparchia Golang Server"
 	SHORTNAME               = "HGS"
-	VERSION                 = "0.8.3"
+	VERSION                 = "0.8.4"
 	AUTHENTICATIONREQUIRED  = false // unused ATM
 	AVGWORDSPERLINE         = 8     // hard coding a suspect assumption
 	CONFIGLOCATION          = "."
@@ -57,11 +57,12 @@ const (
 	SORTBY                  = "shortname"
 	TEMPTABLETHRESHOLD      = 100 // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
 	TIMETRACKERMSGTHRESH    = 3
+	USEGZIP                 = false
+	VARIADATE               = 2000
+	WSPOLLINGPAUSE          = 99999999
+
 	// UNACCEPTABLEINPUT       = `|"'!@:,=+_\/`
-	UNACCEPTABLEINPUT = `"'!@:,=_/̣` // we want to be able to do regex...; note the subscript dot at the end; echo+net/url means some can't make it into a parser: #%&;
-	USEGZIP           = false
-	VARIADATE         = 2000
-	WSPOLLINGPAUSE    = 99999999
+	UNACCEPTABLEINPUT = `"'!@:,=_/̣` // we want to be able to do regex...; note the subscript dot at the end; echo+net/url means some can't even make it into a parser: #%&;
 
 	PSQLHOST  = "127.0.0.1"
 	PSQLUSER  = "hippa_wr"
@@ -92,7 +93,8 @@ const (
    -gl {num}    set golang log level (0-5) [default: %d]
    -gz          enable gzip compression of the server's output
    -h           print this help information
-   -p  {string} supply full PostgreSQL credentials (†)
+   -pg {string} supply full PostgreSQL credentials (†)
+   -q           quiet startup: suppress copyright notice
    -sa {string} server IP address [default: "%s"]
    -sp {num}    server port [default: %d]
    -ti {num}    maximum # of lines that text/index/vocab maker will ingest [default: %d]
