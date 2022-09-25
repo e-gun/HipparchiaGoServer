@@ -536,6 +536,12 @@ func paralleldictformatter(lexicalfinds []DbLexicon) map[float32]string {
 	leftover := totalwork % workers
 	entrymap := make(map[int][]DbLexicon, workers)
 
+	if totalwork <= workers {
+		chunksize = 1
+		workers = totalwork
+		leftover = 0
+	}
+
 	thestart := 0
 	for i := 0; i < workers; i++ {
 		entrymap[i] = lexicalfinds[thestart : thestart+chunksize]

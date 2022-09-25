@@ -2,7 +2,7 @@
 
 ## beta status: (allegedly) solid core
 
-### status as of `v0.8.4`:
+### status as of `v0.8.6`:
 
 * monolithic binary: no need for extra files/folders beyond `hgs-conf.json`
 * searching theoretically fine but needs more testing/checking
