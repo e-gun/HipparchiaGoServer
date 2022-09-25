@@ -654,7 +654,7 @@ body {
 .latin {
 	font-size: 90%;
 	/* font-family: var(--latinfont), 'hipparchiacondensedstatic', sans-serif; */
-	font-stretch: condensed;
+	font-family: 'hipparchiacondensedstatic', sans-serif;
 	color: var(--blue);
 	}
 
@@ -708,7 +708,7 @@ body {
 	}
 
 .locus {
-	font-weight: normal;
+	font-family: 'hipparchiacondensedstatic', sans-serif;
 	padding-left: 40px;
 	padding-right: 20px;
 	font-size: 85%;
@@ -1460,11 +1460,11 @@ td.browsedline {
 	}
 
 td.browserembeddedannotations {
+	font-family: 'hipparchiacondensedstatic', sans-serif;
 	padding-right: 10px;
 	padding-left: 15px;
 	padding-bottom: 8px;
     color: var(--huedgrey);
-	font-stretch: condensed;
     font-size: 80%;
     vertical-align: middle;
     }
@@ -1510,18 +1510,19 @@ td.tensecell {
 	}
 
 td.textmakerembeddedannotations {
+	font-family: 'hipparchiacondensedstatic', sans-serif;
 	padding-right: 10px;
 	padding-left: 15px;
     color: var(--huedgrey);
-	font-stretch: condensed;
     font-size: 80%;
     vertical-align: middle;
     }
 
 td.browsercite {
+	font-family: 'hipparchiacondensedstatic', sans-serif;
 	padding-right: 10px;
 	padding-left: 10px;
-    font-size: 85%;
+	font-size: 80%;
 	color: var(--huedgrey);
 	}
 

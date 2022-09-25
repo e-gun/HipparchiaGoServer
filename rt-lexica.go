@@ -89,6 +89,16 @@ func RtLexLookup(c echo.Context) error {
 		dict = "greek"
 	}
 
+	initialspace := regexp.MustCompile("^\\s")
+	if initialspace.MatchString(seeking) {
+		seeking = "^" + initialspace.ReplaceAllString(seeking, "")
+	}
+
+	terminalspace := regexp.MustCompile("\\s$")
+	if terminalspace.MatchString(seeking) {
+		seeking = terminalspace.ReplaceAllString(seeking, "") + "$"
+	}
+
 	html := dictsearch(seeking, dict)
 
 	var jb JSB
@@ -612,7 +622,7 @@ func formatprevalencedata(w DbWordCount, s string) string {
 	// <p class="wordcounts">Prevalence (all forms): <span class="prevalence">Ⓣ</span> 1482 / <span class="prevalence">Ⓖ</span> 1415 / <span class="prevalence">Ⓓ</span> 54 / <span class="prevalence">Ⓘ</span> 11 / <span class="prevalence">Ⓒ</span> 2</p>
 	m := message.NewPrinter(language.English)
 
-	pdp := `<p class="wordcounts">Prevalence of %s: %s</p>`
+	pdp := `<p class="wordcounts">Prevalence of <span class="emph">%s</span>: %s</p>`
 	pds := `<span class="prevalence">%s</span> %d`
 	labels := map[string]string{"Total": "Ⓣ", "Gr": "Ⓖ", "Lt": "Ⓛ", "Dp": "Ⓓ", "In": "Ⓘ", "Ch": "Ⓒ"}
 

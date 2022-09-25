@@ -573,7 +573,7 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 	// abutting markup is killing off some items, but adding "<" and ">" produces worse problems still
 
 	// now you also need to worry about punctuation that abuts the find
-	tp := `[\^\s;>]%s[\s\.<,;·’$]`
+	tp := `[\^\s;]%s[\s\.<,;·’$]`
 	lemm := AllLemm[lm].Deriv
 
 	whole := strings.Join(lemm, ")✃✃✃(")

@@ -297,7 +297,7 @@ func headwordprevalence(wc DbHeadwordCount) string {
 
 	for _, c := range cv {
 		if c.count > 0 {
-			pd = append(pd, m.Sprintf(`<span class="emph">%s</span>&nbsp;%d`, c.name, c.count))
+			pd = append(pd, m.Sprintf(`<span class="prevalence">%s</span>&nbsp;%d`, c.name, c.count))
 		}
 	}
 	pd = append(pd, m.Sprintf("%s %d", "Ⓣ", wc.Total))
@@ -322,7 +322,7 @@ func headworddistrib(wc DbHeadwordCount) string {
 	for _, c := range cv {
 		cpt := (float32(c.count) / float32(max)) * 100
 		if int(cpt) > 0 {
-			pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;%d`, c.name, int(cpt)))
+			pd = append(pd, fmt.Sprintf(`<span class="prevalence">%s</span>&nbsp;%d`, c.name, int(cpt)))
 		}
 	}
 
@@ -350,7 +350,7 @@ func headwordchronology(wc DbHeadwordCount) string {
 	for _, c := range cv {
 		cpt := (float32(c.count) / float32(max)) * 100
 		if int(cpt) > 0 {
-			pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;%d`, c.name, int(cpt)))
+			pd = append(pd, fmt.Sprintf(`<span class="prevalence">%s</span>&nbsp;%d`, c.name, int(cpt)))
 		}
 	}
 
@@ -391,7 +391,7 @@ func headwordgenres(wc DbHeadwordCount) string {
 	var pd []string
 	for _, c := range cv {
 		cpt := (float32(c.count) / float32(max)) * 100
-		pd = append(pd, fmt.Sprintf(`<span class="emph">%s</span>&nbsp;(%d)`, c.name, int(cpt)))
+		pd = append(pd, fmt.Sprintf(`<span class="prevalence">%s</span>&nbsp;(%d)`, c.name, int(cpt)))
 	}
 
 	pd = pd[0:GENRESTOCOUNT]

@@ -630,7 +630,7 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 		// [HGS] findendpointsfromlocus() retrying endpointer(): '407e' --> '407:e'
 		r := fmt.Sprintf("$1%s$2", sep)
 		newlocus := dc.ReplaceAllString(locus, r)
-		msg(fmt.Sprintf("findendpointsfromlocus() retrying endpointer(): '%s' --> '%s'", locus, newlocus), 1)
+		msg(fmt.Sprintf("findendpointsfromlocus() retrying endpointer(): '%s' --> '%s'", locus, newlocus), 3)
 		fl, success = endpointer(wuid, newlocus, sep)
 	} else {
 		// cicero, et.al
@@ -639,7 +639,7 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 		ll := strings.Split(locus, sep)
 		if len(ll) >= 2 {
 			newlocus := strings.Join(RemoveIndex(ll, 1), ":")
-			msg(fmt.Sprintf("findendpointsfromlocus() retrying endpointer(): '%s' --> '%s'", locus, newlocus), 1)
+			msg(fmt.Sprintf("findendpointsfromlocus() retrying endpointer(): '%s' --> '%s'", locus, newlocus), 3)
 			fl, success = endpointer(wuid, newlocus, sep)
 		}
 	}
