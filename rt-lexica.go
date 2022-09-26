@@ -677,9 +677,9 @@ func formatprevalencedata(w DbWordCount, s string) string {
 // formatparsingdata - turn []MorphPossib into HTML
 func formatparsingdata(mpp []MorphPossib) string {
 	obs := `
-	<span class="obsv"><a class="parsing" href="#%s_%s"><span class="obsv"> from <span class="baseform">%s</span>
+	<span class="obsv"><span class="obsv"> from <span class="baseform"><a class="parsing" href="#%s_%s">%s</a></span>
 	`
-	bft := `<span class="baseformtranslation">&nbsp;(“%s”)</span></span></a></span>`
+	bft := `<span class="baseformtranslation">&nbsp;(“%s”)</span></span></span>`
 	mtb := `
 	<table class="morphtable">
 		<tbody>
@@ -751,6 +751,7 @@ func formatlexicaloutput(w DbLexicon) string {
 		kf := `<p class="wordcounts"><zformsummary parserxref="%d" lexicalid="%.1f" headword="%s" lang="%s">%d known forms</zformsummary></p>`
 		// kf := `<formsummary parserxref="%d" lexicalid="%.1f" headword="%s" lang="%s">%d known forms</formsummary>`
 		kf = fmt.Sprintf(kf, AllLemm[w.Word].Xref, w.ID, w.Word, w.Lang, len(AllLemm[w.Word].Deriv))
+		fmt.Println(AllLemm[w.Word].Deriv)
 		elem = append(elem, kf)
 	}
 
