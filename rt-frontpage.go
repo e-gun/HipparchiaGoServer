@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"runtime"
 	"text/template"
 	"time"
 )
@@ -46,8 +47,11 @@ func RtFrontpage(c echo.Context) error {
 	// will set if missing
 	s := sessions[readUUIDCookie(c)]
 
+	env := fmt.Sprintf("%s: %s - %s (%d workers)", runtime.Version(), runtime.GOOS, runtime.GOARCH, cfg.WorkerCount)
+
 	subs := map[string]interface{}{
 		"version":       VERSION,
+		"env":           env,
 		"authentic":     "",
 		"resultcontext": s.HitContext,
 		"browsecontext": s.BrowseCtx,

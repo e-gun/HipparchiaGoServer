@@ -749,9 +749,9 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	if _, ok := AllLemm[w.Word]; ok {
 		kf := `<p class="wordcounts"><zformsummary parserxref="%d" lexicalid="%.1f" headword="%s" lang="%s">%d known forms</zformsummary></p>`
+		// formsummary will hyperling to a non-extant morphology table; see morphologytableformatting.py for the many issues
 		// kf := `<formsummary parserxref="%d" lexicalid="%.1f" headword="%s" lang="%s">%d known forms</formsummary>`
 		kf = fmt.Sprintf(kf, AllLemm[w.Word].Xref, w.ID, w.Word, w.Lang, len(AllLemm[w.Word].Deriv))
-		fmt.Println(AllLemm[w.Word].Deriv)
 		elem = append(elem, kf)
 	}
 
