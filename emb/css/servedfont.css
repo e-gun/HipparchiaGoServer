@@ -418,6 +418,14 @@ body {
     color: var(--huedgrey);
     }
 
+.embeddedannotations {
+	font-family: 'hipparchiacondensedstatic', sans-serif;
+}
+
+.embeddedannotations.foundwork {
+	font-family: 'hipparchiacondenseditalicstatic', sans-serif;
+}
+
 .emph {
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	color: var(--deepblue);
@@ -1464,7 +1472,7 @@ td.browserembeddedannotations {
 	padding-right: 10px;
 	padding-left: 15px;
 	padding-bottom: 8px;
-    color: var(--huedgrey);
+    color: var(--teal);
     font-size: 80%;
     vertical-align: middle;
     }

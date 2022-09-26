@@ -421,6 +421,14 @@ body {
     color: var(--huedgrey);
     }
 
+.embeddedannotations {
+	font-stretch: condensed;
+}
+
+.embeddedannotations.foundwork {
+	font-style: italic;
+}
+
 .emph {
 	font-weight: 600;
 	color: var(--deepblue);

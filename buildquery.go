@@ -72,7 +72,6 @@ const (
 
 func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 
-	var prqq []PrerolledQuery
 	inc := ss.SearchIn
 	exc := ss.SearchEx
 
@@ -148,6 +147,8 @@ func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 	}
 
 	tails := acquiretails()
+
+	var prqq []PrerolledQuery
 
 	for _, au := range alltables {
 		var qb QueryBuilder

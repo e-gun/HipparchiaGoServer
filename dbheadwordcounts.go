@@ -253,7 +253,7 @@ func headwordlookup(word string) DbHeadwordCount {
 		var th DbHeadwordTheologyCounts
 		var rh DbHeadwordRhetoricaCounts
 
-		err := foundrows.Scan(&thehit.Entry, &thehit.Total, &co.TGrk, &co.TLat, &co.TDP, &co.TIN, &co.TCh,
+		e := foundrows.Scan(&thehit.Entry, &thehit.Total, &co.TGrk, &co.TLat, &co.TDP, &co.TIN, &co.TCh,
 			&thehit.FrqCla, &chr.Early, &chr.Middle, &chr.Late,
 			&th.Acta, &g.Agric, &g.Alchem, &g.Anthol, &th.Apocal, &th.Apocr, &th.Apol, &g.Astrol, &g.Astron, &g.Biogr, &g.Bucol,
 			&th.Caten, &g.Chron, &g.Comic, &g.Comm, &g.Concil, &g.Coq, &g.Dial, &g.Docu, &g.Doxog, &th.Eccl, &g.Eleg, &rh.Encom, &g.Epic,
@@ -262,7 +262,7 @@ func headwordlookup(word string) DbHeadwordCount {
 			&g.Math, &g.Mech, &g.Med, &g.Meteor, &g.Mim, &g.Mus, &g.Myth, &g.NarrFic, &g.NatHis, &g.Onir, &g.Orac, &rh.Orat,
 			&g.Paradox, &g.Parod, &g.Paroem, &g.Perig, &g.Phil, &g.Physiog, &g.Poem, &g.Polyhist, &th.Proph, &g.Pseud, &rh.Rhet,
 			&g.Satura, &g.Satyr, &g.Schol, &g.Tact, &g.Test, &th.Theol, &g.Trag)
-		if err != nil {
+		if e != nil {
 			msg(fmt.Sprintf("headwordlookup() returned nil when looking for '%s'", word), 4)
 		}
 		thehit.Corpus = co

@@ -115,7 +115,7 @@ func (dbw *DbWorkline) GatherMetadata() {
 
 		dbw.MarkedUp = metadata.ReplaceAllString(dbw.MarkedUp, "")
 		for k, v := range md {
-			md[k] = mdformat.ReplaceAllString(v, `<span class="foundwork">$1</span>`)
+			md[k] = mdformat.ReplaceAllString(v, `<span class="embeddedannotations foundwork">$1</span>`)
 			if _, y := mdremap[k]; y {
 				md[mdremap[k]] = md[k]
 				delete(md, k)

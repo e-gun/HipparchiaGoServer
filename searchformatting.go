@@ -300,9 +300,18 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 }
 
 func formatfinalsearchsummary(s *SearchStruct) string {
+	// ex:
+	//         Sought <span class="sought">»ἡμέρα«</span>
+	//        <br>
+	//        Searched 49,230 works and found 200 passages (0.12s)
+	//        <br>
+	//        Sorted by author name
+	//        <!-- unlimited hits per author -->
+	//        <br>
+	//        <!-- dates did not matter -->
+	//        [Search suspended: result cap reached.]
 
 	t := `
-	<div id="searchsummary">
 		%s
 		<br>
 		Searched %d works and found %d passages (%ss)
@@ -312,7 +321,6 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 		<br>
 		%s
 		%s
-	</div>
 	`
 	m := message.NewPrinter(language.English)
 
@@ -357,6 +365,9 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 }
 
 func formatinitialsummary(s SearchStruct) string {
+	// ex:
+	// Sought <span class="sought">»ἡμέρα«</span> within 2 lines of all 79 forms of <span class="sought">»ἀγαθόϲ«</span>
+
 	tmp := `Sought %s<span class="sought">»%s«</span>%s`
 	win := `%s within %d %s of %s<span class="sought">»%s«</span>`
 
@@ -385,7 +396,6 @@ func formatinitialsummary(s SearchStruct) string {
 		two = fmt.Sprintf(win, yn, s.ProxVal, s.ProxScope, af2, sk2)
 	}
 	sum := fmt.Sprintf(tmp, af1, sk, two)
-
 	return sum
 }
 
@@ -573,7 +583,9 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 	// abutting markup is killing off some items, but adding "<" and ">" produces worse problems still
 
 	// now you also need to worry about punctuation that abuts the find
-	tp := `[\^\s;]%s[\s\.<,;·’$]`
+	// tp := `[\^\s;]%s[\s\.,;·’$]`
+	tp := `%s` // move from match $1 to $0 in highlightsearchterm() yielded this shift...
+
 	lemm := AllLemm[lm].Deriv
 
 	whole := strings.Join(lemm, ")✃✃✃(")
