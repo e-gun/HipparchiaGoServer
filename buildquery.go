@@ -148,7 +148,8 @@ func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 
 	tails := acquiretails()
 
-	var prqq []PrerolledQuery
+	prqq := make([]PrerolledQuery, len(alltables)*len(ss.SkgSlice))
+	count := 0
 
 	for _, au := range alltables {
 		var qb QueryBuilder
@@ -230,7 +231,8 @@ func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 				t.Tail = tails["window_with_tt"]
 				sprq = windowandttprq(t, sprq)
 			}
-			prqq = append(prqq, sprq)
+			prqq[count] = sprq
+			count += 1
 		}
 	}
 

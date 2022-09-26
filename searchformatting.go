@@ -68,7 +68,7 @@ func formatnocontextresults(ss SearchStruct) []byte {
 		} else {
 			// might be in the hyphenated line
 			if searchterm.MatchString(r.Hyphenated) {
-				// todo: needs more fiddling
+				// needs more fiddling
 				r.MarkedUp += fmt.Sprintf(`&nbsp;&nbsp;(&nbsp;match:&nbsp;<span class="match">%s</span>&nbsp;)`, r.Hyphenated)
 			}
 		}
@@ -412,7 +412,7 @@ func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
 	} else {
 		// might be in the hyphenated line
 		if pattern.MatchString(line.Hyphenated) {
-			// todo: needs more fiddling
+			// needs more fiddling
 			line.Contents += fmt.Sprintf(`&nbsp;&nbsp;(&nbsp;match:&nbsp;<span class="match">%s</span>&nbsp;)`, line.Hyphenated)
 		}
 	}

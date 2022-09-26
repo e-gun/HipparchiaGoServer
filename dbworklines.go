@@ -16,6 +16,28 @@ import (
 	"strings"
 )
 
+// hipparchiaDB-# \d gr0001
+//                                     Table "public.gr0001"
+//      Column      |          Type          | Collation | Nullable |           Default
+//------------------+------------------------+-----------+----------+-----------------------------
+// index            | integer                |           | not null | nextval('gr0001'::regclass)
+// wkuniversalid    | character varying(10)  |           |          |
+// level_05_value   | character varying(64)  |           |          |
+// level_04_value   | character varying(64)  |           |          |
+// level_03_value   | character varying(64)  |           |          |
+// level_02_value   | character varying(64)  |           |          |
+// level_01_value   | character varying(64)  |           |          |
+// level_00_value   | character varying(64)  |           |          |
+// marked_up_line   | text                   |           |          |
+// accented_line    | text                   |           |          |
+// stripped_line    | text                   |           |          |
+// hyphenated_words | character varying(128) |           |          |
+// annotations      | character varying(256) |           |          |
+//Indexes:
+//    "gr0001_index_key" UNIQUE CONSTRAINT, btree (index)
+//    "gr0001_mu_trgm_idx" gin (accented_line gin_trgm_ops)
+//    "gr0001_st_trgm_idx" gin (stripped_line gin_trgm_ops)
+
 const (
 	WORLINETEMPLATE = `wkuniversalid, index,
 			level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,

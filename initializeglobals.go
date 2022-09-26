@@ -14,17 +14,48 @@ import (
 	"time"
 )
 
+// hipparchiaDB-# \d authors
+//                          Table "public.authors"
+//     Column     |          Type          | Collation | Nullable | Default
+//----------------+------------------------+-----------+----------+---------
+// universalid    | character(6)           |           |          |
+// language       | character varying(10)  |           |          |
+// idxname        | character varying(128) |           |          |
+// akaname        | character varying(128) |           |          |
+// shortname      | character varying(128) |           |          |
+// cleanname      | character varying(128) |           |          |
+// genres         | character varying(512) |           |          |
+// recorded_date  | character varying(64)  |           |          |
+// converted_date | integer                |           |          |
+// location       | character varying(128) |           |          |
+
+// hipparchiaDB-# \d works
+//                            Table "public.works"
+//      Column      |          Type          | Collation | Nullable | Default
+//------------------+------------------------+-----------+----------+---------
+// universalid      | character(10)          |           |          |
+// title            | character varying(512) |           |          |
+// language         | character varying(10)  |           |          |
+// publication_info | text                   |           |          |
+// levellabels_00   | character varying(64)  |           |          |
+// levellabels_01   | character varying(64)  |           |          |
+// levellabels_02   | character varying(64)  |           |          |
+// levellabels_03   | character varying(64)  |           |          |
+// levellabels_04   | character varying(64)  |           |          |
+// levellabels_05   | character varying(64)  |           |          |
+// workgenre        | character varying(32)  |           |          |
+// transmission     | character varying(32)  |           |          |
+// worktype         | character varying(32)  |           |          |
+// provenance       | character varying(64)  |           |          |
+// recorded_date    | character varying(64)  |           |          |
+// converted_date   | integer                |           |          |
+// wordcount        | integer                |           |          |
+// firstline        | integer                |           |          |
+// lastline         | integer                |           |          |
+// authentic        | boolean                |           |          |
+
 const (
-	// hipparchiaDB=# select * from authors limit 0;
-	// universalid | language | idxname | akaname | shortname | cleanname | genres | recorded_date | converted_date | location
-	//-------------+----------+---------+---------+-----------+-----------+--------+---------------+----------------+----------
-
 	AUTHORTEMPLATE = ` universalid, language, idxname, akaname, shortname, cleanname, genres, recorded_date, converted_date, location `
-
-	// hipparchiaDB=# select * from works limit 0;
-	// universalid | title | language | publication_info | levellabels_00 | levellabels_01 | levellabels_02 | levellabels_03 | levellabels_04 | levellabels_05 | workgenre | transmission | worktype | provenance | recorded_date | converted_date | wordcount | firstline | lastline | authentic
-	//-------------+-------+----------+------------------+----------------+----------------+----------------+----------------+----------------+----------------+-----------+--------------+----------+------------+---------------+----------------+-----------+-----------+----------+-----------
-	//(0 rows)
 
 	WORKTEMPLATE = ` universalid, title, language, publication_info,
 		levellabels_00, levellabels_01, levellabels_02, levellabels_03, levellabels_04, levellabels_05,

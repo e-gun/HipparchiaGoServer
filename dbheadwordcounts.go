@@ -15,6 +15,39 @@ import (
 	"strings"
 )
 
+// hipparchiaDB=# \d wordcounts_a
+//                     Table "public.wordcounts_a"
+//   Column    |         Type          | Collation | Nullable | Default
+//-------------+-----------------------+-----------+----------+---------
+// entry_name  | character varying(64) |           |          |
+// total_count | integer               |           |          | 0
+// gr_count    | integer               |           |          | 0
+// lt_count    | integer               |           |          | 0
+// dp_count    | integer               |           |          | 0
+// in_count    | integer               |           |          | 0
+// ch_count    | integer               |           |          | 0
+//Indexes:
+//    "wcindex_a" UNIQUE, btree (entry_name)
+
+// hipparchiaDB=# \d dictionary_headword_wordcounts
+//                   Table "public.dictionary_headword_wordcounts"
+//          Column          |         Type          | Collation | Nullable | Default
+//--------------------------+-----------------------+-----------+----------+---------
+// entry_name               | character varying(64) |           |          |
+// total_count              | integer               |           |          | 0
+// gr_count                 | integer               |           |          | 0
+// lt_count                 | integer               |           |          | 0
+// dp_count                 | integer               |           |          | 0
+// in_count                 | integer               |           |          | 0
+// ch_count                 | integer               |           |          | 0
+// frequency_classification | character varying(64) |           |          |
+// early_occurrences        | integer               |           |          | 0
+// middle_occurrences       | integer               |           |          | 0
+// late_occurrences         | integer               |           |          | 0
+// acta                     | integer               |           |          | 0
+// agric                    | integer               |           |          | 0
+// ...
+
 // see CALCULATEWORDWEIGHTS in HipparchiaServer's startup.py on where these really come from
 var (
 	CORPUSWEIGTING = map[string]float32{"Ⓖ": 1.0, "Ⓛ": 12.7, "Ⓘ": 15.19, "Ⓓ": 18.14, "Ⓒ": 85.78}

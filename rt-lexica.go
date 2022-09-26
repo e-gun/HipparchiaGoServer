@@ -26,6 +26,34 @@ var (
 	isGreek = regexp.MustCompile("[α-ωϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ]")
 )
 
+// hipparchiaDB-# \d latin_morphology
+//                           Table "public.latin_morphology"
+//          Column           |          Type          | Collation | Nullable | Default
+//---------------------------+------------------------+-----------+----------+---------
+// observed_form             | character varying(64)  |           |          |
+// xrefs                     | character varying(128) |           |          |
+// prefixrefs                | character varying(128) |           |          |
+// possible_dictionary_forms | jsonb                  |           |          |
+// related_headwords         | character varying(256) |           |          |
+//Indexes:
+//    "latin_analysis_trgm_idx" gin (related_headwords gin_trgm_ops)
+//    "latin_morphology_idx" btree (observed_form)
+
+// hipparchiaDB-# \d latin_dictionary
+//                     Table "public.latin_dictionary"
+//     Column     |          Type          | Collation | Nullable | Default
+//----------------+------------------------+-----------+----------+---------
+// entry_name     | character varying(256) |           |          |
+// metrical_entry | character varying(256) |           |          |
+// id_number      | real                   |           |          |
+// entry_key      | character varying(64)  |           |          |
+// pos            | character varying(64)  |           |          |
+// translations   | text                   |           |          |
+// entry_body     | text                   |           |          |
+// html_body      | text                   |           |          |
+//Indexes:
+//    "latin_dictionary_idx" btree (entry_name)
+
 type DbLexicon struct {
 	// skipping 'unaccented_entry' from greek_dictionary
 	// skipping 'entry_key' from latin_dictionary
@@ -252,7 +280,7 @@ func findbyform(word string, author string) string {
 
 	// [b] turn morph matches into []MorphPossib
 
-	mpp := dbmorthintomorphpossib(thesefinds)
+	mpp := dbmorphintomorphpossib(thesefinds)
 
 	// [c] take the []MorphPossib and find the set of headwords we are interested in; store this in a []dblexicon
 
@@ -274,8 +302,8 @@ func findbyform(word string, author string) string {
 	defer foundrows.Close()
 	for foundrows.Next() {
 		// only one should ever return...
-		err := foundrows.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
-		chke(err)
+		e := foundrows.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
+		chke(e)
 	}
 
 	label := wc.Word
@@ -459,8 +487,8 @@ func getmorphmatch(word string, lang string) []DbMorphology {
 	return thesefinds
 }
 
-// dbmorthintomorphpossib - from []DbMorphology yield up []MorphPossib
-func dbmorthintomorphpossib(dbmm []DbMorphology) []MorphPossib {
+// dbmorphintomorphpossib - from []DbMorphology yield up []MorphPossib
+func dbmorphintomorphpossib(dbmm []DbMorphology) []MorphPossib {
 	var mpp []MorphPossib
 	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 
@@ -485,7 +513,7 @@ func extractmorphpossibilities(raw string, boundary *regexp.Regexp) []MorphPossi
 		if len(p) > 0 {
 			err := json.Unmarshal([]byte(p), &mp)
 			if err != nil {
-				msg(fmt.Sprintf("dbmorthintomorphpossib() could not unmarshal %s", p), 5)
+				msg(fmt.Sprintf("dbmorphintomorphpossib() could not unmarshal %s", p), 5)
 			}
 		}
 		mpp = append(mpp, mp)
@@ -527,8 +555,8 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 		defer foundrows.Close()
 		for foundrows.Next() {
 			var thehit DbLexicon
-			err := foundrows.Scan(&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry)
-			chke(err)
+			e := foundrows.Scan(&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry)
+			chke(e)
 			thehit.Lang = d
 			if _, dup := dedup[thehit.ID]; !dup {
 				// use ID and not Lex because καρπόϲ.53442 is not καρπόϲ.53443
@@ -719,7 +747,9 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	// [h1a] known forms in use
 
-	// TODO
+	kf := `<formsummary parserxref="%f" lexicalid="%f" headword="%s" lang="%s">known forms in use: %d</formsummary>`
+	kf = fmt.Sprintf(kf)
+	elem = append(elem, "Known forms in use: 56")
 
 	// [h1b] principle parts
 
