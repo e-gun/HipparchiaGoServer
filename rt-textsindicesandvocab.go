@@ -491,10 +491,11 @@ func RtIndexMaker(c echo.Context) error {
 
 	slicedlookups = []WordInfo{} // drop after use
 
-	// calculate homonyms: two maps
+	// pseudocode:
 
-	// map ishom: [string]bool
-	// map tester: [string]string: [word]headword
+	//calculate homonyms: two maps
+	// [a] map ishom: [string]bool
+	// [b] map tester: [string]string: [word]headword
 	// iterate
 	// 	if word not in map: add
 	// 	if word in map: is assoc w/ this headword?
@@ -787,6 +788,10 @@ func addkeystowordinfo(wii []WordInfo) ([]WordInfo, map[string]rune) {
 }
 
 func multiworkkeymaker(mapper map[string]rune, srch *SearchStruct) string {
+	// <br><span class="emph">Works:</span> ⒜: <span class="italic">De caede Eratosthenis</span>
+	//; ⒝: <span class="italic">Epitaphius [Sp.]</span>
+	//; ⒞: <span class="italic">Contra Simonem</span> ...
+
 	ky := ""
 	wkk := srch.SearchSize > 1
 	auu := srch.TableSize > 1
@@ -798,7 +803,7 @@ func multiworkkeymaker(mapper map[string]rune, srch *SearchStruct) string {
 			if auu {
 				t = AllAuthors[AllWorks[k].FindAuthor()].Name + ", " + t
 			}
-			out = append(out, fmt.Sprintf("%s: %s", string(v), t))
+			out = append(out, fmt.Sprintf("%s: %s\n", string(v), t))
 		}
 		sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
 		ky = strings.Join(out, "; ")
@@ -810,6 +815,14 @@ func multiworkkeymaker(mapper map[string]rune, srch *SearchStruct) string {
 func convertwordinfototablerow(ww []WordInfo) string {
 	// every word has the same headword
 	// now we build a sub-map after the pattern of the main map: but now the keys are the words, not the headwords
+
+	// example:
+	// 	<tr>
+	//		<td class="headword"><indexobserved id=""></indexobserved></td>
+	//		<td class="word"><indexobserved id="διδόντεϲ">διδόντεϲ</indexobserved></td>
+	//		<td class="count">2</td>
+	//		<td class="passages"><indexedlocation id="linenumber/gr0540/015/3831">⒪ 2.4</indexedlocation>, <indexedlocation id="linenumber/gr0540/025/5719">⒴ 32.5</indexedlocation></td>
+	//	</tr>
 
 	// build it
 	indexmap := make(map[string][]WordInfo, len(ww))

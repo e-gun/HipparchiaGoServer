@@ -163,17 +163,13 @@ func RtLexFindByForm(c echo.Context) error {
 
 	word := purgechars(cfg.BadChars, elem[0])
 
-	// you can get sent here by the indexer which will have some headword stuff
-	clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "")
+	clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "") // you can get sent here by the indexer ...
 	word = clean.Replace(word)
 
 	word = swapacuteforgrave(word)
-
 	word = uvσςϲ(word)
 
 	html := findbyform(word, au)
-
-	// html = strings.Replace(html, `"`, `\"`, -1)
 	js := insertlexicaljs()
 
 	var jb JSB
@@ -182,8 +178,6 @@ func RtLexFindByForm(c echo.Context) error {
 
 	jsonbundle, ee := json.Marshal(jb)
 	chke(ee)
-
-	// jsonbundle := []byte(fmt.Sprintf(`{"newhtml":"%s","newjs":"%s"}`, html, js))
 
 	return c.String(http.StatusOK, string(jsonbundle))
 }
@@ -458,8 +452,8 @@ func dictgrabber(seeking string, dict string, col string, syntax string) []DbLex
 	defer foundrows.Close()
 	for foundrows.Next() {
 		var thehit DbLexicon
-		err := foundrows.Scan(&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry)
-		chke(err)
+		e := foundrows.Scan(&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry)
+		chke(e)
 		thehit.Lang = dict
 		lexicalfinds = append(lexicalfinds, thehit)
 	}

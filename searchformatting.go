@@ -17,17 +17,6 @@ import (
 	"time"
 )
 
-var (
-	esbboth = regexp.MustCompile("\\[(.*?)\\]")
-	erbboth = regexp.MustCompile("\\((.*?)\\)")
-	eabboth = regexp.MustCompile("⟨(.*?)⟩")
-	ecbboth = regexp.MustCompile("\\{(.*?)\\}")
-	// esbopens := regexp.MustCompile("\\[(.*?)(\\]|$)")
-	// esbcloses := regexp.MustCompile("(^|\\[)(.*?)\\]")
-	// erbopens := regexp.MustCompile("\\((.*?)(\\)|$)")
-	// erbcloses := regexp.MustCompile("(^|\\()(.*?)\\)")
-)
-
 type SearchOutputJSON struct {
 	Title         string `json:"title"`
 	Searchsummary string `json:"searchsummary"`
@@ -497,6 +486,14 @@ func unbalancedspancleaner(html string) string {
 	}
 	return html
 }
+
+// don't let regex compliation get looped...
+var (
+	esbboth = regexp.MustCompile("\\[(.*?)\\]")
+	erbboth = regexp.MustCompile("\\((.*?)\\)")
+	eabboth = regexp.MustCompile("⟨(.*?)⟩")
+	ecbboth = regexp.MustCompile("\\{(.*?)\\}")
+)
 
 // formateditorialbrackets - helper for textblockcleaner()
 func formateditorialbrackets(html string) string {
