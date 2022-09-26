@@ -54,6 +54,16 @@ import (
 // lastline         | integer                |           |          |
 // authentic        | boolean                |           |          |
 
+// hipparchiaDB-# \d greek_lemmata
+//                       Table "public.greek_lemmata"
+//      Column      |         Type          | Collation | Nullable | Default
+//------------------+-----------------------+-----------+----------+---------
+// dictionary_entry | character varying(64) |           |          |
+// xref_number      | integer               |           |          |
+// derivative_forms | text[]                |           |          |
+//Indexes:
+//    "greek_lemmata_idx" btree (dictionary_entry)
+
 const (
 	AUTHORTEMPLATE = ` universalid, language, idxname, akaname, shortname, cleanname, genres, recorded_date, converted_date, location `
 
