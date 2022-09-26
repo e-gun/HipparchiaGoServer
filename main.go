@@ -222,7 +222,7 @@ func configatlaunch() {
 }
 
 func printversion() {
-	ll := fmt.Sprintf("[logs: gl=%d; el=%d]", cfg.LogLevel, cfg.EchoLog)
+	ll := fmt.Sprintf(" [gl=%d; el=%d]", cfg.LogLevel, cfg.EchoLog)
 	versioninfo := fmt.Sprintf("%s (v%s)", MYNAME, VERSION)
 	versioninfo = versioninfo + ll
 	msg(versioninfo, 0)

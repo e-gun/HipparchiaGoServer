@@ -829,7 +829,7 @@ func convertwordinfototablerow(ww []WordInfo) string {
 	// standard TR
 	tr := `
 	<tr>
-		<td class="headword">%s</td>
+		<td class="headword"><indexobserved id="%s">%s</indexobserved></td>
 		<td class="word"><indexobserved id="%s">%s</indexobserved></td>
 		<td class="count">%d</td>
 		<td class="passages">%s</td>
@@ -838,7 +838,7 @@ func convertwordinfototablerow(ww []WordInfo) string {
 	// homonymn TR
 	trh := `
 	<tr>
-		<td class="headword">%s</td>
+		<td class="headword"><indexobserved id="%s">%s</indexobserved></td>
 		<td class="word"><span class="homonym"><indexobserved id="%s">%s</indexobserved></span></td>
 		<td class="count">%d</td>
 		<td class="passages">%s</td>
@@ -877,7 +877,7 @@ func convertwordinfototablerow(ww []WordInfo) string {
 			templ = trh
 		}
 
-		t := fmt.Sprintf(templ, hw, wii[0].Wd, wii[0].Wd, len(wii), p)
+		t := fmt.Sprintf(templ, hw, hw, wii[0].Wd, wii[0].Wd, len(pp), p)
 		trr[i] = t
 		used[wii[0].HW] = true
 	}

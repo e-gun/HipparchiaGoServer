@@ -163,6 +163,10 @@ func RtLexFindByForm(c echo.Context) error {
 
 	word := purgechars(cfg.BadChars, elem[0])
 
+	// you can get sent here by the indexer which will have some headword stuff
+	clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "")
+	word = clean.Replace(word)
+
 	word = swapacuteforgrave(word)
 
 	word = uvσςϲ(word)

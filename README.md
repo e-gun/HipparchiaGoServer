@@ -2,7 +2,7 @@
 
 ## beta status: (allegedly) solid core
 
-### status as of `v0.8.7`:
+### status as of `v0.8.8`:
 
 * monolithic binary: no need for extra files/folders beyond `hgs-conf.json`
 * searching theoretically fine but needs more testing/checking
@@ -19,6 +19,7 @@
 ### TODO (in vague order of priority)
 
 * room to improve lemma highlighting
+* morphology tables
 * reset route kills the websocket
 
 ### DISTANT FANTASIES
