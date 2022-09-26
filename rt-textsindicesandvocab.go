@@ -252,16 +252,6 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
-	var polishtrans = func(x string, pat *regexp.Regexp) string {
-		//x = strings.Replace(x, `<tr opt="n">`, ``, 1)
-		//x = strings.Replace(x, `</tr>`, ``, 1)
-		x = nohtml.ReplaceAllString(x, "")
-		elem := strings.Split(x, "; ")
-		for i, e := range elem {
-			elem[i] = pat.ReplaceAllString(e, `<span class="transtree">$1</span> `)
-		}
-		return strings.Join(elem, "; ")
-	}
 
 	vim := make(map[string]VocInf)
 	for k, v := range vic {
@@ -897,4 +887,21 @@ func convertwordinfototablerow(ww []WordInfo) string {
 
 	out := strings.Join(trr, "")
 	return out
+}
+
+func polishtrans(x string, pat *regexp.Regexp) string {
+	// don't loop "pat", but here it is:
+	// pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
+
+	// sample:
+	// <span class="transtree">A.</span> as Adv., bearing the same relation to ὡϲ as ὅϲτε to ὅϲ, and used by Hom.
+	// more freq. than ὡϲ in similes, when it is commonly written divisim, and is relat. to a demonstr. ὥϲ: sts. c. pres. Indic;
+	// <span class="transtree">B.</span> the actual
+
+	x = nohtml.ReplaceAllString(x, "")
+	elem := strings.Split(x, "; ")
+	for i, e := range elem {
+		elem[i] = pat.ReplaceAllString(e, `<span class="transtree">$1</span> `)
+	}
+	return strings.Join(elem, "; ")
 }

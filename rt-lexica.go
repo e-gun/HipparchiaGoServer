@@ -674,6 +674,8 @@ func formatprevalencedata(w DbWordCount, s string) string {
 
 // formatparsingdata - turn []MorphPossib into HTML
 func formatparsingdata(mpp []MorphPossib) string {
+	pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
+
 	obs := `
 	<span class="obsv"><span class="obsv"> from <span class="baseform"><a class="parsing" href="#%s_%s">%s</a></span>
 	`
@@ -708,6 +710,7 @@ func formatparsingdata(mpp []MorphPossib) string {
 		if m.Xrefval != memo {
 			html += fmt.Sprintf(obs, m.Headwd, m.Xrefval, m.Headwd)
 			if strings.TrimSpace(m.Transl) != "" {
+				m.Transl = polishtrans(m.Transl, pat)
 				html += fmt.Sprintf(bft, m.Transl)
 			}
 		}
