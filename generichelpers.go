@@ -435,12 +435,13 @@ func capsvariants(word string) string {
 
 // uvσςϲ - v to u, etc
 func uvσςϲ(u string) string {
-	var stripped []rune
-	for _, x := range []rune(u) {
+	ru := []rune(u)
+	stripped := make([]rune, len(ru))
+	for i, x := range ru {
 		if _, ok := uvred[x]; ok {
-			stripped = append(stripped, uvred[x])
+			stripped[i] = uvred[x]
 		} else {
-			stripped = append(stripped, x)
+			stripped[i] = x
 		}
 	}
 	s := string(stripped)

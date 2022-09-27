@@ -390,7 +390,13 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 
 		cit := selectivelydisplaycitations(lines[i], previous, focus)
 
-		trr[i] = fmt.Sprintf(tr, lines[i].Annotations, bl, cit)
+		an := lines[i].Annotations
+		if cfg.DbDebug {
+			an = fmt.Sprintf("%s: %d", lines[i].FindAuthor(), lines[i].TbIndex)
+			// bl = fmt.Sprintf(`<span class="small">%s</span>`, lines[i].ShowMarkup())
+		}
+
+		trr[i] = fmt.Sprintf(tr, an, bl, cit)
 		previous = lines[i]
 	}
 	tab := strings.Join(trr, "")

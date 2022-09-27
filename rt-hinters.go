@@ -6,7 +6,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -70,10 +69,7 @@ func RtAuthorHints(c echo.Context) error {
 	// sort since we were working with a map
 	sort.Slice(auf, func(i, j int) bool { return auf[i].V < auf[j].V })
 
-	// send
-	b, e := json.Marshal(auf)
-	chke(e)
-	return c.String(http.StatusOK, string(b))
+	return c.JSONPretty(http.StatusOK, auf, JSONINDENT)
 }
 
 func RtLemmaHints(c echo.Context) error {
@@ -106,12 +102,7 @@ func RtLemmaHints(c echo.Context) error {
 	}
 
 	sort.Slice(match, func(i, j int) bool { return match[i].V < match[j].V })
-
-	// send
-	b, e := json.Marshal(match)
-	chke(e)
-
-	return c.String(http.StatusOK, string(b))
+	return c.JSONPretty(http.StatusOK, match, JSONINDENT)
 }
 
 func RtAuGenreHints(c echo.Context) error {
@@ -150,8 +141,6 @@ func basichinter(c echo.Context, mastermap map[string]bool) error {
 	for i, f := range ff {
 		fs[i] = JSStruct{f}
 	}
-	// send
-	b, e := json.Marshal(fs)
-	chke(e)
-	return c.String(http.StatusOK, string(b))
+
+	return c.JSONPretty(http.StatusOK, fs, JSONINDENT)
 }

@@ -82,28 +82,30 @@ func main() {
 }
 
 type CurrentConfiguration struct {
-	WorkerCount int
-	LogLevel    int
+	BadChars    string
+	DbDebug     bool
+	DefCorp     map[string]bool
 	EchoLog     int // "none", "terse", "verbose"
-	PGLogin     PostgresLogin
-	HostIP      string
-	HostPort    int
 	Font        string
 	Gzip        bool
+	HostIP      string
+	HostPort    int
+	LogLevel    int
 	MaxText     int
-	BadChars    string
-	DefCorp     map[string]bool
+	PGLogin     PostgresLogin
 	QuietStart  bool
+	WorkerCount int
 }
 
 // configatlaunch - read the configuration values from JSON and/or command line
 func configatlaunch() {
-	cfg.HostIP = SERVEDFROMHOST
-	cfg.HostPort = SERVEDFROMPORT
+	cfg.BadChars = UNACCEPTABLEINPUT
+	cfg.DbDebug = false
 	cfg.Font = FONTSETTING
 	cfg.Gzip = USEGZIP
+	cfg.HostIP = SERVEDFROMHOST
+	cfg.HostPort = SERVEDFROMPORT
 	cfg.MaxText = MAXTEXTLINEGENERATION
-	cfg.BadChars = UNACCEPTABLEINPUT
 	cfg.QuietStart = false
 	cfg.WorkerCount = runtime.NumCPU()
 
@@ -132,6 +134,8 @@ func configatlaunch() {
 			}
 		case "-cf":
 			cf = args[i+1]
+		case "-db":
+			cfg.DbDebug = true
 		case "-ft":
 			cfg.Font = args[i+1]
 		case "-el":

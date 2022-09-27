@@ -154,6 +154,11 @@ func (dbw *DbWorkline) PurgeMetadata() {
 	}
 }
 
+func (dbw *DbWorkline) ShowMarkup() string {
+	clean := strings.NewReplacer("<", "&lt;", ">", "&gt;")
+	return clean.Replace(dbw.MarkedUp)
+}
+
 func (dbw DbWorkline) SameLevelAs(other DbWorkline) bool {
 	// to help toggle the counters when building texts
 	one := dbw.Lvl1Value == other.Lvl1Value

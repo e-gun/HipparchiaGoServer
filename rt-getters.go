@@ -7,7 +7,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/text/language"
@@ -20,7 +19,7 @@ import (
 	"text/template"
 )
 
-// JSStruct - this is for generating a specific ultra-boring brand of JSON
+// JSStruct - this is for generating a specific ultra-boring brand of JSON that jQuery loves
 type JSStruct struct {
 	V string `json:"value"`
 }
@@ -91,9 +90,7 @@ func RtGetJSSession(c echo.Context) error {
 	jso.Spuria = t2y(s.SpuriaOK)
 	jso.Varia = t2y(s.VariaOK)
 
-	o, e := json.Marshal(jso)
-	chke(e)
-	return c.String(http.StatusOK, string(o))
+	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
 
 func RtGetJSWorksOf(c echo.Context) error {
@@ -108,11 +105,7 @@ func RtGetJSWorksOf(c echo.Context) error {
 		titles = append(titles, JSStruct{n})
 	}
 
-	// send
-	b, e := json.Marshal(titles)
-	chke(e)
-	// fmt.Printf("RtGetJSWorksOf():\n\t%s\n", b)
-	return c.String(http.StatusOK, string(b))
+	return c.JSONPretty(http.StatusOK, titles, JSONINDENT)
 }
 
 func RtGetJSWorksStruct(c echo.Context) error {
@@ -139,11 +132,7 @@ func RtGetJSWorksStruct(c echo.Context) error {
 	locc := strings.Split(parsed[2], "|")
 	lvls := findvalidlevelvalues(wkid, locc)
 
-	// send
-	b, e := json.Marshal(lvls)
-	chke(e)
-	// fmt.Printf("RtGetJSWorksStruct():\n\t%s\n", b)
-	return c.String(http.StatusOK, string(b))
+	return c.JSONPretty(http.StatusOK, lvls, JSONINDENT)
 }
 
 func RtGetJSHelpdata(c echo.Context) error {
@@ -184,10 +173,7 @@ func RtGetJSHelpdata(c echo.Context) error {
 	j.HC = cat
 	j.HT = hc
 
-	js, e := json.Marshal(j)
-	chke(e)
-
-	return c.String(http.StatusOK, string(js))
+	return c.JSONPretty(http.StatusOK, j, JSONINDENT)
 
 }
 
@@ -284,10 +270,8 @@ func RtGetJSAuthorinfo(c echo.Context) error {
 	info := b.String()
 
 	v := JSStruct{info}
-	j, e := json.Marshal(v)
-	chke(e)
 
-	return c.String(http.StatusOK, string(j))
+	return c.JSONPretty(http.StatusOK, v, JSONINDENT)
 }
 
 func RtGetJSSampCit(c echo.Context) error {
@@ -324,10 +308,10 @@ func RtGetJSSampCit(c echo.Context) error {
 		F string `json:"firstline"`
 		L string `json:"lastline"`
 	}
+
 	j := JSO{cf, cl}
-	b, e := json.Marshal(j)
-	chke(e)
-	return c.String(http.StatusOK, string(b))
+
+	return c.JSONPretty(http.StatusOK, j, JSONINDENT)
 }
 
 func RtGetJSSearchlist(c echo.Context) error {
@@ -377,10 +361,7 @@ func RtGetJSSearchlist(c echo.Context) error {
 	var j JSStruct
 	j.V = ht
 
-	// send
-	b, e := json.Marshal(j)
-	chke(e)
-	return c.String(http.StatusOK, string(b))
+	return c.JSONPretty(http.StatusOK, j, JSONINDENT)
 }
 
 func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
