@@ -451,6 +451,7 @@ func uvσςϲ(u string) string {
 
 // uvσςϲreducer - provide map to uvσςϲ
 func uvσςϲreducer() map[rune]rune {
+	// map[73:105 74:105 85:117 86:117 105:105 106:105 ...]
 	feeder := make(map[rune][]rune)
 
 	feeder['u'] = []rune("uUvVÜÚüú")

@@ -65,9 +65,6 @@ func StartEchoServer() {
 		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
 	}
 
-	e.File("/favicon.ico", "static/images/hipparchia_favicon.ico")
-	e.Static("/static", "static")
-
 	//
 	// HIPPARCHIA ROUTES
 	//

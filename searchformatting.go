@@ -7,7 +7,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
@@ -25,7 +24,7 @@ type SearchOutputJSON struct {
 	JS            string `json:"js"`
 }
 
-func formatnocontextresults(ss SearchStruct) []byte {
+func formatnocontextresults(ss SearchStruct) SearchOutputJSON {
 	var out SearchOutputJSON
 	out.JS = fmt.Sprintf(BROWSERJS, "browser")
 	out.Title = ss.Seeking
@@ -90,11 +89,7 @@ func formatnocontextresults(ss SearchStruct) []byte {
 	}
 
 	out.Found = "<tbody>" + strings.Join(rows, "") + "</tbody>"
-
-	js, e := json.Marshal(out)
-	chke(e)
-
-	return js
+	return out
 }
 
 type ResultPassageLine struct {
@@ -105,7 +100,7 @@ type ResultPassageLine struct {
 	IsHighlight     bool
 }
 
-func formatwithcontextresults(ss SearchStruct) []byte {
+func formatwithcontextresults(ss SearchStruct) SearchOutputJSON {
 	thesession := sessions[ss.User]
 
 	type PsgFormattingTemplate struct {
@@ -283,9 +278,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 	out.Searchsummary = formatfinalsearchsummary(&ss)
 	out.Found = strings.Join(rows, "")
 
-	js, e := json.Marshal(out)
-	chke(e)
-	return js
+	return out
 }
 
 func formatfinalsearchsummary(s *SearchStruct) string {

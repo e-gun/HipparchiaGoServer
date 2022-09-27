@@ -140,17 +140,17 @@ func RtSearch(c echo.Context) error {
 
 	searches[id] = completed
 
-	var js string
+	so := SearchOutputJSON{}
 	if sessions[readUUIDCookie(c)].HitContext == 0 {
-		js = string(formatnocontextresults(searches[id]))
+		so = formatnocontextresults(searches[id])
 	} else {
-		js = string(formatwithcontextresults(searches[id]))
+		so = formatwithcontextresults(searches[id])
 	}
 
 	delete(searches, id)
 	progremain.Delete(id)
 
-	return c.String(http.StatusOK, js)
+	return c.JSONPretty(http.StatusOK, so, JSONINDENT)
 }
 
 //
@@ -699,9 +699,11 @@ func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 		}
 	}
 
-	var slc []DbWorkline
+	slc := make([]DbWorkline, len(valid))
+	counter := 0
 	for _, r := range valid {
-		slc = append(slc, r)
+		slc[counter] = r
+		counter += 1
 	}
 
 	return slc
