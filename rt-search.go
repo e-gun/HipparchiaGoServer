@@ -546,7 +546,10 @@ func setsearchtype(srch *SearchStruct) {
 
 	if len(srch.LemmaOne) != 0 {
 		srch.HasLemma = true
-		srch.SrchColumn = "accented_line"
+		// accented line has "volat" in latin; and "uolo" will not find it
+		if isGreek.MatchString(srch.LemmaOne) {
+			srch.SrchColumn = "accented_line"
+		}
 	}
 
 	return
