@@ -130,20 +130,20 @@ func configatlaunch() {
 			if err != nil {
 				msg(fmt.Sprintf("Improperly formatted corpus list. Using:\n\t%s", DEFAULTCORPORA), 0)
 			}
+		case "-cf":
+			cf = args[i+1]
+		case "-ft":
+			cfg.Font = args[i+1]
+		case "-el":
+			ll, err := strconv.Atoi(args[i+1])
+			chke(err)
+			cfg.EchoLog = ll
 		case "-gl":
 			ll, err := strconv.Atoi(args[i+1])
 			chke(err)
 			cfg.LogLevel = ll
 		case "-gz":
 			cfg.Gzip = true
-		case "-el":
-			ll, err := strconv.Atoi(args[i+1])
-			chke(err)
-			cfg.EchoLog = ll
-		case "-cf":
-			cf = args[i+1]
-		case "-ft":
-			cfg.Font = args[i+1]
 		case "-h":
 			printversion()
 			fmt.Println(fmt.Sprintf(HELPTEXT, CONFIGLOCATION, CONFIGNAME, h, CONFIGNAME, DEFAULTECHOLOGLEVEL,
@@ -184,6 +184,7 @@ func configatlaunch() {
 	}
 
 	cfg.PGLogin = PostgresLogin{}
+
 	if pl.Pass != "" {
 		cfg.PGLogin = pl
 	} else {
@@ -212,11 +213,11 @@ func configatlaunch() {
 		}
 
 		cfg.PGLogin = PostgresLogin{
-			Host:   PSQLHOST,
-			Port:   PSQLPORT,
-			User:   PSQLUSER,
+			Host:   DEFAULTPSQLHOST,
+			Port:   DEFAULTPSQLPORT,
+			User:   DEFAULTPSQLUSER,
+			DBName: DEFAULTPSQLDB,
 			Pass:   conf.PosgreSQLPassword,
-			DBName: PSQLDB,
 		}
 	}
 }

@@ -364,7 +364,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 			if w == len(wds)-1 && terminalhyph.MatchString(lmw) {
 				cv = capsvariants(lmw)
 			}
-			pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s|\\[|\\>|⟨|‘|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|\\!|,|;|\\?|·|$)", cv))
+			pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s|\\[|\\>|⟨|‘|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|\\!|,|:|;|\\?|·|$)", cv))
 			if e == nil && w == len(wds)-1 && terminalhyph.MatchString(lmw) {
 				// wds[lastwordindex] is the unhyphenated word
 				r := fmt.Sprintf(`$1<observed id="%s">$2</observed>$3`, lwd)

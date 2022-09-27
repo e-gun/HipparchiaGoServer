@@ -757,6 +757,7 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 // FORMATTING
 //
 
+// addkeystowordinfo - index to more than one work needs to have a key attached to the citations
 func addkeystowordinfo(wii []WordInfo) ([]WordInfo, map[string]rune) {
 	// build the key: 9372 = ⒜
 	uu := make([]string, len(wii))
@@ -777,6 +778,7 @@ func addkeystowordinfo(wii []WordInfo) ([]WordInfo, map[string]rune) {
 	return wii, mp
 }
 
+// multiworkkeymaker - index to more than one work needs a key to the whole
 func multiworkkeymaker(mapper map[string]rune, srch *SearchStruct) string {
 	// <br><span class="emph">Works:</span> ⒜: <span class="italic">De caede Eratosthenis</span>
 	//; ⒝: <span class="italic">Epitaphius [Sp.]</span>
@@ -802,6 +804,7 @@ func multiworkkeymaker(mapper map[string]rune, srch *SearchStruct) string {
 	return ky
 }
 
+// convertwordinfototablerow - []WordInfo --> "<tr>...</tr>"
 func convertwordinfototablerow(ww []WordInfo) string {
 	// every word has the same headword
 	// now we build a sub-map after the pattern of the main map: but now the keys are the words, not the headwords
@@ -889,8 +892,9 @@ func convertwordinfototablerow(ww []WordInfo) string {
 	return out
 }
 
+// polishtrans - add "transtree" spans to the mini-translation lists to highlight structure
 func polishtrans(x string, pat *regexp.Regexp) string {
-	// don't loop "pat", but here it is:
+	// don't loop "pat". it's not really a variable. here it is:
 	// pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
 
 	// sample:

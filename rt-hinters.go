@@ -146,9 +146,9 @@ func basichinter(c echo.Context, mastermap map[string]bool) error {
 		}
 	}
 
-	var fs []JSStruct
-	for _, f := range ff {
-		fs = append(fs, JSStruct{f})
+	fs := make([]JSStruct, len(ff))
+	for i, f := range ff {
+		fs[i] = JSStruct{f}
 	}
 	// send
 	b, e := json.Marshal(fs)

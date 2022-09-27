@@ -231,7 +231,6 @@ func purgechars(bad string, checking string) string {
 	for _, x := range []rune(checking) {
 		if _, skip := reducer[x]; !skip {
 			stripped = append(stripped, x)
-		} else {
 		}
 	}
 	s := string(stripped)
@@ -245,9 +244,10 @@ func purgechars(bad string, checking string) string {
 // stripaccentsSTR - ὀκνεῖϲ --> οκνειϲ, etc.
 func stripaccentsSTR(u string) string {
 	// reducer := getrunereducer()
-	var stripped []rune
-	for _, x := range []rune(u) {
-		stripped = append(stripped, runered[x])
+	ru := []rune(u)
+	stripped := make([]rune, len(ru))
+	for i, x := range ru {
+		stripped[i] = runered[x]
 	}
 	s := string(stripped)
 	return s
@@ -256,9 +256,9 @@ func stripaccentsSTR(u string) string {
 // stripaccentsRUNE - ὀκνεῖϲ --> οκνειϲ, etc.
 func stripaccentsRUNE(u []rune) []rune {
 	// reducer := getrunereducer()
-	var stripped []rune
-	for _, x := range u {
-		stripped = append(stripped, runered[x])
+	stripped := make([]rune, len(u))
+	for i, x := range u {
+		stripped[i] = runered[x]
 	}
 	return stripped
 }

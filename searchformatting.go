@@ -290,7 +290,7 @@ func formatwithcontextresults(ss SearchStruct) []byte {
 
 func formatfinalsearchsummary(s *SearchStruct) string {
 	// ex:
-	//         Sought <span class="sought">»ἡμέρα«</span>
+	//        Sought <span class="sought">»ἡμέρα«</span>
 	//        <br>
 	//        Searched 49,230 works and found 200 passages (0.12s)
 	//        <br>
@@ -423,7 +423,7 @@ func formatinscriptiondates(template string, dbw DbWorkline) string {
 }
 
 func formatinscriptionplaces(dbw DbWorkline) string {
-	// show the years for inscriptions
+	// show the places for inscriptions
 	placestring := ""
 	fc := dbw.FindCorpus()
 	placed := fc == "in" || fc == "ch" || fc == "dp"

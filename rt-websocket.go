@@ -62,7 +62,7 @@ func RtWebsocket(c echo.Context) error {
 		}
 		// Read
 
-		m := []byte{}
+		var m []byte
 		_, m, e := ws.ReadMessage()
 		if e != nil {
 			// c.Logger().Error(err)
@@ -144,7 +144,8 @@ func RtWebsocket(c echo.Context) error {
 // formatpoll - build HTML to send to the JS on the other side
 func formatpoll(pd PollData) string {
 	// example:
-	// Seeking <span class="sought">»μελιϲϲα«</span>: <span class="progress">31%</span> completed&nbsp;(0.3s)<br>(<span class="progress">199</span> found)<br>
+	// Seeking <span class="sought">»μελιϲϲα«</span>: <span class="progress">31%</span> completed&nbsp;(0.3s)<br>
+	// (<span class="progress">199</span> found)<br>
 	pctd := ((float32(pd.TotalWrk) - float32(pd.Remain)) / float32(pd.TotalWrk)) * 100
 	pcts := fmt.Sprintf("%.0f", pctd) + "%"
 

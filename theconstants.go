@@ -8,11 +8,11 @@ package main
 const (
 	MYNAME                  = "Hipparchia Golang Server"
 	SHORTNAME               = "HGS"
-	VERSION                 = "0.9.1"
+	VERSION                 = "0.9.2"
 	AUTHENTICATIONREQUIRED  = false // unused ATM
 	AVGWORDSPERLINE         = 8     // hard coding a suspect assumption
 	CONFIGLOCATION          = "."
-	CONFIGALTAPTH           = "%s/.config/"
+	CONFIGALTAPTH           = "%s/.config/" // %s = os.UserHomeDir()
 	CONFIGNAME              = "hgs-conf.json"
 	DBAUMAPSIZE             = 3455 //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
 	DBLEMMACOUNT            = 152759
@@ -23,10 +23,14 @@ const (
 	DEFAULTCORPORA          = "{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"
 	DEFAULTECHOLOGLEVEL     = 0
 	DEFAULTGOLOGLEVEL       = 0
-	DEFAULTHITLIMIT         = 200
+	DEFAULTHITLIMIT         = 250
 	DEFAULTLINESOFCONTEXT   = 4
-	DEFAULTPROXIMITY        = 2
+	DEFAULTPROXIMITY        = 1
 	DEFAULTPROXIMITYSCOPE   = "lines"
+	DEFAULTPSQLHOST         = "127.0.0.1"
+	DEFAULTPSQLUSER         = "hippa_wr"
+	DEFAULTPSQLPORT         = 5432
+	DEFAULTPSQLDB           = "hipparchiaDB"
 	DEFAULTSYNTAX           = "~"
 	FIRSTSEARCHLIM          = 750000          // 149570 lines in Cicero (lt0474); all 485 forms of »δείκνυμι« will pass 50k
 	FONTSETTING             = "SERVEALLFONTS" // will send Noto when this "font" is not found
@@ -64,10 +68,6 @@ const (
 	// UNACCEPTABLEINPUT       = `|"'!@:,=+_\/`
 	UNACCEPTABLEINPUT = `"'!@:,=_/̣` // we want to be able to do regex...; note the subscript dot at the end; echo+net/url means some can't even make it into a parser: #%&;
 
-	PSQLHOST  = "127.0.0.1"
-	PSQLUSER  = "hippa_wr"
-	PSQLPORT  = 5432
-	PSQLDB    = "hipparchiaDB"
 	MINCONFIG = `
 {"PosgreSQLPassword": "YOURPASSWORDHERE"}
 `

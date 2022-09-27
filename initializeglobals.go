@@ -11,7 +11,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"time"
 )
 
 // hipparchiaDB-# \d authors
@@ -135,12 +134,12 @@ type DbWork struct {
 }
 
 func (dbw DbWork) FindWorknumber() string {
-	// ex: gr2017w068
+	// ex: gr2017w068 --> 068
 	return dbw.UID[7:]
 }
 
 func (dbw DbWork) FindAuthor() string {
-	// ex: gr2017w068
+	// ex: gr2017w068 --> gr2017
 	if len(dbw.UID) < 6 {
 		return ""
 	} else {
@@ -184,11 +183,6 @@ func (dbl DbLemma) EntryRune() []rune {
 	return []rune(dbl.Entry)
 }
 
-type SearchSummary struct {
-	Time time.Time
-	Sum  string
-}
-
 // all functions in here should be run in order to prepare the core data
 
 // workmapper - build a map of all works keyed to the authorUID: map[string]DbWork
@@ -201,18 +195,20 @@ func workmapper() map[string]DbWork {
 	foundrows, err := dbpool.Query(context.Background(), q)
 	chke(err)
 
-	var thefinds []DbWork
+	thefinds := make([]DbWork, DBWKMAPSIZE)
 
+	count := 0
 	defer foundrows.Close()
 	for foundrows.Next() {
 		// this will die if <nil> comes back inside any of the columns; and so you have to use builds from HipparchiaBuilder 1.6.0+
 		var thehit DbWork
-		err := foundrows.Scan(&thehit.UID, &thehit.Title, &thehit.Language, &thehit.Pub, &thehit.LL0,
+		e := foundrows.Scan(&thehit.UID, &thehit.Title, &thehit.Language, &thehit.Pub, &thehit.LL0,
 			&thehit.LL1, &thehit.LL2, &thehit.LL3, &thehit.LL4, &thehit.LL5, &thehit.Genre,
 			&thehit.Xmit, &thehit.Type, &thehit.Prov, &thehit.RecDate, &thehit.ConvDate, &thehit.WdCount,
 			&thehit.FirstLine, &thehit.LastLine, &thehit.Authentic)
-		chke(err)
-		thefinds = append(thefinds, thehit)
+		chke(e)
+		thefinds[count] = thehit
+		count += 1
 	}
 
 	workmap := make(map[string]DbWork, DBWKMAPSIZE)
@@ -232,16 +228,18 @@ func authormapper() map[string]DbAuthor {
 	foundrows, err := dbpool.Query(context.Background(), q)
 	chke(err)
 
-	var thefinds []DbAuthor
+	thefinds := make([]DbAuthor, DBAUMAPSIZE)
 
+	count := 0
 	defer foundrows.Close()
 	for foundrows.Next() {
 		// this will die if <nil> comes back inside any of the columns; and so you have to use builds from HipparchiaBuilder 1.6.0+
 		var thehit DbAuthor
-		err := foundrows.Scan(&thehit.UID, &thehit.Language, &thehit.IDXname, &thehit.Name, &thehit.Shortname,
+		e := foundrows.Scan(&thehit.UID, &thehit.Language, &thehit.IDXname, &thehit.Name, &thehit.Shortname,
 			&thehit.Cleaname, &thehit.Genres, &thehit.RecDate, &thehit.ConvDate, &thehit.Location)
-		chke(err)
-		thefinds = append(thefinds, thehit)
+		chke(e)
+		thefinds[count] = thehit
+		count += 1
 	}
 
 	authormap := make(map[string]DbAuthor, DBAUMAPSIZE)
@@ -253,8 +251,7 @@ func authormapper() map[string]DbAuthor {
 
 // loadworksintoauthors - load all works in the workmap into the authormap WorkList
 func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[string]DbAuthor {
-	// https://stackoverflow.com/questions/32751537/why-do-i-get-a-cannot-assign-error-when-setting-value-to-a-struct-as-a-value-i
-	// the following does not work: aa[a].WorkList = append(aa[w.FindAuthor()].WorkList, w.UID)
+	// the following does not work because of an assign error: aa[a].WorkList = append(aa[w.FindAuthor()].WorkList, w.UID)
 	// that means you have to rebuild the damn authormap unless you want to use pointers in DbAuthor: itself a hassle
 
 	// [1] build a map of {UID: WORKLIST...}
@@ -331,8 +328,8 @@ func lemmamapper() map[string]DbLemma {
 		defer foundrows.Close()
 		for foundrows.Next() {
 			var thehit DbLemma
-			err := foundrows.Scan(&thehit.Entry, &thehit.Xref, &thehit.Deriv)
-			chke(err)
+			e := foundrows.Scan(&thehit.Entry, &thehit.Xref, &thehit.Deriv)
+			chke(e)
 			thefinds[count] = thehit
 			count += 1
 		}
