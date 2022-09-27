@@ -338,7 +338,8 @@ func lemmamapper() map[string]DbLemma {
 		}
 	}
 
-	clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "", "j", "i", "v", "u")
+	// clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "", "j", "i", "v", "u")
+	clean := strings.NewReplacer("-", "", "j", "i", "v", "u")
 
 	unnested := make(map[string]DbLemma, DBLMMAPSIZE)
 	for _, lm := range thefinds {

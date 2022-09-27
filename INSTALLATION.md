@@ -15,7 +15,7 @@
 - various platforms have various installation options; see [HERE](https://www.postgresql.org/download/)
   - mac: look below for one of the two chief options; come back here when done
   - linux/bsd: some equivalent of `pkg install postgresql postgresql-contrib` is all that is needed; make sure start at system launch is configured
-  - pc: you have only one option; jump through all of the hoops; be careful to distinguish between the `postres` password and the `hippa_wr` password (these are two users, one is the chief admin user)
+  - pc: you have only one option; jump through all of the hoops; be careful to distinguish between the `postgres` password and the `hippa_wr` password (these are two users, one is the chief admin user)
 - after installing `PostgreSQL`
   - from the command line of a terminal execute `psql postgres` (or `sudo -u postgres psql postgres` if you do not have permission to do the first). NB: `Postgres.app` on macOS will install `psql` somewhere where you can't just type `psql postgres` to get into the database...
   - pick a password for `hippa_wr` then send the next two commands from the postgres shell: (all punctuation matters...)
@@ -79,7 +79,7 @@ an uncompressed archive is c. `3.6GB`
     - then `brew services restart postgresql`
 - return to the instructions above
 
-### mac PostgreSQL installation via postgressapp (slightly easier at first; after than noticeably worse)
+### mac PostgreSQL installation via postgressapp (slightly easier at first; after that noticeably worse)
 
 - on a mac [https://postgresapp.com/](https://postgresapp.com/) is another possibility: download and install
 - make sure to do **step 3**: `sudo mkdir -p /etc/paths.d &&

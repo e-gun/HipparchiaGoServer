@@ -115,7 +115,7 @@ func StartEchoServer() {
 	// [f] getters
 	//
 
-	// [f1a] /get/response/cookie
+	// [f1a] /get/response/cookie [unneeded/unimplemented ATM]
 
 	// [f1b] /get/response/vectorfigure
 	// [f2a] /get/json/sessionvariables
@@ -138,7 +138,7 @@ func StartEchoServer() {
 
 	e.GET("/get/json/searchlistcontents", RtGetJSSearchlist)
 
-	// [f2e] /get/json/genrelistcontents
+	// [f2e] /get/json/genrelistcontents [unneeded/unimplemented ATM]
 	// [f2f] /get/json/vectorranges
 	// [f2g] /get/json/helpdata
 	e.GET("/get/json/helpdata", RtGetJSHelpdata)

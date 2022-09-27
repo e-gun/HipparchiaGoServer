@@ -551,7 +551,7 @@ body {
 	font-size: 80%;
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 	text-indent: -5px;
-	padding-right: -5px;
+	padding-right: 0px;
 	}
 
 .hmu_mid_line_citation_boundary {
@@ -736,7 +736,6 @@ body {
 
 .obsv {
 	text-indent: -10px;
-	padding-right: -10px;
 	}
 
 .optionlabel {
@@ -1480,11 +1479,6 @@ td.moodlabel {
 	font-weight: normal;
 	font-size: 110%;
 	}
-
-
-td.documentmeta {
-    padding-right: -20px;
-    }
 
 td.morphcell {
 	padding-left: 5px;
