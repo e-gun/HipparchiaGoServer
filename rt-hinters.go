@@ -21,7 +21,7 @@ func RtAuthorHints(c echo.Context) error {
 
 	skg := c.QueryParam("term")
 	if len(skg) < 2 {
-		return c.String(http.StatusOK, "")
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
 	}
 	skg = strings.ToLower(skg)
 
@@ -82,7 +82,7 @@ func RtLemmaHints(c echo.Context) error {
 	skg := []rune(term)
 
 	if len(skg) < 2 {
-		return c.String(http.StatusOK, "")
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
 	}
 
 	// we will be slicing unicode, so can't use string
@@ -124,7 +124,7 @@ func RtWkLocHints(c echo.Context) error {
 func basichinter(c echo.Context, mastermap map[string]bool) error {
 	skg := c.QueryParam("term")
 	if len(skg) < 2 {
-		return c.String(http.StatusOK, "")
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
 	}
 	skg = strings.ToLower(skg)
 	skg = strings.Title(skg)

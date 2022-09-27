@@ -139,9 +139,7 @@ func RtLexLookup(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = insertlexicaljs()
 
-	jsonbundle, ee := json.Marshal(jb)
-	chke(ee)
-	return c.String(http.StatusOK, string(jsonbundle))
+	return c.JSONPretty(http.StatusOK, jb, JSONINDENT)
 }
 
 // RtLexFindByForm - search the dictionary for a specific headword
@@ -151,7 +149,7 @@ func RtLexFindByForm(c echo.Context) error {
 	elem := strings.Split(req, "/")
 
 	if len(elem) == 0 || elem[0] == "" {
-		return c.String(http.StatusOK, "")
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
 	}
 
 	var au string
@@ -176,10 +174,7 @@ func RtLexFindByForm(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = js
 
-	jsonbundle, ee := json.Marshal(jb)
-	chke(ee)
-
-	return c.String(http.StatusOK, string(jsonbundle))
+	return c.JSONPretty(http.StatusOK, jb, JSONINDENT)
 }
 
 // RtLexId - grab a word by its entry value
@@ -189,7 +184,7 @@ func RtLexId(c echo.Context) error {
 	elem := strings.Split(req, "/")
 	if len(elem) != 2 {
 		msg(fmt.Sprintf("RtLexId() received bad request: '%s'", req), 1)
-		return c.String(http.StatusOK, "")
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
 	}
 	d := purgechars(cfg.BadChars, elem[0])
 	w := purgechars(cfg.BadChars, elem[1])
@@ -197,7 +192,7 @@ func RtLexId(c echo.Context) error {
 	f := dictgrabber(w, d, "id_number", "=")
 	if len(f) == 0 {
 		msg(fmt.Sprintf("RtLexId() found nothing at id_number '%s'", w), 1)
-		return c.String(http.StatusOK, "")
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
 	}
 
 	html := formatlexicaloutput(f[0])
@@ -207,10 +202,7 @@ func RtLexId(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = js
 
-	jsonbundle, ee := json.Marshal(jb)
-	chke(ee)
-
-	return c.String(http.StatusOK, string(jsonbundle))
+	return c.JSONPretty(http.StatusOK, jb, JSONINDENT)
 }
 
 // RtLexReverse - look for the headwords that have the sought word in their body
@@ -220,7 +212,7 @@ func RtLexReverse(c echo.Context) error {
 	elem := strings.Split(req, "/")
 
 	if len(elem) == 0 || elem[0] == "" {
-		return c.String(http.StatusOK, "")
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
 	}
 
 	word := purgechars(cfg.BadChars, elem[1])
@@ -238,7 +230,7 @@ func RtLexReverse(c echo.Context) error {
 	}
 
 	if len(dd) == 0 {
-		return c.String(http.StatusOK, "")
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
 	}
 
 	html := reversefind(word, dd)
@@ -247,10 +239,7 @@ func RtLexReverse(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = insertlexicaljs()
 
-	jsb, ee := json.Marshal(jb)
-	chke(ee)
-
-	return c.String(http.StatusOK, string(jsb))
+	return c.JSONPretty(http.StatusOK, jb, JSONINDENT)
 }
 
 //

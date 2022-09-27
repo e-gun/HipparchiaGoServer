@@ -285,9 +285,7 @@ func RtAuthChkuser(c echo.Context) error {
 func RtSessionSetsCookie(c echo.Context) error {
 	user := readUUIDCookie(c)
 	s := sessions[user]
-	o, e := json.Marshal(s)
-	chke(e)
-	return c.String(http.StatusOK, string(o))
+	return c.JSONPretty(http.StatusOK, s, JSONINDENT)
 }
 
 func RtSessionGetCookie(c echo.Context) error {
@@ -332,6 +330,7 @@ func RtResetSession(c echo.Context) error {
 	return nil
 }
 
+// RtSetOption - modify the session in light of the selection made
 func RtSetOption(c echo.Context) error {
 	optandval := c.Param("opt")
 	parsed := strings.Split(optandval, "/")

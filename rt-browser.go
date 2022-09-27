@@ -6,7 +6,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -24,21 +23,21 @@ func RtBrowseLocus(c echo.Context) error {
 	// sample input: http://localhost:8000/browse/locus/gr0086/025/999a|_0
 	sep := "|"
 	bp := Browse(c, sep)
-	return c.String(http.StatusOK, bp)
+	return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
 }
 
 func RtBrowsePerseus(c echo.Context) error {
 	// sample input: http://localhost:8000//browse/perseus/lt0550/001/2:717
 	sep := ":"
 	bp := Browse(c, sep)
-	return c.String(http.StatusOK, bp)
+	return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
 }
 
 func RtBrowseRaw(c echo.Context) error {
 	// uri: /browse/rawlocus/lt0474/055/1.1.1
 	sep := "."
 	bp := Browse(c, sep)
-	return c.String(http.StatusOK, bp)
+	return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
 }
 
 // RtBrowseline - open a browser if sent '/browse/linenumber/lt0550/001/1855'
@@ -56,11 +55,11 @@ func RtBrowseline(c echo.Context) error {
 		ln, e := strconv.Atoi(elem[2])
 		chke(e)
 		ctx := sessions[user].BrowseCtx
-		js := HipparchiaBrowser(au, wk, int64(ln), ctx)
-		return c.String(http.StatusOK, string(js))
+		bp := HipparchiaBrowser(au, wk, int64(ln), ctx)
+		return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
 	} else {
 		msg(fmt.Sprintf("RtBrowseline() could not parse %s", locus), 3)
-		return c.String(http.StatusOK, "")
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
 	}
 }
 
@@ -68,7 +67,19 @@ func RtBrowseline(c echo.Context) error {
 // BROWSING
 //
 
-func Browse(c echo.Context, sep string) string {
+// BrowsedPassage - a JSON output struct
+type BrowsedPassage struct {
+	Browseforwards    string `json:"browseforwards"`
+	Browseback        string `json:"browseback"`
+	Authornumber      string `json:"authornumber"`
+	Workid            string `json:"workid"`
+	Worknumber        string `json:"worknumber"`
+	Authorboxcontents string `json:"authorboxcontents"`
+	Workboxcontents   string `json:"workboxcontents"`
+	Browserhtml       string `json:"browserhtml"`
+}
+
+func Browse(c echo.Context, sep string) BrowsedPassage {
 	// sample input: http://localhost:8000//browse/perseus/lt0550/001/2:717
 	user := readUUIDCookie(c)
 
@@ -82,16 +93,15 @@ func Browse(c echo.Context, sep string) string {
 		// findendpointsfromlocus() lives in rt-selection.go
 		ln := findendpointsfromlocus(uid, elem[2], sep)
 		ctx := sessions[user].BrowseCtx
-		js := HipparchiaBrowser(au, wk, ln[0], ctx)
-		return string(js)
+		return HipparchiaBrowser(au, wk, ln[0], ctx)
 	} else {
 		msg(fmt.Sprintf("Browse() could not parse %s", locus), 3)
-		return ""
+		return BrowsedPassage{}
 	}
 }
 
 // HipparchiaBrowser - browse Author A at line X with a context of Y lines
-func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
+func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) BrowsedPassage {
 	// build a response to "GET /browse/linenumber/gr0062/028/14672 HTTP/1.1"
 
 	k := fmt.Sprintf("%sw%s", au, wk)
@@ -110,7 +120,7 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 
 	if w.UID == "null" {
 		msg(fmt.Sprintf("could not find a work for %s", k), 1)
-		return []byte{}
+		return BrowsedPassage{}
 	}
 
 	// [b] acquire the lines we need to display in the body
@@ -129,7 +139,7 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 
 	if len(lines) == 0 {
 		msg(fmt.Sprintf("HipparchiaBrowser() called simplecontextgrabber() and failed: %s, %d, %d", au, fc, ctx/2), 1)
-		return []byte{}
+		return BrowsedPassage{}
 	}
 
 	// want to do what follows in some sort of regular order
@@ -170,18 +180,6 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 	ab := fmt.Sprintf(`%s [%s]`, AllAuthors[au].Cleaname, au)
 	wb := fmt.Sprintf(`%s (w%s)`, w.Title, w.FindWorknumber())
 
-	// a JSON output struct
-	type BrowsedPassage struct {
-		Browseforwards    string `json:"browseforwards"`
-		Browseback        string `json:"browseback"`
-		Authornumber      string `json:"authornumber"`
-		Workid            string `json:"workid"`
-		Worknumber        string `json:"worknumber"`
-		Authorboxcontents string `json:"authorboxcontents"`
-		Workboxcontents   string `json:"workboxcontents"`
-		Browserhtml       string `json:"browserhtml"`
-	}
-
 	var bp BrowsedPassage
 	bp.Browseforwards = fw
 	bp.Browseback = bw
@@ -192,13 +190,7 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) []byte {
 	bp.Browserhtml = ci + tr
 	bp.Worknumber = wk
 
-	// debugging
-	// fmt.Println(ci)
-
-	js, e := json.Marshal(bp)
-	chke(e)
-
-	return js
+	return bp
 }
 
 //
