@@ -117,7 +117,7 @@ func RtGetJSWorksStruct(c echo.Context) error {
 	parsed := strings.Split(locus, "/")
 
 	if len(parsed) < 2 || len(parsed) > 3 {
-		return c.String(http.StatusOK, "")
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
 	}
 	wkid := parsed[0] + "w" + parsed[1]
 
@@ -126,7 +126,7 @@ func RtGetJSWorksStruct(c echo.Context) error {
 	}
 
 	if _, ok := AllWorks[wkid]; !ok {
-		return c.String(http.StatusOK, "")
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
 	}
 
 	locc := strings.Split(parsed[2], "|")
@@ -281,12 +281,12 @@ func RtGetJSSampCit(c echo.Context) error {
 	parsed := strings.Split(locus, "/")
 
 	if len(parsed) < 2 || len(parsed) > 3 {
-		return c.String(http.StatusOK, "")
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
 	}
 	wkid := parsed[0] + "w" + parsed[1]
 
 	if _, ok := AllWorks[wkid]; !ok {
-		return c.String(http.StatusOK, "")
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
 	}
 
 	w := AllWorks[wkid]

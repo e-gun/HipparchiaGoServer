@@ -7,7 +7,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -46,6 +45,11 @@ func RtTextMaker(c echo.Context) error {
 
 	user := readUUIDCookie(c)
 	srch := sessionintobulksearch(c)
+
+	if len(srch.Results) == 0 {
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
+	}
+
 	searches[srch.ID] = srch
 
 	// now we have the lines we need....
@@ -143,10 +147,7 @@ func RtTextMaker(c echo.Context) error {
 	jso.HT = tab
 	jso.JS = ""
 
-	js, e := json.Marshal(jso)
-	chke(e)
-
-	return c.String(http.StatusOK, string(js))
+	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
 
 // RtVocabMaker - get the vocabulary for whatever collection of lines you would be searching
@@ -169,6 +170,10 @@ func RtVocabMaker(c echo.Context) error {
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
 	srch := sessionintobulksearch(c)
+
+	if len(srch.Results) == 0 {
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
+	}
 
 	var slicedwords []WordInfo
 	for _, r := range srch.Results {
@@ -367,14 +372,11 @@ func RtVocabMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "vocabobserved") + fmt.Sprintf(BROWSERJS, "vocabobserved")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	js, e := json.Marshal(jso)
-	chke(e)
-
 	// clean up progress reporting
 	delete(searches, si.ID)
 	progremain.Delete(si.ID)
 
-	return c.String(http.StatusOK, string(js))
+	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
 
 // RtIndexMaker - build an index for whatever collection of lines you would be searching
@@ -398,6 +400,10 @@ func RtIndexMaker(c echo.Context) error {
 	progremain.Store(si.ID, 1)
 
 	srch := sessionintobulksearch(c)
+
+	if len(srch.Results) == 0 {
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
+	}
 
 	var slicedwords []WordInfo
 	for _, r := range srch.Results {
@@ -649,14 +655,11 @@ func RtIndexMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "indexobserved") + fmt.Sprintf(BROWSERJS, "indexedlocation")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	js, e := json.Marshal(jso)
-	chke(e)
-
 	// clean up progress reporting
 	delete(searches, si.ID)
 	progremain.Delete(si.ID)
 
-	return c.String(http.StatusOK, string(js))
+	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
 
 //

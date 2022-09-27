@@ -7,7 +7,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -107,9 +106,9 @@ func RtSelectionMake(c echo.Context) error {
 	}
 
 	sessions[user] = selected(user, sel)
-	jsbytes := reportcurrentselections(c)
+	cs := reportcurrentselections(c)
 
-	return c.String(http.StatusOK, string(jsbytes))
+	return c.JSONPretty(http.StatusOK, cs, JSONINDENT)
 }
 
 func RtSelectionClear(c echo.Context) error {
@@ -121,14 +120,14 @@ func RtSelectionClear(c echo.Context) error {
 
 	if len(which) != 2 {
 		msg(fmt.Sprintf("RtSelectionClear() was given bad input: %s", locus), 1)
-		return c.String(http.StatusOK, "")
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
 	}
 
 	cat := which[0]
 	id, e := strconv.Atoi(which[1])
 	if e != nil {
 		msg(fmt.Sprintf("RtSelectionClear() was given bad input: %s", locus), 1)
-		return c.String(http.StatusOK, "")
+		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
 	}
 
 	// cat := []string{"agn", "wgn", "aloc", "wloc", "au", "wk", "psg"}
@@ -193,9 +192,8 @@ func RtSelectionClear(c echo.Context) error {
 }
 
 func RtSelectionFetch(c echo.Context) error {
-	jsbytes := reportcurrentselections(c)
-	// msg(string(jsbytes), 1)
-	return c.String(http.StatusOK, string(jsbytes))
+	sd := reportcurrentselections(c)
+	return c.JSONPretty(http.StatusOK, sd, JSONINDENT)
 }
 
 func selected(user string, sv SelectionValues) ServerSession {
@@ -712,8 +710,17 @@ func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
 	return fl, success
 }
 
+// SelectionData - JS output struct
+type SelectionData struct {
+	TimeRestr string `json:"timeexclusions"`
+	Select    string `json:"selections"`
+	Exclude   string `json:"exclusions"`
+	NewJS     string `json:"newjs"`
+	Count     int    `json:"numberofselections"`
+}
+
 // reportcurrentselections - prepare JSON for the page re. current selections
-func reportcurrentselections(c echo.Context) []byte {
+func reportcurrentselections(c echo.Context) SelectionData {
 	// ultimately feeding autocomplete.js
 	//    $('#timerestrictions').html(selectiondata.timeexclusions);
 	//    $('#selectioninfocell').html(selectiondata.selections);
@@ -745,15 +752,6 @@ func reportcurrentselections(c echo.Context) []byte {
 		"au":   {"Authors", "ListedABN"},
 		"wk":   {"Works", "ListedWBN"},
 		"psg":  {"Passages", "ListedPBN"},
-	}
-
-	// JS output struct
-	type SelectionData struct {
-		TimeRestr string `json:"timeexclusions"`
-		Select    string `json:"selections"`
-		Exclude   string `json:"exclusions"`
-		NewJS     string `json:"newjs"`
-		Count     int    `json:"numberofselections"`
 	}
 
 	var jsinfo []JSData
@@ -812,9 +810,7 @@ func reportcurrentselections(c echo.Context) []byte {
 	}
 	sd.NewJS = formatnewselectionjs(jsinfo)
 
-	js, err := json.Marshal(sd)
-	chke(err)
-	return js
+	return sd
 }
 
 func formatnewselectionjs(jsinfo []JSData) string {
