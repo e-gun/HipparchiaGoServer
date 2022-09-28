@@ -45,7 +45,7 @@ $(document).ready( function () {
         openextendedsearcharea();
         });
 
-    //
+//
 // SEARCHING
 //
 
@@ -212,7 +212,8 @@ togglemany(vectorcheckboxspans);
 closeextendedsearcharea();
 
 if ($('#termoneisalemma').is(":checked")) {
-    $('#termonecheckbox').show(); }
+    $('#termonecheckbox').show();
+}
 
 
 //
@@ -226,7 +227,7 @@ function checkactivityviawebsocket(searchid) {
         pd.show();
         let ip = location.hostname;
         let s = new WebSocket('ws://'+ip+':'+portnumber+'/ws');
-        // s.onclose = function(e){}
+        s.onclose = function(e){ s = null; }
         s.onerror = function(e){ s.close(); s = null; }
         s.onopen = function(e){ s.send(JSON.stringify(searchid)); }
         s.onmessage = function(e){
@@ -250,7 +251,7 @@ $.getJSON('/authentication/checkuser', function(data){
     if (u === 'Anonymous') {
         $('#executelogin').show();
         $('#executelogout').hide();
-        } else {
+    } else {
         $('#executelogin').hide();
         $('#executelogout').show();
         }

@@ -216,7 +216,7 @@ func StartEchoServer() {
 	// [l] setoption: http://localhost:8000/setoption/greekcorpus/yes
 	//
 
-	e.GET("/setoption/:opt", RtSetOption)
+	e.GET("/setoption/:opt", RtSetOption) // located below
 
 	//
 	// [m] text and index

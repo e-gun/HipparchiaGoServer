@@ -193,15 +193,15 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 
 	pt := `%s_FROM_%d_TO_%d`
 
-	var newpsg []string
-	for _, r := range first.Results {
+	newpsg := make([]string, len(first.Results))
+	for i, r := range first.Results {
 		// avoid "gr0028_FROM_-1_TO_5"
 		low := r.TbIndex - first.ProxVal
 		if low < 1 {
 			low = 1
 		}
 		np := fmt.Sprintf(pt, r.FindAuthor(), low, r.TbIndex+first.ProxVal)
-		newpsg = append(newpsg, np)
+		newpsg[i] = np
 	}
 
 	second.Limit = originalsrch.Limit
@@ -273,7 +273,7 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 	t := `linenumber/%s/%s/%d`
 
 	resultmapper := make(map[string]int, len(first.Results))
-	var newpsg []string
+	newpsg := make([]string, len(first.Results))
 
 	// [a2] pick the lines to grab and associate them with the hits they go with
 	for i, r := range first.Results {
@@ -282,7 +282,7 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 			low = 1
 		}
 		np := fmt.Sprintf(pt, r.FindAuthor(), low, r.TbIndex+need)
-		newpsg = append(newpsg, np)
+		newpsg[i] = np
 		for j := r.TbIndex - need; j <= r.TbIndex+need; j++ {
 			m := fmt.Sprintf(t, r.FindAuthor(), r.FindWork(), j)
 			resultmapper[m] = i

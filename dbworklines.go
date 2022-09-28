@@ -102,14 +102,17 @@ func (dbw DbWorkline) FindLocus() []string {
 }
 
 func (dbw DbWorkline) FindAuthor() string {
+	// gr0001w001 --> gr0001
 	return dbw.WkUID[:6]
 }
 
 func (dbw DbWorkline) FindWork() string {
+	// gr0001w001 --> 001
 	return dbw.WkUID[7:]
 }
 
 func (dbw DbWorkline) FindCorpus() string {
+	// gr0001w001 --> gr
 	return dbw.WkUID[0:2]
 }
 
@@ -133,8 +136,6 @@ func (dbw *DbWorkline) GatherMetadata() {
 			md[m[1]] = m[2]
 		}
 
-		// fmt.Println(md)
-
 		dbw.MarkedUp = metadata.ReplaceAllString(dbw.MarkedUp, "")
 		for k, v := range md {
 			md[k] = mdformat.ReplaceAllString(v, `<span class="embeddedannotations foundwork">$1</span>`)
@@ -144,7 +145,6 @@ func (dbw *DbWorkline) GatherMetadata() {
 			}
 		}
 	}
-
 	dbw.EmbNotes = md
 }
 
@@ -220,10 +220,10 @@ func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Pool) []DbWorkline {
 	for foundrows.Next() {
 		// [vi.1] convert the finds into DbWorklines
 		var thehit DbWorkline
-		err := foundrows.Scan(&thehit.WkUID, &thehit.TbIndex, &thehit.Lvl5Value, &thehit.Lvl4Value, &thehit.Lvl3Value,
+		e := foundrows.Scan(&thehit.WkUID, &thehit.TbIndex, &thehit.Lvl5Value, &thehit.Lvl4Value, &thehit.Lvl3Value,
 			&thehit.Lvl2Value, &thehit.Lvl1Value, &thehit.Lvl0Value, &thehit.MarkedUp, &thehit.Accented,
 			&thehit.Stripped, &thehit.Hyphenated, &thehit.Annotations)
-		chke(err)
+		chke(e)
 		thesefinds = append(thesefinds, thehit)
 	}
 
