@@ -15,7 +15,6 @@ import (
 )
 
 type PollData struct {
-	Active   string `json:"active"`
 	TotalWrk int    `json:"Poolofwork"`
 	Remain   int    `json:"Remaining"`
 	Hits     int    `json:"Hitcount"`
@@ -42,9 +41,9 @@ func RtWebsocket(c echo.Context) error {
 	// POLLEVERYNTABLES in SrchFeeder() and WSPOLLINGPAUSE here make a huge difference
 
 	type JSOut struct {
-		V    string `json:"value"`
-		ID   string `json:"ID"`
-		Stop string `json:"stop"`
+		V     string `json:"value"`
+		ID    string `json:"ID"`
+		Close string `json:"close"`
 	}
 
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
@@ -87,7 +86,6 @@ func RtWebsocket(c echo.Context) error {
 		if found && searches[bs].IsActive {
 			for {
 				var r PollData
-				r.Active = "is_active"
 				r.ID = bs
 				r.TotalWrk = searches[bs].TableSize
 				r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(searches[bs].Launched).Seconds())
@@ -115,9 +113,9 @@ func RtWebsocket(c echo.Context) error {
 				pd := formatpoll(r)
 
 				jso := JSOut{
-					V:    pd,
-					ID:   r.ID,
-					Stop: "",
+					V:     pd,
+					ID:    r.ID,
+					Close: "open",
 				}
 
 				js, y := json.Marshal(jso)
@@ -144,9 +142,9 @@ func RtWebsocket(c echo.Context) error {
 
 	// tell the websocket on the other end to close
 	end := JSOut{
-		V:    "",
-		ID:   bs,
-		Stop: "stop",
+		V:     "",
+		ID:    bs,
+		Close: "close",
 	}
 
 	stop, y := json.Marshal(end)

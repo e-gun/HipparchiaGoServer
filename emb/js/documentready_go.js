@@ -45,36 +45,9 @@ $(document).ready( function () {
         openextendedsearcharea();
         });
 
-    // https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
-    // dec2hex :: Integer -> String
-    function dec2hex (dec) {
-      return ('0' + dec.toString(16)).substr(-2);
-    }
-
-    // generateId :: Integer -> String
-    function generateId (len) {
-      let arr = new Uint8Array((len || 40) / 2);
-      window.crypto.getRandomValues(arr);
-      return Array.from(arr, dec2hex).join('');
-    }
-
-    function areWeWearchingVectors () {
-        let xor = [];
-        for (let i = 0; i < vectorboxes.length; i++) {
-            let opt = $(vectorboxes[i]);
-            if (opt.prop('checked')) { xor.push(1); }
-            }
-        return xor.length;
-    }
-
-    function whichVectorChoice () {
-        let xor = [];
-        for (let i = 0; i < vectorboxes.length; i++) {
-            let opt = $(vectorboxes[i]);
-            if (opt.prop('checked')) { xor.push(vectorboxes[i].slice(1)); }
-            }
-        return xor[0];
-    }
+    //
+// SEARCHING
+//
 
     $('#executesearch').click( function(){
         $('#imagearea').empty();
@@ -90,7 +63,7 @@ $(document).ready( function () {
             'prx': $('#proximatesearchform').val(),
             'lem': $('#lemmatasearchform').val(),
             'plm': $('#proximatelemmatasearchform').val()
-            };
+        };
         // disgustingly, if you send 'STRING ' to window.location it strips the whitespace and turns it into 'STRING'
         if (terms['skg'].slice(-1) === ' ') { terms['skg'] = terms['skg'].slice(0,-1) + '%20'; }
         if (terms['prx'].slice(-1) === ' ') { terms['prx'] = terms['prx'].slice(0,-1) + '%20'; }
@@ -98,7 +71,7 @@ $(document).ready( function () {
         let qstringarray = Array();
         for (let t in terms) {
             if (terms[t] !== '') {qstringarray.push(t+'='+terms[t]); }
-            }
+        }
         let qstring = qstringarray.join('&');
 
         let searchid = generateId(8);
@@ -120,7 +93,7 @@ $(document).ready( function () {
 
         checkactivityviawebsocket(searchid);
         $.getJSON(url, function (returnedresults) { loadsearchresultsintodisplayresults(returnedresults); });
-        });
+    });
 
     function loadsearchresultsintodisplayresults(output) {
         document.title = output['title'];
@@ -152,6 +125,37 @@ $(document).ready( function () {
         let browserclickscript = document.createElement('script');
         browserclickscript.innerHTML = output['js'];
         document.getElementById('browserclickscriptholder').appendChild(browserclickscript);
+    }
+
+    // https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
+    // dec2hex :: Integer -> String
+    function dec2hex (dec) {
+      return ('0' + dec.toString(16)).substr(-2);
+    }
+
+    // generateId :: Integer -> String
+    function generateId (len) {
+      let arr = new Uint8Array((len || 40) / 2);
+      window.crypto.getRandomValues(arr);
+      return Array.from(arr, dec2hex).join('');
+    }
+
+    function areWeWearchingVectors () {
+        let xor = [];
+        for (let i = 0; i < vectorboxes.length; i++) {
+            let opt = $(vectorboxes[i]);
+            if (opt.prop('checked')) { xor.push(1); }
+            }
+        return xor.length;
+    }
+
+    function whichVectorChoice () {
+        let xor = [];
+        for (let i = 0; i < vectorboxes.length; i++) {
+            let opt = $(vectorboxes[i]);
+            if (opt.prop('checked')) { xor.push(vectorboxes[i].slice(1)); }
+            }
+        return xor[0];
     }
 
     // setoptions() defined in coreinterfaceclicks_go.js
@@ -211,7 +215,6 @@ if ($('#termoneisalemma').is(":checked")) {
     $('#termonecheckbox').show(); }
 
 
-
 //
 // PROGRESS INDICATOR
 //
@@ -229,18 +232,13 @@ function checkactivityviawebsocket(searchid) {
         }, 10);
         s.onmessage = function(e){
             let progress = JSON.parse(e.data);
-            displayprogress(searchid, progress);
-            if  (progress['stop'] === 'stop') { s.close(); s = null; }
+            if (progress['ID'] === searchid) {
+                $('#pollingdata').html(progress['value']);
+                if  (progress['close'] === 'close') { s.close(); s = null; }
+            }
         }
     });
 }
-
-function displayprogress(searchid, progress){
-    if (progress['ID'] === searchid) {
-        $('#pollingdata').html(progress['value']);
-    }
-}
-
 
 //
 // authentication
