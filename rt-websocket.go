@@ -41,6 +41,12 @@ func RtWebsocket(c echo.Context) error {
 	// you can spend 3.5s on a search vs 2.0 seconds if you poll as fast as possible
 	// POLLEVERYNTABLES in SrchFeeder() and WSPOLLINGPAUSE here make a huge difference
 
+	type JSOut struct {
+		V    string `json:"value"`
+		ID   string `json:"ID"`
+		Stop string `json:"stop"`
+	}
+
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		msg("RtWebsocket(): ws connection failed", 1)
@@ -55,6 +61,7 @@ func RtWebsocket(c echo.Context) error {
 	}
 
 	done := false
+	bs := ""
 
 	for {
 		if done {
@@ -73,7 +80,7 @@ func RtWebsocket(c echo.Context) error {
 		// will yield: websocket received: "205da19d"
 		// bug-trap: the quotes around that string
 
-		bs := string(m)
+		bs = string(m)
 		bs = strings.Replace(bs, `"`, "", -1)
 		_, found := searches[bs]
 
@@ -107,14 +114,10 @@ func RtWebsocket(c echo.Context) error {
 				// Write
 				pd := formatpoll(r)
 
-				type JSOut struct {
-					V  string `json:"value"`
-					ID string `json:"ID"`
-				}
-
 				jso := JSOut{
-					V:  pd,
-					ID: r.ID,
+					V:    pd,
+					ID:   r.ID,
+					Stop: "",
 				}
 
 				js, y := json.Marshal(jso)
@@ -138,6 +141,22 @@ func RtWebsocket(c echo.Context) error {
 			}
 		}
 	}
+
+	// tell the websocket on the other end to close
+	end := JSOut{
+		V:    "",
+		ID:   bs,
+		Stop: "stop",
+	}
+
+	stop, y := json.Marshal(end)
+	chke(y)
+
+	er := ws.WriteMessage(websocket.TextMessage, stop)
+	if er != nil {
+		msg("RtWebsocket() could not send stop message", 3)
+	}
+
 	return nil
 }
 

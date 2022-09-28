@@ -27,6 +27,7 @@ var (
 // DEBUGGING
 //
 
+// chke - send a generic message and panic on error
 func chke(err error) {
 	if err != nil {
 		red := color.New(color.FgHiRed).PrintfFunc()
@@ -35,6 +36,7 @@ func chke(err error) {
 	}
 }
 
+// msg - send a color-coded message; will not be seen unless threshold <= go log level
 func msg(message string, threshold int) {
 	hgc := color.New(color.FgYellow).SprintFunc()
 	c := color.FgRed
@@ -72,6 +74,11 @@ func timetracker(letter string, m string, start time.Time, previous time.Time) {
 
 // cgstats - force garbage collection and report on the results
 func cgstats(fn string) {
+	// NB: this could potentially backfire
+	// "GC runs a garbage collection and blocks the caller until the garbage collection is complete.
+	// It may also block the entire program." (https://pkg.go.dev/runtime#GC)
+	// nevertheless it turns HGS into a 380MB program instead of a 540MB program
+
 	if !cfg.ManualGC {
 		return
 	}

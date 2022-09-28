@@ -230,7 +230,7 @@ function checkactivityviawebsocket(searchid) {
         s.onmessage = function(e){
             let progress = JSON.parse(e.data);
             displayprogress(searchid, progress);
-            // if  (progress['active'] === 'inactive') { pd.html(''); s.close(); s = null; }
+            if  (progress['stop'] === 'stop') { s.close(); s = null; }
         }
     });
 }
