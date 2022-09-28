@@ -11,7 +11,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"regexp"
-	"runtime"
 	"strings"
 	"time"
 )
@@ -67,6 +66,12 @@ func RtSearchConfirm(c echo.Context) error {
 }
 
 func RtSearch(c echo.Context) error {
+	c.Response().After(func() { cgstats("RtSearch()") })
+	// NB: this could potentially backfire
+	// "GC runs a garbage collection and blocks the caller until the garbage collection is complete.
+	// It may also block the entire program." (https://pkg.go.dev/runtime#GC)
+	// nevertheless it turns HGS into a 380MB program instead of a 540MB program
+
 	// "GET /search/standard/5446b840?skg=sine%20dolore HTTP/1.1"
 	// "GET /search/standard/c2fba8e8?skg=%20dolore&prx=manif HTTP/1.1"
 	// "GET /search/standard/2ad866e2?prx=manif&lem=dolor HTTP/1.1"
@@ -150,7 +155,6 @@ func RtSearch(c echo.Context) error {
 
 	delete(searches, id)
 	progremain.Delete(id)
-	runtime.GC()
 
 	return c.JSONPretty(http.StatusOK, so, JSONINDENT)
 }

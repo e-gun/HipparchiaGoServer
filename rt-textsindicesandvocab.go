@@ -14,7 +14,6 @@ import (
 	"golang.org/x/text/message"
 	"net/http"
 	"regexp"
-	"runtime"
 	"sort"
 	"strings"
 	"time"
@@ -36,6 +35,7 @@ type WordInfo struct {
 
 // RtTextMaker - make a text of whatever collection of lines you would be searching
 func RtTextMaker(c echo.Context) error {
+	c.Response().After(func() { cgstats("RtTextMaker()") })
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
 
@@ -153,6 +153,8 @@ func RtTextMaker(c echo.Context) error {
 
 // RtVocabMaker - get the vocabulary for whatever collection of lines you would be searching
 func RtVocabMaker(c echo.Context) error {
+	c.Response().After(func() { cgstats("RtVocabMaker()") })
+
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
 	// todo: worry about γ' for γε
@@ -376,13 +378,14 @@ func RtVocabMaker(c echo.Context) error {
 	// clean up progress reporting
 	delete(searches, si.ID)
 	progremain.Delete(si.ID)
-	runtime.GC()
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
 
 // RtIndexMaker - build an index for whatever collection of lines you would be searching
 func RtIndexMaker(c echo.Context) error {
+	c.Response().After(func() { cgstats("RtIndexMaker()") })
+
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
 
@@ -660,7 +663,6 @@ func RtIndexMaker(c echo.Context) error {
 	// clean up progress reporting
 	delete(searches, si.ID)
 	progremain.Delete(si.ID)
-	runtime.GC()
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }

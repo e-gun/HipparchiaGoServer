@@ -8,6 +8,7 @@ package main
 import (
 	"fmt"
 	"github.com/fatih/color"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -67,6 +68,20 @@ func timetracker(letter string, m string, start time.Time, previous time.Time) {
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	m = fmt.Sprintf("[%s: %.3fs]", letter, time.Now().Sub(start).Seconds()) + d + m
 	msg(m, TIMETRACKERMSGTHRESH)
+}
+
+// cgstats - force garbage collection and report on the results
+func cgstats(fn string) {
+	if !cfg.ManualGC {
+		return
+	}
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	b := fmt.Sprintf("%dM", m.HeapAlloc/1024/1024)
+	runtime.GC()
+	runtime.ReadMemStats(&m)
+	a := fmt.Sprintf("%dM", m.HeapAlloc/1024/1024)
+	msg(fmt.Sprintf("%s runtime.GC() %s --> %s", fn, b, a), 4)
 }
 
 //

@@ -64,7 +64,7 @@ const (
 	TIMETRACKERMSGTHRESH    = 3
 	USEGZIP                 = false
 	VARIADATE               = 2000
-	WSPOLLINGPAUSE          = 99999999
+	WSPOLLINGPAUSE          = 99999999 // 99999999 is 9 9s; consider also 6666666
 
 	// UNACCEPTABLEINPUT       = `|"'!@:,=+_\/`
 	UNACCEPTABLEINPUT = `"'!@:,=_/̣` // we want to be able to do regex...; note the subscript dot at the end; echo+net/url means some can't even make it into a parser: #%&;

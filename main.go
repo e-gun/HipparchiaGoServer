@@ -91,6 +91,7 @@ type CurrentConfiguration struct {
 	HostIP      string
 	HostPort    int
 	LogLevel    int
+	ManualGC    bool // see cgstats()
 	MaxText     int
 	PGLogin     PostgresLogin
 	QuietStart  bool
@@ -105,6 +106,7 @@ func configatlaunch() {
 	cfg.Gzip = USEGZIP
 	cfg.HostIP = SERVEDFROMHOST
 	cfg.HostPort = SERVEDFROMPORT
+	cfg.ManualGC = true
 	cfg.MaxText = MAXTEXTLINEGENERATION
 	cfg.QuietStart = false
 	cfg.WorkerCount = runtime.NumCPU()
