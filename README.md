@@ -20,13 +20,9 @@
 
 * room to improve lemma highlighting
 * morphology tables
-* reset route kills the websocket
 
 ### DISTANT FANTASIES
 * vectors
 
 
 ![options](gitimg/hgscli.png)
-
-
-

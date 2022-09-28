@@ -225,11 +225,10 @@ function checkactivityviawebsocket(searchid) {
         pd.html('');
         pd.show();
         let ip = location.hostname;
-        // but /etc/nginx/nginx.conf might have a WS proxy and not the actual WS host...
         let s = new WebSocket('ws://'+ip+':'+portnumber+'/ws');
-        let amready = setInterval(function(){
-            if (s.readyState === 1) { s.send(JSON.stringify(searchid)); clearInterval(amready); }
-        }, 10);
+        // s.onclose = function(e){}
+        s.onerror = function(e){ s.close(); s = null; }
+        s.onopen = function(e){ s.send(JSON.stringify(searchid)); }
         s.onmessage = function(e){
             let progress = JSON.parse(e.data);
             if (progress['ID'] === searchid) {
@@ -241,7 +240,7 @@ function checkactivityviawebsocket(searchid) {
 }
 
 //
-// authentication
+// AUTHENTICATION
 //
 
 

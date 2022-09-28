@@ -51,7 +51,6 @@ func RtWebsocket(c echo.Context) error {
 		msg("RtWebsocket(): ws connection failed", 1)
 		return nil
 	}
-	defer ws.Close()
 
 	for {
 		if len(searches) != 0 {
@@ -71,8 +70,7 @@ func RtWebsocket(c echo.Context) error {
 		var m []byte
 		_, m, e := ws.ReadMessage()
 		if e != nil {
-			// c.Logger().Error(err)
-			msg("RtWebsocket(): ws failed to read: breaking", 1)
+			msg("RtWebsocket(): ws failed to read: breaking", 3)
 			break
 		}
 
@@ -124,8 +122,7 @@ func RtWebsocket(c echo.Context) error {
 				er := ws.WriteMessage(websocket.TextMessage, js)
 
 				if er != nil {
-					c.Logger().Error(er)
-					msg("RtWebsocket(): ws failed to write: breaking", 1)
+					msg("RtWebsocket(): ws failed to write: breaking", 3)
 					done = true
 					break
 				} else {
@@ -141,6 +138,8 @@ func RtWebsocket(c echo.Context) error {
 	}
 
 	// tell the websocket on the other end to close
+	// this is not supposed to be strictly necessary, but there have been problems reconnecting after multiple searches
+
 	end := JSOut{
 		V:     "",
 		ID:    bs,
@@ -155,6 +154,10 @@ func RtWebsocket(c echo.Context) error {
 		msg("RtWebsocket() could not send stop message", 3)
 	}
 
+	err = ws.Close()
+	if err != nil {
+		msg("RtWebsocket() failed to close", 3)
+	}
 	return nil
 }
 
