@@ -14,6 +14,7 @@ import (
 	"golang.org/x/text/message"
 	"net/http"
 	"regexp"
+	"runtime"
 	"sort"
 	"strings"
 	"time"
@@ -375,6 +376,7 @@ func RtVocabMaker(c echo.Context) error {
 	// clean up progress reporting
 	delete(searches, si.ID)
 	progremain.Delete(si.ID)
+	runtime.GC()
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
@@ -658,6 +660,7 @@ func RtIndexMaker(c echo.Context) error {
 	// clean up progress reporting
 	delete(searches, si.ID)
 	progremain.Delete(si.ID)
+	runtime.GC()
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }

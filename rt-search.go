@@ -11,6 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -149,6 +150,7 @@ func RtSearch(c echo.Context) error {
 
 	delete(searches, id)
 	progremain.Delete(id)
+	runtime.GC()
 
 	return c.JSONPretty(http.StatusOK, so, JSONINDENT)
 }
