@@ -140,8 +140,7 @@ func formatwithcontextresults(ss SearchStruct) SearchOutputJSON {
 	}
 
 	res.Results = []DbWorkline{}
-
-	res.Queries = searchlistintoqueries(&res)
+	BuildQueriesForSS(&res)
 	res = HGoSrch(res)
 
 	// now you have all the lines you will ever need

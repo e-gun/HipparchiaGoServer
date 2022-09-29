@@ -94,7 +94,7 @@ func RtSearch(c echo.Context) error {
 
 	parsesearchinput(&srch)
 
-	// must happen before searchlistintoqueries()
+	// must happen before BuildQueriesForSS()
 	setsearchtype(&srch)
 
 	srch.InitSum = formatinitialsummary(srch)
@@ -108,10 +108,9 @@ func RtSearch(c echo.Context) error {
 	srch.SearchEx = sl.Excl
 	srch.SearchSize = sl.Size
 
-	prq := searchlistintoqueries(&srch)
-	srch.TableSize = len(prq)
+	BuildQueriesForSS(&srch)
 
-	srch.Queries = prq
+	srch.TableSize = len(srch.Queries)
 	srch.IsActive = true
 	searches[id] = srch
 
@@ -130,15 +129,13 @@ func RtSearch(c echo.Context) error {
 	if completed.HasPhrase {
 		// you did HGoSrch() and need to check the windowed lines
 		// withinxlinessearch() has already done the checking
-		// the cannot assign problem...
-		completed.Results = findphrasesacrosslines(completed)
+		findphrasesacrosslines(&completed)
 		if int64(len(completed.Results)) > reallimit {
 			completed.Results = completed.Results[0:reallimit]
 		}
 	}
 
 	resultsorter(&completed)
-
 	searches[id] = completed
 
 	so := SearchOutputJSON{}
@@ -207,13 +204,12 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	second.Limit = originalsrch.Limit
 	second.SearchIn.Passages = newpsg
 
-	prq := searchlistintoqueries(&second)
+	BuildQueriesForSS(&second)
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf("%s searchlistintoqueries() rerun", d), 4)
+	msg(fmt.Sprintf("%s BuildQueriesForSS() rerun", d), 4)
 	previous = time.Now()
 
-	second.Queries = prq
 	second = HGoSrch(second)
 
 	// was this a "notnear" search?
@@ -236,8 +232,7 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	msg(fmt.Sprintf("%s withinxlinessearch(): %d subsequent hits", d, len(first.Results)), 4)
 
 	// findphrasesacrosslines() check happens just after you exit this function
-	searches[originalsrch.ID] = second
-	return searches[originalsrch.ID]
+	return second
 }
 
 // withinxwordssearch - find A within N words of B
@@ -290,11 +285,10 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 	}
 
 	second.SearchIn.Passages = newpsg
-	prq := searchlistintoqueries(&second)
+	BuildQueriesForSS(&second)
 
 	// [b] run the second "search"
 
-	second.Queries = prq
 	searches[originalsrch.ID] = HGoSrch(second)
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
@@ -404,10 +398,7 @@ func generateinitialhits(first SearchStruct) SearchStruct {
 	first = HGoSrch(first)
 
 	if first.HasPhrase {
-		mod := first
-		// this will cut the hits by c. 50%
-		mod.Results = findphrasesacrosslines(first)
-		first = mod
+		findphrasesacrosslines(&first)
 	}
 	return first
 }
@@ -636,8 +627,9 @@ func lemmaintoregexslice(hdwd string) []string {
 	return qq
 }
 
-func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
-	// "one two$" + "^three four" makes a hit if you want "one two three four"
+// findphrasesacrosslines - "one two$" + "^three four" makes a hit if you want "one two three four"
+func findphrasesacrosslines(ss *SearchStruct) {
+	// modify ss in place
 	// super slow...:
 	// [HGS] [Δ: 1.474s]  withinxlinessearch(): 1631 initial hits
 	// [HGS] [Δ: 7.433s]  findphrasesacrosslines(): 855 trimmed hits
@@ -707,7 +699,7 @@ func findphrasesacrosslines(ss SearchStruct) []DbWorkline {
 		counter += 1
 	}
 
-	return slc
+	ss.Results = slc
 }
 
 func columnpicker(c string, r DbWorkline) string {
@@ -776,7 +768,7 @@ func clonesearch(first SearchStruct, iteration int) SearchStruct {
 	second.PhaseNum = iteration
 
 	id := fmt.Sprintf("%s_pt%d", first.ID, iteration)
-	second.ID = id // progresssocket() needs a new name
+	second.ID = id
 	return second
 }
 

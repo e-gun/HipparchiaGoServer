@@ -69,8 +69,9 @@ const (
 // CORE LOGIC
 //
 
-func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
-
+// BuildQueriesForSS - populate a SearchStruct with []PrerolledQuery
+func BuildQueriesForSS(ss *SearchStruct) {
+	// modifies the SearchStruct in place
 	inc := ss.SearchIn
 	exc := ss.SearchEx
 
@@ -235,7 +236,7 @@ func searchlistintoqueries(ss *SearchStruct) []PrerolledQuery {
 		}
 	}
 
-	return prqq
+	ss.Queries = prqq
 }
 
 //
