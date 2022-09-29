@@ -10,7 +10,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type SearchIncExl struct {
@@ -420,42 +419,4 @@ func calculatewholeauthorsearches(sl []string) [2][]string {
 	// timetracker("-", "calculatewholeauthorsearches()", start, previous)
 
 	return [2][]string{wholes, pruner}
-}
-
-func test_compilesearchlist() {
-	start := time.Now()
-	previous := time.Now()
-	fmt.Println("testing sessionintosearchlist()")
-	var s ServerSession
-	s.IncertaOK = true
-	s.VariaOK = true
-	s.SpuriaOK = true
-	c := make(map[string]bool)
-	c["gr"] = true
-	c["lt"] = true
-	c["dp"] = false
-	c["in"] = false
-	c["ch"] = false
-	s.ActiveCorp = c
-	i := s.Inclusions
-	i.Authors = []string{"lt0474", "lt0917"}
-	i.AuGenres = []string{"Apologetici", "Doxographi"}
-	i.WkGenres = []string{"Eleg."}
-	i.Passages = []string{"gr0032w002_FROM_11313_TO_11843"}
-	i.Works = []string{"gr0062w001"}
-	i.AuLocations = []string{"Abdera"}
-	e := s.Exclusions
-	e.Works = []string{"lt0474w001"}
-	e.Passages = []string{"lt0474_FROM_36136_TO_36151"}
-	s.Inclusions = i
-	s.Exclusions = e
-
-	sl := sessionintosearchlist(s)
-	in := sl.Inc
-
-	sort.Slice(in.Authors, func(i, j int) bool { return in.Authors[i] < in.Authors[j] })
-	sort.Slice(in.Works, func(i, j int) bool { return in.Works[i] < in.Works[j] })
-	fmt.Println(in.Authors)
-	fmt.Println(in.Works)
-	timetracker("-", "searchlist compiled", start, previous)
 }

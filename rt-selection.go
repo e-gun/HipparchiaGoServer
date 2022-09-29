@@ -833,30 +833,3 @@ func formatnewselectionjs(jsinfo []JSData) string {
 	script := fmt.Sprintf(s, strings.Join(info, ""))
 	return script
 }
-
-func test_selection() {
-	// t := AllAuthors["lt0474"].Cleaname
-	// [c3] span of a work: "GET /selection/make/_?auth=lt0474&work=037&locus=2|100&endpoint=3|20 HTTP/1.1"
-	// sv.Start = "2|100"
-	// sv.End = "3|20"
-	// --> [lt0474_FROM_58578_TO_61085]
-	// --> [lt0474_FROM_57716_TO_60904]
-
-	// ./HipparchiaGoServer -tt -psqp XXX -t1 lt0474 -t2 024 -t3 "1"
-	// SELECT index FROM lt0474 WHERE wkuniversalid='lt0474w024' AND level_01_value='1' ORDER BY index ASC
-	//{[] [] [] [] [] [] [lt0474_FROM_36136_TO_36151] [ ]}
-
-	var s ServerSession
-	id := "testing"
-	sessions[id] = s
-	var sv SelectionValues
-	//sv.Auth = "lt0474"
-	//sv.Work = ""
-	//sv.Start = ""
-	// sv.Start = "2|100"
-	// sv.End = "3|20"
-	sv.IsExcl = false
-	s = selected(id, sv)
-	fmt.Println(s.Inclusions)
-	return
-}

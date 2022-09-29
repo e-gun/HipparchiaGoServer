@@ -12,7 +12,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type PrerolledQuery struct {
@@ -441,37 +440,4 @@ func andorwhereclause(bounds []Boundaries, templ string, negation string, syntax
 
 	// msg(fmt.Sprintf("andorwhereclause(): '%s'", strings.Join(in, syntax)), 1)
 	return strings.Join(in, syntax)
-}
-
-func test_searchlistintoqueries() {
-	start := time.Now()
-	previous := time.Now()
-
-	var ss SearchStruct
-	ss.Seeking = `dolore\s`
-	ss.SrchColumn = "stripped_line"
-	ss.SrchSyntax = "~*"
-	ss.OrderBy = "index"
-	ss.Limit = 200
-	ss.SkgSlice = append(ss.SkgSlice, ss.Seeking)
-	ss.SearchIn.Authors = []string{"lt0959", "lt0857"}
-	ss.SearchIn.Works = []string{"lt0474w041", "lt0474w064"}
-	ss.SearchIn.Passages = []string{"gr0032_FROM_11313_TO_11843", "lt0474_FROM_58578_TO_61085", "lt0474_FROM_36136_TO_36151"}
-	prq := searchlistintoqueries(&ss)
-	fmt.Println(prq)
-
-	c := GetPSQLconnection()
-	defer c.Close()
-	var hits []DbWorkline
-	for _, q := range prq {
-		r := worklinequery(q, c)
-		hits = append(hits, r...)
-	}
-
-	for i, h := range hits {
-		t := fmt.Sprintf("%d - %s : %s", i, h.FindLocus(), h.MarkedUp)
-		fmt.Println(t)
-	}
-	timetracker("-", "query built and executed", start, previous)
-	c.Close()
 }

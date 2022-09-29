@@ -142,6 +142,9 @@ func addresponsehead(f string) string {
 /*
 HipparchiaGoServer/emb/ % tree
 .
+├── css
+│   ├── localfont.css
+│   └── servedfont.css
 ├── extrajs
 │   ├── js.cookie.js
 │   ├── jsd3.js
@@ -158,7 +161,6 @@ HipparchiaGoServer/emb/ % tree
 │   ├── helpregex.html
 │   ├── helpsearchlists.html
 │   └── includedmaterials.html
-├── hipparchiastyles.css
 ├── images
 │   ├── hipparchia_apple-touch-icon-precomposed.png
 │   ├── hipparchia_favicon.ico
@@ -193,16 +195,15 @@ HipparchiaGoServer/emb/ % tree
 └── ttf
     ├── NotoSans-Bold.ttf
     ├── NotoSans-BoldItalic.ttf
+    ├── NotoSans-CondensedItalic.ttf
+    ├── NotoSans-CondensedMedium.ttf
+    ├── NotoSans-CondensedSemiBold.ttf
     ├── NotoSans-ExtraLight.ttf
     ├── NotoSans-Italic.ttf
     ├── NotoSans-Regular.ttf
     ├── NotoSans-SemiBold.ttf
     ├── NotoSans-Thin.ttf
-    ├── NotoSansDisplay_ExtraCondensed-Italic.ttf
-    ├── NotoSansDisplay_ExtraCondensed-Regular.ttf
-    ├── NotoSansDisplay_ExtraCondensed-SemiBold.ttf
     ├── NotoSansMono-Regular.ttf
     └── license_for_noto_fonts.txt
 
-7 directories, 55 files
 */
