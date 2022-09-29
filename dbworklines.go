@@ -122,7 +122,7 @@ func (dbw DbWorkline) BuildHyperlink() string {
 		msg("BuildHyperlink() on empty dbworkline", 5)
 		return ""
 	}
-	t := `linenumber/%s/%s/%d`
+	t := `index/%s/%s/%d`
 	return fmt.Sprintf(t, dbw.FindAuthor(), dbw.FindWork(), dbw.TbIndex)
 }
 

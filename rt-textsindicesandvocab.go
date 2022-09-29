@@ -821,7 +821,7 @@ func convertwordinfototablerow(ww []WordInfo) string {
 	//		<td class="headword"><indexobserved id=""></indexobserved></td>
 	//		<td class="word"><indexobserved id="διδόντεϲ">διδόντεϲ</indexobserved></td>
 	//		<td class="count">2</td>
-	//		<td class="passages"><indexedlocation id="linenumber/gr0540/015/3831">⒪ 2.4</indexedlocation>, <indexedlocation id="linenumber/gr0540/025/5719">⒴ 32.5</indexedlocation></td>
+	//		<td class="passages"><indexedlocation id="index/gr0540/015/3831">⒪ 2.4</indexedlocation>, <indexedlocation id="index/gr0540/025/5719">⒴ 32.5</indexedlocation></td>
 	//	</tr>
 
 	// build it

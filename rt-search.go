@@ -265,7 +265,7 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 	need := 2 + (first.ProxVal / int64(AVGWORDSPERLINE))
 
 	pt := `%s_FROM_%d_TO_%d`
-	t := `linenumber/%s/%s/%d`
+	t := `index/%s/%s/%d`
 
 	resultmapper := make(map[string]int, len(first.Results))
 	newpsg := make([]string, len(first.Results))

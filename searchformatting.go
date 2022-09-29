@@ -151,7 +151,7 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 	}
 
 	// iterate over the results to build the raw core data
-	urt := `linenumber/%s/%s/%d`
+	urt := `index/%s/%s/%d`
 	dtt := `[<span class="date">%s</span>]`
 
 	allpassages := make([]PsgFormattingTemplate, len(ss.Results))

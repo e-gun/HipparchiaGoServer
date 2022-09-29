@@ -40,9 +40,9 @@ func RtBrowseRaw(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
 }
 
-// RtBrowseline - open a browser if sent '/browse/linenumber/lt0550/001/1855'
+// RtBrowseline - open a browser if sent '/browse/index/lt0550/001/1855'
 func RtBrowseline(c echo.Context) error {
-	// sample input: '/browse/linenumber/lt0550/001/1855'
+	// sample input: '/browse/index/lt0550/001/1855'
 	// the one route that calls generatebrowsedpassage() directly
 
 	user := readUUIDCookie(c)
@@ -103,7 +103,7 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 
 // generatebrowsedpassage - browse Author A at line X with a context of Y lines
 func generatebrowsedpassage(au string, wk string, fc int64, ctx int64) BrowsedPassage {
-	// build a response to "GET /browse/linenumber/gr0062/028/14672 HTTP/1.1"
+	// build a response to "GET /browse/index/gr0062/028/14672 HTTP/1.1"
 
 	k := fmt.Sprintf("%sw%s", au, wk)
 
@@ -175,8 +175,8 @@ func generatebrowsedpassage(au string, wk string, fc int64, ctx int64) BrowsedPa
 		n = AllWorks[k].LastLine
 	}
 
-	bw := fmt.Sprintf(`linenumber/%s/%s/%d`, au, wk, p)
-	fw := fmt.Sprintf(`linenumber/%s/%s/%d`, au, wk, n)
+	bw := fmt.Sprintf(`index/%s/%s/%d`, au, wk, p)
+	fw := fmt.Sprintf(`index/%s/%s/%d`, au, wk, n)
 	ab := fmt.Sprintf(`%s [%s]`, AllAuthors[au].Cleaname, au)
 	wb := fmt.Sprintf(`%s (w%s)`, w.Title, w.FindWorknumber())
 
