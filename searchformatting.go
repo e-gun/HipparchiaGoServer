@@ -11,6 +11,7 @@ import (
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"regexp"
+	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -590,4 +591,21 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 		msg("gethighlighter() could not compile LemmaOne into regex", 3)
 	}
 	return r
+}
+
+func formatbcedate(d string) string {
+	s, e := strconv.Atoi(d)
+	if e != nil {
+		s = 9999
+	}
+	if s > 0 {
+		d += " C.E."
+	} else {
+		d = strings.Replace(d, "-", "", -1) + " B.C.E."
+	}
+	return d
+}
+
+func i64tobce(i int64) string {
+	return formatbcedate(fmt.Sprintf("%d", i))
 }

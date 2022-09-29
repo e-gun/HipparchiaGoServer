@@ -362,7 +362,7 @@ func nestedlemmamapper(unnested map[string]DbLemma) map[string]map[string]DbLemm
 }
 
 func buildwkcorpusmap() map[string][]string {
-	// sessionintosearchlist() could just grab a pre-rolled list instead of calculating every time...
+	// SessionIntoSearchlist() could just grab a pre-rolled list instead of calculating every time...
 	wkcorpusmap := make(map[string][]string)
 	corp := [5]string{"gr", "lt", "in", "ch", "dp"}
 	for _, w := range AllWorks {
@@ -376,7 +376,7 @@ func buildwkcorpusmap() map[string][]string {
 }
 
 func buildaucorpusmap() map[string][]string {
-	// sessionintosearchlist() could just grab a pre-rolled list instead of calculating every time...
+	// SessionIntoSearchlist() could just grab a pre-rolled list instead of calculating every time...
 	aucorpusmap := make(map[string][]string)
 	corp := [5]string{"gr", "lt", "in", "ch", "dp"}
 	for _, a := range AllAuthors {

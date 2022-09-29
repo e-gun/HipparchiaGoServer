@@ -103,7 +103,7 @@ func RtSearch(c echo.Context) error {
 	srch.Seeking = whitespacer(srch.Seeking, &srch)
 	srch.Proximate = whitespacer(srch.Proximate, &srch)
 
-	sl := sessionintosearchlist(sessions[user])
+	sl := SessionIntoSearchlist(sessions[user])
 	srch.SearchIn = sl.Inc
 	srch.SearchEx = sl.Excl
 	srch.SearchSize = sl.Size

@@ -98,8 +98,8 @@ type ProcessedList struct {
 	Size int
 }
 
-// sessionintosearchlist - converts the stored set of selections into a calculated pair of SearchIncExl w/ Authors, Works, Passages
-func sessionintosearchlist(s ServerSession) ProcessedList {
+// SessionIntoSearchlist - converts the stored set of selections into a calculated pair of SearchIncExl w/ Authors, Works, Passages
+func SessionIntoSearchlist(s ServerSession) ProcessedList {
 	// https://medium.com/scum-gazeta/golang-simple-optimization-notes-70bc64673980
 
 	var inc SearchIncExl
@@ -315,7 +315,7 @@ func sessionintosearchlist(s ServerSession) ProcessedList {
 	proc.Excl = exc
 	proc.Size = sl
 
-	// fmt.Println(fmt.Sprintf("sessionintosearchlist(): proc is\n\t%s\n", proc.Inc))
+	// fmt.Println(fmt.Sprintf("SessionIntoSearchlist(): proc is\n\t%s\n", proc.Inc))
 	return proc
 }
 

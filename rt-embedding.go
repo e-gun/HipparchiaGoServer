@@ -18,6 +18,10 @@ import (
 //go:embed emb
 var efs embed.FS
 
+//
+// ROUTES
+//
+
 func RtEmbJQuery(c echo.Context) error {
 	d := "emb/jq/"
 	return pathembedder(c, d)
@@ -70,6 +74,21 @@ func RtEmbTTF(c echo.Context) error {
 	return pathembedder(c, d)
 }
 
+func RtEbmFavicon(c echo.Context) error {
+	f := "emb/images/hipparchia_favicon.ico"
+	return fileembedder(c, f)
+}
+
+func RtEbmTouchIcon(c echo.Context) error {
+	f := "emb/images/hipparchia_apple-touch-icon-precomposed.png"
+	return fileembedder(c, f)
+}
+
+//
+// HELPERS
+//
+
+// pathembedder - read and send file at path
 func pathembedder(c echo.Context, d string) error {
 	f := c.Param("file")
 	j, e := efs.ReadFile(d + f)
@@ -86,16 +105,7 @@ func pathembedder(c echo.Context, d string) error {
 	return c.String(http.StatusOK, string(j))
 }
 
-func RtEbmFavicon(c echo.Context) error {
-	f := "emb/images/hipparchia_favicon.ico"
-	return fileembedder(c, f)
-}
-
-func RtEbmTouchIcon(c echo.Context) error {
-	f := "emb/images/hipparchia_apple-touch-icon-precomposed.png"
-	return fileembedder(c, f)
-}
-
+// fileembedder - read and send file
 func fileembedder(c echo.Context, f string) error {
 	j, e := efs.ReadFile(f)
 	if e != nil {
@@ -111,6 +121,7 @@ func fileembedder(c echo.Context, f string) error {
 	return c.String(http.StatusOK, string(j))
 }
 
+// addresponsehead - set the response header for various file types
 func addresponsehead(f string) string {
 	// c.Response().Header().Add("Content-Type", "text/css")
 	add := ""

@@ -316,7 +316,7 @@ func RtGetJSSampCit(c echo.Context) error {
 
 func RtGetJSSearchlist(c echo.Context) error {
 	m := message.NewPrinter(language.English)
-	sl := sessionintosearchlist(sessions[readUUIDCookie(c)])
+	sl := SessionIntoSearchlist(sessions[readUUIDCookie(c)])
 	tw := int64(0)
 
 	var wkk []string

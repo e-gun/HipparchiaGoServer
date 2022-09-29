@@ -43,7 +43,7 @@ func RtBrowseRaw(c echo.Context) error {
 // RtBrowseline - open a browser if sent '/browse/linenumber/lt0550/001/1855'
 func RtBrowseline(c echo.Context) error {
 	// sample input: '/browse/linenumber/lt0550/001/1855'
-	// the one route that calls HipparchiaBrowser() directly
+	// the one route that calls generatebrowsedpassage() directly
 
 	user := readUUIDCookie(c)
 
@@ -55,7 +55,7 @@ func RtBrowseline(c echo.Context) error {
 		ln, e := strconv.Atoi(elem[2])
 		chke(e)
 		ctx := sessions[user].BrowseCtx
-		bp := HipparchiaBrowser(au, wk, int64(ln), ctx)
+		bp := generatebrowsedpassage(au, wk, int64(ln), ctx)
 		return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
 	} else {
 		msg(fmt.Sprintf("RtBrowseline() could not parse %s", locus), 3)
@@ -79,6 +79,7 @@ type BrowsedPassage struct {
 	Browserhtml       string `json:"browserhtml"`
 }
 
+// Browse - parse request and send a request to generatebrowsedpassage
 func Browse(c echo.Context, sep string) BrowsedPassage {
 	// sample input: http://localhost:8000//browse/perseus/lt0550/001/2:717
 	user := readUUIDCookie(c)
@@ -93,15 +94,15 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 		// findendpointsfromlocus() lives in rt-selection.go
 		ln := findendpointsfromlocus(uid, elem[2], sep)
 		ctx := sessions[user].BrowseCtx
-		return HipparchiaBrowser(au, wk, ln[0], ctx)
+		return generatebrowsedpassage(au, wk, ln[0], ctx)
 	} else {
 		msg(fmt.Sprintf("Browse() could not parse %s", locus), 3)
 		return BrowsedPassage{}
 	}
 }
 
-// HipparchiaBrowser - browse Author A at line X with a context of Y lines
-func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) BrowsedPassage {
+// generatebrowsedpassage - browse Author A at line X with a context of Y lines
+func generatebrowsedpassage(au string, wk string, fc int64, ctx int64) BrowsedPassage {
 	// build a response to "GET /browse/linenumber/gr0062/028/14672 HTTP/1.1"
 
 	k := fmt.Sprintf("%sw%s", au, wk)
@@ -138,7 +139,7 @@ func HipparchiaBrowser(au string, wk string, fc int64, ctx int64) BrowsedPassage
 	lines = trimmed
 
 	if len(lines) == 0 {
-		msg(fmt.Sprintf("HipparchiaBrowser() called simplecontextgrabber() and failed: %s, %d, %d", au, fc, ctx/2), 1)
+		msg(fmt.Sprintf("generatebrowsedpassage() called simplecontextgrabber() and failed: %s, %d, %d", au, fc, ctx/2), 1)
 		return BrowsedPassage{}
 	}
 
