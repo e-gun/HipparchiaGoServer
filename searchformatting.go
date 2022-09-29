@@ -25,7 +25,7 @@ type SearchOutputJSON struct {
 	JS            string `json:"js"`
 }
 
-func formatnocontextresults(ss SearchStruct) SearchOutputJSON {
+func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 	var out SearchOutputJSON
 	out.JS = fmt.Sprintf(BROWSERJS, "browser")
 	out.Title = ss.Seeking
@@ -101,7 +101,7 @@ type ResultPassageLine struct {
 	IsHighlight     bool
 }
 
-func formatwithcontextresults(ss SearchStruct) SearchOutputJSON {
+func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 	thesession := sessions[ss.User]
 
 	type PsgFormattingTemplate struct {

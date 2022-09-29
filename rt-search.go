@@ -140,9 +140,9 @@ func RtSearch(c echo.Context) error {
 
 	so := SearchOutputJSON{}
 	if sessions[readUUIDCookie(c)].HitContext == 0 {
-		so = formatnocontextresults(searches[id])
+		so = FormatNoContextResults(searches[id])
 	} else {
-		so = formatwithcontextresults(searches[id])
+		so = FormatWithContextResults(searches[id])
 	}
 
 	delete(searches, id)

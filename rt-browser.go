@@ -161,8 +161,7 @@ func generatebrowsedpassage(au string, wk string, fc int64, ctx int64) BrowsedPa
 
 	// [c] acquire and format the HTML
 
-	// need to set lines[0] to the focus, ie the middle of the pile of lines
-	ci := formatcitationinfo(w, lines[0])
+	ci := formatbrowsercitationinfo(w, lines[0], lines[len(lines)-1])
 	tr := buildbrowsertable(fc, lines)
 
 	// [d] fill out the JSON-ready struct
@@ -261,12 +260,12 @@ func formatpublicationinfo(w DbWork) string {
 	return fmt.Sprintf(readability, reconstituted)
 }
 
-// formatcitationinfo - the prolix bibliographic info for a line/work
-func formatcitationinfo(w DbWork, l DbWorkline) string {
+// formatbrowsercitationinfo - the prolix bibliographic info for a line/work
+func formatbrowsercitationinfo(w DbWork, f DbWorkline, l DbWorkline) string {
 	cv := `
 		<p class="currentlyviewing">
 		%s<br>
-		<span class="currentlyviewingcitation">%s</span>
+		<span class="currentlyviewingcitation">%s — %s</span>
 		%s
 		%s</p>`
 
@@ -280,11 +279,13 @@ func formatcitationinfo(w DbWork, l DbWorkline) string {
 	ci = strings.Replace(ci, "<cv", `<span class="currentlyviewing`, -1)
 
 	dt := `<br>(Assigned date of %s)`
-	fc := basiccitation(w, l)
-	pi := formatpublicationinfo(AllWorks[l.WkUID])
-	id := formatinscriptiondates(dt, l)
+	beg := basiccitation(w, f)
+	end := basiccitation(w, l)
 
-	cv = fmt.Sprintf(cv, ci, fc, pi, id)
+	pi := formatpublicationinfo(AllWorks[f.WkUID])
+	id := formatinscriptiondates(dt, f)
+
+	cv = fmt.Sprintf(cv, ci, beg, end, pi, id)
 
 	return cv
 }
