@@ -30,7 +30,7 @@ type SearchStruct struct {
 	Summary      string
 	ProxScope    string // "lines" or "words"
 	ProxType     string // "near" or "not near"
-	ProxVal      int64
+	ProxDist     int64
 	HasLemma     bool
 	HasPhrase    bool
 	IsVector     bool
@@ -144,7 +144,7 @@ func (s *SearchStruct) FormatInitialSummary() {
 			sk2 = s.LemmaTwo
 			af2 = fmt.Sprintf(af3, len(AllLemm[sk2].Deriv))
 		}
-		two = fmt.Sprintf(win, yn, s.ProxVal, s.ProxScope, af2, sk2)
+		two = fmt.Sprintf(win, yn, s.ProxDist, s.ProxScope, af2, sk2)
 	}
 	sum := fmt.Sprintf(tmp, af1, sk, two)
 	s.InitSum = sum
@@ -348,11 +348,11 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	newpsg := make([]string, len(first.Results))
 	for i, r := range first.Results {
 		// avoid "gr0028_FROM_-1_TO_5"
-		low := r.TbIndex - first.ProxVal
+		low := r.TbIndex - first.ProxDist
 		if low < 1 {
 			low = 1
 		}
-		np := fmt.Sprintf(pt, r.FindAuthor(), low, r.TbIndex+first.ProxVal)
+		np := fmt.Sprintf(pt, r.FindAuthor(), low, r.TbIndex+first.ProxDist)
 		newpsg[i] = np
 	}
 
@@ -417,7 +417,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	second.SetType()
 
 	// [a1] hard code a suspect assumption...
-	need := 2 + (first.ProxVal / int64(AVGWORDSPERLINE))
+	need := 2 + (first.ProxDist / int64(AVGWORDSPERLINE))
 
 	pt := `%s_FROM_%d_TO_%d`
 	t := `index/%s/%s/%d`
@@ -500,6 +500,23 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	}
 
 	// [c4] search head and tail for the second search term
+
+	// unless you do something "non solum" w/in 4 words of "sed etiam" is the non-obvious way to catch single-word sandwiches:
+	// "non solum pecuniae sed etiam..."
+
+	pd := first.ProxDist
+
+	ph1 := int64(len(strings.Split(strings.TrimSpace(first.Seeking), " ")))
+	ph2 := int64(len(strings.Split(strings.TrimSpace(first.Proximate), " ")))
+
+	if ph1 > 1 {
+		pd = pd + ph1 - 1
+	}
+
+	if ph2 > 1 {
+		pd = pd + ph2 - 1
+	}
+
 	var validresults []DbWorkline
 	for idx, str := range stringmapper {
 		subs := patternone.FindStringSubmatch(str)
@@ -512,15 +529,15 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 		hh := strings.Split(head, " ")
 		start := int64(0)
-		if int64(len(hh))-first.ProxVal-1 > 0 {
-			start = int64(len(hh)) - first.ProxVal - 1
+		if int64(len(hh))-pd-1 > 0 {
+			start = int64(len(hh)) - pd - 1
 		}
 		hh = hh[start:]
 		head = strings.Join(hh, " ")
 
 		tt := strings.Split(tail, " ")
-		if int64(len(tt)) >= first.ProxVal {
-			tt = tt[0:first.ProxVal]
+		if int64(len(tt)) >= pd {
+			tt = tt[0:pd]
 		}
 		tail = strings.Join(tt, " ")
 
@@ -546,9 +563,8 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	return second
 }
 
+// generateinitialhits - part one of a two-part search
 func generateinitialhits(first SearchStruct) SearchStruct {
-	// part one of a two-part search
-
 	first.Limit = FIRSTSEARCHLIM
 	first = HGoSrch(first)
 
@@ -575,7 +591,7 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	s.OrderBy = ORDERBY
 	s.SearchIn = sessions[user].Inclusions
 	s.SearchEx = sessions[user].Exclusions
-	s.ProxVal = int64(sessions[user].Proximity)
+	s.ProxDist = int64(sessions[user].Proximity)
 	s.ProxScope = sessions[user].SearchScope
 	s.NotNear = false
 	s.Twobox = false
@@ -608,7 +624,7 @@ func buildhollowsearch() SearchStruct {
 		Summary:      "",
 		ProxScope:    "",
 		ProxType:     "",
-		ProxVal:      0,
+		ProxDist:     0,
 		HasLemma:     false,
 		HasPhrase:    false,
 		IsVector:     false,
@@ -672,6 +688,7 @@ func restorewhitespace(skg string) string {
 // HELPERS
 //
 
+// badsearch - something went wrong, return a blank SearchStruct
 func badsearch(msg string) SearchStruct {
 	var s SearchStruct
 	var l DbWorkline
@@ -795,6 +812,7 @@ func findphrasesacrosslines(ss *SearchStruct) {
 	ss.Results = slc
 }
 
+// columnpicker - convert from db column name into struct name
 func columnpicker(c string, r DbWorkline) string {
 	var li string
 	switch c {
@@ -811,6 +829,7 @@ func columnpicker(c string, r DbWorkline) string {
 	return li
 }
 
+// phrasecombinations - searching word runs across lines via word combination possibilities
 func phrasecombinations(phr string) [][2]string {
 	// 'one two three four five' -->
 	// [('one', 'two three four five'), ('one two', 'three four five'), ('one two three', 'four five'), ('one two three four', 'five')]
@@ -842,31 +861,29 @@ func phrasecombinations(phr string) [][2]string {
 		}
 	}
 
-	//for i, c := range trimmed {
-	//	fmt.Printf("%d:\n\t0: %s\n\t1: %s\n", i, c[0], c[1])
-	//}
-
 	return trimmed
 }
 
-func clonesearch(first SearchStruct, iteration int) SearchStruct {
-	second := first
-	second.Results = []DbWorkline{}
-	second.Queries = []PrerolledQuery{}
-	second.SearchIn = SearchIncExl{}
-	second.SearchEx = SearchIncExl{}
-	second.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
-	second.SkgSlice = []string{}
-	second.PrxSlice = []string{}
-	second.PhaseNum = iteration
+// clonesearch - make a copy of a search with results and queries, inter alia, ripped out
+func clonesearch(f SearchStruct, iteration int) SearchStruct {
+	s := f
+	s.Results = []DbWorkline{}
+	s.Queries = []PrerolledQuery{}
+	s.SearchIn = SearchIncExl{}
+	s.SearchEx = SearchIncExl{}
+	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
+	s.SkgSlice = []string{}
+	s.PrxSlice = []string{}
+	s.PhaseNum = iteration
 
-	id := fmt.Sprintf("%s_pt%d", first.ID, iteration)
-	second.ID = id
-	return second
+	id := fmt.Sprintf("%s_pt%d", f.ID, iteration)
+	s.ID = id
+	return s
 }
 
+// universalpatternmaker - feeder for searchtermfinder()
 func universalpatternmaker(term string) string {
-	// feeder for searchtermfinder() also used by searchformatting.go
+	// also used by searchformatting.go
 	// converter := extendedrunefeeder()
 	converter := erunef // see top of generichelpers.go
 	st := []rune(term)
@@ -883,8 +900,8 @@ func universalpatternmaker(term string) string {
 	return stre
 }
 
+// searchtermfinder - find the universal regex equivalent of the search term
 func searchtermfinder(term string) *regexp.Regexp {
-	// find the universal regex equivalent of the search term
 	//	you need to convert:
 	//		ποταμον
 	//	into:
