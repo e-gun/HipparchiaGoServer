@@ -35,7 +35,7 @@ type WordInfo struct {
 
 // RtTextMaker - make a text of whatever collection of lines you would be searching
 func RtTextMaker(c echo.Context) error {
-	c.Response().After(func() { cgstats("RtTextMaker()") })
+	c.Response().After(func() { gcstats("RtTextMaker()") })
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
 
@@ -153,7 +153,7 @@ func RtTextMaker(c echo.Context) error {
 
 // RtVocabMaker - get the vocabulary for whatever collection of lines you would be searching
 func RtVocabMaker(c echo.Context) error {
-	c.Response().After(func() { cgstats("RtVocabMaker()") })
+	c.Response().After(func() { gcstats("RtVocabMaker()") })
 
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
@@ -384,7 +384,7 @@ func RtVocabMaker(c echo.Context) error {
 
 // RtIndexMaker - build an index for whatever collection of lines you would be searching
 func RtIndexMaker(c echo.Context) error {
-	c.Response().After(func() { cgstats("RtIndexMaker()") })
+	c.Response().After(func() { gcstats("RtIndexMaker()") })
 
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session

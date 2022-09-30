@@ -62,8 +62,8 @@ func timetracker(letter string, m string, start time.Time, previous time.Time) {
 	msg(m, TIMETRACKERMSGTHRESH)
 }
 
-// cgstats - force garbage collection and report on the results
-func cgstats(fn string) {
+// gcstats - force garbage collection and report on the results
+func gcstats(fn string) {
 	// NB: this could potentially backfire
 	// "GC runs a garbage collection and blocks the caller until the garbage collection is complete.
 	// It may also block the entire program." (https://pkg.go.dev/runtime#GC)

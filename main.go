@@ -78,6 +78,8 @@ func main() {
 
 	awaiting.Wait()
 
+	gcstats("main() post-initialization")
+
 	StartEchoServer()
 }
 
@@ -91,7 +93,7 @@ type CurrentConfiguration struct {
 	HostIP      string
 	HostPort    int
 	LogLevel    int
-	ManualGC    bool // see cgstats()
+	ManualGC    bool // see gcstats()
 	MaxText     int
 	PGLogin     PostgresLogin
 	QuietStart  bool

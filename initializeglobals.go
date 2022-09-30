@@ -165,7 +165,7 @@ func workmapper() map[string]DbWork {
 	foundrows, err := dbpool.Query(context.Background(), q)
 	chke(err)
 
-	thefinds := make([]DbWork, DBWKMAPSIZE)
+	workmap := make(map[string]DbWork, DBWKMAPSIZE)
 
 	count := 0
 	defer foundrows.Close()
@@ -177,14 +177,10 @@ func workmapper() map[string]DbWork {
 			&w.Xmit, &w.Type, &w.Prov, &w.RecDate, &w.ConvDate, &w.WdCount,
 			&w.FirstLine, &w.LastLine, &w.Authentic)
 		chke(e)
-		thefinds[count] = w
+		workmap[w.UID] = w
 		count += 1
 	}
 
-	workmap := make(map[string]DbWork, DBWKMAPSIZE)
-	for _, val := range thefinds {
-		workmap[val.UID] = val
-	}
 	return workmap
 }
 
