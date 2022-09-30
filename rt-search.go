@@ -150,6 +150,76 @@ func (s *SearchStruct) FormatInitialSummary() {
 	s.InitSum = sum
 }
 
+func (s *SearchStruct) SortResults() {
+	// Closures that order the DbWorkline structure:
+	// see generichelpers.go and https://pkg.go.dev/sort#example__sortMultiKeys
+	nameIncreasing := func(one, two *DbWorkline) bool {
+		a1 := AllAuthors[one.FindAuthor()].Shortname
+		a2 := AllAuthors[two.FindAuthor()].Shortname
+		return a1 < a2
+	}
+
+	titleIncreasing := func(one, two *DbWorkline) bool {
+		return AllWorks[one.WkUID].Title < AllWorks[two.WkUID].Title
+	}
+
+	dateIncreasing := func(one, two *DbWorkline) bool {
+		d1 := AllWorks[one.WkUID].RecDate
+		d2 := AllWorks[two.WkUID].RecDate
+		if d1 != "Unavailable" && d2 != "Unavailable" {
+			return AllWorks[one.WkUID].ConvDate < AllWorks[two.WkUID].ConvDate
+		} else if d1 == "Unavailable" && d2 != "Unavailable" {
+			return AllAuthors[one.FindAuthor()].ConvDate < AllWorks[two.WkUID].ConvDate
+		} else if d1 != "Unavailable" && d2 == "Unavailable" {
+			return AllWorks[one.WkUID].ConvDate < AllAuthors[two.FindAuthor()].ConvDate
+		} else {
+			return AllAuthors[one.FindAuthor()].ConvDate < AllAuthors[two.FindAuthor()].ConvDate
+		}
+	}
+
+	//dateDecreasing := func(one, two *DbWorkline) bool {
+	//	return AllWorks[one.FindWork()].ConvDate > AllWorks[two.FindWork()].ConvDate
+	//}
+
+	increasingLines := func(one, two *DbWorkline) bool {
+		return one.TbIndex < two.TbIndex
+	}
+
+	//decreasingLines := func(one, two *DbWorkline) bool {
+	//	return one.TbIndex > two.TbIndex // Note: > orders downwards.
+	//}
+
+	increasingID := func(one, two *DbWorkline) bool {
+		return one.BuildHyperlink() < two.BuildHyperlink()
+	}
+
+	//increasingALOC := func(one, two *DbWorkline) bool {
+	//	return AllAuthors[one.FindAuthor()].Location < AllAuthors[two.FindAuthor()].Location
+	//}
+
+	increasingWLOC := func(one, two *DbWorkline) bool {
+		return AllWorks[one.WkUID].Prov < AllWorks[two.WkUID].Prov
+	}
+
+	crit := sessions[s.User].SortHitsBy
+
+	switch {
+	// unhandled are "location" & "provenance"
+	case crit == "shortname":
+		OrderedBy(nameIncreasing, titleIncreasing, increasingLines).Sort(s.Results)
+	case crit == "converted_date":
+		OrderedBy(dateIncreasing, nameIncreasing, titleIncreasing, increasingLines).Sort(s.Results)
+	case crit == "universalid":
+		OrderedBy(increasingID).Sort(s.Results)
+	case crit == "provenance":
+		// as this is likely an inscription search, why not sort next by date?
+		OrderedBy(increasingWLOC, dateIncreasing).Sort(s.Results)
+	default:
+		// author nameIncreasing
+		OrderedBy(nameIncreasing, increasingLines).Sort(s.Results)
+	}
+}
+
 //
 // ROUTING
 //
@@ -160,11 +230,20 @@ func RtSearchConfirm(c echo.Context) error {
 }
 
 func RtSearch(c echo.Context) error {
+	// "OneBox"
+	// [1] single word
+	// [2] phrase
+	// [3] lemma
+	// "TwoBox"
+	// [4] single + single
+	// [5] lemma + single
+	// [6] lemma + lemma
+	// [7] phrase + single
+	// [8] phrase + lemma
+	// [9] phrase + phrase
+
 	c.Response().After(func() { cgstats("RtSearch()") })
-	// "GET /search/standard/5446b840?skg=sine%20dolore HTTP/1.1"
-	// "GET /search/standard/c2fba8e8?skg=%20dolore&prx=manif HTTP/1.1"
-	// "GET /search/standard/2ad866e2?prx=manif&lem=dolor HTTP/1.1"
-	// "GET /search/standard/02f3610f?lem=dolor&plm=manifesta HTTP/1.1"
+
 	user := readUUIDCookie(c)
 	id := c.Param("id")
 	srch := builddefaultsearch(c)
@@ -183,7 +262,7 @@ func RtSearch(c echo.Context) error {
 	srch.SetType() // must happen before BuildQueriesForSS()
 	srch.FormatInitialSummary()
 
-	// now safe to rewrite skg so that "^|\s", etc. can be added
+	// now safe to rewrite skg oj that "^|\s", etc. can be added
 	srch.Seeking = whitespacer(srch.Seeking, &srch)
 	srch.Proximate = whitespacer(srch.Proximate, &srch)
 
@@ -202,9 +281,9 @@ func RtSearch(c echo.Context) error {
 	if searches[id].Twobox {
 		// todo: triple-check results against python
 		if searches[id].ProxScope == "words" {
-			completed = withinxwordssearch(searches[id])
+			completed = WithinXWordsSearch(searches[id])
 		} else {
-			completed = withinxlinessearch(searches[id])
+			completed = WithinXLinesSearch(searches[id])
 		}
 	} else {
 		completed = HGoSrch(searches[id])
@@ -212,43 +291,36 @@ func RtSearch(c echo.Context) error {
 
 	if completed.HasPhrase {
 		// you did HGoSrch() and need to check the windowed lines
-		// withinxlinessearch() has already done the checking
+		// WithinXLinesSearch() has already done the checking
 		findphrasesacrosslines(&completed)
 		if int64(len(completed.Results)) > reallimit {
 			completed.Results = completed.Results[0:reallimit]
 		}
 	}
 
-	resultsorter(&completed)
+	completed.SortResults()
 	searches[id] = completed
 
-	so := SearchOutputJSON{}
+	oj := SearchOutputJSON{}
 	if sessions[readUUIDCookie(c)].HitContext == 0 {
-		so = FormatNoContextResults(searches[id])
+		oj = FormatNoContextResults(searches[id])
 	} else {
-		so = FormatWithContextResults(searches[id])
+		oj = FormatWithContextResults(searches[id])
 	}
 
 	delete(searches, id)
 	progremain.Delete(id)
 
-	return c.JSONPretty(http.StatusOK, so, JSONINDENT)
+	return c.JSONPretty(http.StatusOK, oj, JSONINDENT)
 }
 
 //
 // TWO-PART SEARCHES
 //
 
-// withinxlinessearch - find A within N lines of B
-func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
+// WithinXLinesSearch - find A within N lines of B
+func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	// after finding A, look for B within N lines of A
-	// can do:
-	// [1] single + single
-	// [2] lemma + single
-	// [3] lemma + lemma
-	// [4] phrase + single
-	// [5] phrase + lemma
-	// [6] phrase + phrase
 
 	// (part 1)
 	//		HGoSrch(first)
@@ -261,7 +333,7 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	first := generateinitialhits(originalsrch)
 
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf("%s withinxlinessearch(): %d initial hits", d, len(first.Results)), 4)
+	msg(fmt.Sprintf("%s WithinXLinesSearch(): %d initial hits", d, len(first.Results)), 4)
 	previous = time.Now()
 
 	second := clonesearch(first, 2)
@@ -313,20 +385,20 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	}
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf("%s withinxlinessearch(): %d subsequent hits", d, len(first.Results)), 4)
+	msg(fmt.Sprintf("%s WithinXLinesSearch(): %d subsequent hits", d, len(first.Results)), 4)
 
 	// findphrasesacrosslines() check happens just after you exit this function
 	return second
 }
 
-// withinxwordssearch - find A within N words of B
-func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
+// WithinXWordsSearch - find A within N words of B
+func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 	previous := time.Now()
 	first := generateinitialhits(originalsrch)
 
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf("%s withinxwordssearch(): %d initial hits", d, len(first.Results)), 4)
+	msg(fmt.Sprintf("%s WithinXWordsSearch(): %d initial hits", d, len(first.Results)), 4)
 	previous = time.Now()
 
 	// the trick is we are going to grab all lines near the initial hit; then build strings; then search those strings ourselves
@@ -376,7 +448,7 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 	searches[originalsrch.ID] = HGoSrch(second)
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf("%s withinxwordssearch(): %d subsequent hits", d, len(first.Results)), 4)
+	msg(fmt.Sprintf("%s WithinXWordsSearch(): %d subsequent hits", d, len(first.Results)), 4)
 	previous = time.Now()
 
 	// [c] convert these finds into strings and then search those strings
@@ -410,7 +482,7 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 
 	patternone, e := regexp.Compile(fmt.Sprintf(rt, re))
 	if e != nil {
-		m := fmt.Sprintf("withinxwordssearch() could not compile second pass regex term: %s", re)
+		m := fmt.Sprintf("WithinXWordsSearch() could not compile second pass regex term: %s", re)
 		msg(m, 1)
 		return badsearch(m)
 	}
@@ -423,7 +495,7 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 
 	patterntwo, e := regexp.Compile(re)
 	if e != nil {
-		m := fmt.Sprintf("withinxwordssearch() could not compile second pass regex term: %s", re)
+		m := fmt.Sprintf("WithinXWordsSearch() could not compile second pass regex term: %s", re)
 		msg(m, 1)
 		return badsearch(m)
 	}
@@ -653,7 +725,7 @@ func lemmaintoregexslice(hdwd string) []string {
 func findphrasesacrosslines(ss *SearchStruct) {
 	// modify ss in place
 	// super slow...:
-	// [HGS] [Δ: 1.474s]  withinxlinessearch(): 1631 initial hits
+	// [HGS] [Δ: 1.474s]  WithinXLinesSearch(): 1631 initial hits
 	// [HGS] [Δ: 7.433s]  findphrasesacrosslines(): 855 trimmed hits
 
 	var valid = make(map[string]DbWorkline, len(ss.Results))
@@ -826,74 +898,4 @@ func searchtermfinder(term string) *regexp.Regexp {
 		pattern = regexp.MustCompile("FAILED_FIND_NOTHING")
 	}
 	return pattern
-}
-
-func resultsorter(ss *SearchStruct) {
-	// Closures that order the DbWorkline structure:
-	// see generichelpers.go and https://pkg.go.dev/sort#example__sortMultiKeys
-	nameIncreasing := func(one, two *DbWorkline) bool {
-		a1 := AllAuthors[one.FindAuthor()].Shortname
-		a2 := AllAuthors[two.FindAuthor()].Shortname
-		return a1 < a2
-	}
-
-	titleIncreasing := func(one, two *DbWorkline) bool {
-		return AllWorks[one.WkUID].Title < AllWorks[two.WkUID].Title
-	}
-
-	dateIncreasing := func(one, two *DbWorkline) bool {
-		d1 := AllWorks[one.WkUID].RecDate
-		d2 := AllWorks[two.WkUID].RecDate
-		if d1 != "Unavailable" && d2 != "Unavailable" {
-			return AllWorks[one.WkUID].ConvDate < AllWorks[two.WkUID].ConvDate
-		} else if d1 == "Unavailable" && d2 != "Unavailable" {
-			return AllAuthors[one.FindAuthor()].ConvDate < AllWorks[two.WkUID].ConvDate
-		} else if d1 != "Unavailable" && d2 == "Unavailable" {
-			return AllWorks[one.WkUID].ConvDate < AllAuthors[two.FindAuthor()].ConvDate
-		} else {
-			return AllAuthors[one.FindAuthor()].ConvDate < AllAuthors[two.FindAuthor()].ConvDate
-		}
-	}
-
-	//dateDecreasing := func(one, two *DbWorkline) bool {
-	//	return AllWorks[one.FindWork()].ConvDate > AllWorks[two.FindWork()].ConvDate
-	//}
-
-	increasingLines := func(one, two *DbWorkline) bool {
-		return one.TbIndex < two.TbIndex
-	}
-
-	//decreasingLines := func(one, two *DbWorkline) bool {
-	//	return one.TbIndex > two.TbIndex // Note: > orders downwards.
-	//}
-
-	increasingID := func(one, two *DbWorkline) bool {
-		return one.BuildHyperlink() < two.BuildHyperlink()
-	}
-
-	//increasingALOC := func(one, two *DbWorkline) bool {
-	//	return AllAuthors[one.FindAuthor()].Location < AllAuthors[two.FindAuthor()].Location
-	//}
-
-	increasingWLOC := func(one, two *DbWorkline) bool {
-		return AllWorks[one.WkUID].Prov < AllWorks[two.WkUID].Prov
-	}
-
-	crit := sessions[ss.User].SortHitsBy
-
-	switch {
-	// unhandled are "location" & "provenance"
-	case crit == "shortname":
-		OrderedBy(nameIncreasing, titleIncreasing, increasingLines).Sort(ss.Results)
-	case crit == "converted_date":
-		OrderedBy(dateIncreasing, nameIncreasing, titleIncreasing, increasingLines).Sort(ss.Results)
-	case crit == "universalid":
-		OrderedBy(increasingID).Sort(ss.Results)
-	case crit == "provenance":
-		// as this is likely an inscription search, why not sort next by date?
-		OrderedBy(increasingWLOC, dateIncreasing).Sort(ss.Results)
-	default:
-		// author nameIncreasing
-		OrderedBy(nameIncreasing, increasingLines).Sort(ss.Results)
-	}
 }
