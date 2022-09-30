@@ -56,6 +56,100 @@ type SearchStruct struct {
 	TableSize    int // # of tables searched
 }
 
+func (s *SearchStruct) CleanInput() {
+	// remove bad chars
+	// address uv issues; lunate issues; ...
+	// no need to parse a lemma: this bounces if there is not a key match to a map
+	s.ID = purgechars(cfg.BadChars, s.ID)
+	s.Seeking = strings.ToLower(s.Seeking)
+	s.Proximate = strings.ToLower(s.Proximate)
+
+	if hasAccent.MatchString(s.Seeking) || hasAccent.MatchString(s.Proximate) {
+		// lemma search will select accented automatically
+		s.SrchColumn = "accented_line"
+	}
+
+	rs := []rune(s.Seeking)
+	if len(rs) > MAXINPUTLEN {
+		s.Seeking = string(rs[0:MAXINPUTLEN])
+	}
+
+	rp := []rune(s.Proximate)
+	if len(rp) > MAXINPUTLEN {
+		s.Proximate = string(rs[0:MAXINPUTLEN])
+	}
+
+	s.Seeking = uvσςϲ(s.Seeking)
+	s.Proximate = uvσςϲ(s.Proximate)
+
+	s.Seeking = purgechars(cfg.BadChars, s.Seeking)
+	s.Proximate = purgechars(cfg.BadChars, s.Proximate)
+}
+
+func (s *SearchStruct) SetType() {
+	// skip detailed proximate checks because second pass search just feeds all of that into the primary fields
+
+	ps := s.Proximate != ""
+	psl := s.LemmaTwo != ""
+
+	if ps || psl {
+		s.Twobox = true
+	}
+
+	acc := `ϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ`
+	reg := `a-zα-ω`
+	comp := fmt.Sprintf(`[%s%s]\s[%s%s]`, reg, acc, reg, acc)
+	twowords := regexp.MustCompile(comp)
+
+	if twowords.MatchString(s.Seeking) {
+		s.HasPhrase = true
+	}
+
+	if len(s.LemmaOne) != 0 {
+		s.HasLemma = true
+		// accented line has "volat" in latin; and "uolo" will not find it
+		if isGreek.MatchString(s.LemmaOne) {
+			s.SrchColumn = "accented_line"
+		}
+	}
+	return
+}
+
+func (s *SearchStruct) FormatInitialSummary() {
+	// ex:
+	// Sought <span class="sought">»ἡμέρα«</span> within 2 lines of all 79 forms of <span class="sought">»ἀγαθόϲ«</span>
+
+	tmp := `Sought %s<span class="sought">»%s«</span>%s`
+	win := `%s within %d %s of %s<span class="sought">»%s«</span>`
+
+	yn := ""
+	if s.NotNear {
+		yn = " not "
+	}
+
+	af1 := ""
+	sk := s.Seeking
+	if len(s.LemmaOne) != 0 {
+		af := "all %d forms of "
+		sk = s.LemmaOne
+		af1 = fmt.Sprintf(af, len(AllLemm[sk].Deriv))
+	}
+
+	two := ""
+	if s.Twobox {
+		sk2 := s.Proximate
+		af2 := ""
+		if len(s.LemmaTwo) != 0 {
+			af3 := "all %d forms of "
+			sk2 = s.LemmaTwo
+			af2 = fmt.Sprintf(af3, len(AllLemm[sk2].Deriv))
+		}
+		two = fmt.Sprintf(win, yn, s.ProxVal, s.ProxScope, af2, sk2)
+	}
+	sum := fmt.Sprintf(tmp, af1, sk, two)
+	s.InitSum = sum
+}
+
 //
 // ROUTING
 //
@@ -72,32 +166,22 @@ func RtSearch(c echo.Context) error {
 	// "GET /search/standard/2ad866e2?prx=manif&lem=dolor HTTP/1.1"
 	// "GET /search/standard/02f3610f?lem=dolor&plm=manifesta HTTP/1.1"
 	user := readUUIDCookie(c)
-
 	id := c.Param("id")
-	skg := c.QueryParam("skg")
-	prx := c.QueryParam("prx")
-	lem := c.QueryParam("lem")
-	plm := c.QueryParam("plm")
-
 	srch := builddefaultsearch(c)
+	srch.User = user
 
+	srch.Seeking = c.QueryParam("skg")
+	srch.Proximate = c.QueryParam("prx")
+	srch.LemmaOne = c.QueryParam("lem")
+	srch.LemmaTwo = c.QueryParam("plm")
+	srch.ID = c.Param("id")
+	srch.IsVector = false
 	// HasPhrase makes us use a fake limit temporarily
 	reallimit := srch.Limit
 
-	srch.Seeking = skg
-	srch.Proximate = prx
-	srch.LemmaOne = lem
-	srch.LemmaTwo = plm
-	srch.User = user
-	srch.ID = purgechars(cfg.BadChars, id)
-	srch.IsVector = false
-
-	parsesearchinput(&srch)
-
-	// must happen before BuildQueriesForSS()
-	setsearchtype(&srch)
-
-	srch.InitSum = formatinitialsummary(srch)
+	srch.CleanInput()
+	srch.SetType() // must happen before BuildQueriesForSS()
+	srch.FormatInitialSummary()
 
 	// now safe to rewrite skg so that "^|\s", etc. can be added
 	srch.Seeking = whitespacer(srch.Seeking, &srch)
@@ -186,7 +270,7 @@ func withinxlinessearch(originalsrch SearchStruct) SearchStruct {
 	second.Proximate = first.Seeking
 	second.LemmaTwo = first.LemmaOne
 
-	setsearchtype(&second)
+	second.SetType()
 
 	pt := `%s_FROM_%d_TO_%d`
 
@@ -259,7 +343,7 @@ func withinxwordssearch(originalsrch SearchStruct) SearchStruct {
 	// avoid "WHERE accented_line !~ ''" : force the type and make sure to check "first.NotNear" below
 	second.NotNear = false
 
-	setsearchtype(&second)
+	second.SetType()
 
 	// [a1] hard code a suspect assumption...
 	need := 2 + (first.ProxVal / int64(AVGWORDSPERLINE))
@@ -481,83 +565,12 @@ func buildhollowsearch() SearchStruct {
 	return s
 }
 
-func parsesearchinput(s *SearchStruct) {
-	// remove bad chars
-	// address uv issues; lunate issues; ...
-	// no need to parse a lemma: this bounces if there is not a key match to a map
-
-	s.Seeking = strings.ToLower(s.Seeking)
-	s.Proximate = strings.ToLower(s.Proximate)
-
-	if hasAccent.MatchString(s.Seeking) || hasAccent.MatchString(s.Proximate) {
-		// lemma search will select accented automatically
-		s.SrchColumn = "accented_line"
-	}
-
-	rs := []rune(s.Seeking)
-	if len(rs) > MAXINPUTLEN {
-		s.Seeking = string(rs[0:MAXINPUTLEN])
-	}
-
-	rp := []rune(s.Proximate)
-	if len(rp) > MAXINPUTLEN {
-		s.Proximate = string(rs[0:MAXINPUTLEN])
-	}
-
-	s.Seeking = uvσςϲ(s.Seeking)
-	s.Proximate = uvσςϲ(s.Proximate)
-
-	s.Seeking = purgechars(cfg.BadChars, s.Seeking)
-	s.Proximate = purgechars(cfg.BadChars, s.Proximate)
-
-}
-
-func setsearchtype(srch *SearchStruct) {
-	// skip detailed proximate checks because second pass search just feeds all of that into the primary fields
-
-	ps := srch.Proximate != ""
-	psl := srch.LemmaTwo != ""
-
-	if ps || psl {
-		srch.Twobox = true
-	}
-
-	// will not find greek...
-	// twowords := regexp.MustCompile(`\w\s\w`)
-	// will not find `τῷ φίλῳ` or `πλάντᾳ ἵνα`
-	// twowords := regexp.MustCompile(`[A-Za-zΑ-ΩϹα-ωϲ]\s[A-Za-zΑ-ΩϹα-ωϲ]`)
-
-	acc := `ϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ`
-	reg := `a-zα-ω`
-	comp := fmt.Sprintf(`[%s%s]\s[%s%s]`, reg, acc, reg, acc)
-	twowords := regexp.MustCompile(comp)
-
-	if twowords.MatchString(srch.Seeking) {
-		srch.HasPhrase = true
-	}
-
-	if len(srch.LemmaOne) != 0 {
-		srch.HasLemma = true
-		// accented line has "volat" in latin; and "uolo" will not find it
-		if isGreek.MatchString(srch.LemmaOne) {
-			srch.SrchColumn = "accented_line"
-		}
-	}
-
-	return
-}
-
-func restorewhitespace(skg string) string {
-	// will have a problem rewriting regex inside phrasecombinations() if you don't clear whitespacer() products out
-	// even though we are about to put exactly this back in again...
-	skg = strings.Replace(skg, "(^|\\s)", " ", 1)
-	skg = strings.Replace(skg, "(\\s|$)", " ", -1)
-	return skg
-}
-
+// whitespacer - massage search string to let regex accept start/end of a line as whitespace
 func whitespacer(skg string, ss *SearchStruct) string {
 	// whitespace issue: " ἐν Ὀρέϲτῃ " cannot be found at the start of a line where it is "ἐν Ὀρέϲτῃ "
 	// do not run this before formatinitialsummary()
+	// also used by searchformatting.go
+
 	if strings.Contains(skg, " ") {
 		ss.SkgRewritten = true
 		rs := []rune(skg)
@@ -572,6 +585,15 @@ func whitespacer(skg string, ss *SearchStruct) string {
 		skg = strings.TrimSpace(skg)
 		skg = a + skg + z
 	}
+	return skg
+}
+
+// restorewhitespace - undo whitespacer() modifications
+func restorewhitespace(skg string) string {
+	// will have a problem rewriting regex inside phrasecombinations() if you don't clear whitespacer() products out
+	// even though we are about to put exactly this back in again...
+	skg = strings.Replace(skg, "(^|\\s)", " ", 1)
+	skg = strings.Replace(skg, "(\\s|$)", " ", -1)
 	return skg
 }
 

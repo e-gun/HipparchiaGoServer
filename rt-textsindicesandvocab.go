@@ -681,7 +681,8 @@ func sessionintobulksearch(c echo.Context) SearchStruct {
 	srch.InitSum = "(gathering and formatting lines of text)"
 	srch.ID = strings.Replace(uuid.New().String(), "-", "", -1)
 
-	parsesearchinput(&srch)
+	srch.CleanInput()
+
 	sl := SessionIntoSearchlist(sessions[user])
 	srch.SearchIn = sl.Inc
 	srch.SearchEx = sl.Excl

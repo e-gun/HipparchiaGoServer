@@ -346,41 +346,6 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 	return sum
 }
 
-func formatinitialsummary(s SearchStruct) string {
-	// ex:
-	// Sought <span class="sought">»ἡμέρα«</span> within 2 lines of all 79 forms of <span class="sought">»ἀγαθόϲ«</span>
-
-	tmp := `Sought %s<span class="sought">»%s«</span>%s`
-	win := `%s within %d %s of %s<span class="sought">»%s«</span>`
-
-	yn := ""
-	if s.NotNear {
-		yn = " not "
-	}
-
-	af1 := ""
-	sk := s.Seeking
-	if len(s.LemmaOne) != 0 {
-		af := "all %d forms of "
-		sk = s.LemmaOne
-		af1 = fmt.Sprintf(af, len(AllLemm[sk].Deriv))
-	}
-
-	two := ""
-	if s.Twobox {
-		sk2 := s.Proximate
-		af2 := ""
-		if len(s.LemmaTwo) != 0 {
-			af3 := "all %d forms of "
-			sk2 = s.LemmaTwo
-			af2 = fmt.Sprintf(af3, len(AllLemm[sk2].Deriv))
-		}
-		two = fmt.Sprintf(win, yn, s.ProxVal, s.ProxScope, af2, sk2)
-	}
-	sum := fmt.Sprintf(tmp, af1, sk, two)
-	return sum
-}
-
 func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
 	// 	html markup for the search term in the line so it can jump out at you
 	//

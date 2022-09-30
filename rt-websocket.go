@@ -40,6 +40,8 @@ func RtWebsocket(c echo.Context) error {
 	// you can spend 3.5s on a search vs 2.0 seconds if you poll as fast as possible
 	// POLLEVERYNTABLES in SrchFeeder() and WSPOLLINGPAUSE here make a huge difference
 
+	// does not look like you can run two wss at once; not obvious why this is the case...
+
 	type JSOut struct {
 		V     string `json:"value"`
 		ID    string `json:"ID"`
@@ -48,7 +50,7 @@ func RtWebsocket(c echo.Context) error {
 
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		msg("RtWebsocket(): ws connection failed", 1)
+		msg("RtWebsocket(): ws connection failed", 2)
 		return nil
 	}
 
@@ -70,7 +72,7 @@ func RtWebsocket(c echo.Context) error {
 		var m []byte
 		_, m, e := ws.ReadMessage()
 		if e != nil {
-			msg("RtWebsocket(): ws failed to read: breaking", 3)
+			msg("RtWebsocket(): ws failed to read: breaking", 5)
 			break
 		}
 
@@ -122,7 +124,7 @@ func RtWebsocket(c echo.Context) error {
 				er := ws.WriteMessage(websocket.TextMessage, js)
 
 				if er != nil {
-					msg("RtWebsocket(): ws failed to write: breaking", 3)
+					msg("RtWebsocket(): ws failed to write: breaking", 5)
 					done = true
 					break
 				} else {
@@ -151,12 +153,12 @@ func RtWebsocket(c echo.Context) error {
 
 	er := ws.WriteMessage(websocket.TextMessage, stop)
 	if er != nil {
-		msg("RtWebsocket() could not send stop message", 3)
+		msg("RtWebsocket() could not send stop message", 5)
 	}
 
 	err = ws.Close()
 	if err != nil {
-		msg("RtWebsocket() failed to close", 3)
+		msg("RtWebsocket() failed to close", 5)
 	}
 	return nil
 }
