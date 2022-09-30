@@ -87,7 +87,7 @@ const (
 
 	HELPTEXT = `command line options:
    -ac {string} set corpora active on startup and reset (*)
-   -cf {file}   read PSQL password from file [default: "%s/%s" or "%s/%s"]
+   -cf {file}   read PSQL password from file [default: "%s/%s" or "%s%s"]
    -db          debug database: show internal references in browsed passages
    -el {num}    set echo server log level (0-2) [default: %d]
    -ft {string} force a client-side font instead of serving Noto fonts

@@ -48,7 +48,7 @@ func main() {
 		timetracker("A1", fmt.Sprintf("%d works built: map[string]DbWork", len(AllWorks)), start, previous)
 
 		previous = time.Now()
-		AllAuthors = loadworksintoauthors(authormapper(), AllWorks)
+		AllAuthors = authormapper(AllWorks)
 		timetracker("A2", fmt.Sprintf("%d authors built: map[string]DbAuthor", len(AllAuthors)), start, previous)
 
 		previous = time.Now()

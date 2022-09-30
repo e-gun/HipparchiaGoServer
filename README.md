@@ -4,8 +4,8 @@
 ### STATUS (`v0.9.3`):
 
 * 25%-700% faster than HipparchiaServer depending on the function. Uses c. 60% as much RAM.
-* monolithic binary: no need for extra files/folders beyond `hgs-conf.json`
-* searching theoretically fine but needs more testing/checking
+* monolithic binary: no need for extra files/folders beyond setting a password in `hgs-conf.json`
+* searching seems to be fine (but more testing/checking would not hurt)
 * browsing 
 * selections 
 * exclusions 

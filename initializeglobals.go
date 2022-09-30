@@ -8,7 +8,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strings"
 	"sync"
 )
@@ -54,10 +53,6 @@ type DbAuthor struct {
 	Location  string
 	// beyond the DB starts here
 	WorkList []string
-}
-
-func (dba DbAuthor) AddWork(w string) {
-	dba.WorkList = append(dba.WorkList, w)
 }
 
 type DbWork struct {
@@ -176,13 +171,13 @@ func workmapper() map[string]DbWork {
 	defer foundrows.Close()
 	for foundrows.Next() {
 		// this will die if <nil> comes back inside any of the columns; and so you have to use builds from HipparchiaBuilder 1.6.0+
-		var thehit DbWork
-		e := foundrows.Scan(&thehit.UID, &thehit.Title, &thehit.Language, &thehit.Pub, &thehit.LL0,
-			&thehit.LL1, &thehit.LL2, &thehit.LL3, &thehit.LL4, &thehit.LL5, &thehit.Genre,
-			&thehit.Xmit, &thehit.Type, &thehit.Prov, &thehit.RecDate, &thehit.ConvDate, &thehit.WdCount,
-			&thehit.FirstLine, &thehit.LastLine, &thehit.Authentic)
+		var w DbWork
+		e := foundrows.Scan(&w.UID, &w.Title, &w.Language, &w.Pub, &w.LL0,
+			&w.LL1, &w.LL2, &w.LL3, &w.LL4, &w.LL5, &w.Genre,
+			&w.Xmit, &w.Type, &w.Prov, &w.RecDate, &w.ConvDate, &w.WdCount,
+			&w.FirstLine, &w.LastLine, &w.Authentic)
 		chke(e)
-		thefinds[count] = thehit
+		thefinds[count] = w
 		count += 1
 	}
 
@@ -194,7 +189,7 @@ func workmapper() map[string]DbWork {
 }
 
 // authormapper - build a map of all authors keyed to the authorUID: map[string]DbAuthor
-func authormapper() map[string]DbAuthor {
+func authormapper(ww map[string]DbWork) map[string]DbAuthor {
 	// hipparchiaDB-# \d authors
 	//                          Table "public.authors"
 	//     Column     |          Type          | Collation | Nullable | Default
@@ -210,6 +205,19 @@ func authormapper() map[string]DbAuthor {
 	// converted_date | integer                |           |          |
 	// location       | character varying(128) |           |          |
 
+	// need to be ready to load the worklists into the authors
+	// so: build a map of {UID: WORKLIST...}
+	worklists := make(map[string][]string)
+	for _, w := range ww {
+		wk := w.UID
+		au := wk[0:6]
+		if _, y := worklists[au]; !y {
+			worklists[au] = []string{wk}
+		} else {
+			worklists[au] = append(worklists[au], wk)
+		}
+	}
+
 	dbpool := GetPSQLconnection()
 	defer dbpool.Close()
 	qt := "SELECT %s FROM authors ORDER by universalid ASC"
@@ -224,11 +232,12 @@ func authormapper() map[string]DbAuthor {
 	defer foundrows.Close()
 	for foundrows.Next() {
 		// this will die if <nil> comes back inside any of the columns; and so you have to use builds from HipparchiaBuilder 1.6.0+
-		var thehit DbAuthor
-		e := foundrows.Scan(&thehit.UID, &thehit.Language, &thehit.IDXname, &thehit.Name, &thehit.Shortname,
-			&thehit.Cleaname, &thehit.Genres, &thehit.RecDate, &thehit.ConvDate, &thehit.Location)
+		var a DbAuthor
+		e := foundrows.Scan(&a.UID, &a.Language, &a.IDXname, &a.Name, &a.Shortname,
+			&a.Cleaname, &a.Genres, &a.RecDate, &a.ConvDate, &a.Location)
 		chke(e)
-		thefinds[count] = thehit
+		a.WorkList = worklists[a.UID]
+		thefinds[count] = a
 		count += 1
 	}
 
@@ -239,57 +248,10 @@ func authormapper() map[string]DbAuthor {
 	return authormap
 }
 
-// loadworksintoauthors - load all works in the workmap into the authormap WorkList
-func loadworksintoauthors(aa map[string]DbAuthor, ww map[string]DbWork) map[string]DbAuthor {
-	// the following does not work because of an assign error: aa[a].WorkList = append(aa[w.FindAuthor()].WorkList, w.UID)
-	// that means you have to rebuild the damn authormap unless you want to use pointers in DbAuthor: itself a hassle
-
-	// [1] build a map of {UID: WORKLIST...}
-	worklists := make(map[string][]string)
-	for _, w := range ww {
-		wk := w.UID
-		au := wk[0:6]
-		if _, y := worklists[au]; !y {
-			worklists[au] = []string{wk}
-		} else {
-			worklists[au] = append(worklists[au], wk)
-		}
-	}
-
-	// [2] decompose aa and rebuild but this time be in possession of all relevant data...
-	// [2a] find all keys and sort them
-	keys := make([]string, len(aa))
-	ct := 0
-	for _, a := range aa {
-		keys[ct] = a.UID
-		ct += 1
-	}
-	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
-	// fmt.Printf("wl %d vs al %d", len(worklists), len(keys))  : wl 3455 vs al 3455
-
-	// [2b] build a *slice* of []DbAuthor since we can's modify a.WorkList in a map version
-	asl := make([]DbAuthor, len(keys))
-	ct = 0
-	for _, k := range keys {
-		asl[ct] = aa[k]
-		ct += 1
-	}
-
-	// [2c] add the worklists to the slice
-	for i, _ := range keys {
-		asl[i].WorkList = worklists[asl[i].UID]
-	}
-
-	// [3] convert slice to map
-	na := make(map[string]DbAuthor, DBAUMAPSIZE)
-	for i, a := range asl {
-		na[a.UID] = asl[i]
-	}
-	return na
-}
-
 // lemmamapper - map[string]DbLemma for all lemmata
 func lemmamapper() map[string]DbLemma {
+	// example: {dorsum 24563373 [dorsum dorsone dorsa dorsoque dorso dorsoue dorsis dorsi dorsisque dorsumque]}
+
 	// hipparchiaDB=# \d greek_lemmata
 	//                       Table "public.greek_lemmata"
 	//      Column      |         Type          | Collation | Nullable | Default
@@ -325,6 +287,7 @@ func lemmamapper() map[string]DbLemma {
 		}
 	}
 
+	// note that the v --> u here will push us to stripped_line searches instead of accented_line
 	// clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "", "j", "i", "v", "u")
 	clean := strings.NewReplacer("-", "", "j", "i", "v", "u")
 
@@ -334,15 +297,12 @@ func lemmamapper() map[string]DbLemma {
 		lm.Entry = cl
 		unnested[cl] = lm
 	}
-
-	// fmt.Println(unnested["dorsum"])
-	// {dorsum 24563373 [dorsum dorsone dorsa dorsoque dorso dorsoue dorsis dorsi dorsisque dorsumque]}
 	return unnested
 }
 
 // nestedlemmamapper - map[string]map[string]DbLemma for the hinter
 func nestedlemmamapper(unnested map[string]DbLemma) map[string]map[string]DbLemma {
-	// you need both a nested and the unnested version; nested for the hinter
+	// you need both a nested and the unnested version; nested is for the hinter
 	nested := make(map[string]map[string]DbLemma, NESTEDLEMMASIZE)
 	swap := strings.NewReplacer("j", "i", "v", "u")
 	for k, v := range unnested {
@@ -357,10 +317,10 @@ func nestedlemmamapper(unnested map[string]DbLemma) map[string]map[string]DbLemm
 			nested[bag][k] = v
 		}
 	}
-
 	return nested
 }
 
+// buildaucorpusmap - populate global variable used by SessionIntoSearchlist()
 func buildwkcorpusmap() map[string][]string {
 	// SessionIntoSearchlist() could just grab a pre-rolled list instead of calculating every time...
 	wkcorpusmap := make(map[string][]string)
@@ -375,6 +335,7 @@ func buildwkcorpusmap() map[string][]string {
 	return wkcorpusmap
 }
 
+// buildaucorpusmap - populate global variable used by SessionIntoSearchlist()
 func buildaucorpusmap() map[string][]string {
 	// SessionIntoSearchlist() could just grab a pre-rolled list instead of calculating every time...
 	aucorpusmap := make(map[string][]string)
@@ -389,6 +350,7 @@ func buildaucorpusmap() map[string][]string {
 	return aucorpusmap
 }
 
+// buildaugenresmap - populate global variable used by hinter
 func buildaugenresmap() map[string]bool {
 	genres := make(map[string]bool)
 	for _, a := range AllAuthors {
@@ -400,6 +362,7 @@ func buildaugenresmap() map[string]bool {
 	return genres
 }
 
+// buildwkgenresmap - populate global variable used by hinter
 func buildwkgenresmap() map[string]bool {
 	genres := make(map[string]bool)
 	for _, w := range AllWorks {
@@ -408,6 +371,7 @@ func buildwkgenresmap() map[string]bool {
 	return genres
 }
 
+// buildaulocationmap - populate global variable used by hinter
 func buildaulocationmap() map[string]bool {
 	locations := make(map[string]bool)
 	for _, a := range AllAuthors {
@@ -419,6 +383,7 @@ func buildaulocationmap() map[string]bool {
 	return locations
 }
 
+// buildwklocationmap - populate global variable used by hinter
 func buildwklocationmap() map[string]bool {
 	locations := make(map[string]bool)
 	for _, w := range AllWorks {
