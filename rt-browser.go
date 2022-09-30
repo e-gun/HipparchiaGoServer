@@ -283,7 +283,7 @@ func formatbrowsercitationinfo(w DbWork, f DbWorkline, l DbWorkline) string {
 	end := basiccitation(w, l)
 
 	pi := formatpublicationinfo(AllWorks[f.WkUID])
-	id := formatinscriptiondates(dt, f)
+	id := formatinscriptiondates(dt, &f)
 
 	cv = fmt.Sprintf(cv, ci, beg, end, pi, id)
 

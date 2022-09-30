@@ -82,7 +82,7 @@ type DbWorkline struct {
 	EmbNotes map[string]string
 }
 
-func (dbw DbWorkline) FindLocus() []string {
+func (dbw *DbWorkline) FindLocus() []string {
 	loc := [6]string{
 		dbw.Lvl5Value,
 		dbw.Lvl4Value,
@@ -101,22 +101,22 @@ func (dbw DbWorkline) FindLocus() []string {
 	return trim
 }
 
-func (dbw DbWorkline) FindAuthor() string {
+func (dbw *DbWorkline) FindAuthor() string {
 	// gr0001w001 --> gr0001
 	return dbw.WkUID[:6]
 }
 
-func (dbw DbWorkline) FindWork() string {
+func (dbw *DbWorkline) FindWork() string {
 	// gr0001w001 --> 001
 	return dbw.WkUID[7:]
 }
 
-func (dbw DbWorkline) FindCorpus() string {
+func (dbw *DbWorkline) FindCorpus() string {
 	// gr0001w001 --> gr
 	return dbw.WkUID[0:2]
 }
 
-func (dbw DbWorkline) BuildHyperlink() string {
+func (dbw *DbWorkline) BuildHyperlink() string {
 	if len(dbw.WkUID) == 0 {
 		// FormatWithContextResults() will trigger this
 		msg("BuildHyperlink() on empty dbworkline", 5)
@@ -159,7 +159,7 @@ func (dbw *DbWorkline) ShowMarkup() string {
 	return clean.Replace(dbw.MarkedUp)
 }
 
-func (dbw DbWorkline) SameLevelAs(other DbWorkline) bool {
+func (dbw *DbWorkline) SameLevelAs(other DbWorkline) bool {
 	// to help toggle the counters when building texts
 	one := dbw.Lvl1Value == other.Lvl1Value
 	two := dbw.Lvl2Value == other.Lvl2Value
@@ -173,20 +173,20 @@ func (dbw DbWorkline) SameLevelAs(other DbWorkline) bool {
 	}
 }
 
-func (dbw DbWorkline) StrippedSlice() []string {
+func (dbw *DbWorkline) StrippedSlice() []string {
 	return strings.Split(dbw.Stripped, " ")
 }
 
-func (dbw DbWorkline) AccentedSlice() []string {
+func (dbw *DbWorkline) AccentedSlice() []string {
 	return strings.Split(dbw.Accented, " ")
 }
 
-func (dbw DbWorkline) MarkedUpSlice() []string {
+func (dbw *DbWorkline) MarkedUpSlice() []string {
 	cln := nohtml.ReplaceAllString(dbw.MarkedUp, "")
 	return strings.Split(cln, " ")
 }
 
-func (dbw DbWorkline) Citation() string {
+func (dbw *DbWorkline) Citation() string {
 	return strings.Join(dbw.FindLocus(), ".")
 }
 

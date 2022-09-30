@@ -687,7 +687,7 @@ func sessionintobulksearch(c echo.Context) SearchStruct {
 	srch.SearchIn = sl.Inc
 	srch.SearchEx = sl.Excl
 	srch.SearchSize = sl.Size
-	BuildQueriesForSS(&srch)
+	SSBuildQueries(&srch)
 	srch.IsActive = true
 	srch.TableSize = len(srch.Queries)
 	srch = HGoSrch(srch)

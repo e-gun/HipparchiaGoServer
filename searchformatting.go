@@ -45,7 +45,7 @@ func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 	`
 	dtt := `[<span class="date">%s</span>]`
 
-	searchterm := gethighlighter(ss)
+	searchterm := gethighlighter(&ss)
 
 	rows := make([]string, len(ss.Results))
 	for i, r := range ss.Results {
@@ -75,8 +75,8 @@ func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 		wk := AllWorks[r.WkUID].Title
 		lk := r.BuildHyperlink()
 		lc := strings.Join(r.FindLocus(), ".")
-		wd := formatinscriptiondates(dtt, r)
-		pl := formatinscriptionplaces(r)
+		wd := formatinscriptiondates(dtt, &r)
+		pl := formatinscriptionplaces(&r)
 
 		// <span class="foundauthor">%s</span>,&nbsp;<span class="foundwork">%s</span>: <browser id="%s"><span class="foundlocus">%s</span></browser>
 		ct := `<spcauthor">%s</span>,&nbsp;<spcwork">%s</span>: <browser_id="%s"><spclocus">%s</span></browser>`
@@ -141,7 +141,7 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 	}
 
 	res.Results = []DbWorkline{}
-	BuildQueriesForSS(&res)
+	SSBuildQueries(&res)
 	res = HGoSrch(res)
 
 	// now you have all the lines you will ever need
@@ -162,8 +162,8 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 		psg.Foundwork = AllWorks[r.WkUID].Title
 		psg.FindURL = r.BuildHyperlink()
 		psg.FindLocus = strings.Join(r.FindLocus(), ".")
-		psg.FindDate = formatinscriptiondates(dtt, r)
-		psg.FindCity = formatinscriptionplaces(r)
+		psg.FindDate = formatinscriptiondates(dtt, &r)
+		psg.FindCity = formatinscriptionplaces(&r)
 
 		for j := r.TbIndex - context; j <= r.TbIndex+context; j++ {
 			url := fmt.Sprintf(urt, r.FindAuthor(), r.FindWork(), j)
@@ -213,7 +213,7 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 	}
 
 	// highlight the search term: this includes the hyphenated_line issue
-	searchterm := gethighlighter(ss)
+	searchterm := gethighlighter(&ss)
 
 	for _, p := range allpassages {
 		for i, r := range p.CookedCTX {
@@ -365,7 +365,7 @@ func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
 	}
 }
 
-func formatinscriptiondates(template string, dbw DbWorkline) string {
+func formatinscriptiondates(template string, dbw *DbWorkline) string {
 	// show the years for inscriptions
 	datestring := ""
 	fc := dbw.FindCorpus()
@@ -380,7 +380,7 @@ func formatinscriptiondates(template string, dbw DbWorkline) string {
 	return datestring
 }
 
-func formatinscriptionplaces(dbw DbWorkline) string {
+func formatinscriptionplaces(dbw *DbWorkline) string {
 	// show the places for inscriptions
 	placestring := ""
 	fc := dbw.FindCorpus()
@@ -501,7 +501,7 @@ func formatmultilinebrackets(html string) string {
 }
 
 // gethighlighter - set regex to highlight the search term
-func gethighlighter(ss SearchStruct) *regexp.Regexp {
+func gethighlighter(ss *SearchStruct) *regexp.Regexp {
 	var re *regexp.Regexp
 
 	skg := ss.Seeking
@@ -509,10 +509,10 @@ func gethighlighter(ss SearchStruct) *regexp.Regexp {
 	if ss.SkgRewritten {
 		// quasi-bugged because of "\s" --> "\[sS]"; meanwhile whitespacer() can't use " " for its own reasons...
 		// ((^|\[sS])[εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ][νΝ] [οὀὁὂὃὄὅόὸὈὉὊὋὌὍΟ][ρῤῥῬ][εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ][ϲσΣςϹ][τΤ][ηᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧᾘᾙᾚᾛᾜᾝᾞᾟἨἩἪἫἬἭἮἯΗ](\[sS]|$))
-		skg = strings.Replace(whitespacer(skg, &ss), "(^|\\s)", "(^| )", 1)
-		skg = strings.Replace(whitespacer(skg, &ss), "(\\s|$)", "( |$)", 1)
-		prx = strings.Replace(whitespacer(prx, &ss), "(^|\\s)", "(^| )", 1)
-		prx = strings.Replace(whitespacer(prx, &ss), "(\\s|$)", "( |$)", 1)
+		skg = strings.Replace(whitespacer(skg, ss), "(^|\\s)", "(^| )", 1)
+		skg = strings.Replace(whitespacer(skg, ss), "(\\s|$)", "( |$)", 1)
+		prx = strings.Replace(whitespacer(prx, ss), "(^|\\s)", "(^| )", 1)
+		prx = strings.Replace(whitespacer(prx, ss), "(\\s|$)", "( |$)", 1)
 	}
 
 	if len(ss.Seeking) != 0 {

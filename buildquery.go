@@ -69,20 +69,20 @@ const (
 // CORE LOGIC
 //
 
-// BuildQueriesForSS - populate a SearchStruct with []PrerolledQuery
-func BuildQueriesForSS(ss *SearchStruct) {
+// SSBuildQueries - populate a SearchStruct with []PrerolledQuery
+func SSBuildQueries(s *SearchStruct) {
 	// modifies the SearchStruct in place
-	inc := ss.SearchIn
-	exc := ss.SearchEx
+	inc := s.SearchIn
+	exc := s.SearchEx
 
-	if len(ss.LemmaOne) != 0 {
-		ss.SkgSlice = lemmaintoregexslice(ss.LemmaOne)
+	if len(s.LemmaOne) != 0 {
+		s.SkgSlice = lemmaintoregexslice(s.LemmaOne)
 	} else {
-		ss.SkgSlice = append(ss.SkgSlice, ss.Seeking)
+		s.SkgSlice = append(s.SkgSlice, s.Seeking)
 	}
 
-	syn := ss.SrchSyntax
-	if ss.PhaseNum == 2 && ss.NotNear {
+	syn := s.SrchSyntax
+	if s.PhaseNum == 2 && s.NotNear {
 		syn = "!~"
 	}
 
@@ -148,7 +148,7 @@ func BuildQueriesForSS(ss *SearchStruct) {
 
 	tails := acquiretails()
 
-	prqq := make([]PrerolledQuery, len(alltables)*len(ss.SkgSlice))
+	prqq := make([]PrerolledQuery, len(alltables)*len(s.SkgSlice))
 	count := 0
 
 	for _, au := range alltables {
@@ -158,7 +158,7 @@ func BuildQueriesForSS(ss *SearchStruct) {
 		// [b2a] check to see if bounded by inclusions
 		if bb, found := boundedincl[au]; found {
 			if len(bb) > TEMPTABLETHRESHOLD {
-				prq.TempTable = requiresindextemptable(au, bb, ss)
+				prq.TempTable = requiresindextemptable(au, bb, s)
 			} else {
 				qb.WhrIdxInc = andorwhereclause(bb, idxtmpl, "", " OR ")
 			}
@@ -168,7 +168,7 @@ func BuildQueriesForSS(ss *SearchStruct) {
 		if bb, found := boundedexcl[au]; found {
 			if len(bb) > TEMPTABLETHRESHOLD {
 				// note that 200 incl + 200 excl will produce garbage; in practice you have only au ton of one of them
-				prq.TempTable = requiresindextemptable(au, bb, ss)
+				prq.TempTable = requiresindextemptable(au, bb, s)
 			} else {
 				qb.WhrIdxExc = andorwhereclause(bb, idxtmpl, "NOT ", " AND ")
 			}
@@ -176,7 +176,7 @@ func BuildQueriesForSS(ss *SearchStruct) {
 
 		// [b3] search term might be lemmatized, hence the range
 
-		for i, skg := range ss.SkgSlice {
+		for i, skg := range s.SkgSlice {
 			sprq := prq
 			// there are fancier ways to do this, but debugging and maintaining become overwhelming...
 
@@ -185,23 +185,23 @@ func BuildQueriesForSS(ss *SearchStruct) {
 
 			nott := len(prq.TempTable) == 0
 			yestt := len(prq.TempTable) != 0
-			noph := !ss.HasPhrase
-			yesphr := ss.HasPhrase
+			noph := !s.HasPhrase
+			yesphr := s.HasPhrase
 			noidx := len(qb.WhrIdxExc) == 0 && len(qb.WhrIdxInc) == 0
 			yesidx := len(qb.WhrIdxExc) != 0 || len(qb.WhrIdxInc) != 0
 
 			// lemmata need unique tt names otherwise "ERROR: relation "gr5002_includelist_e83674d70344428bbb1feab0919bc2c6" already exists"
 			// cbf6f9746f2a46d080aa988c8c6bfd16_0, cbf6f9746f2a46d080aa988c8c6bfd16_1, ...
-			ntt := fmt.Sprintf("%s_%d", ss.TTName, i)
-			sprq.TempTable = strings.Replace(prq.TempTable, ss.TTName, ntt, -1)
+			ntt := fmt.Sprintf("%s_%d", s.TTName, i)
+			sprq.TempTable = strings.Replace(prq.TempTable, s.TTName, ntt, -1)
 
 			var t PRQTemplate
 			t.AU = au
-			t.COL = ss.SrchColumn
+			t.COL = s.SrchColumn
 			t.SYN = syn
-			t.LIM = fmt.Sprintf("%d", ss.Limit)
+			t.LIM = fmt.Sprintf("%d", s.Limit)
 			t.TTN = ntt
-			t.PSCol = ss.SrchColumn
+			t.PSCol = s.SrchColumn
 			t.SK = skg
 
 			if len(qb.WhrIdxExc) != 0 && len(qb.WhrIdxInc) != 0 {
@@ -235,8 +235,7 @@ func BuildQueriesForSS(ss *SearchStruct) {
 			count += 1
 		}
 	}
-
-	ss.Queries = prqq
+	s.Queries = prqq
 }
 
 //

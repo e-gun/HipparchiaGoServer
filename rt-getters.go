@@ -375,7 +375,7 @@ func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
 	l := graboneline(au, int64(sp))
 	s := buildhollowsearch()
 	s.SearchIn.Passages = []string{p}
-	BuildQueriesForSS(&s)
+	SSBuildQueries(&s)
 	lines := HGoSrch(s)
 	count := 0
 	for _, ln := range lines.Results {

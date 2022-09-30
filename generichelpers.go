@@ -28,6 +28,10 @@ func chke(err error) {
 
 // msg - send a color-coded message; will not be seen unless threshold <= go log level
 func msg(message string, threshold int) {
+	if cfg.LogLevel < threshold {
+		return
+	}
+
 	hgc := color.New(color.FgYellow).SprintFunc()
 	c := color.FgRed
 	switch threshold {
@@ -51,9 +55,14 @@ func msg(message string, threshold int) {
 	}
 	mc := color.New(c).SprintFunc()
 
-	if cfg.LogLevel >= threshold {
+	switch runtime.GOOS {
+	case "windows":
+		// terminal color codes not w's friend
+		fmt.Printf("[%s] %s\n", SHORTNAME, message)
+	default:
 		fmt.Printf("[%s] %s\n", hgc(SHORTNAME), mc(message))
 	}
+
 }
 
 func timetracker(letter string, m string, start time.Time, previous time.Time) {

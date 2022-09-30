@@ -259,7 +259,7 @@ func RtSearch(c echo.Context) error {
 	reallimit := srch.Limit
 
 	srch.CleanInput()
-	srch.SetType() // must happen before BuildQueriesForSS()
+	srch.SetType() // must happen before SSBuildQueries()
 	srch.FormatInitialSummary()
 
 	// now safe to rewrite skg oj that "^|\s", etc. can be added
@@ -271,7 +271,7 @@ func RtSearch(c echo.Context) error {
 	srch.SearchEx = sl.Excl
 	srch.SearchSize = sl.Size
 
-	BuildQueriesForSS(&srch)
+	SSBuildQueries(&srch)
 
 	srch.TableSize = len(srch.Queries)
 	srch.IsActive = true
@@ -299,19 +299,18 @@ func RtSearch(c echo.Context) error {
 	}
 
 	completed.SortResults()
-	searches[id] = completed
 
-	oj := SearchOutputJSON{}
+	soj := SearchOutputJSON{}
 	if sessions[readUUIDCookie(c)].HitContext == 0 {
-		oj = FormatNoContextResults(searches[id])
+		soj = FormatNoContextResults(completed)
 	} else {
-		oj = FormatWithContextResults(searches[id])
+		soj = FormatWithContextResults(completed)
 	}
 
 	delete(searches, id)
 	progremain.Delete(id)
 
-	return c.JSONPretty(http.StatusOK, oj, JSONINDENT)
+	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
 
 //
@@ -360,10 +359,10 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	second.Limit = originalsrch.Limit
 	second.SearchIn.Passages = newpsg
 
-	BuildQueriesForSS(&second)
+	SSBuildQueries(&second)
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf("%s BuildQueriesForSS() rerun", d), 4)
+	msg(fmt.Sprintf("%s SSBuildQueries() rerun", d), 4)
 	previous = time.Now()
 
 	second = HGoSrch(second)
@@ -441,7 +440,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	}
 
 	second.SearchIn.Passages = newpsg
-	BuildQueriesForSS(&second)
+	SSBuildQueries(&second)
 
 	// [b] run the second "search"
 
