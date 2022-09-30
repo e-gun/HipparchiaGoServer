@@ -814,6 +814,10 @@ func reportcurrentselections(c echo.Context) SelectionData {
 }
 
 func formatnewselectionjs(jsinfo []JSData) string {
+	if len(jsinfo) == 0 {
+		return ""
+	}
+
 	t := `
 		$( '#%s' ).dblclick(function() {
 			$.getJSON('%s', function (selectiondata) { 

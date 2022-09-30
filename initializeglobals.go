@@ -180,7 +180,6 @@ func workmapper() map[string]DbWork {
 		workmap[w.UID] = w
 		count += 1
 	}
-
 	return workmap
 }
 
