@@ -20,7 +20,6 @@
 
 * room to improve lemma highlighting
 * morphology tables
-* "non solum" w/in 4 words of "sed etiam" is the non-obvious way to catch single-word sandwiches: "non solum pecuniae sed etiam..." (not quite a bug, but...)
 
 ### DISTANT FANTASIES
 * vectors

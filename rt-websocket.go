@@ -141,7 +141,6 @@ func RtWebsocket(c echo.Context) error {
 
 	// tell the websocket on the other end to close
 	// this is not supposed to be strictly necessary, but there have been problems reconnecting after multiple searches
-
 	end := JSOut{
 		V:     "",
 		ID:    bs,

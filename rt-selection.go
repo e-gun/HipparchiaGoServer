@@ -613,6 +613,7 @@ func workvalueofpassage(psg string) string {
 	return thework
 }
 
+// findendpointsfromlocus - given a locus, what index values correspond to the start and end of that text segment?
 func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 	// we are wrapping endpointer() to give us a couple of bites at perseus citaiton problems
 

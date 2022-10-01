@@ -29,18 +29,25 @@
 
 find the folder with the archive
 open a terminal at that location (you can drag the folder onto `Terminal.app` or `cd` to it)
-then:
+then, assuming the archive is inside a folder named `hDB`:
 ```
-cat hipparchiaDB-* | psql "hipparchiaDB" --user hippa_wr
+[if this is a fresh installation]
+pg_restore -v -h localhost --clean --create --format=directory --username=hippa_wr --dbname=hipparchiaDB ./hDB
+
+[if you are restoring]
+pg_restore -v -h localhost --clean --format=directory --username=hippa_wr --dbname=hipparchiaDB ./hDB
+
 ```
 the password for `hippa_wr` will be requested when archiving/loading
 
-FYI to archive:
+FYI to archive into a folder named `hDB`:
 ```
-pg_dump --clean "hipparchiaDB" --user hippa_wr | split -b 100m - out/hipparchiaDB-
+pg_dump -v -h localhost --clean --create --format=directory --file=hDB --username=hippa_wr hipparchiaDB
 ```
 
-an uncompressed archive is c. `3.6GB`
+an uncompressed archive is c. `3.6GB`. A compressed archive is c. `1.9GB`.
+
+Dumping and restoring are both **slow**. You have to be very patient and you will be given no progress reports. 
 
 ![archive](gitimg/archived.png)
 
