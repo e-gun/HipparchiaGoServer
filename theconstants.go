@@ -87,6 +87,7 @@ const (
 
 	HELPTEXT = `command line options:
    -ac {string} set corpora active on startup and reset (*)
+   -bc {num}    default lines of browser context to display [current: %d]
    -cf {file}   read PSQL password from file [default: "%s/%s" or "%s%s"]
    -db          debug database: show internal references in browsed passages
    -el {num}    set echo server log level (0-2) [default: %d]

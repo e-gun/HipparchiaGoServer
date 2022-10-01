@@ -85,6 +85,7 @@ func main() {
 
 type CurrentConfiguration struct {
 	BadChars    string
+	BrowserCtx  int64
 	DbDebug     bool
 	DefCorp     map[string]bool
 	EchoLog     int // "none", "terse", "verbose"
@@ -103,6 +104,7 @@ type CurrentConfiguration struct {
 // configatlaunch - read the configuration values from JSON and/or command line
 func configatlaunch() {
 	cfg.BadChars = UNACCEPTABLEINPUT
+	cfg.BrowserCtx = DEFAULTBROWSERCTX
 	cfg.DbDebug = false
 	cfg.Font = FONTSETTING
 	cfg.Gzip = USEGZIP
@@ -136,6 +138,10 @@ func configatlaunch() {
 			if err != nil {
 				msg(fmt.Sprintf("Improperly formatted corpus list. Using:\n\t%s", DEFAULTCORPORA), 0)
 			}
+		case "-bc":
+			bc, err := strconv.Atoi(args[i+1])
+			chke(err)
+			cfg.BrowserCtx = int64(bc)
 		case "-cf":
 			cf = args[i+1]
 		case "-db":
@@ -154,8 +160,9 @@ func configatlaunch() {
 			cfg.Gzip = true
 		case "-h":
 			printversion()
-			fmt.Println(fmt.Sprintf(HELPTEXT, CONFIGLOCATION, CONFIGNAME, h, CONFIGNAME, DEFAULTECHOLOGLEVEL,
-				DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT, MAXTEXTLINEGENERATION, UNACCEPTABLEINPUT))
+			fmt.Println(fmt.Sprintf(HELPTEXT, DEFAULTBROWSERCTX, CONFIGLOCATION, CONFIGNAME, h, CONFIGNAME,
+				DEFAULTECHOLOGLEVEL, DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT, MAXTEXTLINEGENERATION,
+				UNACCEPTABLEINPUT))
 			os.Exit(1)
 		case "-pg":
 			js := args[i+1]

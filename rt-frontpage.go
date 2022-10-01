@@ -86,7 +86,7 @@ func makedefaultsession(id string) ServerSession {
 	s.Latest = MAXDATESTR
 	s.SortHitsBy = SORTBY
 	s.HitContext = DEFAULTLINESOFCONTEXT
-	s.BrowseCtx = DEFAULTBROWSERCTX
+	s.BrowseCtx = cfg.BrowserCtx
 	s.SearchScope = DEFAULTPROXIMITYSCOPE
 	s.Proximity = DEFAULTPROXIMITY
 
