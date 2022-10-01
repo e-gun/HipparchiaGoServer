@@ -85,6 +85,7 @@ const (
 	PROJYEAR = "2022"
 	PROJAUTH = "E. Gunderson"
 	PROJMAIL = "Department of Classics, 125 Queen’s Park, Toronto, ON  M5S 2C7 Canada"
+	PROJURL  = "https://github.com/e-gun/HipparchiaGoServer"
 
 	HELPTEXT = `command line options:
    -ac {string} set corpora active on startup and reset (*)
@@ -106,8 +107,15 @@ const (
    -v           print version and exit
    -wc {int}    number of workers [default: cpu_count]
 
-     (*) example: "{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"
-     (†) example: "{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"
+     (*) example: 
+         "{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"
+
+     (†) example: 
+         "{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"
+     
+     NB: place a properly formatted version of '%s' in '%s' 
+         if you want to avoid constantly setting multiple options. See 'sample_hgs-prolix-conf.json' at
+         %s
 `
 	LEXFINDJS = `
 		$('%s').click( function(e) {
