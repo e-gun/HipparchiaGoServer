@@ -687,6 +687,9 @@ func formatparsingdata(mpp []MorphPossib) string {
 	}
 	ct := 0
 	memo := ""
+	// there are duplicates in the original parsing data
+	dedup := make(map[string]bool)
+
 	for _, m := range mpp {
 		if strings.TrimSpace(m.Headwd) == "" {
 			continue
@@ -704,15 +707,18 @@ func formatparsingdata(mpp []MorphPossib) string {
 			}
 		}
 
-		pos := strings.Split(m.Anal, " ")
-		var tab string
-		for _, p := range pos {
-			tab += fmt.Sprintf(mtd, "morphcell", p)
+		if _, ok := dedup[m.Anal]; !ok {
+			pos := strings.Split(m.Anal, " ")
+			var tab string
+			for _, p := range pos {
+				tab += fmt.Sprintf(mtd, "morphcell", p)
+			}
+			tab = fmt.Sprintf(mtr, tab)
+			tab = fmt.Sprintf(mtb, tab)
+			html += tab
+			memo = m.Xrefval
+			dedup[m.Anal] = true
 		}
-		tab = fmt.Sprintf(mtr, tab)
-		tab = fmt.Sprintf(mtb, tab)
-		html += tab
-		memo = m.Xrefval
 	}
 
 	return html

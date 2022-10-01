@@ -47,7 +47,7 @@ pg_dump -v -h localhost --clean --create --format=directory --file=hDB --usernam
 
 an uncompressed archive is c. `3.6GB`. A compressed archive is c. `1.9GB`.
 
-Dumping and restoring are both **slow**. You have to be very patient and you will be given no progress reports. 
+Dumping and restoring are both **slow**. 
 
 ![archive](gitimg/archived.png)
 
