@@ -689,11 +689,20 @@ func formatparsingdata(mpp []MorphPossib) string {
 	memo := ""
 	// there are duplicates in the original parsing data
 	dedup := make(map[string]bool)
-
+	letter := 0
 	for _, m := range mpp {
+		// we always get an empty entry: this should be fixed elsewhere; dodging ATM
 		if strings.TrimSpace(m.Headwd) == "" {
 			continue
 		}
+
+		getlett := func() string {
+			if len(mpp) > 2 {
+				return fmt.Sprintf("[%s]", string(rune(letter+97)))
+			}
+			return ""
+		}()
+
 		if usecounter && m.Xrefval != memo {
 			ct += 1
 			html += fmt.Sprintf("(%d)&nbsp;", ct)
@@ -710,6 +719,7 @@ func formatparsingdata(mpp []MorphPossib) string {
 		if _, ok := dedup[m.Anal]; !ok {
 			pos := strings.Split(m.Anal, " ")
 			var tab string
+			tab = fmt.Sprintf(mtd, "morphcell", getlett)
 			for _, p := range pos {
 				tab += fmt.Sprintf(mtd, "morphcell", p)
 			}
@@ -718,7 +728,10 @@ func formatparsingdata(mpp []MorphPossib) string {
 			html += tab
 			memo = m.Xrefval
 			dedup[m.Anal] = true
+		} else {
+			letter -= 1
 		}
+		letter += 1
 	}
 
 	return html
