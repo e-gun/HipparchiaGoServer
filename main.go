@@ -123,6 +123,16 @@ func configatlaunch() {
 	uh, _ := os.UserHomeDir()
 	h := fmt.Sprintf(CONFIGALTAPTH, uh)
 	acf := fmt.Sprintf("%s/%s", h, CONFIGNAME)
+	pcf := fmt.Sprintf("%s/%s", h, PROLIXCONFIGFILE)
+
+	cfc, _ := os.Open(pcf)
+	decoderc := json.NewDecoder(cfc)
+	confc := CurrentConfiguration{}
+	errc := decoderc.Decode(&confc)
+
+	if errc == nil {
+		cfg = confc
+	}
 
 	var pl PostgresLogin
 
@@ -194,6 +204,12 @@ func configatlaunch() {
 		}
 	}
 
+	y := ""
+	if errc != nil {
+		y = " *not*"
+	}
+	msg(fmt.Sprintf("'%s%s'%s loaded", h, PROLIXCONFIGFILE, y), 5)
+
 	type ConfigFile struct {
 		PosgreSQLPassword string
 	}
@@ -241,5 +257,5 @@ func printversion() {
 	ll := fmt.Sprintf(" [gl=%d; el=%d]", cfg.LogLevel, cfg.EchoLog)
 	versioninfo := fmt.Sprintf("%s (v%s)", MYNAME, VERSION)
 	versioninfo = versioninfo + ll
-	msg(versioninfo, -1)
+	msg(versioninfo, 0)
 }

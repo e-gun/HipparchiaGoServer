@@ -1,0 +1,19 @@
+{
+  "BadChars": "\"'!@:,=_/̣",
+  "BrowserCtx": 26,
+  "DbDebug": false,
+  "DefCorp":
+    {"gr": true, "lt": true, "in": false, "ch": false, "dp": false},
+  "EchoLog": 0,
+  "Font": "SERVEALLFONTS",
+  "Gzip": false,
+  "HostIP": "localhost",
+  "HostPort": 8000,
+  "LogLevel": 3,
+  "ManualGC": true,
+  "MaxText": 25000,
+  "PGLogin":
+    {"Pass": "YOURPASSWORDHERE" ,"Host": "127.0.0.1", "Port": 5432, "DBName": "hipparchiaDB" ,"User": "hippa_wr"},
+  "QuietStart": true,
+  "WorkerCount": 6
+}

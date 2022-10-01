@@ -56,6 +56,7 @@ const (
 	NESTEDLEMMASIZE         = 543
 	ORDERBY                 = "index"
 	POLLEVERYNTABLES        = 50 // 3455 is the max number of tables in a search...
+	PROLIXCONFIGFILE        = "hgs-prolix-conf.json"
 	SERVEDFROMHOST          = "127.0.0.1"
 	SERVEDFROMPORT          = 8000
 	SHOWCITATIONEVERYNLINES = 10
