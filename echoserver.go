@@ -177,6 +177,9 @@ func StartEchoServer() {
 	// [h4] http://127.0.0.1:8000/lexica/idlookup/latin/24236.0
 	e.GET("/lexica/idlookup/:wd", RtLexId)
 
+	// [h5] /lexica/morphologychart/greek/39046.0/37925260/ἐπιγιγνώϲκω
+	e.GET("/lexica/morphologychart/:wd", RtMorphchart)
+
 	//
 	// [i] resets
 	//

@@ -6,7 +6,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4"
 	"github.com/labstack/echo/v4"
 	"strconv"
 	"strings"
@@ -180,35 +183,122 @@ func RtMorphchart(c echo.Context) error {
 
 	lg := elem[0]
 	id, e1 := strconv.ParseFloat(elem[1], 32)
-	xr, e2 := strconv.Atoi(elem[2])
-	wd := purgechars(elem[3], UNACCEPTABLEINPUT)
+	_, e2 := strconv.Atoi(elem[2])
+	wd := purgechars(UNACCEPTABLEINPUT, elem[3])
 	gl := lg == "greek" || lg == "latin"
 
 	if !gl || e1 != nil || e2 != nil {
 		return emptyjsreturn(c)
 	}
 
-	fmt.Println(id)
-	fmt.Println(xr)
+	// if e2 == nil it is safe to use elem[2] as the (string) xref val
+	xr := elem[2]
+
 	fmt.Println(wd)
+	fmt.Println(id)
 
 	// pseudocode:
 	// [a] request a table for a word: calls RtMorphchart()
 	// [b] get all forms of the word
 
-	// hipparchiaDB=# select * from greek_morphology limit 0;
-	// observed_form | xrefs | prefixrefs | possible_dictionary_forms | related_headwords
-	//---------------+-------+------------+---------------------------+-------------------
-	//(0 rows)
+	// hipparchiaDB=# \d greek_morphology
+	//                           Table "public.greek_morphology"
+	//          Column           |          Type          | Collation | Nullable | Default
+	//---------------------------+------------------------+-----------+----------+---------
+	// observed_form             | character varying(64)  |           |          |
+	// xrefs                     | character varying(128) |           |          |
+	// prefixrefs                | character varying(128) |           |          |
+	// possible_dictionary_forms | jsonb                  |           |          |
+	// related_headwords         | character varying(256) |           |          |
+	//Indexes:
+	//    "greek_analysis_trgm_idx" gin (related_headwords gin_trgm_ops)
+	//    "greek_morphology_idx" btree (observed_form)
 
 	// for ἐπιγιγνώϲκω...
 	// select * from greek_morphology where greek_morphology.xrefs='37925260';
 
-	// [c] get all counts for all forms
-	// [d] get parsing info for all forms
-	// [e] determine if it is a verb or declined
-	// [f] build the table head
-	// [g] build the table body
+	dbpool := GetPSQLconnection()
+	defer dbpool.Close()
+
+	fld := `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
+	psq := fmt.Sprintf(`SELECT %s FROM %s_morphology WHERE xrefs='%s'`, fld, lg, xr)
+
+	var foundrows pgx.Rows
+	var err error
+
+	foundrows, err = dbpool.Query(context.Background(), psq)
+	chke(err)
+
+	dbmmap := make(map[string]DbMorphology)
+	defer foundrows.Close()
+	for foundrows.Next() {
+		var thehit DbMorphology
+		e := foundrows.Scan(&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW)
+		chke(e)
+		dbmmap[thehit.Observed] = thehit
+	}
+
+	// [c] get all counts for all forms: [c] and [d] can run concurrently
+	// [c1] slice of the words; map of the first letters of those words
+	ww := make([]string, len(dbmmap))
+	lett := make(map[string]bool)
+
+	count := 0
+	for _, f := range dbmmap {
+		fo := f.Observed
+		ww[count] = fo
+		r := []rune(fo)
+		init := stripaccentsRUNE(r)
+		lett[string(init[0])] = true
+		count += 1
+	}
+
+	// [c2] query the database
+	arr := fmt.Sprintf("'%s'", strings.Join(ww, "', '"))
+
+	tt := `CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words`
+	qt := `SELECT entry_name, total_count, gr_count, lt_count, dp_count, in_count, ch_count FROM wordcounts_%s WHERE EXISTS 
+		(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = wordcounts_%s.entry_name )`
+
+	wcc := make(map[string]DbWordCount)
+	for l, _ := range lett {
+		rnd := strings.Replace(uuid.New().String(), "-", "", -1)
+		_, e := dbpool.Exec(context.Background(), fmt.Sprintf(tt, rnd, arr))
+		chke(e)
+		rr, e := dbpool.Query(context.Background(), fmt.Sprintf(qt, l, rnd, l))
+		chke(e)
+		var wc DbWordCount
+		defer rr.Close()
+		for rr.Next() {
+			ee := rr.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
+			chke(ee)
+		}
+		wcc[wc.Word] = wc
+	}
+
+	// [d] extract parsing info for all forms
+
+	mpp := make(map[string][]string)
+
+	for k, v := range dbmmap {
+		vv := []DbMorphology{v} // dbmorphintomorphpossib() wants a slice, we fake a slice
+		mp := dbmorphintomorphpossib(vv)
+		for _, m := range mp {
+			// item 0 is always ""; item 1 is an actual analysis
+			mpp[k] = append(mpp[k], m.Anal)
+		}
+	}
+
+	for k, v := range mpp {
+		fmt.Printf("%s: %s\n", k, strings.Join(v, " | "))
+	}
+
+	// [e] generate parsing map: [parsedata]form
+	// pdm := make(map[string]string)
+
+	// [f] determine if it is a verb or declined
+	// [g] build the table head
+	// [h] build the table body
 
 	return emptyjsreturn(c)
 }

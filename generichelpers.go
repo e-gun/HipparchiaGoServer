@@ -16,6 +16,7 @@ import (
 )
 
 var (
+	// have the option to return/generate some sort of fail message...
 	emptyjsreturn = func(c echo.Context) error { return c.JSONPretty(http.StatusOK, "", JSONINDENT) }
 )
 
@@ -184,6 +185,17 @@ func flatten[T any](lists [][]T) []T {
 		res = append(res, list...)
 	}
 	return res
+}
+
+// stringmapintoslice - convert map[string]T to []T
+func stringmapintoslice[T any](mp map[string]T) []T {
+	sl := make([]T, len(mp))
+	i := 0
+	for _, v := range mp {
+		sl[i] = v
+		i += 1
+	}
+	return sl
 }
 
 //
