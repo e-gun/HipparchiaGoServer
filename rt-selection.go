@@ -120,14 +120,14 @@ func RtSelectionClear(c echo.Context) error {
 
 	if len(which) != 2 {
 		msg(fmt.Sprintf("RtSelectionClear() was given bad input: %s", locus), 1)
-		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
+		return emptyjsreturn(c)
 	}
 
 	cat := which[0]
 	id, e := strconv.Atoi(which[1])
 	if e != nil {
 		msg(fmt.Sprintf("RtSelectionClear() was given bad input: %s", locus), 1)
-		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
+		return emptyjsreturn(c)
 	}
 
 	// cat := []string{"agn", "wgn", "aloc", "wloc", "au", "wk", "psg"}

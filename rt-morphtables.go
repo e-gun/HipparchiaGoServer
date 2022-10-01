@@ -1,0 +1,1892 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
+package main
+
+import (
+	"fmt"
+	"github.com/labstack/echo/v4"
+	"strconv"
+	"strings"
+)
+
+const (
+	DECLTABTMPL = `
+	<table class="verbanalysis">
+	<tbody>
+	{{.Header}}
+	{{.Rows}}
+	</tbody>
+	</table>
+	<hr class="styled">
+`
+	DECLHEADERTMPL = `
+	<tr align="center">
+		<td rowspan="1" colspan="{{.Span}}" class="dialectlabel">{{.Dialect}}<br>
+		</td>
+	</tr>
+	{{.Gendlabel}}
+	</tr>
+`
+	DECLGENDLABEL = `<tr>
+		<td class="genderlabel">&nbsp;</td>
+		{{.AllGenders}}
+	</tr>`
+
+	DECLBLANK = `
+	<tr><td>&nbsp;</td>{{.Columns}}</tr>
+`
+	DECLGENDERCELL = `<td class="gendercell">{{.G}}<br></td>`
+
+	DECLMORPHROW = `	
+	<tr class="morphrow">
+		{{.AllCells}}
+	</tr>`
+
+	MORPHLABELCELL = `<td class="morphlabelcell">{{.Ml}}</td>`
+
+	// MORPHCELL - 2nd sg attic mid indic of τίκτω should yield: τέξηι / τέξει / τέξῃ / τεκῇ
+	MORPHCELL = `<td class="morphcell">{{.Mo}}</td>`
+
+	// 	Smythe §383ff
+	//
+	//	verb cells look like:
+	//
+	//		<td class="morphcell">_attic_subj_pass_pl_2nd_pres_</td>
+
+	VBTABTMPL = `
+	<table class="verbanalysis">
+	<tbody>
+	{{.Header}}
+	{{.Rows}}
+	</tbody>
+	</table>
+	<hr class="styled">`
+
+	VBHEADERTMPL = `	
+	<tr align="center">
+		<td rowspan="1" colspan="{s}" class="dialectlabel">{dialect}<br>
+		</td>
+	</tr>
+	<tr align="center">
+		<td rowspan="1" colspan="{s}" class="voicelabel">{voice}<br>
+		</td>
+	</tr>
+	<tr align="center">
+		<td rowspan="1" colspan="{s}" class="moodlabel">{mood}<br>
+		</td>
+	{{.Tenseheader}}
+	</tr>`
+
+	VBTENSETEMPL = `
+	<tr>
+		<td class="tenselabel">&nbsp;</td>
+		{{.Alltenses}}
+	</tr>`
+
+	VBBLANK      = DECLBLANK
+	VMMORPHROW   = DECLMORPHROW
+	VBREGEXTEMPL = `_{{.D}}_{{.M}}_{{.V}}_{{.N}}_{{.P}}_{{.T}}_`
+	PCPLTEMPL    = `_{{.D}}_{{.M}}_{{.V}}_{{.N}}_{{.T}}_{{.G}}_{{.C}}_`
+)
+
+var (
+	GKCASES  = []string{"nom", "gen", "dat", "acc", "voc"}
+	GKNUMB   = []string{"sg", "dual", "pl"}
+	GKMOODS  = []string{"ind", "subj", "opt", "imperat", "inf", "part"}
+	GKVOICE  = []string{"act", "mid", "pass"}
+	GKTENSES = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 4: "Aorist", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
+	GKVERBS  = getgkvbmap()
+	LTCASES  = []string{"nom", "gen", "dat", "acc", "abl", "voc"}
+	LTNUMB   = []string{"sg", "pl"}
+	LTMOODS  = []string{"ind", "subj", "imperat", "inf", "part", "gerundive", "supine"}
+	LTVOICE  = []string{"act", "pass"}
+	LTTENSES = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
+	LTVERBS  = getltvbmap()
+	GENDERS  = []string{"masc", "fem", "neut"}
+	PERSONS  = []string{"1st", "2nd", "3rd"}
+)
+
+func getgkvbmap() map[string]map[string]map[int]bool {
+	gvm := make(map[string]map[string]map[int]bool)
+	for _, v := range GKVOICE {
+		gvm[v] = make(map[string]map[int]bool)
+		for _, m := range GKMOODS {
+			gvm[v][m] = make(map[int]bool)
+		}
+	}
+
+	gvm["act"]["ind"] = map[int]bool{1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: false}
+	gvm["act"]["subj"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
+	gvm["act"]["opt"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
+	gvm["act"]["imperat"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
+	gvm["act"]["inf"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
+	gvm["act"]["part"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
+	gvm["mid"]["ind"] = map[int]bool{1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: false}
+	gvm["mid"]["subj"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
+	gvm["mid"]["opt"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
+	gvm["mid"]["imperat"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
+	gvm["mid"]["inf"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
+	gvm["mid"]["part"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
+	gvm["pass"]["ind"] = map[int]bool{1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true}
+	gvm["pass"]["subj"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
+	gvm["pass"]["opt"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: true}
+	gvm["pass"]["imperat"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
+	gvm["pass"]["inf"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: true}
+	gvm["pass"]["part"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: true}
+	return gvm
+}
+
+func getltvbmap() map[string]map[string]map[int]bool {
+	// note that ppf subj pass, etc are "false" because "laudātus essem" is not going to be found
+
+	lvm := make(map[string]map[string]map[int]bool)
+	for _, v := range LTVOICE {
+		lvm[v] = make(map[string]map[int]bool)
+		for _, m := range LTMOODS {
+			lvm[v][m] = make(map[int]bool)
+		}
+	}
+	lvm["act"]["ind"] = map[int]bool{1: true, 2: true, 3: true, 5: true, 6: true, 7: true}
+	lvm["act"]["subj"] = map[int]bool{1: true, 2: false, 3: false, 5: true, 6: true, 7: false}
+	lvm["act"]["imperat"] = map[int]bool{1: true, 2: false, 3: true, 5: false, 6: false, 7: false}
+	lvm["act"]["inf"] = map[int]bool{1: true, 2: false, 3: false, 5: true, 6: false, 7: false}
+	lvm["act"]["part"] = map[int]bool{1: true, 2: false, 3: true, 5: false, 6: false, 7: false}
+	lvm["pass"]["ind"] = map[int]bool{1: true, 2: true, 3: true, 5: false, 6: false, 7: false}
+	lvm["pass"]["subj"] = map[int]bool{1: true, 2: true, 3: false, 5: false, 6: false, 7: false}
+	lvm["pass"]["imperat"] = map[int]bool{1: true, 2: false, 3: true, 5: false, 6: false, 7: false}
+	lvm["pass"]["inf"] = map[int]bool{1: true, 2: false, 3: false, 5: false, 6: false, 7: false}
+	lvm["pass"]["part"] = map[int]bool{1: false, 2: false, 3: false, 5: true, 6: false, 7: false}
+	return lvm
+}
+
+func RtMorphchart(c echo.Context) error {
+	// /lexica/morphologychart/greek/39046.0/37925260/ἐπιγιγνώϲκω
+
+	// should reach this route exclusively via a click from rt-lexica.go
+	//kf := `<formsummary parserxref="%d" lexicalid="%.1f" headword="%s" lang="%s">%d known forms</formsummary>`
+	//kf = fmt.Sprintf(kf, AllLemm[w.Word].Xref, w.ID, w.Word, w.Lang, len(AllLemm[w.Word].Deriv))
+
+	// [a] parse request
+
+	req := c.Param("wd")
+	elem := strings.Split(req, "/")
+
+	if len(elem) != 4 || elem[0] == "" {
+		return emptyjsreturn(c)
+	}
+
+	lg := elem[0]
+	id, e1 := strconv.ParseFloat(elem[1], 32)
+	xr, e2 := strconv.Atoi(elem[2])
+	wd := purgechars(elem[3], UNACCEPTABLEINPUT)
+	gl := lg == "greek" || lg == "latin"
+
+	if !gl || e1 != nil || e2 != nil {
+		return emptyjsreturn(c)
+	}
+
+	fmt.Println(id)
+	fmt.Println(xr)
+	fmt.Println(wd)
+
+	// pseudocode:
+	// [a] request a table for a word: calls RtMorphchart()
+	// [b] get all forms of the word
+
+	// hipparchiaDB=# select * from greek_morphology limit 0;
+	// observed_form | xrefs | prefixrefs | possible_dictionary_forms | related_headwords
+	//---------------+-------+------------+---------------------------+-------------------
+	//(0 rows)
+
+	// for ἐπιγιγνώϲκω...
+	// select * from greek_morphology where greek_morphology.xrefs='37925260';
+
+	// [c] get all counts for all forms
+	// [d] get parsing info for all forms
+	// [e] determine if it is a verb or declined
+	// [f] build the table head
+	// [g] build the table body
+
+	return emptyjsreturn(c)
+}
+
+func generatedeclinedformmap() {
+	// 		miles :  from miles :
+	//		[a]	masc/fem	nom	sg
+	//
+	//		operibus :  from opus¹  (“work”):
+	//		[a]	neut	abl	pl
+	//		[b]	neut
+	//
+	//		λοιβή :  from λοιβή  (“pouring.”):
+	//		[a]	fem	nom/voc	sg	(attic	epic	ionic)
+	//
+	//		fd {'_ _sg_masc_gen_': ['dolorisque', 'dolorist', 'doloris', 'dolorisue'], '_ _pl_masc_acc_': ['dolores', 'doloresque'],
+	//		'_ _pl_masc_nom_': ['dolores', 'doloresque'], '_ _pl_masc_voc_': ['dolores', 'doloresque'], ... }
+
+}
+
+func generateverbformmap() {
+	// 		e.g. {'_attic_imperf_ind_mp_1st_pl_': 'ἠλαττώμεθα', ...}
+	//		[a]	imperf	ind	mp	1st	pl	(attic	doric	aeolic)
+	//		[b]	plup	ind	mp	1st	pl	(attic)
+	//		[c]	perf	ind	mp	1st	pl	(attic)
+	//		[d]	plup	ind	mp	1st	pl	(homeric	ionic)
+	//
+	//		cell arrangement: left to right and top to bottom is vmnpt
+	//		i.e., voice, mood, number, person, tense
+	//
+	//		to be used with greekverbtabletemplate()
+
+}
+
+/*  SAMPLE: πίπτω
+
+<div class="center">
+	<span class="verylarge">All known forms of <dictionaryidsearch entryid="83253.0" language="greek">πίπτω</dictionaryidsearch></span>
+</div>
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output begins -->
+
+<table class="verbanalysis">
+<tbody>
+
+<tr align="center">
+	<td rowspan="1" colspan="7" class="dialectlabel">attic<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="voicelabel">act<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="moodlabel">ind<br>
+	</td>
+</tr><tr>
+	<td class="tenselabel">&nbsp;</td>
+	<td class="tensecell">Present<br></td>
+	<td class="tensecell">Imperfect<br></td>
+	<td class="tensecell">Future<br></td>
+	<td class="tensecell">Aorist<br></td>
+	<td class="tensecell">Perfect<br></td>
+	<td class="tensecell">Pluperfect<br></td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 1st</td>
+	<td class="morphcell"><verbform searchterm="πίτνω">πίτνω</verbform> (<span class="counter">15</span>) / <verbform searchterm="πίπτω">πίπτω</verbform> (<span class="counter">117</span>)</td>
+	<td class="morphcell"><verbform searchterm="ἔπιπτον">ἔπιπτον</verbform> (<span class="counter">259</span>) / <verbform searchterm="ἔπιτνον">ἔπιτνον</verbform> (<span class="counter">3</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="ἔπεϲον">ἔπεϲον</verbform> (<span class="counter">686</span>)</td>
+	<td class="morphcell"><verbform searchterm="πέπτηκα">πέπτηκα</verbform> (<span class="counter">14</span>) / <verbform searchterm="πέπτωκα">πέπτωκα</verbform> (<span class="counter">67</span>)</td>
+	<td class="morphcell"><verbform searchterm="ἐπεπτώκειν">ἐπεπτώκειν</verbform> (<span class="counter">1</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 2nd</td>
+	<td class="morphcell"><verbform searchterm="πίτνειϲ">πίτνειϲ</verbform> (<span class="counter">2</span>) / <verbform searchterm="πίπτειϲ">πίπτειϲ</verbform> (<span class="counter">11</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="ἔπεϲεϲ">ἔπεϲεϲ</verbform> (<span class="counter">26</span>)</td>
+	<td class="morphcell"><verbform searchterm="πέπτωκαϲ">πέπτωκαϲ</verbform> (<span class="counter">27</span>)</td>
+	<td class="morphcell"><verbform searchterm="ἐπεπτώκειϲ">ἐπεπτώκειϲ</verbform> (<span class="counter">1</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 3rd</td>
+	<td class="morphcell"><verbform searchterm="πίτνει">πίτνει</verbform> (<span class="counter">21</span>) / <verbform searchterm="πίπτει">πίπτει</verbform> (<span class="counter">1125</span>)</td>
+	<td class="morphcell"><verbform searchterm="ἔπιπτε">ἔπιπτε</verbform> (<span class="counter">56</span>) / <verbform searchterm="ἔπιτνε">ἔπιτνε</verbform> (<span class="counter">3</span>) / <verbform searchterm="ἔπιπτεν">ἔπιπτεν</verbform> (<span class="counter">75</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="ἔπεϲε">ἔπεϲε</verbform> (<span class="counter">526</span>) / <verbform searchterm="κἄπεϲε">κἄπεϲε</verbform> (<span class="counter">1</span>) / <verbform searchterm="ἔπεϲεν">ἔπεϲεν</verbform> (<span class="counter">995</span>)</td>
+	<td class="morphcell"><verbform searchterm="πέπτωκεν">πέπτωκεν</verbform> (<span class="counter">460</span>) / <verbform searchterm="πέπτωκε">πέπτωκε</verbform> (<span class="counter">237</span>)</td>
+	<td class="morphcell"><verbform searchterm="ἐπεπτώκει">ἐπεπτώκει</verbform> (<span class="counter">42</span>) / <verbform searchterm="πεπτώκει">πεπτώκει</verbform> (<span class="counter">4</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">dual 2nd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">dual 3rd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 1st</td>
+	<td class="morphcell"><verbform searchterm="πίτνομεν">πίτνομεν</verbform> (<span class="counter">1</span>) / <verbform searchterm="πίπτομεν">πίπτομεν</verbform> (<span class="counter">14</span>)</td>
+	<td class="morphcell"><verbform searchterm="ἐπίπτομεν">ἐπίπτομεν</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="ἐπέϲομεν">ἐπέϲομεν</verbform> (<span class="counter">2</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτώκαμεν">πεπτώκαμεν</verbform> (<span class="counter">21</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 2nd</td>
+	<td class="morphcell"><verbform searchterm="πίπτετε">πίπτετε</verbform> (<span class="counter">29</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεπτώκατε">πεπτώκατε</verbform> (<span class="counter">6</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 3rd</td>
+	<td class="morphcell"><verbform searchterm="πίπτουϲιν">πίπτουϲιν</verbform> (<span class="counter">346</span>) / <verbform searchterm="πίπτουϲι">πίπτουϲι</verbform> (<span class="counter">262</span>)</td>
+	<td class="morphcell"><verbform searchterm="ἔπιπτον">ἔπιπτον</verbform> (<span class="counter">259</span>) / <verbform searchterm="ἔπιτνον">ἔπιτνον</verbform> (<span class="counter">3</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="ἔπεϲον">ἔπεϲον</verbform> (<span class="counter">686</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτώκαϲιν">πεπτώκαϲιν</verbform> (<span class="counter">112</span>) / <verbform searchterm="πεπτώκαϲι">πεπτώκαϲι</verbform> (<span class="counter">97</span>)</td>
+	<td class="morphcell"><verbform searchterm="ἐπεπτώκειϲαν">ἐπεπτώκειϲαν</verbform> (<span class="counter">3</span>) / <verbform searchterm="ἐπεπτώκεϲαν">ἐπεπτώκεϲαν</verbform> (<span class="counter">6</span>)</td>
+</tr>
+
+</tbody>
+</table>
+<hr class="styled">
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output ends -->
+
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output begins -->
+
+<table class="verbanalysis">
+<tbody>
+
+<tr align="center">
+	<td rowspan="1" colspan="7" class="dialectlabel">attic<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="voicelabel">act<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="moodlabel">subj<br>
+	</td>
+</tr><tr>
+	<td class="tenselabel">&nbsp;</td>
+	<td class="tensecell">Present<br></td>
+	<td class="tensecell">Aorist<br></td>
+	<td class="tensecell">Perfect<br></td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 1st</td>
+	<td class="morphcell"><verbform searchterm="πίτνω">πίτνω</verbform> (<span class="counter">15</span>) / <verbform searchterm="πίπτω">πίπτω</verbform> (<span class="counter">117</span>)</td>
+	<td class="morphcell"><verbform searchterm="πέϲω">πέϲω</verbform> (<span class="counter">34</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 2nd</td>
+	<td class="morphcell"><verbform searchterm="πίπτῃϲ">πίπτῃϲ</verbform> (<span class="counter">3</span>)</td>
+	<td class="morphcell"><verbform searchterm="πέϲῃϲ">πέϲῃϲ</verbform> (<span class="counter">57</span>) / <verbform searchterm="πέϲηιϲ">πέϲηιϲ</verbform> (<span class="counter">3</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 3rd</td>
+	<td class="morphcell"><verbform searchterm="πίπτῃ">πίπτῃ</verbform> (<span class="counter">57</span>)</td>
+	<td class="morphcell"><verbform searchterm="πέϲῃ">πέϲῃ</verbform> (<span class="counter">496</span>) / <verbform searchterm="πέϲηι">πέϲηι</verbform> (<span class="counter">15</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">dual 2nd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πέϲητον">πέϲητον</verbform> (<span class="counter">4</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">dual 3rd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πέϲητον">πέϲητον</verbform> (<span class="counter">4</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 1st</td>
+	<td class="morphcell"><verbform searchterm="πίπτωμεν">πίπτωμεν</verbform> (<span class="counter">11</span>)</td>
+	<td class="morphcell"><verbform searchterm="πέϲωμεν">πέϲωμεν</verbform> (<span class="counter">20</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 2nd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πέϲητε">πέϲητε</verbform> (<span class="counter">11</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 3rd</td>
+	<td class="morphcell"><verbform searchterm="πίπτωϲι">πίπτωϲι</verbform> (<span class="counter">14</span>) / <verbform searchterm="πίπτωϲιν">πίπτωϲιν</verbform> (<span class="counter">11</span>)</td>
+	<td class="morphcell"><verbform searchterm="πέϲωϲι">πέϲωϲι</verbform> (<span class="counter">54</span>) / <verbform searchterm="πέϲωϲιν">πέϲωϲιν</verbform> (<span class="counter">70</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+</tbody>
+</table>
+<hr class="styled">
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output ends -->
+
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output begins -->
+
+<table class="verbanalysis">
+<tbody>
+
+<tr align="center">
+	<td rowspan="1" colspan="7" class="dialectlabel">attic<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="voicelabel">act<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="moodlabel">opt<br>
+	</td>
+</tr><tr>
+	<td class="tenselabel">&nbsp;</td>
+	<td class="tensecell">Present<br></td>
+	<td class="tensecell">Future<br></td>
+	<td class="tensecell">Aorist<br></td>
+	<td class="tensecell">Perfect<br></td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 1st</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πέϲοιμι">πέϲοιμι</verbform> (<span class="counter">7</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 2nd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πέϲοιϲ">πέϲοιϲ</verbform> (<span class="counter">2</span>) / <verbform searchterm="πεϲοίηϲ">πεϲοίηϲ</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 3rd</td>
+	<td class="morphcell"><verbform searchterm="πίπτοι">πίπτοι</verbform> (<span class="counter">24</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πέϲοι">πέϲοι</verbform> (<span class="counter">100</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτώκοι">πεπτώκοι</verbform> (<span class="counter">2</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">dual 2nd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">dual 3rd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 1st</td>
+	<td class="morphcell"><verbform searchterm="πίπτοιμεν">πίπτοιμεν</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πέϲοιμεν">πέϲοιμεν</verbform> (<span class="counter">7</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 2nd</td>
+	<td class="morphcell"><verbform searchterm="πίπτοιτε">πίπτοιτε</verbform></td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 3rd</td>
+	<td class="morphcell"><verbform searchterm="πίπτοιεν">πίπτοιεν</verbform> (<span class="counter">13</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πέϲοιεν">πέϲοιεν</verbform> (<span class="counter">21</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+</tbody>
+</table>
+<hr class="styled">
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output ends -->
+
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output begins -->
+
+<table class="verbanalysis">
+<tbody>
+
+<tr align="center">
+	<td rowspan="1" colspan="7" class="dialectlabel">attic<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="voicelabel">act<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="moodlabel">imperat<br>
+	</td>
+</tr><tr>
+	<td class="tenselabel">&nbsp;</td>
+	<td class="tensecell">Present<br></td>
+	<td class="tensecell">Aorist<br></td>
+	<td class="tensecell">Perfect<br></td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 1st</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 2nd</td>
+	<td class="morphcell"><verbform searchterm="πῖπτε">πῖπτε</verbform> (<span class="counter">34</span>)</td>
+	<td class="morphcell"><verbform searchterm="πέϲε">πέϲε</verbform> (<span class="counter">78</span>)</td>
+	<td class="morphcell"><verbform searchterm="πέπτωκε">πέπτωκε</verbform> (<span class="counter">237</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 3rd</td>
+	<td class="morphcell"><verbform searchterm="πιπτέτω">πιπτέτω</verbform> (<span class="counter">83</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεϲέτω">πεϲέτω</verbform> (<span class="counter">12</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκέτω">πεπτωκέτω</verbform> (<span class="counter">1</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">dual 2nd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">dual 3rd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 1st</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 2nd</td>
+	<td class="morphcell"><verbform searchterm="πίπτετε">πίπτετε</verbform> (<span class="counter">29</span>)</td>
+	<td class="morphcell"><verbform searchterm="πέϲετε">πέϲετε</verbform> (<span class="counter">11</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 3rd</td>
+	<td class="morphcell"><verbform searchterm="πιπτέτωϲαν">πιπτέτωϲαν</verbform> (<span class="counter">14</span>) / <verbform searchterm="πιτνόντων">πιτνόντων</verbform> (<span class="counter">3</span>) / <verbform searchterm="πιπτόντων">πιπτόντων</verbform> (<span class="counter">275</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντων">πεϲόντων</verbform> (<span class="counter">385</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+</tbody>
+</table>
+<hr class="styled">
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output ends -->
+
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output begins -->
+
+<table class="verbanalysis">
+<tbody>
+
+<tr align="center">
+	<td rowspan="1" colspan="7" class="dialectlabel">attic<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="voicelabel">act<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="moodlabel">part<br>
+	</td>
+</tr><tr>
+	<td class="tenselabel">&nbsp;</td>
+	<td class="tensecell">Present<br></td>
+	<td class="tensecell">Future<br></td>
+	<td class="tensecell">Aorist<br></td>
+	<td class="tensecell">Perfect<br></td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc sg nom</td>
+	<td class="morphcell"><verbform searchterm="πίπτων">πίπτων</verbform> (<span class="counter">181</span>) / <verbform searchterm="πίτνων">πίτνων</verbform> (<span class="counter">9</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲών">πεϲών</verbform> (<span class="counter">1131</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτεώϲ">πεπτεώϲ</verbform> (<span class="counter">1</span>) / <verbform searchterm="πεπτωκώϲ">πεπτωκώϲ</verbform> (<span class="counter">84</span>) / <verbform searchterm="πεπτηώϲ">πεπτηώϲ</verbform> (<span class="counter">15</span>) / <verbform searchterm="πεπτηκώϲ">πεπτηκώϲ</verbform> (<span class="counter">3</span>) / <verbform searchterm="πεπτώϲ">πεπτώϲ</verbform> (<span class="counter">1</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc sg gen</td>
+	<td class="morphcell"><verbform searchterm="πίπτοντοϲ">πίπτοντοϲ</verbform> (<span class="counter">73</span>) / <verbform searchterm="πίτνοντοϲ">πίτνοντοϲ</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντοϲ">πεϲόντοϲ</verbform> (<span class="counter">548</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκότοϲ">πεπτωκότοϲ</verbform> (<span class="counter">93</span>) / <verbform searchterm="πεπτηῶτοϲ">πεπτηῶτοϲ</verbform> (<span class="counter">2</span>) / <verbform searchterm="πεπτῶτοϲ">πεπτῶτοϲ</verbform> (<span class="counter">3</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc sg dat</td>
+	<td class="morphcell"><verbform searchterm="πίπτοντι">πίπτοντι</verbform> (<span class="counter">21</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντι">πεϲόντι</verbform> (<span class="counter">77</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτηκότι">πεπτηκότι</verbform> (<span class="counter">1</span>) / <verbform searchterm="πεπτωκότι">πεπτωκότι</verbform> (<span class="counter">39</span>) / <verbform searchterm="πεπτηῶτι">πεπτηῶτι</verbform> (<span class="counter">1</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc sg acc</td>
+	<td class="morphcell"><verbform searchterm="πίπτοντα">πίπτοντα</verbform> (<span class="counter">176</span>) / <verbform searchterm="πίτνοντα">πίτνοντα</verbform> (<span class="counter">7</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντα">πεϲόντα</verbform> (<span class="counter">460</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτῶτα">πεπτῶτα</verbform> (<span class="counter">3</span>) / <verbform searchterm="πεπτεῶτα">πεπτεῶτα</verbform> (<span class="counter">5</span>) / <verbform searchterm="πεπτωκότα">πεπτωκότα</verbform> (<span class="counter">188</span>) / <verbform searchterm="πεπτηῶτα">πεπτηῶτα</verbform> (<span class="counter">16</span>) / <verbform searchterm="πεπτηότα">πεπτηότα</verbform> (<span class="counter">5</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc sg voc</td>
+	<td class="morphcell"><verbform searchterm="πίτνον">πίτνον</verbform> (<span class="counter">12</span>) / <verbform searchterm="πῖπτον">πῖπτον</verbform> (<span class="counter">85</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόν">πεϲόν</verbform> (<span class="counter">123</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτεώϲ">πεπτεώϲ</verbform> (<span class="counter">1</span>) / <verbform searchterm="πεπτωκώϲ">πεπτωκώϲ</verbform> (<span class="counter">84</span>) / <verbform searchterm="πεπτηώϲ">πεπτηώϲ</verbform> (<span class="counter">15</span>) / <verbform searchterm="πεπτηκώϲ">πεπτηκώϲ</verbform> (<span class="counter">3</span>) / <verbform searchterm="πεπτώϲ">πεπτώϲ</verbform> (<span class="counter">1</span>)</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem sg nom</td>
+	<td class="morphcell"><verbform searchterm="πίτνουϲα">πίτνουϲα</verbform> (<span class="counter">1</span>) / <verbform searchterm="πίπτουϲα">πίπτουϲα</verbform> (<span class="counter">57</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲοῦϲα">πεϲοῦϲα</verbform> (<span class="counter">197</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκυῖα">πεπτωκυῖα</verbform> (<span class="counter">10</span>) / <verbform searchterm="πεπτηυῖα">πεπτηυῖα</verbform> (<span class="counter">2</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem sg gen</td>
+	<td class="morphcell"><verbform searchterm="πιτνούϲηϲ">πιτνούϲηϲ</verbform> (<span class="counter">1</span>) / <verbform searchterm="πιπτούϲηϲ">πιπτούϲηϲ</verbform> (<span class="counter">58</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲούϲηϲ">πεϲούϲηϲ</verbform> (<span class="counter">110</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτηυίαϲ">πεπτηυίαϲ</verbform> (<span class="counter">2</span>) / <verbform searchterm="πεπτωκυίαϲ">πεπτωκυίαϲ</verbform> (<span class="counter">18</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem sg dat</td>
+	<td class="morphcell"><verbform searchterm="πιπτούϲῃ">πιπτούϲῃ</verbform> (<span class="counter">7</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲούϲῃ">πεϲούϲῃ</verbform> (<span class="counter">15</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκυίᾳ">πεπτωκυίᾳ</verbform> (<span class="counter">3</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem sg acc</td>
+	<td class="morphcell"><verbform searchterm="πίπτουϲαν">πίπτουϲαν</verbform> (<span class="counter">36</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲοῦϲαν">πεϲοῦϲαν</verbform> (<span class="counter">109</span>) / <verbform searchterm="πετοῦϲαν">πετοῦϲαν</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκυῖαν">πεπτωκυῖαν</verbform> (<span class="counter">64</span>) / <verbform searchterm="πεπτηυῖαν">πεπτηυῖαν</verbform> (<span class="counter">5</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem sg voc</td>
+	<td class="morphcell"><verbform searchterm="πίτνουϲα">πίτνουϲα</verbform> (<span class="counter">1</span>) / <verbform searchterm="πίπτουϲα">πίπτουϲα</verbform> (<span class="counter">57</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲοῦϲα">πεϲοῦϲα</verbform> (<span class="counter">197</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκυῖα">πεπτωκυῖα</verbform> (<span class="counter">10</span>) / <verbform searchterm="πεπτηυῖα">πεπτηυῖα</verbform> (<span class="counter">2</span>)</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut sg nom</td>
+	<td class="morphcell"><verbform searchterm="πίτνον">πίτνον</verbform> (<span class="counter">12</span>) / <verbform searchterm="πῖπτον">πῖπτον</verbform> (<span class="counter">85</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόν">πεϲόν</verbform> (<span class="counter">123</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκόϲ">πεπτωκόϲ</verbform> (<span class="counter">111</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut sg gen</td>
+	<td class="morphcell"><verbform searchterm="πίπτοντοϲ">πίπτοντοϲ</verbform> (<span class="counter">73</span>) / <verbform searchterm="πίτνοντοϲ">πίτνοντοϲ</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντοϲ">πεϲόντοϲ</verbform> (<span class="counter">548</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκότοϲ">πεπτωκότοϲ</verbform> (<span class="counter">93</span>) / <verbform searchterm="πεπτηῶτοϲ">πεπτηῶτοϲ</verbform> (<span class="counter">2</span>) / <verbform searchterm="πεπτῶτοϲ">πεπτῶτοϲ</verbform> (<span class="counter">3</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut sg dat</td>
+	<td class="morphcell"><verbform searchterm="πίπτοντι">πίπτοντι</verbform> (<span class="counter">21</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντι">πεϲόντι</verbform> (<span class="counter">77</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτηκότι">πεπτηκότι</verbform> (<span class="counter">1</span>) / <verbform searchterm="πεπτωκότι">πεπτωκότι</verbform> (<span class="counter">39</span>) / <verbform searchterm="πεπτηῶτι">πεπτηῶτι</verbform> (<span class="counter">1</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut sg acc</td>
+	<td class="morphcell"><verbform searchterm="πίτνον">πίτνον</verbform> (<span class="counter">12</span>) / <verbform searchterm="πῖπτον">πῖπτον</verbform> (<span class="counter">85</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόν">πεϲόν</verbform> (<span class="counter">123</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκόϲ">πεπτωκόϲ</verbform> (<span class="counter">111</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut sg voc</td>
+	<td class="morphcell"><verbform searchterm="πίτνον">πίτνον</verbform> (<span class="counter">12</span>) / <verbform searchterm="πῖπτον">πῖπτον</verbform> (<span class="counter">85</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόν">πεϲόν</verbform> (<span class="counter">123</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκόϲ">πεπτωκόϲ</verbform> (<span class="counter">111</span>)</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc dual nom</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντε">πεϲόντε</verbform> (<span class="counter">5</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc dual gen</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc dual dat</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc dual acc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντε">πεϲόντε</verbform> (<span class="counter">5</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc dual voc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντε">πεϲόντε</verbform> (<span class="counter">5</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem dual nom</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem dual gen</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem dual dat</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem dual acc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem dual voc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut dual nom</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντε">πεϲόντε</verbform> (<span class="counter">5</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut dual gen</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut dual dat</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut dual acc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντε">πεϲόντε</verbform> (<span class="counter">5</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut dual voc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντε">πεϲόντε</verbform> (<span class="counter">5</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc pl nom</td>
+	<td class="morphcell"><verbform searchterm="πίτνοντεϲ">πίτνοντεϲ</verbform> (<span class="counter">1</span>) / <verbform searchterm="πίπτοντεϲ">πίπτοντεϲ</verbform> (<span class="counter">126</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντεϲ">πεϲόντεϲ</verbform> (<span class="counter">281</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκότεϲ">πεπτωκότεϲ</verbform> (<span class="counter">71</span>) / <verbform searchterm="πεπτηῶτεϲ">πεπτηῶτεϲ</verbform> (<span class="counter">13</span>) / <verbform searchterm="πεπτηότεϲ">πεπτηότεϲ</verbform> (<span class="counter">5</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc pl gen</td>
+	<td class="morphcell"><verbform searchterm="πιτνόντων">πιτνόντων</verbform> (<span class="counter">3</span>) / <verbform searchterm="πιπτόντων">πιπτόντων</verbform> (<span class="counter">275</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντων">πεϲόντων</verbform> (<span class="counter">385</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκότων">πεπτωκότων</verbform> (<span class="counter">160</span>) / <verbform searchterm="πεπτηκότων">πεπτηκότων</verbform> (<span class="counter">1</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc pl dat</td>
+	<td class="morphcell"><verbform searchterm="πίπτουϲιν">πίπτουϲιν</verbform> (<span class="counter">346</span>) / <verbform searchterm="πίπτουϲι">πίπτουϲι</verbform> (<span class="counter">262</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲοῦϲι">πεϲοῦϲι</verbform> (<span class="counter">59</span>) / <verbform searchterm="πεϲοῦϲιν">πεϲοῦϲιν</verbform> (<span class="counter">50</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκόϲι">πεπτωκόϲι</verbform> (<span class="counter">14</span>) / <verbform searchterm="πεπτωκόϲιν">πεπτωκόϲιν</verbform> (<span class="counter">15</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc pl acc</td>
+	<td class="morphcell"><verbform searchterm="πίτνονταϲ">πίτνονταϲ</verbform> (<span class="counter">1</span>) / <verbform searchterm="πίπτονταϲ">πίπτονταϲ</verbform> (<span class="counter">115</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόνταϲ">πεϲόνταϲ</verbform> (<span class="counter">210</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτεῶταϲ">πεπτεῶταϲ</verbform> (<span class="counter">1</span>) / <verbform searchterm="πεπτωκόταϲ">πεπτωκόταϲ</verbform> (<span class="counter">85</span>) / <verbform searchterm="πεπτηόταϲ">πεπτηόταϲ</verbform> (<span class="counter">2</span>) / <verbform searchterm="πεπτηῶταϲ">πεπτηῶταϲ</verbform> (<span class="counter">8</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc pl voc</td>
+	<td class="morphcell"><verbform searchterm="πίτνοντεϲ">πίτνοντεϲ</verbform> (<span class="counter">1</span>) / <verbform searchterm="πίπτοντεϲ">πίπτοντεϲ</verbform> (<span class="counter">126</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντεϲ">πεϲόντεϲ</verbform> (<span class="counter">281</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκότεϲ">πεπτωκότεϲ</verbform> (<span class="counter">71</span>) / <verbform searchterm="πεπτηῶτεϲ">πεπτηῶτεϲ</verbform> (<span class="counter">13</span>) / <verbform searchterm="πεπτηότεϲ">πεπτηότεϲ</verbform> (<span class="counter">5</span>)</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem pl nom</td>
+	<td class="morphcell"><verbform searchterm="πίπτουϲαι">πίπτουϲαι</verbform> (<span class="counter">27</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲοῦϲαι">πεϲοῦϲαι</verbform> (<span class="counter">22</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτηυῖαι">πεπτηυῖαι</verbform> (<span class="counter">6</span>) / <verbform searchterm="πεπτωκυῖαι">πεπτωκυῖαι</verbform> (<span class="counter">6</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem pl gen</td>
+	<td class="morphcell"><verbform searchterm="πιπτουϲῶν">πιπτουϲῶν</verbform> (<span class="counter">26</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲουϲῶν">πεϲουϲῶν</verbform> (<span class="counter">9</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκυιῶν">πεπτωκυιῶν</verbform> (<span class="counter">1</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem pl dat</td>
+	<td class="morphcell"><verbform searchterm="πιπτούϲαιϲ">πιπτούϲαιϲ</verbform> (<span class="counter">4</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲούϲαιϲ">πεϲούϲαιϲ</verbform> (<span class="counter">13</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτηυίαιϲ">πεπτηυίαιϲ</verbform> (<span class="counter">2</span>) / <verbform searchterm="πεπτηυίαιϲ">πεπτηυίαιϲ</verbform> (<span class="counter">2</span>) / <verbform searchterm="πεπτωκυίαιϲ">πεπτωκυίαιϲ</verbform> (<span class="counter">7</span>) / <verbform searchterm="πεπτωκυίαιϲ">πεπτωκυίαιϲ</verbform> (<span class="counter">7</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem pl acc</td>
+	<td class="morphcell"><verbform searchterm="πιπτούϲαϲ">πιπτούϲαϲ</verbform> (<span class="counter">22</span>) / <verbform searchterm="πιτνούϲαϲ">πιτνούϲαϲ</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲούϲαϲ">πεϲούϲαϲ</verbform> (<span class="counter">18</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτηυίαϲ">πεπτηυίαϲ</verbform> (<span class="counter">2</span>) / <verbform searchterm="πεπτωκυίαϲ">πεπτωκυίαϲ</verbform> (<span class="counter">18</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem pl voc</td>
+	<td class="morphcell"><verbform searchterm="πίπτουϲαι">πίπτουϲαι</verbform> (<span class="counter">27</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲοῦϲαι">πεϲοῦϲαι</verbform> (<span class="counter">22</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτηυῖαι">πεπτηυῖαι</verbform> (<span class="counter">6</span>) / <verbform searchterm="πεπτωκυῖαι">πεπτωκυῖαι</verbform> (<span class="counter">6</span>)</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut pl nom</td>
+	<td class="morphcell"><verbform searchterm="πίπτοντα">πίπτοντα</verbform> (<span class="counter">176</span>) / <verbform searchterm="πίτνοντα">πίτνοντα</verbform> (<span class="counter">7</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντα">πεϲόντα</verbform> (<span class="counter">460</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτῶτα">πεπτῶτα</verbform> (<span class="counter">3</span>) / <verbform searchterm="πεπτεῶτα">πεπτεῶτα</verbform> (<span class="counter">5</span>) / <verbform searchterm="πεπτωκότα">πεπτωκότα</verbform> (<span class="counter">188</span>) / <verbform searchterm="πεπτηῶτα">πεπτηῶτα</verbform> (<span class="counter">16</span>) / <verbform searchterm="πεπτηότα">πεπτηότα</verbform> (<span class="counter">5</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut pl gen</td>
+	<td class="morphcell"><verbform searchterm="πιτνόντων">πιτνόντων</verbform> (<span class="counter">3</span>) / <verbform searchterm="πιπτόντων">πιπτόντων</verbform> (<span class="counter">275</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντων">πεϲόντων</verbform> (<span class="counter">385</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκότων">πεπτωκότων</verbform> (<span class="counter">160</span>) / <verbform searchterm="πεπτηκότων">πεπτηκότων</verbform> (<span class="counter">1</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut pl dat</td>
+	<td class="morphcell"><verbform searchterm="πίπτουϲιν">πίπτουϲιν</verbform> (<span class="counter">346</span>) / <verbform searchterm="πίπτουϲι">πίπτουϲι</verbform> (<span class="counter">262</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲοῦϲι">πεϲοῦϲι</verbform> (<span class="counter">59</span>) / <verbform searchterm="πεϲοῦϲιν">πεϲοῦϲιν</verbform> (<span class="counter">50</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκόϲι">πεπτωκόϲι</verbform> (<span class="counter">14</span>) / <verbform searchterm="πεπτωκόϲιν">πεπτωκόϲιν</verbform> (<span class="counter">15</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut pl acc</td>
+	<td class="morphcell"><verbform searchterm="πίπτοντα">πίπτοντα</verbform> (<span class="counter">176</span>) / <verbform searchterm="πίτνοντα">πίτνοντα</verbform> (<span class="counter">7</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντα">πεϲόντα</verbform> (<span class="counter">460</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτῶτα">πεπτῶτα</verbform> (<span class="counter">3</span>) / <verbform searchterm="πεπτεῶτα">πεπτεῶτα</verbform> (<span class="counter">5</span>) / <verbform searchterm="πεπτωκότα">πεπτωκότα</verbform> (<span class="counter">188</span>) / <verbform searchterm="πεπτηῶτα">πεπτηῶτα</verbform> (<span class="counter">16</span>) / <verbform searchterm="πεπτηότα">πεπτηότα</verbform> (<span class="counter">5</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut pl voc</td>
+	<td class="morphcell"><verbform searchterm="πίπτοντα">πίπτοντα</verbform> (<span class="counter">176</span>) / <verbform searchterm="πίτνοντα">πίτνοντα</verbform> (<span class="counter">7</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲόντα">πεϲόντα</verbform> (<span class="counter">460</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεπτῶτα">πεπτῶτα</verbform> (<span class="counter">3</span>) / <verbform searchterm="πεπτεῶτα">πεπτεῶτα</verbform> (<span class="counter">5</span>) / <verbform searchterm="πεπτωκότα">πεπτωκότα</verbform> (<span class="counter">188</span>) / <verbform searchterm="πεπτηῶτα">πεπτηῶτα</verbform> (<span class="counter">16</span>) / <verbform searchterm="πεπτηότα">πεπτηότα</verbform> (<span class="counter">5</span>)</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+</tbody>
+</table>
+<hr class="styled">
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output ends -->
+
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output begins -->
+
+<table class="verbanalysis">
+<tbody>
+
+<tr align="center">
+	<td rowspan="1" colspan="7" class="dialectlabel">attic<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="voicelabel">act<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="moodlabel">inf<br>
+	</td>
+</tr><tr>
+	<td class="tenselabel">&nbsp;</td>
+	<td class="tensecell">Present<br></td>
+	<td class="tensecell">Future<br></td>
+	<td class="tensecell">Aorist<br></td>
+	<td class="tensecell">Perfect<br></td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">infinitive</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεπτωκέναι">πεπτωκέναι</verbform> (<span class="counter">107</span>)</td>
+</tr>
+
+</tbody>
+</table>
+<hr class="styled">
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output ends -->
+
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output begins -->
+
+<table class="verbanalysis">
+<tbody>
+
+<tr align="center">
+	<td rowspan="1" colspan="7" class="dialectlabel">attic<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="voicelabel">mid<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="moodlabel">ind<br>
+	</td>
+</tr><tr>
+	<td class="tenselabel">&nbsp;</td>
+	<td class="tensecell">Present<br></td>
+	<td class="tensecell">Imperfect<br></td>
+	<td class="tensecell">Future<br></td>
+	<td class="tensecell">Aorist<br></td>
+	<td class="tensecell">Perfect<br></td>
+	<td class="tensecell">Pluperfect<br></td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 1st</td>
+	<td class="morphcell"><verbform searchterm="πίπτομαι">πίπτομαι</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲοῦμαι">πεϲοῦμαι</verbform> (<span class="counter">7</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 2nd</td>
+	<td class="morphcell"><verbform searchterm="πίτνει">πίτνει</verbform> (<span class="counter">21</span>) / <verbform searchterm="πίπτει">πίπτει</verbform> (<span class="counter">1125</span>) / <verbform searchterm="πίπτῃ">πίπτῃ</verbform> (<span class="counter">57</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲῆι">πεϲῆι</verbform> (<span class="counter">4</span>) / <verbform searchterm="πεϲῇ">πεϲῇ</verbform> (<span class="counter">17</span>) / <verbform searchterm="πεϲεῖ">πεϲεῖ</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 3rd</td>
+	<td class="morphcell"><verbform searchterm="πίπτεται">πίπτεται</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲεῖται">πεϲεῖται</verbform> (<span class="counter">745</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">dual 2nd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">dual 3rd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 1st</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲούμεθα">πεϲούμεθα</verbform> (<span class="counter">10</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 2nd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲεῖϲθε">πεϲεῖϲθε</verbform> (<span class="counter">22</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 3rd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲοῦνται">πεϲοῦνται</verbform> (<span class="counter">399</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+</tbody>
+</table>
+<hr class="styled">
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output ends -->
+
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output begins -->
+
+<table class="verbanalysis">
+<tbody>
+
+<tr align="center">
+	<td rowspan="1" colspan="7" class="dialectlabel">attic<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="voicelabel">mid<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="moodlabel">opt<br>
+	</td>
+</tr><tr>
+	<td class="tenselabel">&nbsp;</td>
+	<td class="tensecell">Present<br></td>
+	<td class="tensecell">Future<br></td>
+	<td class="tensecell">Aorist<br></td>
+	<td class="tensecell">Perfect<br></td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 1st</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 2nd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πέϲοιο">πέϲοιο</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg 3rd</td>
+	<td class="morphcell"><verbform searchterm="πίπτοιτο">πίπτοιτο</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">dual 2nd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">dual 3rd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 1st</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 2nd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl 3rd</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+</tbody>
+</table>
+<hr class="styled">
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output ends -->
+
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output begins -->
+
+<table class="verbanalysis">
+<tbody>
+
+<tr align="center">
+	<td rowspan="1" colspan="7" class="dialectlabel">attic<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="voicelabel">mid<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="moodlabel">part<br>
+	</td>
+</tr><tr>
+	<td class="tenselabel">&nbsp;</td>
+	<td class="tensecell">Present<br></td>
+	<td class="tensecell">Future<br></td>
+	<td class="tensecell">Aorist<br></td>
+	<td class="tensecell">Perfect<br></td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc sg nom</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲούμενοϲ">πεϲούμενοϲ</verbform> (<span class="counter">7</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc sg gen</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲουμένου">πεϲουμένου</verbform> (<span class="counter">4</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc sg dat</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc sg acc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲούμενον">πεϲούμενον</verbform> (<span class="counter">10</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc sg voc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem sg nom</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem sg gen</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲουμένηϲ">πεϲουμένηϲ</verbform> (<span class="counter">3</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem sg dat</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem sg acc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem sg voc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut sg nom</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲούμενον">πεϲούμενον</verbform> (<span class="counter">10</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut sg gen</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲουμένου">πεϲουμένου</verbform> (<span class="counter">4</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut sg dat</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut sg acc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲούμενον">πεϲούμενον</verbform> (<span class="counter">10</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut sg voc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲούμενον">πεϲούμενον</verbform> (<span class="counter">10</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc dual nom</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc dual gen</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc dual dat</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc dual acc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc dual voc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem dual nom</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem dual gen</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem dual dat</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem dual acc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem dual voc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut dual nom</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut dual gen</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut dual dat</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut dual acc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut dual voc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc pl nom</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲούμενοι">πεϲούμενοι</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc pl gen</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲουμένων">πεϲουμένων</verbform> (<span class="counter">6</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc pl dat</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲουμένοιϲ">πεϲουμένοιϲ</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc pl acc</td>
+	<td class="morphcell"><verbform searchterm="πιπτομένουϲ">πιπτομένουϲ</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell"><verbform searchterm="πεϲουμένουϲ">πεϲουμένουϲ</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">masc pl voc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲούμενοι">πεϲούμενοι</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem pl nom</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem pl gen</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲουμένων">πεϲουμένων</verbform> (<span class="counter">6</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem pl dat</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲουμέναιϲ">πεϲουμέναιϲ</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem pl acc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">fem pl voc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut pl nom</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲούμενα">πεϲούμενα</verbform> (<span class="counter">5</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut pl gen</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲουμένων">πεϲουμένων</verbform> (<span class="counter">6</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut pl dat</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲουμένοιϲ">πεϲουμένοιϲ</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut pl acc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲούμενα">πεϲούμενα</verbform> (<span class="counter">5</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">neut pl voc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="πεϲούμενα">πεϲούμενα</verbform> (<span class="counter">5</span>)</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+</tbody>
+</table>
+<hr class="styled">
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output ends -->
+
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output begins -->
+
+<table class="verbanalysis">
+<tbody>
+
+<tr align="center">
+	<td rowspan="1" colspan="7" class="dialectlabel">attic<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="voicelabel">mid<br>
+	</td>
+</tr>
+<tr align="center">
+	<td rowspan="1" colspan="7" class="moodlabel">inf<br>
+	</td>
+</tr><tr>
+	<td class="tenselabel">&nbsp;</td>
+	<td class="tensecell">Present<br></td>
+	<td class="tensecell">Future<br></td>
+	<td class="tensecell">Aorist<br></td>
+	<td class="tensecell">Perfect<br></td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">infinitive</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell">---</td>
+</tr>
+
+</tbody>
+</table>
+<hr class="styled">
+
+<!-- morphologytableformatting.py filloutmorphtabletemplate() output ends -->
+*/

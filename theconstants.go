@@ -18,7 +18,7 @@ const (
 	DBLEMMACOUNT            = 152759
 	DBLMMAPSIZE             = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
 	DBWKMAPSIZE             = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
-	DEFAULTBROWSERCTX       = 20
+	DEFAULTBROWSERCTX       = 14
 	DEFAULTCOLUMN           = "stripped_line"
 	DEFAULTCORPORA          = "{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"
 	DEFAULTECHOLOGLEVEL     = 0

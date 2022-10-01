@@ -234,5 +234,5 @@ func printversion() {
 	ll := fmt.Sprintf(" [gl=%d; el=%d]", cfg.LogLevel, cfg.EchoLog)
 	versioninfo := fmt.Sprintf("%s (v%s)", MYNAME, VERSION)
 	versioninfo = versioninfo + ll
-	msg(versioninfo, 0)
+	msg(versioninfo, -1)
 }

@@ -149,7 +149,7 @@ func RtLexFindByForm(c echo.Context) error {
 	elem := strings.Split(req, "/")
 
 	if len(elem) == 0 || elem[0] == "" {
-		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
+		return emptyjsreturn(c)
 	}
 
 	var au string
@@ -180,11 +180,12 @@ func RtLexFindByForm(c echo.Context) error {
 // RtLexId - grab a word by its entry value
 func RtLexId(c echo.Context) error {
 	// http://127.0.0.1:8000/lexica/idlookup/latin/24236.0
+
 	req := c.Param("wd")
 	elem := strings.Split(req, "/")
 	if len(elem) != 2 {
 		msg(fmt.Sprintf("RtLexId() received bad request: '%s'", req), 1)
-		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
+		return emptyjsreturn(c)
 	}
 	d := purgechars(cfg.BadChars, elem[0])
 	w := purgechars(cfg.BadChars, elem[1])
@@ -192,7 +193,7 @@ func RtLexId(c echo.Context) error {
 	f := dictgrabber(w, d, "id_number", "=")
 	if len(f) == 0 {
 		msg(fmt.Sprintf("RtLexId() found nothing at id_number '%s'", w), 1)
-		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
+		return emptyjsreturn(c)
 	}
 
 	html := formatlexicaloutput(f[0])
@@ -212,7 +213,7 @@ func RtLexReverse(c echo.Context) error {
 	elem := strings.Split(req, "/")
 
 	if len(elem) == 0 || elem[0] == "" {
-		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
+		return emptyjsreturn(c)
 	}
 
 	word := purgechars(cfg.BadChars, elem[1])
@@ -230,7 +231,7 @@ func RtLexReverse(c echo.Context) error {
 	}
 
 	if len(dd) == 0 {
-		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
+		return emptyjsreturn(c)
 	}
 
 	html := reversefind(word, dd)
@@ -490,6 +491,9 @@ func extractmorphpossibilities(raw string, boundary *regexp.Regexp) []MorphPossi
 	// RawPossib is JSON + JSON; nested JSON is a PITA, but the structure is: {"1": {...}, "2": {...}, ...}
 	// that is splittable
 	// just need to clean the '}}' at the end
+
+	// boundary is not really a variable, we are just avoiding looping it
+	// boundary := regexp.MustCompile(`(\{|, )"\d": `)
 	possible := boundary.Split(raw, -1)
 
 	var mpp []MorphPossib

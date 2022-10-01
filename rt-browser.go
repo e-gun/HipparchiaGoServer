@@ -59,7 +59,7 @@ func RtBrowseline(c echo.Context) error {
 		return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
 	} else {
 		msg(fmt.Sprintf("RtBrowseline() could not parse %s", locus), 3)
-		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
+		return emptyjsreturn(c)
 	}
 }
 

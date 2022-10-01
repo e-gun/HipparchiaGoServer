@@ -8,9 +8,15 @@ package main
 import (
 	"fmt"
 	"github.com/fatih/color"
+	"github.com/labstack/echo/v4"
+	"net/http"
 	"runtime"
 	"sort"
 	"time"
+)
+
+var (
+	emptyjsreturn = func(c echo.Context) error { return c.JSONPretty(http.StatusOK, "", JSONINDENT) }
 )
 
 //

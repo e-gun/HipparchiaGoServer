@@ -48,7 +48,7 @@ func RtTextMaker(c echo.Context) error {
 	srch := sessionintobulksearch(c)
 
 	if len(srch.Results) == 0 {
-		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
+		return emptyjsreturn(c)
 	}
 
 	searches[srch.ID] = srch
@@ -175,7 +175,7 @@ func RtVocabMaker(c echo.Context) error {
 	srch := sessionintobulksearch(c)
 
 	if len(srch.Results) == 0 {
-		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
+		return emptyjsreturn(c)
 	}
 
 	var slicedwords []WordInfo
@@ -407,7 +407,7 @@ func RtIndexMaker(c echo.Context) error {
 	srch := sessionintobulksearch(c)
 
 	if len(srch.Results) == 0 {
-		return c.JSONPretty(http.StatusOK, "", JSONINDENT)
+		return emptyjsreturn(c)
 	}
 
 	var slicedwords []WordInfo
