@@ -18,7 +18,7 @@
 
 ### TODO (in vague order of priority)
 
-* fix the withinnwords problem:
+* WithinXWordsSearch() likely has a subtle distance bug when lemmatizing: wrong slice will add a word fragment?
 * room to improve lemma highlighting
 * morphology tables
 

@@ -471,7 +471,21 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	// [c3] grab the head and tail of each
 	var re string
 	if len(first.LemmaOne) != 0 {
-		re = strings.Join(lemmaintoregexslice(first.LemmaOne), "|")
+		// this next makes things insanely slow
+		// re = "(" + strings.Join(lemmaintoregexslice(first.LemmaOne), "|") + ")"
+
+		// but the next will not find all "tribuo" near all "beneficium" in Hyginus
+		// [169a.2.3] compressit. pro quo beneficium ei tribuit, iussitque eius fuscinam
+		// re = strings.Join(lemmaintoregexslice(first.LemmaOne), "|")
+
+		// this is going to catch and slice incomplete words? The cost is a miscalculation of distance, no?
+		// this also will misfind  »uinco« within 3 words of all forms of »libero« at VP, Historia Romana 2.33.1.7
+		// it will hit the 'victor' in 'liberarat uictoria'
+		// re = "(" + strings.Join(AllLemm[first.LemmaOne].Deriv, "|") + ")"
+
+		// the risk on this one is ^ or $. But is it possible for LemmaOne to be at the edge of a stringmapper string?
+		re = "(" + strings.Join(AllLemm[first.LemmaOne].Deriv, " | ") + ")"
+
 	} else {
 		re = first.Seeking
 	}
@@ -480,7 +494,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 	patternone, e := regexp.Compile(fmt.Sprintf(rt, re))
 	if e != nil {
-		m := fmt.Sprintf("WithinXWordsSearch() could not compile second pass regex term: %s", re)
+		m := fmt.Sprintf("WithinXWordsSearch() could not compile second pass regex term 'patternone': %s", re)
 		msg(m, 1)
 		return badsearch(m)
 	}
@@ -493,7 +507,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 	patterntwo, e := regexp.Compile(re)
 	if e != nil {
-		m := fmt.Sprintf("WithinXWordsSearch() could not compile second pass regex term: %s", re)
+		m := fmt.Sprintf("WithinXWordsSearch() could not compile second pass regex term 'patterntwo': %s", re)
 		msg(m, 1)
 		return badsearch(m)
 	}
