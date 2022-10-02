@@ -289,6 +289,7 @@ func RtSearch(c echo.Context) error {
 		completed = HGoSrch(searches[id])
 	}
 
+	fmt.Println(completed.Results)
 	if completed.HasPhrase {
 		// you did HGoSrch() and need to check the windowed lines
 		// WithinXLinesSearch() has already done the checking
@@ -297,7 +298,7 @@ func RtSearch(c echo.Context) error {
 			completed.Results = completed.Results[0:reallimit]
 		}
 	}
-
+	fmt.Println(completed.Results)
 	completed.SortResults()
 
 	soj := SearchOutputJSON{}
@@ -524,15 +525,11 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	ph2 := int64(len(strings.Split(strings.TrimSpace(first.Proximate), " ")))
 
 	if ph1 > 1 {
-		pd = pd + ph1 - 1
-	} else {
-		pd += 1
+		pd = pd + ph1
 	}
 
 	if ph2 > 1 {
-		pd = pd + ph2 - 1
-	} else {
-		pd += 1
+		pd = pd + ph2
 	}
 
 	var validresults []DbWorkline
@@ -554,10 +551,15 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 		head = strings.Join(hh, " ")
 
 		tt := strings.Split(tail, " ")
-		if int64(len(tt)) >= pd {
-			tt = tt[0:pd]
+		if int64(len(tt)) >= pd+1 {
+			tt = tt[0 : pd+1]
 		}
 		tail = strings.Join(tt, " ")
+
+		//msg("WithinXWordsSearch(): head, tail, patterntwo",3)
+		//fmt.Println(head)
+		//fmt.Println(tail)
+		//fmt.Println(patterntwo)
 
 		if first.NotNear {
 			// toss hits
@@ -574,9 +576,16 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 	second.Results = validresults
 
-	// restore deleted search info
-	second.Seeking = sskg
-	second.LemmaOne = slem
+	// the next will drop a hit in findphrasesacrosslines()
+	// 	Sought » non tribuit« within 5 words of »mihi autem« in Vitr. Arch 2 will have its hit pruned
+	//	this is because "non tribuit" is there but "mihi autem" is not.
+
+	//second.Seeking = sskg
+	//second.LemmaOne = slem
+
+	// so do this instead...
+	second.Seeking = first.Seeking
+	second.LemmaOne = first.LemmaOne
 
 	return second
 }
