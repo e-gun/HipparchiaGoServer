@@ -392,7 +392,6 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 
 // WithinXWordsSearch - find A within N words of B
 func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
-
 	previous := time.Now()
 	first := generateinitialhits(originalsrch)
 
@@ -400,7 +399,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	msg(fmt.Sprintf("%s WithinXWordsSearch(): %d initial hits", d, len(first.Results)), 4)
 	previous = time.Now()
 
-	// the trick is we are going to grab all lines near the initial hit; then build strings; then search those strings ourselves
+	// the trick is we are going to grab ALL lines near the initial hit; then build strings; then search those strings ourselves
 	// so the second search is "anything nearby"
 
 	// [a] build the second search
@@ -442,7 +441,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	second.SearchIn.Passages = newpsg
 	SSBuildQueries(&second)
 
-	// [b] run the second "search"
+	// [b] run the second "search" for anything/everything: ""
 
 	searches[originalsrch.ID] = HGoSrch(second)
 
@@ -487,7 +486,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	}
 
 	if len(slem) != 0 {
-		re = strings.Join(lemmaintoregexslice(second.LemmaOne), "|")
+		re = strings.Join(lemmaintoregexslice(slem), "|")
 	} else {
 		re = sskg
 	}
@@ -501,6 +500,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 	// [c4] search head and tail for the second search term
 
+	// the count is inclusive: the search term is one of the words
 	// unless you do something "non solum" w/in 4 words of "sed etiam" is the non-obvious way to catch single-word sandwiches:
 	// "non solum pecuniae sed etiam..."
 
@@ -511,10 +511,14 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 	if ph1 > 1 {
 		pd = pd + ph1 - 1
+	} else {
+		pd += 1
 	}
 
 	if ph2 > 1 {
 		pd = pd + ph2 - 1
+	} else {
+		pd += 1
 	}
 
 	var validresults []DbWorkline

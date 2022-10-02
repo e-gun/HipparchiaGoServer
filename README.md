@@ -18,6 +18,7 @@
 
 ### TODO (in vague order of priority)
 
+* fix the withinnwords problem:
 * room to improve lemma highlighting
 * morphology tables
 
