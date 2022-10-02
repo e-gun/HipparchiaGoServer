@@ -168,6 +168,19 @@ func getltvbmap() map[string]map[string]map[int]bool {
 func RtMorphchart(c echo.Context) error {
 	// /lexica/morphologychart/greek/39046.0/37925260/ἐπιγιγνώϲκω
 
+	// hipparchiaDB=# \d greek_morphology
+	//                           Table "public.greek_morphology"
+	//          Column           |          Type          | Collation | Nullable | Default
+	//---------------------------+------------------------+-----------+----------+---------
+	// observed_form             | character varying(64)  |           |          |
+	// xrefs                     | character varying(128) |           |          |
+	// prefixrefs                | character varying(128) |           |          |
+	// possible_dictionary_forms | jsonb                  |           |          |
+	// related_headwords         | character varying(256) |           |          |
+	//Indexes:
+	//    "greek_analysis_trgm_idx" gin (related_headwords gin_trgm_ops)
+	//    "greek_morphology_idx" btree (observed_form)
+
 	// should reach this route exclusively via a click from rt-lexica.go
 	//kf := `<formsummary parserxref="%d" lexicalid="%.1f" headword="%s" lang="%s">%d known forms</formsummary>`
 	//kf = fmt.Sprintf(kf, AllLemm[w.Word].Xref, w.ID, w.Word, w.Lang, len(AllLemm[w.Word].Deriv))
@@ -200,19 +213,6 @@ func RtMorphchart(c echo.Context) error {
 	// pseudocode:
 	// [a] request a table for a word: calls RtMorphchart()
 	// [b] get all forms of the word
-
-	// hipparchiaDB=# \d greek_morphology
-	//                           Table "public.greek_morphology"
-	//          Column           |          Type          | Collation | Nullable | Default
-	//---------------------------+------------------------+-----------+----------+---------
-	// observed_form             | character varying(64)  |           |          |
-	// xrefs                     | character varying(128) |           |          |
-	// prefixrefs                | character varying(128) |           |          |
-	// possible_dictionary_forms | jsonb                  |           |          |
-	// related_headwords         | character varying(256) |           |          |
-	//Indexes:
-	//    "greek_analysis_trgm_idx" gin (related_headwords gin_trgm_ops)
-	//    "greek_morphology_idx" btree (observed_form)
 
 	// for ἐπιγιγνώϲκω...
 	// select * from greek_morphology where greek_morphology.xrefs='37925260';
@@ -254,7 +254,13 @@ func RtMorphchart(c echo.Context) error {
 	}
 
 	// [c2] query the database
-	arr := fmt.Sprintf("'%s'", strings.Join(ww, "', '"))
+
+	// pgsql single quote escape: quote followed by a single quote to be escaped: κρυφθεῖϲ''
+	esc := make([]string, len(ww))
+	for i, w := range ww {
+		esc[i] = strings.Replace(w, "'", "''", -1)
+	}
+	arr := fmt.Sprintf("'%s'", strings.Join(esc, "', '"))
 
 	tt := `CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words`
 	qt := `SELECT entry_name, total_count, gr_count, lt_count, dp_count, in_count, ch_count FROM wordcounts_%s WHERE EXISTS 
@@ -289,11 +295,91 @@ func RtMorphchart(c echo.Context) error {
 		}
 	}
 
-	for k, v := range mpp {
-		fmt.Printf("%s: %s\n", k, strings.Join(v, " | "))
+	// [e] generate parsing map: [parsedata]form
+	// NB have to decompress "nom/voc/acc" into three entries
+
+	// [e1] first pass: make the map and deal with cases
+	pdm := make(map[string]string)
+	for k, vv := range mpp {
+		for _, v := range vv {
+			if len(v) == 0 {
+				continue
+			}
+			if !strings.Contains(v, "/") {
+				key := strings.Replace(v, " ", "_", -1)
+				if _, ok := pdm[key]; !ok {
+					pdm[key] = k
+				} else {
+					pdm[key] = pdm[key] + " / " + k
+				}
+			} else {
+				// need to decompress "nom/voc/acc" into three entries, etc
+				var rebuild []string
+				var multiplier []string
+				ell := strings.Split(v, " ")
+				for _, e := range ell {
+					if !strings.Contains(e, "/") {
+						rebuild = append(rebuild, e)
+					} else {
+						multiplier = strings.Split(e, "/")
+						rebuild = append(rebuild, "CLONE_ME")
+					}
+				}
+				templ := strings.Join(rebuild, " ")
+				for _, m := range multiplier {
+					key := strings.Replace(templ, "CLONE_ME", m, 1)
+					key = strings.Replace(key, " ", "_", -1)
+					if _, ok := pdm[key]; !ok {
+						pdm[key] = k
+					} else {
+						pdm[key] = pdm[key] + " / " + k
+					}
+				}
+			}
+		}
 	}
 
-	// [e] generate parsing map: [parsedata]form
+	// [e2] second pass at the map to deal with dialects
+
+	for k, v := range pdm {
+		fmt.Printf("%s: %s\n", k, v)
+		// αὐτόϲ
+		//17907
+		//fem_nom_pl_(ionic): τωὔτ'
+		//fem_dat_sg_(attic_epic_ionic): αὐτῆι / αὐτῇ
+		//neut_dat_pl: καὐτοῖϲ / αὐτοῖϲ
+		//fem_gen_pl_(doric): αὐτᾶν
+		//masc_dat_sg_(ionic): τωὐτῷ / τὠυτῷ
+		//fem_nom_pl: αὔτ' / αὐταί / καὐταί / αὔθ' / αὐτ' / αὑταί
+		//neut_voc_sg_(ionic): τωὔτ' / τωὐτό / τὠυτό
+		//neut_gen_sg_(epic): αὐτοῖο
+		//masc_acc_dual: αὐτώ
+		//fem_gen_sg_(attic_epic_ionic): αὐτῆϲ / καὐτῆϲ / ωὐτῆϲ
+		//masc_gen_pl_(epic_aeolic): αὐτάων
+		//fem_dat_pl_(epic): αὐτῇϲ
+		//masc_voc_dual: αὐτώ
+		//fem_voc_sg_(doric_aeolic): καὐτά / αὔτ' / αὐτά / ωὐτά / αὔθ' / αὐτ'
+		//fem_dat_pl_(epic_ionic): αὐτῆιϲιν / αὐτῆιϲι / αὐτῇϲιν / αὐτῇϲι
+		// ...
+
+		// ἐξαποϲτέλλω
+		//36880
+		//pres_part_act_neut_dat_pl_(attic_epic_doric_ionic): ἐξαποϲτέλλουϲιν / ἐξαποϲτέλλουϲι
+		//perf_part_mp_neut_nom_sg: ἐξαπεϲταλμένον
+		//pres_part_act_masc_nom_sg: ἐξαποϲτέλλων
+		//aor_part_act_masc_nom_sg_(attic_epic_ionic): ἐξαποϲτείλαϲ / ϲυνεξαποϲτείλαϲ
+		//aor_inf_pass: ἐξαποϲταλῆναι
+		//perf_part_mp_neut_voc_sg: ἐξαπεϲταλμένον
+		//aor_part_pass_neut_acc_sg: ἐξαποϲταλέν
+		//aor_part_act_masc_gen_pl: ἐξαποϲτελλόντων / ϲυνεξαποϲτειλάντων / ἐξαποϲτειλάντων
+		//fut_ind_act_3rd_sg_(attic_epic_doric_ionic): ἐξαποϲτελεῖ
+		//pres_part_mp_fem_acc_pl: ἐξαποϲτελλομέναϲ
+		//pres_ind_act_3rd_pl_(attic_epic_doric_ionic): ἐξαποϲτέλλουϲιν / ἐξαποϲτέλλουϲι
+		//aor_subj_act_2nd_sg: ἐξαποϲτέλλῃϲ / ἐξαποϲτείλῃϲ
+		// ...
+
+	}
+
 	// pdm := make(map[string]string)
 
 	// [f] determine if it is a verb or declined
