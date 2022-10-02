@@ -202,6 +202,14 @@ func swapacuteforgrave(thetext string) string {
 	return swap.Replace(thetext)
 }
 
+func swapgraveforacute(thetext string) string {
+	swap := strings.NewReplacer("ά", "ὰ", "έ", "ὲ", "ί", "ὶ", "ό", "ὸ", "ύ", "ὺ", "ή", "ὴ", "ώ", "ὼ",
+		"ἄ", "ἂ", "ἅ", "ἃ", "ᾴ", "ᾲ", "ᾄ", "ᾂ", "ᾅ", "ᾃ", "ἔ", "ἒ", "ἴ", "ἲ", "ὄ", "ὂ", "ὅ", "ὃ", "ὔ", "ὒ", "ὕ", "ὓ",
+		"ἤ", "ἢ", "ἥ", "ἣ", "ᾕ", "ᾓ", "ᾔ", "ᾒ", "ὤ", "ὢ", "ὥ", "ὣ", "ᾥ", "ᾣ", "ᾤ", "ᾢ", "a", "á", "e", "é",
+		"i", "í", "o", "ó", "u", "ú")
+	return swap.Replace(thetext)
+}
+
 func capsvariants(word string) string {
 	// build regex compilation template for a word and its capitalized variant
 	cv := ""

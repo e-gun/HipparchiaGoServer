@@ -11,6 +11,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/labstack/echo/v4"
+	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -210,8 +212,6 @@ func RtMorphchart(c echo.Context) error {
 	fmt.Println(wd)
 	fmt.Println(id)
 
-	// pseudocode:
-	// [a] request a table for a word: calls RtMorphchart()
 	// [b] get all forms of the word
 
 	// for ἐπιγιγνώϲκω...
@@ -238,7 +238,7 @@ func RtMorphchart(c echo.Context) error {
 		dbmmap[thehit.Observed] = thehit
 	}
 
-	// [c] get all counts for all forms: [c] and [d] can run concurrently
+	// [c] get all counts for all forms: [c] and [d-e] can run concurrently
 	// [c1] slice of the words; map of the first letters of those words
 	ww := make([]string, len(dbmmap))
 	lett := make(map[string]bool)
@@ -256,15 +256,21 @@ func RtMorphchart(c echo.Context) error {
 	// [c2] query the database
 
 	// pgsql single quote escape: quote followed by a single quote to be escaped: κρυφθεῖϲ''
-	esc := make([]string, len(ww))
-	for i, w := range ww {
-		esc[i] = strings.Replace(w, "'", "''", -1)
+	// todo: properly address the acute/grave issue
+
+	var esc []string
+	for _, w := range ww {
+		x := swapgraveforacute(w)
+		x = strings.Replace(x, "'", "''", -1)
+		esc = append(esc, x)
+		esc = append(esc, strings.Replace(w, "'", "''", -1))
 	}
 	arr := fmt.Sprintf("'%s'", strings.Join(esc, "', '"))
+	fmt.Println(arr)
 
 	tt := `CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words`
-	qt := `SELECT entry_name, total_count, gr_count, lt_count, dp_count, in_count, ch_count FROM wordcounts_%s WHERE EXISTS 
-		(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = wordcounts_%s.entry_name )`
+	qt := `SELECT entry_name, total_count FROM wordcounts_%s WHERE EXISTS 
+		(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = wordcounts_%s.entry_name)`
 
 	wcc := make(map[string]DbWordCount)
 	for l, _ := range lett {
@@ -276,12 +282,15 @@ func RtMorphchart(c echo.Context) error {
 		var wc DbWordCount
 		defer rr.Close()
 		for rr.Next() {
-			ee := rr.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
+			ee := rr.Scan(&wc.Word, &wc.Total)
 			chke(ee)
 		}
 		wcc[wc.Word] = wc
 	}
 
+	// todo: only one or two wcc are coming back
+
+	fmt.Println(wcc)
 	// [d] extract parsing info for all forms
 
 	mpp := make(map[string][]string)
@@ -340,44 +349,47 @@ func RtMorphchart(c echo.Context) error {
 	}
 
 	// [e2] second pass at the map to deal with dialects
+	if lg == "greek" {
+		for k, v := range pdm {
+			delete(pdm, k)
+			if strings.Contains(k, "(") {
+				k = strings.Replace(k, ")", "", 1)
+				parts := strings.Split(k, "(")
+				diall := strings.Split(parts[1], "_")
+				for _, d := range diall {
+					newkey := parts[0] + "_" + d
+					newkey = strings.Replace(newkey, "__", "_", 1)
+					pdm[newkey] = v
+				}
+			} else {
+				if !strings.Contains(k, "attic") {
+					newkey := k + "_attic"
+					pdm[newkey] = v
+				} else {
+					pdm[k] = v
+				}
+			}
+		}
+	}
 
+	// get counts for each word
+	pdcm := make(map[string]map[string]int64)
 	for k, v := range pdm {
-		fmt.Printf("%s: %s\n", k, v)
-		// αὐτόϲ
-		//17907
-		//fem_nom_pl_(ionic): τωὔτ'
-		//fem_dat_sg_(attic_epic_ionic): αὐτῆι / αὐτῇ
-		//neut_dat_pl: καὐτοῖϲ / αὐτοῖϲ
-		//fem_gen_pl_(doric): αὐτᾶν
-		//masc_dat_sg_(ionic): τωὐτῷ / τὠυτῷ
-		//fem_nom_pl: αὔτ' / αὐταί / καὐταί / αὔθ' / αὐτ' / αὑταί
-		//neut_voc_sg_(ionic): τωὔτ' / τωὐτό / τὠυτό
-		//neut_gen_sg_(epic): αὐτοῖο
-		//masc_acc_dual: αὐτώ
-		//fem_gen_sg_(attic_epic_ionic): αὐτῆϲ / καὐτῆϲ / ωὐτῆϲ
-		//masc_gen_pl_(epic_aeolic): αὐτάων
-		//fem_dat_pl_(epic): αὐτῇϲ
-		//masc_voc_dual: αὐτώ
-		//fem_voc_sg_(doric_aeolic): καὐτά / αὔτ' / αὐτά / ωὐτά / αὔθ' / αὐτ'
-		//fem_dat_pl_(epic_ionic): αὐτῆιϲιν / αὐτῆιϲι / αὐτῇϲιν / αὐτῇϲι
-		// ...
+		wds := strings.Split(v, " / ")
+		mm := make(map[string]int64)
+		for _, w := range wds {
+			mm[w] = wcc[w].Total
+		}
+		pdcm[k] = mm
+	}
 
-		// ἐξαποϲτέλλω
-		//36880
-		//pres_part_act_neut_dat_pl_(attic_epic_doric_ionic): ἐξαποϲτέλλουϲιν / ἐξαποϲτέλλουϲι
-		//perf_part_mp_neut_nom_sg: ἐξαπεϲταλμένον
-		//pres_part_act_masc_nom_sg: ἐξαποϲτέλλων
-		//aor_part_act_masc_nom_sg_(attic_epic_ionic): ἐξαποϲτείλαϲ / ϲυνεξαποϲτείλαϲ
-		//aor_inf_pass: ἐξαποϲταλῆναι
-		//perf_part_mp_neut_voc_sg: ἐξαπεϲταλμένον
-		//aor_part_pass_neut_acc_sg: ἐξαποϲταλέν
-		//aor_part_act_masc_gen_pl: ἐξαποϲτελλόντων / ϲυνεξαποϲτειλάντων / ἐξαποϲτειλάντων
-		//fut_ind_act_3rd_sg_(attic_epic_doric_ionic): ἐξαποϲτελεῖ
-		//pres_part_mp_fem_acc_pl: ἐξαποϲτελλομέναϲ
-		//pres_ind_act_3rd_pl_(attic_epic_doric_ionic): ἐξαποϲτέλλουϲιν / ἐξαποϲτέλλουϲι
-		//aor_subj_act_2nd_sg: ἐξαποϲτέλλῃϲ / ἐξαποϲτείλῃϲ
-		// ...
-
+	var o []string
+	for kk, pd := range pdcm {
+		var vv []string
+		for k, v := range pd {
+			vv = append(vv, fmt.Sprintf("%s (%d)", k, v))
+		}
+		o = append(o, fmt.Sprintf("%s: %s\n", kk, strings.Join(vv, " / ")))
 	}
 
 	// pdm := make(map[string]string)
@@ -386,7 +398,14 @@ func RtMorphchart(c echo.Context) error {
 	// [g] build the table head
 	// [h] build the table body
 
-	return emptyjsreturn(c)
+	// return emptyjsreturn(c)
+	sort.Strings(o)
+
+	var jb JSB
+	jb.HTML = "[RtMorphchart() is a work in progress...]<br>" + strings.Join(o, "<br>")
+	jb.JS = insertlexicaljs()
+
+	return c.JSONPretty(http.StatusOK, jb, JSONINDENT)
 }
 
 func generatedeclinedformmap() {
