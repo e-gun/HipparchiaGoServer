@@ -98,24 +98,24 @@ const (
 )
 
 var (
-	GKCASES  = []string{"nom", "gen", "dat", "acc", "voc"}
-	GKNUMB   = []string{"sg", "dual", "pl"}
-	GKMOODS  = []string{"ind", "subj", "opt", "imperat", "inf", "part"}
-	GKVOICE  = []string{"act", "mid", "pass"}
-	GKTENSES = []string{"aor", "fut", "futperf", "imperf", "perf", "pres", "plup"}
-	// GKTENSEMAP = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 4: "Aorist", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
-	GKTENSEMAP = map[string]int{"pres": 1, "imperf": 2, "fut": 3, "aor": 4, "perf": 5, "plup": 6, "futperf": 7}
-	GKVERBS    = getgkvbmap()
-	GKDIALECT  = []string{"attic"} // INCOMPLETE
-	LTCASES    = []string{"nom", "gen", "dat", "acc", "abl", "voc"}
-	LTNUMB     = []string{"sg", "pl"}
-	LTMOODS    = []string{"ind", "subj", "imperat", "inf", "part", "gerundive", "supine"}
-	LTVOICE    = []string{"act", "pass"}
-	LTTENSES   = []string{"fut", "futperf", "imperf", "perf", "pres", "plup"}
-	LTTENSEMAP = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
-	LTVERBS    = getltvbmap()
-	GENDERS    = []string{"masc", "fem", "neut"}
-	PERSONS    = []string{"1st", "2nd", "3rd"}
+	GKCASES       = []string{"nom", "gen", "dat", "acc", "voc"}
+	GKNUMB        = []string{"sg", "dual", "pl"}
+	GKMOODS       = []string{"ind", "subj", "opt", "imperat", "inf", "part"}
+	GKVOICE       = []string{"act", "mid", "pass"}
+	GKTENSES      = []string{"aor", "fut", "futperf", "imperf", "perf", "pres", "plup"}
+	GKINTTENSEMAP = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 4: "Aorist", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
+	GKTENSEMAP    = map[string]int{"pres": 1, "imperf": 2, "fut": 3, "aor": 4, "perf": 5, "plup": 6, "futperf": 7}
+	GKVERBS       = getgkvbmap()
+	GKDIALECT     = []string{"attic"} // INCOMPLETE
+	LTCASES       = []string{"nom", "gen", "dat", "acc", "abl", "voc"}
+	LTNUMB        = []string{"sg", "pl"}
+	LTMOODS       = []string{"ind", "subj", "imperat", "inf", "part", "gerundive", "supine"}
+	LTVOICE       = []string{"act", "pass"}
+	LTTENSES      = []string{"fut", "futperf", "imperf", "perf", "pres", "plup"}
+	LTTENSEMAP    = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
+	LTVERBS       = getltvbmap()
+	GENDERS       = []string{"masc", "fem", "neut"}
+	PERSONS       = []string{"1st", "2nd", "3rd"}
 )
 
 func getgkvbmap() map[string]map[string]map[int]bool {
@@ -410,11 +410,12 @@ func RtMorphchart(c echo.Context) error {
 	}
 
 	var oo []string
+	ctm := `<verbform searchterm="%s">%s</verbform> (<span class="counter">%d</span>)`
 	pdxm := make(map[string]string)
 	for kk, pd := range pdcm {
 		var vv []string
 		for k, v := range pd {
-			vv = append(vv, fmt.Sprintf("%s (%d)", k, v))
+			vv = append(vv, fmt.Sprintf(ctm, k, k, v))
 		}
 		pdxm[kk] = strings.Join(vv, " / ")
 
@@ -477,96 +478,122 @@ func generateverbtable(words map[string]string) string {
 	// first voice
 	// then mood
 	// then tense as columns and number_and_person as rows
+
 	const (
-		BLANK = " --- "
+		BLANK  = " --- "
+		DIALTR = `
+		<tr align="center">
+			<td rowspan="1" colspan="%d" class="dialectlabel">%s<br>
+			</td>
+		</tr>`
+
+		VOICETR = `
+		<tr align="center">
+			<td rowspan="1" colspan="%d" class="voicelabel">%s<br>
+			</td>
+		</tr>`
+
+		MOODTR = `
+		<tr align="center">
+			<td rowspan="1" colspan="%d" class="moodlabel">%s<br>
+			</td>
+		</tr>`
 	)
 
 	vm := getgkvbmap()
 	tm := GKTENSEMAP
-	skipper := false
+
+	maketdd := func(d string, v string, m string) []string {
+		// <tr class="morphrow">
+		//	<td class="morphlabelcell">sg 1st</td>
+		//	<td class="morphcell"><verbform searchterm="πίτνω">πίτνω</verbform> (<span class="counter">15</span>) / <verbform searchterm="πίπτω">πίπτω</verbform> (<span class="counter">117</span>)</td>
+		//	<td class="morphcell"><verbform searchterm="ἔπιπτον">ἔπιπτον</verbform> (<span class="counter">259</span>) / <verbform searchterm="ἔπιτνον">ἔπιτνον</verbform> (<span class="counter">3</span>)</td>
+		//	<td class="morphcell">---</td>
+		//	<td class="morphcell"><verbform searchterm="ἔπεϲον">ἔπεϲον</verbform> (<span class="counter">686</span>)</td>
+		//	<td class="morphcell"><verbform searchterm="πέπτηκα">πέπτηκα</verbform> (<span class="counter">14</span>) / <verbform searchterm="πέπτωκα">πέπτωκα</verbform> (<span class="counter">67</span>)</td>
+		//	<td class="morphcell"><verbform searchterm="ἐπεπτώκειν">ἐπεπτώκειν</verbform> (<span class="counter">1</span>)</td>
+		//</tr>
+
+		var trr []string
+		for _, n := range GKNUMB {
+			for _, p := range PERSONS {
+				// np := fmt.Sprintf("%s %s", n, p)
+				trr = append(trr, `<tr class="morphrow">`)
+				trr = append(trr, fmt.Sprintf(`<td class="morphlabelcell">%s %s</td>`, n, p))
+				var tdd []string
+				for _, t := range GKTENSES {
+					// not ever combination should be generated
+					thevm := vm[v][m]
+					if !thevm[tm[t]] {
+						continue
+					}
+					k := fmt.Sprintf("%s_%s_%s_%s_%s_%s", t, m, v, p, n, d)
+					if _, ok := words[k]; ok {
+						tdd = append(tdd, words[k])
+					} else {
+						tdd = append(tdd, BLANK)
+					}
+				}
+				for _, td := range tdd {
+					trr = append(trr, fmt.Sprintf(`<td class="morphcell">%s</td>`, td))
+				}
+				trr = append(trr, `</tr>`)
+			}
+		}
+		return trr
+	}
+	counttns := func(v string, m string) int {
+		c := 0
+		for _, t := range vm[v][m] {
+			if t {
+				c += 1
+			}
+		}
+		return c
+	}
+	makehdr := func(v string, m string) string {
+		hdr := `
+		<tr>
+			<td class="tenselabel">&nbsp;</td>
+			`
+		for i := 1; i < 8; i++ {
+			// have to do it in numerical order...
+			if vm[v][m][i] {
+				hdr += fmt.Sprintf("<td class=\"tensecell\">%s<br></td>\n\t", GKINTTENSEMAP[i])
+			}
+		}
+		hdr += `</tr>`
+		return hdr
+	}
+
 	var html []string
 
 	for _, d := range GKDIALECT {
 		// each dialect is a major section
-		html = append(html, fmt.Sprintf("<h3>%s</h3>", d))
 		for _, v := range GKVOICE {
 			// each voice is a section
-			html = append(html, fmt.Sprintf("<h4>%s</h4>", v))
 			for _, m := range GKMOODS {
 				// each mood is a table
-				html = append(html, "<table>")
-				var trrhtml []string
-				// <tr class="morphrow">
-				//	<td class="morphlabelcell">sg 1st</td>
-				//	<td class="morphcell"><verbform searchterm="πίτνω">πίτνω</verbform> (<span class="counter">15</span>) / <verbform searchterm="πίπτω">πίπτω</verbform> (<span class="counter">117</span>)</td>
-				//	<td class="morphcell"><verbform searchterm="ἔπιπτον">ἔπιπτον</verbform> (<span class="counter">259</span>) / <verbform searchterm="ἔπιτνον">ἔπιτνον</verbform> (<span class="counter">3</span>)</td>
-				//	<td class="morphcell">---</td>
-				//	<td class="morphcell"><verbform searchterm="ἔπεϲον">ἔπεϲον</verbform> (<span class="counter">686</span>)</td>
-				//	<td class="morphcell"><verbform searchterm="πέπτηκα">πέπτηκα</verbform> (<span class="counter">14</span>) / <verbform searchterm="πέπτωκα">πέπτωκα</verbform> (<span class="counter">67</span>)</td>
-				//	<td class="morphcell"><verbform searchterm="ἐπεπτώκειν">ἐπεπτώκειν</verbform> (<span class="counter">1</span>)</td>
-				//</tr>
-				for _, n := range GKNUMB {
-					for _, p := range PERSONS {
-						// np := fmt.Sprintf("%s %s", n, p)
-						html = append(html, `<tr class="morphrow">`)
-						var tdd []string
-						for _, t := range GKTENSES {
-							k := fmt.Sprintf("%s_%s_%s_%s_%s_%s", t, m, v, p, n, d)
-							if _, ok := words[k]; ok {
-								tdd = append(tdd, words[k])
-							} else {
-								tdd = append(tdd, BLANK)
-							}
-							tv := tm[t]
-							if vm[m][t][tv] {
-								// for skipping impossible moot/tense combinations
-								skipper = true
-							}
-						}
-						for _, td := range tdd {
-							html = append(html, fmt.Sprintf(`<td class="morphcell">%s</td>`, td))
-						}
-						html = append(html, `</tr>`)
-					}
-				}
+				// not every item needs generating
+
+				// the top
+				ct := counttns(v, m)
+				html = append(html, `<table class="verbanalysis">`)
+				html = append(html, fmt.Sprintf(DIALTR, ct, d))
+				html = append(html, fmt.Sprintf(VOICETR, ct, v))
+				html = append(html, fmt.Sprintf(MOODTR, ct, m))
+				html = append(html, makehdr(v, m))
+
+				// the body
+				trrhtml := maketdd(d, v, m)
 				html = append(html, trrhtml...)
 				html = append(html, "</table>")
 			}
 		}
 	}
-	fmt.Print(skipper)
+
 	h := strings.Join(html, "")
 	return h
-}
-
-func generatedeclinedformmap() {
-	// 		miles :  from miles :
-	//		[a]	masc/fem	nom	sg
-	//
-	//		operibus :  from opus¹  (“work”):
-	//		[a]	neut	abl	pl
-	//		[b]	neut
-	//
-	//		λοιβή :  from λοιβή  (“pouring.”):
-	//		[a]	fem	nom/voc	sg	(attic	epic	ionic)
-	//
-	//		fd {'_ _sg_masc_gen_': ['dolorisque', 'dolorist', 'doloris', 'dolorisue'], '_ _pl_masc_acc_': ['dolores', 'doloresque'],
-	//		'_ _pl_masc_nom_': ['dolores', 'doloresque'], '_ _pl_masc_voc_': ['dolores', 'doloresque'], ... }
-
-}
-
-func generateverbformmap() {
-	// 		e.g. {'_attic_imperf_ind_mp_1st_pl_': 'ἠλαττώμεθα', ...}
-	//		[a]	imperf	ind	mp	1st	pl	(attic	doric	aeolic)
-	//		[b]	plup	ind	mp	1st	pl	(attic)
-	//		[c]	perf	ind	mp	1st	pl	(attic)
-	//		[d]	plup	ind	mp	1st	pl	(homeric	ionic)
-	//
-	//		cell arrangement: left to right and top to bottom is vmnpt
-	//		i.e., voice, mood, number, person, tense
-	//
-	//		to be used with greekverbtabletemplate()
-
 }
 
 /*  SAMPLE: πίπτω
