@@ -289,7 +289,6 @@ func RtSearch(c echo.Context) error {
 		completed = HGoSrch(searches[id])
 	}
 
-	fmt.Println(completed.Results)
 	if completed.HasPhrase {
 		// you did HGoSrch() and need to check the windowed lines
 		// WithinXLinesSearch() has already done the checking
@@ -298,7 +297,6 @@ func RtSearch(c echo.Context) error {
 			completed.Results = completed.Results[0:reallimit]
 		}
 	}
-	fmt.Println(completed.Results)
 	completed.SortResults()
 
 	soj := SearchOutputJSON{}

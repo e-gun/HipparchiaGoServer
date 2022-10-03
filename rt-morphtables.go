@@ -187,6 +187,11 @@ func RtMorphchart(c echo.Context) error {
 	//kf := `<formsummary parserxref="%d" lexicalid="%.1f" headword="%s" lang="%s">%d known forms</formsummary>`
 	//kf = fmt.Sprintf(kf, AllLemm[w.Word].Xref, w.ID, w.Word, w.Lang, len(AllLemm[w.Word].Deriv))
 
+	if cfg.LogLevel < 3 {
+		// no calling this route unless debugging
+		return emptyjsreturn(c)
+	}
+
 	// [a] parse request
 
 	req := c.Param("wd")
@@ -256,21 +261,35 @@ func RtMorphchart(c echo.Context) error {
 	// [c2] query the database
 
 	// pgsql single quote escape: quote followed by a single quote to be escaped: κρυφθεῖϲ''
-	// todo: properly address the acute/grave issue
 
 	var esc []string
 	for _, w := range ww {
-		x := swapgraveforacute(w)
-		x = strings.Replace(x, "'", "''", -1)
-		esc = append(esc, x)
+		//x := swapgraveforacute(w)
+		//x = strings.Replace(x, "'", "''", -1)
+		//esc = append(esc, x)
 		esc = append(esc, strings.Replace(w, "'", "''", -1))
 	}
 	arr := fmt.Sprintf("'%s'", strings.Join(esc, "', '"))
 	fmt.Println(arr)
 
-	tt := `CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words`
+	// hipparchiaDB=# CREATE TEMPORARY TABLE ttw AS
+	//    SELECT values AS wordforms FROM
+	//      unnest(ARRAY['ὑπερβαλλὸντων', 'ὑπερβαλλόντων', 'ὑπερβαλομὲνῳ', 'ὑπερβαλομένῳ', 'ὑπερβὲβληκαϲ'])
+	//    values;
+	//
+	//SELECT entry_name, total_count FROM wordcounts_υ WHERE EXISTS (
+	//  (SELECT 1 FROM ttw temptable WHERE temptable.wordforms = wordcounts_υ.entry_name )
+	//);
+	//SELECT 5
+	//  entry_name   | total_count
+	//---------------+-------------
+	// ὑπερβαλλόντων |          51
+	// ὑπερβαλομένῳ  |           2
+	//(2 rows)
+
+	tt := `CREATE TEMPORARY TABLE ttw_%s AS SELECT values AS wordforms FROM unnest(ARRAY[%s]) values`
 	qt := `SELECT entry_name, total_count FROM wordcounts_%s WHERE EXISTS 
-		(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = wordcounts_%s.entry_name)`
+		(SELECT 1 FROM ttw_%s temptable WHERE temptable.wordforms = wordcounts_%s.entry_name)`
 
 	wcc := make(map[string]DbWordCount)
 	for l, _ := range lett {
@@ -284,8 +303,8 @@ func RtMorphchart(c echo.Context) error {
 		for rr.Next() {
 			ee := rr.Scan(&wc.Word, &wc.Total)
 			chke(ee)
+			wcc[wc.Word] = wc
 		}
-		wcc[wc.Word] = wc
 	}
 
 	// todo: only one or two wcc are coming back
