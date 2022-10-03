@@ -348,9 +348,9 @@ func RtSetOption(c echo.Context) error {
 
 	s := sessions[readUUIDCookie(c)]
 
-	if contains(ynoptionlist, opt) {
+	if isinslice(ynoptionlist, opt) {
 		valid := []string{"yes", "no"}
-		if contains(valid, val) {
+		if isinslice(valid, val) {
 			var b bool
 			if val == "yes" {
 				b = true
@@ -389,21 +389,21 @@ func RtSetOption(c echo.Context) error {
 	}
 
 	valoptionlist := []string{"nearornot", "searchscope", "sortorder"}
-	if contains(valoptionlist, opt) {
+	if isinslice(valoptionlist, opt) {
 		switch opt {
 		case "nearornot":
 			valid := []string{"near", "notnear"}
-			if contains(valid, val) {
+			if isinslice(valid, val) {
 				s.NearOrNot = val
 			}
 		case "searchscope":
 			valid := []string{"lines", "words"}
-			if contains(valid, val) {
+			if isinslice(valid, val) {
 				s.SearchScope = val
 			}
 		case "sortorder":
 			valid := []string{"shortname", "converted_date", "provenance", "universalid"}
-			if contains(valid, val) {
+			if isinslice(valid, val) {
 				s.SortHitsBy = val
 			}
 		default:
@@ -412,7 +412,7 @@ func RtSetOption(c echo.Context) error {
 	}
 
 	spinoptionlist := []string{"maxresults", "linesofcontext", "browsercontext", "proximity"}
-	if contains(spinoptionlist, opt) {
+	if isinslice(spinoptionlist, opt) {
 		intval, e := strconv.Atoi(val)
 		if e == nil {
 			switch opt {
@@ -447,7 +447,7 @@ func RtSetOption(c echo.Context) error {
 	}
 
 	dateoptionlist := []string{"earliestdate", "latestdate"}
-	if contains(dateoptionlist, opt) {
+	if isinslice(dateoptionlist, opt) {
 		intval, e := strconv.Atoi(val)
 		if e == nil {
 			switch opt {

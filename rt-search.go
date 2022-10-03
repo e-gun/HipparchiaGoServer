@@ -765,9 +765,6 @@ func lemmaintoregexslice(hdwd string) []string {
 // findphrasesacrosslines - "one two$" + "^three four" makes a hit if you want "one two three four"
 func findphrasesacrosslines(ss *SearchStruct) {
 	// modify ss in place
-	// super slow...:
-	// [HGS] [Δ: 1.474s]  WithinXLinesSearch(): 1631 initial hits
-	// [HGS] [Δ: 7.433s]  findphrasesacrosslines(): 855 trimmed hits
 
 	var valid = make(map[string]DbWorkline, len(ss.Results))
 

@@ -156,8 +156,8 @@ func setsubtraction[T comparable](aa []T, bb []T) []T {
 	return result
 }
 
-// contains - is item X an element of slice A?
-func contains[T comparable](sl []T, seek T) bool {
+// isinslice - is item X an element of slice A?
+func isinslice[T comparable](sl []T, seek T) bool {
 	for _, v := range sl {
 		if v == seek {
 			return true

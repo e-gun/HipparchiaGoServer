@@ -102,16 +102,20 @@ var (
 	GKNUMB   = []string{"sg", "dual", "pl"}
 	GKMOODS  = []string{"ind", "subj", "opt", "imperat", "inf", "part"}
 	GKVOICE  = []string{"act", "mid", "pass"}
-	GKTENSES = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 4: "Aorist", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
-	GKVERBS  = getgkvbmap()
-	LTCASES  = []string{"nom", "gen", "dat", "acc", "abl", "voc"}
-	LTNUMB   = []string{"sg", "pl"}
-	LTMOODS  = []string{"ind", "subj", "imperat", "inf", "part", "gerundive", "supine"}
-	LTVOICE  = []string{"act", "pass"}
-	LTTENSES = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
-	LTVERBS  = getltvbmap()
-	GENDERS  = []string{"masc", "fem", "neut"}
-	PERSONS  = []string{"1st", "2nd", "3rd"}
+	GKTENSES = []string{"aor", "fut", "futperf", "imperf", "perf", "pres", "plup"}
+	// GKTENSEMAP = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 4: "Aorist", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
+	GKTENSEMAP = map[string]int{"pres": 1, "imperf": 2, "fut": 3, "aor": 4, "perf": 5, "plup": 6, "futperf": 7}
+	GKVERBS    = getgkvbmap()
+	GKDIALECT  = []string{"attic"} // INCOMPLETE
+	LTCASES    = []string{"nom", "gen", "dat", "acc", "abl", "voc"}
+	LTNUMB     = []string{"sg", "pl"}
+	LTMOODS    = []string{"ind", "subj", "imperat", "inf", "part", "gerundive", "supine"}
+	LTVOICE    = []string{"act", "pass"}
+	LTTENSES   = []string{"fut", "futperf", "imperf", "perf", "pres", "plup"}
+	LTTENSEMAP = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
+	LTVERBS    = getltvbmap()
+	GENDERS    = []string{"masc", "fem", "neut"}
+	PERSONS    = []string{"1st", "2nd", "3rd"}
 )
 
 func getgkvbmap() map[string]map[string]map[int]bool {
@@ -202,9 +206,9 @@ func RtMorphchart(c echo.Context) error {
 	}
 
 	lg := elem[0]
-	id, e1 := strconv.ParseFloat(elem[1], 32)
+	_, e1 := strconv.ParseFloat(elem[1], 32)
 	_, e2 := strconv.Atoi(elem[2])
-	wd := purgechars(UNACCEPTABLEINPUT, elem[3])
+	// wd := purgechars(UNACCEPTABLEINPUT, elem[3])
 	gl := lg == "greek" || lg == "latin"
 
 	if !gl || e1 != nil || e2 != nil {
@@ -213,9 +217,6 @@ func RtMorphchart(c echo.Context) error {
 
 	// if e2 == nil it is safe to use elem[2] as the (string) xref val
 	xr := elem[2]
-
-	fmt.Println(wd)
-	fmt.Println(id)
 
 	// [b] get all forms of the word
 
@@ -270,22 +271,31 @@ func RtMorphchart(c echo.Context) error {
 		esc = append(esc, strings.Replace(w, "'", "''", -1))
 	}
 	arr := fmt.Sprintf("'%s'", strings.Join(esc, "', '"))
-	fmt.Println(arr)
 
 	// hipparchiaDB=# CREATE TEMPORARY TABLE ttw AS
 	//    SELECT values AS wordforms FROM
-	//      unnest(ARRAY['ὑπερβαλλὸντων', 'ὑπερβαλλόντων', 'ὑπερβαλομὲνῳ', 'ὑπερβαλομένῳ', 'ὑπερβὲβληκαϲ'])
+	//      unnest(ARRAY['κόραϲ', 'κόραι', 'κῶραι', 'κούρῃϲιν', 'κούραϲ', 'κούραιϲιν', 'κόραν', 'κώρα', 'κόραιϲιν', 'κόραιϲι', 'κόρα', 'κόρᾳϲ'])
 	//    values;
 	//
-	//SELECT entry_name, total_count FROM wordcounts_υ WHERE EXISTS (
-	//  (SELECT 1 FROM ttw temptable WHERE temptable.wordforms = wordcounts_υ.entry_name )
+	//SELECT entry_name, total_count FROM wordcounts_κ WHERE EXISTS (
+	//  (SELECT 1 FROM ttw temptable WHERE temptable.wordforms = wordcounts_κ.entry_name )
 	//);
-	//SELECT 5
-	//  entry_name   | total_count
-	//---------------+-------------
-	// ὑπερβαλλόντων |          51
-	// ὑπερβαλομένῳ  |           2
-	//(2 rows)
+	//SELECT 12
+	// entry_name | total_count
+	//------------+-------------
+	// κόραν      |          59
+	// κούραιϲιν  |           1
+	// κῶραι      |           4
+	// κόρᾳϲ      |           1
+	// κούρῃϲιν   |           9
+	// κόραι      |         363
+	// κόραϲ      |         668
+	// κόραιϲιν   |           2
+	// κόραιϲι    |           8
+	// κούραϲ     |          89
+	// κόρα       |          72
+	// κώρα       |           9
+	//(12 rows)
 
 	tt := `CREATE TEMPORARY TABLE ttw_%s AS SELECT values AS wordforms FROM unnest(ARRAY[%s]) values`
 	qt := `SELECT entry_name, total_count FROM wordcounts_%s WHERE EXISTS 
@@ -307,9 +317,6 @@ func RtMorphchart(c echo.Context) error {
 		}
 	}
 
-	// todo: only one or two wcc are coming back
-
-	fmt.Println(wcc)
 	// [d] extract parsing info for all forms
 
 	mpp := make(map[string][]string)
@@ -391,7 +398,7 @@ func RtMorphchart(c echo.Context) error {
 		}
 	}
 
-	// get counts for each word
+	// [e3] get counts for each word
 	pdcm := make(map[string]map[string]int64)
 	for k, v := range pdm {
 		wds := strings.Split(v, " / ")
@@ -402,29 +409,134 @@ func RtMorphchart(c echo.Context) error {
 		pdcm[k] = mm
 	}
 
-	var o []string
+	var oo []string
+	pdxm := make(map[string]string)
 	for kk, pd := range pdcm {
 		var vv []string
 		for k, v := range pd {
 			vv = append(vv, fmt.Sprintf("%s (%d)", k, v))
 		}
-		o = append(o, fmt.Sprintf("%s: %s\n", kk, strings.Join(vv, " / ")))
+		pdxm[kk] = strings.Join(vv, " / ")
+
+		oo = append(oo, fmt.Sprintf("%s: %s\n", kk, strings.Join(vv, " / ")))
+
+		//gen_cas_num_dial
+		//fem_acc_dual_attic: κόρα (72)
+		//fem_acc_dual_doric: κώρα (9)
+		//fem_acc_dual_epic_attic: κούρα (62)
+		//fem_acc_dual_ionic_attic: κούρα (62)
+		// ...
+
+		// tense_mood_voice_pers_numb_dial
+		//aor_imperat_act_2nd_pl_attic: παραθλίψατε (1)
+		//aor_imperat_act_2nd_sg_attic: θλῖψον (2)
+		//aor_imperat_act_3rd_pl_attic: θλιψάντων (18)
+		//aor_imperat_mid_2nd_sg_attic: θλῖψαι (25)
+		// ...
 	}
 
-	// pdm := make(map[string]string)
-
 	// [f] determine if it is a verb or declined
+	dc := 0
+	vc := 0
+	for key := range pdxm {
+		k := strings.Split(key, "_")
+		if isinslice(GKTENSES, k[0]) {
+			vc += 1
+		}
+		if isinslice(LTCASES, k[0]) {
+			dc += 1
+		}
+	}
+
+	isverb := true
+	if dc > vc {
+		isverb = false
+	}
+
+	var jb JSB
+	sort.Strings(oo)
+
+	if isverb {
+		jb.HTML = generateverbtable(pdxm)
+	} else {
+		jb.HTML = "[RtMorphchart() is a work in progress...]<br>" + strings.Join(oo, "<br>")
+	}
+
 	// [g] build the table head
+
 	// [h] build the table body
 
 	// return emptyjsreturn(c)
-	sort.Strings(o)
 
-	var jb JSB
-	jb.HTML = "[RtMorphchart() is a work in progress...]<br>" + strings.Join(o, "<br>")
 	jb.JS = insertlexicaljs()
 
 	return c.JSONPretty(http.StatusOK, jb, JSONINDENT)
+}
+
+func generateverbtable(words map[string]string) string {
+	// first voice
+	// then mood
+	// then tense as columns and number_and_person as rows
+	const (
+		BLANK = " --- "
+	)
+
+	vm := getgkvbmap()
+	tm := GKTENSEMAP
+	skipper := false
+	var html []string
+
+	for _, d := range GKDIALECT {
+		// each dialect is a major section
+		html = append(html, fmt.Sprintf("<h3>%s</h3>", d))
+		for _, v := range GKVOICE {
+			// each voice is a section
+			html = append(html, fmt.Sprintf("<h4>%s</h4>", v))
+			for _, m := range GKMOODS {
+				// each mood is a table
+				html = append(html, "<table>")
+				var trrhtml []string
+				// <tr class="morphrow">
+				//	<td class="morphlabelcell">sg 1st</td>
+				//	<td class="morphcell"><verbform searchterm="πίτνω">πίτνω</verbform> (<span class="counter">15</span>) / <verbform searchterm="πίπτω">πίπτω</verbform> (<span class="counter">117</span>)</td>
+				//	<td class="morphcell"><verbform searchterm="ἔπιπτον">ἔπιπτον</verbform> (<span class="counter">259</span>) / <verbform searchterm="ἔπιτνον">ἔπιτνον</verbform> (<span class="counter">3</span>)</td>
+				//	<td class="morphcell">---</td>
+				//	<td class="morphcell"><verbform searchterm="ἔπεϲον">ἔπεϲον</verbform> (<span class="counter">686</span>)</td>
+				//	<td class="morphcell"><verbform searchterm="πέπτηκα">πέπτηκα</verbform> (<span class="counter">14</span>) / <verbform searchterm="πέπτωκα">πέπτωκα</verbform> (<span class="counter">67</span>)</td>
+				//	<td class="morphcell"><verbform searchterm="ἐπεπτώκειν">ἐπεπτώκειν</verbform> (<span class="counter">1</span>)</td>
+				//</tr>
+				for _, n := range GKNUMB {
+					for _, p := range PERSONS {
+						// np := fmt.Sprintf("%s %s", n, p)
+						html = append(html, `<tr class="morphrow">`)
+						var tdd []string
+						for _, t := range GKTENSES {
+							k := fmt.Sprintf("%s_%s_%s_%s_%s_%s", t, m, v, p, n, d)
+							if _, ok := words[k]; ok {
+								tdd = append(tdd, words[k])
+							} else {
+								tdd = append(tdd, BLANK)
+							}
+							tv := tm[t]
+							if vm[m][t][tv] {
+								// for skipping impossible moot/tense combinations
+								skipper = true
+							}
+						}
+						for _, td := range tdd {
+							html = append(html, fmt.Sprintf(`<td class="morphcell">%s</td>`, td))
+						}
+						html = append(html, `</tr>`)
+					}
+				}
+				html = append(html, trrhtml...)
+				html = append(html, "</table>")
+			}
+		}
+	}
+	fmt.Print(skipper)
+	h := strings.Join(html, "")
+	return h
 }
 
 func generatedeclinedformmap() {
