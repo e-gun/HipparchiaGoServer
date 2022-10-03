@@ -49,8 +49,6 @@ an uncompressed archive is c. `3.6GB`. A compressed archive is c. `1.9GB`.
 
 Dumping and restoring are both **slow**. 
 
-![archive](gitimg/archived.png)
-
 ## Acquiring and running HipparchiaGoServer
 
 - a binary can either be downloaded or built

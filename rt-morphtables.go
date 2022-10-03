@@ -102,7 +102,7 @@ var (
 	GKNUMB        = []string{"sg", "dual", "pl"}
 	GKMOODS       = []string{"ind", "subj", "opt", "imperat", "inf", "part"}
 	GKVOICE       = []string{"act", "mid", "pass"}
-	GKTENSES      = []string{"aor", "fut", "futperf", "imperf", "perf", "pres", "plup"}
+	GKTENSES      = []string{"pres", "imperf", "fut", "aor", "perf", "plup", "futperf"} // order matters
 	GKINTTENSEMAP = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 4: "Aorist", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
 	GKTENSEMAP    = map[string]int{"pres": 1, "imperf": 2, "fut": 3, "aor": 4, "perf": 5, "plup": 6, "futperf": 7}
 	GKVERBS       = getgkvbmap()
@@ -303,10 +303,16 @@ func RtMorphchart(c echo.Context) error {
 
 	wcc := make(map[string]DbWordCount)
 	for l, _ := range lett {
+		if []rune(l)[0] == 0 {
+			continue
+		}
+
 		rnd := strings.Replace(uuid.New().String(), "-", "", -1)
 		_, e := dbpool.Exec(context.Background(), fmt.Sprintf(tt, rnd, arr))
 		chke(e)
-		rr, e := dbpool.Query(context.Background(), fmt.Sprintf(qt, l, rnd, l))
+
+		q := fmt.Sprintf(qt, l, rnd, l)
+		rr, e := dbpool.Query(context.Background(), q)
 		chke(e)
 		var wc DbWordCount
 		defer rr.Close()
@@ -457,17 +463,13 @@ func RtMorphchart(c echo.Context) error {
 	var jb JSB
 	sort.Strings(oo)
 
+	// [g] build the table
+
 	if isverb {
 		jb.HTML = generateverbtable(pdxm)
 	} else {
 		jb.HTML = "[RtMorphchart() is a work in progress...]<br>" + strings.Join(oo, "<br>")
 	}
-
-	// [g] build the table head
-
-	// [h] build the table body
-
-	// return emptyjsreturn(c)
 
 	jb.JS = insertlexicaljs()
 
@@ -514,6 +516,10 @@ func generateverbtable(words map[string]string) string {
 		//	<td class="morphcell"><verbform searchterm="ἐπεπτώκειν">ἐπεπτώκειν</verbform> (<span class="counter">1</span>)</td>
 		//</tr>
 
+		// todo: participles, which work like the declined forms...
+
+		// todo: infinitives: which do not use person and voice
+
 		var trr []string
 		for _, n := range GKNUMB {
 			for _, p := range PERSONS {
@@ -542,6 +548,7 @@ func generateverbtable(words map[string]string) string {
 		}
 		return trr
 	}
+
 	counttns := func(v string, m string) int {
 		c := 0
 		for _, t := range vm[v][m] {
@@ -551,6 +558,7 @@ func generateverbtable(words map[string]string) string {
 		}
 		return c
 	}
+
 	makehdr := func(v string, m string) string {
 		hdr := `
 		<tr>
@@ -570,6 +578,7 @@ func generateverbtable(words map[string]string) string {
 
 	for _, d := range GKDIALECT {
 		// each dialect is a major section
+		// but latin has only one dialect
 		for _, v := range GKVOICE {
 			// each voice is a section
 			for _, m := range GKMOODS {
