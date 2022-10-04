@@ -18,6 +18,7 @@ import (
 
 const (
 	JOINER = "_"
+	BLANK  = " --- "
 )
 
 var (
@@ -279,6 +280,7 @@ func RtMorphchart(c echo.Context) error {
 				}
 			} else {
 				// need to decompress "nom/voc/acc" into three entries, etc
+				// todo: breaks on "masc/fem nom/voc sg"
 				var rebuild []string
 				var multiplier []string
 				ell := strings.Split(v, " ")
@@ -367,19 +369,16 @@ func RtMorphchart(c echo.Context) error {
 		//aor_imperat_act_3rd_pl_attic: θλιψάντων (18)
 		//aor_imperat_mid_2nd_sg_attic: θλῖψαι (25)
 		// ...
+
+		//[HGS] aor_part_mid_fem_nom_sg_attic
+		//[HGS] perf_part_mp_fem_voc_pl_attic
+		//[HGS] pres_part_act_fem_voc_pl_ionic
+		//[HGS] pres_part_act_fem_nom_sg_attic
 	}
 
-	// [f] determine if it is a verb or declined
-	//dc := 0
-	//vc := 0
-	//for key := range pdxm {
-	//	k := strings.Split(key, "_")
-	//	if isinslice(GKTENSES, k[0]) {
-	//		vc += 1
-	//	}
-	//	if isinslice(LTCASES, k[0]) {
-	//		dc += 1
-	//	}
+	//zz := stringmapkeysintoslice(pdxm)
+	//for _, z := range zz {
+	//	msg(z, 1)
 	//}
 
 	isverb := func() bool {
@@ -409,7 +408,6 @@ func generateverbtable(lang string, words map[string]string) string {
 	// then tense as columns and number_and_person as rows
 
 	const (
-		BLANK  = " --- "
 		DIALTR = `
 		<tr align="center">
 			<td rowspan="1" colspan="%d" class="dialectlabel">%s<br>
@@ -436,6 +434,8 @@ func generateverbtable(lang string, words map[string]string) string {
 	var moods []string
 	var numbers []string
 	var tenses []string
+	var cases []string
+	gend := GENDERS
 
 	switch lang {
 	case "greek":
@@ -446,6 +446,7 @@ func generateverbtable(lang string, words map[string]string) string {
 		moods = GKMOODS
 		numbers = GKNUMB
 		tenses = GKTENSES
+		cases = GKCASES
 	case "latin":
 		vm = getltvbmap()
 		tm = LTTENSEMAP
@@ -454,9 +455,23 @@ func generateverbtable(lang string, words map[string]string) string {
 		moods = LTMOODS
 		numbers = LTNUMB
 		tenses = LTTENSES
+		cases = LTCASES
 	}
 
-	maketdd := func(d string, v string, m string) []string {
+	kk := stringmapkeysintoslice(words)
+	needgend := func() []string {
+		var need []string
+		for _, g := range gend {
+			if sliceseeker(g, kk) {
+				need = append(need, g)
+			}
+		}
+		return need
+	}()
+
+	makevftdd := func(d string, v string, m string) []string {
+		// for vanilla verbs only; this will NOT do participles, supines, gerundives, infinitives
+
 		// <tr class="morphrow">
 		//	<td class="morphlabelcell">sg 1st</td>
 		//	<td class="morphcell"><verbform searchterm="πίτνω">πίτνω</verbform> (<span class="counter">15</span>) / <verbform searchterm="πίπτω">πίπτω</verbform> (<span class="counter">117</span>)</td>
@@ -466,10 +481,6 @@ func generateverbtable(lang string, words map[string]string) string {
 		//	<td class="morphcell"><verbform searchterm="πέπτηκα">πέπτηκα</verbform> (<span class="counter">14</span>) / <verbform searchterm="πέπτωκα">πέπτωκα</verbform> (<span class="counter">67</span>)</td>
 		//	<td class="morphcell"><verbform searchterm="ἐπεπτώκειν">ἐπεπτώκειν</verbform> (<span class="counter">1</span>)</td>
 		//</tr>
-
-		// todo: participles, which work like the declined forms...
-
-		// todo: infinitives: which do not use person and voice
 
 		var trr []string
 		for _, n := range numbers {
@@ -503,6 +514,46 @@ func generateverbtable(lang string, words map[string]string) string {
 				trr = append(trr, `</tr>`)
 			}
 		}
+		return trr
+	}
+
+	makepcpltrr := func(d string, m string, v string) []string {
+		// problem: the header row has been pre-set to "tenses" not genders
+		//[HGS] aor_part_mid_fem_nom_sg_attic
+		//[HGS] perf_part_mp_fem_voc_pl_attic
+		var trr []string
+		// need to loop the tenses...
+		for _, t := range tenses {
+			// not ever combination should be generated
+			thevm := vm[v][m]
+			if !thevm[tm[t]] {
+				continue
+			}
+			for _, n := range numbers {
+				for _, c := range cases {
+					trr = append(trr, `<tr class="morphrow">`)
+					trr = append(trr, fmt.Sprintf(`<td class="morphlabelcell">%s %s</td>`, n, c))
+					var tdd []string
+					blankcount := 0
+					for _, g := range needgend {
+						// not every combination should be generated
+						// fem_acc_dual_doric
+						k := fmt.Sprintf("%s_%s_%s_%s_%s_%s_%s", t, m, v, g, c, n, d)
+						if _, ok := words[k]; ok {
+							tdd = append(tdd, words[k])
+						} else {
+							tdd = append(tdd, BLANK)
+							blankcount += 1
+						}
+					}
+					for _, td := range tdd {
+						trr = append(trr, fmt.Sprintf(`<td class="morphcell">%s</td>`, td))
+					}
+					trr = append(trr, `</tr>`)
+				}
+			}
+		}
+
 		return trr
 	}
 
@@ -549,9 +600,18 @@ func generateverbtable(lang string, words map[string]string) string {
 				html = append(html, fmt.Sprintf(VOICETR, ct, v))
 				html = append(html, fmt.Sprintf(MOODTR, ct, m))
 				html = append(html, makehdr(v, m))
+				var trrhtml []string
+				// todo: participles, which work like the declined forms...
+				// todo: infinitives: which do not use person and voice
+				// todo: gerundives
+				// todo: supines
+				switch m {
+				case "part":
+					trrhtml = makepcpltrr(d, m, v)
+				default:
+					trrhtml = makevftdd(d, v, m)
+				}
 
-				// the body: but pcpl and infin should be handled separately
-				trrhtml := maketdd(d, v, m)
 				html = append(html, trrhtml...)
 				html = append(html, "</table>")
 			}
@@ -565,18 +625,10 @@ func generateverbtable(lang string, words map[string]string) string {
 func generatedeclinedtable(lang string, words map[string]string) string {
 	// need something to determine which gender columns are needed
 	const (
-		BLANK  = " --- "
 		DIALTR = `
 		<tr align="center">
 			<td rowspan="1" colspan="%d" class="dialectlabel">%s<br>
 			</td>
-		</tr>`
-		TBLHEAD = `
-		<tr>
-			<td class="genderlabel">&nbsp;</td>
-			<td class="gendercell">masc<br></td>
-			<td class="gendercell">fem<br></td>
-			<td class="gendercell">neut<br></td>
 		</tr>`
 	)
 
@@ -609,14 +661,21 @@ func generatedeclinedtable(lang string, words map[string]string) string {
 		return need
 	}()
 
-	var html []string
+	makehdr := func() string {
+		hd := `
+		<tr>
+			%s
+		</tr>`
+		tdd := []string{`<td class="genderlabel">&nbsp;</td>`}
+		for _, g := range needgend {
+			tdd = append(tdd, fmt.Sprintf(`<td class="gendercell">%s<br></td>`, g))
+		}
+		td := strings.Join(tdd, "")
+		return fmt.Sprintf(hd, td)
+	}()
 
-	for _, d := range dialect {
-		// each dialect is a major section
-		// but latin has only one dialect
-		html = append(html, `<table class="verbanalysis">`)
-		html = append(html, TBLHEAD)
-		html = append(html, fmt.Sprintf(DIALTR, 3, d))
+	maketrr := func(d string) []string {
+		// this code fragment is highly convergent with what is needed for participles; duplicating for now
 		var trr []string
 		for _, n := range numbers {
 			for _, c := range cases {
@@ -625,7 +684,7 @@ func generatedeclinedtable(lang string, words map[string]string) string {
 				var tdd []string
 				blankcount := 0
 				for _, g := range needgend {
-					// not ever combination should be generated
+					// not every combination should be generated
 					// fem_acc_dual_doric
 					k := fmt.Sprintf("%s_%s_%s_%s", g, c, n, d)
 					if _, ok := words[k]; ok {
@@ -641,6 +700,18 @@ func generatedeclinedtable(lang string, words map[string]string) string {
 				trr = append(trr, `</tr>`)
 			}
 		}
+		return trr
+	}
+
+	var html []string
+
+	for _, d := range dialect {
+		// each dialect is a major section
+		// but latin has only one dialect
+		html = append(html, `<table class="verbanalysis">`)
+		html = append(html, makehdr)
+		html = append(html, fmt.Sprintf(DIALTR, 3, d))
+		trr := maketrr(d)
 		html = append(html, trr...)
 		html = append(html, "</table>")
 	}
