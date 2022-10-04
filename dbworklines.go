@@ -297,7 +297,7 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 
 	if atlvl < 0 || need < 0 {
 		// logic bug in here somehwere...
-		msg("findvalidlevelvalues() sent negative levels", -1)
+		msg("findvalidlevelvalues() sent negative levels", 1)
 		return LevelValues{}
 	}
 

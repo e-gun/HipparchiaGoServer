@@ -198,6 +198,17 @@ func stringmapintoslice[T any](mp map[string]T) []T {
 	return sl
 }
 
+// stringmapkeysintoslice - convert map[string]T to []string
+func stringmapkeysintoslice[T any](mp map[string]T) []string {
+	sl := make([]string, len(mp))
+	i := 0
+	for k, _ := range mp {
+		sl[i] = k
+		i += 1
+	}
+	return sl
+}
+
 //
 // SORTING: https://pkg.go.dev/sort#example__sortMultiKeys
 //

@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                  = "Hipparchia Golang Server"
 	SHORTNAME               = "HGS"
-	VERSION                 = "0.9.4"
+	VERSION                 = "0.9.5"
 	AUTHENTICATIONREQUIRED  = false // unused ATM
 	AVGWORDSPERLINE         = 8     // hard coding a suspect assumption
 	CONFIGLOCATION          = "."
@@ -76,11 +76,11 @@ const (
 	TERMINALTEXT = `Copyright (C) %s / %s
       %s
 
-      This program comes with ABSOLUTELY NO WARRANTY; without even the implied 
-      warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+      This program comes with ABSOLUTELY NO WARRANTY; without even the  
+      implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-      This is free software, and you are welcome to redistribute it and/or modify
-      it under the terms of the GNU General Public License version 3.`
+      This is free software, and you are welcome to redistribute it and/or 
+      modify it under the terms of the GNU General Public License version 3.`
 
 	PROJYEAR = "2022"
 	PROJAUTH = "E. Gunderson"

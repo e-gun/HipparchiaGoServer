@@ -12,89 +12,12 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 )
 
 const (
-	DECLTABTMPL = `
-	<table class="verbanalysis">
-	<tbody>
-	{{.Header}}
-	{{.Rows}}
-	</tbody>
-	</table>
-	<hr class="styled">
-`
-	DECLHEADERTMPL = `
-	<tr align="center">
-		<td rowspan="1" colspan="{{.Span}}" class="dialectlabel">{{.Dialect}}<br>
-		</td>
-	</tr>
-	{{.Gendlabel}}
-	</tr>
-`
-	DECLGENDLABEL = `<tr>
-		<td class="genderlabel">&nbsp;</td>
-		{{.AllGenders}}
-	</tr>`
-
-	DECLBLANK = `
-	<tr><td>&nbsp;</td>{{.Columns}}</tr>
-`
-	DECLGENDERCELL = `<td class="gendercell">{{.G}}<br></td>`
-
-	DECLMORPHROW = `	
-	<tr class="morphrow">
-		{{.AllCells}}
-	</tr>`
-
-	MORPHLABELCELL = `<td class="morphlabelcell">{{.Ml}}</td>`
-
-	// MORPHCELL - 2nd sg attic mid indic of τίκτω should yield: τέξηι / τέξει / τέξῃ / τεκῇ
-	MORPHCELL = `<td class="morphcell">{{.Mo}}</td>`
-
-	// 	Smythe §383ff
-	//
-	//	verb cells look like:
-	//
-	//		<td class="morphcell">_attic_subj_pass_pl_2nd_pres_</td>
-
-	VBTABTMPL = `
-	<table class="verbanalysis">
-	<tbody>
-	{{.Header}}
-	{{.Rows}}
-	</tbody>
-	</table>
-	<hr class="styled">`
-
-	VBHEADERTMPL = `	
-	<tr align="center">
-		<td rowspan="1" colspan="{s}" class="dialectlabel">{dialect}<br>
-		</td>
-	</tr>
-	<tr align="center">
-		<td rowspan="1" colspan="{s}" class="voicelabel">{voice}<br>
-		</td>
-	</tr>
-	<tr align="center">
-		<td rowspan="1" colspan="{s}" class="moodlabel">{mood}<br>
-		</td>
-	{{.Tenseheader}}
-	</tr>`
-
-	VBTENSETEMPL = `
-	<tr>
-		<td class="tenselabel">&nbsp;</td>
-		{{.Alltenses}}
-	</tr>`
-
-	VBBLANK      = DECLBLANK
-	VMMORPHROW   = DECLMORPHROW
-	VBREGEXTEMPL = `_{{.D}}_{{.M}}_{{.V}}_{{.N}}_{{.P}}_{{.T}}_`
-	PCPLTEMPL    = `_{{.D}}_{{.M}}_{{.V}}_{{.N}}_{{.T}}_{{.G}}_{{.C}}_`
+	JOINER = "_"
 )
 
 var (
@@ -112,7 +35,8 @@ var (
 	LTMOODS       = []string{"ind", "subj", "imperat", "inf", "part", "gerundive", "supine"}
 	LTVOICE       = []string{"act", "pass"}
 	LTTENSES      = []string{"fut", "futperf", "imperf", "perf", "pres", "plup"}
-	LTTENSEMAP    = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
+	LTINTTENSEMAP = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
+	LTTENSEMAP    = map[string]int{"pres": 1, "imperf": 2, "fut": 3, "perf": 5, "plup": 6, "futperf": 7}
 	LTVERBS       = getltvbmap()
 	GENDERS       = []string{"masc", "fem", "neut"}
 	PERSONS       = []string{"1st", "2nd", "3rd"}
@@ -347,7 +271,7 @@ func RtMorphchart(c echo.Context) error {
 				continue
 			}
 			if !strings.Contains(v, "/") {
-				key := strings.Replace(v, " ", "_", -1)
+				key := strings.Replace(v, " ", JOINER, -1)
 				if _, ok := pdm[key]; !ok {
 					pdm[key] = k
 				} else {
@@ -369,7 +293,7 @@ func RtMorphchart(c echo.Context) error {
 				templ := strings.Join(rebuild, " ")
 				for _, m := range multiplier {
 					key := strings.Replace(templ, "CLONE_ME", m, 1)
-					key = strings.Replace(key, " ", "_", -1)
+					key = strings.Replace(key, " ", JOINER, -1)
 					if _, ok := pdm[key]; !ok {
 						pdm[key] = k
 					} else {
@@ -387,20 +311,26 @@ func RtMorphchart(c echo.Context) error {
 			if strings.Contains(k, "(") {
 				k = strings.Replace(k, ")", "", 1)
 				parts := strings.Split(k, "(")
-				diall := strings.Split(parts[1], "_")
+				diall := strings.Split(parts[1], JOINER)
 				for _, d := range diall {
-					newkey := parts[0] + "_" + d
-					newkey = strings.Replace(newkey, "__", "_", 1)
+					newkey := parts[0] + JOINER + d
+					newkey = strings.Replace(newkey, JOINER+JOINER, JOINER, 1)
 					pdm[newkey] = v
 				}
 			} else {
 				if !strings.Contains(k, "attic") {
-					newkey := k + "_attic"
+					newkey := k + JOINER + "attic"
 					pdm[newkey] = v
 				} else {
 					pdm[k] = v
 				}
 			}
+		}
+	} else {
+		// add the "blank" dialect to latin
+		for k, v := range pdm {
+			delete(pdm, k)
+			pdm[k+JOINER] = v
 		}
 	}
 
@@ -415,7 +345,6 @@ func RtMorphchart(c echo.Context) error {
 		pdcm[k] = mm
 	}
 
-	var oo []string
 	ctm := `<verbform searchterm="%s">%s</verbform> (<span class="counter">%d</span>)`
 	pdxm := make(map[string]string)
 	for kk, pd := range pdcm {
@@ -424,8 +353,6 @@ func RtMorphchart(c echo.Context) error {
 			vv = append(vv, fmt.Sprintf(ctm, k, k, v))
 		}
 		pdxm[kk] = strings.Join(vv, " / ")
-
-		oo = append(oo, fmt.Sprintf("%s: %s\n", kk, strings.Join(vv, " / ")))
 
 		//gen_cas_num_dial
 		//fem_acc_dual_attic: κόρα (72)
@@ -443,32 +370,32 @@ func RtMorphchart(c echo.Context) error {
 	}
 
 	// [f] determine if it is a verb or declined
-	dc := 0
-	vc := 0
-	for key := range pdxm {
-		k := strings.Split(key, "_")
-		if isinslice(GKTENSES, k[0]) {
-			vc += 1
-		}
-		if isinslice(LTCASES, k[0]) {
-			dc += 1
-		}
-	}
+	//dc := 0
+	//vc := 0
+	//for key := range pdxm {
+	//	k := strings.Split(key, "_")
+	//	if isinslice(GKTENSES, k[0]) {
+	//		vc += 1
+	//	}
+	//	if isinslice(LTCASES, k[0]) {
+	//		dc += 1
+	//	}
+	//}
 
-	isverb := true
-	if dc > vc {
-		isverb = false
-	}
+	isverb := func() bool {
+		kk := stringmapkeysintoslice(pdxm)
+		return arraystringseeker(GKTENSES, kk)
+	}()
 
 	var jb JSB
-	sort.Strings(oo)
 
 	// [g] build the table
 
 	if isverb {
-		jb.HTML = generateverbtable(pdxm)
+		jb.HTML = generateverbtable(lg, pdxm)
 	} else {
-		jb.HTML = "[RtMorphchart() is a work in progress...]<br>" + strings.Join(oo, "<br>")
+		// jb.HTML = "[RtMorphchart() is a work in progress...]<br>" + strings.Join(oo, "<br>")
+		jb.HTML = generatedeclinedtable(lg, pdxm)
 	}
 
 	jb.JS = insertlexicaljs()
@@ -476,7 +403,7 @@ func RtMorphchart(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, jb, JSONINDENT)
 }
 
-func generateverbtable(words map[string]string) string {
+func generateverbtable(lang string, words map[string]string) string {
 	// first voice
 	// then mood
 	// then tense as columns and number_and_person as rows
@@ -502,8 +429,32 @@ func generateverbtable(words map[string]string) string {
 		</tr>`
 	)
 
-	vm := getgkvbmap()
-	tm := GKTENSEMAP
+	vm := make(map[string]map[string]map[int]bool)
+	tm := make(map[string]int)
+	var dialect []string
+	var voices []string
+	var moods []string
+	var numbers []string
+	var tenses []string
+
+	switch lang {
+	case "greek":
+		vm = getgkvbmap()
+		tm = GKTENSEMAP
+		dialect = GKDIALECT
+		voices = GKVOICE
+		moods = GKMOODS
+		numbers = GKNUMB
+		tenses = GKTENSES
+	case "latin":
+		vm = getltvbmap()
+		tm = LTTENSEMAP
+		dialect = []string{""}
+		voices = LTVOICE
+		moods = LTMOODS
+		numbers = LTNUMB
+		tenses = LTTENSES
+	}
 
 	maketdd := func(d string, v string, m string) []string {
 		// <tr class="morphrow">
@@ -521,16 +472,18 @@ func generateverbtable(words map[string]string) string {
 		// todo: infinitives: which do not use person and voice
 
 		var trr []string
-		for _, n := range GKNUMB {
+		for _, n := range numbers {
 			for _, p := range PERSONS {
 				// np := fmt.Sprintf("%s %s", n, p)
 				trr = append(trr, `<tr class="morphrow">`)
 				trr = append(trr, fmt.Sprintf(`<td class="morphlabelcell">%s %s</td>`, n, p))
 				var tdd []string
-				for _, t := range GKTENSES {
+				blankcount := 0
+				for _, t := range tenses {
 					// not ever combination should be generated
 					thevm := vm[v][m]
 					if !thevm[tm[t]] {
+						blankcount += 1
 						continue
 					}
 					k := fmt.Sprintf("%s_%s_%s_%s_%s_%s", t, m, v, p, n, d)
@@ -538,8 +491,12 @@ func generateverbtable(words map[string]string) string {
 						tdd = append(tdd, words[k])
 					} else {
 						tdd = append(tdd, BLANK)
+						blankcount += 1
 					}
 				}
+				//if blankcount == len(tenses) {
+				//	continue
+				//}
 				for _, td := range tdd {
 					trr = append(trr, fmt.Sprintf(`<td class="morphcell">%s</td>`, td))
 				}
@@ -576,12 +533,12 @@ func generateverbtable(words map[string]string) string {
 
 	var html []string
 
-	for _, d := range GKDIALECT {
+	for _, d := range dialect {
 		// each dialect is a major section
 		// but latin has only one dialect
-		for _, v := range GKVOICE {
+		for _, v := range voices {
 			// each voice is a section
-			for _, m := range GKMOODS {
+			for _, m := range moods {
 				// each mood is a table
 				// not every item needs generating
 
@@ -593,7 +550,7 @@ func generateverbtable(words map[string]string) string {
 				html = append(html, fmt.Sprintf(MOODTR, ct, m))
 				html = append(html, makehdr(v, m))
 
-				// the body
+				// the body: but pcpl and infin should be handled separately
 				trrhtml := maketdd(d, v, m)
 				html = append(html, trrhtml...)
 				html = append(html, "</table>")
@@ -604,6 +561,260 @@ func generateverbtable(words map[string]string) string {
 	h := strings.Join(html, "")
 	return h
 }
+
+func generatedeclinedtable(lang string, words map[string]string) string {
+	// need something to determine which gender columns are needed
+	const (
+		BLANK  = " --- "
+		DIALTR = `
+		<tr align="center">
+			<td rowspan="1" colspan="%d" class="dialectlabel">%s<br>
+			</td>
+		</tr>`
+		TBLHEAD = `
+		<tr>
+			<td class="genderlabel">&nbsp;</td>
+			<td class="gendercell">masc<br></td>
+			<td class="gendercell">fem<br></td>
+			<td class="gendercell">neut<br></td>
+		</tr>`
+	)
+
+	var dialect []string
+	var cases []string
+	var numbers []string
+	var gend []string
+
+	switch lang {
+	case "greek":
+		dialect = GKDIALECT
+		cases = GKCASES
+		numbers = GKNUMB
+		gend = GENDERS
+	case "latin":
+		dialect = []string{""}
+		cases = LTCASES
+		numbers = LTNUMB
+		gend = GENDERS
+	}
+
+	kk := stringmapkeysintoslice(words)
+	needgend := func() []string {
+		var need []string
+		for _, g := range gend {
+			if sliceseeker(g, kk) {
+				need = append(need, g)
+			}
+		}
+		return need
+	}()
+
+	var html []string
+
+	for _, d := range dialect {
+		// each dialect is a major section
+		// but latin has only one dialect
+		html = append(html, `<table class="verbanalysis">`)
+		html = append(html, TBLHEAD)
+		html = append(html, fmt.Sprintf(DIALTR, 3, d))
+		var trr []string
+		for _, n := range numbers {
+			for _, c := range cases {
+				trr = append(trr, `<tr class="morphrow">`)
+				trr = append(trr, fmt.Sprintf(`<td class="morphlabelcell">%s %s</td>`, n, c))
+				var tdd []string
+				blankcount := 0
+				for _, g := range needgend {
+					// not ever combination should be generated
+					// fem_acc_dual_doric
+					k := fmt.Sprintf("%s_%s_%s_%s", g, c, n, d)
+					if _, ok := words[k]; ok {
+						tdd = append(tdd, words[k])
+					} else {
+						tdd = append(tdd, BLANK)
+						blankcount += 1
+					}
+				}
+				for _, td := range tdd {
+					trr = append(trr, fmt.Sprintf(`<td class="morphcell">%s</td>`, td))
+				}
+				trr = append(trr, `</tr>`)
+			}
+		}
+		html = append(html, trr...)
+		html = append(html, "</table>")
+	}
+
+	h := strings.Join(html, "")
+	return h
+}
+
+//
+// HELPERS
+//
+
+// stringseeker - if s is in the []string produced via splitting, then true
+func stringseeker(skg string, split string) bool {
+	slc := strings.Split(split, JOINER)
+	for _, s := range slc {
+		if s == skg {
+			return true
+		}
+	}
+	return false
+}
+
+// sliceseeker - if s is in the []strings produced via splitting spp, then true
+func sliceseeker(s string, spp []string) bool {
+	for _, sp := range spp {
+		if stringseeker(s, sp) {
+			return true
+		}
+	}
+	return false
+}
+
+// multistringseeker - if any s in []string is in the []string produced via splitting, then true
+func multistringseeker(ss []string, split string) bool {
+	for _, s := range ss {
+		if stringseeker(s, split) {
+			return true
+		}
+	}
+	return false
+}
+
+// arraystringseeker - if any s in []string is in the []strings produced via splitting spp, then true
+func arraystringseeker(ss []string, spp []string) bool {
+	for _, sp := range spp {
+		if multistringseeker(ss, sp) {
+			return true
+		}
+	}
+	return false
+}
+
+/* SAMPLE: quantus
+
+<table class="verbanalysis">
+<tbody>
+
+<tr align="center">
+	<td rowspan="1" colspan="3" class="dialectlabel"> <br>
+	</td>
+</tr>
+<tr>
+	<td class="genderlabel">&nbsp;</td>
+	<td class="gendercell">masc<br></td>
+	<td class="gendercell">fem<br></td>
+	<td class="gendercell">neut<br></td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg nom</td>
+	<td class="morphcell"><verbform searchterm="quantus">quantus</verbform> (<span class="counter">228</span>) / <verbform searchterm="quantusque">quantusque</verbform> (<span class="counter">24</span>) / <verbform searchterm="quantusne">quantusne</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantuscumque">quantuscumque</verbform> (<span class="counter">8</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantacunque">quantacunque</verbform> (<span class="counter">1</span>) / <verbform searchterm="quanta">quanta</verbform> (<span class="counter">841</span>) / <verbform searchterm="quantaue">quantaue</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantalibet">quantalibet</verbform> (<span class="counter">12</span>) / <verbform searchterm="quantaque">quantaque</verbform> (<span class="counter">45</span>) / <verbform searchterm="quantane">quantane</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantauis">quantauis</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantacumque">quantacumque</verbform> (<span class="counter">14</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantumlibet">quantumlibet</verbform> (<span class="counter">11</span>) / <verbform searchterm="quantumlibet">quantumlibet</verbform> (<span class="counter">11</span>) / <verbform searchterm="quantumcumque">quantumcumque</verbform> (<span class="counter">43</span>) / <verbform searchterm="quantumcumque">quantumcumque</verbform> (<span class="counter">43</span>) / <verbform searchterm="quantum">quantum</verbform> (<span class="counter">3421</span>) / <verbform searchterm="quantum">quantum</verbform> (<span class="counter">3421</span>) / <verbform searchterm="quantumue">quantumue</verbform> (<span class="counter">3</span>) / <verbform searchterm="quantumue">quantumue</verbform> (<span class="counter">3</span>) / <verbform searchterm="quantumst">quantumst</verbform> (<span class="counter">8</span>) / <verbform searchterm="quantumst">quantumst</verbform> (<span class="counter">8</span>) / <verbform searchterm="quantumque">quantumque</verbform> (<span class="counter">90</span>) / <verbform searchterm="quantumque">quantumque</verbform> (<span class="counter">90</span>) / <verbform searchterm="quantumuis">quantumuis</verbform> (<span class="counter">12</span>) / <verbform searchterm="quantumuis">quantumuis</verbform> (<span class="counter">12</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg gen</td>
+	<td class="morphcell"><verbform searchterm="quantilibet">quantilibet</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantique">quantique</verbform> (<span class="counter">7</span>) / <verbform searchterm="quanticumque">quanticumque</verbform> (<span class="counter">5</span>) / <verbform searchterm="quantine">quantine</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantist">quantist</verbform> (<span class="counter">3</span>) / <verbform searchterm="quanti">quanti</verbform> (<span class="counter">633</span>) / <verbform searchterm="quantiuis">quantiuis</verbform> (<span class="counter">4</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantaelibet">quantaelibet</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantaeuis">quantaeuis</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantaeque">quantaeque</verbform> (<span class="counter">8</span>) / <verbform searchterm="quantae">quantae</verbform> (<span class="counter">105</span>) / <verbform searchterm="quantaecumque">quantaecumque</verbform> (<span class="counter">4</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantilibet">quantilibet</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantique">quantique</verbform> (<span class="counter">7</span>) / <verbform searchterm="quanticumque">quanticumque</verbform> (<span class="counter">5</span>) / <verbform searchterm="quantine">quantine</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantist">quantist</verbform> (<span class="counter">3</span>) / <verbform searchterm="quanti">quanti</verbform> (<span class="counter">633</span>) / <verbform searchterm="quantiuis">quantiuis</verbform> (<span class="counter">4</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg dat</td>
+	<td class="morphcell"><verbform searchterm="quantoque">quantoque</verbform> (<span class="counter">57</span>) / <verbform searchterm="quantouis">quantouis</verbform> (<span class="counter">3</span>) / <verbform searchterm="quantocumque">quantocumque</verbform> (<span class="counter">5</span>) / <verbform searchterm="quantolibet">quantolibet</verbform> (<span class="counter">3</span>) / <verbform searchterm="quantoue">quantoue</verbform> (<span class="counter">3</span>) / <verbform searchterm="quanto">quanto</verbform> (<span class="counter">1125</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantaelibet">quantaelibet</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantaeuis">quantaeuis</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantaeque">quantaeque</verbform> (<span class="counter">8</span>) / <verbform searchterm="quantae">quantae</verbform> (<span class="counter">105</span>) / <verbform searchterm="quantaecumque">quantaecumque</verbform> (<span class="counter">4</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantoque">quantoque</verbform> (<span class="counter">57</span>) / <verbform searchterm="quantouis">quantouis</verbform> (<span class="counter">3</span>) / <verbform searchterm="quantocumque">quantocumque</verbform> (<span class="counter">5</span>) / <verbform searchterm="quantolibet">quantolibet</verbform> (<span class="counter">3</span>) / <verbform searchterm="quantoue">quantoue</verbform> (<span class="counter">3</span>) / <verbform searchterm="quanto">quanto</verbform> (<span class="counter">1125</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg acc</td>
+	<td class="morphcell"><verbform searchterm="quantumlibet">quantumlibet</verbform> (<span class="counter">11</span>) / <verbform searchterm="quantumcumque">quantumcumque</verbform> (<span class="counter">43</span>) / <verbform searchterm="quantum">quantum</verbform> (<span class="counter">3421</span>) / <verbform searchterm="quantumue">quantumue</verbform> (<span class="counter">3</span>) / <verbform searchterm="quantumst">quantumst</verbform> (<span class="counter">8</span>) / <verbform searchterm="quantumque">quantumque</verbform> (<span class="counter">90</span>) / <verbform searchterm="quantumuis">quantumuis</verbform> (<span class="counter">12</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantamque">quantamque</verbform> (<span class="counter">7</span>) / <verbform searchterm="quantamcumque">quantamcumque</verbform> (<span class="counter">4</span>) / <verbform searchterm="quantam">quantam</verbform> (<span class="counter">243</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantumlibet">quantumlibet</verbform> (<span class="counter">11</span>) / <verbform searchterm="quantumcumque">quantumcumque</verbform> (<span class="counter">43</span>) / <verbform searchterm="quantum">quantum</verbform> (<span class="counter">3421</span>) / <verbform searchterm="quantumue">quantumue</verbform> (<span class="counter">3</span>) / <verbform searchterm="quantumst">quantumst</verbform> (<span class="counter">8</span>) / <verbform searchterm="quantumque">quantumque</verbform> (<span class="counter">90</span>) / <verbform searchterm="quantumuis">quantumuis</verbform> (<span class="counter">12</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg abl</td>
+	<td class="morphcell"><verbform searchterm="quantoque">quantoque</verbform> (<span class="counter">57</span>) / <verbform searchterm="quantouis">quantouis</verbform> (<span class="counter">3</span>) / <verbform searchterm="quantocumque">quantocumque</verbform> (<span class="counter">5</span>) / <verbform searchterm="quantolibet">quantolibet</verbform> (<span class="counter">3</span>) / <verbform searchterm="quantoue">quantoue</verbform> (<span class="counter">3</span>) / <verbform searchterm="quanto">quanto</verbform> (<span class="counter">1125</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantacunque">quantacunque</verbform> (<span class="counter">1</span>) / <verbform searchterm="quanta">quanta</verbform> (<span class="counter">841</span>) / <verbform searchterm="quantaue">quantaue</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantalibet">quantalibet</verbform> (<span class="counter">12</span>) / <verbform searchterm="quantaque">quantaque</verbform> (<span class="counter">45</span>) / <verbform searchterm="quantane">quantane</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantauis">quantauis</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantacumque">quantacumque</verbform> (<span class="counter">14</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantoque">quantoque</verbform> (<span class="counter">57</span>) / <verbform searchterm="quantouis">quantouis</verbform> (<span class="counter">3</span>) / <verbform searchterm="quantocumque">quantocumque</verbform> (<span class="counter">5</span>) / <verbform searchterm="quantolibet">quantolibet</verbform> (<span class="counter">3</span>) / <verbform searchterm="quantoue">quantoue</verbform> (<span class="counter">3</span>) / <verbform searchterm="quanto">quanto</verbform> (<span class="counter">1125</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">sg voc</td>
+	<td class="morphcell">---</td>
+	<td class="morphcell"><verbform searchterm="quantacunque">quantacunque</verbform> (<span class="counter">1</span>) / <verbform searchterm="quanta">quanta</verbform> (<span class="counter">841</span>) / <verbform searchterm="quantaue">quantaue</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantalibet">quantalibet</verbform> (<span class="counter">12</span>) / <verbform searchterm="quantaque">quantaque</verbform> (<span class="counter">45</span>) / <verbform searchterm="quantane">quantane</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantauis">quantauis</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantacumque">quantacumque</verbform> (<span class="counter">14</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantumlibet">quantumlibet</verbform> (<span class="counter">11</span>) / <verbform searchterm="quantumcumque">quantumcumque</verbform> (<span class="counter">43</span>) / <verbform searchterm="quantum">quantum</verbform> (<span class="counter">3421</span>) / <verbform searchterm="quantumue">quantumue</verbform> (<span class="counter">3</span>) / <verbform searchterm="quantumst">quantumst</verbform> (<span class="counter">8</span>) / <verbform searchterm="quantumque">quantumque</verbform> (<span class="counter">90</span>) / <verbform searchterm="quantumuis">quantumuis</verbform> (<span class="counter">12</span>)</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl nom</td>
+	<td class="morphcell"><verbform searchterm="quantilibet">quantilibet</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantique">quantique</verbform> (<span class="counter">7</span>) / <verbform searchterm="quanticumque">quanticumque</verbform> (<span class="counter">5</span>) / <verbform searchterm="quantine">quantine</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantist">quantist</verbform> (<span class="counter">3</span>) / <verbform searchterm="quanti">quanti</verbform> (<span class="counter">633</span>) / <verbform searchterm="quantiuis">quantiuis</verbform> (<span class="counter">4</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantaelibet">quantaelibet</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantaeuis">quantaeuis</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantaeque">quantaeque</verbform> (<span class="counter">8</span>) / <verbform searchterm="quantae">quantae</verbform> (<span class="counter">105</span>) / <verbform searchterm="quantaecumque">quantaecumque</verbform> (<span class="counter">4</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantacunque">quantacunque</verbform> (<span class="counter">1</span>) / <verbform searchterm="quanta">quanta</verbform> (<span class="counter">841</span>) / <verbform searchterm="quantaue">quantaue</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantalibet">quantalibet</verbform> (<span class="counter">12</span>) / <verbform searchterm="quantaque">quantaque</verbform> (<span class="counter">45</span>) / <verbform searchterm="quantane">quantane</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantauis">quantauis</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantacumque">quantacumque</verbform> (<span class="counter">14</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl gen</td>
+	<td class="morphcell"><verbform searchterm="quantumlibet">quantumlibet</verbform> (<span class="counter">11</span>) / <verbform searchterm="quantumcumque">quantumcumque</verbform> (<span class="counter">43</span>) / <verbform searchterm="quantum">quantum</verbform> (<span class="counter">3421</span>) / <verbform searchterm="quantumue">quantumue</verbform> (<span class="counter">3</span>) / <verbform searchterm="quantumst">quantumst</verbform> (<span class="counter">8</span>) / <verbform searchterm="quantumque">quantumque</verbform> (<span class="counter">90</span>) / <verbform searchterm="quantumuis">quantumuis</verbform> (<span class="counter">12</span>) / <verbform searchterm="quantorum">quantorum</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantarum">quantarum</verbform> (<span class="counter">1</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantumlibet">quantumlibet</verbform> (<span class="counter">11</span>) / <verbform searchterm="quantumcumque">quantumcumque</verbform> (<span class="counter">43</span>) / <verbform searchterm="quantum">quantum</verbform> (<span class="counter">3421</span>) / <verbform searchterm="quantumue">quantumue</verbform> (<span class="counter">3</span>) / <verbform searchterm="quantumst">quantumst</verbform> (<span class="counter">8</span>) / <verbform searchterm="quantumque">quantumque</verbform> (<span class="counter">90</span>) / <verbform searchterm="quantumuis">quantumuis</verbform> (<span class="counter">12</span>) / <verbform searchterm="quantorum">quantorum</verbform> (<span class="counter">1</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl dat</td>
+	<td class="morphcell"><verbform searchterm="quantisque">quantisque</verbform> (<span class="counter">9</span>) / <verbform searchterm="quantislibet">quantislibet</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantis">quantis</verbform> (<span class="counter">88</span>) / <verbform searchterm="quantiscumque">quantiscumque</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantist">quantist</verbform> (<span class="counter">3</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantisque">quantisque</verbform> (<span class="counter">9</span>) / <verbform searchterm="quantislibet">quantislibet</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantis">quantis</verbform> (<span class="counter">88</span>) / <verbform searchterm="quantiscumque">quantiscumque</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantist">quantist</verbform> (<span class="counter">3</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantisque">quantisque</verbform> (<span class="counter">9</span>) / <verbform searchterm="quantislibet">quantislibet</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantis">quantis</verbform> (<span class="counter">88</span>) / <verbform searchterm="quantiscumque">quantiscumque</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantist">quantist</verbform> (<span class="counter">3</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl acc</td>
+	<td class="morphcell"><verbform searchterm="quantosne">quantosne</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantosque">quantosque</verbform> (<span class="counter">4</span>) / <verbform searchterm="quantos">quantos</verbform> (<span class="counter">58</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantasque">quantasque</verbform> (<span class="counter">3</span>) / <verbform searchterm="quantaslibet">quantaslibet</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantasue">quantasue</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantasuis">quantasuis</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantas">quantas</verbform> (<span class="counter">85</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantacunque">quantacunque</verbform> (<span class="counter">1</span>) / <verbform searchterm="quanta">quanta</verbform> (<span class="counter">841</span>) / <verbform searchterm="quantaue">quantaue</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantalibet">quantalibet</verbform> (<span class="counter">12</span>) / <verbform searchterm="quantaque">quantaque</verbform> (<span class="counter">45</span>) / <verbform searchterm="quantane">quantane</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantauis">quantauis</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantacumque">quantacumque</verbform> (<span class="counter">14</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl abl</td>
+	<td class="morphcell"><verbform searchterm="quantisque">quantisque</verbform> (<span class="counter">9</span>) / <verbform searchterm="quantislibet">quantislibet</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantis">quantis</verbform> (<span class="counter">88</span>) / <verbform searchterm="quantiscumque">quantiscumque</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantist">quantist</verbform> (<span class="counter">3</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantisque">quantisque</verbform> (<span class="counter">9</span>) / <verbform searchterm="quantislibet">quantislibet</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantis">quantis</verbform> (<span class="counter">88</span>) / <verbform searchterm="quantiscumque">quantiscumque</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantist">quantist</verbform> (<span class="counter">3</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantisque">quantisque</verbform> (<span class="counter">9</span>) / <verbform searchterm="quantislibet">quantislibet</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantis">quantis</verbform> (<span class="counter">88</span>) / <verbform searchterm="quantiscumque">quantiscumque</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantist">quantist</verbform> (<span class="counter">3</span>)</td>
+</tr>
+
+
+<tr class="morphrow">
+	<td class="morphlabelcell">pl voc</td>
+	<td class="morphcell"><verbform searchterm="quantilibet">quantilibet</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantique">quantique</verbform> (<span class="counter">7</span>) / <verbform searchterm="quanticumque">quanticumque</verbform> (<span class="counter">5</span>) / <verbform searchterm="quantine">quantine</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantist">quantist</verbform> (<span class="counter">3</span>) / <verbform searchterm="quanti">quanti</verbform> (<span class="counter">633</span>) / <verbform searchterm="quantiuis">quantiuis</verbform> (<span class="counter">4</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantaelibet">quantaelibet</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantaeuis">quantaeuis</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantaeque">quantaeque</verbform> (<span class="counter">8</span>) / <verbform searchterm="quantae">quantae</verbform> (<span class="counter">105</span>) / <verbform searchterm="quantaecumque">quantaecumque</verbform> (<span class="counter">4</span>)</td>
+	<td class="morphcell"><verbform searchterm="quantacunque">quantacunque</verbform> (<span class="counter">1</span>) / <verbform searchterm="quanta">quanta</verbform> (<span class="counter">841</span>) / <verbform searchterm="quantaue">quantaue</verbform> (<span class="counter">2</span>) / <verbform searchterm="quantalibet">quantalibet</verbform> (<span class="counter">12</span>) / <verbform searchterm="quantaque">quantaque</verbform> (<span class="counter">45</span>) / <verbform searchterm="quantane">quantane</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantauis">quantauis</verbform> (<span class="counter">1</span>) / <verbform searchterm="quantacumque">quantacumque</verbform> (<span class="counter">14</span>)</td>
+</tr>
+
+
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+</tbody>
+</table>
+*/
 
 /*  SAMPLE: πίπτω
 
