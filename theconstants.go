@@ -163,6 +163,37 @@ const (
 	});
 	`
 
+	MORPHJS = `
+	<script>
+		function displayresults(output) {
+			document.title = output['title'];
+			$('#searchsummary').html(output['searchsummary']);
+			$('#displayresults').html(output['found']);
+			let browserclickscript = document.createElement('script');
+			browserclickscript.innerHTML = output['js'];
+			document.getElementById('browserclickscriptholder').appendChild(browserclickscript);
+		}
+
+		$('verbform').click( function(){
+			$('#imagearea').empty();
+			$('#searchsummary').html('');
+			$('#displayresults').html('');
+			$('#pollingdata').show();
+			
+			let bcsh = document.getElementById("browserclickscriptholder");
+			if (bcsh.hasChildNodes()) { bcsh.removeChild(bcsh.firstChild); }
+	
+			let searchterm = this.getAttribute("searchterm");
+			
+			let searchid = generateId(8);
+			let url = '/search/standard/' + searchid + '?skg=%20' + searchterm + '%20';
+			
+			$.getJSON(url, function (returnedresults) { displayresults(returnedresults); });
+			
+			checkactivityviawebsocket(searchid);
+		});
+	</script>`
+
 	DICTIDJS = `
 	$('dictionaryentry').click( function(e) {
 		e.preventDefault();

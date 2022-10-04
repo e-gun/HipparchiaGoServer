@@ -397,7 +397,7 @@ func RtMorphchart(c echo.Context) error {
 		jb.HTML = generatedeclinedtable(lg, pdxm)
 	}
 
-	jb.JS = insertlexicaljs()
+	jb.JS = MORPHJS
 
 	return c.JSONPretty(http.StatusOK, jb, JSONINDENT)
 }
@@ -426,6 +426,11 @@ func generateverbtable(lang string, words map[string]string) string {
 			</td>
 		</tr>`
 	)
+
+	type TBLStruct struct {
+		head string
+		body string
+	}
 
 	vm := make(map[string]map[string]map[int]bool)
 	tm := make(map[string]int)
@@ -468,6 +473,41 @@ func generateverbtable(lang string, words map[string]string) string {
 		}
 		return need
 	}()
+
+	//
+	// HEAD ROW PRODUCERS
+	//
+
+	maketnshdr := func(v string, m string) string {
+		hdr := `
+		<tr>
+			<td class="tenselabel">&nbsp;</td>
+			`
+		for i := 1; i < 8; i++ {
+			// have to do it in numerical order...
+			if vm[v][m][i] {
+				hdr += fmt.Sprintf("<td class=\"tensecell\">%s<br></td>\n\t", GKINTTENSEMAP[i])
+			}
+		}
+		hdr += `</tr>`
+		return hdr
+	}
+
+	makepcphdr := func() string {
+		hdr := `
+		<tr>
+			<td class="tenselabel">&nbsp;</td>
+			`
+		for _, g := range needgend {
+			hdr += fmt.Sprintf("<td class=\"tensecell\">%s<br></td>\n\t", g)
+		}
+		hdr += `</tr>`
+		return hdr
+	}()
+
+	//
+	// TRR PRODUCERS
+	//
 
 	makevftdd := func(d string, v string, m string) []string {
 		// for vanilla verbs only; this will NOT do participles, supines, gerundives, infinitives
@@ -519,6 +559,7 @@ func generateverbtable(lang string, words map[string]string) string {
 
 	makepcpltrr := func(d string, m string, v string) []string {
 		// problem: the header row has been pre-set to "tenses" not genders
+
 		//[HGS] aor_part_mid_fem_nom_sg_attic
 		//[HGS] perf_part_mp_fem_voc_pl_attic
 		var trr []string
@@ -567,21 +608,6 @@ func generateverbtable(lang string, words map[string]string) string {
 		return c
 	}
 
-	makehdr := func(v string, m string) string {
-		hdr := `
-		<tr>
-			<td class="tenselabel">&nbsp;</td>
-			`
-		for i := 1; i < 8; i++ {
-			// have to do it in numerical order...
-			if vm[v][m][i] {
-				hdr += fmt.Sprintf("<td class=\"tensecell\">%s<br></td>\n\t", GKINTTENSEMAP[i])
-			}
-		}
-		hdr += `</tr>`
-		return hdr
-	}
-
 	var html []string
 
 	for _, d := range dialect {
@@ -599,7 +625,7 @@ func generateverbtable(lang string, words map[string]string) string {
 				html = append(html, fmt.Sprintf(DIALTR, ct, d))
 				html = append(html, fmt.Sprintf(VOICETR, ct, v))
 				html = append(html, fmt.Sprintf(MOODTR, ct, m))
-				html = append(html, makehdr(v, m))
+
 				var trrhtml []string
 				// todo: participles, which work like the declined forms...
 				// todo: infinitives: which do not use person and voice
@@ -607,8 +633,10 @@ func generateverbtable(lang string, words map[string]string) string {
 				// todo: supines
 				switch m {
 				case "part":
+					html = append(html, makepcphdr)
 					trrhtml = makepcpltrr(d, m, v)
 				default:
+					html = append(html, maketnshdr(v, m))
 					trrhtml = makevftdd(d, v, m)
 				}
 
