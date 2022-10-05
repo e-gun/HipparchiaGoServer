@@ -507,7 +507,7 @@ func generateverbtable(lang string, words map[string]string) string {
 	// TRR PRODUCERS
 	//
 
-	makevftdd := func(d string, v string, m string) []string {
+	makevftrr := func(d string, v string, m string) []string {
 		// for vanilla verbs only; this will NOT do participles, supines, gerundives, infinitives
 
 		// <tr class="morphrow">
@@ -594,6 +594,53 @@ func generateverbtable(lang string, words map[string]string) string {
 		return trr
 	}
 
+	makeinftrr := func(d string, m string, v string) []string {
+		// 	<tr align="center">
+		//		<td rowspan="1" colspan="7" class="moodlabel">inf<br>
+		//		</td>
+		//	</tr><tr>
+		//		<td class="tenselabel">&nbsp;</td>
+		//		<td class="tensecell">Present<br></td>
+		//		<td class="tensecell">Future<br></td>
+		//		<td class="tensecell">Aorist<br></td>
+		//		<td class="tensecell">Perfect<br></td>
+		//	</tr>
+		// 	<tr class="morphrow">
+		//		<td class="morphlabelcell">infinitive</td>
+		//		<td class="morphcell">---</td>
+		//		<td class="morphcell">---</td>
+		//		<td class="morphcell"><verbform searchterm="θρέψαι">θρέψαι</verbform> (<span class="counter">284</span>)</td>
+		//		<td class="morphcell"><verbform searchterm="τετροφέναι">τετροφέναι</verbform> (<span class="counter">2</span>)</td>
+		//	</tr>
+		//
+		var trr []string
+		trr = append(trr, `<td class="tenselabel">&nbsp;</td>`)
+		// need to loop the tenses...
+		blankcount := 0
+		var tdd []string
+		for _, t := range tenses {
+			// not ever combination should be generated
+			thevm := vm[v][m]
+			if !thevm[tm[t]] {
+				continue
+			}
+			//[HGS] fut_inf_mid_attic
+			//[HGS] perf_inf_act_attic
+			k := fmt.Sprintf("%s_%s_%s_%s", t, m, v, d)
+			if _, ok := words[k]; ok {
+				tdd = append(tdd, words[k])
+			} else {
+				tdd = append(tdd, BLANK)
+				blankcount += 1
+			}
+		}
+		for _, td := range tdd {
+			trr = append(trr, fmt.Sprintf(`<td class="morphcell">%s</td>`, td))
+		}
+		// trr = append(trr, `</tr>`)
+		return trr
+	}
+
 	counttns := func(v string, m string) int {
 		c := 0
 		for _, t := range vm[v][m] {
@@ -630,9 +677,12 @@ func generateverbtable(lang string, words map[string]string) string {
 				case "part":
 					html = append(html, makepcphdr)
 					trrhtml = makepcpltrr(d, m, v)
+				case "inf":
+					html = append(html, maketnshdr(v, m))
+					trrhtml = makeinftrr(d, m, v)
 				default:
 					html = append(html, maketnshdr(v, m))
-					trrhtml = makevftdd(d, v, m)
+					trrhtml = makevftrr(d, v, m)
 				}
 
 				html = append(html, trrhtml...)
