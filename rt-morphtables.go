@@ -594,6 +594,48 @@ func generateverbtable(lang string, words map[string]string) string {
 		return trr
 	}
 
+	makegertrr := func(d string, m string, v string) []string {
+		// problem: the header row has been pre-set to "tenses" not genders
+
+		// [HGS] gerundive_neut_abl_pl_
+
+		// todo: some sort of key collision will leave "laudando" in the wrong boxes
+
+		var trr []string
+
+		if v == "act" {
+			return trr
+		}
+
+		//tl := `<tr align="center"><td rowspan="1" colspan="%d" class="morphrow emph">%s<br></td></tr>`
+		//trr = append(trr, fmt.Sprintf(tl, len(numbers)+1, t))
+		for _, n := range numbers {
+			for _, c := range cases {
+				trr = append(trr, `<tr class="morphrow">`)
+				trr = append(trr, fmt.Sprintf(`<td class="morphlabelcell">%s %s</td>`, n, c))
+				var tdd []string
+				blankcount := 0
+				for _, g := range needgend {
+					// not every combination should be generated
+					// fem_acc_dual_doric
+					k := fmt.Sprintf("%s_%s_%s_%s_%s", m, g, c, n, d)
+					if _, ok := words[k]; ok {
+						tdd = append(tdd, words[k])
+					} else {
+						tdd = append(tdd, BLANK)
+						blankcount += 1
+					}
+				}
+				for _, td := range tdd {
+					trr = append(trr, fmt.Sprintf(`<td class="morphcell">%s</td>`, td))
+				}
+				trr = append(trr, `</tr>`)
+			}
+		}
+
+		return trr
+	}
+
 	makeinftrr := func(d string, m string, v string) []string {
 		// 	<tr align="center">
 		//		<td rowspan="1" colspan="7" class="moodlabel">inf<br>
@@ -651,6 +693,10 @@ func generateverbtable(lang string, words map[string]string) string {
 		return c
 	}
 
+	//
+	// THE MAIN TABLE GENERATOR
+	//
+
 	var html []string
 
 	for _, d := range dialect {
@@ -670,8 +716,6 @@ func generateverbtable(lang string, words map[string]string) string {
 				html = append(html, fmt.Sprintf(MOODTR, ct, m))
 
 				var trrhtml []string
-				// todo: infinitives: which do not use person and voice
-				// todo: gerundives
 				// todo: supines
 				switch m {
 				case "part":
@@ -680,6 +724,9 @@ func generateverbtable(lang string, words map[string]string) string {
 				case "inf":
 					html = append(html, maketnshdr(v, m))
 					trrhtml = makeinftrr(d, m, v)
+				case "gerundive":
+					html = append(html, makepcphdr)
+					trrhtml = makegertrr(d, m, v)
 				default:
 					html = append(html, maketnshdr(v, m))
 					trrhtml = makevftrr(d, v, m)
