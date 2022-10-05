@@ -186,10 +186,13 @@ func RtMorphchart(c echo.Context) error {
 	// [c2] query the database
 
 	// pgsql single quote escape: quote followed by a single quote to be escaped: κρυφθεῖϲ''
+	// but they will in fact be stored less the apostrophe...
+	// this leads to a clash between the wordcounts_κ data and the x_morphology data: todo - address this
 
 	var esc []string
 	for _, w := range ww {
-		esc = append(esc, strings.Replace(w, "'", "''", -1))
+		// esc = append(esc, strings.Replace(w, "'", "''", -1))
+		esc = append(esc, strings.Replace(w, "'", "", -1))
 	}
 	arr := fmt.Sprintf("'%s'", strings.Join(esc, "', '"))
 
@@ -332,7 +335,9 @@ func RtMorphchart(c echo.Context) error {
 		}
 	}
 
-	// [e3] get counts for each word
+	// [e3] TODO: mp needs a splitter: middle and passive
+
+	// [e4] get counts for each word
 	pdcm := make(map[string]map[string]int64)
 	for k, v := range pdm {
 		wds := strings.Split(v, " / ")
@@ -505,7 +510,7 @@ func generateverbtable(lang string, words map[string]string) string {
 	// TRR PRODUCERS
 	//
 
-	makevftrr := func(d string, v string, m string) []string {
+	makevftrr := func(d string, v string, m string) ([]string, bool) {
 		// for vanilla verbs only; this will NOT do participles, supines, gerundives, infinitives
 
 		// <tr class="morphrow">
@@ -517,6 +522,8 @@ func generateverbtable(lang string, words map[string]string) string {
 		//	<td class="morphcell"><verbform searchterm="πέπτηκα">πέπτηκα</verbform> (<span class="counter">14</span>) / <verbform searchterm="πέπτωκα">πέπτωκα</verbform> (<span class="counter">67</span>)</td>
 		//	<td class="morphcell"><verbform searchterm="ἐπεπτώκειν">ἐπεπτώκειν</verbform> (<span class="counter">1</span>)</td>
 		//</tr>
+		blankcount := 0
+		cellcount := 0
 
 		var trr []string
 		for _, n := range numbers {
@@ -525,7 +532,6 @@ func generateverbtable(lang string, words map[string]string) string {
 				trr = append(trr, `<tr class="morphrow">`)
 				trr = append(trr, fmt.Sprintf(`<td class="morphlabelcell">%s %s</td>`, n, p))
 				var tdd []string
-				blankcount := 0
 				for _, t := range tenses {
 					// not ever combination should be generated
 					thevm := vm[v][m]
@@ -539,6 +545,7 @@ func generateverbtable(lang string, words map[string]string) string {
 						tdd = append(tdd, BLANK)
 						blankcount += 1
 					}
+					cellcount += 1
 				}
 				for _, td := range tdd {
 					trr = append(trr, fmt.Sprintf(`<td class="morphcell">%s</td>`, td))
@@ -546,16 +553,22 @@ func generateverbtable(lang string, words map[string]string) string {
 				trr = append(trr, `</tr>`)
 			}
 		}
-		return trr
+		isblank := false
+		if cellcount == blankcount {
+			isblank = true
+		}
+		return trr, isblank
 	}
 
-	makepcpltrr := func(d string, m string, v string) []string {
+	makepcpltrr := func(d string, m string, v string) ([]string, bool) {
 		// problem: the header row has been pre-set to "tenses" not genders
 
 		//[HGS] aor_part_mid_fem_nom_sg_attic
 		//[HGS] perf_part_mp_fem_voc_pl_attic
 		var trr []string
 		// need to loop the tenses...
+		blankcount := 0
+		cellcount := 0
 		for _, t := range tenses {
 			// not ever combination should be generated
 			thevm := vm[v][m]
@@ -569,7 +582,6 @@ func generateverbtable(lang string, words map[string]string) string {
 					trr = append(trr, `<tr class="morphrow">`)
 					trr = append(trr, fmt.Sprintf(`<td class="morphlabelcell">%s %s</td>`, n, c))
 					var tdd []string
-					blankcount := 0
 					for _, g := range needgend {
 						// not every combination should be generated
 						// fem_acc_dual_doric
@@ -580,6 +592,7 @@ func generateverbtable(lang string, words map[string]string) string {
 							tdd = append(tdd, BLANK)
 							blankcount += 1
 						}
+						cellcount += 1
 					}
 					for _, td := range tdd {
 						trr = append(trr, fmt.Sprintf(`<td class="morphcell">%s</td>`, td))
@@ -588,11 +601,14 @@ func generateverbtable(lang string, words map[string]string) string {
 				}
 			}
 		}
-
-		return trr
+		isblank := false
+		if cellcount == blankcount {
+			isblank = true
+		}
+		return trr, isblank
 	}
 
-	makegertrr := func(d string, m string, v string) []string {
+	makegertrr := func(d string, m string, v string) ([]string, bool) {
 		// problem: the header row has been pre-set to "tenses" not genders
 
 		// [HGS] gerundive_neut_abl_pl_
@@ -605,7 +621,7 @@ func generateverbtable(lang string, words map[string]string) string {
 		var trr []string
 
 		if v == "act" {
-			return trr
+			return trr, true
 		}
 
 		nn := numbers
@@ -617,12 +633,13 @@ func generateverbtable(lang string, words map[string]string) string {
 
 		tl := `<tr align="center"><td rowspan="1" colspan="%d" class="morphrow emph center">%s<br></td></tr>`
 		trr = append(trr, fmt.Sprintf(tl, len(numbers)+1, ""))
+		blankcount := 0
+		cellcount := 0
 		for _, n := range nn {
 			for _, c := range cc {
 				trr = append(trr, `<tr class="morphrow">`)
 				trr = append(trr, fmt.Sprintf(`<td class="morphlabelcell">%s %s</td>`, n, c))
 				var tdd []string
-				blankcount := 0
 				for _, g := range needgend {
 					// not every combination should be generated
 					// fem_acc_dual_doric
@@ -633,6 +650,7 @@ func generateverbtable(lang string, words map[string]string) string {
 						tdd = append(tdd, BLANK)
 						blankcount += 1
 					}
+					cellcount += 1
 				}
 				for _, td := range tdd {
 					trr = append(trr, fmt.Sprintf(`<td class="morphcell">%s</td>`, td))
@@ -640,11 +658,14 @@ func generateverbtable(lang string, words map[string]string) string {
 				trr = append(trr, `</tr>`)
 			}
 		}
-
-		return trr
+		isblank := false
+		if cellcount == blankcount {
+			isblank = true
+		}
+		return trr, isblank
 	}
 
-	makeinftrr := func(d string, m string, v string) []string {
+	makeinftrr := func(d string, m string, v string) ([]string, bool) {
 		// 	<tr align="center">
 		//		<td rowspan="1" colspan="7" class="moodlabel">inf<br>
 		//		</td>
@@ -667,6 +688,7 @@ func generateverbtable(lang string, words map[string]string) string {
 		trr = append(trr, `<td class="tenselabel">&nbsp;</td>`)
 		// need to loop the tenses...
 		blankcount := 0
+		cellcount := 0
 		var tdd []string
 		for _, t := range tenses {
 			// not ever combination should be generated
@@ -683,12 +705,16 @@ func generateverbtable(lang string, words map[string]string) string {
 				tdd = append(tdd, BLANK)
 				blankcount += 1
 			}
+			cellcount += 1
 		}
 		for _, td := range tdd {
 			trr = append(trr, fmt.Sprintf(`<td class="morphcell">%s</td>`, td))
 		}
-		// trr = append(trr, `</tr>`)
-		return trr
+		isblank := false
+		if cellcount == blankcount {
+			isblank = true
+		}
+		return trr, isblank
 	}
 
 	counttns := func(v string, m string) int {
@@ -715,7 +741,7 @@ func generateverbtable(lang string, words map[string]string) string {
 			for _, m := range moods {
 				// each mood is a table
 				// not every item needs generating
-
+				isblank := false
 				// the top
 				ct := counttns(v, m)
 				html = append(html, `<table class="verbanalysis">`)
@@ -724,24 +750,37 @@ func generateverbtable(lang string, words map[string]string) string {
 				html = append(html, fmt.Sprintf(MOODTR, ct, m))
 
 				var trrhtml []string
-				// todo: supines
 				switch m {
 				case "part":
-					html = append(html, makepcphdr)
-					trrhtml = makepcpltrr(d, m, v)
+					trrhtml, isblank = makepcpltrr(d, m, v)
+					if !isblank {
+						html = append(html, makepcphdr)
+					}
 				case "inf":
-					html = append(html, maketnshdr(v, m))
-					trrhtml = makeinftrr(d, m, v)
+					trrhtml, isblank = makeinftrr(d, m, v)
+					if !isblank {
+						html = append(html, maketnshdr(v, m))
+					}
 				case "gerundive":
-					html = append(html, makepcphdr)
-					trrhtml = makegertrr(d, m, v)
+					trrhtml, isblank = makegertrr(d, m, v)
+					if !isblank {
+						html = append(html, makepcphdr)
+					}
 				case "supine":
 					// exact same issues as gerundives
-					html = append(html, makepcphdr)
-					trrhtml = makegertrr(d, m, v)
+					trrhtml, isblank = makegertrr(d, m, v)
+					if !isblank {
+						html = append(html, makepcphdr)
+					}
 				default:
-					html = append(html, maketnshdr(v, m))
-					trrhtml = makevftrr(d, v, m)
+					trrhtml, isblank = makevftrr(d, v, m)
+					if !isblank {
+						html = append(html, maketnshdr(v, m))
+					}
+				}
+
+				if isblank {
+					trrhtml = []string{"<tr><td>[nothing found]</td></tr>"}
 				}
 
 				html = append(html, trrhtml...)
@@ -887,7 +926,7 @@ func multistringseeker(ss []string, split string) bool {
 	return false
 }
 
-// arraystringseeker - if any s in []string is in the []strings produced via splitting spp, then true
+// arraystringseeker - if any s in []string is in the []strings produced via splitting each of spp, then true
 func arraystringseeker(ss []string, spp []string) bool {
 	for _, sp := range spp {
 		if multistringseeker(ss, sp) {
