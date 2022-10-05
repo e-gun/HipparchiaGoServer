@@ -165,20 +165,20 @@ func StartEchoServer() {
 	// [h] lexical
 	//
 
-	// [h1] uri: /lexica/lookup/dolor
-	e.GET("/lexica/lookup/:wd", RtLexLookup)
+	// [h1] uri: /lex/lookup/dolor
+	e.GET("/lex/lookup/:wd", RtLexLookup)
 
-	// [h2] GET http://localhost:8000/lexica/findbyform/sapientem/lt0474
-	e.GET("/lexica/findbyform/:wd", RtLexFindByForm)
+	// [h2] GET http://localhost:8000/lex/findbyform/sapientem/lt0474
+	e.GET("/lex/findbyform/:wd", RtLexFindByForm)
 
-	// [h3] uri: /lexica/reverselookup/0ae94619/sorrow
-	e.GET("/lexica/reverselookup/:wd", RtLexReverse)
+	// [h3] uri: /lex/reverselookup/0ae94619/sorrow
+	e.GET("/lex/reverselookup/:wd", RtLexReverse)
 
-	// [h4] http://127.0.0.1:8000/lexica/idlookup/latin/24236.0
-	e.GET("/lexica/idlookup/:wd", RtLexId)
+	// [h4] http://127.0.0.1:8000/lex/idlookup/latin/24236.0
+	e.GET("/lex/idlookup/:wd", RtLexId)
 
-	// [h5] /lexica/morphologychart/greek/39046.0/37925260/ἐπιγιγνώϲκω
-	e.GET("/lexica/morphologychart/:wd", RtMorphchart)
+	// [h5] /lex/morphologychart/greek/39046.0/37925260/ἐπιγιγνώϲκω
+	e.GET("/lex/chart/:wd", RtMorphchart)
 
 	//
 	// [i] resets
@@ -194,10 +194,10 @@ func StartEchoServer() {
 	//
 
 	// [j1] confirm: "GET /search/confirm/1f8f1d22 HTTP/1.1"
-	e.GET("/search/confirm/:id", RtSearchConfirm)
+	e.GET("/srch/conf/:id", RtSearchConfirm)
 
 	// [j2] standard: "GET /search/standard/1f8f1d22?skg=dolor HTTP/1.1"
-	e.GET("/search/standard/:id", RtSearch)
+	e.GET("/srch/exec/:id", RtSearch)
 
 	// [j3] singleword
 	// [j4] lemmatized
@@ -265,9 +265,6 @@ func StartEchoServer() {
 
 	// [q2] get
 	e.GET("/sc/get/:num", RtSessionGetCookie)
-
-	// [z] testing
-	e.GET("/t", RtTest)
 
 	e.HideBanner = true
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", cfg.HostIP, cfg.HostPort)))
@@ -496,10 +493,4 @@ func RtSetOption(c echo.Context) error {
 	sessions[readUUIDCookie(c)] = s
 
 	return c.String(http.StatusOK, "")
-}
-
-func RtTest(c echo.Context) error {
-	a := len(AllAuthors)
-	s := fmt.Sprintf("%d authors present", a)
-	return c.String(http.StatusOK, s)
 }

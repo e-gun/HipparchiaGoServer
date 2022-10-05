@@ -81,7 +81,7 @@ $(document).ready( function () {
         // let searchid = uuidv4();
 
         if (areWeWearchingVectors() === 0) {
-            flaskpath = '/search/standard/';
+            flaskpath = '/srch/exec/';
             url = flaskpath + searchid + '?' + qstring;
         } else {
             let lsv = $('#lemmatasearchform').val();
@@ -221,7 +221,7 @@ if ($('#termoneisalemma').is(":checked")) {
 //
 
 function checkactivityviawebsocket(searchid) {
-    $.getJSON('/search/confirm/'+searchid, function(portnumber) {
+    $.getJSON('/srch/conf/'+searchid, function(portnumber) {
         let pd = $('#pollingdata');
         pd.html('');
         pd.show();

@@ -135,7 +135,7 @@ const (
 				});
 			$( '#lexicadialogtext' ).dialog( 'open' );
 			$( '#lexicadialogtext' ).html('[searching...]');
-			$.getJSON('/lexica/findbyform/'+this.id, function (definitionreturned) {
+			$.getJSON('/lex/findbyform/'+this.id, function (definitionreturned) {
 				$( '#lexicadialogtext' ).html(definitionreturned['newhtml']);
 				$( '#lexicaljsscriptholder' ).html(definitionreturned['newjs']);
 			});
@@ -186,7 +186,7 @@ const (
 			let searchterm = this.getAttribute("searchterm");
 			
 			let searchid = generateId(8);
-			let url = '/search/standard/' + searchid + '?skg=%20' + searchterm + '%20';
+			let url = '/srch/exec/' + searchid + '?skg=%20' + searchterm + '%20';
 			
 			$.getJSON(url, function (returnedresults) { displayresults(returnedresults); });
 			
@@ -217,7 +217,7 @@ const (
 		ldt.dialog('open');
 		ldt.html('[searching...]');
 		
-		$.getJSON('/lexica/lookup/^'+this.id+'$', function (definitionreturned) {
+		$.getJSON('/lex/lookup/^'+this.id+'$', function (definitionreturned) {
 			ldt.html(definitionreturned['newhtml']);
 			jshld.html(definitionreturned['newjs']);		
 			});
@@ -234,7 +234,7 @@ const (
 			let entryid = this.getAttribute("entryid");
 			let language = this.getAttribute("language");
 
-			let url = '/lexica/idlookup/' + language + '/' + entryid;
+			let url = '/lex/idlookup/' + language + '/' + entryid;
 			
 			$.getJSON(url, function (definitionreturned) { 
 				ldt.html(definitionreturned['newhtml']);
@@ -267,7 +267,7 @@ const (
 		ldt.dialog('open');
 		ldt.html('[searching...]');
 		
-		$.getJSON('/lexica/morphologychart/'+this.lang+'/'+lexid+'/'+parserxref+'/'+headword, function (definitionreturned) {
+		$.getJSON('/lex/chart/'+this.lang+'/'+lexid+'/'+parserxref+'/'+headword, function (definitionreturned) {
 			ldt.html(definitionreturned['newhtml']);
 			jshld.html(definitionreturned['newjs']);		
 			});

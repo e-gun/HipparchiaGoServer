@@ -350,7 +350,7 @@ $('#lexicalsearch').click(function(){
     // if you have toggled any of the boxes off, then $('#parser').val(), etc. will be 'undefined'
     if ( typeof dictterm !== 'undefined' && dictterm.length > 0) {
         searchterm = dictterm;
-        url = '/lexica/lookup/';
+        url = '/lex/lookup/';
         dialogtitle = restoreme;
         mydictfield = '#lexicon';
     } else if ( typeof reverseterm !== 'undefined' && reverseterm.length > 0 ) {
@@ -364,13 +364,13 @@ $('#lexicalsearch').click(function(){
         // disgustingly, if you send 'STRING ' to window.location it strips the whitespace and turns it into 'STRING'
         if (reverseterm.slice(-1) === ' ') { reverseterm = reverseterm.slice(0, -1) + '%20'; }
         searchterm = reverseterm;
-        url = '/lexica/reverselookup/' + searchid + '/';
+        url = '/lex/reverselookup/' + searchid + '/';
         dialogtitle = originalterm;
         mydictfield = '#reverselexicon';
         restoreme = searchterm;
     } else {
         searchterm = 'nihil';
-        url = '/lexica/lookup/';
+        url = '/lex/lookup/';
         dialogtitle = searchterm;
     }
 

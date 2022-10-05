@@ -166,6 +166,7 @@ func RtMorphchart(c echo.Context) error {
 		var thehit DbMorphology
 		e := foundrows.Scan(&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW)
 		chke(e)
+		thehit.Observed = strings.ToLower(thehit.Observed)
 		dbmmap[thehit.Observed] = thehit
 	}
 
@@ -190,9 +191,6 @@ func RtMorphchart(c echo.Context) error {
 
 	var esc []string
 	for _, w := range ww {
-		//x := swapgraveforacute(w)
-		//x = strings.Replace(x, "'", "''", -1)
-		//esc = append(esc, x)
 		esc = append(esc, strings.Replace(w, "'", "''", -1))
 	}
 	arr := fmt.Sprintf("'%s'", strings.Join(esc, "', '"))
@@ -534,7 +532,6 @@ func generateverbtable(lang string, words map[string]string) string {
 					// not ever combination should be generated
 					thevm := vm[v][m]
 					if !thevm[tm[t]] {
-						blankcount += 1
 						continue
 					}
 					k := fmt.Sprintf("%s_%s_%s_%s_%s_%s", t, m, v, p, n, d)
@@ -545,9 +542,6 @@ func generateverbtable(lang string, words map[string]string) string {
 						blankcount += 1
 					}
 				}
-				//if blankcount == len(tenses) {
-				//	continue
-				//}
 				for _, td := range tdd {
 					trr = append(trr, fmt.Sprintf(`<td class="morphcell">%s</td>`, td))
 				}
@@ -570,6 +564,8 @@ func generateverbtable(lang string, words map[string]string) string {
 			if !thevm[tm[t]] {
 				continue
 			}
+			tl := `<tr align="center"><td rowspan="1" colspan="%d" class="morphrow emph">%s<br></td></tr>`
+			trr = append(trr, fmt.Sprintf(tl, len(numbers)+1, t))
 			for _, n := range numbers {
 				for _, c := range cases {
 					trr = append(trr, `<tr class="morphrow">`)
@@ -627,7 +623,6 @@ func generateverbtable(lang string, words map[string]string) string {
 				html = append(html, fmt.Sprintf(MOODTR, ct, m))
 
 				var trrhtml []string
-				// todo: participles, which work like the declined forms...
 				// todo: infinitives: which do not use person and voice
 				// todo: gerundives
 				// todo: supines
