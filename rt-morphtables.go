@@ -306,9 +306,9 @@ func RtMorphchart(c echo.Context) error {
 	}
 
 	// [e2] second pass at the map to deal with dialects
+	newpdm := make(map[string]string)
 	if lg == "greek" {
 		for k, v := range pdm {
-			delete(pdm, k)
 			if strings.Contains(k, "(") {
 				k = strings.Replace(k, ")", "", 1)
 				parts := strings.Split(k, "(")
@@ -316,24 +316,24 @@ func RtMorphchart(c echo.Context) error {
 				for _, d := range diall {
 					newkey := parts[0] + JOINER + d
 					newkey = strings.Replace(newkey, JOINER+JOINER, JOINER, 1)
-					pdm[newkey] = v
+					newpdm[newkey] = v
 				}
 			} else {
 				if !strings.Contains(k, "attic") {
 					newkey := k + JOINER + "attic"
-					pdm[newkey] = v
+					newpdm[newkey] = v
 				} else {
-					pdm[k] = v
+					newpdm[k] = v
 				}
 			}
 		}
 	} else {
 		// add the "blank" dialect to latin
 		for k, v := range pdm {
-			delete(pdm, k)
-			pdm[k+JOINER] = v
+			newpdm[k+JOINER] = v
 		}
 	}
+	pdm = newpdm
 
 	// [e3] TODO: mp needs a splitter: middle and passive
 
@@ -357,6 +357,9 @@ func RtMorphchart(c echo.Context) error {
 		}
 		pdxm[kk] = strings.Join(vv, " / ")
 
+		//if strings.Contains(kk, "part") {
+		//	fmt.Printf("%s\t%s\n", kk, pdxm[kk])
+		//}
 		//gen_cas_num_dial
 		//fem_acc_dual_attic: κόρα (72)
 		//fem_acc_dual_doric: κώρα (9)
@@ -427,11 +430,6 @@ func generateverbtable(lang string, words map[string]string) string {
 			</td>
 		</tr>`
 	)
-
-	type TBLStruct struct {
-		head string
-		body string
-	}
 
 	vm := make(map[string]map[string]map[int]bool)
 	tm := make(map[string]int)
@@ -563,6 +561,10 @@ func generateverbtable(lang string, words map[string]string) string {
 	makepcpltrr := func(d string, m string, v string) ([]string, bool) {
 		// problem: the header row has been pre-set to "tenses" not genders
 
+		// LATIN PROBLEM
+		// sent: pres_part_neut_acc_sg_
+		// want: pres_part_act_neut_acc_sg_
+
 		//[HGS] aor_part_mid_fem_nom_sg_attic
 		//[HGS] perf_part_mp_fem_voc_pl_attic
 		var trr []string
@@ -576,7 +578,7 @@ func generateverbtable(lang string, words map[string]string) string {
 				continue
 			}
 			tl := `<tr align="center"><td rowspan="1" colspan="%d" class="morphrow emph">%s<br></td></tr>`
-			trr = append(trr, fmt.Sprintf(tl, len(numbers)+1, t))
+			trr = append(trr, fmt.Sprintf(tl, len(numbers)+2, t))
 			for _, n := range numbers {
 				for _, c := range cases {
 					trr = append(trr, `<tr class="morphrow">`)
@@ -584,8 +586,11 @@ func generateverbtable(lang string, words map[string]string) string {
 					var tdd []string
 					for _, g := range needgend {
 						// not every combination should be generated
-						// fem_acc_dual_doric
 						k := fmt.Sprintf("%s_%s_%s_%s_%s_%s_%s", t, m, v, g, c, n, d)
+						// fix the irregular original data
+						if lang == "latin" && t == "pres" {
+							k = fmt.Sprintf("%s_%s_%s_%s_%s_%s", t, m, g, c, n, d)
+						}
 						if _, ok := words[k]; ok {
 							tdd = append(tdd, words[k])
 						} else {
@@ -753,34 +758,32 @@ func generateverbtable(lang string, words map[string]string) string {
 				switch m {
 				case "part":
 					trrhtml, isblank = makepcpltrr(d, m, v)
-					if !isblank {
-						html = append(html, makepcphdr)
-					}
 				case "inf":
 					trrhtml, isblank = makeinftrr(d, m, v)
-					if !isblank {
-						html = append(html, maketnshdr(v, m))
-					}
 				case "gerundive":
 					trrhtml, isblank = makegertrr(d, m, v)
-					if !isblank {
-						html = append(html, makepcphdr)
-					}
 				case "supine":
 					// exact same issues as gerundives
 					trrhtml, isblank = makegertrr(d, m, v)
-					if !isblank {
-						html = append(html, makepcphdr)
-					}
 				default:
 					trrhtml, isblank = makevftrr(d, v, m)
-					if !isblank {
-						html = append(html, maketnshdr(v, m))
-					}
 				}
 
 				if isblank {
 					trrhtml = []string{"<tr><td>[nothing found]</td></tr>"}
+				} else {
+					switch m {
+					case "part":
+						html = append(html, makepcphdr)
+					case "inf":
+						html = append(html, maketnshdr(v, m))
+					case "gerundive":
+						html = append(html, makepcphdr)
+					case "supine":
+						html = append(html, makepcphdr)
+					default:
+						html = append(html, maketnshdr(v, m))
+					}
 				}
 
 				html = append(html, trrhtml...)

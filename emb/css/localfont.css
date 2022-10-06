@@ -1496,6 +1496,12 @@ td.morphcell.invisible {
 	color: var(--invisible);
 	}
 
+td.morphrow.emph.center {
+	color: var(--blue);
+	font-family: 'hipparchiaboldstatic', sans-serif;
+	text-align: center;
+}
+
 td.tensecell {
 	color: var(--huedgrey);
 	font-weight: bold;
