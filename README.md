@@ -15,12 +15,13 @@
 * text maker
 * indexing
 * vocabulary list generation
+* morphology tables
 
 ### TODO (in vague order of priority)
 
 * WithinXWordsSearch() needs to have more corner cases checked
 * room to improve lemma highlighting
-* morphology tables
+* morphology tables need lots of polish
 
 ### DISTANT FANTASIES
 * vectors

@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                  = "Hipparchia Golang Server"
 	SHORTNAME               = "HGS"
-	VERSION                 = "0.9.5"
+	VERSION                 = "0.9.6"
 	AUTHENTICATIONREQUIRED  = false // unused ATM
 	AVGWORDSPERLINE         = 8     // hard coding a suspect assumption
 	CONFIGLOCATION          = "."
