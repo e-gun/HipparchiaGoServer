@@ -250,6 +250,12 @@ func RtMorphchart(c echo.Context) error {
 	// [d] extract parsing info for all forms
 
 	mpp := make(map[string][]string)
+	// will look like:
+	// credam:[ fut ind act 1st sg , pres subj act 1st sg]
+	// credamus:[ pres subj act 1st pl]
+	// credamusque:[ pres subj act 1st pl]
+	// credant:[ pres subj act 3rd pl]
+	// ...
 
 	for k, v := range dbmmap {
 		vv := []DbMorphology{v} // dbmorphintomorphpossib() wants a slice, we fake a slice
@@ -264,7 +270,14 @@ func RtMorphchart(c echo.Context) error {
 	// NB have to decompress "nom/voc/acc" into three entries
 
 	// [e1] first pass: make the map and deal with cases
+
+	// this effectively flips the preceding map: k, v --> v, k
+	// 	fut ind act 1st sg: credam
+	// 	pres subj act 1st sg: credam
+	// 	...
+
 	pdm := make(map[string]string)
+
 	for k, vv := range mpp {
 		for _, v := range vv {
 			if len(v) == 0 {
@@ -278,10 +291,17 @@ func RtMorphchart(c echo.Context) error {
 					pdm[key] = pdm[key] + " / " + k
 				}
 			} else {
-				// need to decompress "nom/voc/acc" into three entries, etc
-				// todo: breaks on "masc/fem nom/voc sg"
+				//[HGS] perf part pass fem nom/voc pl
+				//[HGS] gerundive neut nom/voc/acc pl
+				//[HGS] gerundive fem nom/voc sg
+				//[HGS] pres part masc/fem acc pl
+
+				// problems with double up "pres part masc/fem/neut nom/voc sg"
+				// need a recursive solution
+
 				var rebuild []string
 				var multiplier []string
+
 				ell := strings.Split(v, " ")
 				for _, e := range ell {
 					if !strings.Contains(e, "/") {
@@ -937,4 +957,85 @@ func arraystringseeker(ss []string, spp []string) bool {
 		}
 	}
 	return false
+}
+
+//
+// COMBINATORIALS
+//
+
+// getparsercombinations - turn "pres part masc/fem/neut nom/voc sg" into all of its individual possibilities
+func getparsercombinations(ps string) []string {
+	//ps := "pres part masc/fem/neut nom/voc sg"
+	//[1 1 3 2 1]
+	//map[0:[pres] 1:[part] 2:[masc fem neut] 3:[nom voc] 4:[sg]]
+	//[[1 1 3 2 1] [1 1 3 1 1] [1 1 2 2 1] [1 1 2 1 1] [1 1 1 2 1] [1 1 1 1 1] [1 1 3 2 1] [1 1 3 1 1]]
+	//pres part neut voc sg
+	//pres part neut nom sg
+	//pres part fem voc sg
+	//pres part fem nom sg
+	//pres part masc voc sg
+	//pres part masc nom sg
+	//pres part neut voc sg
+	//pres part neut nom sg
+
+	ss := strings.Split(ps, " ")
+	copies := make([]int, len(ss))
+	items := make(map[int][]string)
+	for i, s := range ss {
+		items[i] = strings.Split(s, "/")
+		copies[i] = len(items[i])
+	}
+
+	//fmt.Println(copies)  // [1 1 3 2 1]
+	//fmt.Println(items)  // map[0:[pres] 1:[part] 2:[masc fem neut] 3:[nom voc] 4:[sg]]
+
+	var combinations [][]int
+	for i, x := range copies {
+		if x > 1 {
+			combinations = append(combinations, rcombinator(copies, x, i)...)
+		}
+	}
+
+	// fmt.Println(combinations)
+
+	var parsed []string
+	for _, cc := range combinations {
+		var pp []string
+		for i, c := range cc {
+			p := items[i][c-1]
+			pp = append(pp, p)
+		}
+		parsed = append(parsed, strings.Join(pp, " "))
+	}
+
+	//for _, p := range parsed {
+	//	fmt.Println(p)
+	//}
+	return parsed
+}
+
+// rcombinator - recursively produce combinations of integers
+func rcombinator(slc []int, start int, posit int) [][]int {
+	// [1 1 3 2 1] --> [[1 1 3 2 1] [1 1 3 1 1] [1 1 2 2 1] [1 1 2 1 1] [1 1 1 2 1] [1 1 1 1 1] [1 1 3 2 1] [1 1 3 1 1]]
+	var out [][]int
+	if posit > len(slc) {
+		return out
+	}
+
+	if start == 1 {
+		return [][]int{slc}
+	}
+
+	head := slc[0:posit]
+	tail := slc[posit+1:]
+	for j := start; j > 0; j-- {
+		c := make([]int, len(head)+len(tail)+1)
+		copy(c[:], head[:])
+		copy(c[len(head):], []int{j})
+		copy(c[len(head)+1:], tail[:])
+		// the following overwrites the slices in the end...
+		// out[j] = append(append(head, j), tail...)
+		out = append(out, rcombinator(c, slc[posit+1], posit+1)...)
+	}
+	return out
 }

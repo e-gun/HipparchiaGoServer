@@ -82,6 +82,7 @@ Dumping and restoring are both **slow**.
         - `/opt/homebrew/bin/brew install postgresql` (M1 macs)
         - `/usr/local/bin/brew install postgresql` (intel macs)
     - then `brew services restart postgresql`
+- you might have to `reboot` to get `postgresql` to in fact load: you might as well do it now...
 - return to the instructions above
 
 ### mac PostgreSQL installation via postgressapp (slightly easier at first; after that noticeably worse)
