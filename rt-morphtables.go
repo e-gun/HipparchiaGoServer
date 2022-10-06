@@ -283,6 +283,7 @@ func RtMorphchart(c echo.Context) error {
 			if len(v) == 0 {
 				continue
 			}
+			v = strings.Replace(v, "mp", "mid/pass", -1)
 			if !strings.Contains(v, "/") {
 				key := strings.Replace(v, " ", JOINER, -1)
 				if _, ok := pdm[key]; !ok {
@@ -291,30 +292,9 @@ func RtMorphchart(c echo.Context) error {
 					pdm[key] = pdm[key] + " / " + k
 				}
 			} else {
-				//[HGS] perf part pass fem nom/voc pl
-				//[HGS] gerundive neut nom/voc/acc pl
-				//[HGS] gerundive fem nom/voc sg
-				//[HGS] pres part masc/fem acc pl
-
-				// problems with double up "pres part masc/fem/neut nom/voc sg"
-				// need a recursive solution
-
-				var rebuild []string
-				var multiplier []string
-
-				ell := strings.Split(v, " ")
-				for _, e := range ell {
-					if !strings.Contains(e, "/") {
-						rebuild = append(rebuild, e)
-					} else {
-						multiplier = strings.Split(e, "/")
-						rebuild = append(rebuild, "CLONE_ME")
-					}
-				}
-				templ := strings.Join(rebuild, " ")
+				multiplier := getparsercombinations(v)
 				for _, m := range multiplier {
-					key := strings.Replace(templ, "CLONE_ME", m, 1)
-					key = strings.Replace(key, " ", JOINER, -1)
+					key := strings.Replace(m, " ", JOINER, -1)
 					if _, ok := pdm[key]; !ok {
 						pdm[key] = k
 					} else {
@@ -1035,7 +1015,12 @@ func rcombinator(slc []int, start int, posit int) [][]int {
 		copy(c[len(head)+1:], tail[:])
 		// the following overwrites the slices in the end...
 		// out[j] = append(append(head, j), tail...)
-		out = append(out, rcombinator(c, slc[posit+1], posit+1)...)
+
+		if posit+1 >= len(slc) {
+			return out
+		} else {
+			out = append(out, rcombinator(c, slc[posit+1], posit+1)...)
+		}
 	}
 	return out
 }
