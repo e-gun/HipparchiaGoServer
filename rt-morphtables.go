@@ -19,6 +19,11 @@ import (
 const (
 	JOINER = "_"
 	BLANK  = " --- "
+	DIALTR = `
+		<tr align="center">
+			<td rowspan="1" colspan="%d" class="dialectlabel">%s<br>
+			</td>
+		</tr>`
 )
 
 var (
@@ -42,61 +47,6 @@ var (
 	GENDERS       = []string{"masc", "fem", "neut"}
 	PERSONS       = []string{"1st", "2nd", "3rd"}
 )
-
-// getgkvbmap - return a map that tells you what Greek verbal forms in fact exist
-func getgkvbmap() map[string]map[string]map[int]bool {
-	gvm := make(map[string]map[string]map[int]bool)
-	for _, v := range GKVOICE {
-		gvm[v] = make(map[string]map[int]bool)
-		for _, m := range GKMOODS {
-			gvm[v][m] = make(map[int]bool)
-		}
-	}
-
-	gvm["act"]["ind"] = map[int]bool{1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: false}
-	gvm["act"]["subj"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
-	gvm["act"]["opt"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
-	gvm["act"]["imperat"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
-	gvm["act"]["inf"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
-	gvm["act"]["part"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
-	gvm["mid"]["ind"] = map[int]bool{1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: false}
-	gvm["mid"]["subj"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
-	gvm["mid"]["opt"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
-	gvm["mid"]["imperat"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
-	gvm["mid"]["inf"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
-	gvm["mid"]["part"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
-	gvm["pass"]["ind"] = map[int]bool{1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true}
-	gvm["pass"]["subj"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
-	gvm["pass"]["opt"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: true}
-	gvm["pass"]["imperat"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
-	gvm["pass"]["inf"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: true}
-	gvm["pass"]["part"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: true}
-	return gvm
-}
-
-// getltvbmap - return a map that tells you what Latin verbal forms in fact exist
-func getltvbmap() map[string]map[string]map[int]bool {
-	// note that ppf subj pass, etc are "false" because "laudātus essem" is not going to be found
-
-	lvm := make(map[string]map[string]map[int]bool)
-	for _, v := range LTVOICE {
-		lvm[v] = make(map[string]map[int]bool)
-		for _, m := range LTMOODS {
-			lvm[v][m] = make(map[int]bool)
-		}
-	}
-	lvm["act"]["ind"] = map[int]bool{1: true, 2: true, 3: true, 5: true, 6: true, 7: true}
-	lvm["act"]["subj"] = map[int]bool{1: true, 2: false, 3: false, 5: true, 6: true, 7: false}
-	lvm["act"]["imperat"] = map[int]bool{1: true, 2: false, 3: true, 5: false, 6: false, 7: false}
-	lvm["act"]["inf"] = map[int]bool{1: true, 2: false, 3: false, 5: true, 6: false, 7: false}
-	lvm["act"]["part"] = map[int]bool{1: true, 2: false, 3: true, 5: false, 6: false, 7: false}
-	lvm["pass"]["ind"] = map[int]bool{1: true, 2: true, 3: true, 5: false, 6: false, 7: false}
-	lvm["pass"]["subj"] = map[int]bool{1: true, 2: true, 3: false, 5: false, 6: false, 7: false}
-	lvm["pass"]["imperat"] = map[int]bool{1: true, 2: false, 3: true, 5: false, 6: false, 7: false}
-	lvm["pass"]["inf"] = map[int]bool{1: true, 2: false, 3: false, 5: false, 6: false, 7: false}
-	lvm["pass"]["part"] = map[int]bool{1: false, 2: false, 3: false, 5: true, 6: false, 7: false}
-	return lvm
-}
 
 // RtMorphchart - return a chart mapping known forms of a word to their grammatical identification
 func RtMorphchart(c echo.Context) error {
@@ -280,11 +230,6 @@ func RtMorphchart(c echo.Context) error {
 	// WARNING: you just keyed »ἥρμοττ'« (mpp[ἥρμοττ']), but the value is associated with »ἥρμοττ« at wcc[ἥρμοττ]
 	// NB: mpp keys will next be seen in pdm
 
-	//for k, v := range mpp {
-	//	x := fmt.Sprintf("k: %s\tv: %s\n", k, v)
-	//	msg(x, 1)
-	//}
-
 	// [e] generate parsing map: [parsedata]form
 	// this effectively flips the preceding map: k, v --> v, k
 	// 	fut ind act 1st sg: credam
@@ -386,6 +331,7 @@ func RtMorphchart(c echo.Context) error {
 
 	}
 
+	// todo: ῥώμη will trigger "verb"...
 	isverb := func() bool {
 		kk := stringmapkeysintoslice(pdxm)
 		return arraystringseeker(GKTENSES, kk)
@@ -414,12 +360,6 @@ func generateverbtable(lang string, words map[string]string) string {
 	// then tense as columns and number_and_person as rows
 
 	const (
-		DIALTR = `
-		<tr align="center">
-			<td rowspan="1" colspan="%d" class="dialectlabel">%s<br>
-			</td>
-		</tr>`
-
 		VOICETR = `
 		<tr align="center">
 			<td rowspan="1" colspan="%d" class="voicelabel">%s<br>
@@ -616,14 +556,8 @@ func generateverbtable(lang string, words map[string]string) string {
 	}
 
 	makegertrr := func(d string, m string, v string) ([]string, bool) {
-		// problem: the header row has been pre-set to "tenses" not genders
-
 		// [HGS] gerundive_neut_abl_pl_
-
-		// can also do supines...
 		// [HGS] supine_neut_dat_sg_
-
-		// todo: some sort of key collision will leave "laudando" in the wrong boxes
 
 		var trr []string
 
@@ -772,7 +706,7 @@ func generateverbtable(lang string, words map[string]string) string {
 				}
 
 				if isblank {
-					trrhtml = []string{"<tr><td>[nothing found]</td></tr>"}
+					trrhtml = []string{"<tr><td>[n/a]</td></tr>"}
 				} else {
 					switch m {
 					case "part":
@@ -800,15 +734,6 @@ func generateverbtable(lang string, words map[string]string) string {
 
 // generatedeclinedtable - given a map of grammar IDs to words, build a declined from table
 func generatedeclinedtable(lang string, words map[string]string) string {
-	// need something to determine which gender columns are needed
-	const (
-		DIALTR = `
-		<tr align="center">
-			<td rowspan="1" colspan="%d" class="dialectlabel">%s<br>
-			</td>
-		</tr>`
-	)
-
 	var dialect []string
 	var cases []string
 	var numbers []string
@@ -898,6 +823,87 @@ func generatedeclinedtable(lang string, words map[string]string) string {
 }
 
 //
+// COMBINATORIALS
+//
+
+// getparsercombinations - turn "pres part masc/fem/neut nom/voc sg" into a slice of all of its individual possibilities
+func getparsercombinations(ps string) []string {
+	// [a] ps := "pres part masc/fem/neut nom/voc sg"
+	// [b] numpossible := [1 1 3 2 1]
+	// [c] items := map[0:[pres] 1:[part] 2:[masc fem neut] 3:[nom voc] 4:[sg]]
+	// [d] intcombinations := [[1 1 3 2 1] [1 1 3 1 1] [1 1 2 2 1] [1 1 2 1 1] [1 1 1 2 1] [1 1 1 1 1] [1 1 3 2 1] [1 1 3 1 1]]
+	// [e] stringcombinations:
+	//	pres part neut voc sg
+	//	pres part neut nom sg
+	//	pres part fem voc sg
+	//	pres part fem nom sg
+	//	pres part masc voc sg
+	//	pres part masc nom sg
+	//	pres part neut voc sg
+	//	pres part neut nom sg
+
+	ss := strings.Split(ps, " ")
+	numpossible := make([]int, len(ss))
+	items := make(map[int][]string)
+	for i, s := range ss {
+		items[i] = strings.Split(s, "/")
+		numpossible[i] = len(items[i])
+	}
+
+	var intcombinations [][]int
+	for i, n := range numpossible {
+		if n > 1 {
+			intcombinations = append(intcombinations, rcombinator(numpossible, n, i)...)
+		}
+	}
+
+	var stringcombinations []string
+	for _, cc := range intcombinations {
+		var pp []string
+		for i, c := range cc {
+			p := items[i][c-1]
+			pp = append(pp, p)
+		}
+		stringcombinations = append(stringcombinations, strings.Join(pp, " "))
+	}
+
+	return stringcombinations
+}
+
+// rcombinator - recursively produce combinations of integers
+func rcombinator(slc []int, start int, posit int) [][]int {
+	// [1 1 3 2 1] --> [[1 1 3 2 1] [1 1 3 1 1] [1 1 2 2 1] [1 1 2 1 1] [1 1 1 2 1] [1 1 1 1 1] [1 1 3 2 1] [1 1 3 1 1]]
+	var combin [][]int
+	if posit > len(slc) {
+		return combin
+	}
+
+	if start == 1 {
+		return [][]int{slc}
+	}
+
+	head := slc[0:posit]
+	tail := slc[posit+1:]
+	for j := start; j > 0; j-- {
+		// the following overwrites the slices in the end...
+		// combin[j] = append(append(head, j), tail...)
+
+		// so we will do it the tedious way: copy()
+		c := make([]int, len(head)+len(tail)+1)
+		copy(c[:], head[:])
+		copy(c[len(head):], []int{j})
+		copy(c[len(head)+1:], tail[:])
+
+		if posit+1 >= len(slc) {
+			return combin
+		} else {
+			combin = append(combin, rcombinator(c, slc[posit+1], posit+1)...)
+		}
+	}
+	return combin
+}
+
+//
 // HELPERS
 //
 
@@ -942,87 +948,57 @@ func arraystringseeker(ss []string, spp []string) bool {
 	return false
 }
 
-//
-// COMBINATORIALS
-//
-
-// getparsercombinations - turn "pres part masc/fem/neut nom/voc sg" into a slice of all of its individual possibilities
-func getparsercombinations(ps string) []string {
-	//ps := "pres part masc/fem/neut nom/voc sg"
-	//numpossible := [1 1 3 2 1]
-	//items := map[0:[pres] 1:[part] 2:[masc fem neut] 3:[nom voc] 4:[sg]]
-	//intcombinations := [[1 1 3 2 1] [1 1 3 1 1] [1 1 2 2 1] [1 1 2 1 1] [1 1 1 2 1] [1 1 1 1 1] [1 1 3 2 1] [1 1 3 1 1]]
-
-	//stringcombinations:
-	//	pres part neut voc sg
-	//	pres part neut nom sg
-	//	pres part fem voc sg
-	//	pres part fem nom sg
-	//	pres part masc voc sg
-	//	pres part masc nom sg
-	//	pres part neut voc sg
-	//	pres part neut nom sg
-
-	ss := strings.Split(ps, " ")
-	numpossible := make([]int, len(ss))
-	items := make(map[int][]string)
-	for i, s := range ss {
-		items[i] = strings.Split(s, "/")
-		numpossible[i] = len(items[i])
-	}
-
-	var intcombinations [][]int
-	for i, n := range numpossible {
-		if n > 1 {
-			intcombinations = append(intcombinations, rcombinator(numpossible, n, i)...)
+// getgkvbmap - return a map that tells you what Greek verbal forms in fact exist
+func getgkvbmap() map[string]map[string]map[int]bool {
+	gvm := make(map[string]map[string]map[int]bool)
+	for _, v := range GKVOICE {
+		gvm[v] = make(map[string]map[int]bool)
+		for _, m := range GKMOODS {
+			gvm[v][m] = make(map[int]bool)
 		}
 	}
 
-	var stringcombinations []string
-	for _, cc := range intcombinations {
-		var pp []string
-		for i, c := range cc {
-			p := items[i][c-1]
-			pp = append(pp, p)
-		}
-		stringcombinations = append(stringcombinations, strings.Join(pp, " "))
-	}
-
-	//for _, s := range stringcombinations {
-	//	msg(s, 1)
-	//}
-	return stringcombinations
+	gvm["act"]["ind"] = map[int]bool{1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: false}
+	gvm["act"]["subj"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
+	gvm["act"]["opt"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
+	gvm["act"]["imperat"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
+	gvm["act"]["inf"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
+	gvm["act"]["part"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
+	gvm["mid"]["ind"] = map[int]bool{1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: false}
+	gvm["mid"]["subj"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
+	gvm["mid"]["opt"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
+	gvm["mid"]["imperat"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
+	gvm["mid"]["inf"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
+	gvm["mid"]["part"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: false}
+	gvm["pass"]["ind"] = map[int]bool{1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true}
+	gvm["pass"]["subj"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
+	gvm["pass"]["opt"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: true}
+	gvm["pass"]["imperat"] = map[int]bool{1: true, 2: false, 3: false, 4: true, 5: true, 6: false, 7: false}
+	gvm["pass"]["inf"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: true}
+	gvm["pass"]["part"] = map[int]bool{1: true, 2: false, 3: true, 4: true, 5: true, 6: false, 7: true}
+	return gvm
 }
 
-// rcombinator - recursively produce combinations of integers
-func rcombinator(slc []int, start int, posit int) [][]int {
-	// [1 1 3 2 1] --> [[1 1 3 2 1] [1 1 3 1 1] [1 1 2 2 1] [1 1 2 1 1] [1 1 1 2 1] [1 1 1 1 1] [1 1 3 2 1] [1 1 3 1 1]]
-	var combin [][]int
-	if posit > len(slc) {
-		return combin
-	}
+// getltvbmap - return a map that tells you what Latin verbal forms in fact exist
+func getltvbmap() map[string]map[string]map[int]bool {
+	// note that ppf subj pass, etc are "false" because "laudātus essem" is not going to be found
 
-	if start == 1 {
-		return [][]int{slc}
-	}
-
-	head := slc[0:posit]
-	tail := slc[posit+1:]
-	for j := start; j > 0; j-- {
-		// the following overwrites the slices in the end...
-		// combin[j] = append(append(head, j), tail...)
-
-		// so we will do it the tedious way: copy()
-		c := make([]int, len(head)+len(tail)+1)
-		copy(c[:], head[:])
-		copy(c[len(head):], []int{j})
-		copy(c[len(head)+1:], tail[:])
-
-		if posit+1 >= len(slc) {
-			return combin
-		} else {
-			combin = append(combin, rcombinator(c, slc[posit+1], posit+1)...)
+	lvm := make(map[string]map[string]map[int]bool)
+	for _, v := range LTVOICE {
+		lvm[v] = make(map[string]map[int]bool)
+		for _, m := range LTMOODS {
+			lvm[v][m] = make(map[int]bool)
 		}
 	}
-	return combin
+	lvm["act"]["ind"] = map[int]bool{1: true, 2: true, 3: true, 5: true, 6: true, 7: true}
+	lvm["act"]["subj"] = map[int]bool{1: true, 2: false, 3: false, 5: true, 6: true, 7: false}
+	lvm["act"]["imperat"] = map[int]bool{1: true, 2: false, 3: true, 5: false, 6: false, 7: false}
+	lvm["act"]["inf"] = map[int]bool{1: true, 2: false, 3: false, 5: true, 6: false, 7: false}
+	lvm["act"]["part"] = map[int]bool{1: true, 2: false, 3: true, 5: false, 6: false, 7: false}
+	lvm["pass"]["ind"] = map[int]bool{1: true, 2: true, 3: true, 5: false, 6: false, 7: false}
+	lvm["pass"]["subj"] = map[int]bool{1: true, 2: true, 3: false, 5: false, 6: false, 7: false}
+	lvm["pass"]["imperat"] = map[int]bool{1: true, 2: false, 3: true, 5: false, 6: false, 7: false}
+	lvm["pass"]["inf"] = map[int]bool{1: true, 2: false, 3: false, 5: false, 6: false, 7: false}
+	lvm["pass"]["part"] = map[int]bool{1: false, 2: false, 3: false, 5: true, 6: false, 7: false}
+	return lvm
 }

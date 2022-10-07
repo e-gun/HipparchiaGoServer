@@ -19,9 +19,9 @@
 
 ### TODO (in vague order of priority)
 
+* morphology tables need lots of polish; dialects need addressing
 * WithinXWordsSearch() needs to have more corner cases checked
 * room to improve lemma highlighting
-* morphology tables need lots of polish
 
 ### DISTANT FANTASIES
 * vectors
