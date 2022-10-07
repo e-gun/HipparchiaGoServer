@@ -253,6 +253,7 @@ func RtMorphchart(c echo.Context) error {
 		for rr.Next() {
 			ee := rr.Scan(&wc.Word, &wc.Total)
 			chke(ee)
+			// you just found »ἥρμοττ« which gives you »ἥρμοττ'«: see below for where this becomes an issue
 			wcc[wc.Word] = wc
 		}
 	}
@@ -276,20 +277,23 @@ func RtMorphchart(c echo.Context) error {
 		}
 	}
 
+	// WARNING: you just keyed »ἥρμοττ'« (mpp[ἥρμοττ']), but the value is associated with »ἥρμοττ« at wcc[ἥρμοττ]
+	// NB: mpp keys will next be seen in pdm
+
 	//for k, v := range mpp {
 	//	x := fmt.Sprintf("k: %s\tv: %s\n", k, v)
 	//	msg(x, 1)
 	//}
 
 	// [e] generate parsing map: [parsedata]form
-	// NB have to decompress "nom/voc/acc" into three entries
-
-	// [e1] first pass: make the map and deal with cases
-
 	// this effectively flips the preceding map: k, v --> v, k
 	// 	fut ind act 1st sg: credam
 	// 	pres subj act 1st sg: credam
 	// 	...
+
+	// NB have to decompress "nom/voc/acc" into three entries: getparsercombinations()
+
+	// [e1] first pass: make the map and deal with cases
 
 	pdm := make(map[string]string)
 
@@ -351,19 +355,19 @@ func RtMorphchart(c echo.Context) error {
 	}
 	pdm = newpdm
 
-	// [e3] TODO: mp needs a splitter: middle and passive
-
-	// [e4] get counts for each word
+	// [e3] get counts for each word
 	pdcm := make(map[string]map[string]int64)
 	for k, v := range pdm {
 		wds := strings.Split(v, " / ")
 		mm := make(map[string]int64)
 		for _, w := range wds {
-			mm[w] = wcc[w].Total
+			//  reassociate »ἥρμοττ'« and »ἥρμοττ«
+			mm[w] = wcc[strings.Replace(w, "'", "", -1)].Total
 		}
 		pdcm[k] = mm
 	}
 
+	// [e4] add markup and format the counts
 	ctm := `<verbform searchterm="%s">%s</verbform> (<span class="counter">%d</span>)`
 	pdxm := make(map[string]string)
 	for kk, pd := range pdcm {
@@ -373,16 +377,6 @@ func RtMorphchart(c echo.Context) error {
 		}
 		pdxm[kk] = strings.Join(vv, " / ")
 
-		//if strings.Contains(kk, "part") {
-		//	fmt.Printf("%s\t%s\n", kk, pdxm[kk])
-		//}
-		//gen_cas_num_dial
-		//fem_acc_dual_attic: κόρα (72)
-		//fem_acc_dual_doric: κώρα (9)
-		//fem_acc_dual_epic_attic: κούρα (62)
-		//fem_acc_dual_ionic_attic: κούρα (62)
-		// ...
-
 		// tense_mood_voice_pers_numb_dial
 		//aor_imperat_act_2nd_pl_attic: παραθλίψατε (1)
 		//aor_imperat_act_2nd_sg_attic: θλῖψον (2)
@@ -390,10 +384,6 @@ func RtMorphchart(c echo.Context) error {
 		//aor_imperat_mid_2nd_sg_attic: θλῖψαι (25)
 		// ...
 
-		//[HGS] aor_part_mid_fem_nom_sg_attic
-		//[HGS] perf_part_mp_fem_voc_pl_attic
-		//[HGS] pres_part_act_fem_voc_pl_ionic
-		//[HGS] pres_part_act_fem_nom_sg_attic
 	}
 
 	isverb := func() bool {
@@ -403,7 +393,7 @@ func RtMorphchart(c echo.Context) error {
 
 	var jb JSB
 
-	// [g] build the table
+	// [f] build the table
 
 	if isverb {
 		jb.HTML = generateverbtable(lg, pdxm)
