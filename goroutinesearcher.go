@@ -39,16 +39,14 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	emitqueries, err := SrchFeeder(ctx, &ss)
 	chke(err)
 
-	var findchannels []<-chan []DbWorkline
-
 	workers := cfg.WorkerCount
-	// to slow things down for testing...
-	// workers = 2
+
+	findchannels := make([]<-chan []DbWorkline, workers)
 
 	for i := 0; i < workers; i++ {
 		fc, e := SrchConsumer(ctx, emitqueries)
 		chke(e)
-		findchannels = append(findchannels, fc)
+		findchannels[i] = fc
 	}
 
 	max := ss.Limit
@@ -87,7 +85,6 @@ func SrchFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, e
 				if remainder%POLLEVERYNTABLES == 0 {
 					progremain.Store(ss.ID, remainder)
 				}
-				// fmt.Println(q)
 				emitqueries <- q
 			}
 		}
@@ -143,7 +140,7 @@ func ResultAggregator(ctx context.Context, findchannels ...<-chan []DbWorkline) 
 }
 
 // ResultCollation - return the actual []DbWorkline results after pulling them from the ResultAggregator channel
-func ResultCollation(ctx context.Context, ss *SearchStruct, max int64, values <-chan []DbWorkline) []DbWorkline {
+func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int64, values <-chan []DbWorkline) []DbWorkline {
 	var allhits []DbWorkline
 	done := false
 	for {
@@ -163,10 +160,7 @@ func ResultCollation(ctx context.Context, ss *SearchStruct, max int64, values <-
 				}
 				proghits.Store(ss.ID, len(allhits))
 
-				if int64(len(allhits)) > max {
-					// you popped over the cap...: this does in fact save time and exit in the middle
-					// προκατελαβον cap of one: [Δ: 0.112s] HGoSrch()
-					// προκατελαβον uncapped:   [Δ: 1.489s] HGoSrch()
+				if int64(len(allhits)) > maxhits {
 					done = true
 				}
 			} else {
