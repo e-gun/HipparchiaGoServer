@@ -152,8 +152,15 @@ func RtMorphchart(c echo.Context) error {
 	dbpool := GetPSQLconnection()
 	defer dbpool.Close()
 
+	// hipparchiaDB=# select observed_form, xrefs from latin_morphology where observed_form = 'crediti';
+	// observed_form |       xrefs
+	//---------------+--------------------
+	// crediti       | 19078850, 19078631
+	//
+	// [this means you need '~' and not '=' as your syntax]
+
 	fld := `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
-	psq := fmt.Sprintf(`SELECT %s FROM %s_morphology WHERE xrefs='%s'`, fld, lg, xr)
+	psq := fmt.Sprintf(`SELECT %s FROM %s_morphology WHERE xrefs ~ '%s'`, fld, lg, xr)
 
 	var foundrows pgx.Rows
 	var err error
@@ -269,6 +276,11 @@ func RtMorphchart(c echo.Context) error {
 		}
 	}
 
+	//for k, v := range mpp {
+	//	x := fmt.Sprintf("k: %s\tv: %s\n", k, v)
+	//	msg(x, 1)
+	//}
+
 	// [e] generate parsing map: [parsedata]form
 	// NB have to decompress "nom/voc/acc" into three entries
 
@@ -286,7 +298,8 @@ func RtMorphchart(c echo.Context) error {
 			if len(v) == 0 {
 				continue
 			}
-			v = strings.Replace(v, "mp", "mid/pass", -1)
+			// "imperfect" will be ruined by next if you are not careful
+			v = strings.Replace(v, " mp ", " mid/pass ", -1)
 			if !strings.Contains(v, "/") {
 				key := strings.Replace(v, " ", JOINER, -1)
 				if _, ok := pdm[key]; !ok {
@@ -382,11 +395,6 @@ func RtMorphchart(c echo.Context) error {
 		//[HGS] pres_part_act_fem_voc_pl_ionic
 		//[HGS] pres_part_act_fem_nom_sg_attic
 	}
-
-	//zz := stringmapkeysintoslice(pdxm)
-	//for _, z := range zz {
-	//	msg(z, 1)
-	//}
 
 	isverb := func() bool {
 		kk := stringmapkeysintoslice(pdxm)
@@ -990,6 +998,9 @@ func getparsercombinations(ps string) []string {
 		stringcombinations = append(stringcombinations, strings.Join(pp, " "))
 	}
 
+	//for _, s := range stringcombinations {
+	//	msg(s, 1)
+	//}
 	return stringcombinations
 }
 
