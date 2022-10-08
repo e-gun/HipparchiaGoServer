@@ -83,9 +83,9 @@ func RtMorphchart(c echo.Context) error {
 	}
 
 	lg := elem[0]
-	_, e1 := strconv.ParseFloat(elem[1], 32)
+	id, e1 := strconv.ParseFloat(elem[1], 32)
 	_, e2 := strconv.Atoi(elem[2])
-	// wd := purgechars(UNACCEPTABLEINPUT, elem[3])
+	wd := purgechars(UNACCEPTABLEINPUT, elem[3])
 	gl := lg == "greek" || lg == "latin"
 
 	if !gl || e1 != nil || e2 != nil {
@@ -350,6 +350,13 @@ func RtMorphchart(c echo.Context) error {
 		// jb.HTML = "[RtMorphchart() is a work in progress...]<br>" + strings.Join(oo, "<br>")
 		jb.HTML = generatedeclinedtable(lg, pdxm)
 	}
+
+	tabletop := `
+	<div class="center">
+		<span class="verylarge">All known forms of <dictionaryidsearch entryid="%f" language="%s">%s</dictionaryidsearch></span>
+	</div>`
+
+	jb.HTML = fmt.Sprintf(tabletop, id, lg, wd) + jb.HTML
 
 	jb.JS = MORPHJS
 

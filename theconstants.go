@@ -192,6 +192,23 @@ const (
 			
 			checkactivityviawebsocket(searchid);
 		});
+
+		$('dictionaryidsearch').click( function(){
+				$('#imagearea').empty();
+	
+				let ldt = $('#lexicadialogtext');
+				let jshld = $('#lexicaljsscriptholder');
+		
+				let entryid = this.getAttribute("entryid");
+				let language = this.getAttribute("language");
+	
+				let url = '/lex/idlookup/' + language + '/' + entryid;
+				
+				$.getJSON(url, function (definitionreturned) { 
+					ldt.html(definitionreturned['newhtml']);
+					jshld.html(definitionreturned['newjs']);	
+				});
+			});
 	</script>`
 
 	DICTIDJS = `
