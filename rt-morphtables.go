@@ -35,7 +35,8 @@ var (
 	GKINTTENSEMAP = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 4: "Aorist", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
 	GKTENSEMAP    = map[string]int{"pres": 1, "imperf": 2, "fut": 3, "aor": 4, "perf": 5, "plup": 6, "futperf": 7}
 	GKVERBS       = getgkvbmap()
-	GKDIALECT     = []string{"attic"} // TODO: INCOMPLETE
+	GKDIALECT     = []string{"attic", "aeolic", "doric", "epic", "homeric", "ionic"}
+	GKDIALINVALID = []string{"parad", "form"}
 	LTCASES       = []string{"nom", "gen", "dat", "acc", "abl", "voc"}
 	LTNUMB        = []string{"sg", "pl"}
 	LTMOODS       = []string{"ind", "subj", "imperat", "inf", "part", "gerundive", "supine"}
@@ -279,9 +280,11 @@ func RtMorphchart(c echo.Context) error {
 				parts := strings.Split(k, "(")
 				diall := strings.Split(parts[1], JOINER)
 				for _, d := range diall {
-					newkey := parts[0] + JOINER + d
-					newkey = strings.Replace(newkey, JOINER+JOINER, JOINER, 1)
-					newpdm[newkey] = v
+					if isinslice(GKDIALECT, d) {
+						newkey := parts[0] + JOINER + d
+						newkey = strings.Replace(newkey, JOINER+JOINER, JOINER, 1)
+						newpdm[newkey] = v
+					}
 				}
 			} else {
 				if !strings.Contains(k, "attic") {
@@ -410,6 +413,16 @@ func generateverbtable(lang string, words map[string]string) string {
 		for _, g := range gend {
 			if sliceseeker(g, kk) {
 				need = append(need, g)
+			}
+		}
+		return need
+	}()
+
+	needdial := func() []string {
+		var need []string
+		for _, d := range dialect {
+			if sliceseeker(d, kk) {
+				need = append(need, d)
 			}
 		}
 		return need
@@ -555,7 +568,7 @@ func generateverbtable(lang string, words map[string]string) string {
 		return trr, isblank
 	}
 
-	makegertrr := func(d string, m string, v string) ([]string, bool) {
+	makegdvtrr := func(d string, m string, v string) ([]string, bool) {
 		// [HGS] gerundive_neut_abl_pl_
 		// [HGS] supine_neut_dat_sg_
 
@@ -674,7 +687,7 @@ func generateverbtable(lang string, words map[string]string) string {
 
 	var html []string
 
-	for _, d := range dialect {
+	for _, d := range needdial {
 		// each dialect is a major section
 		// but latin has only one dialect
 		for _, v := range voices {
@@ -697,10 +710,10 @@ func generateverbtable(lang string, words map[string]string) string {
 				case "inf":
 					trrhtml, isblank = makeinftrr(d, m, v)
 				case "gerundive":
-					trrhtml, isblank = makegertrr(d, m, v)
+					trrhtml, isblank = makegdvtrr(d, m, v)
 				case "supine":
 					// exact same issues as gerundives
-					trrhtml, isblank = makegertrr(d, m, v)
+					trrhtml, isblank = makegdvtrr(d, m, v)
 				default:
 					trrhtml, isblank = makevftrr(d, v, m)
 				}
