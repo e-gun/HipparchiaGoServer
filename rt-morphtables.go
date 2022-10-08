@@ -339,7 +339,7 @@ func RtMorphchart(c echo.Context) error {
 
 	}
 
-	// todo: ῥώμη will trigger "verb"...
+	// todo: ῥώμη will trigger "verb"... : you cant trigger on a single hit; you have to compare total form counts
 	isverb := func() bool {
 		kk := stringmapkeysintoslice(pdxm)
 		return arraystringseeker(GKTENSES, kk)
@@ -420,25 +420,21 @@ func generateverbtable(lang string, words map[string]string) string {
 	}
 
 	kk := stringmapkeysintoslice(words)
-	needgend := func() []string {
+
+	// do we need all theoretically possible categories?
+	needy := func(someslice []string) []string {
 		var need []string
-		for _, g := range gend {
+		for _, g := range someslice {
 			if sliceseeker(g, kk) {
 				need = append(need, g)
 			}
 		}
 		return need
-	}()
+	}
 
-	needdial := func() []string {
-		var need []string
-		for _, d := range dialect {
-			if sliceseeker(d, kk) {
-				need = append(need, d)
-			}
-		}
-		return need
-	}()
+	needgend := needy(gend)
+	needdial := needy(dialect)
+	neednumb := needy(numbers)
 
 	//
 	// HEAD ROW PRODUCERS
@@ -492,7 +488,7 @@ func generateverbtable(lang string, words map[string]string) string {
 		cellcount := 0
 
 		var trr []string
-		for _, n := range numbers {
+		for _, n := range neednumb {
 			for _, p := range PERSONS {
 				// tempting to build a skipper for duals...
 				if n == "dual" && p == "1st" {
@@ -547,13 +543,13 @@ func generateverbtable(lang string, words map[string]string) string {
 				continue
 			}
 			tl := "<tr align=\"center\"><td rowspan=\"1\" colspan=\"%d\" class=\"morphrow emph\">%s<br></td></tr>\n"
-			trr = append(trr, fmt.Sprintf(tl, len(numbers)+2, t))
+			trr = append(trr, fmt.Sprintf(tl, len(neednumb)+2, t))
 
 			// we are going to skip building individual tenses that yield nothing but blanks
 			var provisional []string
 			emptytense := 0
 			totaltense := 0
-			for _, n := range numbers {
+			for _, n := range neednumb {
 				for _, c := range cases {
 					provisional = append(provisional, "<tr class=\"morphrow\">\n")
 					provisional = append(provisional, fmt.Sprintf("\t<td class=\"morphlabelcell\">%s %s</td>\n", n, c))
@@ -584,7 +580,7 @@ func generateverbtable(lang string, words map[string]string) string {
 			// skip empty tenses
 			if emptytense == totaltense {
 				mt := `<tr align="center"><td rowspan="1" colspan="%d" class="morphrow">[n/a]<br></td></tr>`
-				trr = append(trr, fmt.Sprintf(mt, len(numbers)+2))
+				trr = append(trr, fmt.Sprintf(mt, len(neednumb)+2))
 			} else {
 				trr = append(trr, provisional...)
 			}
@@ -606,7 +602,7 @@ func generateverbtable(lang string, words map[string]string) string {
 			return trr, true
 		}
 
-		nn := numbers
+		nn := neednumb
 		cc := cases
 		if m == "supine" {
 			nn = []string{"sg"}
@@ -615,7 +611,7 @@ func generateverbtable(lang string, words map[string]string) string {
 		}
 
 		tl := `<tr align="center"><td rowspan="1" colspan="%d" class="morphrow emph center">%s<br></td></tr>`
-		trr = append(trr, fmt.Sprintf(tl, len(numbers)+1, ""))
+		trr = append(trr, fmt.Sprintf(tl, len(nn)+1, ""))
 		blankcount := 0
 		cellcount := 0
 		for _, n := range nn {
@@ -807,15 +803,19 @@ func generatedeclinedtable(lang string, words map[string]string) string {
 	}
 
 	kk := stringmapkeysintoslice(words)
-	needgend := func() []string {
+	needy := func(someslice []string) []string {
 		var need []string
-		for _, g := range gend {
+		for _, g := range someslice {
 			if sliceseeker(g, kk) {
 				need = append(need, g)
 			}
 		}
 		return need
-	}()
+	}
+
+	needgend := needy(gend)
+	needdial := needy(dialect)
+	neednumb := needy(numbers)
 
 	makehdr := func() string {
 		hd := `
@@ -833,7 +833,7 @@ func generatedeclinedtable(lang string, words map[string]string) string {
 	maketrr := func(d string) []string {
 		// this code fragment is highly convergent with what is needed for participles; duplicating for now
 		var trr []string
-		for _, n := range numbers {
+		for _, n := range neednumb {
 			for _, c := range cases {
 				trr = append(trr, "<tr class=\"morphrow\">\n")
 				trr = append(trr, fmt.Sprintf("\t<td class=\"morphlabelcell\">%s %s</td>\n", n, c))
@@ -861,7 +861,7 @@ func generatedeclinedtable(lang string, words map[string]string) string {
 
 	var html []string
 
-	for _, d := range dialect {
+	for _, d := range needdial {
 		// each dialect is a major section
 		// but latin has only one dialect
 		html = append(html, `<table class="verbanalysis">`)
