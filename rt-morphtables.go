@@ -110,8 +110,14 @@ func RtMorphchart(c echo.Context) error {
 	//
 	// [this means you need '~' and not '=' as your syntax]
 
+	// ISSUE: ὑφίϲτημι returns compound forms --> ὑφιϲτάμενοι (36) / παρυφιϲτάμενοι (1) / ϲυνυφιϲτάμενοι (2)
+	// BUT: παρυφίϲτημι has a form prevalence of 0...
+	// CHOICE: the "clean" version of ὑφίϲτημι OR recognizing the compounds at all
+
+	// SQL: "AND prefixrefs=''" cleans things out...; and that is what was chosen
+
 	fld := `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
-	psq := fmt.Sprintf(`SELECT %s FROM %s_morphology WHERE xrefs ~ '%s'`, fld, lg, xr)
+	psq := fmt.Sprintf(`SELECT %s FROM %s_morphology WHERE xrefs ~ '%s' AND prefixrefs=''`, fld, lg, xr)
 
 	var foundrows pgx.Rows
 	var err error
