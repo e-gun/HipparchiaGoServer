@@ -12,16 +12,17 @@
 
 ## Installing and configuring PostgreSQL 
 
-- various platforms have various installation options; see [HERE](https://www.postgresql.org/download/)
-  - mac: look below for one of the two chief options; come back here when done
+- various platforms have various installation options
+  - mac: look **below** for one of the two chief options; come back here when done
   - linux/bsd: some equivalent of `pkg install postgresql postgresql-contrib` is all that is needed; make sure start at system launch is configured
   - pc: you have only one option; jump through all of the hoops; be careful to distinguish between the `postgres` password and the `hippa_wr` password (these are two users, one is the chief admin user); see also the note below about making an alias for the command
-- after installing `PostgreSQL`
-  - from the command line of a terminal execute `psql postgres` (or `sudo -u postgres psql postgres` if you do not have permission to do the first). NB: `Postgres.app` on macOS will install `psql` somewhere where you can't just type `psql postgres` to get into the database...
-  - pick a password for `hippa_wr` then send the next two commands from the postgres shell: (all punctuation matters...)
-      - `CREATE USER hippa_wr WITH PASSWORD 'some_random_password';`
-      - `CREATE DATABASE "hipparchiaDB";`
-  - exit postgresql by telling it `\q`
+  - see [https://www.postgresql.org/download/](https://www.postgresql.org/download/) for more details and options
+ - after installing `PostgreSQL`
+   - from the command line of a terminal execute `psql postgres` (or `sudo -u postgres psql postgres` if you do not have permission to do the first). NB: `Postgres.app` on macOS will install `psql` somewhere where you can't just type `psql postgres` to get into the database...
+   - pick a password for `hippa_wr` then send the next two commands from the postgres shell: (all punctuation matters...)
+       - `CREATE USER hippa_wr WITH PASSWORD 'some_random_password';`
+       - `CREATE DATABASE "hipparchiaDB";`
+   - exit postgresql by telling it `\q`
 
 ![psql](gitimg/postreslogin.png)
 
