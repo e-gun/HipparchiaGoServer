@@ -28,3 +28,5 @@
 
 
 ![options](gitimg/hgscli.png)
+
+![workflow](gitimg/hipparchia_workflow.svg)

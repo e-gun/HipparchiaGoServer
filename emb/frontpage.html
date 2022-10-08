@@ -22,9 +22,7 @@ License: GNU GENERAL PUBLIC LICENSE 3
 Environment: {{index . "env"}}
 -->
 
-<!-- extend from base layout -->
     <div id="setoptionsnavigator" class="sidenavigation">
-    <!-- note that "openoptionsbutton" is to be found in "miscuielements.html" -->
     <div id="alt_upperleftbuttons">
         <span id="closeoptionsbutton" class="ui-icon ui-icon-gear" title="Configuration options"></span>
         <span id="alt_moretools" title="Lexical tools" class="ui-icon ui-icon-wrench"></span>
@@ -344,18 +342,13 @@ Environment: {{index . "env"}}
                 <span class="ui-icon ui-icon-arrowthick-1-e">&nbsp;</span><span class="ui-button-icon-space"> </span>&nbsp;</button>&nbsp;&nbsp;&nbsp;&nbsp;
         </div>
     </div>
-    
-	<!-- frontpagehtmlformatting.py getlexicafieldhtml() output begins -->
-	
+
 	<div id="lexica">
 		<br />
 		<input type="text" name="lexicon" class="lexica" id="lexicon" placeholder="(Dictionary Search)">
         <input type="text" name="lexicon" class="lexica" id="reverselexicon" placeholder="(English to Greek or Latin)">
 		<button id="lexicalsearch" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Search dictionary or parser"><span class="ui-button-icon ui-icon ui-icon-search"></span><span class="ui-button-icon-space"> </span>&nbsp;</button>
 	</div>
-	
-	<!-- frontpagehtmlformatting.py getlexicafieldhtml() output ends -->
-	
 
     <div id="lexicadialog">
         <div id="lexicadialogtext"></div>
@@ -401,11 +394,11 @@ Environment: {{index . "env"}}
         <span id="cookiemessage">Enable <span class="outline red">cookies</span> and/or <span class="outline red">javascript</span> in your browser and then reload this page.</span>
     </div>
 
-<!-- optional authentication html begins -->
+    <!-- optional authentication html begins -->
     {{index . "authentic"}}
-<!-- optional authentication html ends -->
+    <!-- optional authentication html ends -->
 
- <!-- load uielementlists first: others will use its values -->
+    <!-- load uielementlists first: others will use its values -->
     <script src="/emb/js/uielementlists_go.js"></script>
     <script src="/emb/js/authentication.js"></script>
     <script src="/emb/js/autocomplete.js"></script>
@@ -414,7 +407,7 @@ Environment: {{index . "env"}}
     <script src="/emb/js/radioclicks.js"></script>
     <script src="/emb/js/vectorclicks.js"></script>
 
- <!-- load documentready last: calls on too much that is above -->
+    <!-- load documentready last: calls on too much that is above -->
     <script src="/emb/js/documentready_go.js"></script>
 
     <div id="versioning">
