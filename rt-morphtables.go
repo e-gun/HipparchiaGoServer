@@ -459,17 +459,17 @@ func generateverbtable(lang string, words map[string]string) string {
 		return hdr
 	}
 
-	makepcphdr := func() string {
+	makepcphdr := func(gg []string) string {
 		hdr := `
 		<tr>
 			<td class="tenselabel">&nbsp;</td>
 			`
-		for _, g := range needgend {
+		for _, g := range gg {
 			hdr += fmt.Sprintf("<td class=\"tensecell\">%s<br></td>\n\t", g)
 		}
 		hdr += `</tr>`
 		return hdr
-	}()
+	}
 
 	//
 	// TRR PRODUCERS
@@ -611,6 +611,7 @@ func generateverbtable(lang string, words map[string]string) string {
 		if m == "supine" {
 			nn = []string{"sg"}
 			cc = []string{"dat", "acc", "abl"}
+			needgend = []string{"neut"}
 		}
 
 		tl := `<tr align="center"><td rowspan="1" colspan="%d" class="morphrow emph center">%s<br></td></tr>`
@@ -721,43 +722,55 @@ func generateverbtable(lang string, words map[string]string) string {
 		for _, v := range voices {
 			// each voice is a section
 			for _, m := range moods {
+				if (m == "gerundive" || m == "supine") && v == "act" {
+					continue
+				}
+
 				// each mood is a table
 				// not every item needs generating
 				isblank := false
 				// the top
-				ct := counttns(v, m)
+
 				html = append(html, `<table class="verbanalysis">`)
-				html = append(html, fmt.Sprintf(DIALTR, ct, d))
-				html = append(html, fmt.Sprintf(VOICETR, ct, v))
-				html = append(html, fmt.Sprintf(MOODTR, ct, m))
+
+				ct := 1
 
 				var trrhtml []string
 				switch m {
 				case "part":
+					ct = len(gend) + 1
 					trrhtml, isblank = makepcpltrr(d, m, v)
 				case "inf":
+					ct = counttns(v, m) + 1
 					trrhtml, isblank = makeinftrr(d, m, v)
 				case "gerundive":
+					ct = len(gend) + 1
 					trrhtml, isblank = makegdvtrr(d, m, v)
 				case "supine":
+					ct = 2 // only masculine exists
 					// exact same issues as gerundives
 					trrhtml, isblank = makegdvtrr(d, m, v)
 				default:
+					ct = counttns(v, m) + 1
 					trrhtml, isblank = makevftrr(d, v, m)
 				}
+
+				html = append(html, fmt.Sprintf(DIALTR, ct, d))
+				html = append(html, fmt.Sprintf(VOICETR, ct, v))
+				html = append(html, fmt.Sprintf(MOODTR, ct, m))
 
 				if isblank {
 					trrhtml = []string{"<tr><td>[n/a]</td></tr>\n"}
 				} else {
 					switch m {
 					case "part":
-						html = append(html, makepcphdr)
+						html = append(html, makepcphdr(needgend))
 					case "inf":
 						html = append(html, maketnshdr(v, m))
 					case "gerundive":
-						html = append(html, makepcphdr)
+						html = append(html, makepcphdr(needgend))
 					case "supine":
-						html = append(html, makepcphdr)
+						html = append(html, makepcphdr([]string{"neut"}))
 					default:
 						html = append(html, maketnshdr(v, m))
 					}

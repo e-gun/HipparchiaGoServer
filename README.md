@@ -1,7 +1,7 @@
 # HipparchiaGoServer
 ## beta quality: (allegedly) solid core
 
-### STATUS (`v0.9.8`):
+### STATUS (`v0.9.9`):
 
 * now feature-complete for `1.0.0` release
 * 25%-700% faster than HipparchiaServer depending on the function. Uses c. 60% as much RAM.

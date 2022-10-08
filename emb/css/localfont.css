@@ -1476,11 +1476,13 @@ td.dialectlabel {
 td.voicelabel {
 	font-weight: bold;
 	font-size: 110%;
+	text-align: center;
 	}
 
 td.moodlabel {
 	font-weight: normal;
 	font-size: 110%;
+	text-align: center;
 	}
 
 td.morphcell {
