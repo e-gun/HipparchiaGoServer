@@ -534,10 +534,15 @@ func generateverbtable(lang string, words map[string]string) string {
 			}
 			tl := `<tr align="center"><td rowspan="1" colspan="%d" class="morphrow emph">%s<br></td></tr>`
 			trr = append(trr, fmt.Sprintf(tl, len(numbers)+2, t))
+
+			// we are going to skip buildin individual tenses that yield nothing but blanks
+			var provisional []string
+			emptytense := 0
+			totaltense := 0
 			for _, n := range numbers {
 				for _, c := range cases {
-					trr = append(trr, `<tr class="morphrow">`)
-					trr = append(trr, fmt.Sprintf(`<td class="morphlabelcell">%s %s</td>`, n, c))
+					provisional = append(provisional, `<tr class="morphrow">`)
+					provisional = append(provisional, fmt.Sprintf(`<td class="morphlabelcell">%s %s</td>`, n, c))
 					var tdd []string
 					for _, g := range needgend {
 						// not every combination should be generated
@@ -551,14 +556,22 @@ func generateverbtable(lang string, words map[string]string) string {
 						} else {
 							tdd = append(tdd, BLANK)
 							blankcount += 1
+							emptytense += 1
 						}
 						cellcount += 1
+						totaltense += 1
 					}
 					for _, td := range tdd {
-						trr = append(trr, fmt.Sprintf(`<td class="morphcell">%s</td>`, td))
+						provisional = append(provisional, fmt.Sprintf(`<td class="morphcell">%s</td>`, td))
 					}
-					trr = append(trr, `</tr>`)
+					provisional = append(provisional, `</tr>`)
 				}
+			}
+			if emptytense == totaltense {
+				mt := `<tr align="center"><td rowspan="1" colspan="%d" class="morphrow">[n/a]<br></td></tr>`
+				trr = append(trr, fmt.Sprintf(mt, len(numbers)+2))
+			} else {
+				trr = append(trr, provisional...)
 			}
 		}
 		isblank := false
