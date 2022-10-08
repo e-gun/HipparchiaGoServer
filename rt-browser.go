@@ -361,8 +361,13 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 			pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|\\!|,|:|;|\\?|·|$)", cv))
 			if e == nil && w == len(wds)-1 && terminalhyph.MatchString(lmw) {
 				// wds[lastwordindex] is the unhyphenated word
+
+				// without strings.Replace() gr2042@81454 browser formatting error: τὴν ἐκκληϲίαν, τὸν οἶκον τῆϲ class="expanded_text">προϲ-
+				// the html ends up as: <span <observed="" id="προϲευχῆϲ">class="expanded_text"&gt;προϲ-</span>
+				newline = strings.Replace(newline, "<span ", "<span_", -1)
 				r := fmt.Sprintf(`$1<observed id="%s">$2</observed>$3`, lwd)
 				newline = pattern.ReplaceAllString(newline, r)
+				newline = strings.Replace(newline, "<span_", "<span ", -1)
 			} else if e == nil {
 				newline = pattern.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
 			} else {

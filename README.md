@@ -20,7 +20,7 @@
 
 ### TODO (in vague order of priority)
 
-* morphology tables need lots of polish; dialects need addressing
+* morphology tables: ῥώμη, etc. will trigger "verb"... : you cant trigger on a single hit; you have to compare total form counts
 * WithinXWordsSearch() needs to have more corner cases checked
 * room to improve lemma highlighting
 
