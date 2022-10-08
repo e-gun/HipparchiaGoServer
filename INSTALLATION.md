@@ -15,7 +15,7 @@
 - various platforms have various installation options; see [HERE](https://www.postgresql.org/download/)
   - mac: look below for one of the two chief options; come back here when done
   - linux/bsd: some equivalent of `pkg install postgresql postgresql-contrib` is all that is needed; make sure start at system launch is configured
-  - pc: you have only one option; jump through all of the hoops; be careful to distinguish between the `postgres` password and the `hippa_wr` password (these are two users, one is the chief admin user)
+  - pc: you have only one option; jump through all of the hoops; be careful to distinguish between the `postgres` password and the `hippa_wr` password (these are two users, one is the chief admin user); see also the note below about making an alias for the command
 - after installing `PostgreSQL`
   - from the command line of a terminal execute `psql postgres` (or `sudo -u postgres psql postgres` if you do not have permission to do the first). NB: `Postgres.app` on macOS will install `psql` somewhere where you can't just type `psql postgres` to get into the database...
   - pick a password for `hippa_wr` then send the next two commands from the postgres shell: (all punctuation matters...)
@@ -71,6 +71,7 @@ Dumping and restoring are both **slow**.
   - learn how to compose simple and complex queries for words, phrases, and/or lemmatized words
 - the little `gear icon` at the top right corner will let you adjust settings
 
+---
 
 ### mac PostgreSQL installation via homebrew (best option)
 
@@ -94,3 +95,21 @@ Dumping and restoring are both **slow**.
 - two caveats
   - it does not look like `postgress.app` will give you PSQL with trigram indices. Searching will be slower.
   - `postgress.app` will need to be started/stopped manually vs homebrew which will always launch the database on system start
+
+### mac PostgreSQL installation via EDB (not recommended)
+
+- this definitely works, but you will have problems executing the simple steps above
+- basically, if you do this you need to be ready to figure out how to get your shell to find `pg_restore`: it will be available, but where...?
+- this should not be **that** hard, but I do not have a box configured this way so I don't know the exact recipe
+
+---
+
+### windows advice
+
+you should alias `psql` and `pg_restore` in your shell:
+
+`Set-Alias psql 'C:\Program Files\PostgreSQL\*\bin\psql.exe'`
+
+`Set-Alias psql 'C:\Program Files\PostgreSQL\*\bin\pg_restore.exe'`
+
+After this you can execute the command to load...
