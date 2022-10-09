@@ -25,7 +25,7 @@ const (
 var (
 	// order matters
 	cfg         CurrentConfiguration
-	dbp         *pgxpool.Pool
+	psqlpool    *pgxpool.Pool
 	sessions    = make(map[string]ServerSession)
 	searches    = make(map[string]SearchStruct)
 	proghits    = sync.Map{}
@@ -80,13 +80,13 @@ type DbWork struct {
 	Authentic bool
 }
 
+// FindWorknumber - ex: gr2017w068 --> 068
 func (dbw DbWork) FindWorknumber() string {
-	// ex: gr2017w068 --> 068
 	return dbw.UID[7:]
 }
 
+// FindAuthor - ex: gr2017w068 --> gr2017
 func (dbw DbWork) FindAuthor() string {
-	// ex: gr2017w068 --> gr2017
 	if len(dbw.UID) < 6 {
 		return ""
 	} else {
@@ -101,6 +101,7 @@ func (dbw DbWork) CitationFormat() []string {
 	return cf
 }
 
+// CountLevels - the work structure employs how many levels?
 func (dbw DbWork) CountLevels() int {
 	ll := 0
 	for _, l := range []string{dbw.LL5, dbw.LL4, dbw.LL3, dbw.LL2, dbw.LL1, dbw.LL0} {
@@ -111,6 +112,7 @@ func (dbw DbWork) CountLevels() int {
 	return ll
 }
 
+// DateInRange - is the work dated between X and Y?
 func (dbw DbWork) DateInRange(earliest int64, latest int64) bool {
 	if earliest >= dbw.ConvDate && dbw.ConvDate <= latest {
 		return true

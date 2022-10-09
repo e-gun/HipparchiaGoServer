@@ -597,8 +597,8 @@ func paralleldictformatter(lexicalfinds []DbLexicon) map[float32]string {
 		j := i
 		go func(lexlist []DbLexicon, workerid int) {
 			defer wg.Done()
-			dbp := GetPSQLconnection()
-			defer dbp.Release()
+			dbpool := GetPSQLconnection()
+			defer dbpool.Release()
 			outputchannels <- multipleentriesashtml(j, entrymap[j])
 		}(entrymap[i], i)
 	}

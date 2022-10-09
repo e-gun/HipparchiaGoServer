@@ -433,6 +433,7 @@ func selectivelydisplaycitations(theline DbWorkline, previous DbWorkline, focus 
 	return citation
 }
 
+// avoidlonglines - insert "<br>" into strings that are too long
 func avoidlonglines(untrimmed string, maxlen int) string {
 	if len(untrimmed) > maxlen {
 		untrimmed = strings.Replace(untrimmed, ";", "; ", -1)
