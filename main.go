@@ -34,6 +34,8 @@ func main() {
 		msg(fmt.Sprintf(TERMINALTEXT, PROJYEAR, PROJAUTH, PROJMAIL), -1)
 	}
 
+	dbpool = FillPSQLPoool()
+
 	// concurrent launching
 	var awaiting sync.WaitGroup
 

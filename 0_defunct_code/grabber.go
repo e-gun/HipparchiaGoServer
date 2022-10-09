@@ -69,7 +69,7 @@ func grabber(clientnumber int, searchkey string, awaiting *sync.WaitGroup) {
 	}(rc)
 
 	dbpool := grabpgsqlconnection()
-	defer dbpool.Close()
+	defer dbpool.Release()
 
 	resultkey := searchkey + "_results"
 

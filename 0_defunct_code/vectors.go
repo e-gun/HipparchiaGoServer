@@ -76,7 +76,7 @@ func HipparchiaVectors() string {
 	msg(fmt.Sprintf("Connected to redis"), 2)
 
 	dbpool := grabpgsqlconnection()
-	defer dbpool.Close()
+	defer dbpool.Release()
 
 	// [a] grab the db lines
 	// we do this by copying the code inside of grabber but just cut out the storage bits: not DRY, but...

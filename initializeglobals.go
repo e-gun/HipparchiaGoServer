@@ -8,6 +8,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"strings"
 	"sync"
 )
@@ -24,6 +25,7 @@ const (
 var (
 	// order matters
 	cfg         CurrentConfiguration
+	dbpool      *pgxpool.Pool
 	sessions    = make(map[string]ServerSession)
 	searches    = make(map[string]SearchStruct)
 	proghits    = sync.Map{}
@@ -158,7 +160,7 @@ func workmapper() map[string]DbWork {
 	// authentic        | boolean                |           |          |
 
 	dbpool := GetPSQLconnection()
-	defer dbpool.Close()
+	defer dbpool.Release()
 	qt := "SELECT %s FROM works"
 	q := fmt.Sprintf(qt, WORKTEMPLATE)
 
@@ -214,7 +216,7 @@ func authormapper(ww map[string]DbWork) map[string]DbAuthor {
 	}
 
 	dbpool := GetPSQLconnection()
-	defer dbpool.Close()
+	defer dbpool.Release()
 	qt := "SELECT %s FROM authors ORDER by universalid ASC"
 	q := fmt.Sprintf(qt, AUTHORTEMPLATE)
 
@@ -264,7 +266,7 @@ func lemmamapper() map[string]DbLemma {
 	t := `SELECT dictionary_entry, xref_number, derivative_forms FROM %s_lemmata`
 
 	dbpool := GetPSQLconnection()
-	defer dbpool.Close()
+	defer dbpool.Release()
 
 	thefinds := make([]DbLemma, DBLEMMACOUNT)
 	count := 0

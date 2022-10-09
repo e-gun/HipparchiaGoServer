@@ -681,7 +681,7 @@ func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
 	tb := wk.FindAuthor()
 
 	dbpool := GetPSQLconnection()
-	defer dbpool.Close()
+	defer dbpool.Release()
 	qt := `SELECT index FROM %s WHERE wkuniversalid='%s' AND %s ORDER BY index ASC`
 
 	a := strings.Join(use, " AND ")

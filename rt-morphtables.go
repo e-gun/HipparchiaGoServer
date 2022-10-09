@@ -101,7 +101,7 @@ func RtMorphchart(c echo.Context) error {
 	// select * from greek_morphology where greek_morphology.xrefs='37925260';
 
 	dbpool := GetPSQLconnection()
-	defer dbpool.Close()
+	defer dbpool.Release()
 
 	// hipparchiaDB=# select observed_form, xrefs from latin_morphology where observed_form = 'crediti';
 	// observed_form |       xrefs

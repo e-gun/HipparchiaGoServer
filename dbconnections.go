@@ -23,9 +23,12 @@ type PostgresLogin struct {
 // POSTGRESQL
 //
 
-func GetPSQLconnection() *pgxpool.Pool {
+// FillPSQLPoool - build the pgxpool that the whole program will Acquire() from
+func FillPSQLPoool() *pgxpool.Pool {
+	// costs about 1M RAM per connection
 	pl := cfg.PGLogin
 
+	// url := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?pool_min_conns=%d", pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName, cfg.WorkerCount)
 	url := fmt.Sprintf("postgres://%s:%s@%s:%d/%s", pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName)
 
 	config, oops := pgxpool.ParseConfig(url)
@@ -34,11 +37,18 @@ func GetPSQLconnection() *pgxpool.Pool {
 		panic(oops)
 	}
 
-	pooledconnection, err := pgxpool.ConnectConfig(context.Background(), config)
+	thepool, err := pgxpool.ConnectConfig(context.Background(), config)
 
 	if err != nil {
 		msg(fmt.Sprintf("Could not connect to PostgreSQL via %s", url), -1)
 		panic(err)
 	}
-	return pooledconnection
+
+	return thepool
+}
+
+// GetPSQLconnection - Acquire() a connection from the main pgxpool
+func GetPSQLconnection() *pgxpool.Conn {
+	c, _ := dbpool.Acquire(context.Background())
+	return c
 }

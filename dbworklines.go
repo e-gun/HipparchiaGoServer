@@ -190,8 +190,28 @@ func (dbw *DbWorkline) Citation() string {
 	return strings.Join(dbw.FindLocus(), ".")
 }
 
+func (dbw *DbWorkline) LvlVal(lvl int) string {
+	// what is the value at level N?
+	switch lvl {
+	case 0:
+		return dbw.Lvl0Value
+	case 1:
+		return dbw.Lvl1Value
+	case 2:
+		return dbw.Lvl2Value
+	case 3:
+		return dbw.Lvl3Value
+	case 4:
+		return dbw.Lvl4Value
+	case 5:
+		return dbw.Lvl5Value
+	default:
+		return ""
+	}
+}
+
 // worklinequery - use a PrerolledQuery to acquire []DbWorkline
-func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Pool) []DbWorkline {
+func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Conn) []DbWorkline {
 	// [a] build a temp table if needed
 
 	// fmt.Printf("TT:\n%s\n", prq.TempTable)
@@ -233,7 +253,7 @@ func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Pool) []DbWorkline {
 // graboneline - return a single DbWorkline from a table
 func graboneline(table string, line int64) DbWorkline {
 	dbpool := GetPSQLconnection()
-	defer dbpool.Close()
+	defer dbpool.Release()
 	qt := "SELECT %s FROM %s WHERE index = %s ORDER by index"
 	var prq PrerolledQuery
 	prq.TempTable = ""
@@ -250,7 +270,7 @@ func graboneline(table string, line int64) DbWorkline {
 // simplecontextgrabber - grab a pile of lines centered around the focusline
 func simplecontextgrabber(table string, focus int64, context int64) []DbWorkline {
 	dbpool := GetPSQLconnection()
-	defer dbpool.Close()
+	defer dbpool.Release()
 
 	qt := "SELECT %s FROM %s WHERE (index BETWEEN %s AND %s) ORDER by index"
 
@@ -331,7 +351,7 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	prq.PsqlQuery = fmt.Sprintf(t, w.FindAuthor(), wkid, and, andnot)
 
 	dbpool := GetPSQLconnection()
-	defer dbpool.Close()
+	defer dbpool.Release()
 	lines := worklinequery(prq, dbpool)
 
 	// [c] extract info from the hitlines returned
@@ -342,35 +362,15 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	if len(lines) == 0 {
 		return vals
 	}
-	vals.Low = picklvlval(atlvl, lines[0])
-	vals.High = picklvlval(atlvl, lines[len(lines)-1])
+	vals.Low = lines[0].LvlVal(atlvl)
+	vals.High = lines[len(lines)-1].LvlVal(atlvl)
 	var r []string
 	for i, _ := range lines {
-		r = append(r, picklvlval(atlvl, lines[i]))
+		r = append(r, lines[i].LvlVal(atlvl))
 	}
 	r = unique(r)
 	sort.Strings(r)
 	vals.Range = r
 
 	return vals
-}
-
-func picklvlval(lvl int, ln DbWorkline) string {
-	// reflection and type checking is every bit as cumbersome as this stupid solution
-	switch lvl {
-	case 0:
-		return ln.Lvl0Value
-	case 1:
-		return ln.Lvl1Value
-	case 2:
-		return ln.Lvl2Value
-	case 3:
-		return ln.Lvl3Value
-	case 4:
-		return ln.Lvl4Value
-	case 5:
-		return ln.Lvl5Value
-	default:
-		return ""
-	}
 }
