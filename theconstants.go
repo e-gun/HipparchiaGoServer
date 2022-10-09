@@ -59,6 +59,7 @@ const (
 	PROLIXCONFIGFILE        = "hgs-prolix-conf.json"
 	SERVEDFROMHOST          = "127.0.0.1"
 	SERVEDFROMPORT          = 8000
+	SIMULTANEOUSSEARCHES    = 3 // cap on the number of db connections at (S * cfg.WorkerCount)
 	SHOWCITATIONEVERYNLINES = 10
 	SORTBY                  = "shortname"
 	TEMPTABLETHRESHOLD      = 100 // if a table requires N "between" clauses, build a temptable instead to gather the needed lines

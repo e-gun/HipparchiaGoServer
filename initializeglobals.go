@@ -25,7 +25,7 @@ const (
 var (
 	// order matters
 	cfg         CurrentConfiguration
-	dbpool      *pgxpool.Pool
+	dbp         *pgxpool.Pool
 	sessions    = make(map[string]ServerSession)
 	searches    = make(map[string]SearchStruct)
 	proghits    = sync.Map{}
