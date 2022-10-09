@@ -766,6 +766,40 @@ func lemmaintoregexslice(hdwd string) []string {
 func findphrasesacrosslines(ss *SearchStruct) {
 	// modify ss in place
 
+	getcombinations := func(phr string) [][2]string {
+		// 'one two three four five' -->
+		// [('one', 'two three four five'), ('one two', 'three four five'), ('one two three', 'four five'), ('one two three four', 'five')]
+
+		gt := func(n int, wds []string) []string {
+			return wds[n:]
+		}
+
+		gh := func(n int, wds []string) []string {
+			return wds[:n]
+		}
+
+		ww := strings.Split(phr, " ")
+		var comb [][2]string
+		for i, _ := range ww {
+			h := strings.Join(gh(i, ww), " ")
+			t := strings.Join(gt(i, ww), " ")
+			h = h + "$"
+			t = "^" + t
+			comb = append(comb, [2]string{h, t})
+		}
+
+		var trimmed [][2]string
+		for _, c := range comb {
+			head := strings.TrimSpace(c[0]) != "" && strings.TrimSpace(c[0]) != "$"
+			tail := strings.TrimSpace(c[1]) != "" && strings.TrimSpace(c[0]) != "^"
+			if head && tail {
+				trimmed = append(trimmed, c)
+			}
+		}
+
+		return trimmed
+	}
+
 	var valid = make(map[string]DbWorkline, len(ss.Results))
 
 	skg := ss.Seeking
@@ -811,7 +845,7 @@ func findphrasesacrosslines(ss *SearchStruct) {
 
 			// combinator dodges double-register of hits
 			nl := columnpicker(ss.SrchColumn, nxt)
-			comb := phrasecombinations(re)
+			comb := getcombinations(re)
 			for _, c := range comb {
 				fp = regexp.MustCompile(c[0])
 				sp := regexp.MustCompile(c[1])
@@ -849,41 +883,6 @@ func columnpicker(c string, r DbWorkline) string {
 		msg("second.SrchColumn was not set; defaulting to 'stripped_line'", 2)
 	}
 	return li
-}
-
-// phrasecombinations - searching word runs across lines via word combination possibilities
-func phrasecombinations(phr string) [][2]string {
-	// 'one two three four five' -->
-	// [('one', 'two three four five'), ('one two', 'three four five'), ('one two three', 'four five'), ('one two three four', 'five')]
-
-	gt := func(n int, wds []string) []string {
-		return wds[n:]
-	}
-
-	gh := func(n int, wds []string) []string {
-		return wds[:n]
-	}
-
-	ww := strings.Split(phr, " ")
-	var comb [][2]string
-	for i, _ := range ww {
-		h := strings.Join(gh(i, ww), " ")
-		t := strings.Join(gt(i, ww), " ")
-		h = h + "$"
-		t = "^" + t
-		comb = append(comb, [2]string{h, t})
-	}
-
-	var trimmed [][2]string
-	for _, c := range comb {
-		head := strings.TrimSpace(c[0]) != "" && strings.TrimSpace(c[0]) != "$"
-		tail := strings.TrimSpace(c[1]) != "" && strings.TrimSpace(c[0]) != "^"
-		if head && tail {
-			trimmed = append(trimmed, c)
-		}
-	}
-
-	return trimmed
 }
 
 // clonesearch - make a copy of a search with results and queries, inter alia, ripped out

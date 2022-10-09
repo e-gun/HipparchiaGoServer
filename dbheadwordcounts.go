@@ -179,6 +179,12 @@ type DbHeadwordTheologyCounts struct {
 	Theol  int
 }
 
+// HWData - to help sort values inside DbHeadwordCount
+type HWData struct {
+	name  string
+	count int
+}
+
 type DbHeadwordCount struct {
 	Entry     string
 	Total     int
@@ -244,12 +250,6 @@ func (hw *DbHeadwordCount) LoadGenreVals() {
 	hw.GenreVal = vv
 }
 
-// HWData - to help sort values inside DbHeadwordCount
-type HWData struct {
-	name  string
-	count int
-}
-
 func headwordlookup(word string) DbHeadwordCount {
 	// scan a headwordcount into the corresponding struct
 	// note that if you reassign a genre, this is one of the place you have to edit
@@ -268,7 +268,7 @@ func headwordlookup(word string) DbHeadwordCount {
 	FROM dictionary_headword_wordcounts WHERE entry_name='%s'`
 
 	dbpool := GetPSQLconnection()
-	defer dbpool.Close()
+	defer dbpool.Release()
 
 	q := fmt.Sprintf(qt, word)
 
