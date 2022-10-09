@@ -8,6 +8,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -36,26 +37,50 @@ func FillPSQLPoool() *pgxpool.Pool {
 	u := "postgres://%s:%s@%s:%d/%s?pool_min_conns=%d&pool_max_conns=%d"
 	url := fmt.Sprintf(u, pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName, min, max)
 
-	config, oops := pgxpool.ParseConfig(url)
-	if oops != nil {
+	config, e := pgxpool.ParseConfig(url)
+	if e != nil {
 		msg(fmt.Sprintf("Could not execute pgxpool.ParseConfig(url) via %s", url), -1)
-		panic(oops)
+		panic(e)
 	}
 
-	thepool, err := pgxpool.ConnectConfig(context.Background(), config)
-	if err != nil {
+	thepool, e := pgxpool.ConnectConfig(context.Background(), config)
+	if e != nil {
 		msg(fmt.Sprintf("Could not connect to PostgreSQL via %s", url), -1)
-		panic(err)
+		panic(e)
 	}
 	return thepool
 }
 
-// GetPSQLconnection - Acquire() a connection from the main pgxpool
-func GetPSQLconnection() *pgxpool.Conn {
+// GetPSQLSimpleConnection - return a *pgx.Conn to the database
+func GetPSQLSimpleConnection() *pgx.Conn {
+	// this cannot be used ATM; worklinequery() needs a pgxpool.Conn
+	// there is no simple way to toggle this while running
+	// but when debugging it is possible hand-tweak that one function + sed -i "" "s/dbconn.Release/dbconn.Close" *go
+
+	pl := cfg.PGLogin
+	u := "postgres://%s:%s@%s:%d/%s"
+	url := fmt.Sprintf(u, pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName)
+	conn, err := pgx.Connect(context.Background(), url)
+	if err != nil {
+		msg(fmt.Sprintf("PSQLSimpleConn() could not connect via %s", url), -1)
+		panic(err)
+	}
+	return conn
+}
+
+// GetPSQLPooledConnection - Acquire() a connection from the main pgxpool
+func GetPSQLPooledConnection() *pgxpool.Conn {
 	dbc, err := psqlpool.Acquire(context.Background())
 	if err != nil {
 		msg(fmt.Sprintf("GetPSQLconnection() could not .Acquire() from psqlpool"), -1)
 		panic(err)
 	}
 	return dbc
+}
+
+// GetPSQLconnection - Acquire() a connection from the main pgxpool
+func GetPSQLconnection() *pgxpool.Conn {
+	// alternate is:
+	// return GetPSQLSimpleConnection()
+	return GetPSQLPooledConnection()
 }
