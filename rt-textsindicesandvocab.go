@@ -726,8 +726,8 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 	wordlist = append(wordlist, uppers...)
 	wordlist = append(wordlist, apo...)
 
-	dbpool := GetPSQLconnection()
-	defer dbpool.Release()
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
 
 	tt := `CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words`
 	qt := `SELECT observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords FROM %s_morphology WHERE EXISTS 
@@ -742,10 +742,10 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 		a := fmt.Sprintf("'%s'", strings.Join(wordlist, "', '"))
 		t := fmt.Sprintf(tt, id, a)
 
-		_, err := dbpool.Exec(context.Background(), t)
+		_, err := dbconn.Exec(context.Background(), t)
 		chke(err)
 
-		foundrows, e := dbpool.Query(context.Background(), fmt.Sprintf(qt, uselang, id, uselang))
+		foundrows, e := dbconn.Query(context.Background(), fmt.Sprintf(qt, uselang, id, uselang))
 		chke(e)
 
 		defer foundrows.Close()

@@ -282,9 +282,9 @@ func findbyform(word string, author string) string {
 	c := []rune(word)
 	q := fmt.Sprintf(psq, fld, stripaccentsSTR(string(c[0])), word)
 
-	dbpool := GetPSQLconnection()
-	defer dbpool.Release()
-	foundrows, err := dbpool.Query(context.Background(), q)
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
+	foundrows, err := dbconn.Query(context.Background(), q)
 	chke(err)
 	var wc DbWordCount
 	defer foundrows.Close()
@@ -425,8 +425,8 @@ func dictsearch(seeking string, dict string) string {
 
 // dictgrabber - search postgres tables and return []DbLexicon
 func dictgrabber(seeking string, dict string, col string, syntax string) []DbLexicon {
-	dbpool := GetPSQLconnection()
-	defer dbpool.Release()
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
 
 	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
 	fld := `entry_name, metrical_entry, id_number, pos, translations, html_body`
@@ -436,7 +436,7 @@ func dictgrabber(seeking string, dict string, col string, syntax string) []DbLex
 	var lexicalfinds []DbLexicon
 	var foundrows pgx.Rows
 	var err error
-	foundrows, err = dbpool.Query(context.Background(), q)
+	foundrows, err = dbconn.Query(context.Background(), q)
 	chke(err)
 
 	defer foundrows.Close()
@@ -452,8 +452,8 @@ func dictgrabber(seeking string, dict string, col string, syntax string) []DbLex
 
 // getmorphmatch - word into []DbMorphology
 func getmorphmatch(word string, lang string) []DbMorphology {
-	dbpool := GetPSQLconnection()
-	defer dbpool.Release()
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
 
 	fld := `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
 	psq := fmt.Sprintf("SELECT %s FROM %s_morphology WHERE observed_form = '%s'", fld, lang, word)
@@ -461,7 +461,7 @@ func getmorphmatch(word string, lang string) []DbMorphology {
 	var foundrows pgx.Rows
 	var err error
 
-	foundrows, err = dbpool.Query(context.Background(), psq)
+	foundrows, err = dbconn.Query(context.Background(), psq)
 	chke(err)
 
 	var thesefinds []DbMorphology
@@ -527,8 +527,8 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 	hwm = unique(hwm)
 
 	// [d] get the wordobjects for each unique headword: probedictionary()
-	dbpool := GetPSQLconnection()
-	defer dbpool.Release()
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
 	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
 	fld := `entry_name, metrical_entry, id_number, pos, translations, html_body`
 	psq := `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴)$' ORDER BY id_number ASC`
@@ -540,7 +540,7 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 		// var foundrows pgx.Rows
 		var err error
 		q := fmt.Sprintf(psq, fld, d, col, w)
-		foundrows, err := dbpool.Query(context.Background(), q)
+		foundrows, err := dbconn.Query(context.Background(), q)
 		chke(err)
 
 		defer foundrows.Close()
@@ -597,8 +597,8 @@ func paralleldictformatter(lexicalfinds []DbLexicon) map[float32]string {
 		j := i
 		go func(lexlist []DbLexicon, workerid int) {
 			defer wg.Done()
-			dbpool := GetPSQLconnection()
-			defer dbpool.Release()
+			dbconn := GetPSQLconnection()
+			defer dbconn.Release()
 			outputchannels <- multipleentriesashtml(j, entrymap[j])
 		}(entrymap[i], i)
 	}
@@ -804,10 +804,10 @@ func formatlexicaloutput(w DbLexicon) string {
 	</table>`
 
 	qt := `SELECT entry_name, id_number from %s_dictionary WHERE id_number %s %.0f ORDER BY id_number %s LIMIT 1`
-	dbpool := GetPSQLconnection()
-	defer dbpool.Release()
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
 
-	foundrows, err := dbpool.Query(context.Background(), fmt.Sprintf(qt, w.Lang, "<", w.ID, "DESC"))
+	foundrows, err := dbconn.Query(context.Background(), fmt.Sprintf(qt, w.Lang, "<", w.ID, "DESC"))
 	chke(err)
 	var prev DbLexicon
 	defer foundrows.Close()
@@ -816,7 +816,7 @@ func formatlexicaloutput(w DbLexicon) string {
 		chke(err)
 	}
 
-	foundrows, err = dbpool.Query(context.Background(), fmt.Sprintf(qt, w.Lang, ">", w.ID, "ASC"))
+	foundrows, err = dbconn.Query(context.Background(), fmt.Sprintf(qt, w.Lang, ">", w.ID, "ASC"))
 	chke(err)
 	var nxt DbLexicon
 	defer foundrows.Close()

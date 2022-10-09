@@ -97,15 +97,15 @@ func SrchFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, e
 func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWorkline, error) {
 	emitfinds := make(chan []DbWorkline)
 	go func() {
-		dbpool := GetPSQLconnection()
-		defer dbpool.Release()
+		dbconn := GetPSQLconnection()
+		defer dbconn.Release()
 		defer close(emitfinds)
 		for q := range prq {
 			select {
 			case <-ctx.Done():
 				return
 			default:
-				emitfinds <- worklinequery(q, dbpool)
+				emitfinds <- worklinequery(q, dbconn)
 			}
 		}
 	}()

@@ -680,14 +680,14 @@ func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
 
 	tb := wk.FindAuthor()
 
-	dbpool := GetPSQLconnection()
-	defer dbpool.Release()
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
 	qt := `SELECT index FROM %s WHERE wkuniversalid='%s' AND %s ORDER BY index ASC`
 
 	a := strings.Join(use, " AND ")
 	q := fmt.Sprintf(qt, tb, wuid, a)
 
-	foundrows, err := dbpool.Query(context.Background(), q)
+	foundrows, err := dbconn.Query(context.Background(), q)
 	chke(err)
 
 	var idx []int64

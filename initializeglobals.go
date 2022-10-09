@@ -161,12 +161,12 @@ func workmapper() map[string]DbWork {
 	// lastline         | integer                |           |          |
 	// authentic        | boolean                |           |          |
 
-	dbpool := GetPSQLconnection()
-	defer dbpool.Release()
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
 	qt := "SELECT %s FROM works"
 	q := fmt.Sprintf(qt, WORKTEMPLATE)
 
-	foundrows, err := dbpool.Query(context.Background(), q)
+	foundrows, err := dbconn.Query(context.Background(), q)
 	chke(err)
 
 	workmap := make(map[string]DbWork, DBWKMAPSIZE)
@@ -217,12 +217,12 @@ func authormapper(ww map[string]DbWork) map[string]DbAuthor {
 		}
 	}
 
-	dbpool := GetPSQLconnection()
-	defer dbpool.Release()
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
 	qt := "SELECT %s FROM authors ORDER by universalid ASC"
 	q := fmt.Sprintf(qt, AUTHORTEMPLATE)
 
-	foundrows, err := dbpool.Query(context.Background(), q)
+	foundrows, err := dbconn.Query(context.Background(), q)
 	chke(err)
 
 	thefinds := make([]DbAuthor, DBAUMAPSIZE)
@@ -267,14 +267,14 @@ func lemmamapper() map[string]DbLemma {
 	langs := [2]string{"greek", "latin"}
 	t := `SELECT dictionary_entry, xref_number, derivative_forms FROM %s_lemmata`
 
-	dbpool := GetPSQLconnection()
-	defer dbpool.Release()
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
 
 	thefinds := make([]DbLemma, DBLEMMACOUNT)
 	count := 0
 	for _, lg := range langs {
 		q := fmt.Sprintf(t, lg)
-		foundrows, err := dbpool.Query(context.Background(), q)
+		foundrows, err := dbconn.Query(context.Background(), q)
 		chke(err)
 		defer foundrows.Close()
 		for foundrows.Next() {

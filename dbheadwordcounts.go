@@ -267,12 +267,12 @@ func headwordlookup(word string) DbHeadwordCount {
 		satura, satyr, schol, tact, test, theol, trag
 	FROM dictionary_headword_wordcounts WHERE entry_name='%s'`
 
-	dbpool := GetPSQLconnection()
-	defer dbpool.Release()
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
 
 	q := fmt.Sprintf(qt, word)
 
-	foundrows, err := dbpool.Query(context.Background(), q)
+	foundrows, err := dbconn.Query(context.Background(), q)
 	chke(err)
 
 	var thesefinds []DbHeadwordCount

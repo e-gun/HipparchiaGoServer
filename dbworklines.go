@@ -211,12 +211,12 @@ func (dbw *DbWorkline) LvlVal(lvl int) string {
 }
 
 // worklinequery - use a PrerolledQuery to acquire []DbWorkline
-func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Conn) []DbWorkline {
+func worklinequery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
 	// [a] build a temp table if needed
 
 	// fmt.Printf("TT:\n%s\n", prq.TempTable)
 	if prq.TempTable != "" {
-		_, err := dbpool.Exec(context.Background(), prq.TempTable)
+		_, err := dbconn.Exec(context.Background(), prq.TempTable)
 		chke(err)
 	}
 
@@ -226,10 +226,10 @@ func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Conn) []DbWorkline {
 
 	// fmt.Printf("Q:\n%s\n", prq.PsqlQuery)
 	if prq.PsqlData != "" {
-		foundrows, err = dbpool.Query(context.Background(), prq.PsqlQuery, prq.PsqlData)
+		foundrows, err = dbconn.Query(context.Background(), prq.PsqlQuery, prq.PsqlData)
 		chke(err)
 	} else {
-		foundrows, err = dbpool.Query(context.Background(), prq.PsqlQuery)
+		foundrows, err = dbconn.Query(context.Background(), prq.PsqlQuery)
 		chke(err)
 	}
 
@@ -252,14 +252,14 @@ func worklinequery(prq PrerolledQuery, dbpool *pgxpool.Conn) []DbWorkline {
 
 // graboneline - return a single DbWorkline from a table
 func graboneline(table string, line int64) DbWorkline {
-	dbpool := GetPSQLconnection()
-	defer dbpool.Release()
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
 	qt := "SELECT %s FROM %s WHERE index = %s ORDER by index"
 	var prq PrerolledQuery
 	prq.TempTable = ""
 	prq.PsqlData = ""
 	prq.PsqlQuery = fmt.Sprintf(qt, WORLINETEMPLATE, table, strconv.FormatInt(line, 10))
-	foundlines := worklinequery(prq, dbpool)
+	foundlines := worklinequery(prq, dbconn)
 	if len(foundlines) != 0 {
 		return foundlines[0]
 	} else {
@@ -269,8 +269,8 @@ func graboneline(table string, line int64) DbWorkline {
 
 // simplecontextgrabber - grab a pile of lines centered around the focusline
 func simplecontextgrabber(table string, focus int64, context int64) []DbWorkline {
-	dbpool := GetPSQLconnection()
-	defer dbpool.Release()
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
 
 	qt := "SELECT %s FROM %s WHERE (index BETWEEN %s AND %s) ORDER by index"
 
@@ -282,7 +282,7 @@ func simplecontextgrabber(table string, focus int64, context int64) []DbWorkline
 	prq.PsqlData = ""
 	prq.PsqlQuery = fmt.Sprintf(qt, WORLINETEMPLATE, table, strconv.FormatInt(low, 10), strconv.FormatInt(high, 10))
 
-	foundlines := worklinequery(prq, dbpool)
+	foundlines := worklinequery(prq, dbconn)
 
 	return foundlines
 }
@@ -350,9 +350,9 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	var prq PrerolledQuery
 	prq.PsqlQuery = fmt.Sprintf(t, w.FindAuthor(), wkid, and, andnot)
 
-	dbpool := GetPSQLconnection()
-	defer dbpool.Release()
-	lines := worklinequery(prq, dbpool)
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
+	lines := worklinequery(prq, dbconn)
 
 	// [c] extract info from the hitlines returned
 	var vals LevelValues

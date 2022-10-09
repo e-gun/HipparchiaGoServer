@@ -100,8 +100,8 @@ func RtMorphchart(c echo.Context) error {
 	// for ἐπιγιγνώϲκω...
 	// select * from greek_morphology where greek_morphology.xrefs='37925260';
 
-	dbpool := GetPSQLconnection()
-	defer dbpool.Release()
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
 
 	// hipparchiaDB=# select observed_form, xrefs from latin_morphology where observed_form = 'crediti';
 	// observed_form |       xrefs
@@ -122,7 +122,7 @@ func RtMorphchart(c echo.Context) error {
 	var foundrows pgx.Rows
 	var err error
 
-	foundrows, err = dbpool.Query(context.Background(), psq)
+	foundrows, err = dbconn.Query(context.Background(), psq)
 	chke(err)
 
 	dbmmap := make(map[string]DbMorphology)
@@ -198,11 +198,11 @@ func RtMorphchart(c echo.Context) error {
 		}
 
 		rnd := strings.Replace(uuid.New().String(), "-", "", -1)
-		_, e := dbpool.Exec(context.Background(), fmt.Sprintf(tt, rnd, arr))
+		_, e := dbconn.Exec(context.Background(), fmt.Sprintf(tt, rnd, arr))
 		chke(e)
 
 		q := fmt.Sprintf(qt, l, rnd, l)
-		rr, e := dbpool.Query(context.Background(), q)
+		rr, e := dbconn.Query(context.Background(), q)
 		chke(e)
 		var wc DbWordCount
 		defer rr.Close()
