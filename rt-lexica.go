@@ -760,9 +760,10 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	// [h1a] known forms in use
 
-	if _, ok := AllLemm[w.Word]; ok {
+	lw := uvσςϲ(w.Word) // otherwise "venio" will hit AllLemm instead of "uenio"
+	if _, ok := AllLemm[lw]; ok {
 		kf := `<formsummary parserxref="%d" lexicalid="%.1f" headword="%s" lang="%s">%d known forms</formsummary>`
-		kf = fmt.Sprintf(kf, AllLemm[w.Word].Xref, w.ID, w.Word, w.Lang, len(AllLemm[w.Word].Deriv))
+		kf = fmt.Sprintf(kf, AllLemm[lw].Xref, w.ID, w.Word, w.Lang, len(AllLemm[lw].Deriv))
 		elem = append(elem, kf)
 	}
 

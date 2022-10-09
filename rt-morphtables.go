@@ -339,10 +339,22 @@ func RtMorphchart(c echo.Context) error {
 
 	}
 
-	// todo: ῥώμη will trigger "verb"... : you cant trigger on a single hit; you have to compare total form counts
 	isverb := func() bool {
 		kk := stringmapkeysintoslice(pdxm)
-		return arraystringseeker(GKTENSES, kk)
+		// ῥώμη will trigger "verb"... : you can't choose via a single verb hit; you have to compare total form counts
+		// NO GOOD: return arraystringseeker(GKTENSES, kk)
+
+		tc := arraystringcounter(GKTENSES, kk)
+		cc := arraystringcounter(LTCASES, kk)
+		msg(fmt.Sprintf("RtMorphchart() isverb counts cases: %d; tenses: %d", cc, tc), 4)
+
+		// in greek tc is 2x cc or (far) more; in latin tc can just squeak by cc: "[HGS] cc: 94; tc: 104"
+		// the "2*" below seems safe: famous last words
+		if cc < 2*tc {
+			return true
+		} else {
+			return false
+		}
 	}()
 
 	var jb JSB
@@ -1000,6 +1012,17 @@ func arraystringseeker(ss []string, spp []string) bool {
 		}
 	}
 	return false
+}
+
+// arraystringcounter - if any s in []string is in the []strings produced via splitting each of spp, then add to the count
+func arraystringcounter(ss []string, spp []string) int {
+	count := 0
+	for _, sp := range spp {
+		if multistringseeker(ss, sp) {
+			count += 1
+		}
+	}
+	return count
 }
 
 // getgkvbmap - return a map that tells you what Greek verbal forms in fact exist

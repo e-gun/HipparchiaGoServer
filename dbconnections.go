@@ -8,7 +8,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -29,6 +28,7 @@ func FillPSQLPoool() *pgxpool.Pool {
 	// and remember that idle connections close, so you can have 20 workers fighting for one connection: very bad news
 
 	// max should cap a networked server's resource allocation to the equivalent of N simultaneous users
+	// after that point there should be a steep drop-off in responsiveness
 
 	min := cfg.WorkerCount
 	max := SIMULTANEOUSSEARCHES * cfg.WorkerCount
@@ -51,36 +51,12 @@ func FillPSQLPoool() *pgxpool.Pool {
 	return thepool
 }
 
-// GetPSQLSimpleConnection - return a *pgx.Conn to the database
-func GetPSQLSimpleConnection() *pgx.Conn {
-	// this cannot be used ATM; worklinequery() needs a pgxpool.Conn
-	// there is no simple way to toggle this while running
-	// but when debugging it is possible hand-tweak that one function + sed -i "" "s/dbconn.Release/dbconn.Close" *go
-
-	pl := cfg.PGLogin
-	u := "postgres://%s:%s@%s:%d/%s"
-	url := fmt.Sprintf(u, pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName)
-	conn, err := pgx.Connect(context.Background(), url)
-	if err != nil {
-		msg(fmt.Sprintf("PSQLSimpleConn() could not connect via %s", url), -1)
-		panic(err)
-	}
-	return conn
-}
-
-// GetPSQLPooledConnection - Acquire() a connection from the main pgxpool
-func GetPSQLPooledConnection() *pgxpool.Conn {
-	dbc, err := psqlpool.Acquire(context.Background())
-	if err != nil {
-		msg(fmt.Sprintf("GetPSQLconnection() could not .Acquire() from psqlpool"), -1)
-		panic(err)
-	}
-	return dbc
-}
-
 // GetPSQLconnection - Acquire() a connection from the main pgxpool
 func GetPSQLconnection() *pgxpool.Conn {
-	// alternate is:
-	// return GetPSQLSimpleConnection()
-	return GetPSQLPooledConnection()
+	dbc, e := psqlpool.Acquire(context.Background())
+	if e != nil {
+		msg(fmt.Sprintf("GetPSQLconnection() could not Acquire() from psqlpool"), -1)
+		panic(e)
+	}
+	return dbc
 }
