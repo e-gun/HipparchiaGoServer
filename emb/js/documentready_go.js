@@ -333,9 +333,7 @@ $('#togglesaveslots').click( function(){ $('#saveslots').toggle()});
 $('#toggleloadslots').click( function(){ $('#loadslots').toggle()});
 
 function javascriptsessionintocookie(cookienumberstr){
-    $.getJSON('/sc/set', function (data) {
-        Cookies.set('session'+cookienumberstr, data, { sameSite: 'strict' });
-    });
+    $.getJSON('/sc/set/'+cookienumberstr, function () {});
 }
 
 $('#save01').click( function(){ javascriptsessionintocookie('01'); $('#setoptions').hide(); $('#saveslots').hide(); });

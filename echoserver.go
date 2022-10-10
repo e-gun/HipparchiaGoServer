@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type TemplateRenderer struct {
@@ -261,7 +262,7 @@ func StartEchoServer() {
 	// [q] cookies
 
 	// [q1] set
-	e.GET("/sc/set", RtSessionSetsCookie)
+	e.GET("/sc/set/:num", RtSessionSetsCookie)
 
 	// [q2] get
 	e.GET("/sc/get/:num", RtSessionGetCookie)
@@ -280,9 +281,26 @@ func RtAuthChkuser(c echo.Context) error {
 }
 
 func RtSessionSetsCookie(c echo.Context) error {
+	num := c.Param("num")
 	user := readUUIDCookie(c)
 	s := sessions[user]
-	return c.JSONPretty(http.StatusOK, s, JSONINDENT)
+	v, e := json.Marshal(s)
+	if e != nil {
+		v = []byte{}
+		msg("RtSessionSetsCookie() could not marshal the session", 1)
+	}
+	swap := strings.NewReplacer(`"`, "%22", ",", "%2C", " ", "%20")
+	vs := swap.Replace(string(v))
+
+	// note that cookie.Path = "/" is essential; otherwise different cookies for different contexts: "/browse" vs "/"
+	cookie := new(http.Cookie)
+	cookie.Name = "session" + num
+	cookie.Path = "/"
+	cookie.Value = vs
+	cookie.Expires = time.Now().Add(4800 * time.Hour)
+	c.SetCookie(cookie)
+
+	return c.JSONPretty(http.StatusOK, "", JSONINDENT)
 }
 
 func RtSessionGetCookie(c echo.Context) error {
