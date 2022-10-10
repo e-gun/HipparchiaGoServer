@@ -168,65 +168,7 @@ const extrauichoices = Array().concat(categoryautofills);
 // firstload hiding
 const miscfirstloadhides = Array('#browserdialog', '#helptabs', '#fewerchoicesbutton', '#lemmatizing-ison',
     '#vectorizing-ison', '#alt_upperleftbuttons', '#analogiesinputarea', '#extendsearchbutton-ispresentlyopen', '#trimmingcheckboxes');
-const tohideonfirstload = Array().concat(miscfirstloadhides, vectorformattingdotpyids, endpointnoticesandbuttons,
+const tohideonfirstload = Array().concat(miscfirstloadhides, endpointnoticesandbuttons,
     endpointids, inputids, actionbuttons, infobuttons, infoboxes, lemmatasearchforms, extrasearchcriteria,
     lemmatabagoptions, extrasearchuielements);
 
-//
-// FYI: COMPREHENSIVE ID COLLECTIONS
-//
-
-// python to generate these...
-// idfind = re.compile(r'id="(.*?)"')
-// y = re.findall(idfind, x)
-// y.sort()
-
-const activeoptionshtmlids = Array('#activeoptions', '#chrisactive', '#chrnotisactive', '#ddpisactive', '#ddpnotisactive',
-    '#frequencyindexingactive', '#frequencyindexinginactive', '#grkisactive', '#grkisnotactive', '#headwordindexingactive',
-    '#headwordindexiningactive', '#insisactive', '#insnotisactive', '#latisactive', '#latisnotactive', '#lemmatizing-isoff',
-    '#lemmatizing-ison', '#onehitisfalse', '#onehitistrue', '#spuriaisfalse', '#spuriaistrue', '#undatedisfalse', '#undatedistrue',
-    '#usingautoinput', '#usingrawinput', '#variaisfalse', '#variaistrue', '#vectorizing-isoff', '#vectorizing-ison');
-
-const basehtmlids = Array('#versioning');
-
-const browserdialoghtmlidl = Array('#browseback', '#browseforward', '#browserclose', '#browserdialog', '#browserdialogtext',
-    '#browsernavigationbuttons');
-
-const hipparchiahelphtmlids = Array('#BasicSyntax', '#Browsing', '#Dictionaries', '#Extending', '#IncludedMaterials',
-    '#Interface', '#LemmaSearching', '#MakingSearchLists', '#Oddities', '#Openness', '#RegexSearching', '#SpeedSearching',
-    '#VectorSearching', '#helptabs');
-
-const lexicahtmlids = Array('#lexica', '#lexicalsearch', '#lexicon', '#reverselexicon');
-
-const miscuielementshtmlids = Array('#bottommessage', '#clear_button', '#clickforhelp', '#cookiemessage', '#helpbutton',
-    '#moretools', '#openoptionsbutton', '#upperleftbuttons', '#vector_options_button');
-
-const outputboxhtmlids = Array('#authoroutputcontent', '#exclusioninfocell', '#jscriptwigetcell', '#outputbox',
-    '#searchinfo', '#searchlistcontents', '#selectioninfocell', '#selectionstable', '#timerestrictions');
-
-const saveslotshtmlids = Array('#load01', '#load02', '#load03', '#load04', '#load05', '#loadslots', '#save01', '#save02',
-    '#save03', '#save04', '#save05', '#savedprofiles', '#saveslots', '#toggleloadslots', '#togglesaveslots');
-
-const searchfieldhtmlids = Array('#addauthortosearchlist', '#authinfobutton', '#authorendpoint', '#authorholdings',
-    '#authorsautocomplete', '#browseto', '#earliestdate', '#edts', '#endpointbutton-isclosed', '#endpointbutton-isopen',
-    '#endpointnotice', '#excludeauthor', '#excludeauthorfromsearchlist', '#excludegenrebutton', '#fewerchoicesbutton',
-    '#fromnotice', '#genreinfobutton', '#genrelistcontents', '#genresautocomplete', '#includeincerta', '#includespuria',
-    '#includevaria', '#latestdate', '#ldts', '#level00', '#level00endpoint', '#level01', '#level01endpoint', '#level02',
-    '#level02endpoint', '#level03', '#level03endpoint', '#level04', '#level04endpoint', '#level05', '#level05endpoint',
-    '#locationsautocomplete', '#makeanindex', '#makevocablist', '#morechoicesbutton','#pickgenrebutton', '#provenanceautocomplete',
-    '#rawendpointinput', '#rawlocationinput', '#searchfield', '#selectionendpoint', '#spuriacheckboxes', '#workendpoint',
-    '#workgenresautocomplete', '#worksautocomplete');
-
-const searchhtlmids = Array('#browserclickscriptholder', '#displayresults', '#imagearea', '#indexclickscriptholder',
-    '#lexicadialog', '#lexicadialogtext', '#mainbody', '#pollingdata', '#searchsummary', '#vectorspinnerscriptholder',
-    '#vectorspinnerscriptholder');
-
-const setoptionshtmlids = Array('#alt_clear_button', '#alt_moretools', '#alt_upperleftbuttons',
-    '#alt_vector_options_button', '#authorssummary', '#authorflagging', '#autofillinput', '#bracketangled', '#bracketcurly', '#bracketround',
-    '#bracketsquare', '#browserspinner', '#christiancorpus', '#closeoptionsbutton', '#collapseattic', '#debugdb', '#debughtml',
-    '#debuglex', '#debugparse', '#fontchoice', '#frequencyindexing_n', '#frequencyindexing_y', '#greekcorpus',
-    '#headwordindexing_n', '#headwordindexing_y', '#hitlimitspinner', '#indexskipsknownwords', '#inscriptioncorpus',
-    '#latincorpus', '#linesofcontextspinner', '#manualinput', '#mophologytablesoptions', '#morphdialects', '#morphduals',
-    '#morphemptyrows', '#morphfinite', '#morphimper', '#morphinfin', '#morphpcpls', '#onehit_n', '#onehit_y', '#papyruscorpus', '#phrasesummary',
-    '#principleparts', '#quotesummary', '#searchinsidemarkup', '#sensesummary', '#setoptionsnavigator', '#showwordcounts',
-    '#simpletextoutput', '#sortresults', '#suppresscolors', '#zaplunates', '#zapvees');

@@ -208,7 +208,7 @@ function checkCookie(){
 checkCookie();
 
 hidemany(tohideonfirstload);
-togglemany(vectorcheckboxspans);
+// togglemany(vectorcheckboxspans);
 closeextendedsearcharea();
 
 if ($('#termoneisalemma').is(":checked")) {
