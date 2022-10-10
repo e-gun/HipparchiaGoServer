@@ -196,7 +196,7 @@ HipparchiaGoServer/emb/ % tree
 │   ├── browser.js
 │   ├── coreinterfaceclicks_go.js
 │   ├── documentready_go.js
-│   ├── radioclicks.js
+│   ├── radioclicks_go.js
 │   ├── uielementlists_go.js
 │   └── vectorclicks.js
 └── ttf
