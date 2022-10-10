@@ -20,21 +20,20 @@ import (
 
 // RtBrowseLocus - open a browser if sent '/browse/locus/gr0086/025/999a|_0'
 func RtBrowseLocus(c echo.Context) error {
-	// sample input: http://localhost:8000/browse/locus/gr0086/025/999a|_0
 	sep := "|"
 	bp := Browse(c, sep)
 	return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
 }
 
+// RtBrowsePerseus - open a browser if sent '/browse/perseus/lt0550/001/2:717'
 func RtBrowsePerseus(c echo.Context) error {
-	// sample input: http://localhost:8000//browse/perseus/lt0550/001/2:717
 	sep := ":"
 	bp := Browse(c, sep)
 	return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
 }
 
+// RtBrowseRaw - open a browser if sent '/browse/rawlocus/lt0474/055/1.1.1'
 func RtBrowseRaw(c echo.Context) error {
-	// uri: /browse/rawlocus/lt0474/055/1.1.1
 	sep := "."
 	bp := Browse(c, sep)
 	return c.JSONPretty(http.StatusOK, bp, JSONINDENT)

@@ -24,6 +24,7 @@ type JSStruct struct {
 	V string `json:"value"`
 }
 
+// RtGetJSSession - return the JSON for the session values for parsing by client JS
 func RtGetJSSession(c echo.Context) error {
 	// see hipparchiajs/coreinterfaceclicks_go.js
 
@@ -93,9 +94,8 @@ func RtGetJSSession(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
 
+// RtGetJSWorksOf - /get/json/worksof/lt0972 --> [{"value": "Satyrica (w001)"}, {"value": "Satyrica, fragmenta (w002)"}]
 func RtGetJSWorksOf(c echo.Context) error {
-	// curl localhost:5000/get/json/worksof/lt0972
-	//[{"value": "Satyrica (w001)"}, {"value": "Satyrica, fragmenta (w002)"}]
 	id := c.Param("id")
 	wl := AllAuthors[id].WorkList
 	tp := "%s (%s)"
@@ -108,9 +108,8 @@ func RtGetJSWorksOf(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, titles, JSONINDENT)
 }
 
+// RtGetJSWorksStruct - lt0474/058 --> {"totallevels": 4, "level": 3, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
 func RtGetJSWorksStruct(c echo.Context) error {
-	// curl localhost:5000/get/json/workstructure/lt0474/058
-	//{"totallevels": 4, "level": 3, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
 	// that is a top: interiors look like "1|3" for "book one", "subheading_val 3"
 
 	locus := c.Param("locus")
@@ -135,9 +134,8 @@ func RtGetJSWorksStruct(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, lvls, JSONINDENT)
 }
 
+// RtGetJSHelpdata - populate <div id="helptabs"> on frontpage.html via $('#helpbutton').click in documentready_go.js
 func RtGetJSHelpdata(c echo.Context) error {
-	// populate <div id="helptabs"> on frontpage.html via $('#helpbutton').click in documentready_go.js
-
 	cat := []string{"Interface", "Browsing", "Dictionaries", "MakingSearchLists", "BasicSyntax", "RegexSearching",
 		"LemmaSearching", "Oddities", "Extending", "IncludedMaterials"}
 

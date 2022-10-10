@@ -156,10 +156,6 @@ HipparchiaGoServer/emb/ % tree
 ├── css
 │   ├── localfont.css
 │   └── servedfont.css
-├── extrajs
-│   ├── js.cookie.js
-│   ├── jsd3.js
-│   └── jsforldavis.js
 ├── frontpage.html
 ├── h
 │   ├── helpbasicsyntax.html
@@ -216,5 +212,7 @@ HipparchiaGoServer/emb/ % tree
     ├── NotoSans-Thin.ttf
     ├── NotoSansMono-Regular.ttf
     └── license_for_noto_fonts.txt
+
+7 directories, 52 files
 
 */

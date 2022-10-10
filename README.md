@@ -1,7 +1,7 @@
 # HipparchiaGoServer
 ## beta quality: (allegedly) solid core
 
-### STATUS (`v1.0.0b1`):
+### STATUS (`v1.0.0`):
 
 * 25%-700% faster than HipparchiaServer depending on the function. Uses c. 60% as much RAM.
 * monolithic binary: no need for extra files/folders beyond setting a password in `hgs-conf.json`

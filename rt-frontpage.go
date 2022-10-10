@@ -43,6 +43,7 @@ type ServerSession struct {
 	TmpStr      string
 }
 
+// RtFrontpage - send the html for "/"
 func RtFrontpage(c echo.Context) error {
 	// will set if missing
 	s := sessions[readUUIDCookie(c)]

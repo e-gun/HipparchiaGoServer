@@ -76,10 +76,11 @@ func (s SelectionValues) A() bool {
 	}
 }
 
+// RtSelectionMake - register a selection and modify the session accordingly
 func RtSelectionMake(c echo.Context) error {
 	// GET http://localhost:8000/selection/make/_?auth=lt0474&work=073&locus=3|10&endpoint=
 
-	// note that you need to return JSON: reportcurrentselections() so as to fill #selectionstable on the page
+	// note that you need to return JSON: reportcurrentselections() to fill #selectionstable on the page
 
 	user := readUUIDCookie(c)
 
@@ -111,6 +112,7 @@ func RtSelectionMake(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, cs, JSONINDENT)
 }
 
+// RtSelectionClear - remove a selection from the session
 func RtSelectionClear(c echo.Context) error {
 	// GET http://localhost:8000/selection/clear/wkselections/0
 	user := readUUIDCookie(c)
@@ -196,6 +198,7 @@ func RtSelectionFetch(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, sd, JSONINDENT)
 }
 
+// selected - do the hard work of parsing a selection
 func selected(user string, sv SelectionValues) ServerSession {
 	// have to deal with all sorts of possibilities
 	// [a] author: "GET /selection/make/_?auth=gr7000 HTTP/1.1"
@@ -321,6 +324,7 @@ func selected(user string, sv SelectionValues) ServerSession {
 	return s
 }
 
+// rationalizeselections - make sure that A, B, C, ... make sense as a collection of selections
 func rationalizeselections(original ServerSession, sv SelectionValues) ServerSession {
 	// if you select "book 2" after selecting the whole, select only book 2
 	// if you select the whole after book 2, then the whole
@@ -814,6 +818,7 @@ func reportcurrentselections(c echo.Context) SelectionData {
 	return sd
 }
 
+// formatnewselectionjs - prepare the JS that the client needs in order to report the current selections
 func formatnewselectionjs(jsinfo []JSData) string {
 	if len(jsinfo) == 0 {
 		return ""

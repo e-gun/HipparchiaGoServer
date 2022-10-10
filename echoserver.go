@@ -33,6 +33,7 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
+// StartEchoServer - start serving; this blocks and does not return while the program remains alive
 func StartEchoServer() {
 	// https://echo.labstack.com/guide/
 	// cf https://medium.com/cuddle-ai/building-microservice-using-golang-echo-framework-ff10ba06d508
@@ -275,15 +276,18 @@ func StartEchoServer() {
 // MISC SIMPLE ROUTES
 //
 
+// RtAuthChkuser - placeholder for authentication code [post v.1.0.0]
 func RtAuthChkuser(c echo.Context) error {
 	// currently unused
 	return c.String(http.StatusOK, "")
 }
 
+// RtSessionSetsCookie - turn the session into a cookie
 func RtSessionSetsCookie(c echo.Context) error {
 	num := c.Param("num")
 	user := readUUIDCookie(c)
 	s := sessions[user]
+
 	v, e := json.Marshal(s)
 	if e != nil {
 		v = []byte{}
@@ -303,6 +307,7 @@ func RtSessionSetsCookie(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, "", JSONINDENT)
 }
 
+// RtSessionGetCookie - turn a stored cookie into a session
 func RtSessionGetCookie(c echo.Context) error {
 	// this code has input trust issues...
 	user := readUUIDCookie(c)
@@ -334,8 +339,8 @@ func RtSessionGetCookie(c echo.Context) error {
 	return nil
 }
 
+// RtResetSession - delete and then reset the session
 func RtResetSession(c echo.Context) error {
-	// delete my session
 	delete(sessions, readUUIDCookie(c))
 
 	// then reset it
