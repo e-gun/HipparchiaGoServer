@@ -114,7 +114,8 @@ func RtSelectionMake(c echo.Context) error {
 
 // RtSelectionClear - remove a selection from the session
 func RtSelectionClear(c echo.Context) error {
-	// GET http://localhost:8000/selection/clear/wkselections/0
+	// sample item in the "selectionstable"; the js that activates it is inside the "selectionscriptholder" div
+	// <span class="wkselections selection" id="wkselections_00" title="Double-click to remove this item">Antigonus, <i>Historiarum mirabilium collectio</i></span>
 	user := readUUIDCookie(c)
 
 	locus := c.Param("locus")

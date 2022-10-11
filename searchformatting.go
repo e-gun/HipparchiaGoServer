@@ -11,7 +11,6 @@ import (
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"regexp"
-	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -346,11 +345,9 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 	return sum
 }
 
+// highlightsearchterm - html markup for the search term in the line so it can jump out at you
 func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
-	// 	html markup for the search term in the line so it can jump out at you
-	//
 	//	regexequivalent is compiled via searchtermfinder() in rt-search.go
-	//
 
 	// see the warnings and caveats at highlightsearchterm() in searchformatting.py
 	if pattern.MatchString(line.Contents) {
@@ -365,8 +362,8 @@ func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
 	}
 }
 
+// formatinscriptiondates - show the years for inscriptions
 func formatinscriptiondates(template string, dbw *DbWorkline) string {
-	// show the years for inscriptions
 	datestring := ""
 	fc := dbw.FindCorpus()
 	dated := fc == "in" || fc == "ch" || fc == "dp"
@@ -380,8 +377,8 @@ func formatinscriptiondates(template string, dbw *DbWorkline) string {
 	return datestring
 }
 
+// formatinscriptionplaces - show the places for inscriptions
 func formatinscriptionplaces(dbw *DbWorkline) string {
-	// show the places for inscriptions
 	placestring := ""
 	fc := dbw.FindCorpus()
 	placed := fc == "in" || fc == "ch" || fc == "dp"
@@ -395,6 +392,7 @@ func formatinscriptionplaces(dbw *DbWorkline) string {
 func textblockcleaner(html string) string {
 	// do it early and in this order
 	// presupposes the snippers are in there: "✃✃✃"
+	// used by tr-browser and rt-texsindicesandvocab as well
 	html = unbalancedspancleaner(html)
 	html = formateditorialbrackets(html)
 	html = formatmultilinebrackets(html)
@@ -530,6 +528,7 @@ func gethighlighter(ss *SearchStruct) *regexp.Regexp {
 	return re
 }
 
+// lemmahighlighter - set regex to highlight a lemmatized search term
 func lemmahighlighter(lm string) *regexp.Regexp {
 	// don't let "(^|\s)τρεῖϲ(\s|$)|(^|\s)τρία(\s|$)|(^|\s)τριϲίν(\s|$)|(^|\s)τριῶν(\s|$)|(^|\s)τρί(\s|$)|(^|\s)τριϲί(\s|$)"
 	// turn into "(^|\[sS])[τΤ][ρῤῥῬ][εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ]ῖ[ϲσΣςϹ](\[sS]|$)|(^|\[sS])..."
@@ -556,21 +555,4 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 		msg("gethighlighter() could not compile LemmaOne into regex", 3)
 	}
 	return r
-}
-
-func formatbcedate(d string) string {
-	s, e := strconv.Atoi(d)
-	if e != nil {
-		s = 9999
-	}
-	if s > 0 {
-		d += " C.E."
-	} else {
-		d = strings.Replace(d, "-", "", -1) + " B.C.E."
-	}
-	return d
-}
-
-func i64tobce(i int64) string {
-	return formatbcedate(fmt.Sprintf("%d", i))
 }

@@ -7,6 +7,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -17,10 +18,6 @@ var (
 	runered = getrunereducer()
 	uvred   = uvσςϲreducer()
 )
-
-//
-// Geek and Latin functions
-//
 
 // stripaccentsSTR - ὀκνεῖϲ --> οκνειϲ, etc.
 func stripaccentsSTR(u string) string {
@@ -254,4 +251,23 @@ func uvσςϲreducer() map[rune]rune {
 		}
 	}
 	return reducer
+}
+
+// formatbcedate - turn "-300" into "300 B.C.E."
+func formatbcedate(d string) string {
+	s, e := strconv.Atoi(d)
+	if e != nil {
+		s = 9999
+	}
+	if s > 0 {
+		d += " C.E."
+	} else {
+		d = strings.Replace(d, "-", "", -1) + " B.C.E."
+	}
+	return d
+}
+
+// i64tobce - torn an i64 into something like "300 B.C.E."
+func i64tobce(i int64) string {
+	return formatbcedate(fmt.Sprintf("%d", i))
 }

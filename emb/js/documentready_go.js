@@ -75,21 +75,22 @@ $(document).ready( function () {
         let qstring = qstringarray.join('&');
 
         let searchid = generateId(8);
-        let flaskpath = '';
+        let serverroot = '';
         let url = '';
 
-        // let searchid = uuidv4();
+        serverroot = '/srch/exec/';
+        url = serverroot + searchid + '?' + qstring;
 
-        if (areWeWearchingVectors() === 0) {
-            flaskpath = '/srch/exec/';
-            url = flaskpath + searchid + '?' + qstring;
-        } else {
-            let lsv = $('#lemmatasearchform').val();
-            let vtype = whichVectorChoice();
-            if (lsv.length === 0) { lsv = '_'; }
-            flaskpath = '/vectors/';
-            url = flaskpath + vtype + '/' + searchid + '/' + lsv;
-        }
+        // if (areWeWearchingVectors() === 0) {
+        //     serverroot = '/srch/exec/';
+        //     url = serverroot + searchid + '?' + qstring;
+        // } else {
+        //     let lsv = $('#lemmatasearchform').val();
+        //     let vtype = whichVectorChoice();
+        //     if (lsv.length === 0) { lsv = '_'; }
+        //     serverroot = '/vectors/';
+        //     url = serverroot + vtype + '/' + searchid + '/' + lsv;
+        // }
 
         checkactivityviawebsocket(searchid);
         $.getJSON(url, function (returnedresults) { loadsearchresultsintodisplayresults(returnedresults); });
@@ -140,14 +141,14 @@ $(document).ready( function () {
       return Array.from(arr, dec2hex).join('');
     }
 
-    function areWeWearchingVectors () {
-        let xor = [];
-        for (let i = 0; i < vectorboxes.length; i++) {
-            let opt = $(vectorboxes[i]);
-            if (opt.prop('checked')) { xor.push(1); }
-            }
-        return xor.length;
-    }
+    // function areWeWearchingVectors () {
+    //     let xor = [];
+    //     for (let i = 0; i < vectorboxes.length; i++) {
+    //         let opt = $(vectorboxes[i]);
+    //         if (opt.prop('checked')) { xor.push(1); }
+    //         }
+    //     return xor.length;
+    // }
 
     function whichVectorChoice () {
         let xor = [];

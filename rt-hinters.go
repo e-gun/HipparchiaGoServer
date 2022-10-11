@@ -13,12 +13,8 @@ import (
 	"strings"
 )
 
+// RtAuthorHints - /hints/author/_?term=auf --> [{'value': 'Aufidius Bassus [lt0809]'}, {'value': 'Aufustius [lt0401]'}]
 func RtAuthorHints(c echo.Context) error {
-	// input is not validated
-
-	// 127.0.0.1 - - [24/Aug/2022 19:57:47] "GET /hints/author/_?term=auf HTTP/1.1" 200 -
-	// [{'value': 'Aufidius Bassus [lt0809]'}, {'value': 'Aufustius [lt0401]'}]
-
 	skg := c.QueryParam("term")
 	if len(skg) < 2 {
 		return emptyjsreturn(c)
@@ -47,9 +43,6 @@ func RtAuthorHints(c echo.Context) error {
 		}
 	}
 
-	// 'hyg' -->
-	// [[Hyginus , myth. lt1263] [Hyginus Astronomus lt0899] [Hyginus, Gaius Iulius lt0533] [Hyginus Gromaticus lt1266]]
-
 	// trim by active corpora
 	s := sessions[readUUIDCookie(c)]
 	var trimmed [][2]string
@@ -72,11 +65,8 @@ func RtAuthorHints(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, auf, JSONINDENT)
 }
 
+// RtLemmaHints - /hints/lemmata/_?term=dol --> [{"value": "dolabella\u00b9"}, {"value": "dolabra"}, {"value": "dolamen"}, ... ]
 func RtLemmaHints(c echo.Context) error {
-	// "GET http://localhost:8000/hints/lemmata/_?term=dol"
-	// curl "http://localhost:5000/hints/lemmata/_?term=dol"
-	//[{"value": "dolabella\u00b9"}, {"value": "dolabra"}, {"value": "dolamen"}, {"value": "dolatorium"}, ...]
-
 	term := c.QueryParam("term")
 	// can't slice a unicode string...
 	skg := []rune(term)
@@ -85,7 +75,6 @@ func RtLemmaHints(c echo.Context) error {
 		return emptyjsreturn(c)
 	}
 
-	// we will be slicing unicode, so can't use string
 	skg = stripaccentsRUNE(skg)
 	nl := string(skg[0:2])
 
@@ -121,6 +110,7 @@ func RtWkLocHints(c echo.Context) error {
 	return basichinter(c, WkLocs)
 }
 
+// basichinter - which substrings of the request are members of the master map?
 func basichinter(c echo.Context, mastermap map[string]bool) error {
 	skg := c.QueryParam("term")
 	if len(skg) < 2 {
