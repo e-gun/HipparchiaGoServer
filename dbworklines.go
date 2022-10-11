@@ -214,7 +214,6 @@ func (dbw *DbWorkline) LvlVal(lvl int) string {
 func worklinequery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
 	// [a] build a temp table if needed
 
-	// fmt.Printf("TT:\n%s\n", prq.TempTable)
 	if prq.TempTable != "" {
 		_, err := dbconn.Exec(context.Background(), prq.TempTable)
 		chke(err)
@@ -224,7 +223,6 @@ func worklinequery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
 	var foundrows pgx.Rows
 	var err error
 
-	// fmt.Printf("Q:\n%s\n", prq.PsqlQuery)
 	if prq.PsqlData != "" {
 		foundrows, err = dbconn.Query(context.Background(), prq.PsqlQuery, prq.PsqlData)
 		chke(err)
@@ -316,7 +314,7 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	need := lvls - atlvl
 
 	if atlvl < 0 || need < 0 {
-		// logic bug in here somehwere...
+		// logic bug in here somewhere...
 		msg("findvalidlevelvalues() sent negative levels", 1)
 		return LevelValues{}
 	}

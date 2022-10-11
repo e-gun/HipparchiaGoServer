@@ -9,7 +9,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/jackc/pgx/v4"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
@@ -434,9 +433,8 @@ func dictgrabber(seeking string, dict string, col string, syntax string) []DbLex
 	q := fmt.Sprintf(psq, fld, dict, col, syntax, seeking, MAXDICTLOOKUP)
 
 	var lexicalfinds []DbLexicon
-	var foundrows pgx.Rows
-	var err error
-	foundrows, err = dbconn.Query(context.Background(), q)
+
+	foundrows, err := dbconn.Query(context.Background(), q)
 	chke(err)
 
 	defer foundrows.Close()
@@ -458,10 +456,7 @@ func getmorphmatch(word string, lang string) []DbMorphology {
 	fld := `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
 	psq := fmt.Sprintf("SELECT %s FROM %s_morphology WHERE observed_form = '%s'", fld, lang, word)
 
-	var foundrows pgx.Rows
-	var err error
-
-	foundrows, err = dbconn.Query(context.Background(), psq)
+	foundrows, err := dbconn.Query(context.Background(), psq)
 	chke(err)
 
 	var thesefinds []DbMorphology
@@ -537,7 +532,6 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 	var lexicalfinds []DbLexicon
 	dedup := make(map[float32]bool)
 	for _, w := range hwm {
-		// var foundrows pgx.Rows
 		var err error
 		q := fmt.Sprintf(psq, fld, d, col, w)
 		foundrows, err := dbconn.Query(context.Background(), q)

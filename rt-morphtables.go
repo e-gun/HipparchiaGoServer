@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
@@ -68,11 +67,6 @@ func RtMorphchart(c echo.Context) error {
 
 	// should reach this route exclusively via a click from rt-lexica.go
 
-	if cfg.LogLevel < 3 {
-		// no calling this route unless debugging
-		return emptyjsreturn(c)
-	}
-
 	// [a] parse request
 
 	req := c.Param("wd")
@@ -119,10 +113,7 @@ func RtMorphchart(c echo.Context) error {
 	fld := `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
 	psq := fmt.Sprintf(`SELECT %s FROM %s_morphology WHERE xrefs ~ '%s' AND prefixrefs=''`, fld, lg, xr)
 
-	var foundrows pgx.Rows
-	var err error
-
-	foundrows, err = dbconn.Query(context.Background(), psq)
+	foundrows, err := dbconn.Query(context.Background(), psq)
 	chke(err)
 
 	dbmmap := make(map[string]DbMorphology)
