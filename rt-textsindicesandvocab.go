@@ -126,7 +126,7 @@ func RtTextMaker(c echo.Context) error {
 		ti += " (and others)"
 	}
 
-	ct := basiccitation(firstwork, firstline)
+	ct := basiccitation(firstline)
 
 	sum := fmt.Sprintf(st, au, ti, ct)
 

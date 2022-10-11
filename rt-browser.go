@@ -278,8 +278,8 @@ func formatbrowsercitationinfo(w DbWork, f DbWorkline, l DbWorkline) string {
 	ci = strings.Replace(ci, "<cv", `<span class="currentlyviewing`, -1)
 
 	dt := `<br>(Assigned date of %s)`
-	beg := basiccitation(w, f)
-	end := basiccitation(w, l)
+	beg := basiccitation(f)
+	end := basiccitation(l)
 
 	pi := formatpublicationinfo(AllWorks[f.WkUID])
 	id := formatinscriptiondates(dt, &f)
@@ -290,7 +290,8 @@ func formatbrowsercitationinfo(w DbWork, f DbWorkline, l DbWorkline) string {
 }
 
 // basiccitation - produce a comma-separated citation from a DbWorkline
-func basiccitation(w DbWork, l DbWorkline) string {
+func basiccitation(l DbWorkline) string {
+	w := AllWorks[l.FindWork()]
 	cf := w.CitationFormat()
 	loc := l.FindLocus()
 	cf = cf[6-(len(loc)) : 6]
@@ -307,28 +308,29 @@ func basiccitation(w DbWork, l DbWorkline) string {
 func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	const (
 		OBSREGTEMPL = "(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|”|\\!|,|:|;|\\?|·|$)"
-	)
-	tr := `
+		TRTMPL      = `
             <tr class="browser">
                 <td class="browserembeddedannotations">%s</td>
                 <td class="browsedline">%s</td>
                 <td class="browsercite">%s</td>
             </tr>
 		`
-	fla := `<span class="focusline">`
-	flb := `</span>`
+		FOCA = `<span class="focusline">`
+		FOCB = `</span>`
+		SNIP = "✃✃✃"
+	)
 
 	block := make([]string, len(lines))
 	for i, l := range lines {
 		block[i] = l.MarkedUp
 	}
 
-	whole := strings.Join(block, "✃✃✃")
+	whole := strings.Join(block, SNIP)
 
 	whole = textblockcleaner(whole)
 
 	// reassemble
-	block = strings.Split(whole, "✃✃✃")
+	block = strings.Split(whole, SNIP)
 	for i, b := range block {
 		lines[i].MarkedUp = b
 	}
@@ -413,7 +415,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		if lines[i].TbIndex != focus {
 			bl = newline
 		} else {
-			bl = fmt.Sprintf("%s%s%s", fla, newline, flb)
+			bl = fmt.Sprintf("%s%s%s", FOCA, newline, FOCB)
 		}
 
 		cit := selectivelydisplaycitations(lines[i], previous, focus)
@@ -424,7 +426,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 			// bl = fmt.Sprintf(`<span class="small">%s</span>`, lines[i].ShowMarkup())
 		}
 
-		trr[i] = fmt.Sprintf(tr, an, bl, cit)
+		trr[i] = fmt.Sprintf(TRTMPL, an, bl, cit)
 		previous = lines[i]
 	}
 	tab := strings.Join(trr, "")
