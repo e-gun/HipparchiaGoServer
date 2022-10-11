@@ -207,8 +207,8 @@ func swapgraveforacute(thetext string) string {
 	return swap.Replace(thetext)
 }
 
+// capsvariants - build regex compilation template for a word and its capitalized variant: [aA][bB][cC]
 func capsvariants(word string) string {
-	// build regex compilation template for a word and its capitalized variant
 	cv := ""
 	rr := []rune(word)
 	for _, r := range rr {
