@@ -172,12 +172,20 @@ func formatpoll(pd PollData) string {
 
 	htm := pd.Msg
 
+	tp := func() string {
+		m := `Finishing up...&nbsp;`
+		if searches[pd.ID].Twobox {
+			m = `Searching for matches among the initial finds...&nbsp;`
+		}
+		return fmt.Sprintf(`&nbsp;(%s)<br>%s`, pd.Elapsed, m)
+	}()
+
 	if pctd != 0 && pd.Remain != 0 && pd.TotalWrk != 0 {
 		// normal in progress
 		htm += fmt.Sprintf(`: <span class="progress">%s</span> completed&nbsp;(%s)<br>`, pcts, pd.Elapsed)
 	} else if pd.Remain == 0 && pd.TotalWrk != 0 {
 		// finished, mostly
-		htm += fmt.Sprintf(`&nbsp;(%s)<br>Finishing up...&nbsp;`, pd.Elapsed)
+		htm += tp
 	} else if pd.TotalWrk == 0 {
 		// vocab or index run have no "total work"
 		htm += fmt.Sprintf(`&nbsp;(%s)`, pd.Elapsed)

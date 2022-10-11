@@ -889,6 +889,8 @@ func columnpicker(c string, r DbWorkline) string {
 
 // clonesearch - make a copy of a search with results and queries, inter alia, ripped out
 func clonesearch(f SearchStruct, iteration int) SearchStruct {
+	// note that the clone is not accessible to RtWebsocket() because it never gets registered in the global searches
+	// this means no progress for second pass searches; this can be achieved, but it is not currently a priority
 	s := f
 	s.Results = []DbWorkline{}
 	s.Queries = []PrerolledQuery{}
@@ -899,7 +901,8 @@ func clonesearch(f SearchStruct, iteration int) SearchStruct {
 	s.PrxSlice = []string{}
 	s.PhaseNum = iteration
 
-	id := fmt.Sprintf("%s_pt%d", f.ID, iteration)
+	oid := strings.Replace(f.ID, "_pt2", "", -1) // so a pt3 does not look like "_pt2_pt3"
+	id := fmt.Sprintf("%s_pt%d", oid, iteration)
 	s.ID = id
 	return s
 }
