@@ -25,24 +25,26 @@ type SearchOutputJSON struct {
 }
 
 func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
+	const (
+		TABLEROW = `
+		<tr class="%s">
+			<td>
+				<span class="findnumber">[%d]</span>&nbsp;&nbsp;%s%s
+				%s
+			</td>
+			<td class="leftpad">
+				<span class="foundtext">%s</span>
+			</td>
+		</tr>`
+
+		DATES = `[<span class="date">%s</span>]`
+	)
+
 	var out SearchOutputJSON
 	out.JS = fmt.Sprintf(BROWSERJS, "browser")
 	out.Title = ss.Seeking
 	out.Image = ""
 	out.Searchsummary = formatfinalsearchsummary(&ss)
-
-	tablerow := `
-	<tr class="%s">
-		<td>
-			<span class="findnumber">[%d]</span>&nbsp;&nbsp;%s%s
-			%s
-		</td>
-		<td class="leftpad">
-			<span class="foundtext">%s</span>
-		</td>
-	</tr>
-	`
-	dtt := `[<span class="date">%s</span>]`
 
 	searchterm := gethighlighter(&ss)
 
@@ -74,7 +76,7 @@ func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 		wk := AllWorks[r.WkUID].Title
 		lk := r.BuildHyperlink()
 		lc := strings.Join(r.FindLocus(), ".")
-		wd := formatinscriptiondates(dtt, &r)
+		wd := formatinscriptiondates(DATES, &r)
 		pl := formatinscriptionplaces(&r)
 
 		// <span class="foundauthor">%s</span>,&nbsp;<span class="foundwork">%s</span>: <browser id="%s"><span class="foundlocus">%s</span></browser>
@@ -84,7 +86,7 @@ func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 		ci = strings.Replace(ci, "<spc", `<span class="found`, -1)
 		ci = strings.Replace(ci, `browser_id`, `browser id`, -1)
 
-		fm := fmt.Sprintf(tablerow, rc, i+1, wd, pl, ci, mu)
+		fm := fmt.Sprintf(TABLEROW, rc, i+1, wd, pl, ci, mu)
 		rows[i] = fm
 	}
 
@@ -101,6 +103,18 @@ type ResultPassageLine struct {
 }
 
 func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
+	const (
+		FINDTEMPL = `
+		<locus>
+			<span class="findnumber">[{{.Findnumber}}]</span>&nbsp;&nbsp;{{.FindDate}}{{.FindCity}}
+			<span class="foundauthor">{{.Foundauthor}}</span>,&nbsp;<span class="foundwork">{{.Foundwork}}</span>
+			<browser id="{{.FindURL}}"><span class="foundlocus">{{.FindLocus}}</span></browser>
+		</locus>
+		{{.LocusBody}}`
+
+		FOUNDLINE = `<span class="locus">%s</span>&nbsp;<span class="foundtext">%s</span><br>
+		`
+	)
 	thesession := sessions[ss.User]
 
 	type PsgFormattingTemplate struct {
@@ -239,25 +253,14 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 		}
 	}
 
-	pht := `
-	<locus>
-		<span class="findnumber">[{{.Findnumber}}]</span>&nbsp;&nbsp;{{.FindDate}}{{.FindCity}}
-		<span class="foundauthor">{{.Foundauthor}}</span>,&nbsp;<span class="foundwork">{{.Foundwork}}</span>
-		<browser id="{{.FindURL}}"><span class="foundlocus">{{.FindLocus}}</span></browser>
-	</locus>
-	{{.LocusBody}}`
-
-	tmpl, e := template.New("tr").Parse(pht)
+	tmpl, e := template.New("tr").Parse(FINDTEMPL)
 	chke(e)
-
-	plt := `<span class="locus">%s</span>&nbsp;<span class="foundtext">%s</span><br>
-	`
 
 	rows := make([]string, len(allpassages))
 	for i, p := range allpassages {
 		lines := make([]string, len(p.CookedCTX))
 		for j, l := range p.CookedCTX {
-			c := fmt.Sprintf(plt, l.Locus, l.Contents)
+			c := fmt.Sprintf(FOUNDLINE, l.Locus, l.Contents)
 			lines[j] = c
 		}
 		p.LocusBody = strings.Join(lines, "")

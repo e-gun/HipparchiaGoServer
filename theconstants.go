@@ -69,7 +69,8 @@ const (
 	WSPOLLINGPAUSE          = 99999999 // 99999999 is 9 9s; consider also 6666666
 
 	// UNACCEPTABLEINPUT       = `|"'!@:,=+_\/`
-	UNACCEPTABLEINPUT = `"'!@:,=_/̣` // we want to be able to do regex...; note the subscript dot at the end; echo+net/url means some can't even make it into a parser: #%&;
+	UNACCEPTABLEINPUT = `"'!@:,=_/` // we want to be able to do regex...; note the subscript dot at the end; echo+net/url means some can't even make it into a parser: #%&;
+	USELESSINPUT      = `’“”̣`      // these can't be found and so should be dropped
 
 	MINCONFIG = `
 {"PosgreSQLPassword": "YOURPASSWORDHERE"}
