@@ -149,6 +149,10 @@ body {
 	font-weight: normal;
 	}
 
+.blue{
+	color: var(--skyblue);
+}
+
 .browsercite {
 	color: var(--huedgrey);
 	font-weight: normal;

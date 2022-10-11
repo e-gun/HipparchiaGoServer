@@ -737,7 +737,6 @@ func formatparsingdata(mpp []MorphPossib) string {
 
 // formatlexicaloutput - turn a DbLexicon word into HTML
 func formatlexicaloutput(w DbLexicon) string {
-
 	var elem []string
 
 	// [h1] first part of a lexical entry:
@@ -767,6 +766,8 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	// [h2] wordcounts data including weighted distributions
 
+	frq := `<p class="wordcounts">Relative frequency: <span class="blue">%s</span></p>`
+
 	hwc := headwordlookup(w.Word)
 
 	elem = append(elem, `<div class="wordcounts">`)
@@ -774,6 +775,7 @@ func formatlexicaloutput(w DbLexicon) string {
 	elem = append(elem, headworddistrib(hwc))
 	elem = append(elem, headwordchronology(hwc))
 	elem = append(elem, headwordgenres(hwc))
+	elem = append(elem, fmt.Sprintf(frq, hwc.FrqCla))
 	elem = append(elem, `</div>`)
 
 	// [h4] the actual body of the entry

@@ -305,6 +305,9 @@ func basiccitation(w DbWork, l DbWorkline) string {
 
 // buildbrowsertable - where the actual HTML gets generated
 func buildbrowsertable(focus int64, lines []DbWorkline) string {
+	const (
+		OBSREGTEMPL = "(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|”|\\!|,|:|;|\\?|·|$)"
+	)
 	tr := `
             <tr class="browser">
                 <td class="browserembeddedannotations">%s</td>
@@ -353,7 +356,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		// you will have "ἱματίῳ", but the marked up line has "ἱμα- | τίῳ"
 		ar := make(map[string]*regexp.Regexp)
 		for _, w := range allwords {
-			r := fmt.Sprintf("(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|”|\\!|,|:|;|\\?|·|$)", capsvariants(w))
+			r := fmt.Sprintf(OBSREGTEMPL, capsvariants(w))
 			pattern, e := regexp.Compile(r)
 			if e != nil {
 				// you will barf if w = *
@@ -364,8 +367,6 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		}
 		return ar
 	}()
-
-	ar := almostallregex
 
 	for i, _ := range lines {
 		// turn "abc def" into "<observed id="abc">abc</observed> <observed id="def">def</observed>"
@@ -383,12 +384,11 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		lmw := mw[len(mw)-1]
 
 		for w, _ := range wds {
-			p := ar[wds[w]]
+			p := almostallregex[wds[w]]
 			if w == len(wds)-1 && terminalhyph.MatchString(lmw) {
 				// wds[lastwordindex] is the unhyphenated word
 				// almostallregex does not contain this pattern: "ἱμα-", e.g.
-				reg := fmt.Sprintf("(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|”|\\!|,|:|;|\\?|·|$)", capsvariants(lmw))
-				np, e := regexp.Compile(reg)
+				np, e := regexp.Compile(fmt.Sprintf(OBSREGTEMPL, capsvariants(lmw)))
 				if e != nil {
 					msg(fmt.Sprintf("buildbrowsertable() could not regex compile %s", lmw), 4)
 					np = regexp.MustCompile("FIND_NOTHING")
