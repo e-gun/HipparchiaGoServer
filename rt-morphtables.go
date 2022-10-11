@@ -340,8 +340,8 @@ func RtMorphchart(c echo.Context) error {
 		msg(fmt.Sprintf("RtMorphchart() isverb counts cases: %d; tenses: %d", cc, tc), 4)
 
 		// in greek tc is 2x cc or (far) more; in latin tc can just squeak by cc: "[HGS] cc: 94; tc: 104"
-		// the "2*" below seems safe: famous last words
-		if cc < 2*tc {
+		// the "(3*tc)/2" below is required to keep ἀγαθόϲ from returning as if ἀγαθόω; otherwise "2*" would make sense
+		if cc < (3*tc)/2 {
 			return true
 		} else {
 			return false
