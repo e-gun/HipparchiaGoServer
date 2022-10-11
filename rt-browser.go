@@ -261,19 +261,21 @@ func formatpublicationinfo(w DbWork) string {
 
 // formatbrowsercitationinfo - the prolix bibliographic info for a line/work
 func formatbrowsercitationinfo(w DbWork, f DbWorkline, l DbWorkline) string {
-	cv := `
+	const (
+		CV = `
 		<p class="currentlyviewing">
 		%s<br>
 		<span class="currentlyviewingcitation">%s — %s</span>
 		%s
 		%s</p>`
 
-	ct := `<cvauthor">%s</span>, <cvwork">%s</span>`
+		CT = `<cvauthor">%s</span>, <cvwork">%s</span>`
+	)
 
 	au := AllAuthors[w.FindAuthor()].Name
 	ti := w.Title
 
-	ci := fmt.Sprintf(ct, au, ti)
+	ci := fmt.Sprintf(CT, au, ti)
 	ci = avoidlonglines(ci, MINBROWSERWIDTH)
 	ci = strings.Replace(ci, "<cv", `<span class="currentlyviewing`, -1)
 
@@ -284,7 +286,7 @@ func formatbrowsercitationinfo(w DbWork, f DbWorkline, l DbWorkline) string {
 	pi := formatpublicationinfo(AllWorks[f.WkUID])
 	id := formatinscriptiondates(dt, &f)
 
-	cv = fmt.Sprintf(cv, ci, beg, end, pi, id)
+	cv := fmt.Sprintf(CV, ci, beg, end, pi, id)
 
 	return cv
 }

@@ -44,6 +44,22 @@ func RtTextMaker(c echo.Context) error {
 
 	// then it gets output as a big "browser table"...
 
+	const (
+		TBLRW = `
+            <tr class="browser">
+                <td class="browserembeddedannotations">%s</td>
+                <td class="browsedline">%s</td>
+                <td class="browsercite">%s</td>
+            </tr>
+		`
+
+		SUMM = `
+		<div id="searchsummary">%s,&nbsp;<span class="foundwork">%s</span><br>
+		citation format:&nbsp;%s<br></div>`
+
+		SNIP = `✃✃✃`
+	)
+
 	user := readUUIDCookie(c)
 	srch := sessionintobulksearch(c)
 
@@ -58,14 +74,6 @@ func RtTextMaker(c echo.Context) error {
 	firstwork := AllWorks[firstline.WkUID]
 	firstauth := AllAuthors[firstwork.FindAuthor()]
 
-	tr := `
-            <tr class="browser">
-                <td class="browserembeddedannotations">%s</td>
-                <td class="browsedline">%s</td>
-                <td class="browsercite">%s</td>
-            </tr>
-		`
-
 	lines := searches[srch.ID].Results
 	block := make([]string, len(lines))
 	for i, l := range lines {
@@ -73,28 +81,29 @@ func RtTextMaker(c echo.Context) error {
 		block[i] = l.MarkedUp
 	}
 
-	whole := strings.Join(block, "✃✃✃")
-
+	whole := strings.Join(block, SNIP)
 	whole = textblockcleaner(whole)
-
-	// reassemble
-	block = strings.Split(whole, "✃✃✃")
+	block = strings.Split(whole, SNIP)
 	for i, b := range block {
 		lines[i].MarkedUp = b
 	}
+
+	// delete after use...
+	whole = ""
+	block = []string{""}
 
 	trr := make([]string, len(lines))
 	previous := lines[0]
 	workcount := 1
 	for i, l := range lines {
 		cit := selectivelydisplaycitations(lines[i], previous, -1)
-		trr[i] = fmt.Sprintf(tr, lines[i].Annotations, lines[i].MarkedUp, cit)
+		trr[i] = fmt.Sprintf(TBLRW, lines[i].Annotations, lines[i].MarkedUp, cit)
 		if l.WkUID != previous.WkUID {
 			// you were doing multi-text generation
 			workcount += 1
 			aw := AllAuthors[AllWorks[l.WkUID].FindAuthor()].Name + fmt.Sprintf(`, <span class="italic">%s</span>`, AllWorks[l.WkUID].Title)
 			aw = fmt.Sprintf(`<hr><span class="emph">[%d] %s</span>`, workcount, aw)
-			extra := fmt.Sprintf(tr, "", aw, "")
+			extra := fmt.Sprintf(TBLRW, "", aw, "")
 			trr[i] = extra + trr[i]
 		}
 		previous = lines[i]
@@ -110,9 +119,6 @@ func RtTextMaker(c echo.Context) error {
 	// but we don't want/need "observed" tags
 
 	// <div id="searchsummary">Cicero,&nbsp;<span class="foundwork">Philippicae</span><br><br>citation format:&nbsp;oration 3, section 13, line 1<br></div>
-	st := `
-	<div id="searchsummary">%s,&nbsp;<span class="foundwork">%s</span><br>
-	citation format:&nbsp;%s<br></div>`
 
 	sui := sessions[user].Inclusions
 
@@ -128,7 +134,7 @@ func RtTextMaker(c echo.Context) error {
 
 	ct := basiccitation(firstline)
 
-	sum := fmt.Sprintf(st, au, ti, ct)
+	sum := fmt.Sprintf(SUMM, au, ti, ct)
 
 	cp := ""
 	if len(srch.Results) == MAXTEXTLINEGENERATION {
@@ -158,6 +164,35 @@ func RtVocabMaker(c echo.Context) error {
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
 	// todo: worry about γ' for γε
+
+	const (
+		SUMM = `
+		<div id="searchsummary">Vocabulary for %s,&nbsp;<span class="foundwork">%s</span><br>
+			citation format:&nbsp;%s<br>
+			%s words found<br>
+			<span class="small">(%ss)</span><br>
+			%s
+			%s
+		</div>
+		`
+		THH = `
+		<table>
+		<tr>
+				<th class="vocabtable">word</th>
+				<th class="vocabtable">count</th>
+				<th class="vocabtable">definitions</th>
+		</tr>`
+
+		TRR = `
+		<tr>
+			<td class="word"><vocabobserved id="%s">%s</vocabobserved></td>
+			<td class="count">%d</td>
+			<td class="trans">%s</td>
+		</tr>`
+
+		TCL = `</table>`
+	)
+
 	start := time.Now()
 
 	id := c.Param("id")
@@ -288,45 +323,15 @@ func RtVocabMaker(c echo.Context) error {
 
 	// [g] format
 
-	th := `
-	<table>
-	<tr>
-			<th class="vocabtable">word</th>
-			<th class="vocabtable">count</th>
-			<th class="vocabtable">definitions</th>
-	</tr>`
-
-	tr := `
-		<tr>
-			<td class="word"><vocabobserved id="%s">%s</vocabobserved></td>
-			<td class="count">%d</td>
-			<td class="trans">%s</td>
-		</tr>`
-
-	tf := `</table>`
-
-	// preallocation means assign to index vs append
 	trr := make([]string, len(vis)+2)
-	trr[0] = th
-
+	trr[0] = THH
 	for i, v := range vis {
-		nt := fmt.Sprintf(tr, v.Wd, v.Wd, v.C, v.TR)
+		nt := fmt.Sprintf(TRR, v.Wd, v.Wd, v.C, v.TR)
 		trr[i+1] = nt
 	}
-
-	trr[len(trr)-1] = tf
+	trr[len(trr)-1] = TCL
 
 	htm := strings.Join(trr, "")
-
-	st := `
-	<div id="searchsummary">Vocabulary for %s,&nbsp;<span class="foundwork">%s</span><br>
-		citation format:&nbsp;%s<br>
-		%s words found<br>
-		<span class="small">(%ss)</span><br>
-		%s
-		%s
-	</div>
-	`
 
 	an := AllAuthors[srch.Results[0].FindAuthor()].Cleaname
 	if srch.TableSize > 1 {
@@ -360,7 +365,7 @@ func RtVocabMaker(c echo.Context) error {
 		cp = m.Sprintf(`<span class="small"><span class="red emph">vocabulary generation incomplete:</span>: hit the cap of %d on allowed lines</span>`, MAXTEXTLINEGENERATION)
 	}
 
-	sum := fmt.Sprintf(st, an, wn, cit, wf, el, cp, ky)
+	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, el, cp, ky)
 
 	type JSFeeder struct {
 		SU string `json:"searchsummary"`
@@ -391,6 +396,30 @@ func RtIndexMaker(c echo.Context) error {
 
 	// a lot of code duplication with RtVocabMaker() but consolidation is not as direct a matter as one might guess
 
+	const (
+		TBLTMP = `        
+		<table>
+		<tbody><tr>
+			<th class="indextable">headword</th>
+			<th class="indextable">word</th>
+			<th class="indextable">count</th>
+			<th class="indextable">passages</th>
+		</tr>
+		%s
+		</table>`
+
+		SUMM = `
+		<div id="searchsummary">Index to %s,&nbsp;<span class="foundwork">%s</span><br>
+			citation format:&nbsp;%s<br>
+			%s words found<br>
+			<span class="small">(%ss)</span><br>
+			%s
+			%s
+			<br>
+			(NB: <span class="homonym">homonymns</span> will appear under more than one headword)
+		</div>
+	`
+	)
 	start := time.Now()
 
 	id := c.Param("id")
@@ -587,32 +616,7 @@ func RtIndexMaker(c echo.Context) error {
 		trr[i] = convertwordinfototablerow(plainmap[k])
 	}
 
-	tb := `        
-		<table>
-        <tbody><tr>
-            <th class="indextable">headword</th>
-            <th class="indextable">word</th>
-            <th class="indextable">count</th>
-            <th class="indextable">passages</th>
-        </tr>
-		%s
-		</table>`
-
-	htm := fmt.Sprintf(tb, strings.Join(trr, ""))
-
-	// <div id="searchsummary">Index to Cicero - Cicero, Marcus Tullius,&nbsp;<span class="foundwork">Philippicae</span>
-	// <br>citation format:&nbsp;oration, section, line<br>236 words found<br><span class="small">(0.10s)</span><br></div>
-	st := `
-	<div id="searchsummary">Index to %s,&nbsp;<span class="foundwork">%s</span><br>
-		citation format:&nbsp;%s<br>
-		%s words found<br>
-		<span class="small">(%ss)</span><br>
-		%s
-		%s
-		<br>
-		(NB: <span class="homonym">homonymns</span> will appear under more than one headword)
-	</div>
-	`
+	htm := fmt.Sprintf(TBLTMP, strings.Join(trr, ""))
 
 	an := AllAuthors[srch.Results[0].FindAuthor()].Cleaname
 	if srch.TableSize > 1 {
@@ -645,7 +649,7 @@ func RtIndexMaker(c echo.Context) error {
 		cp = m.Sprintf(`<span class="small"><span class="red emph">indexing incomplete:</span>: hit the cap of %d on allowed lines</span>`, MAXTEXTLINEGENERATION)
 	}
 
-	sum := fmt.Sprintf(st, an, wn, cit, wf, el, cp, ky)
+	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, el, cp, ky)
 
 	type JSFeeder struct {
 		SU string `json:"searchsummary"`
@@ -825,6 +829,26 @@ func convertwordinfototablerow(ww []WordInfo) string {
 	//		<td class="passages"><indexedlocation id="index/gr0540/015/3831">⒪ 2.4</indexedlocation>, <indexedlocation id="index/gr0540/025/5719">⒴ 32.5</indexedlocation></td>
 	//	</tr>
 
+	const (
+		TBLRW = `
+		<tr>
+			<td class="headword"><indexobserved id="%s">%s</indexobserved></td>
+			<td class="word"><indexobserved id="%s">%s</indexobserved></td>
+			<td class="count">%d</td>
+			<td class="passages">%s</td>
+		</tr>`
+
+		HMNTBLRW = `
+		<tr>
+			<td class="headword"><indexobserved id="%s">%s</indexobserved></td>
+			<td class="word"><span class="homonym"><indexobserved id="%s">%s</indexobserved></span></td>
+			<td class="count">%d</td>
+			<td class="passages">%s</td>
+		</tr>`
+
+		IDXLOC = `<indexedlocation id="%s">%s</indexedlocation>`
+	)
+
 	// build it
 	indexmap := make(map[string][]WordInfo, len(ww))
 	for _, w := range ww {
@@ -840,25 +864,6 @@ func convertwordinfototablerow(ww []WordInfo) string {
 	}
 
 	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
-	// standard TR
-	tr := `
-	<tr>
-		<td class="headword"><indexobserved id="%s">%s</indexobserved></td>
-		<td class="word"><indexobserved id="%s">%s</indexobserved></td>
-		<td class="count">%d</td>
-		<td class="passages">%s</td>
-	</tr>`
-
-	// homonymn TR
-	trh := `
-	<tr>
-		<td class="headword"><indexobserved id="%s">%s</indexobserved></td>
-		<td class="word"><span class="homonym"><indexobserved id="%s">%s</indexobserved></span></td>
-		<td class="count">%d</td>
-		<td class="passages">%s</td>
-	</tr>`
-
-	tp := `<indexedlocation id="%s">%s</indexedlocation>`
 
 	trr := make([]string, len(keys))
 	used := make(map[string]bool)
@@ -871,8 +876,6 @@ func convertwordinfototablerow(ww []WordInfo) string {
 			hw = wii[0].HW
 		}
 
-		tem := tp
-
 		sort.Slice(wii, func(i, j int) bool { return wii[i].Loc < wii[j].Loc })
 
 		// get all passages related to this word
@@ -880,15 +883,15 @@ func convertwordinfototablerow(ww []WordInfo) string {
 		dedup := make(map[string]bool) // this is hacky: why are their duplicates to begin with?
 		for j := 0; j < len(wii); j++ {
 			if _, ok := dedup[wii[j].Loc]; !ok {
-				pp = append(pp, fmt.Sprintf(tem, wii[j].Loc, wii[j].Cit))
+				pp = append(pp, fmt.Sprintf(IDXLOC, wii[j].Loc, wii[j].Cit))
 				dedup[wii[j].Loc] = true
 			}
 		}
 		p := strings.Join(pp, ", ")
 
-		templ := tr
+		templ := TBLRW
 		if wii[0].IsHomonymn {
-			templ = trh
+			templ = HMNTBLRW
 		}
 
 		t := fmt.Sprintf(templ, hw, hw, wii[0].Wd, wii[0].Wd, len(pp), p)
