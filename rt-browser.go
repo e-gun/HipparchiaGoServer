@@ -338,6 +338,35 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 
 	terminalhyph := regexp.MustCompile("(\\S+-)$")
 
+	allwords := func() []string {
+		wm := make(map[string]bool)
+		for i, _ := range lines {
+			wds := strings.Split(lines[i].Accented, " ")
+			for _, w := range wds {
+				wm[w] = true
+			}
+		}
+		return stringmapkeysintoslice(wm)
+	}()
+
+	almostallregex := func() map[string]*regexp.Regexp {
+		// you will have "ἱματίῳ", but the marked up line has "ἱμα- | τίῳ"
+		ar := make(map[string]*regexp.Regexp)
+		for _, w := range allwords {
+			r := fmt.Sprintf("(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|”|\\!|,|:|;|\\?|·|$)", capsvariants(w))
+			pattern, e := regexp.Compile(r)
+			if e != nil {
+				// you will barf if w = *
+				msg(fmt.Sprintf("buildbrowsertable() could not regex compile %s", w), 4)
+				pattern = regexp.MustCompile("FIND_NOTHING")
+			}
+			ar[w] = pattern
+		}
+		return ar
+	}()
+
+	ar := almostallregex
+
 	for i, _ := range lines {
 		// turn "abc def" into "<observed id="abc">abc</observed> <observed id="def">def</observed>"
 		// the complication is that x.MarkedUp contains html; use x.Accented to find the words
@@ -352,26 +381,27 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		newline := lines[i].MarkedUp
 		mw := strings.Split(lines[i].MarkedUp, " ")
 		lmw := mw[len(mw)-1]
+
 		for w, _ := range wds {
-			cv := capsvariants(wds[w])
+			p := ar[wds[w]]
 			if w == len(wds)-1 && terminalhyph.MatchString(lmw) {
-				cv = capsvariants(lmw)
-			}
-			pattern, e := regexp.Compile(fmt.Sprintf("(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|”|\\!|,|:|;|\\?|·|$)", cv))
-			if e == nil && w == len(wds)-1 && terminalhyph.MatchString(lmw) {
 				// wds[lastwordindex] is the unhyphenated word
+				// almostallregex does not contain this pattern: "ἱμα-", e.g.
+				reg := fmt.Sprintf("(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|”|\\!|,|:|;|\\?|·|$)", capsvariants(lmw))
+				np, e := regexp.Compile(reg)
+				if e != nil {
+					msg(fmt.Sprintf("buildbrowsertable() could not regex compile %s", lmw), 4)
+					np = regexp.MustCompile("FIND_NOTHING")
+				}
 
 				// without strings.Replace() gr2042@81454 browser formatting error: τὴν ἐκκληϲίαν, τὸν οἶκον τῆϲ class="expanded_text">προϲ-
 				// the html ends up as: <span <observed="" id="προϲευχῆϲ">class="expanded_text"&gt;προϲ-</span>
 				newline = strings.Replace(newline, "<span ", "<span_", -1)
 				r := fmt.Sprintf(`$1<observed id="%s">$2</observed>$3`, lwd)
-				newline = pattern.ReplaceAllString(newline, r)
+				newline = np.ReplaceAllString(newline, r)
 				newline = strings.Replace(newline, "<span_", "<span ", -1)
-			} else if e == nil {
-				newline = pattern.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
 			} else {
-				// you will barf if wds[w] = *
-				msg(fmt.Sprintf("buildbrowsertable() could not regex compile %s", wds[w]), 4)
+				newline = p.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
 			}
 
 			// complication: elision: <observed id="ἀλλ">ἀλλ</observed>’
