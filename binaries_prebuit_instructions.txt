@@ -38,5 +38,6 @@ POST-DOWNLOAD INSTRUCTIONS
 
 [5a] double-click on HipparchiaGoServer: it should really start serving this time
 [5b] success is seeing: "⇨ http server started on 127.0.0.1:8000"
+[5c] you can now aim a browser at http://127.0.0.1:8000
 
 [6] there is no need to quit ever; if you are not searching, this is not consuming resources

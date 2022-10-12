@@ -22,25 +22,29 @@ var efs embed.FS
 // ROUTES
 //
 
-func RtEmbJQuery(c echo.Context) error {
-	d := "emb/jq/"
-	return pathembedder(c, d)
-}
+const (
+	EJQ  = "emb/jq/"
+	EJQI = "emb/jq/images/"
+	EJS  = "emb/js/"
+	ECSS = "emb/css/servedfont.css"
+	ECSL = "emb/css/localfont.css"
+	ETT  = "emb/ttf/"
+	EICO = "emb/images/hipparchia_favicon.ico"
+	EITC = "emb/images/hipparchia_apple-touch-icon-precomposed.png"
+)
 
-func RtEmbExtraJS(c echo.Context) error {
-	d := "emb/extrajs/"
-	return pathembedder(c, d)
+func RtEmbJQuery(c echo.Context) error {
+	return pathembedder(c, EJQ)
 }
 
 func RtEmbJS(c echo.Context) error {
-	d := "emb/js/"
-	return pathembedder(c, d)
+	return pathembedder(c, EJS)
 }
 
 func RtEmbHCSS(c echo.Context) error {
-	f := "emb/css/servedfont.css"
+	f := ECSS
 	if cfg.Font != FONTSETTING {
-		f = "emb/css/localfont.css"
+		f = ECSL
 	}
 
 	j, e := efs.ReadFile(f)
@@ -65,23 +69,19 @@ func RtEmbHCSS(c echo.Context) error {
 }
 
 func RtEmbJQueryImg(c echo.Context) error {
-	d := "emb/jq/images/"
-	return pathembedder(c, d)
+	return pathembedder(c, EJQI)
 }
 
 func RtEmbTTF(c echo.Context) error {
-	d := "emb/ttf/"
-	return pathembedder(c, d)
+	return pathembedder(c, ETT)
 }
 
 func RtEbmFavicon(c echo.Context) error {
-	f := "emb/images/hipparchia_favicon.ico"
-	return fileembedder(c, f)
+	return fileembedder(c, EICO)
 }
 
 func RtEbmTouchIcon(c echo.Context) error {
-	f := "emb/images/hipparchia_apple-touch-icon-precomposed.png"
-	return fileembedder(c, f)
+	return fileembedder(c, EITC)
 }
 
 //

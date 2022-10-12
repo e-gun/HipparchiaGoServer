@@ -42,6 +42,14 @@ func RtWebsocket(c echo.Context) error {
 
 	// does not look like you can run two wss at once; not obvious why this is the case...
 
+	const (
+		FAILCON   = "RtWebsocket(): ws connection failed"
+		FAILRD    = "RtWebsocket(): ws failed to read: breaking"
+		FAILWR    = "RtWebsocket(): ws failed to write: breaking"
+		FAILSND   = "RtWebsocket() could not send stop message"
+		FAILCLOSE = "RtWebsocket() failed to close"
+	)
+
 	type JSOut struct {
 		V     string `json:"value"`
 		ID    string `json:"ID"`
@@ -50,7 +58,7 @@ func RtWebsocket(c echo.Context) error {
 
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		msg("RtWebsocket(): ws connection failed", 2)
+		msg(FAILCON, 2)
 		return nil
 	}
 
@@ -72,7 +80,7 @@ func RtWebsocket(c echo.Context) error {
 		var m []byte
 		_, m, e := ws.ReadMessage()
 		if e != nil {
-			msg("RtWebsocket(): ws failed to read: breaking", 5)
+			msg(FAILRD, 5)
 			break
 		}
 
@@ -124,7 +132,7 @@ func RtWebsocket(c echo.Context) error {
 				er := ws.WriteMessage(websocket.TextMessage, js)
 
 				if er != nil {
-					msg("RtWebsocket(): ws failed to write: breaking", 5)
+					msg(FAILWR, 5)
 					done = true
 					break
 				} else {
@@ -152,12 +160,12 @@ func RtWebsocket(c echo.Context) error {
 
 	er := ws.WriteMessage(websocket.TextMessage, stop)
 	if er != nil {
-		msg("RtWebsocket() could not send stop message", 5)
+		msg(FAILSND, 5)
 	}
 
 	err = ws.Close()
 	if err != nil {
-		msg("RtWebsocket() failed to close", 5)
+		msg(FAILCLOSE, 5)
 	}
 	return nil
 }

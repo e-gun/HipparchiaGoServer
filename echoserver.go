@@ -252,7 +252,6 @@ func StartEchoServer() {
 	// [p] serve via the embedded FS
 	//
 
-	e.GET("/emb/extrajs/:file", RtEmbExtraJS)
 	e.GET("/emb/jq/:file", RtEmbJQuery)
 	e.GET("/emb/jq/images/:file", RtEmbJQueryImg)
 	e.GET("/emb/js/:file", RtEmbJS)

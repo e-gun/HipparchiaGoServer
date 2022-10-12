@@ -105,6 +105,14 @@ type CurrentConfiguration struct {
 
 // configatlaunch - read the configuration values from JSON and/or command line
 func configatlaunch() {
+	const (
+		FAIL1 = "Could not parse your information as a valid collection of credentials. Use the following template:"
+		FAIL2 = `"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"`
+		FAIL3 = "FAILED to load the configuration from either '%s' or '%s'"
+		FAIL4 = "Make sure that the file exists and that it has the following format:"
+		FAIL5 = "Improperly formatted corpus list. Using:\n\t%s"
+	)
+
 	cfg.BadChars = UNACCEPTABLEINPUT
 	cfg.BrowserCtx = DEFAULTBROWSERCTX
 	cfg.DbDebug = false
@@ -148,7 +156,7 @@ func configatlaunch() {
 		case "-ac":
 			err := json.Unmarshal([]byte(args[i+1]), &cfg.DefCorp)
 			if err != nil {
-				msg(fmt.Sprintf("Improperly formatted corpus list. Using:\n\t%s", DEFAULTCORPORA), 0)
+				msg(fmt.Sprintf(FAIL5, DEFAULTCORPORA), 0)
 			}
 		case "-bc":
 			bc, err := strconv.Atoi(args[i+1])
@@ -180,8 +188,8 @@ func configatlaunch() {
 			js := args[i+1]
 			err := json.Unmarshal([]byte(js), &pl)
 			if err != nil {
-				msg("Could not parse your information as a valid collection of credentials. Use the following template:", -1)
-				msg(`"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"`, 0)
+				msg(FAIL1, -1)
+				msg(FAIL2, 0)
 			}
 		case "-q":
 			cfg.QuietStart = true
@@ -233,8 +241,8 @@ func configatlaunch() {
 		errb := decoderb.Decode(&confb)
 
 		if erra != nil && errb != nil {
-			msg(fmt.Sprintf("FAILED to load the configuration from either '%s' or '%s'", cf, acf), 0)
-			msg(fmt.Sprintf("Make sure that the file exists and that it has the following format:"), 0)
+			msg(fmt.Sprintf(FAIL3, cf, acf), 0)
+			msg(fmt.Sprintf(FAIL4), 0)
 			fmt.Println(MINCONFIG)
 			os.Exit(0)
 		}

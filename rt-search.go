@@ -89,7 +89,10 @@ func (s *SearchStruct) CleanInput() {
 
 func (s *SearchStruct) SetType() {
 	// skip detailed proximate checks because second pass search just feeds all of that into the primary fields
-
+	const (
+		ACC = `ϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ`
+		REG = `a-zα-ω`
+	)
 	ps := s.Proximate != ""
 	psl := s.LemmaTwo != ""
 
@@ -97,9 +100,7 @@ func (s *SearchStruct) SetType() {
 		s.Twobox = true
 	}
 
-	acc := `ϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ`
-	reg := `a-zα-ω`
-	comp := fmt.Sprintf(`[%s%s]\s[%s%s]`, reg, acc, reg, acc)
+	comp := fmt.Sprintf(`[%s%s]\s[%s%s]`, REG, ACC, REG, ACC)
 	twowords := regexp.MustCompile(comp)
 
 	if twowords.MatchString(s.Seeking) {
@@ -119,9 +120,10 @@ func (s *SearchStruct) SetType() {
 func (s *SearchStruct) FormatInitialSummary() {
 	// ex:
 	// Sought <span class="sought">»ἡμέρα«</span> within 2 lines of all 79 forms of <span class="sought">»ἀγαθόϲ«</span>
-
-	tmp := `Sought %s<span class="sought">»%s«</span>%s`
-	win := `%s within %d %s of %s<span class="sought">»%s«</span>`
+	const (
+		TPM = `Sought %s<span class="sought">»%s«</span>%s`
+		WIN = `%s within %d %s of %s<span class="sought">»%s«</span>`
+	)
 
 	yn := ""
 	if s.NotNear {
@@ -145,15 +147,20 @@ func (s *SearchStruct) FormatInitialSummary() {
 			sk2 = s.LemmaTwo
 			af2 = fmt.Sprintf(af3, len(AllLemm[sk2].Deriv))
 		}
-		two = fmt.Sprintf(win, yn, s.ProxDist, s.ProxScope, af2, sk2)
+		two = fmt.Sprintf(WIN, yn, s.ProxDist, s.ProxScope, af2, sk2)
 	}
-	sum := fmt.Sprintf(tmp, af1, sk, two)
+	sum := fmt.Sprintf(TPM, af1, sk, two)
 	s.InitSum = sum
 }
 
 func (s *SearchStruct) SortResults() {
 	// Closures that order the DbWorkline structure:
 	// see generichelpers.go and https://pkg.go.dev/sort#example__sortMultiKeys
+
+	const (
+		NULL = `Unavailable`
+	)
+
 	nameIncreasing := func(one, two *DbWorkline) bool {
 		a1 := one.MyAu().Shortname
 		a2 := two.MyAu().Shortname
@@ -167,11 +174,11 @@ func (s *SearchStruct) SortResults() {
 	dateIncreasing := func(one, two *DbWorkline) bool {
 		d1 := one.MyWk().RecDate
 		d2 := two.MyWk().RecDate
-		if d1 != "Unavailable" && d2 != "Unavailable" {
+		if d1 != NULL && d2 != NULL {
 			return one.MyWk().ConvDate < two.MyWk().ConvDate
-		} else if d1 == "Unavailable" && d2 != "Unavailable" {
+		} else if d1 == NULL && d2 != NULL {
 			return one.MyAu().ConvDate < two.MyAu().ConvDate
-		} else if d1 != "Unavailable" && d2 == "Unavailable" {
+		} else if d1 != NULL && d2 == NULL {
 			return one.MyAu().ConvDate < two.MyAu().ConvDate
 		} else {
 			return one.MyAu().ConvDate < two.MyAu().ConvDate

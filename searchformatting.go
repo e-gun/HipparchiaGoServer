@@ -37,7 +37,8 @@ func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 			</td>
 		</tr>`
 
-		DATES = `[<span class="date">%s</span>]`
+		DATES    = `[<span class="date">%s</span>]`
+		SPSUBBER = `<spcauthor">%s</span>,&nbsp;<spcwork">%s</span>: <browser_id="%s"><spclocus">%s</span></browser>`
 	)
 
 	var out SearchOutputJSON
@@ -80,8 +81,7 @@ func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 		pl := formatinscriptionplaces(&r)
 
 		// <span class="foundauthor">%s</span>,&nbsp;<span class="foundwork">%s</span>: <browser id="%s"><span class="foundlocus">%s</span></browser>
-		ct := `<spcauthor">%s</span>,&nbsp;<spcwork">%s</span>: <browser_id="%s"><spclocus">%s</span></browser>`
-		ci := fmt.Sprintf(ct, au, wk, lk, lc)
+		ci := fmt.Sprintf(SPSUBBER, au, wk, lk, lc)
 		ci = avoidlonglines(ci, MAXTITLELENGTH)
 		ci = strings.Replace(ci, "<spc", `<span class="found`, -1)
 		ci = strings.Replace(ci, `browser_id`, `browser id`, -1)

@@ -262,7 +262,7 @@ func findbyform(word string, author string) string {
 	}
 
 	if len(thesefinds) == 0 {
-		return "(nothing found)"
+		return fmt.Sprintf("(no match for '%s' in the morphology lookup tables)", word)
 	}
 
 	// [b] turn morph matches into []MorphPossib
