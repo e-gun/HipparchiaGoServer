@@ -378,6 +378,12 @@ func reversefind(word string, dicts []string) string {
 func dictsearch(seeking string, dict string) string {
 	// this is pretty slow if you do 100 entries... so run it in parallel
 
+	const (
+		ENTRYLINE = `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="#%s_%f">%s</a><span class="small">&nbsp;(%d)</span><br>`
+		HITCAP    = `<span class="small">[stopped searching after %d entries found]</span><br>`
+		CHUNKHEAD = `<hr><span class="small">(%d)</span>`
+	)
+
 	lexicalfinds := dictgrabber(seeking, dict, "entry_name", "~*")
 
 	htmlmap := paralleldictformatter(lexicalfinds)
@@ -390,7 +396,7 @@ func dictsearch(seeking string, dict string) string {
 
 	htmlchunks := make([]string, len(keys))
 	for i, k := range keys {
-		n := fmt.Sprintf(`<hr><span class="small">(%d)</span>`, i+1)
+		n := fmt.Sprintf(CHUNKHEAD, i+1)
 		h := strings.Replace(htmlmap[k], "<hr>", n, 1)
 		htmlchunks[i] = h
 	}
@@ -405,10 +411,14 @@ func dictsearch(seeking string, dict string) string {
 	}
 
 	// [d1] insert the overview
-	et := `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="#%s_%f">%s</a><span class="small">&nbsp;(%d)</span><br />`
+
 	ov := make([]string, len(lexicalfinds))
 	for i, e := range lexicalfinds {
-		ov[i] = fmt.Sprintf(et, i+1, e.Word, e.ID, e.Word, countmap[e.ID].Total)
+		ov[i] = fmt.Sprintf(ENTRYLINE, i+1, e.Word, e.ID, e.Word, countmap[e.ID].Total)
+	}
+
+	if len(lexicalfinds) == MAXDICTLOOKUP {
+		ov = append(ov, fmt.Sprintf(HITCAP, MAXDICTLOOKUP))
 	}
 
 	htmlchunks = append(ov, htmlchunks...)
@@ -532,7 +542,6 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 	var lexicalfinds []DbLexicon
 	dedup := make(map[float32]bool)
 	for _, w := range hwm {
-		var err error
 		q := fmt.Sprintf(psq, fld, d, col, w)
 		foundrows, err := dbconn.Query(context.Background(), q)
 		chke(err)
@@ -639,43 +648,45 @@ func multipleentriesashtml(workerid int, ee []DbLexicon) map[float32]string {
 // formatprevalencedata - turn a wordcount into an HTML summary
 func formatprevalencedata(w DbWordCount, s string) string {
 	// <p class="wordcounts">Prevalence (all forms): <span class="prevalence">Ⓣ</span> 1482 / <span class="prevalence">Ⓖ</span> 1415 / <span class="prevalence">Ⓓ</span> 54 / <span class="prevalence">Ⓘ</span> 11 / <span class="prevalence">Ⓒ</span> 2</p>
+	const (
+		PDPAR = `<p class="wordcounts">Prevalence of <span class="emph">%s</span>: %s</p>`
+		PDSPA = `<span class="prevalence">%s</span> %d`
+	)
+
 	m := message.NewPrinter(language.English)
 
-	pdp := `<p class="wordcounts">Prevalence of <span class="emph">%s</span>: %s</p>`
-	pds := `<span class="prevalence">%s</span> %d`
 	labels := map[string]string{"Total": "Ⓣ", "Gr": "Ⓖ", "Lt": "Ⓛ", "Dp": "Ⓓ", "In": "Ⓘ", "Ch": "Ⓒ"}
 
 	var pdd []string
 	for _, l := range []string{"Total", "Gr", "Lt", "Dp", "In", "Ch"} {
 		v := reflect.ValueOf(w).FieldByName(l).Int()
 		if v > 0 {
-			pd := m.Sprintf(pds, labels[l], v)
-			pdd = append(pdd, pd)
+			pdd = append(pdd, m.Sprintf(PDSPA, labels[l], v))
 		}
 	}
 
 	spans := strings.Join(pdd, " / ")
-	html := fmt.Sprintf(pdp, s, spans)
+	html := fmt.Sprintf(PDPAR, s, spans)
 	return html
 }
 
 // formatparsingdata - turn []MorphPossib into HTML
 func formatparsingdata(mpp []MorphPossib) string {
+	const (
+		OBSERVED = `<span class="obsv"><span class="obsv"> from <span class="baseform"><a class="parsing" href="#%s_%s">%s</a></span>
+	`
+		BFTRANS  = `<span class="baseformtranslation">&nbsp;(“%s”)</span></span></span>`
+		MORPHTAB = `
+		<table class="morphtable">
+			<tbody>
+			%s
+			</tbody>
+		</table>
+	`
+		MORPHTR = `<tr>%s</tr>`
+		MORPHTD = `<td class="%s">%s</td>`
+	)
 	pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
-
-	obs := `
-	<span class="obsv"><span class="obsv"> from <span class="baseform"><a class="parsing" href="#%s_%s">%s</a></span>
-	`
-	bft := `<span class="baseformtranslation">&nbsp;(“%s”)</span></span></span>`
-	mtb := `
-	<table class="morphtable">
-		<tbody>
-		%s
-		</tbody>
-	</table>
-	`
-	mtr := `<tr>%s</tr>`
-	mtd := `<td class="%s">%s</td>`
 
 	var html string
 	usecounter := false
@@ -707,22 +718,22 @@ func formatparsingdata(mpp []MorphPossib) string {
 		}
 
 		if m.Xrefval != memo {
-			html += fmt.Sprintf(obs, m.Headwd, m.Xrefval, m.Headwd)
+			html += fmt.Sprintf(OBSERVED, m.Headwd, m.Xrefval, m.Headwd)
 			if strings.TrimSpace(m.Transl) != "" {
 				m.Transl = polishtrans(m.Transl, pat)
-				html += fmt.Sprintf(bft, m.Transl)
+				html += fmt.Sprintf(BFTRANS, m.Transl)
 			}
 		}
 
 		if _, ok := dedup[m.Anal]; !ok {
 			pos := strings.Split(m.Anal, " ")
 			var tab string
-			tab = fmt.Sprintf(mtd, "morphcell", getlett)
+			tab = fmt.Sprintf(MORPHTD, "morphcell", getlett)
 			for _, p := range pos {
-				tab += fmt.Sprintf(mtd, "morphcell", p)
+				tab += fmt.Sprintf(MORPHTD, "morphcell", p)
 			}
-			tab = fmt.Sprintf(mtr, tab)
-			tab = fmt.Sprintf(mtb, tab)
+			tab = fmt.Sprintf(MORPHTR, tab)
+			tab = fmt.Sprintf(MORPHTAB, tab)
 			html += tab
 			memo = m.Xrefval
 			dedup[m.Anal] = true
@@ -737,27 +748,48 @@ func formatparsingdata(mpp []MorphPossib) string {
 
 // formatlexicaloutput - turn a DbLexicon word into HTML
 func formatlexicaloutput(w DbLexicon) string {
+	const (
+		HEADTEMPL = `<div id="%s_%f"><hr>
+		<p class="dictionaryheading" id="%s_%.1f">%s&nbsp;<span class="metrics">%s</span></p>
+	`
+		FORMSUMM = `<formsummary parserxref="%d" lexicalid="%.1f" headword="%s" lang="%s">%d known forms</formsummary>`
+
+		FRQSUM = `<p class="wordcounts">Relative frequency: <span class="blue">%s</span></p>`
+
+		NAVTABLE = `
+		<table class="navtable">
+			<tbody>
+			<tr>
+				<td class="alignleft">
+					<span class="label">Previous: </span>
+					<dictionaryidsearch entryid="%.1f" language="%s">%s</dictionaryidsearch>
+				</td>
+				<td>&nbsp;</td>
+				<td class="alignright">
+					<span class="label">Next: </span>
+					<dictionaryidsearch entryid="%.1f" language="%s">%s</dictionaryidsearch>
+				</td>
+			</tr>
+			</tbody>
+		</table>`
+	)
+
 	var elem []string
 
 	// [h1] first part of a lexical entry:
 
-	ht := `<div id="%s_%f"><hr>
-		<p class="dictionaryheading" id="%s_%.1f">%s&nbsp;<span class="metrics">%s</span></p>
-	`
 	var met string
 	if w.Metrical != "" {
 		met = fmt.Sprintf("[%s]", w.Metrical)
 	}
 
-	elem = append(elem, fmt.Sprintf(ht, w.Word, w.ID, w.Word, w.ID, w.Word, met))
+	elem = append(elem, fmt.Sprintf(HEADTEMPL, w.Word, w.ID, w.Word, w.ID, w.Word, met))
 
 	// [h1a] known forms in use
 
 	lw := uvσςϲ(w.Word) // otherwise "venio" will hit AllLemm instead of "uenio"
 	if _, ok := AllLemm[lw]; ok {
-		kf := `<formsummary parserxref="%d" lexicalid="%.1f" headword="%s" lang="%s">%d known forms</formsummary>`
-		kf = fmt.Sprintf(kf, AllLemm[lw].Xref, w.ID, w.Word, w.Lang, len(AllLemm[lw].Deriv))
-		elem = append(elem, kf)
+		elem = append(elem, fmt.Sprintf(FORMSUMM, AllLemm[lw].Xref, w.ID, w.Word, w.Lang, len(AllLemm[lw].Deriv)))
 	}
 
 	// [h1b] principle parts
@@ -766,8 +798,6 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	// [h2] wordcounts data including weighted distributions
 
-	frq := `<p class="wordcounts">Relative frequency: <span class="blue">%s</span></p>`
-
 	hwc := headwordlookup(w.Word)
 
 	elem = append(elem, `<div class="wordcounts">`)
@@ -775,7 +805,7 @@ func formatlexicaloutput(w DbLexicon) string {
 	elem = append(elem, headworddistrib(hwc))
 	elem = append(elem, headwordchronology(hwc))
 	elem = append(elem, headwordgenres(hwc))
-	elem = append(elem, fmt.Sprintf(frq, hwc.FrqCla))
+	elem = append(elem, fmt.Sprintf(FRQSUM, hwc.FrqCla))
 	elem = append(elem, `</div>`)
 
 	// [h4] the actual body of the entry
@@ -783,22 +813,6 @@ func formatlexicaloutput(w DbLexicon) string {
 	elem = append(elem, w.Entry)
 
 	// [h5] previous & next entry
-	nt := `
-	<table class="navtable">
-		<tbody>
-		<tr>
-			<td class="alignleft">
-				<span class="label">Previous: </span>
-				<dictionaryidsearch entryid="%.1f" language="%s">%s</dictionaryidsearch>
-			</td>
-			<td>&nbsp;</td>
-			<td class="alignright">
-				<span class="label">Next: </span>
-				<dictionaryidsearch entryid="%.1f" language="%s">%s</dictionaryidsearch>
-			</td>
-		</tr>
-		</tbody>
-	</table>`
 
 	qt := `SELECT entry_name, id_number from %s_dictionary WHERE id_number %s %.0f ORDER BY id_number %s LIMIT 1`
 	dbconn := GetPSQLconnection()
@@ -822,7 +836,7 @@ func formatlexicaloutput(w DbLexicon) string {
 		chke(err)
 	}
 
-	pn := fmt.Sprintf(nt, prev.ID, w.Lang, prev.Entry, nxt.ID, w.Lang, nxt.Entry)
+	pn := fmt.Sprintf(NAVTABLE, prev.ID, w.Lang, prev.Entry, nxt.ID, w.Lang, nxt.Entry)
 	elem = append(elem, pn)
 
 	html := strings.Join(elem, "")

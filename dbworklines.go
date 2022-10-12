@@ -42,6 +42,8 @@ const (
 	WORLINETEMPLATE = `wkuniversalid, index,
 			level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
 			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations`
+	WKLNHYPERLNKTEMPL = `index/%s/%s/%d`
+	WLNMETADATATEMPL  = `<span class="embeddedannotations foundwork">$1</span>`
 )
 
 var (
@@ -122,8 +124,7 @@ func (dbw *DbWorkline) BuildHyperlink() string {
 		msg("BuildHyperlink() on empty dbworkline", 5)
 		return ""
 	}
-	t := `index/%s/%s/%d`
-	return fmt.Sprintf(t, dbw.FindAuthor(), dbw.FindWork(), dbw.TbIndex)
+	return fmt.Sprintf(WKLNHYPERLNKTEMPL, dbw.FindAuthor(), dbw.FindWork(), dbw.TbIndex)
 }
 
 func (dbw *DbWorkline) GatherMetadata() {
@@ -138,7 +139,7 @@ func (dbw *DbWorkline) GatherMetadata() {
 
 		dbw.MarkedUp = metadata.ReplaceAllString(dbw.MarkedUp, "")
 		for k, v := range md {
-			md[k] = mdformat.ReplaceAllString(v, `<span class="embeddedannotations foundwork">$1</span>`)
+			md[k] = mdformat.ReplaceAllString(v, WLNMETADATATEMPL)
 			if _, y := mdremap[k]; y {
 				md[mdremap[k]] = md[k]
 				delete(md, k)
