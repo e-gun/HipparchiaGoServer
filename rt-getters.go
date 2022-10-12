@@ -312,7 +312,14 @@ func RtGetJSSampCit(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, j, JSONINDENT)
 }
 
+// RtGetJSSearchlist - report the search list contents to the browser
 func RtGetJSSearchlist(c echo.Context) error {
+	const (
+		WORKTMPL  = `%s, <span class="italic">%s</span> [%d words]`
+		SPILLOVER = `<br>(and <span class="emph">%d</span> additional works)`
+		SUMMARY   = `<br><span class="emph">%d</span> total words`
+	)
+
 	m := message.NewPrinter(language.English)
 	sl := SessionIntoSearchlist(sessions[readUUIDCookie(c)])
 	tw := int64(0)
@@ -320,7 +327,7 @@ func RtGetJSSearchlist(c echo.Context) error {
 	var wkk []string
 	for _, a := range sl.Inc.Authors {
 		for _, w := range AllAuthors[a].WorkList {
-			ct := `%s, <span class="italic">%s</span> [%d words]`
+			ct := WORKTMPL
 			cf := m.Sprintf(ct, AllAuthors[a].Cleaname, AllWorks[w].Title, AllWorks[w].WdCount)
 			wkk = append(wkk, cf)
 			tw += AllWorks[w].WdCount
@@ -329,7 +336,7 @@ func RtGetJSSearchlist(c echo.Context) error {
 
 	for _, w := range sl.Inc.Works {
 		thiswk := AllWorks[w]
-		ct := `%s, <span class="italic">%s</span> [%d words]`
+		ct := WORKTMPL
 		cf := m.Sprintf(ct, thiswk.MyAu().Cleaname, thiswk.Title, thiswk.WdCount)
 		wkk = append(wkk, cf)
 		tw += thiswk.WdCount
@@ -351,10 +358,10 @@ func RtGetJSSearchlist(c echo.Context) error {
 	if len(wkk) > MAXSEARCHINFOLISTLEN {
 		diff := len(wkk) - MAXSEARCHINFOLISTLEN
 		wkk = wkk[0:MAXSEARCHINFOLISTLEN]
-		wkk = append(wkk, m.Sprintf(`<br>(and <span class="emph">%d</span> additional works)`, diff))
+		wkk = append(wkk, m.Sprintf(SPILLOVER, diff))
 	}
 
-	wkk = append(wkk, m.Sprintf(`<br><span class="emph">%d</span> total words`, tw))
+	wkk = append(wkk, m.Sprintf(SUMMARY, tw))
 
 	ht := strings.Join(wkk, "<br>\n")
 	var j JSStruct
@@ -364,6 +371,9 @@ func RtGetJSSearchlist(c echo.Context) error {
 }
 
 func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
+	const (
+		PSGTEMPL = `%s, <span class="italic">%s</span> %s - %s [%d words]`
+	)
 	// "gr0032_FROM_11313_TO_11843"
 	m := message.NewPrinter(language.English)
 	subs := pattern.FindStringSubmatch(p)
@@ -380,6 +390,6 @@ func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
 	for _, ln := range lines.Results {
 		count += len(strings.Split(ln.Stripped, " "))
 	}
-	ct := m.Sprintf(`%s, <span class="italic">%s</span> %s - %s [%d words]`, AllAuthors[au].Cleaname, AllWorks[f.WkUID].Title, f.Citation(), l.Citation(), count)
+	ct := m.Sprintf(PSGTEMPL, AllAuthors[au].Cleaname, AllWorks[f.WkUID].Title, f.Citation(), l.Citation(), count)
 	return ct, count
 }

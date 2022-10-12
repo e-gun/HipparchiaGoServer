@@ -316,6 +316,11 @@ func findbyform(word string, author string) string {
 
 // reversefind - english word into collection of HTML dictionary entries
 func reversefind(word string, dicts []string) string {
+	const (
+		ENTRYSPAN = `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="#%s_%f">%s</a>
+			<span class="small">&nbsp;(%d)</span></span><br />`
+	)
+
 	var lexicalfinds []DbLexicon
 	// [a] look for the words
 	for _, d := range dicts {
@@ -347,13 +352,10 @@ func reversefind(word string, dicts []string) string {
 
 	// [d] prepare the output
 
-	// et := `<span class="sensesum">(INDEX)&nbsp;<a class="nounderline" href="ENTRY_ENTRYID">ENTRY</a><span class="small">(COUNT)</span></span><br />`
-	et := `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="#%s_%f">%s</a><span class="small">&nbsp;(%d)</span></span><br />`
-
 	// [d1] insert the overview
 	ov := make([]string, len(lexicalfinds))
 	for i, k := range keys {
-		ov[i] = fmt.Sprintf(et, i+1, countmap[k].Entry, k, countmap[k].Entry, countmap[k].Total)
+		ov[i] = fmt.Sprintf(ENTRYSPAN, i+1, countmap[k].Entry, k, countmap[k].Entry, countmap[k].Total)
 	}
 
 	htmlchunks := make([]string, len(keys))

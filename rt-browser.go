@@ -284,7 +284,6 @@ func formatbrowsercitationinfo(f DbWorkline, l DbWorkline) string {
 	dt := `<br>(Assigned date of %s)`
 	beg := basiccitation(f)
 	end := basiccitation(l)
-
 	pi := formatpublicationinfo(w)
 	id := formatinscriptiondates(dt, &f)
 
@@ -293,9 +292,9 @@ func formatbrowsercitationinfo(f DbWorkline, l DbWorkline) string {
 	return cv
 }
 
-// basiccitation - produce a comma-separated citation from a DbWorkline
+// basiccitation - produce a comma-separated citation from a DbWorkline: e.g., "book 5, chapter 37, section 5, line 3"
 func basiccitation(l DbWorkline) string {
-	w := AllWorks[l.WkID()]
+	w := l.MyWk()
 	cf := w.CitationFormat()
 	loc := l.FindLocus()
 	cf = cf[6-(len(loc)) : 6]

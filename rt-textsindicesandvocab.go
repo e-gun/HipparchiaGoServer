@@ -52,12 +52,12 @@ func RtTextMaker(c echo.Context) error {
                 <td class="browsercite">%s</td>
             </tr>
 		`
-
 		SUMM = `
 		<div id="searchsummary">%s,&nbsp;<span class="foundwork">%s</span><br>
 		citation format:&nbsp;%s<br></div>`
 
-		SNIP = `✃✃✃`
+		SNIP   = `✃✃✃`
+		HITCAP = `<span class="small"><span class="red emph">text generation incomplete:</span> hit the cap of %d on allowed lines</span>`
 	)
 
 	user := readUUIDCookie(c)
@@ -139,7 +139,7 @@ func RtTextMaker(c echo.Context) error {
 	cp := ""
 	if len(srch.Results) == MAXTEXTLINEGENERATION {
 		m := message.NewPrinter(language.English)
-		cp = m.Sprintf(`<span class="small"><span class="red emph">text generation incomplete:</span> hit the cap of %d on allowed lines</span>`, MAXTEXTLINEGENERATION)
+		cp = m.Sprintf(HITCAP, MAXTEXTLINEGENERATION)
 	}
 	sum = sum + cp
 
@@ -190,7 +190,12 @@ func RtVocabMaker(c echo.Context) error {
 			<td class="trans">%s</td>
 		</tr>`
 
-		TCL = `</table>`
+		TCL    = `</table>`
+		MSG1   = "Grabbing the lines... (part 1 of 4)"
+		MSG2   = "Parsing the vocabulary...(part 2 of 4)"
+		MSG3   = "Sifting the vocabulary...(part 3 of 4)"
+		MSG4   = "Building the HTML...(part 4 of 4)"
+		HITCAP = `<span class="small"><span class="red emph">vocabulary generation incomplete:</span>: hit the cap of %d on allowed lines</span>`
 	)
 
 	start := time.Now()
@@ -201,7 +206,7 @@ func RtVocabMaker(c echo.Context) error {
 	// for progress reporting
 	si := builddefaultsearch(c)
 	si.ID = id
-	si.InitSum = "Grabbing the lines... (part 1 of 4)"
+	si.InitSum = MSG1
 	si.IsActive = true
 	searches[si.ID] = si
 	progremain.Store(si.ID, 1)
@@ -246,7 +251,7 @@ func RtVocabMaker(c echo.Context) error {
 	// [c1] get and map all the DbMorphology
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
-	si.InitSum = "Parsing the vocabulary...(part 2 of 4)"
+	si.InitSum = MSG2
 	searches[si.ID] = si
 
 	boundary := regexp.MustCompile(`(\{|, )"\d": `)
@@ -313,12 +318,12 @@ func RtVocabMaker(c echo.Context) error {
 		ct += 1
 	}
 
-	si.InitSum = "Sifting the vocabulary...(part 3 of 4)"
+	si.InitSum = MSG3
 	searches[si.ID] = si
 
 	sort.Slice(vis, func(i, j int) bool { return vis[i].Strip < vis[j].Strip })
 
-	si.InitSum = "Building the HTML...(part 4 of 4)"
+	si.InitSum = MSG4
 	searches[si.ID] = si
 
 	// [g] format
@@ -362,7 +367,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	cp := ""
 	if len(srch.Results) == MAXTEXTLINEGENERATION {
-		cp = m.Sprintf(`<span class="small"><span class="red emph">vocabulary generation incomplete:</span>: hit the cap of %d on allowed lines</span>`, MAXTEXTLINEGENERATION)
+		cp = m.Sprintf(HITCAP, MAXTEXTLINEGENERATION)
 	}
 
 	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, el, cp, ky)
@@ -419,7 +424,13 @@ func RtIndexMaker(c echo.Context) error {
 			(NB: <span class="homonym">homonymns</span> will appear under more than one headword)
 		</div>
 	`
+		MSG1   = "Grabbing the lines...&nbsp;(part 1 of 4)"
+		MSG2   = "Parsing the vocabulary...&nbsp;(part 2 of 4)"
+		MSG3   = "Sifting the index...&nbsp;(part 3 of 4)"
+		MSG4   = "Building the HTML...&nbsp;(part 4 of 4)"
+		HITCAP = `<span class="small"><span class="red emph">indexing incomplete:</span>: hit the cap of %d on allowed lines</span>`
 	)
+
 	start := time.Now()
 
 	id := c.Param("id")
@@ -428,7 +439,7 @@ func RtIndexMaker(c echo.Context) error {
 	// for progress reporting
 	si := builddefaultsearch(c)
 	si.ID = id
-	si.InitSum = "Grabbing the lines...&nbsp;(part 1 of 4)"
+	si.InitSum = MSG1
 	si.IsActive = true
 	searches[si.ID] = si
 	progremain.Store(si.ID, 1)
@@ -473,7 +484,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
-	si.InitSum = "Parsing the vocabulary...&nbsp;(part 2 of 4)"
+	si.InitSum = MSG2
 	searches[si.ID] = si
 
 	boundary := regexp.MustCompile(`(\{|, )"\d": `)
@@ -564,7 +575,7 @@ func RtIndexMaker(c echo.Context) error {
 		count  int
 	}
 
-	si.InitSum = "Sifting the index...&nbsp;(part 3 of 4)"
+	si.InitSum = MSG3
 	searches[si.ID] = si
 
 	indexmap := make(map[SorterStruct][]WordInfo, len(trimslices))
@@ -608,7 +619,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	indexmap = make(map[SorterStruct][]WordInfo, 1) // drop after use
 
-	si.InitSum = "Building the HTML...&nbsp;(part 4 of 4)"
+	si.InitSum = MSG4
 	searches[si.ID] = si
 
 	trr := make([]string, len(plainkeys))
@@ -646,7 +657,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	cp := ""
 	if len(srch.Results) == MAXTEXTLINEGENERATION {
-		cp = m.Sprintf(`<span class="small"><span class="red emph">indexing incomplete:</span>: hit the cap of %d on allowed lines</span>`, MAXTEXTLINEGENERATION)
+		cp = m.Sprintf(HITCAP, MAXTEXTLINEGENERATION)
 	}
 
 	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, el, cp, ky)
@@ -713,6 +724,12 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 	//    "greek_analysis_trgm_idx" gin (related_headwords gin_trgm_ops)
 	//    "greek_morphology_idx" btree (observed_form)
 
+	const (
+		TT = `CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words`
+		QT = `SELECT observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords FROM %s_morphology WHERE EXISTS 
+				(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = %s_morphology.observed_form)`
+	)
+
 	// look for the upper case matches too: Ϲωκράτηϲ and not just ϲωκρατέω (!)
 	uppers := make([]string, len(wordlist))
 	for i := 0; i < len(wordlist); i++ {
@@ -733,10 +750,6 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 
-	tt := `CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words`
-	qt := `SELECT observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords FROM %s_morphology WHERE EXISTS 
-		(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = %s_morphology.observed_form)`
-
 	foundmorph := make(map[string]DbMorphology)
 
 	// a waste of time to check the language on every word; just flail/fail once
@@ -744,12 +757,12 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 		u := strings.Replace(uuid.New().String(), "-", "", -1)
 		id := fmt.Sprintf("%s_%s_mw", u, uselang)
 		a := fmt.Sprintf("'%s'", strings.Join(wordlist, "', '"))
-		t := fmt.Sprintf(tt, id, a)
+		t := fmt.Sprintf(TT, id, a)
 
 		_, err := dbconn.Exec(context.Background(), t)
 		chke(err)
 
-		foundrows, e := dbconn.Query(context.Background(), fmt.Sprintf(qt, uselang, id, uselang))
+		foundrows, e := dbconn.Query(context.Background(), fmt.Sprintf(QT, uselang, id, uselang))
 		chke(e)
 
 		defer foundrows.Close()
@@ -795,6 +808,9 @@ func multiworkkeymaker(mapper map[string]rune, srch *SearchStruct) string {
 	// <br><span class="emph">Works:</span> ⒜: <span class="italic">De caede Eratosthenis</span>
 	//; ⒝: <span class="italic">Epitaphius [Sp.]</span>
 	//; ⒞: <span class="italic">Contra Simonem</span> ...
+	const (
+		START = `<br><span class="emph">Works:</span> `
+	)
 
 	ky := ""
 	wkk := srch.SearchSize > 1
@@ -811,7 +827,7 @@ func multiworkkeymaker(mapper map[string]rune, srch *SearchStruct) string {
 		}
 		sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
 		ky = strings.Join(out, "; ")
-		ky = `<br><span class="emph">Works:</span> ` + ky
+		ky = START + ky
 	}
 	return ky
 }
@@ -904,7 +920,7 @@ func convertwordinfototablerow(ww []WordInfo) string {
 }
 
 // polishtrans - add "transtree" spans to the mini-translation lists to highlight structure
-func polishtrans(x string, pat *regexp.Regexp) string {
+func polishtrans(tr string, pat *regexp.Regexp) string {
 	// don't loop "pat". it's not really a variable. here it is:
 	// pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
 
@@ -913,8 +929,8 @@ func polishtrans(x string, pat *regexp.Regexp) string {
 	// more freq. than ὡϲ in similes, when it is commonly written divisim, and is relat. to a demonstr. ὥϲ: sts. c. pres. Indic;
 	// <span class="transtree">B.</span> the actual
 
-	x = nohtml.ReplaceAllString(x, "")
-	elem := strings.Split(x, "; ")
+	tr = nohtml.ReplaceAllString(tr, "")
+	elem := strings.Split(tr, "; ")
 	for i, e := range elem {
 		elem[i] = pat.ReplaceAllString(e, `<span class="transtree">$1</span> `)
 	}
