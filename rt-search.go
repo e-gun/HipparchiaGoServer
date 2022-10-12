@@ -155,8 +155,8 @@ func (s *SearchStruct) SortResults() {
 	// Closures that order the DbWorkline structure:
 	// see generichelpers.go and https://pkg.go.dev/sort#example__sortMultiKeys
 	nameIncreasing := func(one, two *DbWorkline) bool {
-		a1 := AllAuthors[one.FindAuthor()].Shortname
-		a2 := AllAuthors[two.FindAuthor()].Shortname
+		a1 := AllAuthors[one.AuID()].Shortname
+		a2 := AllAuthors[two.AuID()].Shortname
 		return a1 < a2
 	}
 
@@ -170,16 +170,16 @@ func (s *SearchStruct) SortResults() {
 		if d1 != "Unavailable" && d2 != "Unavailable" {
 			return AllWorks[one.WkUID].ConvDate < AllWorks[two.WkUID].ConvDate
 		} else if d1 == "Unavailable" && d2 != "Unavailable" {
-			return AllAuthors[one.FindAuthor()].ConvDate < AllWorks[two.WkUID].ConvDate
+			return AllAuthors[one.AuID()].ConvDate < AllWorks[two.WkUID].ConvDate
 		} else if d1 != "Unavailable" && d2 == "Unavailable" {
-			return AllWorks[one.WkUID].ConvDate < AllAuthors[two.FindAuthor()].ConvDate
+			return AllWorks[one.WkUID].ConvDate < AllAuthors[two.AuID()].ConvDate
 		} else {
-			return AllAuthors[one.FindAuthor()].ConvDate < AllAuthors[two.FindAuthor()].ConvDate
+			return AllAuthors[one.AuID()].ConvDate < AllAuthors[two.AuID()].ConvDate
 		}
 	}
 
 	//dateDecreasing := func(one, two *DbWorkline) bool {
-	//	return AllWorks[one.FindWork()].ConvDate > AllWorks[two.FindWork()].ConvDate
+	//	return AllWorks[one.WkID()].ConvDate > AllWorks[two.WkID()].ConvDate
 	//}
 
 	increasingLines := func(one, two *DbWorkline) bool {
@@ -195,7 +195,7 @@ func (s *SearchStruct) SortResults() {
 	}
 
 	//increasingALOC := func(one, two *DbWorkline) bool {
-	//	return AllAuthors[one.FindAuthor()].Location < AllAuthors[two.FindAuthor()].Location
+	//	return AllAuthors[one.AuID()].Location < AllAuthors[two.AuID()].Location
 	//}
 
 	increasingWLOC := func(one, two *DbWorkline) bool {
@@ -354,7 +354,7 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 		if low < 1 {
 			low = 1
 		}
-		np := fmt.Sprintf(pt, r.FindAuthor(), low, r.TbIndex+first.ProxDist)
+		np := fmt.Sprintf(pt, r.AuID(), low, r.TbIndex+first.ProxDist)
 		newpsg[i] = np
 	}
 
@@ -432,10 +432,10 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 		if low < 1 {
 			low = 1
 		}
-		np := fmt.Sprintf(pt, r.FindAuthor(), low, r.TbIndex+need)
+		np := fmt.Sprintf(pt, r.AuID(), low, r.TbIndex+need)
 		newpsg[i] = np
 		for j := r.TbIndex - need; j <= r.TbIndex+need; j++ {
-			m := fmt.Sprintf(t, r.FindAuthor(), r.FindWork(), j)
+			m := fmt.Sprintf(t, r.AuID(), r.WkID(), j)
 			resultmapper[m] = i
 		}
 	}
@@ -836,11 +836,11 @@ func findphrasesacrosslines(ss *SearchStruct) {
 					nxt = DbWorkline{}
 				} else if r.WkUID != nxt.WkUID || r.TbIndex+1 != nxt.TbIndex {
 					// grab the actual next line (i.e. index = 101)
-					nxt = graboneline(r.FindAuthor(), r.TbIndex+1)
+					nxt = graboneline(r.AuID(), r.TbIndex+1)
 				}
 			} else {
 				// grab the actual next line (i.e. index = 101)
-				nxt = graboneline(r.FindAuthor(), r.TbIndex+1)
+				nxt = graboneline(r.AuID(), r.TbIndex+1)
 				if r.WkUID != nxt.WkUID {
 					nxt = DbWorkline{}
 				}

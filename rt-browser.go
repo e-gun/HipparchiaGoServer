@@ -293,7 +293,7 @@ func formatbrowsercitationinfo(w DbWork, f DbWorkline, l DbWorkline) string {
 
 // basiccitation - produce a comma-separated citation from a DbWorkline
 func basiccitation(l DbWorkline) string {
-	w := AllWorks[l.FindWork()]
+	w := AllWorks[l.WkID()]
 	cf := w.CitationFormat()
 	loc := l.FindLocus()
 	cf = cf[6-(len(loc)) : 6]
@@ -424,7 +424,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 
 		an := lines[i].Annotations
 		if cfg.DbDebug {
-			an = fmt.Sprintf("%s: %d", lines[i].FindAuthor(), lines[i].TbIndex)
+			an = fmt.Sprintf("%s: %d", lines[i].AuID(), lines[i].TbIndex)
 			// bl = fmt.Sprintf(`<span class="small">%s</span>`, lines[i].ShowMarkup())
 		}
 
@@ -434,7 +434,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	tab := strings.Join(trr, "")
 
 	// that was the body, now do the head and tail
-	top := fmt.Sprintf(`<div id="browsertableuid" uid="%s"></div>`, lines[0].FindAuthor())
+	top := fmt.Sprintf(`<div id="browsertableuid" uid="%s"></div>`, lines[0].AuID())
 	top += `<table><tbody>`
 	top += `<tr class="spacing">` + strings.Repeat("&nbsp;", MINBROWSERWIDTH) + `</tr>`
 

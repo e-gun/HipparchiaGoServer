@@ -72,7 +72,7 @@ func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 			rc = "regular"
 		}
 
-		au := AllAuthors[r.FindAuthor()].Shortname
+		au := AllAuthors[r.AuID()].Shortname
 		wk := AllWorks[r.WkUID].Title
 		lk := r.BuildHyperlink()
 		lc := strings.Join(r.FindLocus(), ".")
@@ -150,7 +150,7 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 			// avoid "gr0258_FROM_-1_TO_3"
 			low = 1
 		}
-		res.SearchIn.Passages[i] = fmt.Sprintf(t, r.FindAuthor(), low, high)
+		res.SearchIn.Passages[i] = fmt.Sprintf(t, r.AuID(), low, high)
 	}
 
 	res.Results = []DbWorkline{}
@@ -171,7 +171,7 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 	for i, r := range ss.Results {
 		var psg PsgFormattingTemplate
 		psg.Findnumber = i + 1
-		psg.Foundauthor = AllAuthors[r.FindAuthor()].Name
+		psg.Foundauthor = AllAuthors[r.AuID()].Name
 		psg.Foundwork = AllWorks[r.WkUID].Title
 		psg.FindURL = r.BuildHyperlink()
 		psg.FindLocus = strings.Join(r.FindLocus(), ".")
@@ -179,12 +179,12 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 		psg.FindCity = formatinscriptionplaces(&r)
 
 		for j := r.TbIndex - context; j <= r.TbIndex+context; j++ {
-			url := fmt.Sprintf(urt, r.FindAuthor(), r.FindWork(), j)
+			url := fmt.Sprintf(urt, r.AuID(), r.WkID(), j)
 			psg.RawCTX = append(psg.RawCTX, linemap[url])
 		}
 
 		// if you want to do this the horrifyingly slow way...
-		// psg.RawCTX = simplecontextgrabber(r.FindAuthor(), r.TbIndex, int64(thesession.HitContext/2))
+		// psg.RawCTX = simplecontextgrabber(r.AuID(), r.TbIndex, int64(thesession.HitContext/2))
 
 		psg.CookedCTX = make([]ResultPassageLine, len(psg.RawCTX))
 		for j := 0; j < len(psg.RawCTX); j++ {

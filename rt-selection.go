@@ -706,7 +706,7 @@ func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
 	}
 	if len(idx) == 0 {
 		// bogus input
-		msg(fmt.Sprintf("endpointer() failed to find the following inside of %s: '%s'", wuid, locus), 1)
+		msg(fmt.Sprintf("endpointer() failed to find the following inside of %s: '%s'", wuid, locus), 3)
 		fl = [2]int64{1, 1}
 	} else {
 		fl = [2]int64{idx[0], idx[len(idx)-1]}

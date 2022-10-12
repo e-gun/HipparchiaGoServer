@@ -103,14 +103,34 @@ func (dbw *DbWorkline) FindLocus() []string {
 	return trim
 }
 
-func (dbw *DbWorkline) FindAuthor() string {
-	// gr0001w001 --> gr0001
+// AuID - gr0001w001 --> gr0001
+func (dbw *DbWorkline) AuID() string {
 	return dbw.WkUID[:6]
 }
 
-func (dbw *DbWorkline) FindWork() string {
-	// gr0001w001 --> 001
+// MyAu - get the DbAuthor for this line
+func (dbw *DbWorkline) MyAu() DbAuthor {
+	a, ok := AllAuthors[dbw.AuID()]
+	if !ok {
+		msg(fmt.Sprintf("MyAu() failed to find '%s'", dbw.AuID()), 1)
+		a = DbAuthor{}
+	}
+	return a
+}
+
+// WkID - gr0001w001 --> 001
+func (dbw *DbWorkline) WkID() string {
 	return dbw.WkUID[7:]
+}
+
+// MyWk - get the DbWork for this line
+func (dbw *DbWorkline) MyWk() DbWork {
+	w, ok := AllWorks[dbw.WkUID]
+	if !ok {
+		msg(fmt.Sprintf("MyAu() failed to find '%s'", dbw.AuID()), 1)
+		w = DbWork{}
+	}
+	return w
 }
 
 func (dbw *DbWorkline) FindCorpus() string {
@@ -124,7 +144,7 @@ func (dbw *DbWorkline) BuildHyperlink() string {
 		msg("BuildHyperlink() on empty dbworkline", 5)
 		return ""
 	}
-	return fmt.Sprintf(WKLNHYPERLNKTEMPL, dbw.FindAuthor(), dbw.FindWork(), dbw.TbIndex)
+	return fmt.Sprintf(WKLNHYPERLNKTEMPL, dbw.AuID(), dbw.WkID(), dbw.TbIndex)
 }
 
 func (dbw *DbWorkline) GatherMetadata() {

@@ -71,8 +71,8 @@ func RtTextMaker(c echo.Context) error {
 
 	// now we have the lines we need....
 	firstline := searches[srch.ID].Results[0]
-	firstwork := AllWorks[firstline.WkUID]
-	firstauth := AllAuthors[firstwork.FindAuthor()]
+	firstwork := firstline.MyWk()
+	firstauth := firstline.MyAu()
 
 	lines := searches[srch.ID].Results
 	block := make([]string, len(lines))
@@ -101,7 +101,7 @@ func RtTextMaker(c echo.Context) error {
 		if l.WkUID != previous.WkUID {
 			// you were doing multi-text generation
 			workcount += 1
-			aw := AllAuthors[AllWorks[l.WkUID].FindAuthor()].Name + fmt.Sprintf(`, <span class="italic">%s</span>`, AllWorks[l.WkUID].Title)
+			aw := l.MyAu().Name + fmt.Sprintf(`, <span class="italic">%s</span>`, l.MyWk().Title)
 			aw = fmt.Sprintf(`<hr><span class="emph">[%d] %s</span>`, workcount, aw)
 			extra := fmt.Sprintf(TBLRW, "", aw, "")
 			trr[i] = extra + trr[i]
@@ -110,7 +110,7 @@ func RtTextMaker(c echo.Context) error {
 	}
 	tab := strings.Join(trr, "")
 	// that was the body, now do the head and tail
-	top := fmt.Sprintf(`<div id="browsertableuid" uid="%s"></div>`, lines[0].FindAuthor())
+	top := fmt.Sprintf(`<div id="browsertableuid" uid="%s"></div>`, lines[0].AuID())
 	top += `<table><tbody>`
 	top += `<tr class="spacing">` + strings.Repeat("&nbsp;", MINBROWSERWIDTH) + `</tr>`
 
@@ -333,17 +333,17 @@ func RtVocabMaker(c echo.Context) error {
 
 	htm := strings.Join(trr, "")
 
-	an := AllAuthors[srch.Results[0].FindAuthor()].Cleaname
+	an := srch.Results[0].MyAu().Cleaname
 	if srch.TableSize > 1 {
 		an = an + fmt.Sprintf(" and %d more author(s)", srch.TableSize-1)
 	}
 
-	wn := AllWorks[srch.Results[0].WkUID].Title
+	wn := srch.Results[0].MyWk().Title
 	if srch.SearchSize > 1 {
 		wn = wn + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
 	}
 
-	cf := AllWorks[srch.Results[0].WkUID].CitationFormat()
+	cf := srch.Results[0].MyWk().CitationFormat()
 	var tc []string
 	for _, x := range cf {
 		if len(x) != 0 {
@@ -618,17 +618,17 @@ func RtIndexMaker(c echo.Context) error {
 
 	htm := fmt.Sprintf(TBLTMP, strings.Join(trr, ""))
 
-	an := AllAuthors[srch.Results[0].FindAuthor()].Cleaname
+	an := srch.Results[0].MyAu().Cleaname
 	if srch.TableSize > 1 {
 		an = an + fmt.Sprintf(" and %d more author(s)", srch.TableSize-1)
 	}
 
-	wn := AllWorks[srch.Results[0].WkUID].Title
+	wn := srch.Results[0].MyWk().Title
 	if srch.SearchSize > 1 {
 		wn = wn + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
 	}
 
-	cf := AllWorks[srch.Results[0].WkUID].CitationFormat()
+	cf := srch.Results[0].MyWk().CitationFormat()
 	var tc []string
 	for _, x := range cf {
 		if len(x) != 0 {
