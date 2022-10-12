@@ -112,7 +112,7 @@ func (dbw *DbWorkline) AuID() string {
 func (dbw *DbWorkline) MyAu() DbAuthor {
 	a, ok := AllAuthors[dbw.AuID()]
 	if !ok {
-		msg(fmt.Sprintf("MyAu() failed to find '%s'", dbw.AuID()), 1)
+		msg(fmt.Sprintf("DbWorkline.MyAu() failed to find '%s'", dbw.AuID()), 1)
 		a = DbAuthor{}
 	}
 	return a
@@ -367,7 +367,7 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	andnot := fmt.Sprintf(`AND %s NOT IN ('t')`, qmap[atlvl])
 
 	var prq PrerolledQuery
-	prq.PsqlQuery = fmt.Sprintf(t, w.FindAuthor(), wkid, and, andnot)
+	prq.PsqlQuery = fmt.Sprintf(t, w.AuID(), wkid, and, andnot)
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()

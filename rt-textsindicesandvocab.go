@@ -805,7 +805,7 @@ func multiworkkeymaker(mapper map[string]rune, srch *SearchStruct) string {
 		for k, v := range mapper {
 			t := fmt.Sprintf(`<span class="italic">%s</span>`, AllWorks[k].Title)
 			if auu {
-				t = AllAuthors[AllWorks[k].FindAuthor()].Name + ", " + t
+				t = AllWorks[k].MyAu().Name + ", " + t
 			}
 			out = append(out, fmt.Sprintf("%s: %s\n", string(v), t))
 		}

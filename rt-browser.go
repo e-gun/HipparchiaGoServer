@@ -177,7 +177,7 @@ func generatebrowsedpassage(au string, wk string, fc int64, ctx int64) BrowsedPa
 	bw := fmt.Sprintf(`index/%s/%s/%d`, au, wk, p)
 	fw := fmt.Sprintf(`index/%s/%s/%d`, au, wk, n)
 	ab := fmt.Sprintf(`%s [%s]`, AllAuthors[au].Cleaname, au)
-	wb := fmt.Sprintf(`%s (w%s)`, w.Title, w.FindWorknumber())
+	wb := fmt.Sprintf(`%s (w%s)`, w.Title, w.WkID())
 
 	var bp BrowsedPassage
 	bp.Browseforwards = fw
@@ -272,7 +272,7 @@ func formatbrowsercitationinfo(w DbWork, f DbWorkline, l DbWorkline) string {
 		CT = `<cvauthor">%s</span>, <cvwork">%s</span>`
 	)
 
-	au := AllAuthors[w.FindAuthor()].Name
+	au := AllAuthors[w.AuID()].Name
 	ti := w.Title
 
 	ci := fmt.Sprintf(CT, au, ti)

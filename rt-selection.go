@@ -683,7 +683,7 @@ func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
 		use = append(use, s)
 	}
 
-	tb := wk.FindAuthor()
+	tb := wk.AuID()
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()

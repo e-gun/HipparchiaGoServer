@@ -68,8 +68,8 @@ func (i *SearchIncExl) BuildWkByName() {
 	for _, w := range i.Works {
 		tp := `%s, <i>%s</i>`
 		ws := AllWorks[w]
-		au := AllAuthors[ws.FindAuthor()].Name
-		ti := AllWorks[w].Title
+		au := ws.MyAu().Name
+		ti := ws.Title
 		bn[w] = fmt.Sprintf(tp, au, ti)
 	}
 	i.MappedWkByName = bn
@@ -345,7 +345,7 @@ func prunebydate(searchlist []string, s ServerSession) []string {
 	// [b5a] first prune the bad dates; nb: the inscriptions have lots of work dates; the gl and lt works don't
 	var trimmed []string
 	for _, uid := range searchlist {
-		cda := AllAuthors[AllWorks[uid].FindAuthor()].ConvDate
+		cda := AllAuthors[AllWorks[uid].AuID()].ConvDate
 		cdb := AllWorks[uid].ConvDate
 		if (cda >= e && cda <= l) || (cdb >= e && cdb <= l) {
 			trimmed = append(trimmed, uid)
@@ -358,7 +358,7 @@ func prunebydate(searchlist []string, s ServerSession) []string {
 	// [b5b] add back in any varia and/or incerta as needed
 	if s.VariaOK {
 		for _, uid := range searchlist {
-			cda := AllAuthors[AllWorks[uid].FindAuthor()].ConvDate
+			cda := AllAuthors[AllWorks[uid].AuID()].ConvDate
 			cdb := AllWorks[uid].ConvDate
 			if (cda == INCERTADATE || cda == VARIADATE) && cdb == VARIADATE {
 				trimmed = append(trimmed, uid)
@@ -370,7 +370,7 @@ func prunebydate(searchlist []string, s ServerSession) []string {
 
 	if s.IncertaOK {
 		for _, uid := range searchlist {
-			cda := AllAuthors[AllWorks[uid].FindAuthor()].ConvDate
+			cda := AllAuthors[AllWorks[uid].AuID()].ConvDate
 			cdb := AllWorks[uid].ConvDate
 			if (cda == INCERTADATE || cda == VARIADATE) && cdb == INCERTADATE {
 				trimmed = append(trimmed, uid)

@@ -80,18 +80,27 @@ type DbWork struct {
 	Authentic bool
 }
 
-// FindWorknumber - ex: gr2017w068 --> 068
-func (dbw DbWork) FindWorknumber() string {
+// WkID - ex: gr2017w068 --> 068
+func (dbw DbWork) WkID() string {
 	return dbw.UID[7:]
 }
 
-// FindAuthor - ex: gr2017w068 --> gr2017
-func (dbw DbWork) FindAuthor() string {
+// AuID - ex: gr2017w068 --> gr2017
+func (dbw DbWork) AuID() string {
 	if len(dbw.UID) < 6 {
 		return ""
 	} else {
 		return dbw.UID[:6]
 	}
+}
+
+func (dbw DbWork) MyAu() DbAuthor {
+	a, ok := AllAuthors[dbw.AuID()]
+	if !ok {
+		msg(fmt.Sprintf("DbWork.MyAu() failed to find '%s'", dbw.AuID()), 1)
+		a = DbAuthor{}
+	}
+	return a
 }
 
 func (dbw DbWork) CitationFormat() []string {

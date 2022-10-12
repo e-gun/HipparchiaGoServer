@@ -155,26 +155,26 @@ func (s *SearchStruct) SortResults() {
 	// Closures that order the DbWorkline structure:
 	// see generichelpers.go and https://pkg.go.dev/sort#example__sortMultiKeys
 	nameIncreasing := func(one, two *DbWorkline) bool {
-		a1 := AllAuthors[one.AuID()].Shortname
-		a2 := AllAuthors[two.AuID()].Shortname
+		a1 := one.MyAu().Shortname
+		a2 := two.MyAu().Shortname
 		return a1 < a2
 	}
 
 	titleIncreasing := func(one, two *DbWorkline) bool {
-		return AllWorks[one.WkUID].Title < AllWorks[two.WkUID].Title
+		return one.MyWk().Title < two.MyWk().Title
 	}
 
 	dateIncreasing := func(one, two *DbWorkline) bool {
-		d1 := AllWorks[one.WkUID].RecDate
-		d2 := AllWorks[two.WkUID].RecDate
+		d1 := one.MyWk().RecDate
+		d2 := two.MyWk().RecDate
 		if d1 != "Unavailable" && d2 != "Unavailable" {
-			return AllWorks[one.WkUID].ConvDate < AllWorks[two.WkUID].ConvDate
+			return one.MyWk().ConvDate < two.MyWk().ConvDate
 		} else if d1 == "Unavailable" && d2 != "Unavailable" {
-			return AllAuthors[one.AuID()].ConvDate < AllWorks[two.WkUID].ConvDate
+			return one.MyAu().ConvDate < two.MyAu().ConvDate
 		} else if d1 != "Unavailable" && d2 == "Unavailable" {
-			return AllWorks[one.WkUID].ConvDate < AllAuthors[two.AuID()].ConvDate
+			return one.MyAu().ConvDate < two.MyAu().ConvDate
 		} else {
-			return AllAuthors[one.AuID()].ConvDate < AllAuthors[two.AuID()].ConvDate
+			return one.MyAu().ConvDate < two.MyAu().ConvDate
 		}
 	}
 
@@ -199,7 +199,7 @@ func (s *SearchStruct) SortResults() {
 	//}
 
 	increasingWLOC := func(one, two *DbWorkline) bool {
-		return AllWorks[one.WkUID].Prov < AllWorks[two.WkUID].Prov
+		return one.MyWk().Prov < two.MyWk().Prov
 	}
 
 	crit := sessions[s.User].SortHitsBy

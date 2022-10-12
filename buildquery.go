@@ -101,13 +101,13 @@ func SSBuildQueries(s *SearchStruct) {
 	for _, w := range inc.Works {
 		wk := AllWorks[w]
 		b := Boundaries{wk.FirstLine, wk.LastLine}
-		boundedincl[wk.FindAuthor()] = append(boundedincl[wk.FindAuthor()], b)
+		boundedincl[wk.AuID()] = append(boundedincl[wk.AuID()], b)
 	}
 
 	for _, w := range exc.Works {
 		wk := AllWorks[w]
 		b := Boundaries{wk.FirstLine, wk.LastLine}
-		boundedexcl[wk.FindAuthor()] = append(boundedexcl[wk.FindAuthor()], b)
+		boundedexcl[wk.AuID()] = append(boundedexcl[wk.AuID()], b)
 	}
 	// fmt.Println(boundedincl) --> map[gr0545:[{13717 19042}]]
 

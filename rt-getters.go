@@ -289,7 +289,7 @@ func RtGetJSSampCit(c echo.Context) error {
 
 	w := AllWorks[wkid]
 	// because "t" is going to be the first line's citation you have to hunt for the real place where the text starts
-	ff := simplecontextgrabber(w.FindAuthor(), w.FirstLine, 2)
+	ff := simplecontextgrabber(w.AuID(), w.FirstLine, 2)
 	var actualfirst DbWorkline
 	for i := len(ff) - 1; i > 0; i-- {
 		loc := strings.Join(ff[i].FindLocus(), ".")
@@ -297,7 +297,7 @@ func RtGetJSSampCit(c echo.Context) error {
 			actualfirst = ff[i]
 		}
 	}
-	l := graboneline(w.FindAuthor(), w.LastLine)
+	l := graboneline(w.AuID(), w.LastLine)
 
 	cf := strings.Join(actualfirst.FindLocus(), ".")
 	cl := strings.Join(l.FindLocus(), ".")
@@ -328,10 +328,11 @@ func RtGetJSSearchlist(c echo.Context) error {
 	}
 
 	for _, w := range sl.Inc.Works {
+		thiswk := AllWorks[w]
 		ct := `%s, <span class="italic">%s</span> [%d words]`
-		cf := m.Sprintf(ct, AllAuthors[AllWorks[w].FindAuthor()].Cleaname, AllWorks[w].Title, AllWorks[w].WdCount)
+		cf := m.Sprintf(ct, thiswk.MyAu().Cleaname, thiswk.Title, thiswk.WdCount)
 		wkk = append(wkk, cf)
-		tw += AllWorks[w].WdCount
+		tw += thiswk.WdCount
 	}
 
 	pattern := regexp.MustCompile(`(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`)

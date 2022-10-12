@@ -72,8 +72,8 @@ func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 			rc = "regular"
 		}
 
-		au := AllAuthors[r.AuID()].Shortname
-		wk := AllWorks[r.WkUID].Title
+		au := r.MyAu().Shortname
+		wk := r.MyWk().Title
 		lk := r.BuildHyperlink()
 		lc := strings.Join(r.FindLocus(), ".")
 		wd := formatinscriptiondates(DATES, &r)
@@ -171,8 +171,8 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 	for i, r := range ss.Results {
 		var psg PsgFormattingTemplate
 		psg.Findnumber = i + 1
-		psg.Foundauthor = AllAuthors[r.AuID()].Name
-		psg.Foundwork = AllWorks[r.WkUID].Title
+		psg.Foundauthor = r.MyAu().Name
+		psg.Foundwork = r.MyWk().Title
 		psg.FindURL = r.BuildHyperlink()
 		psg.FindLocus = strings.Join(r.FindLocus(), ".")
 		psg.FindDate = formatinscriptiondates(dtt, &r)
