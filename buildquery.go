@@ -17,7 +17,6 @@ import (
 type PrerolledQuery struct {
 	TempTable string
 	PsqlQuery string
-	PsqlData  string
 }
 
 type QueryBuilder struct {

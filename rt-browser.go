@@ -160,7 +160,7 @@ func generatebrowsedpassage(au string, wk string, fc int64, ctx int64) BrowsedPa
 
 	// [c] acquire and format the HTML
 
-	ci := formatbrowsercitationinfo(w, lines[0], lines[len(lines)-1])
+	ci := formatbrowsercitationinfo(lines[0], lines[len(lines)-1])
 	tr := buildbrowsertable(fc, lines)
 
 	// [d] fill out the JSON-ready struct
@@ -260,7 +260,7 @@ func formatpublicationinfo(w DbWork) string {
 }
 
 // formatbrowsercitationinfo - the prolix bibliographic info for a line/work
-func formatbrowsercitationinfo(w DbWork, f DbWorkline, l DbWorkline) string {
+func formatbrowsercitationinfo(f DbWorkline, l DbWorkline) string {
 	const (
 		CV = `
 		<p class="currentlyviewing">
@@ -272,7 +272,9 @@ func formatbrowsercitationinfo(w DbWork, f DbWorkline, l DbWorkline) string {
 		CT = `<cvauthor">%s</span>, <cvwork">%s</span>`
 	)
 
-	au := AllAuthors[w.AuID()].Name
+	w := f.MyWk()
+
+	au := w.MyAu().Name
 	ti := w.Title
 
 	ci := fmt.Sprintf(CT, au, ti)
@@ -283,7 +285,7 @@ func formatbrowsercitationinfo(w DbWork, f DbWorkline, l DbWorkline) string {
 	beg := basiccitation(f)
 	end := basiccitation(l)
 
-	pi := formatpublicationinfo(AllWorks[f.WkUID])
+	pi := formatpublicationinfo(w)
 	id := formatinscriptiondates(dt, &f)
 
 	cv := fmt.Sprintf(CV, ci, beg, end, pi, id)

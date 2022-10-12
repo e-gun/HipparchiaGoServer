@@ -8,7 +8,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"regexp"
 	"sort"
@@ -241,16 +240,9 @@ func worklinequery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
 	}
 
 	// [b] execute the main query
-	var foundrows pgx.Rows
-	var err error
 
-	if prq.PsqlData != "" {
-		foundrows, err = dbconn.Query(context.Background(), prq.PsqlQuery, prq.PsqlData)
-		chke(err)
-	} else {
-		foundrows, err = dbconn.Query(context.Background(), prq.PsqlQuery)
-		chke(err)
-	}
+	foundrows, err := dbconn.Query(context.Background(), prq.PsqlQuery)
+	chke(err)
 
 	// [c] convert the finds into []DbWorkline
 	var thesefinds []DbWorkline
@@ -276,7 +268,6 @@ func graboneline(table string, line int64) DbWorkline {
 	qt := "SELECT %s FROM %s WHERE index = %s ORDER by index"
 	var prq PrerolledQuery
 	prq.TempTable = ""
-	prq.PsqlData = ""
 	prq.PsqlQuery = fmt.Sprintf(qt, WORLINETEMPLATE, table, strconv.FormatInt(line, 10))
 	foundlines := worklinequery(prq, dbconn)
 	if len(foundlines) != 0 {
@@ -298,7 +289,6 @@ func simplecontextgrabber(table string, focus int64, context int64) []DbWorkline
 
 	var prq PrerolledQuery
 	prq.TempTable = ""
-	prq.PsqlData = ""
 	prq.PsqlQuery = fmt.Sprintf(qt, WORLINETEMPLATE, table, strconv.FormatInt(low, 10), strconv.FormatInt(high, 10))
 
 	foundlines := worklinequery(prq, dbconn)

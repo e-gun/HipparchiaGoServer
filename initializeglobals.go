@@ -94,6 +94,7 @@ func (dbw DbWork) AuID() string {
 	}
 }
 
+// MyAu - return the work's DbAuthor
 func (dbw DbWork) MyAu() DbAuthor {
 	a, ok := AllAuthors[dbw.AuID()]
 	if !ok {
