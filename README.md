@@ -1,5 +1,4 @@
 # HipparchiaGoServer
-## beta quality: (allegedly) solid core
 
 ### STATUS (`v1.0.1`):
 
