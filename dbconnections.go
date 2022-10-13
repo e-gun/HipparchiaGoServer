@@ -30,22 +30,27 @@ func FillPSQLPoool() *pgxpool.Pool {
 	// max should cap a networked server's resource allocation to the equivalent of N simultaneous users
 	// after that point there should be a steep drop-off in responsiveness
 
+	const (
+		UTPL  = "postgres://%s:%s@%s:%d/%s?pool_min_conns=%d&pool_max_conns=%d"
+		FAIL1 = "Could not execute pgxpool.ParseConfig(url) via %s"
+		FAIL2 = "Could not connect to PostgreSQL via %s"
+	)
+
 	min := cfg.WorkerCount
 	max := SIMULTANEOUSSEARCHES * cfg.WorkerCount
 
 	pl := cfg.PGLogin
-	u := "postgres://%s:%s@%s:%d/%s?pool_min_conns=%d&pool_max_conns=%d"
-	url := fmt.Sprintf(u, pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName, min, max)
+	url := fmt.Sprintf(UTPL, pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName, min, max)
 
 	config, e := pgxpool.ParseConfig(url)
 	if e != nil {
-		msg(fmt.Sprintf("Could not execute pgxpool.ParseConfig(url) via %s", url), -1)
+		msg(fmt.Sprintf(FAIL1, url), -1)
 		panic(e)
 	}
 
 	thepool, e := pgxpool.ConnectConfig(context.Background(), config)
 	if e != nil {
-		msg(fmt.Sprintf("Could not connect to PostgreSQL via %s", url), -1)
+		msg(fmt.Sprintf(FAIL2, url), -1)
 		panic(e)
 	}
 	return thepool
@@ -53,9 +58,12 @@ func FillPSQLPoool() *pgxpool.Pool {
 
 // GetPSQLconnection - Acquire() a connection from the main pgxpool
 func GetPSQLconnection() *pgxpool.Conn {
+	const (
+		FAIL = "GetPSQLconnection() could not Acquire() from psqlpool"
+	)
 	dbc, e := psqlpool.Acquire(context.Background())
 	if e != nil {
-		msg(fmt.Sprintf("GetPSQLconnection() could not Acquire() from psqlpool"), -1)
+		msg(fmt.Sprintf(FAIL), -1)
 		panic(e)
 	}
 	return dbc

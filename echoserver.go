@@ -283,6 +283,9 @@ func RtAuthChkuser(c echo.Context) error {
 
 // RtSessionSetsCookie - turn the session into a cookie
 func RtSessionSetsCookie(c echo.Context) error {
+	const (
+		FAIL = "RtSessionSetsCookie() could not marshal the session"
+	)
 	num := c.Param("num")
 	user := readUUIDCookie(c)
 	s := sessions[user]
@@ -290,7 +293,7 @@ func RtSessionSetsCookie(c echo.Context) error {
 	v, e := json.Marshal(s)
 	if e != nil {
 		v = []byte{}
-		msg("RtSessionSetsCookie() could not marshal the session", 1)
+		msg(FAIL, 1)
 	}
 	swap := strings.NewReplacer(`"`, "%22", ",", "%2C", " ", "%20")
 	vs := swap.Replace(string(v))
@@ -309,11 +312,16 @@ func RtSessionSetsCookie(c echo.Context) error {
 // RtSessionGetCookie - turn a stored cookie into a session
 func RtSessionGetCookie(c echo.Context) error {
 	// this code has input trust issues...
+	const (
+		FAIL1 = "RtSessionGetsCookie failed to read cookie %s for %s"
+		FAIL2 = "RtSessionGetsCookie failed to unmarshal cookie %s for %s"
+	)
+
 	user := readUUIDCookie(c)
 	num := c.Param("num")
 	cookie, err := c.Cookie("session" + num)
 	if err != nil {
-		msg(fmt.Sprintf("RtSessionGetsCookie failed to read cookie %s for %s", num, user), 1)
+		msg(fmt.Sprintf(FAIL1, num, user), 1)
 		return c.String(http.StatusOK, "")
 	}
 
@@ -326,7 +334,7 @@ func RtSessionGetCookie(c echo.Context) error {
 	err = json.Unmarshal([]byte(cv), &s)
 	if err != nil {
 		// invalid character '%' looking for beginning of object key string
-		msg(fmt.Sprintf("RtSessionGetsCookie failed to unmarshal cookie %s for %s", num, user), 1)
+		msg(fmt.Sprintf(FAIL2, num, user), 1)
 		fmt.Println(err)
 		return c.String(http.StatusOK, "")
 	}
@@ -351,11 +359,15 @@ func RtResetSession(c echo.Context) error {
 
 // RtSetOption - modify the session in light of the selection made
 func RtSetOption(c echo.Context) error {
+	const (
+		FAIL1 = "RtSetOption() was given bad input: %s"
+		FAIL2 = "RtSetOption() hit an impossible case"
+	)
 	optandval := c.Param("opt")
 	parsed := strings.Split(optandval, "/")
 
 	if len(parsed) != 2 {
-		msg(fmt.Sprintf("RtSetOption() was given bad input: %s", optandval), 1)
+		msg(fmt.Sprintf(FAIL1, optandval), 1)
 		return c.String(http.StatusOK, "")
 	}
 
@@ -402,7 +414,7 @@ func RtSetOption(c echo.Context) error {
 			case "varia":
 				s.VariaOK = b
 			default:
-				msg("RtSetOption() hit an impossible case", 1)
+				msg(FAIL2, 1)
 			}
 		}
 	}
@@ -426,7 +438,7 @@ func RtSetOption(c echo.Context) error {
 				s.SortHitsBy = val
 			}
 		default:
-			msg("RtSetOption() hit an impossible case", 1)
+			msg(FAIL2, 1)
 		}
 	}
 
@@ -460,7 +472,7 @@ func RtSetOption(c echo.Context) error {
 					s.HitLimit = MAXHITLIMIT
 				}
 			default:
-				msg("RtSetOption() hit an impossible case", 1)
+				msg(FAIL2, 1)
 			}
 		}
 	}
@@ -487,14 +499,9 @@ func RtSetOption(c echo.Context) error {
 					s.Latest = val
 				}
 			default:
-				msg("RtSetOption() hit an impossible case", 1)
+				msg(FAIL2, 1)
 			}
 		}
-
-		// this does not work because it is string comparison...
-		//if s.Earliest > s.Latest {
-		//	s.Earliest = s.Latest
-		//}
 
 		ee, e1 := strconv.Atoi(s.Earliest)
 		ll, e2 := strconv.Atoi(s.Latest)

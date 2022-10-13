@@ -253,24 +253,28 @@ func (hw *DbHeadwordCount) LoadGenreVals() {
 func headwordlookup(word string) DbHeadwordCount {
 	// scan a headwordcount into the corresponding struct
 	// note that if you reassign a genre, this is one of the place you have to edit
+	const (
+		QTP = `
+		SELECT
+			entry_name , total_count, gr_count, lt_count, dp_count, in_count, ch_count,
+			frequency_classification, early_occurrences, middle_occurrences ,late_occurrences,
+			acta, agric, alchem, anthol, apocalyp, apocryph, apol, astrol, astron, biogr, bucol,
+			caten, chronogr, comic, comm, concil, coq, dialog, docu, doxogr, eccl, eleg, encom, epic,
+			epigr, epist, evangel, exeget, fab, geogr, gnom, gramm, hagiogr, hexametr, hist, homilet,
+			hymn, hypoth, iamb, ignotum, invectiv, inscr, jurisprud, lexicogr, liturg, lyr, magica, 
+			math, mech, med, metrolog, mim, mus, myth, narrfict, nathist, onir, orac, orat,
+			paradox, parod, paroem, perieg, phil, physiognom, poem, polyhist, prophet, pseudepigr, rhet,
+			satura, satyr, schol, tact, test, theol, trag
+		FROM dictionary_headword_wordcounts WHERE entry_name='%s'`
 
-	qt := `
-	SELECT
-		entry_name , total_count, gr_count, lt_count, dp_count, in_count, ch_count,
-		frequency_classification, early_occurrences, middle_occurrences ,late_occurrences,
-		acta, agric, alchem, anthol, apocalyp, apocryph, apol, astrol, astron, biogr, bucol,
-		caten, chronogr, comic, comm, concil, coq, dialog, docu, doxogr, eccl, eleg, encom, epic,
-		epigr, epist, evangel, exeget, fab, geogr, gnom, gramm, hagiogr, hexametr, hist, homilet,
-		hymn, hypoth, iamb, ignotum, invectiv, inscr, jurisprud, lexicogr, liturg, lyr, magica, 
-		math, mech, med, metrolog, mim, mus, myth, narrfict, nathist, onir, orac, orat,
-		paradox, parod, paroem, perieg, phil, physiognom, poem, polyhist, prophet, pseudepigr, rhet,
-		satura, satyr, schol, tact, test, theol, trag
-	FROM dictionary_headword_wordcounts WHERE entry_name='%s'`
+		FAIL = "headwordlookup() returned nil when looking for '%s'"
+		INFO = "headwordlookup() for %s returned %d finds"
+	)
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 
-	q := fmt.Sprintf(qt, word)
+	q := fmt.Sprintf(QTP, word)
 
 	foundrows, err := dbconn.Query(context.Background(), q)
 	chke(err)
@@ -296,7 +300,7 @@ func headwordlookup(word string) DbHeadwordCount {
 			&g.Paradox, &g.Parod, &g.Paroem, &g.Perig, &g.Phil, &g.Physiog, &g.Poem, &g.Polyhist, &th.Proph, &g.Pseud, &rh.Rhet,
 			&g.Satura, &g.Satyr, &g.Schol, &g.Tact, &g.Test, &th.Theol, &g.Trag)
 		if e != nil {
-			msg(fmt.Sprintf("headwordlookup() returned nil when looking for '%s'", word), 4)
+			msg(fmt.Sprintf(FAIL, word), 4)
 		}
 		thehit.Corpus = co
 		thehit.Chron = chr
@@ -310,7 +314,7 @@ func headwordlookup(word string) DbHeadwordCount {
 	if len(thesefinds) == 1 {
 		thefind = thesefinds[0]
 	} else {
-		msg(fmt.Sprintf("headwordlookup() for %s returned %d finds", word, len(thesefinds)), 4)
+		msg(fmt.Sprintf(INFO, word, len(thesefinds)), 4)
 	}
 
 	thefind.LoadCorpVals()
