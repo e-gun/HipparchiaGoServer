@@ -24,6 +24,11 @@ type SearchOutputJSON struct {
 	JS            string `json:"js"`
 }
 
+const (
+	MUREPLACE   = `<span class="match">$0</span>` // note $0 vs $1
+	HYPHREPLACE = `&nbsp;&nbsp;(&nbsp;match:&nbsp;<span class="match">%s</span>&nbsp;)`
+)
+
 func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 	const (
 		TABLEROW = `
@@ -54,13 +59,12 @@ func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 		r.PurgeMetadata()
 		// highlight search term; should be folded into a single function w/ highlightsearchterm() below [type problem now]
 		if searchterm.MatchString(r.MarkedUp) {
-			// line.Contents = pattern.ReplaceAllString(line.Contents, `<span class="match">$1</span>`)
-			r.MarkedUp = searchterm.ReplaceAllString(r.MarkedUp, `<span class="match">$0</span>`)
+			r.MarkedUp = searchterm.ReplaceAllString(r.MarkedUp, MUREPLACE)
 		} else {
 			// might be in the hyphenated line
 			if searchterm.MatchString(r.Hyphenated) {
 				// needs more fiddling
-				r.MarkedUp += fmt.Sprintf(`&nbsp;&nbsp;(&nbsp;match:&nbsp;<span class="match">%s</span>&nbsp;)`, r.Hyphenated)
+				r.MarkedUp += fmt.Sprintf(HYPHREPLACE, r.Hyphenated)
 			}
 		}
 
@@ -114,6 +118,11 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 
 		FOUNDLINE = `<span class="locus">%s</span>&nbsp;<span class="foundtext">%s</span><br>
 		`
+		PSGTEMPL    = `%s_FROM_%d_TO_%d`
+		URT         = `index/%s/%s/%d`
+		DTT         = `[<span class="date">%s</span>]`
+		HIGHLIGHTER = `<span class="highlight">%s</span>`
+		SNIP        = `✃✃✃`
 	)
 	thesession := sessions[ss.User]
 
@@ -141,7 +150,7 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 	res.Limit = (ss.Limit * int64(thesession.HitContext)) * 3
 
 	context := int64(thesession.HitContext / 2)
-	t := `%s_FROM_%d_TO_%d`
+
 	res.SearchIn.Passages = make([]string, len(res.Results))
 	for i, r := range res.Results {
 		low := r.TbIndex - context
@@ -150,7 +159,7 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 			// avoid "gr0258_FROM_-1_TO_3"
 			low = 1
 		}
-		res.SearchIn.Passages[i] = fmt.Sprintf(t, r.AuID(), low, high)
+		res.SearchIn.Passages[i] = fmt.Sprintf(PSGTEMPL, r.AuID(), low, high)
 	}
 
 	res.Results = []DbWorkline{}
@@ -164,8 +173,6 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 	}
 
 	// iterate over the results to build the raw core data
-	urt := `index/%s/%s/%d`
-	dtt := `[<span class="date">%s</span>]`
 
 	allpassages := make([]PsgFormattingTemplate, len(ss.Results))
 	for i, r := range ss.Results {
@@ -175,11 +182,11 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 		psg.Foundwork = r.MyWk().Title
 		psg.FindURL = r.BuildHyperlink()
 		psg.FindLocus = strings.Join(r.FindLocus(), ".")
-		psg.FindDate = formatinscriptiondates(dtt, &r)
+		psg.FindDate = formatinscriptiondates(DTT, &r)
 		psg.FindCity = formatinscriptionplaces(&r)
 
 		for j := r.TbIndex - context; j <= r.TbIndex+context; j++ {
-			url := fmt.Sprintf(urt, r.AuID(), r.WkID(), j)
+			url := fmt.Sprintf(URT, r.AuID(), r.WkID(), j)
 			psg.RawCTX = append(psg.RawCTX, linemap[url])
 		}
 
@@ -214,12 +221,12 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 		for j, c := range p.CookedCTX {
 			block[j] = c.Contents
 		}
-		whole := strings.Join(block, "✃✃✃")
+		whole := strings.Join(block, SNIP)
 
 		whole = textblockcleaner(whole)
 
 		// reassemble
-		block = strings.Split(whole, "✃✃✃")
+		block = strings.Split(whole, SNIP)
 		for i, b := range block {
 			p.CookedCTX[i].Contents = b
 		}
@@ -231,7 +238,7 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 	for _, p := range allpassages {
 		for i, r := range p.CookedCTX {
 			if r.IsHighlight && searchterm != nil {
-				p.CookedCTX[i].Contents = fmt.Sprintf(`<span class="highlight">%s</span>`, p.CookedCTX[i].Contents)
+				p.CookedCTX[i].Contents = fmt.Sprintf(HIGHLIGHTER, p.CookedCTX[i].Contents)
 				// highlightfocusline(&p.CookedCTX[i])
 				highlightsearchterm(searchterm, &p.CookedCTX[i])
 			}
@@ -354,13 +361,12 @@ func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
 
 	// see the warnings and caveats at highlightsearchterm() in searchformatting.py
 	if pattern.MatchString(line.Contents) {
-		// line.Contents = pattern.ReplaceAllString(line.Contents, `<span class="match">$1</span>`)
-		line.Contents = pattern.ReplaceAllString(line.Contents, `<span class="match">$0</span>`)
+		line.Contents = pattern.ReplaceAllString(line.Contents, MUREPLACE)
 	} else {
 		// might be in the hyphenated line
 		if pattern.MatchString(line.Hyphenated) {
 			// needs more fiddling
-			line.Contents += fmt.Sprintf(`&nbsp;&nbsp;(&nbsp;match:&nbsp;<span class="match">%s</span>&nbsp;)`, line.Hyphenated)
+			line.Contents += fmt.Sprintf(HYPHREPLACE, line.Hyphenated)
 		}
 	}
 }
@@ -382,11 +388,15 @@ func formatinscriptiondates(template string, dbw *DbWorkline) string {
 
 // formatinscriptionplaces - show the places for inscriptions
 func formatinscriptionplaces(dbw *DbWorkline) string {
+	const (
+		PLACER = ` [<span class="rust">%s</span>] `
+	)
+
 	placestring := ""
 	fc := dbw.FindCorpus()
 	placed := fc == "in" || fc == "ch" || fc == "dp"
 	if placed {
-		placestring = fmt.Sprintf(` [<span class="rust">%s</span>] `, AllWorks[dbw.WkUID].Prov)
+		placestring = fmt.Sprintf(PLACER, AllWorks[dbw.WkUID].Prov)
 	}
 	return placestring
 }
@@ -495,14 +505,24 @@ func formatmultilinebrackets(html string) string {
 	// pattern := regexp.MustCompile("(?P<brktype><span class=\"editorialmarker_\\w+brackets\">)(?P<line_end>.*?)✃✃✃(?P<line_start>.*?</span>)")
 
 	// this won't dow 3+ lines, just 2...
-	pattern := regexp.MustCompile("(?P<brktype><span class=\"editorialmarker_\\w+brackets\">)(?P<line_end>[^\\<]*?)✃✃✃(?P<line_start>[^\\]]*?</span>)")
-	html = pattern.ReplaceAllString(html, "$1$2</span>✃✃✃$1$3")
+
+	const (
+		PATT = "(?P<brktype><span class=\"editorialmarker_\\w+brackets\">)(?P<line_end>[^\\<]*?)✃✃✃(?P<line_start>[^\\]]*?</span>)"
+		REPL = "$1$2</span>✃✃✃$1$3"
+	)
+
+	pattern := regexp.MustCompile(PATT)
+	html = pattern.ReplaceAllString(html, REPL)
 
 	return html
 }
 
 // gethighlighter - set regex to highlight the search term
 func gethighlighter(ss *SearchStruct) *regexp.Regexp {
+	const (
+		FAIL = "gethighlighter() cannot find anything to highlight\n\t%ss"
+	)
+
 	var re *regexp.Regexp
 
 	skg := ss.Seeking
@@ -525,7 +545,7 @@ func gethighlighter(ss *SearchStruct) *regexp.Regexp {
 	} else if len(ss.LemmaTwo) != 0 {
 		re = lemmahighlighter(ss.LemmaTwo)
 	} else {
-		msg(fmt.Sprintf("gethighlighter() cannot find anything to highlight\n\t%ss", ss.InitSum), 3)
+		msg(fmt.Sprintf(FAIL, ss.InitSum), 3)
 		re = nil
 	}
 	return re
@@ -541,21 +561,27 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 
 	// now you also need to worry about punctuation that abuts the find
 	// tp := `[\^\s;]%s[\s\.,;·’$]`
-	tp := `%s` // move from match $1 to $0 in highlightsearchterm() yielded this shift...
+
+	const (
+		FAIL   = "gethighlighter() could not compile LemmaOne into regex"
+		JOINER = ")✃✃✃("
+		SNIP   = "✃✃✃"
+		TP     = `%s` // move from match $1 to $0 in highlightsearchterm() yielded this shift...
+	)
 
 	lemm := AllLemm[lm].Deriv
 
-	whole := strings.Join(lemm, ")✃✃✃(")
+	whole := strings.Join(lemm, JOINER)
 	st := universalpatternmaker(whole)
-	lup := strings.Split(st, "✃✃✃")
+	lup := strings.Split(st, SNIP)
 	for i, l := range lup {
-		lup[i] = fmt.Sprintf(tp, l)
+		lup[i] = fmt.Sprintf(TP, l)
 	}
 	rec := strings.Join(lup, "|")
 
 	r, e := regexp.Compile(rec)
 	if e != nil {
-		msg("gethighlighter() could not compile LemmaOne into regex", 3)
+		msg(FAIL, 3)
 	}
 	return r
 }
