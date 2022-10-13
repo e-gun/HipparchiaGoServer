@@ -1,6 +1,6 @@
 {
-  "BadChars": "\"'!@:,=_/̣",
-  "BrowserCtx": 26,
+  "BadChars": "\"'!@:,=_/",
+  "BrowserCtx": 20,
   "DbDebug": false,
   "DefCorp":
     {"gr": true, "lt": true, "in": false, "ch": false, "dp": false},

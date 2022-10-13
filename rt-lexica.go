@@ -789,6 +789,9 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	// [h1a] known forms in use
 
+	hwc := headwordlookup(w.Word)
+	elem = append(elem, fmt.Sprintf(FRQSUM, hwc.FrqCla))
+
 	lw := uvσςϲ(w.Word) // otherwise "venio" will hit AllLemm instead of "uenio"
 	if _, ok := AllLemm[lw]; ok {
 		elem = append(elem, fmt.Sprintf(FORMSUMM, AllLemm[lw].Xref, w.ID, w.Word, w.Lang, len(AllLemm[lw].Deriv)))
@@ -800,14 +803,11 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	// [h2] wordcounts data including weighted distributions
 
-	hwc := headwordlookup(w.Word)
-
 	elem = append(elem, `<div class="wordcounts">`)
 	elem = append(elem, headwordprevalence(hwc))
 	elem = append(elem, headworddistrib(hwc))
 	elem = append(elem, headwordchronology(hwc))
 	elem = append(elem, headwordgenres(hwc))
-	elem = append(elem, fmt.Sprintf(FRQSUM, hwc.FrqCla))
 	elem = append(elem, `</div>`)
 
 	// [h4] the actual body of the entry

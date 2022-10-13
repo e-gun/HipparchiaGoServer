@@ -61,7 +61,7 @@ func RtTextMaker(c echo.Context) error {
 	)
 
 	user := readUUIDCookie(c)
-	srch := sessionintobulksearch(c)
+	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 
 	if len(srch.Results) == 0 {
 		return emptyjsreturn(c)
@@ -212,7 +212,8 @@ func RtVocabMaker(c echo.Context) error {
 	progremain.Store(si.ID, 1)
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
-	srch := sessionintobulksearch(c)
+	max := cfg.MaxText * MAXVOCABLINEGENERATION
+	srch := sessionintobulksearch(c, int64(max)) // allow bigger vocab lists
 
 	if len(srch.Results) == 0 {
 		return emptyjsreturn(c)
@@ -366,8 +367,8 @@ func RtVocabMaker(c echo.Context) error {
 	ky := multiworkkeymaker(mp, &srch)
 
 	cp := ""
-	if len(srch.Results) == MAXTEXTLINEGENERATION {
-		cp = m.Sprintf(HITCAP, MAXTEXTLINEGENERATION)
+	if len(srch.Results) == max {
+		cp = m.Sprintf(HITCAP, max)
 	}
 
 	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, el, cp, ky)
@@ -424,6 +425,7 @@ func RtIndexMaker(c echo.Context) error {
 			(NB: <span class="homonym">homonymns</span> will appear under more than one headword)
 		</div>
 	`
+		UPW    = "ϙϙϙϙϙϙϙϙ<br>unparsed words"
 		MSG1   = "Grabbing the lines...&nbsp;(part 1 of 4)"
 		MSG2   = "Parsing the vocabulary...&nbsp;(part 2 of 4)"
 		MSG3   = "Sifting the index...&nbsp;(part 3 of 4)"
@@ -444,7 +446,7 @@ func RtIndexMaker(c echo.Context) error {
 	searches[si.ID] = si
 	progremain.Store(si.ID, 1)
 
-	srch := sessionintobulksearch(c)
+	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 
 	if len(srch.Results) == 0 {
 		return emptyjsreturn(c)
@@ -500,7 +502,7 @@ func RtIndexMaker(c echo.Context) error {
 				w.Wd = w.Wd + "'"
 				mme = w.Wd
 			} else {
-				w.HW = "ϙϙϙϙϙϙϙϙ<br>unparsed words"
+				w.HW = UPW
 				slicedlookups = append(slicedlookups, w)
 			}
 		} else {
@@ -687,12 +689,12 @@ func RtIndexMaker(c echo.Context) error {
 //
 
 // sessionintobulksearch - grab every line of text in the currently selected set of authors, works, and passages
-func sessionintobulksearch(c echo.Context) SearchStruct {
+func sessionintobulksearch(c echo.Context, lim int64) SearchStruct {
 	user := readUUIDCookie(c)
 
 	srch := builddefaultsearch(c)
 	srch.Seeking = ""
-	srch.Limit = MAXTEXTLINEGENERATION
+	srch.Limit = lim
 	srch.InitSum = "(gathering and formatting lines of text)"
 	srch.ID = strings.Replace(uuid.New().String(), "-", "", -1)
 
@@ -929,10 +931,14 @@ func polishtrans(tr string, pat *regexp.Regexp) string {
 	// more freq. than ὡϲ in similes, when it is commonly written divisim, and is relat. to a demonstr. ὥϲ: sts. c. pres. Indic;
 	// <span class="transtree">B.</span> the actual
 
+	const (
+		TT = `<span class="transtree">$1</span> `
+	)
+
 	tr = nohtml.ReplaceAllString(tr, "")
 	elem := strings.Split(tr, "; ")
 	for i, e := range elem {
-		elem[i] = pat.ReplaceAllString(e, `<span class="transtree">$1</span> `)
+		elem[i] = pat.ReplaceAllString(e, TT)
 	}
 	return strings.Join(elem, "; ")
 }

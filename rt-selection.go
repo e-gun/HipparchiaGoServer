@@ -116,20 +116,26 @@ func RtSelectionMake(c echo.Context) error {
 func RtSelectionClear(c echo.Context) error {
 	// sample item in the "selectionstable"; the js that activates it is inside the "selectionscriptholder" div
 	// <span class="wkselections selection" id="wkselections_00" title="Double-click to remove this item">Antigonus, <i>Historiarum mirabilium collectio</i></span>
+
+	const (
+		FAIL1 = "RtSelectionClear() was given bad input: %s"
+		FAIL2 = "RtSelectionClear() was given bad category: %s"
+	)
+
 	user := readUUIDCookie(c)
 
 	locus := c.Param("locus")
 	which := strings.Split(locus, "/")
 
 	if len(which) != 2 {
-		msg(fmt.Sprintf("RtSelectionClear() was given bad input: %s", locus), 1)
+		msg(fmt.Sprintf(FAIL1, locus), 1)
 		return emptyjsreturn(c)
 	}
 
 	cat := which[0]
 	id, e := strconv.Atoi(which[1])
 	if e != nil {
-		msg(fmt.Sprintf("RtSelectionClear() was given bad input: %s", locus), 1)
+		msg(fmt.Sprintf(FAIL1, locus), 1)
 		return emptyjsreturn(c)
 	}
 
@@ -181,7 +187,7 @@ func RtSelectionClear(c echo.Context) error {
 		delete(mode.MappedAuthByName, key)
 		mode.Passages = RemoveIndex(mode.Passages, id)
 	default:
-		msg(fmt.Sprintf("RtSelectionClear() was given bad category: %s", cat), 1)
+		msg(fmt.Sprintf(FAIL2, cat), 1)
 	}
 
 	mod.Inclusions = modi
@@ -622,6 +628,10 @@ func workvalueofpassage(psg string) string {
 func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 	// we are wrapping endpointer() to give us a couple of bites at perseus citaiton problems
 
+	const (
+		MSG = "findendpointsfromlocus() retrying endpointer(): '%s' --> '%s'"
+	)
+
 	fl, success := endpointer(wuid, locus, sep)
 	if success || sep != ":" {
 		return fl
@@ -634,7 +644,7 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 		// [HGS] findendpointsfromlocus() retrying endpointer(): '407e' --> '407:e'
 		r := fmt.Sprintf("$1%s$2", sep)
 		newlocus := dc.ReplaceAllString(locus, r)
-		msg(fmt.Sprintf("findendpointsfromlocus() retrying endpointer(): '%s' --> '%s'", locus, newlocus), 3)
+		msg(fmt.Sprintf(MSG, locus, newlocus), 3)
 		fl, success = endpointer(wuid, newlocus, sep)
 	} else {
 		// cicero, et.al
@@ -643,7 +653,7 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 		ll := strings.Split(locus, sep)
 		if len(ll) >= 2 {
 			newlocus := strings.Join(RemoveIndex(ll, 1), ":")
-			msg(fmt.Sprintf("findendpointsfromlocus() retrying endpointer(): '%s' --> '%s'", locus, newlocus), 3)
+			msg(fmt.Sprintf(MSG, locus, newlocus), 3)
 			fl, success = endpointer(wuid, newlocus, sep)
 		}
 	}
@@ -656,6 +666,12 @@ func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
 	// msg(fmt.Sprintf("wuid: '%s'; locus: '%s'; sep: '%s'", wuid, locus, sep), 1)
 	// [HGS] wuid: 'lt0474w049'; locus: '3|14|_0'; sep: '|'
 	// [HGS] wuid: 'lt0474w049'; locus: '4:8:18'; sep: ':'
+
+	const (
+		QTMP = `SELECT index FROM %s WHERE wkuniversalid='%s' AND %s ORDER BY index ASC`
+		FAIL = "endpointer() failed to find the following inside of %s: '%s'"
+	)
+
 	success := false
 	fl := [2]int64{0, 0}
 	wk := AllWorks[wuid]
@@ -687,10 +703,9 @@ func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
-	qt := `SELECT index FROM %s WHERE wkuniversalid='%s' AND %s ORDER BY index ASC`
 
 	a := strings.Join(use, " AND ")
-	q := fmt.Sprintf(qt, tb, wuid, a)
+	q := fmt.Sprintf(QTMP, tb, wuid, a)
 
 	foundrows, err := dbconn.Query(context.Background(), q)
 	chke(err)
@@ -706,7 +721,7 @@ func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
 	}
 	if len(idx) == 0 {
 		// bogus input
-		msg(fmt.Sprintf("endpointer() failed to find the following inside of %s: '%s'", wuid, locus), 3)
+		msg(fmt.Sprintf(FAIL, wuid, locus), 3)
 		fl = [2]int64{1, 1}
 	} else {
 		fl = [2]int64{idx[0], idx[len(idx)-1]}
@@ -733,6 +748,13 @@ func reportcurrentselections(c echo.Context) SelectionData {
 	//    $('#exclusioninfocell').html(selectiondata.exclusions);
 	//    $('#selectionscriptholder').html(selectiondata['newjs']);
 
+	const (
+		PL = `<span class="picklabel">%s</span><br>`
+		SL = `<span class="%sselections selection" id="%sselections_%02d" title="Double-click to remove this item">%s</span><br>`
+		EL = `<span class="%ssexclusions selection" id="%sexclusions_%02d" title="Double-click to remove this item">%s</span><br>`
+		TL = `Unless specifically listed, authors/works must come from %s to %s`
+	)
+
 	s := sessions[readUUIDCookie(c)]
 	s.Inclusions.BuildAuByName()
 	s.Exclusions.BuildAuByName()
@@ -743,10 +765,6 @@ func reportcurrentselections(c echo.Context) SelectionData {
 
 	i := s.Inclusions
 	e := s.Exclusions
-
-	pl := `<span class="picklabel">%s</span><br>`
-	sl := `<span class="%sselections selection" id="%sselections_%02d" title="Double-click to remove this item">%s</span><br>`
-	el := `<span class="%ssexclusions selection" id="%sexclusions_%02d" title="Double-click to remove this item">%s</span><br>`
 
 	// need to do it in this order: don't walk through the map keys
 	cat := []string{"agn", "wgn", "aloc", "wloc", "au", "wk", "psg"}
@@ -770,7 +788,7 @@ func reportcurrentselections(c echo.Context) SelectionData {
 
 	// run inclusions, then exclusions
 	var rows [2][]string
-	swap := [2]string{sl, el}
+	swap := [2]string{SL, EL}
 	for idx, v := range [2]SearchIncExl{i, e} {
 		for _, ct := range cat {
 			label := catmap[ct][0]
@@ -780,11 +798,11 @@ func reportcurrentselections(c echo.Context) SelectionData {
 			// note that the next is terrible if we are not 100% sure of the interface
 			slc := val.Interface().([]string)
 			if len(slc) > 0 {
-				rows[idx] = append(rows[idx], fmt.Sprintf(pl, label))
+				rows[idx] = append(rows[idx], fmt.Sprintf(PL, label))
 				for n, g := range slc {
 					st := fmt.Sprintf(swap[idx], ct, ct, n, g)
 					rows[idx] = append(rows[idx], st)
-					if swap[idx] == sl {
+					if swap[idx] == SL {
 						a := fmt.Sprintf(jsin, ct, n)
 						b := fmt.Sprintf(jsinu, ct, n)
 						jsinfo = append(jsinfo, JSData{a, b})
@@ -802,8 +820,7 @@ func reportcurrentselections(c echo.Context) SelectionData {
 
 	if s.Earliest != MINDATESTR || s.Latest != MAXDATESTR {
 		mustshow = true
-		t := `Unless specifically listed, authors/works must come from %s to %s`
-		sd.TimeRestr = fmt.Sprintf(t, formatbcedate(s.Earliest), formatbcedate(s.Latest))
+		sd.TimeRestr = fmt.Sprintf(TL, formatbcedate(s.Earliest), formatbcedate(s.Latest))
 	}
 
 	sd.Select = strings.Join(rows[0], "")
@@ -821,26 +838,27 @@ func reportcurrentselections(c echo.Context) SelectionData {
 
 // formatnewselectionjs - prepare the JS that the client needs in order to report the current selections
 func formatnewselectionjs(jsinfo []JSData) string {
-	if len(jsinfo) == 0 {
-		return ""
-	}
-
-	t := `
+	const (
+		JSFNC = `
 		$( '#%s' ).dblclick(function() {
 			$.getJSON('%s', function (selectiondata) { 
 				reloadselections(selectiondata); });
 		});`
 
-	s := `
-	<script>%s
-	</script>
-	`
+		SCR = `
+		<script>%s
+		</script>
+		`
+	)
+	if len(jsinfo) == 0 {
+		return ""
+	}
 
 	var info []string
 	for _, j := range jsinfo {
-		info = append(info, fmt.Sprintf(t, j.Pound, j.Url))
+		info = append(info, fmt.Sprintf(JSFNC, j.Pound, j.Url))
 	}
 
-	script := fmt.Sprintf(s, strings.Join(info, ""))
+	script := fmt.Sprintf(SCR, strings.Join(info, ""))
 	return script
 }

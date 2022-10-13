@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                  = "Hipparchia Golang Server"
 	SHORTNAME               = "HGS"
-	VERSION                 = "1.0.1"
+	VERSION                 = "1.0.2"
 	AUTHENTICATIONREQUIRED  = false // unused ATM
 	AVGWORDSPERLINE         = 8     // hard coding a suspect assumption
 	CONFIGLOCATION          = "."
@@ -47,7 +47,8 @@ const (
 	MAXLEMMACHUNKSIZE       = 20
 	MAXLINESHITCONTEXT      = 30
 	MAXSEARCHINFOLISTLEN    = 100
-	MAXTEXTLINEGENERATION   = 25000 // all of euripides is 33517, all of sophocles is 15729, e.g.
+	MAXTEXTLINEGENERATION   = 25000 // euripides is 33517 lines, sophocles is 15729, cicero is 149570, e.g.; jQuery slows exponentially as lines increase
+	MAXVOCABLINEGENERATION  = 3     // this is a multiplier for cfg.MaxText; the browser does not get overwhelmed by these lists
 	MAXTITLELENGTH          = 110
 	MINBROWSERWIDTH         = 90
 	MINDATE                 = -850

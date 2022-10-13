@@ -326,6 +326,10 @@ func headwordlookup(word string) DbHeadwordCount {
 
 func headwordprevalence(wc DbHeadwordCount) string {
 	// Prevalence (all forms): Ⓖ 95,843 / Ⓛ 10 / Ⓘ 151 / Ⓓ 751 / Ⓒ 64 / Ⓣ 96,819
+	const (
+		PREVSPAN = `<span class="prevalence">%s</span>&nbsp;%d`
+	)
+
 	m := message.NewPrinter(language.English)
 
 	cv := wc.CorpVal
@@ -334,7 +338,7 @@ func headwordprevalence(wc DbHeadwordCount) string {
 
 	for _, c := range cv {
 		if c.count > 0 {
-			pd = append(pd, m.Sprintf(`<span class="prevalence">%s</span>&nbsp;%d`, c.name, c.count))
+			pd = append(pd, m.Sprintf(PREVSPAN, c.name, c.count))
 		}
 	}
 	pd = append(pd, m.Sprintf("%s %d", "Ⓣ", wc.Total))
@@ -355,13 +359,7 @@ func headworddistrib(wc DbHeadwordCount) string {
 	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })
 
 	max := cv[0].count
-	var pd []string
-	for _, c := range cv {
-		cpt := (float32(c.count) / float32(max)) * 100
-		if int(cpt) > 0 {
-			pd = append(pd, fmt.Sprintf(`<span class="prevalence">%s</span>&nbsp;%d`, c.name, int(cpt)))
-		}
-	}
+	pd := weightedpdslice(cv)
 
 	p := "<br>Distribution by corpus: " + strings.Join(pd, " / ")
 
@@ -383,13 +381,7 @@ func headwordchronology(wc DbHeadwordCount) string {
 	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })
 
 	max := cv[0].count
-	var pd []string
-	for _, c := range cv {
-		cpt := (float32(c.count) / float32(max)) * 100
-		if int(cpt) > 0 {
-			pd = append(pd, fmt.Sprintf(`<span class="prevalence">%s</span>&nbsp;%d`, c.name, int(cpt)))
-		}
-	}
+	pd := weightedpdslice(cv)
 
 	p := "<br>Distribution by time: " + strings.Join(pd, " / ")
 
@@ -421,15 +413,8 @@ func headwordgenres(wc DbHeadwordCount) string {
 
 	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })
 
-	// msg("cv", 0)
-	// fmt.Println(cv)
-
 	max := cv[0].count
-	var pd []string
-	for _, c := range cv {
-		cpt := (float32(c.count) / float32(max)) * 100
-		pd = append(pd, fmt.Sprintf(`<span class="prevalence">%s</span>&nbsp;(%d)`, c.name, int(cpt)))
-	}
+	pd := weightedpdslice(cv)
 
 	pd = pd[0:GENRESTOCOUNT]
 
@@ -440,6 +425,23 @@ func headwordgenres(wc DbHeadwordCount) string {
 	}
 
 	return p
+}
+
+// weightedpdslice - convert count values into a formatted string slice
+func weightedpdslice(cv []HWData) []string {
+	const (
+		PREVSPAN = `<span class="prevalence">%s</span>&nbsp;%d`
+	)
+
+	max := cv[0].count
+	var pd []string
+	for _, c := range cv {
+		cpt := (float32(c.count) / float32(max)) * 100
+		if int(cpt) > 0 {
+			pd = append(pd, fmt.Sprintf(PREVSPAN, c.name, int(cpt)))
+		}
+	}
+	return pd
 }
 
 // "🄶": 1.0, "🄻": 12.7, "🄸": 15.19, "🄳": 18.14, "🄲": 85.78

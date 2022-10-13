@@ -210,8 +210,9 @@ func (dbw *DbWorkline) Citation() string {
 	return strings.Join(dbw.FindLocus(), ".")
 }
 
-// Lvls - report the number of active levels for this line (i.e., those with a val ≠ -1)
+// Lvls - report the number of active levels for this line
 func (dbw *DbWorkline) Lvls() int {
+	//alternate is: "return dbw.MyWk().CountLevels()"
 	vv := []string{dbw.Lvl0Value, dbw.Lvl1Value, dbw.Lvl2Value, dbw.Lvl3Value, dbw.Lvl4Value, dbw.Lvl5Value}
 	empty := containsN(vv, "-1")
 	return 6 - empty
@@ -315,6 +316,10 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	//----------------+----------------+----------------+----------------+----------------+----------------
 	// verse          | poem           | book           |                |                |
 
+	const (
+		FAIL = "findvalidlevelvalues() sent negative levels"
+	)
+
 	// [a] what do we need?
 
 	w := AllWorks[wkid]
@@ -333,7 +338,7 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 
 	if atlvl < 0 || need < 0 {
 		// logic bug in here somewhere...
-		msg("findvalidlevelvalues() sent negative levels", 1)
+		msg(FAIL, 1)
 		return LevelValues{}
 	}
 

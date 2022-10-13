@@ -104,6 +104,11 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 func generatebrowsedpassage(au string, wk string, fc int64, ctx int64) BrowsedPassage {
 	// build a response to "GET /browse/index/gr0062/028/14672 HTTP/1.1"
 
+	const (
+		FAIL1 = "could not find a work for %s"
+		FAIL2 = "generatebrowsedpassage() called simplecontextgrabber() and failed: %s, %d, %d"
+	)
+
 	k := fmt.Sprintf("%sw%s", au, wk)
 
 	// [a] validate
@@ -119,7 +124,7 @@ func generatebrowsedpassage(au string, wk string, fc int64, ctx int64) BrowsedPa
 	}
 
 	if w.UID == "null" {
-		msg(fmt.Sprintf("could not find a work for %s", k), 1)
+		msg(fmt.Sprintf(FAIL1, k), 1)
 		return BrowsedPassage{}
 	}
 
@@ -138,7 +143,7 @@ func generatebrowsedpassage(au string, wk string, fc int64, ctx int64) BrowsedPa
 	lines = trimmed
 
 	if len(lines) == 0 {
-		msg(fmt.Sprintf("generatebrowsedpassage() called simplecontextgrabber() and failed: %s, %d, %d", au, fc, ctx/2), 1)
+		msg(fmt.Sprintf(FAIL2, au, fc, ctx/2), 1)
 		return BrowsedPassage{}
 	}
 
