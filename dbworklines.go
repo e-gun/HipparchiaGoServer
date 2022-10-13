@@ -57,7 +57,7 @@ var (
 type LevelValues struct {
 	// for JSON output...
 	// {"totallevels": 3, "level": 2, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
-	Total int      `json:"totallevels"`
+	Total int      `json:"totallevels"` // todo: this is returning as 0 if you "/get/json/workstructure/lt0474/056"
 	AtLvl int      `json:"level"`
 	Label string   `json:"label"`
 	Low   string   `json:"low"`
@@ -208,6 +208,13 @@ func (dbw *DbWorkline) MarkedUpSlice() []string {
 
 func (dbw *DbWorkline) Citation() string {
 	return strings.Join(dbw.FindLocus(), ".")
+}
+
+// Lvls - report the number of active levels for this line (i.e., those with a val ≠ -1)
+func (dbw *DbWorkline) Lvls() int {
+	vv := []string{dbw.Lvl0Value, dbw.Lvl1Value, dbw.Lvl2Value, dbw.Lvl3Value, dbw.Lvl4Value, dbw.Lvl5Value}
+	empty := containsN(vv, "-1")
+	return 6 - empty
 }
 
 func (dbw *DbWorkline) LvlVal(lvl int) string {
@@ -371,6 +378,8 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	if len(lines) == 0 {
 		return vals
 	}
+
+	vals.Total = lines[0].Lvls()
 	vals.Low = lines[0].LvlVal(atlvl)
 	vals.High = lines[len(lines)-1].LvlVal(atlvl)
 	var r []string
