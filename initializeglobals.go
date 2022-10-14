@@ -24,22 +24,26 @@ const (
 
 var (
 	// order matters
-	cfg         CurrentConfiguration
-	psqlpool    *pgxpool.Pool
-	sessions    = make(map[string]ServerSession)
-	searches    = make(map[string]SearchStruct)
-	proghits    = sync.Map{}
-	progremain  = sync.Map{}
-	AllWorks    = make(map[string]DbWork)
-	AllAuthors  = make(map[string]DbAuthor)
-	AllLemm     = make(map[string]DbLemma)
-	NestedLemm  = make(map[string]map[string]DbLemma)
-	WkCorpusMap = make(map[string][]string)
-	AuCorpusMap = make(map[string][]string)
-	AuGenres    = make(map[string]bool)
-	WkGenres    = make(map[string]bool)
-	AuLocs      = make(map[string]bool)
-	WkLocs      = make(map[string]bool)
+	cfg          CurrentConfiguration
+	psqlpool     *pgxpool.Pool
+	sessions     = make(map[string]ServerSession)
+	searches     = make(map[string]SearchStruct)
+	AllWorks     = make(map[string]DbWork)
+	AllAuthors   = make(map[string]DbAuthor)
+	AllLemm      = make(map[string]DbLemma)
+	NestedLemm   = make(map[string]map[string]DbLemma)
+	WkCorpusMap  = make(map[string][]string)
+	AuCorpusMap  = make(map[string][]string)
+	AuGenres     = make(map[string]bool)
+	WkGenres     = make(map[string]bool)
+	AuLocs       = make(map[string]bool)
+	WkLocs       = make(map[string]bool)
+	TheCorpora   = [5]string{"gr", "lt", "in", "ch", "dp"}
+	TheLanguages = [2]string{"greek", "latin"}
+	SRMutex      = sync.RWMutex{}
+	SHMutex      = sync.RWMutex{}
+	SrchRemain   = make(map[string]int)
+	SrchHits     = make(map[string]int)
 )
 
 type DbAuthor struct {
@@ -235,9 +239,7 @@ func authormapper(ww map[string]DbWork) map[string]DbAuthor {
 	foundrows, err := dbconn.Query(context.Background(), q)
 	chke(err)
 
-	thefinds := make([]DbAuthor, DBAUMAPSIZE)
-
-	count := 0
+	authormap := make(map[string]DbAuthor, DBAUMAPSIZE)
 	defer foundrows.Close()
 	for foundrows.Next() {
 		// this will die if <nil> comes back inside any of the columns; and so you have to use builds from HipparchiaBuilder 1.6.0+
@@ -246,14 +248,9 @@ func authormapper(ww map[string]DbWork) map[string]DbAuthor {
 			&a.Cleaname, &a.Genres, &a.RecDate, &a.ConvDate, &a.Location)
 		chke(e)
 		a.WorkList = worklists[a.UID]
-		thefinds[count] = a
-		count += 1
+		authormap[a.UID] = a
 	}
 
-	authormap := make(map[string]DbAuthor, DBAUMAPSIZE)
-	for _, val := range thefinds {
-		authormap[val.UID] = val
-	}
 	return authormap
 }
 
@@ -274,15 +271,17 @@ func lemmamapper() map[string]DbLemma {
 	// a list of 140k words is too long to send to 'getlemmahint' without offering quicker access
 	// [HGS] [D: 0.199s][Δ: 0.199s] unnested lemma map built
 
-	langs := [2]string{"greek", "latin"}
 	t := `SELECT dictionary_entry, xref_number, derivative_forms FROM %s_lemmata`
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 
-	thefinds := make([]DbLemma, DBLEMMACOUNT)
-	count := 0
-	for _, lg := range langs {
+	// note that the v --> u here will push us to stripped_line searches instead of accented_line
+	// clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "", "j", "i", "v", "u")
+	clean := strings.NewReplacer("-", "", "j", "i", "v", "u")
+
+	unnested := make(map[string]DbLemma, DBLMMAPSIZE)
+	for _, lg := range TheLanguages {
 		q := fmt.Sprintf(t, lg)
 		foundrows, err := dbconn.Query(context.Background(), q)
 		chke(err)
@@ -291,21 +290,11 @@ func lemmamapper() map[string]DbLemma {
 			var thehit DbLemma
 			e := foundrows.Scan(&thehit.Entry, &thehit.Xref, &thehit.Deriv)
 			chke(e)
-			thefinds[count] = thehit
-			count += 1
+			thehit.Entry = clean.Replace(thehit.Entry)
+			unnested[thehit.Entry] = thehit
 		}
 	}
 
-	// note that the v --> u here will push us to stripped_line searches instead of accented_line
-	// clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "", "j", "i", "v", "u")
-	clean := strings.NewReplacer("-", "", "j", "i", "v", "u")
-
-	unnested := make(map[string]DbLemma, DBLMMAPSIZE)
-	for _, lm := range thefinds {
-		cl := clean.Replace(lm.Entry)
-		lm.Entry = cl
-		unnested[cl] = lm
-	}
 	return unnested
 }
 
@@ -321,10 +310,8 @@ func nestedlemmamapper(unnested map[string]DbLemma) map[string]map[string]DbLemm
 		bag = swap.Replace(bag)
 		if _, y := nested[bag]; !y {
 			nested[bag] = make(map[string]DbLemma)
-			nested[bag][k] = v
-		} else {
-			nested[bag][k] = v
 		}
+		nested[bag][k] = v
 	}
 	return nested
 }
@@ -333,9 +320,8 @@ func nestedlemmamapper(unnested map[string]DbLemma) map[string]map[string]DbLemm
 func buildwkcorpusmap() map[string][]string {
 	// SessionIntoSearchlist() could just grab a pre-rolled list instead of calculating every time...
 	wkcorpusmap := make(map[string][]string)
-	corp := [5]string{"gr", "lt", "in", "ch", "dp"}
 	for _, w := range AllWorks {
-		for _, c := range corp {
+		for _, c := range TheCorpora {
 			if w.UID[0:2] == c {
 				wkcorpusmap[c] = append(wkcorpusmap[c], w.UID)
 			}
@@ -348,9 +334,8 @@ func buildwkcorpusmap() map[string][]string {
 func buildaucorpusmap() map[string][]string {
 	// SessionIntoSearchlist() could just grab a pre-rolled list instead of calculating every time...
 	aucorpusmap := make(map[string][]string)
-	corp := [5]string{"gr", "lt", "in", "ch", "dp"}
 	for _, a := range AllAuthors {
-		for _, c := range corp {
+		for _, c := range TheCorpora {
 			if a.UID[0:2] == c {
 				aucorpusmap[c] = append(aucorpusmap[c], a.UID)
 			}

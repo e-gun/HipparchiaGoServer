@@ -14,8 +14,7 @@ const (
 	CONFIGLOCATION          = "."
 	CONFIGALTAPTH           = "%s/.config/" // %s = os.UserHomeDir()
 	CONFIGNAME              = "hgs-conf.json"
-	DBAUMAPSIZE             = 3455 //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
-	DBLEMMACOUNT            = 152759
+	DBAUMAPSIZE             = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
 	DBLMMAPSIZE             = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
 	DBWKMAPSIZE             = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
 	DEFAULTBROWSERCTX       = 14

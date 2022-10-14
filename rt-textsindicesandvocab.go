@@ -209,7 +209,7 @@ func RtVocabMaker(c echo.Context) error {
 	si.InitSum = MSG1
 	si.IsActive = true
 	searches[si.ID] = si
-	progremain.Store(si.ID, 1)
+	SrchRemain[si.ID] = 1
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
 	max := cfg.MaxText * MAXVOCABLINEGENERATION
@@ -388,7 +388,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	// clean up progress reporting
 	delete(searches, si.ID)
-	progremain.Delete(si.ID)
+	delete(SrchRemain, si.ID)
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
@@ -444,7 +444,7 @@ func RtIndexMaker(c echo.Context) error {
 	si.InitSum = MSG1
 	si.IsActive = true
 	searches[si.ID] = si
-	progremain.Store(si.ID, 1)
+	SrchRemain[si.ID] = 1
 
 	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 
@@ -679,7 +679,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// clean up progress reporting
 	delete(searches, si.ID)
-	progremain.Delete(si.ID)
+	delete(SrchRemain, si.ID)
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
@@ -755,7 +755,7 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 	foundmorph := make(map[string]DbMorphology)
 
 	// a waste of time to check the language on every word; just flail/fail once
-	for _, uselang := range []string{"greek", "latin"} {
+	for _, uselang := range TheLanguages {
 		u := strings.Replace(uuid.New().String(), "-", "", -1)
 		id := fmt.Sprintf("%s_%s_mw", u, uselang)
 		a := fmt.Sprintf("'%s'", strings.Join(wordlist, "', '"))

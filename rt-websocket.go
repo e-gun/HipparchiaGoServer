@@ -104,15 +104,9 @@ func RtWebsocket(c echo.Context) error {
 					r.Extra = ""
 				}
 
-				result, ok := progremain.Load(searches[bs].ID)
-				if ok {
-					r.Remain = result.(int)
-				}
-
-				result, ok = proghits.Load(searches[bs].ID)
-				if ok {
-					r.Hits = result.(int)
-				}
+				// is lock/unlock of the relevant mutex in fact unneeded: only this loop will read this value from that map
+				r.Remain = SrchRemain[searches[bs].ID]
+				r.Hits = SrchHits[searches[bs].ID]
 
 				// inside the loop because indexing modifies InitSum to send simple progress messages
 				r.Msg = strings.Replace(searches[bs].InitSum, "Sought", "Seeking", -1)

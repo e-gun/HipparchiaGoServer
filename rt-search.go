@@ -317,7 +317,8 @@ func RtSearch(c echo.Context) error {
 	}
 
 	delete(searches, id)
-	progremain.Delete(id)
+	delete(SrchRemain, id)
+	delete(SrchHits, id)
 
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
@@ -337,11 +338,18 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	// 		populate a new search list with a ton of passages via the first results
 	//		HGoSrch(second)
 
+	const (
+		PSGT = `%s_FROM_%d_TO_%d`
+		MSG1 = "%s WithinXLinesSearch(): %d initial hits"
+		MSG2 = "%s SSBuildQueries() rerun"
+		MSG3 = "%s WithinXLinesSearch(): %d subsequent hits"
+	)
+
 	previous := time.Now()
 	first := generateinitialhits(originalsrch)
 
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf("%s WithinXLinesSearch(): %d initial hits", d, len(first.Results)), 4)
+	msg(fmt.Sprintf(MSG1, d, len(first.Results)), 4)
 	previous = time.Now()
 
 	second := clonesearch(first, 2)
@@ -352,8 +360,6 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 
 	second.SetType()
 
-	pt := `%s_FROM_%d_TO_%d`
-
 	newpsg := make([]string, len(first.Results))
 	for i, r := range first.Results {
 		// avoid "gr0028_FROM_-1_TO_5"
@@ -361,7 +367,7 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 		if low < 1 {
 			low = 1
 		}
-		np := fmt.Sprintf(pt, r.AuID(), low, r.TbIndex+first.ProxDist)
+		np := fmt.Sprintf(PSGT, r.AuID(), low, r.TbIndex+first.ProxDist)
 		newpsg[i] = np
 	}
 
@@ -371,7 +377,7 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	SSBuildQueries(&second)
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf("%s SSBuildQueries() rerun", d), 4)
+	msg(fmt.Sprintf(MSG2, d), 4)
 	previous = time.Now()
 
 	second = HGoSrch(second)
@@ -393,7 +399,7 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	}
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf("%s WithinXLinesSearch(): %d subsequent hits", d, len(first.Results)), 4)
+	msg(fmt.Sprintf(MSG3, d, len(first.Results)), 4)
 
 	// findphrasesacrosslines() check happens just after you exit this function
 	return second
@@ -401,11 +407,20 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 
 // WithinXWordsSearch - find A within N words of B
 func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
+	const (
+		PSGT = `%s_FROM_%d_TO_%d`
+		LNK  = `index/%s/%s/%d`
+		RGX  = `^(?P<head>.*?)%s(?P<tail>.*?)$`
+		MSG1 = "%s WithinXWordsSearch(): %d initial hits"
+		MSG2 = "%s WithinXWordsSearch(): %d subsequent hits"
+		BAD1 = "WithinXWordsSearch() could not compile second pass regex term 'patternone': %s"
+		BAD2 = "WithinXWordsSearch() could not compile second pass regex term 'patterntwo': %s"
+	)
 	previous := time.Now()
 	first := generateinitialhits(originalsrch)
 
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf("%s WithinXWordsSearch(): %d initial hits", d, len(first.Results)), 4)
+	msg(fmt.Sprintf(MSG1, d, len(first.Results)), 4)
 	previous = time.Now()
 
 	// the trick is we are going to grab ALL lines near the initial hit; then build strings; then search those strings ourselves
@@ -427,9 +442,6 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	// [a1] hard code a suspect assumption...
 	need := 2 + (first.ProxDist / int64(AVGWORDSPERLINE))
 
-	pt := `%s_FROM_%d_TO_%d`
-	t := `index/%s/%s/%d`
-
 	resultmapper := make(map[string]int, len(first.Results))
 	newpsg := make([]string, len(first.Results))
 
@@ -439,10 +451,10 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 		if low < 1 {
 			low = 1
 		}
-		np := fmt.Sprintf(pt, r.AuID(), low, r.TbIndex+need)
+		np := fmt.Sprintf(PSGT, r.AuID(), low, r.TbIndex+need)
 		newpsg[i] = np
 		for j := r.TbIndex - need; j <= r.TbIndex+need; j++ {
-			m := fmt.Sprintf(t, r.AuID(), r.WkID(), j)
+			m := fmt.Sprintf(LNK, r.AuID(), r.WkID(), j)
 			resultmapper[m] = i
 		}
 	}
@@ -455,7 +467,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	searches[originalsrch.ID] = HGoSrch(second)
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf("%s WithinXWordsSearch(): %d subsequent hits", d, len(first.Results)), 4)
+	msg(fmt.Sprintf(MSG2, d, len(first.Results)), 4)
 	previous = time.Now()
 
 	// [c] convert these finds into strings and then search those strings
@@ -499,11 +511,9 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 		re = first.Seeking
 	}
 
-	rt := `^(?P<head>.*?)%s(?P<tail>.*?)$`
-
-	patternone, e := regexp.Compile(fmt.Sprintf(rt, re))
+	patternone, e := regexp.Compile(fmt.Sprintf(RGX, re))
 	if e != nil {
-		m := fmt.Sprintf("WithinXWordsSearch() could not compile second pass regex term 'patternone': %s", re)
+		m := fmt.Sprintf(BAD1, re)
 		msg(m, 1)
 		return badsearch(m)
 	}
@@ -516,7 +526,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 	patterntwo, e := regexp.Compile(re)
 	if e != nil {
-		m := fmt.Sprintf("WithinXWordsSearch() could not compile second pass regex term 'patterntwo': %s", re)
+		m := fmt.Sprintf(BAD2, re)
 		msg(m, 1)
 		return badsearch(m)
 	}
@@ -563,11 +573,6 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 			tt = tt[0 : pd+1]
 		}
 		tail = strings.Join(tt, " ")
-
-		//msg("WithinXWordsSearch(): head, tail, patterntwo",3)
-		//fmt.Println(head)
-		//fmt.Println(tail)
-		//fmt.Println(patterntwo)
 
 		if first.NotNear {
 			// toss hits
@@ -880,6 +885,10 @@ func findphrasesacrosslines(ss *SearchStruct) {
 
 // columnpicker - convert from db column name into struct name
 func columnpicker(c string, r DbWorkline) string {
+	const (
+		MSG = "second.SrchColumn was not set; defaulting to 'stripped_line'"
+	)
+
 	var li string
 	switch c {
 	case "stripped_line":
@@ -890,7 +899,7 @@ func columnpicker(c string, r DbWorkline) string {
 		li = r.MarkedUp
 	default:
 		li = r.Stripped
-		msg("second.SrchColumn was not set; defaulting to 'stripped_line'", 2)
+		msg(MSG, 2)
 	}
 	return li
 }
@@ -941,10 +950,14 @@ func searchtermfinder(term string) *regexp.Regexp {
 	//	into:
 	//		([πΠ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][τΤ][αἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάᾈᾉᾊᾋᾌᾍᾎᾏἈἉἊἋἌἍἎἏΑ][μΜ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][νΝ])
 
+	const (
+		MSG = "searchtermfinder() could not compile the following: %s"
+	)
+
 	stre := universalpatternmaker(term)
 	pattern, e := regexp.Compile(stre)
 	if e != nil {
-		msg(fmt.Sprintf("searchtermfinder() could not compile the following: %s", stre), 1)
+		msg(fmt.Sprintf(MSG, stre), 1)
 		pattern = regexp.MustCompile("FAILED_FIND_NOTHING")
 	}
 	return pattern
