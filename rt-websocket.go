@@ -22,9 +22,10 @@ type PollData struct {
 	Elapsed  string `json:"Elapsed"`
 	Extra    string `json:"Notes"`
 	ID       string `json:"ID"`
+	TwoBox   bool
 }
 
-// RtWebsocket - progress info for searches
+// RtWebsocket - progress info for SearchMap
 func RtWebsocket(c echo.Context) error {
 	// 	the client sends the name of a poll and this will output
 	//	the status of the poll continuously while the poll remains active
@@ -63,7 +64,10 @@ func RtWebsocket(c echo.Context) error {
 	}
 
 	for {
-		if len(searches) != 0 {
+		maplocker.RLock()
+		ls := len(SearchMap)
+		maplocker.RUnlock()
+		if ls != 0 {
 			break
 		}
 	}
@@ -89,27 +93,29 @@ func RtWebsocket(c echo.Context) error {
 
 		bs = string(m)
 		bs = strings.Replace(bs, `"`, "", -1)
-		_, found := searches[bs]
+		_, found := SearchMap[bs]
 
-		if found && searches[bs].IsActive {
+		if found && SearchMap[bs].IsActive {
+			var r PollData
+			r.TwoBox = SearchMap[bs].Twobox
+
 			for {
-				var r PollData
 				r.ID = bs
-				r.TotalWrk = searches[bs].TableSize
-				r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(searches[bs].Launched).Seconds())
+				r.TotalWrk = SearchMap[bs].TableSize
+				r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(SearchMap[bs].Launched).Seconds())
 
-				if searches[bs].PhaseNum > 1 {
+				if SearchMap[bs].PhaseNum > 1 {
 					r.Extra = "(second pass)"
 				} else {
 					r.Extra = ""
 				}
 
 				// is lock/unlock of the relevant mutex in fact unneeded: only this loop will read this value from that map
-				r.Remain = searches[bs].Remain.Get()
-				r.Hits = searches[bs].Hits.Get()
+				r.Remain = SearchMap[bs].Remain.Get()
+				r.Hits = SearchMap[bs].Hits.Get()
 
 				// inside the loop because indexing modifies InitSum to send simple progress messages
-				r.Msg = strings.Replace(searches[bs].InitSum, "Sought", "Seeking", -1)
+				r.Msg = strings.Replace(SearchMap[bs].InitSum, "Sought", "Seeking", -1)
 
 				// Write
 				pd := formatpoll(r)
@@ -133,7 +139,10 @@ func RtWebsocket(c echo.Context) error {
 					time.Sleep(WSPOLLINGPAUSE)
 				}
 
-				if _, exists := searches[bs]; !exists {
+				maplocker.RLock()
+				_, exists := SearchMap[bs]
+				maplocker.RUnlock()
+				if !exists {
 					done = true
 					break
 				}
@@ -142,7 +151,7 @@ func RtWebsocket(c echo.Context) error {
 	}
 
 	// tell the websocket on the other end to close
-	// this is not supposed to be strictly necessary, but there have been problems reconnecting after multiple searches
+	// this is not supposed to be strictly necessary, but there have been problems reconnecting after multiple SearchMap
 	end := JSOut{
 		V:     "",
 		ID:    bs,
@@ -176,7 +185,7 @@ func formatpoll(pd PollData) string {
 
 	tp := func() string {
 		m := `Finishing up...&nbsp;`
-		if searches[pd.ID].Twobox {
+		if pd.TwoBox {
 			m = `Searching for matches among the initial finds...&nbsp;`
 		}
 		return fmt.Sprintf(`&nbsp;(%s)<br>%s`, pd.Elapsed, m)

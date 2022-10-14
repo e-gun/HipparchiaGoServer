@@ -67,14 +67,14 @@ func RtTextMaker(c echo.Context) error {
 		return emptyjsreturn(c)
 	}
 
-	searches[srch.ID] = srch
+	SearchMap[srch.ID] = srch
 
 	// now we have the lines we need....
-	firstline := searches[srch.ID].Results[0]
+	firstline := SearchMap[srch.ID].Results[0]
 	firstwork := firstline.MyWk()
 	firstauth := firstline.MyAu()
 
-	lines := searches[srch.ID].Results
+	lines := SearchMap[srch.ID].Results
 	block := make([]string, len(lines))
 	for i, l := range lines {
 		l.PurgeMetadata()
@@ -120,7 +120,7 @@ func RtTextMaker(c echo.Context) error {
 
 	// <div id="searchsummary">Cicero,&nbsp;<span class="foundwork">Philippicae</span><br><br>citation format:&nbsp;oration 3, section 13, line 1<br></div>
 
-	sui := sessions[user].Inclusions
+	sui := SessionMap[user].Inclusions
 
 	au := firstauth.Shortname
 	if len(sui.Authors) > 1 || len(sui.AuGenres) > 0 || len(sui.AuLocations) > 0 {
@@ -203,24 +203,24 @@ func RtVocabMaker(c echo.Context) error {
 	id := c.Param("id")
 	id = purgechars(cfg.BadChars, id)
 
-	// for progress reporting
+	// "si" is a blank search struct used for progress reporting
 	si := builddefaultsearch(c)
 	si.ID = id
 	si.InitSum = MSG1
 	si.IsActive = true
-	searches[si.ID] = si
-	searches[si.ID].Remain.Set(1)
+	swapintosearchmap(si)
+	SearchMap[si.ID].Remain.Set(1)
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
 	max := cfg.MaxText * MAXVOCABLINEGENERATION
-	srch := sessionintobulksearch(c, int64(max)) // allow bigger vocab lists
+	vocabsrch := sessionintobulksearch(c, int64(max)) // allow bigger vocab lists
 
-	if len(srch.Results) == 0 {
+	if len(vocabsrch.Results) == 0 {
 		return emptyjsreturn(c)
 	}
 
 	var slicedwords []WordInfo
-	for _, r := range srch.Results {
+	for _, r := range vocabsrch.Results {
 		wds := r.AccentedSlice()
 		for _, w := range wds {
 			this := WordInfo{
@@ -253,7 +253,8 @@ func RtVocabMaker(c echo.Context) error {
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
 	si.InitSum = MSG2
-	searches[si.ID] = si
+
+	swapintosearchmap(si)
 
 	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 	// [c2] map observed words to possibilities
@@ -275,7 +276,7 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	mp := make(map[string]rune)
-	if srch.SearchSize > 1 {
+	if vocabsrch.SearchSize > 1 {
 		parsedwords, mp = addkeystowordinfo(parsedwords)
 	}
 
@@ -320,12 +321,12 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	si.InitSum = MSG3
-	searches[si.ID] = si
+	swapintosearchmap(si)
 
 	sort.Slice(vis, func(i, j int) bool { return vis[i].Strip < vis[j].Strip })
 
 	si.InitSum = MSG4
-	searches[si.ID] = si
+	swapintosearchmap(si)
 
 	// [g] format
 
@@ -339,17 +340,17 @@ func RtVocabMaker(c echo.Context) error {
 
 	htm := strings.Join(trr, "")
 
-	an := srch.Results[0].MyAu().Cleaname
-	if srch.TableSize > 1 {
-		an = an + fmt.Sprintf(" and %d more author(s)", srch.TableSize-1)
+	an := vocabsrch.Results[0].MyAu().Cleaname
+	if vocabsrch.TableSize > 1 {
+		an = an + fmt.Sprintf(" and %d more author(s)", vocabsrch.TableSize-1)
 	}
 
-	wn := srch.Results[0].MyWk().Title
-	if srch.SearchSize > 1 {
-		wn = wn + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
+	wn := vocabsrch.Results[0].MyWk().Title
+	if vocabsrch.SearchSize > 1 {
+		wn = wn + fmt.Sprintf(" and %d more works(s)", vocabsrch.SearchSize-1)
 	}
 
-	cf := srch.Results[0].MyWk().CitationFormat()
+	cf := vocabsrch.Results[0].MyWk().CitationFormat()
 	var tc []string
 	for _, x := range cf {
 		if len(x) != 0 {
@@ -364,10 +365,10 @@ func RtVocabMaker(c echo.Context) error {
 
 	el := fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
 
-	ky := multiworkkeymaker(mp, &srch)
+	ky := multiworkkeymaker(mp, &vocabsrch)
 
 	cp := ""
-	if len(srch.Results) == max {
+	if len(vocabsrch.Results) == max {
 		cp = m.Sprintf(HITCAP, max)
 	}
 
@@ -387,7 +388,10 @@ func RtVocabMaker(c echo.Context) error {
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
 	// clean up progress reporting
-	delete(searches, si.ID)
+
+	maplocker.Lock()
+	delete(SearchMap, si.ID)
+	maplocker.Unlock()
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
@@ -437,13 +441,13 @@ func RtIndexMaker(c echo.Context) error {
 	id := c.Param("id")
 	id = purgechars(cfg.BadChars, id)
 
-	// for progress reporting
+	// "si" is a blank search struct used for progress reporting
 	si := builddefaultsearch(c)
 	si.ID = id
 	si.InitSum = MSG1
 	si.IsActive = true
-	searches[si.ID] = si
-	searches[si.ID].Remain.Set(1)
+	swapintosearchmap(si)
+	SearchMap[si.ID].Remain.Set(1)
 
 	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 
@@ -486,7 +490,7 @@ func RtIndexMaker(c echo.Context) error {
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
 	si.InitSum = MSG2
-	searches[si.ID] = si
+	swapintosearchmap(si)
 
 	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 	var slicedlookups []WordInfo
@@ -577,7 +581,7 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	si.InitSum = MSG3
-	searches[si.ID] = si
+	swapintosearchmap(si)
 
 	indexmap := make(map[SorterStruct][]WordInfo, len(trimslices))
 	for _, w := range trimslices {
@@ -621,7 +625,7 @@ func RtIndexMaker(c echo.Context) error {
 	indexmap = make(map[SorterStruct][]WordInfo, 1) // drop after use
 
 	si.InitSum = MSG4
-	searches[si.ID] = si
+	swapintosearchmap(si)
 
 	trr := make([]string, len(plainkeys))
 	for i, k := range plainkeys {
@@ -676,8 +680,9 @@ func RtIndexMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "indexobserved") + fmt.Sprintf(BROWSERJS, "indexedlocation")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	// clean up progress reporting
-	delete(searches, si.ID)
+	maplocker.Lock()
+	delete(SearchMap, si.ID)
+	maplocker.Unlock()
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
@@ -698,7 +703,7 @@ func sessionintobulksearch(c echo.Context, lim int64) SearchStruct {
 
 	srch.CleanInput()
 
-	sl := SessionIntoSearchlist(sessions[user])
+	sl := SessionIntoSearchlist(SessionMap[user])
 	srch.SearchIn = sl.Inc
 	srch.SearchEx = sl.Excl
 	srch.SearchSize = sl.Size
@@ -939,4 +944,11 @@ func polishtrans(tr string, pat *regexp.Regexp) string {
 		elem[i] = pat.ReplaceAllString(e, TT)
 	}
 	return strings.Join(elem, "; ")
+}
+
+// swapintosearchmap - swap a SearchStruct into SearchMap via its ID
+func swapintosearchmap(ss SearchStruct) {
+	maplocker.Lock()
+	SearchMap[ss.ID] = ss
+	maplocker.Unlock()
 }

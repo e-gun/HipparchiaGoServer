@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"strings"
+	"sync"
 )
 
 const (
@@ -25,8 +26,8 @@ var (
 	// order matters
 	cfg          CurrentConfiguration
 	psqlpool     *pgxpool.Pool
-	sessions     = make(map[string]ServerSession)
-	searches     = make(map[string]SearchStruct)
+	SessionMap   = make(map[string]ServerSession)
+	SearchMap    = make(map[string]SearchStruct)
 	AllWorks     = make(map[string]DbWork)
 	AllAuthors   = make(map[string]DbAuthor)
 	AllLemm      = make(map[string]DbLemma)
@@ -39,6 +40,7 @@ var (
 	WkLocs       = make(map[string]bool)
 	TheCorpora   = [5]string{"gr", "lt", "in", "ch", "dp"}
 	TheLanguages = [2]string{"greek", "latin"}
+	maplocker    sync.RWMutex
 )
 
 type DbAuthor struct {
@@ -271,7 +273,7 @@ func lemmamapper() map[string]DbLemma {
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 
-	// note that the v --> u here will push us to stripped_line searches instead of accented_line
+	// note that the v --> u here will push us to stripped_line SearchMap instead of accented_line
 	// clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "", "j", "i", "v", "u")
 	clean := strings.NewReplacer("-", "", "j", "i", "v", "u")
 

@@ -124,7 +124,7 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 		HIGHLIGHTER = `<span class="highlight">%s</span>`
 		SNIP        = `✃✃✃`
 	)
-	thesession := sessions[ss.User]
+	thesession := SessionMap[ss.User]
 
 	type PsgFormattingTemplate struct {
 		Findnumber  int
@@ -316,9 +316,9 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 	m := message.NewPrinter(language.English)
 
 	var dr string
-	if sessions[s.User].Earliest != MINDATESTR || sessions[s.User].Latest != MAXDATESTR {
-		a := formatbcedate(sessions[s.User].Earliest)
-		b := formatbcedate(sessions[s.User].Latest)
+	if SessionMap[s.User].Earliest != MINDATESTR || SessionMap[s.User].Latest != MAXDATESTR {
+		a := formatbcedate(SessionMap[s.User].Earliest)
+		b := formatbcedate(SessionMap[s.User].Latest)
 		dr = fmt.Sprintf("Searched between %s and %s<br>", a, b)
 	} else {
 		dr = "<!-- dates did not matter -->"
@@ -336,7 +336,7 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 		oh = `<br><span class="small">(only one hit allowed per author table)</span>`
 	}
 
-	so := sessions[s.User].SortHitsBy
+	so := SessionMap[s.User].SortHitsBy
 	// shortname, converted_date, provenance, universalid
 	switch so {
 	case "shortname":

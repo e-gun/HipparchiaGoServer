@@ -29,10 +29,10 @@ func RtGetJSSession(c echo.Context) error {
 	// see hipparchiajs/coreinterfaceclicks_go.js
 
 	user := readUUIDCookie(c)
-	if _, exists := sessions[user]; !exists {
-		sessions[user] = makedefaultsession(user)
+	if _, exists := SessionMap[user]; !exists {
+		SessionMap[user] = makedefaultsession(user)
 	}
-	s := sessions[user]
+	s := SessionMap[user]
 
 	type JSO struct {
 		// what the JS is looking for; note that vector stuff, etc is being skipped vs the python session dump
@@ -321,7 +321,7 @@ func RtGetJSSearchlist(c echo.Context) error {
 	)
 
 	m := message.NewPrinter(language.English)
-	sl := SessionIntoSearchlist(sessions[readUUIDCookie(c)])
+	sl := SessionIntoSearchlist(SessionMap[readUUIDCookie(c)])
 	tw := int64(0)
 
 	var wkk []string

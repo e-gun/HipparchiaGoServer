@@ -53,7 +53,7 @@ func RtBrowseline(c echo.Context) error {
 		wk := elem[1]
 		ln, e := strconv.Atoi(elem[2])
 		chke(e)
-		ctx := sessions[user].BrowseCtx
+		ctx := SessionMap[user].BrowseCtx
 		bp := generatebrowsedpassage(au, wk, int64(ln), ctx)
 		return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
 	} else {
@@ -92,7 +92,7 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 
 		// findendpointsfromlocus() lives in rt-selection.go
 		ln := findendpointsfromlocus(uid, elem[2], sep)
-		ctx := sessions[user].BrowseCtx
+		ctx := SessionMap[user].BrowseCtx
 		return generatebrowsedpassage(au, wk, ln[0], ctx)
 	} else {
 		msg(fmt.Sprintf("Browse() could not parse %s", locus), 3)

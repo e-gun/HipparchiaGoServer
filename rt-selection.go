@@ -106,7 +106,7 @@ func RtSelectionMake(c echo.Context) error {
 		sel.IsExcl = false
 	}
 
-	sessions[user] = selected(user, sel)
+	SessionMap[user] = selected(user, sel)
 	cs := reportcurrentselections(c)
 
 	return c.JSONPretty(http.StatusOK, cs, JSONINDENT)
@@ -141,7 +141,7 @@ func RtSelectionClear(c echo.Context) error {
 
 	// cat := []string{"agn", "wgn", "aloc", "wloc", "au", "wk", "psg"}
 
-	mod := sessions[user]
+	mod := SessionMap[user]
 	modi := mod.Inclusions
 	mode := mod.Exclusions
 
@@ -193,7 +193,7 @@ func RtSelectionClear(c echo.Context) error {
 	mod.Inclusions = modi
 	mod.Exclusions = mode
 
-	sessions[user] = mod
+	SessionMap[user] = mod
 
 	r := RtSelectionFetch(c)
 
@@ -219,7 +219,7 @@ func selected(user string, sv SelectionValues) ServerSession {
 	// [f] author location: "GET /selection/make/_?auloc=Abdera HTTP/1.1"
 	// [g] work proven: "GET /selection/make/_?wkprov=Abdera%20(Thrace) HTTP/1.1"
 
-	s := sessions[user]
+	s := SessionMap[user]
 	sep := "|"
 	if s.RawInput {
 		sep = "."
@@ -755,7 +755,7 @@ func reportcurrentselections(c echo.Context) SelectionData {
 		TL = `Unless specifically listed, authors/works must come from %s to %s`
 	)
 
-	s := sessions[readUUIDCookie(c)]
+	s := SessionMap[readUUIDCookie(c)]
 	s.Inclusions.BuildAuByName()
 	s.Exclusions.BuildAuByName()
 	s.Inclusions.BuildWkByName()

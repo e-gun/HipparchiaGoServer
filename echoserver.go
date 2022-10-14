@@ -288,7 +288,7 @@ func RtSessionSetsCookie(c echo.Context) error {
 	)
 	num := c.Param("num")
 	user := readUUIDCookie(c)
-	s := sessions[user]
+	s := SessionMap[user]
 
 	v, e := json.Marshal(s)
 	if e != nil {
@@ -313,8 +313,8 @@ func RtSessionSetsCookie(c echo.Context) error {
 func RtSessionGetCookie(c echo.Context) error {
 	// this code has input trust issues...
 	const (
-		FAIL1 = "RtSessionGetsCookie failed to read cookie %s for %s"
-		FAIL2 = "RtSessionGetsCookie failed to unmarshal cookie %s for %s"
+		FAIL1 = "RtSessionGetCookie failed to read cookie %s for %s"
+		FAIL2 = "RtSessionGetCookie failed to unmarshal cookie %s for %s"
 	)
 
 	user := readUUIDCookie(c)
@@ -339,7 +339,7 @@ func RtSessionGetCookie(c echo.Context) error {
 		return c.String(http.StatusOK, "")
 	}
 
-	sessions[user] = s
+	SessionMap[user] = s
 
 	e := c.Redirect(http.StatusFound, "/")
 	chke(e)
@@ -348,7 +348,7 @@ func RtSessionGetCookie(c echo.Context) error {
 
 // RtResetSession - delete and then reset the session
 func RtResetSession(c echo.Context) error {
-	delete(sessions, readUUIDCookie(c))
+	delete(SessionMap, readUUIDCookie(c))
 
 	// then reset it
 	readUUIDCookie(c)
@@ -377,7 +377,7 @@ func RtSetOption(c echo.Context) error {
 	ynoptionlist := []string{"greekcorpus", "latincorpus", "papyruscorpus", "inscriptioncorpus", "christiancorpus",
 		"rawinputstyle", "onehit", "headwordindexing", "indexbyfrequency", "spuria", "incerta", "varia"}
 
-	s := sessions[readUUIDCookie(c)]
+	s := SessionMap[readUUIDCookie(c)]
 
 	if isinslice(ynoptionlist, opt) {
 		valid := []string{"yes", "no"}
@@ -518,8 +518,8 @@ func RtSetOption(c echo.Context) error {
 		}
 	}
 
-	delete(sessions, readUUIDCookie(c))
-	sessions[readUUIDCookie(c)] = s
+	delete(SessionMap, readUUIDCookie(c))
+	SessionMap[readUUIDCookie(c)] = s
 
 	return c.String(http.StatusOK, "")
 }

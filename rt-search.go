@@ -239,7 +239,7 @@ func (s *SearchStruct) SortResults() {
 		return one.MyWk().Prov < two.MyWk().Prov
 	}
 
-	crit := sessions[s.User].SortHitsBy
+	crit := SessionMap[s.User].SortHitsBy
 
 	switch {
 	// unhandled are "location" & "provenance"
@@ -323,7 +323,7 @@ func RtSearch(c echo.Context) error {
 	srch.Seeking = whitespacer(srch.Seeking, &srch)
 	srch.Proximate = whitespacer(srch.Proximate, &srch)
 
-	sl := SessionIntoSearchlist(sessions[user])
+	sl := SessionIntoSearchlist(SessionMap[user])
 	srch.SearchIn = sl.Inc
 	srch.SearchEx = sl.Excl
 	srch.SearchSize = sl.Size
@@ -332,17 +332,17 @@ func RtSearch(c echo.Context) error {
 
 	srch.TableSize = len(srch.Queries)
 	srch.IsActive = true
-	searches[id] = srch // go build -race : WARNING: DATA RACE Write at 0x00c000230480 by goroutine 134 runtime.mapaccessK()
+	swapintosearchmap(srch)
 
 	var completed SearchStruct
-	if searches[id].Twobox {
-		if searches[id].ProxScope == "words" {
-			completed = WithinXWordsSearch(searches[id])
+	if SearchMap[id].Twobox {
+		if SearchMap[id].ProxScope == "words" {
+			completed = WithinXWordsSearch(SearchMap[id])
 		} else {
-			completed = WithinXLinesSearch(searches[id])
+			completed = WithinXLinesSearch(SearchMap[id])
 		}
 	} else {
-		completed = HGoSrch(searches[id])
+		completed = HGoSrch(SearchMap[id])
 	}
 
 	if completed.HasPhrase {
@@ -356,13 +356,15 @@ func RtSearch(c echo.Context) error {
 	completed.SortResults()
 
 	soj := SearchOutputJSON{}
-	if sessions[readUUIDCookie(c)].HitContext == 0 {
+	if SessionMap[readUUIDCookie(c)].HitContext == 0 {
 		soj = FormatNoContextResults(completed)
 	} else {
 		soj = FormatWithContextResults(completed)
 	}
 
-	delete(searches, id)
+	maplocker.Lock()
+	delete(SearchMap, id)
+	maplocker.Unlock()
 
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
@@ -508,7 +510,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 	// [b] run the second "search" for anything/everything: ""
 
-	searches[originalsrch.ID] = HGoSrch(second)
+	SearchMap[originalsrch.ID] = HGoSrch(second)
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	msg(fmt.Sprintf(MSG2, d, len(first.Results)), 4)
@@ -517,7 +519,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	// [c] convert these finds into strings and then search those strings
 	// [c1] build bundles of lines
 	bundlemapper := make(map[int][]DbWorkline)
-	for _, r := range searches[originalsrch.ID].Results {
+	for _, r := range SearchMap[originalsrch.ID].Results {
 		url := r.BuildHyperlink()
 		bun := resultmapper[url]
 		bundlemapper[bun] = append(bundlemapper[bun], r)
@@ -669,25 +671,26 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	var s SearchStruct
 	s.User = user
 	s.Launched = time.Now()
-	s.Limit = sessions[user].HitLimit
+	s.Limit = SessionMap[user].HitLimit
 	s.SrchColumn = DEFAULTCOLUMN
 	s.SrchSyntax = DEFAULTSYNTAX
 	s.OrderBy = ORDERBY
-	s.SearchIn = sessions[user].Inclusions
-	s.SearchEx = sessions[user].Exclusions
-	s.ProxDist = int64(sessions[user].Proximity)
-	s.ProxScope = sessions[user].SearchScope
+	s.SearchIn = SessionMap[user].Inclusions
+	s.SearchEx = SessionMap[user].Exclusions
+	s.ProxDist = int64(SessionMap[user].Proximity)
+	s.ProxScope = SessionMap[user].SearchScope
 	s.NotNear = false
 	s.Twobox = false
 	s.HasPhrase = false
 	s.HasLemma = false
 	s.SkgRewritten = false
-	s.OneHit = sessions[user].OneHit
+	s.OneHit = SessionMap[user].OneHit
 	s.PhaseNum = 1
 	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
 	s.AcqHitCounter()
 	s.AcqRemainCounter()
-	if sessions[user].NearOrNot == "notnear" {
+
+	if SessionMap[user].NearOrNot == "notnear" {
 		s.NotNear = true
 	}
 
@@ -953,8 +956,8 @@ func columnpicker(c string, r DbWorkline) string {
 
 // clonesearch - make a copy of a search with results and queries, inter alia, ripped out
 func clonesearch(f SearchStruct, iteration int) SearchStruct {
-	// note that the clone is not accessible to RtWebsocket() because it never gets registered in the global searches
-	// this means no progress for second pass searches; this can be achieved, but it is not currently a priority
+	// note that the clone is not accessible to RtWebsocket() because it never gets registered in the global SearchMap
+	// this means no progress for second pass SearchMap; this can be achieved, but it is not currently a priority
 	s := f
 	s.Results = []DbWorkline{}
 	s.Queries = []PrerolledQuery{}

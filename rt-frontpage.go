@@ -46,7 +46,7 @@ type ServerSession struct {
 // RtFrontpage - send the html for "/"
 func RtFrontpage(c echo.Context) error {
 	// will set if missing
-	s := sessions[readUUIDCookie(c)]
+	s := SessionMap[readUUIDCookie(c)]
 
 	env := fmt.Sprintf("%s: %s - %s (%d workers)", runtime.Version(), runtime.GOOS, runtime.GOARCH, cfg.WorkerCount)
 
@@ -73,7 +73,7 @@ func RtFrontpage(c echo.Context) error {
 
 // makedefaultsession - fill in the blanks when setting up a new session
 func makedefaultsession(id string) ServerSession {
-	// note that sessions clears every time the server restarts
+	// note that SessionMap clears every time the server restarts
 
 	var s ServerSession
 	s.ID = id
@@ -112,11 +112,11 @@ func readUUIDCookie(c echo.Context) string {
 	}
 	id := cookie.Value
 
-	if _, t := sessions[id]; !t {
-		sessions[id] = makedefaultsession(id)
+	if _, t := SessionMap[id]; !t {
+		SessionMap[id] = makedefaultsession(id)
 	}
 
-	if !sessions[id].IsLoggedIn {
+	if !SessionMap[id].IsLoggedIn {
 		// go to authentication code
 		// at the moment everyone should always be marked as logged in
 	}
