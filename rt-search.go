@@ -12,11 +12,13 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 )
 
 var (
-	hasAccent = regexp.MustCompile("[äëïöüâêîôûàèìòùáéíóúᾂᾒᾢᾃᾓᾣᾄᾔᾤᾅᾕᾥᾆᾖᾦᾇᾗᾧἂἒἲὂὒἢὢἃἓἳὃὓἣὣἄἔἴὄὔἤὤἅἕἵὅὕἥὥἆἶὖἦὦἇἷὗἧὧᾲῂῲᾴῄῴᾷῇῷᾀᾐᾠᾁᾑᾡῒῢΐΰῧἀἐἰὀὐἠὠῤἁἑἱὁὑἡὡῥὰὲὶὸὺὴὼάέίόύήώᾶῖῦῆῶϊϋ]")
+	hasAccent   = regexp.MustCompile("[äëïöüâêîôûàèìòùáéíóúᾂᾒᾢᾃᾓᾣᾄᾔᾤᾅᾕᾥᾆᾖᾦᾇᾗᾧἂἒἲὂὒἢὢἃἓἳὃὓἣὣἄἔἴὄὔἤὤἅἕἵὅὕἥὥἆἶὖἦὦἇἷὗἧὧᾲῂῲᾴῄῴᾷῇῷᾀᾐᾠᾁᾑᾡῒῢΐΰῧἀἐἰὀὐἠὠῤἁἑἱὁὑἡὡῥὰὲὶὸὺὴὼάέίόύήώᾶῖῦῆῶϊϋ]")
+	CounterPool = sync.Pool{New: func() interface{} { return &SrchCounter{} }}
 )
 
 type SearchStruct struct {
@@ -54,6 +56,34 @@ type SearchStruct struct {
 	TTName       string
 	SearchSize   int // # of works searched
 	TableSize    int // # of tables searched
+	Hits         *SrchCounter
+	Remain       *SrchCounter
+}
+
+func (s *SearchStruct) AcqHitCounter() {
+	h := CounterPool.Get().(*SrchCounter)
+	s.Hits = h
+}
+
+func (s *SearchStruct) GetHitCount() int {
+	return s.Hits.Get()
+}
+
+func (s *SearchStruct) SetHitCount(c int) {
+	s.Hits.Set(c)
+}
+
+func (s *SearchStruct) AcqRemainCounter() {
+	r := CounterPool.Get().(*SrchCounter)
+	s.Remain = r
+}
+
+func (s *SearchStruct) GetRemainCount() int {
+	return s.Remain.Get()
+}
+
+func (s *SearchStruct) SetRemainCount(c int) {
+	s.Remain.Set(c)
 }
 
 func (s *SearchStruct) CleanInput() {
@@ -228,6 +258,23 @@ func (s *SearchStruct) SortResults() {
 	}
 }
 
+type SrchCounter struct {
+	count int
+	lock  sync.RWMutex
+}
+
+func (h *SrchCounter) Get() int {
+	h.lock.RLock()
+	defer h.lock.RUnlock()
+	return h.count
+}
+
+func (h *SrchCounter) Set(c int) {
+	h.lock.Lock()
+	defer h.lock.Unlock()
+	h.count = c
+}
+
 //
 // ROUTING
 //
@@ -285,11 +332,10 @@ func RtSearch(c echo.Context) error {
 
 	srch.TableSize = len(srch.Queries)
 	srch.IsActive = true
-	searches[id] = srch
+	searches[id] = srch // go build -race : WARNING: DATA RACE Write at 0x00c000230480 by goroutine 134 runtime.mapaccessK()
 
 	var completed SearchStruct
 	if searches[id].Twobox {
-		// todo: triple-check results against python
 		if searches[id].ProxScope == "words" {
 			completed = WithinXWordsSearch(searches[id])
 		} else {
@@ -317,8 +363,6 @@ func RtSearch(c echo.Context) error {
 	}
 
 	delete(searches, id)
-	delete(SrchRemain, id)
-	delete(SrchHits, id)
 
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
@@ -641,7 +685,8 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	s.OneHit = sessions[user].OneHit
 	s.PhaseNum = 1
 	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
-
+	s.AcqHitCounter()
+	s.AcqRemainCounter()
 	if sessions[user].NearOrNot == "notnear" {
 		s.NotNear = true
 	}
@@ -689,6 +734,8 @@ func buildhollowsearch() SearchStruct {
 		SearchSize:   0,
 		TableSize:    0,
 	}
+	s.AcqHitCounter()
+	s.AcqRemainCounter()
 	return s
 }
 

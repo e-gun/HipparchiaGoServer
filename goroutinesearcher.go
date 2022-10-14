@@ -83,10 +83,7 @@ func SrchFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, e
 			default:
 				remainder = len(ss.Queries) - i - 1
 				if remainder%POLLEVERYNTABLES == 0 {
-					// progremain.Store(ss.ID, remainder)
-					SRMutex.Lock()
-					SrchRemain[ss.ID] = remainder
-					SRMutex.Unlock()
+					ss.Remain.Set(remainder)
 				}
 				emitqueries <- q
 			}
@@ -161,10 +158,7 @@ func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int64, value
 				} else {
 					allhits = append(allhits, val...)
 				}
-				SHMutex.Lock()
-				// proghits.Store(ss.ID, len(allhits))
-				SrchHits[ss.ID] = len(allhits)
-				SHMutex.Unlock()
+				ss.Hits.Set(len(allhits))
 
 				if int64(len(allhits)) > maxhits {
 					done = true

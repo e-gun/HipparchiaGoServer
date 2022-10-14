@@ -209,7 +209,7 @@ func RtVocabMaker(c echo.Context) error {
 	si.InitSum = MSG1
 	si.IsActive = true
 	searches[si.ID] = si
-	SrchRemain[si.ID] = 1
+	searches[si.ID].Remain.Set(1)
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
 	max := cfg.MaxText * MAXVOCABLINEGENERATION
@@ -388,7 +388,6 @@ func RtVocabMaker(c echo.Context) error {
 
 	// clean up progress reporting
 	delete(searches, si.ID)
-	delete(SrchRemain, si.ID)
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
@@ -444,7 +443,7 @@ func RtIndexMaker(c echo.Context) error {
 	si.InitSum = MSG1
 	si.IsActive = true
 	searches[si.ID] = si
-	SrchRemain[si.ID] = 1
+	searches[si.ID].Remain.Set(1)
 
 	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 
@@ -679,7 +678,6 @@ func RtIndexMaker(c echo.Context) error {
 
 	// clean up progress reporting
 	delete(searches, si.ID)
-	delete(SrchRemain, si.ID)
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }

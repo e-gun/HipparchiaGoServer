@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"strings"
-	"sync"
 )
 
 const (
@@ -40,10 +39,6 @@ var (
 	WkLocs       = make(map[string]bool)
 	TheCorpora   = [5]string{"gr", "lt", "in", "ch", "dp"}
 	TheLanguages = [2]string{"greek", "latin"}
-	SRMutex      = sync.RWMutex{}
-	SHMutex      = sync.RWMutex{}
-	SrchRemain   = make(map[string]int)
-	SrchHits     = make(map[string]int)
 )
 
 type DbAuthor struct {
