@@ -17,9 +17,12 @@ import (
 )
 
 var (
-	hasAccent   = regexp.MustCompile("[äëïöüâêîôûàèìòùáéíóúᾂᾒᾢᾃᾓᾣᾄᾔᾤᾅᾕᾥᾆᾖᾦᾇᾗᾧἂἒἲὂὒἢὢἃἓἳὃὓἣὣἄἔἴὄὔἤὤἅἕἵὅὕἥὥἆἶὖἦὦἇἷὗἧὧᾲῂῲᾴῄῴᾷῇῷᾀᾐᾠᾁᾑᾡῒῢΐΰῧἀἐἰὀὐἠὠῤἁἑἱὁὑἡὡῥὰὲὶὸὺὴὼάέίόύήώᾶῖῦῆῶϊϋ]")
-	CounterPool = sync.Pool{New: func() interface{} { return &SrchCounter{} }}
+	hasAccent = regexp.MustCompile("[äëïöüâêîôûàèìòùáéíóúᾂᾒᾢᾃᾓᾣᾄᾔᾤᾅᾕᾥᾆᾖᾦᾇᾗᾧἂἒἲὂὒἢὢἃἓἳὃὓἣὣἄἔἴὄὔἤὤἅἕἵὅὕἥὥἆἶὖἦὦἇἷὗἧὧᾲῂῲᾴῄῴᾷῇῷᾀᾐᾠᾁᾑᾡῒῢΐΰῧἀἐἰὀὐἠὠῤἁἑἱὁὑἡὡῥὰὲὶὸὺὴὼάέίόύήώᾶῖῦῆῶϊϋ]")
 )
+
+//
+// STRUCTS
+//
 
 type SearchStruct struct {
 	User         string
@@ -60,34 +63,8 @@ type SearchStruct struct {
 	Remain       *SrchCounter
 }
 
-func (s *SearchStruct) AcqHitCounter() {
-	h := CounterPool.Get().(*SrchCounter)
-	s.Hits = h
-}
-
-func (s *SearchStruct) GetHitCount() int {
-	return s.Hits.Get()
-}
-
-func (s *SearchStruct) SetHitCount(c int) {
-	s.Hits.Set(c)
-}
-
-func (s *SearchStruct) AcqRemainCounter() {
-	r := CounterPool.Get().(*SrchCounter)
-	s.Remain = r
-}
-
-func (s *SearchStruct) GetRemainCount() int {
-	return s.Remain.Get()
-}
-
-func (s *SearchStruct) SetRemainCount(c int) {
-	s.Remain.Set(c)
-}
-
+// CleanInput - remove bad chars, etc. from the submitted data
 func (s *SearchStruct) CleanInput() {
-	// remove bad chars
 	// address uv issues; lunate issues; ...
 	// no need to parse a lemma: this bounces if there is not a key match to a map
 	dropping := USELESSINPUT + cfg.BadChars
@@ -117,6 +94,7 @@ func (s *SearchStruct) CleanInput() {
 	s.Proximate = purgechars(dropping, s.Proximate)
 }
 
+// SetType - set internal values via self-probe
 func (s *SearchStruct) SetType() {
 	// skip detailed proximate checks because second pass search just feeds all of that into the primary fields
 	const (
@@ -147,6 +125,7 @@ func (s *SearchStruct) SetType() {
 	return
 }
 
+// FormatInitialSummary - build HTML for the search summary
 func (s *SearchStruct) FormatInitialSummary() {
 	// ex:
 	// Sought <span class="sought">»ἡμέρα«</span> within 2 lines of all 79 forms of <span class="sought">»ἀγαθόϲ«</span>
@@ -183,6 +162,7 @@ func (s *SearchStruct) FormatInitialSummary() {
 	s.InitSum = sum
 }
 
+// SortResults - sort the search results by the session's selected criterion
 func (s *SearchStruct) SortResults() {
 	// Closures that order the DbWorkline structure:
 	// see generichelpers.go and https://pkg.go.dev/sort#example__sortMultiKeys
@@ -215,25 +195,13 @@ func (s *SearchStruct) SortResults() {
 		}
 	}
 
-	//dateDecreasing := func(one, two *DbWorkline) bool {
-	//	return AllWorks[one.WkID()].ConvDate > AllWorks[two.WkID()].ConvDate
-	//}
-
 	increasingLines := func(one, two *DbWorkline) bool {
 		return one.TbIndex < two.TbIndex
 	}
 
-	//decreasingLines := func(one, two *DbWorkline) bool {
-	//	return one.TbIndex > two.TbIndex // Note: > orders downwards.
-	//}
-
 	increasingID := func(one, two *DbWorkline) bool {
 		return one.BuildHyperlink() < two.BuildHyperlink()
 	}
-
-	//increasingALOC := func(one, two *DbWorkline) bool {
-	//	return AllAuthors[one.AuID()].Location < AllAuthors[two.AuID()].Location
-	//}
 
 	increasingWLOC := func(one, two *DbWorkline) bool {
 		return one.MyWk().Prov < two.MyWk().Prov
@@ -242,7 +210,6 @@ func (s *SearchStruct) SortResults() {
 	crit := SessionMap[s.User].SortHitsBy
 
 	switch {
-	// unhandled are "location" & "provenance"
 	case crit == "shortname":
 		OrderedBy(nameIncreasing, titleIncreasing, increasingLines).Sort(s.Results)
 	case crit == "converted_date":
@@ -258,17 +225,52 @@ func (s *SearchStruct) SortResults() {
 	}
 }
 
+// AcqHitCounter - get a SrchCounter for storing Hits values
+func (s *SearchStruct) AcqHitCounter() {
+	h := func() *SrchCounter { return &SrchCounter{} }()
+	s.Hits = h
+}
+
+// GetHitCount - concurrency aware way to read a SrchCounter
+func (s *SearchStruct) GetHitCount() int {
+	return s.Hits.Get()
+}
+
+// SetHitCount - concurrency aware way to write to a SrchCounter
+func (s *SearchStruct) SetHitCount(c int) {
+	s.Hits.Set(c)
+}
+
+// AcqRemainCounter - get a SrchCounter for storing Remain values
+func (s *SearchStruct) AcqRemainCounter() {
+	r := func() *SrchCounter { return &SrchCounter{} }()
+	s.Remain = r
+}
+
+// GetRemainCount - concurrency aware way to read a SrchCounter
+func (s *SearchStruct) GetRemainCount() int {
+	return s.Remain.Get()
+}
+
+// SetRemainCount - concurrency aware way to write to a SrchCounter
+func (s *SearchStruct) SetRemainCount(c int) {
+	s.Remain.Set(c)
+}
+
 type SrchCounter struct {
+	// atomic package could do this more simply, but this architecture is more flexible in the long term
 	count int
 	lock  sync.RWMutex
 }
 
+// Get - concurrency aware way to read a SrchCounter
 func (h *SrchCounter) Get() int {
 	h.lock.RLock()
 	defer h.lock.RUnlock()
 	return h.count
 }
 
+// Set - concurrency aware way to write to a SrchCounter
 func (h *SrchCounter) Set(c int) {
 	h.lock.Lock()
 	defer h.lock.Unlock()

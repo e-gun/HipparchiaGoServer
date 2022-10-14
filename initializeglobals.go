@@ -182,7 +182,6 @@ func workmapper() map[string]DbWork {
 
 	workmap := make(map[string]DbWork, DBWKMAPSIZE)
 
-	count := 0
 	defer foundrows.Close()
 	for foundrows.Next() {
 		// this will die if <nil> comes back inside any of the columns; and so you have to use builds from HipparchiaBuilder 1.6.0+
@@ -193,7 +192,6 @@ func workmapper() map[string]DbWork {
 			&w.FirstLine, &w.LastLine, &w.Authentic)
 		chke(e)
 		workmap[w.UID] = w
-		count += 1
 	}
 	return workmap
 }
