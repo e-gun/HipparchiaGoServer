@@ -17,7 +17,6 @@ import (
 )
 
 func main() {
-
 	// cpu profile:
 	// defer profile.Start().Stop()
 
@@ -25,6 +24,14 @@ func main() {
 	// defer profile.Start(profile.MemProfile).Stop()
 
 	// go tool pprof --pdf ./HipparchiaGoServer /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1880749830/cpu.pprof > profile.pdf
+
+	const (
+		MSG1 = "%d works built: map[string]DbWork"
+		MSG2 = "%d authors built: map[string]DbAuthor"
+		MSG3 = "corpus maps built"
+		MSG4 = "unnested lemma map built (%d items)"
+		MSG5 = "nested lemma map built"
+	)
 
 	configatlaunch()
 
@@ -34,7 +41,7 @@ func main() {
 		msg(fmt.Sprintf(TERMINALTEXT, PROJYEAR, PROJAUTH, PROJMAIL), -1)
 	}
 
-	psqlpool = FillPSQLPoool()
+	SQLPool = FillPSQLPoool()
 
 	// concurrent launching
 	var awaiting sync.WaitGroup
@@ -47,11 +54,11 @@ func main() {
 		previous := time.Now()
 
 		AllWorks = workmapper()
-		timetracker("A1", fmt.Sprintf("%d works built: map[string]DbWork", len(AllWorks)), start, previous)
+		timetracker("A1", fmt.Sprintf(MSG1, len(AllWorks)), start, previous)
 
 		previous = time.Now()
 		AllAuthors = authormapper(AllWorks)
-		timetracker("A2", fmt.Sprintf("%d authors built: map[string]DbAuthor", len(AllAuthors)), start, previous)
+		timetracker("A2", fmt.Sprintf(MSG2, len(AllAuthors)), start, previous)
 
 		previous = time.Now()
 		WkCorpusMap = buildwkcorpusmap()
@@ -60,7 +67,7 @@ func main() {
 		WkGenres = buildwkgenresmap()
 		AuLocs = buildaulocationmap()
 		WkLocs = buildwklocationmap()
-		timetracker("A3", "corpus maps built", start, previous)
+		timetracker("A3", MSG3, start, previous)
 	}(&awaiting)
 
 	awaiting.Add(1)
@@ -71,11 +78,11 @@ func main() {
 		previous := time.Now()
 
 		AllLemm = lemmamapper()
-		timetracker("B1", fmt.Sprintf("unnested lemma map built (%d items)", len(AllLemm)), start, previous)
+		timetracker("B1", fmt.Sprintf(MSG4, len(AllLemm)), start, previous)
 
 		previous = time.Now()
 		NestedLemm = nestedlemmamapper(AllLemm)
-		timetracker("B2", "nested lemma map built", start, previous)
+		timetracker("B2", MSG5, start, previous)
 	}(&awaiting)
 
 	awaiting.Wait()

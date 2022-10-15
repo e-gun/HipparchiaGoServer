@@ -59,9 +59,9 @@ func FillPSQLPoool() *pgxpool.Pool {
 // GetPSQLconnection - Acquire() a connection from the main pgxpool
 func GetPSQLconnection() *pgxpool.Conn {
 	const (
-		FAIL = "GetPSQLconnection() could not Acquire() from psqlpool"
+		FAIL = "GetPSQLconnection() could not Acquire() from SQLPool"
 	)
-	dbc, e := psqlpool.Acquire(context.Background())
+	dbc, e := SQLPool.Acquire(context.Background())
 	if e != nil {
 		msg(fmt.Sprintf(FAIL), -1)
 		panic(e)

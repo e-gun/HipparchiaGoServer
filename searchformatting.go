@@ -302,7 +302,8 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 	//        <!-- dates did not matter -->
 	//        [Search suspended: result cap reached.]
 
-	t := `
+	const (
+		TEMPL = `
 		%s
 		<br>
 		Searched %d works and found %d passages (%ss)
@@ -313,6 +314,13 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 		%s
 		%s
 	`
+		DDM    = "<!-- dates did not matter -->"
+		NOCAP  = "<!-- did not hit the results cap -->"
+		YESCAP = "[Search suspended: result cap reached.]"
+		INFAU  = "<!-- unlimited hits per author -->"
+		ONEAU  = `<br><span class="small">(only one hit allowed per author table)</span>`
+	)
+
 	m := message.NewPrinter(language.English)
 
 	var dr string
@@ -321,19 +329,19 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 		b := formatbcedate(SessionMap[s.User].Latest)
 		dr = fmt.Sprintf("Searched between %s and %s<br>", a, b)
 	} else {
-		dr = "<!-- dates did not matter -->"
+		dr = DDM
 	}
 
 	var hitcap string
 	if int64(len(s.Results)) == s.Limit {
-		hitcap = "[Search suspended: result cap reached.]"
+		hitcap = YESCAP
 	} else {
-		hitcap = "<!-- did not hit the results cap -->"
+		hitcap = NOCAP
 	}
 
-	oh := "<!-- unlimited hits per author -->"
+	oh := INFAU
 	if s.OneHit {
-		oh = `<br><span class="small">(only one hit allowed per author table)</span>`
+		oh = ONEAU
 	}
 
 	so := SessionMap[s.User].SortHitsBy
@@ -351,7 +359,7 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 
 	el := fmt.Sprintf("%.2f", time.Now().Sub(s.Launched).Seconds())
 	// need to record # of works and not # of tables somewhere & at the right moment...
-	sum := m.Sprintf(t, s.InitSum, s.SearchSize, len(s.Results), el, so, oh, dr, hitcap)
+	sum := m.Sprintf(TEMPL, s.InitSum, s.SearchSize, len(s.Results), el, so, oh, dr, hitcap)
 	return sum
 }
 
@@ -433,8 +441,10 @@ func unbalancedspancleaner(html string) string {
 	//
 	//	return the html with these supplemental tags
 
-	xopen := `<span class="htmlbalancingsupplement">`
-	xclose := `</span>`
+	const (
+		SPANOPEN  = `<span class="htmlbalancingsupplement">`
+		SPANCLOSE = `</span>`
+	)
 
 	op := regexp.MustCompile("<span")
 	cl := regexp.MustCompile("</span>")
@@ -444,13 +454,13 @@ func unbalancedspancleaner(html string) string {
 
 	if closed > opened {
 		for i := 0; i < closed-opened; i++ {
-			html = xopen + html
+			html = SPANOPEN + html
 		}
 	}
 
 	if opened > closed {
 		for i := 0; i < opened-closed; i++ {
-			html = html + xclose
+			html = html + SPANCLOSE
 		}
 	}
 	return html
@@ -480,10 +490,17 @@ func formateditorialbrackets(html string) string {
 
 	// see buildtext() in textbuilder.py for some regex recipies
 
-	html = esbboth.ReplaceAllString(html, `[<span class="editorialmarker_squarebrackets">$1</span>]`)
-	html = erbboth.ReplaceAllString(html, `(<span class="editorialmarker_roundbrackets">$1</span>)`)
-	html = eabboth.ReplaceAllString(html, `⟨<span class="editorialmarker_angledbrackets">$1</span>⟩`)
-	html = ecbboth.ReplaceAllString(html, `{<span class="editorialmarker_curlybrackets">$1</span>}`)
+	const (
+		SQUARE = `[<span class="editorialmarker_squarebrackets">$1</span>]`
+		ROUND  = `(<span class="editorialmarker_roundbrackets">$1</span>)`
+		ANGLE  = `⟨<span class="editorialmarker_angledbrackets">$1</span>⟩`
+		CURLY  = `{<span class="editorialmarker_curlybrackets">$1</span>}`
+	)
+
+	html = esbboth.ReplaceAllString(html, SQUARE)
+	html = erbboth.ReplaceAllString(html, ROUND)
+	html = eabboth.ReplaceAllString(html, ANGLE)
+	html = ecbboth.ReplaceAllString(html, CURLY)
 
 	return html
 }
@@ -563,7 +580,7 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 	// tp := `[\^\s;]%s[\s\.,;·’$]`
 
 	const (
-		FAIL   = "gethighlighter() could not compile LemmaOne into regex"
+		FAIL   = "lemmahighlighter() could not compile lemma into regex"
 		JOINER = ")✃✃✃("
 		SNIP   = "✃✃✃"
 		TP     = `%s` // move from match $1 to $0 in highlightsearchterm() yielded this shift...

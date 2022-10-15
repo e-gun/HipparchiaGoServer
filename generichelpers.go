@@ -84,6 +84,9 @@ func gcstats(fn string) {
 	// "GC runs a garbage collection and blocks the caller until the garbage collection is complete.
 	// It may also block the entire program." (https://pkg.go.dev/runtime#GC)
 	// nevertheless it turns HGS into a 380MB program instead of a 540MB program
+	const (
+		MSG = "%s runtime.GC() %s --> %s"
+	)
 
 	if !cfg.ManualGC {
 		return
@@ -94,7 +97,7 @@ func gcstats(fn string) {
 	runtime.GC()
 	runtime.ReadMemStats(&m)
 	a := fmt.Sprintf("%dM", m.HeapAlloc/1024/1024)
-	msg(fmt.Sprintf("%s runtime.GC() %s --> %s", fn, b, a), 4)
+	msg(fmt.Sprintf(MSG, fn, b, a), 4)
 }
 
 //
@@ -177,7 +180,7 @@ func containsN[T comparable](sl []T, seek T) int {
 	return count
 }
 
-// flatten - turn a slice of slices into a slice
+// flatten - turn a slice of slices into a slice: [][]T --> []T
 func flatten[T any](lists [][]T) []T {
 	// https://stackoverflow.com/questions/59579121/how-to-flatten-a-2d-slice-into-1d-slice
 	var res []T

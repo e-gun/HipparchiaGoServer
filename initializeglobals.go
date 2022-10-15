@@ -25,7 +25,7 @@ const (
 var (
 	// order matters
 	cfg          CurrentConfiguration
-	psqlpool     *pgxpool.Pool
+	SQLPool      *pgxpool.Pool
 	SessionMap   = make(map[string]ServerSession)
 	SearchMap    = make(map[string]SearchStruct)
 	AllWorks     = make(map[string]DbWork)
