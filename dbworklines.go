@@ -49,15 +49,15 @@ var (
 	nohtml   = regexp.MustCompile("<[^>]*>") // crude, and will not do all of everything
 	metadata = regexp.MustCompile(`<hmu_metadata_(.*?) value="(.*?)" />`)
 	mdformat = regexp.MustCompile(`&3(.*?)&`) // see andsubstitutes in betacodefontshifts.py
-	mdremap  = map[string]string{"provenance": "loc:", "documentnumber": "#", "publicationinfo": "pub:", "notes": "",
+	// mdremap has to be kept in sync w/ l 150 of rt-browser.go ()
+	mdremap = map[string]string{"provenance": "loc:", "documentnumber": "#", "publicationinfo": "pub:", "notes": "",
 		"city": "c:", "region": "r:", "date": "d:"}
-	// the above has to be kept in sync w/ l 130 of rt-browser.go ()
 )
 
 type LevelValues struct {
 	// for JSON output...
 	// {"totallevels": 3, "level": 2, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
-	Total int      `json:"totallevels"` // todo: this is returning as 0 if you "/get/json/workstructure/lt0474/056"
+	Total int      `json:"totallevels"`
 	AtLvl int      `json:"level"`
 	Label string   `json:"label"`
 	Low   string   `json:"low"`
@@ -168,12 +168,14 @@ func (dbw *DbWorkline) GatherMetadata() {
 	dbw.EmbNotes = md
 }
 
+// PurgeMetadata - delete the line metadata
 func (dbw *DbWorkline) PurgeMetadata() {
 	if metadata.MatchString(dbw.MarkedUp) {
 		dbw.MarkedUp = metadata.ReplaceAllString(dbw.MarkedUp, "")
 	}
 }
 
+// ShowMarkup - reveal markup in a line
 func (dbw *DbWorkline) ShowMarkup() string {
 	clean := strings.NewReplacer("<", "&lt;", ">", "&gt;")
 	return clean.Replace(dbw.MarkedUp)
@@ -317,7 +319,9 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	// verse          | poem           | book           |                |                |
 
 	const (
-		FAIL = "findvalidlevelvalues() sent negative levels"
+		FAIL   = "findvalidlevelvalues() sent negative levels"
+		SEL    = SELECTFROM + ` WHERE wkuniversalid='%s' %s %s ORDER BY index ASC`
+		ANDNOT = `AND %s NOT IN ('t')`
 	)
 
 	// [a] what do we need?
@@ -347,8 +351,6 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	qmap := map[int]string{0: "level_00_value", 1: "level_01_value", 2: "level_02_value", 3: "level_03_value",
 		4: "level_04_value", 5: "level_05_value"}
 
-	t := SELECTFROM + ` WHERE wkuniversalid='%s' %s %s ORDER BY index ASC`
-
 	var ands []string
 	for i := 0; i < need; i++ {
 		// example: xen's anabasis (gr0032w006) has 4 levels
@@ -366,10 +368,10 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	if len(ands) > 0 {
 		and = " AND " + strings.Join(ands, " AND ")
 	}
-	andnot := fmt.Sprintf(`AND %s NOT IN ('t')`, qmap[atlvl])
+	andnot := fmt.Sprintf(ANDNOT, qmap[atlvl])
 
 	var prq PrerolledQuery
-	prq.PsqlQuery = fmt.Sprintf(t, w.AuID(), wkid, and, andnot)
+	prq.PsqlQuery = fmt.Sprintf(SEL, w.AuID(), wkid, and, andnot)
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()

@@ -39,7 +39,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	emitqueries, err := SrchFeeder(ctx, &ss)
 	chke(err)
 
-	workers := cfg.WorkerCount
+	workers := Config.WorkerCount
 
 	findchannels := make([]<-chan []DbWorkline, workers)
 
@@ -71,7 +71,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 
 // SrchFeeder - emit items to a channel from the []PrerolledQuery that will be consumed by the SrchConsumer
 func SrchFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, error) {
-	emitqueries := make(chan PrerolledQuery, cfg.WorkerCount)
+	emitqueries := make(chan PrerolledQuery, Config.WorkerCount)
 	remainder := -1
 
 	go func() {

@@ -37,7 +37,7 @@ func main() {
 
 	printversion()
 
-	if !cfg.QuietStart {
+	if !Config.QuietStart {
 		msg(fmt.Sprintf(TERMINALTEXT, PROJYEAR, PROJAUTH, PROJMAIL), -1)
 	}
 
@@ -120,19 +120,19 @@ func configatlaunch() {
 		FAIL5 = "Improperly formatted corpus list. Using:\n\t%s"
 	)
 
-	cfg.BadChars = UNACCEPTABLEINPUT
-	cfg.BrowserCtx = DEFAULTBROWSERCTX
-	cfg.DbDebug = false
-	cfg.Font = FONTSETTING
-	cfg.Gzip = USEGZIP
-	cfg.HostIP = SERVEDFROMHOST
-	cfg.HostPort = SERVEDFROMPORT
-	cfg.ManualGC = true
-	cfg.MaxText = MAXTEXTLINEGENERATION
-	cfg.QuietStart = false
-	cfg.WorkerCount = runtime.NumCPU()
+	Config.BadChars = UNACCEPTABLEINPUT
+	Config.BrowserCtx = DEFAULTBROWSERCTX
+	Config.DbDebug = false
+	Config.Font = FONTSETTING
+	Config.Gzip = USEGZIP
+	Config.HostIP = SERVEDFROMHOST
+	Config.HostPort = SERVEDFROMPORT
+	Config.ManualGC = true
+	Config.MaxText = MAXTEXTLINEGENERATION
+	Config.QuietStart = false
+	Config.WorkerCount = runtime.NumCPU()
 
-	e := json.Unmarshal([]byte(DEFAULTCORPORA), &cfg.DefCorp)
+	e := json.Unmarshal([]byte(DEFAULTCORPORA), &Config.DefCorp)
 	chke(e)
 
 	cf := fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGNAME)
@@ -148,7 +148,7 @@ func configatlaunch() {
 	errc := decoderc.Decode(&confc)
 
 	if errc == nil {
-		cfg = confc
+		Config = confc
 	}
 
 	var pl PostgresLogin
@@ -161,30 +161,30 @@ func configatlaunch() {
 			printversion()
 			os.Exit(1)
 		case "-ac":
-			err := json.Unmarshal([]byte(args[i+1]), &cfg.DefCorp)
+			err := json.Unmarshal([]byte(args[i+1]), &Config.DefCorp)
 			if err != nil {
 				msg(fmt.Sprintf(FAIL5, DEFAULTCORPORA), 0)
 			}
 		case "-bc":
 			bc, err := strconv.Atoi(args[i+1])
 			chke(err)
-			cfg.BrowserCtx = int64(bc)
+			Config.BrowserCtx = int64(bc)
 		case "-cf":
 			cf = args[i+1]
 		case "-db":
-			cfg.DbDebug = true
+			Config.DbDebug = true
 		case "-ft":
-			cfg.Font = args[i+1]
+			Config.Font = args[i+1]
 		case "-el":
 			ll, err := strconv.Atoi(args[i+1])
 			chke(err)
-			cfg.EchoLog = ll
+			Config.EchoLog = ll
 		case "-gl":
 			ll, err := strconv.Atoi(args[i+1])
 			chke(err)
-			cfg.LogLevel = ll
+			Config.LogLevel = ll
 		case "-gz":
-			cfg.Gzip = true
+			Config.Gzip = true
 		case "-h":
 			printversion()
 			fmt.Println(fmt.Sprintf(HELPTEXT, DEFAULTBROWSERCTX, CONFIGLOCATION, CONFIGNAME, h, CONFIGNAME,
@@ -199,23 +199,23 @@ func configatlaunch() {
 				msg(FAIL2, 0)
 			}
 		case "-q":
-			cfg.QuietStart = true
+			Config.QuietStart = true
 		case "-sa":
-			cfg.HostIP = args[i+1]
+			Config.HostIP = args[i+1]
 		case "-sp":
 			p, err := strconv.Atoi(args[i+1])
 			chke(err)
-			cfg.HostPort = p
+			Config.HostPort = p
 		case "-ti":
 			tt, err := strconv.Atoi(args[i+1])
 			chke(err)
-			cfg.MaxText = tt
+			Config.MaxText = tt
 		case "-ui":
-			cfg.BadChars = args[i+1]
+			Config.BadChars = args[i+1]
 		case "-wc":
 			wc, err := strconv.Atoi(args[i+1])
 			chke(err)
-			cfg.WorkerCount = wc
+			Config.WorkerCount = wc
 		default:
 			// do nothing
 		}
@@ -231,10 +231,10 @@ func configatlaunch() {
 		PosgreSQLPassword string
 	}
 
-	cfg.PGLogin = PostgresLogin{}
+	Config.PGLogin = PostgresLogin{}
 
 	if pl.Pass != "" {
-		cfg.PGLogin = pl
+		Config.PGLogin = pl
 	} else {
 		cfa, _ := os.Open(cf)
 		cfb, _ := os.Open(acf)
@@ -260,7 +260,7 @@ func configatlaunch() {
 			conf = confb
 		}
 
-		cfg.PGLogin = PostgresLogin{
+		Config.PGLogin = PostgresLogin{
 			Host:   DEFAULTPSQLHOST,
 			Port:   DEFAULTPSQLPORT,
 			User:   DEFAULTPSQLUSER,
@@ -271,7 +271,7 @@ func configatlaunch() {
 }
 
 func printversion() {
-	ll := fmt.Sprintf(" [gl=%d; el=%d]", cfg.LogLevel, cfg.EchoLog)
+	ll := fmt.Sprintf(" [gl=%d; el=%d]", Config.LogLevel, Config.EchoLog)
 	versioninfo := fmt.Sprintf("%s (v%s)", MYNAME, VERSION)
 	versioninfo = versioninfo + ll
 	msg(versioninfo, 0)

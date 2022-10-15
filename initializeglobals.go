@@ -24,7 +24,7 @@ const (
 
 var (
 	// order matters
-	cfg          CurrentConfiguration
+	Config       CurrentConfiguration
 	SQLPool      *pgxpool.Pool
 	SessionMap   = make(map[string]ServerSession)
 	SearchMap    = make(map[string]SearchStruct)
@@ -40,7 +40,7 @@ var (
 	WkLocs       = make(map[string]bool)
 	TheCorpora   = [5]string{"gr", "lt", "in", "ch", "dp"}
 	TheLanguages = [2]string{"greek", "latin"}
-	maplocker    sync.RWMutex
+	MapLocker    sync.RWMutex
 )
 
 type DbAuthor struct {

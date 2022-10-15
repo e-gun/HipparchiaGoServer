@@ -429,7 +429,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		cit := selectivelydisplaycitations(lines[i], previous, focus)
 
 		an := lines[i].Annotations
-		if cfg.DbDebug {
+		if Config.DbDebug {
 			an = fmt.Sprintf("%s: %d", lines[i].AuID(), lines[i].TbIndex)
 			// bl = fmt.Sprintf(`<span class="small">%s</span>`, lines[i].ShowMarkup())
 		}

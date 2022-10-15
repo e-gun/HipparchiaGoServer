@@ -47,7 +47,7 @@ const (
 	MAXLINESHITCONTEXT      = 30
 	MAXSEARCHINFOLISTLEN    = 100
 	MAXTEXTLINEGENERATION   = 25000 // euripides is 33517 lines, sophocles is 15729, cicero is 149570, e.g.; jQuery slows exponentially as lines increase
-	MAXVOCABLINEGENERATION  = 3     // this is a multiplier for cfg.MaxText; the browser does not get overwhelmed by these lists
+	MAXVOCABLINEGENERATION  = 3     // this is a multiplier for Config.MaxText; the browser does not get overwhelmed by these lists
 	MAXTITLELENGTH          = 110
 	MINBROWSERWIDTH         = 90
 	MINDATE                 = -850
@@ -59,7 +59,7 @@ const (
 	PROLIXCONFIGFILE        = "hgs-prolix-conf.json"
 	SERVEDFROMHOST          = "127.0.0.1"
 	SERVEDFROMPORT          = 8000
-	SIMULTANEOUSSEARCHES    = 3 // cap on the number of db connections at (S * cfg.WorkerCount)
+	SIMULTANEOUSSEARCHES    = 3 // cap on the number of db connections at (S * Config.WorkerCount)
 	SHOWCITATIONEVERYNLINES = 10
 	SORTBY                  = "shortname"
 	TEMPTABLETHRESHOLD      = 100 // if a table requires N "between" clauses, build a temptable instead to gather the needed lines

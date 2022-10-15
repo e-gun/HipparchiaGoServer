@@ -55,7 +55,7 @@ type SearchStruct struct {
 func (s *SearchStruct) CleanInput() {
 	// address uv issues; lunate issues; ...
 	// no need to parse a lemma: this bounces if there is not a key match to a map
-	dropping := USELESSINPUT + cfg.BadChars
+	dropping := USELESSINPUT + Config.BadChars
 	s.ID = purgechars(dropping, s.ID)
 	s.Seeking = strings.ToLower(s.Seeking)
 	s.Proximate = strings.ToLower(s.Proximate)

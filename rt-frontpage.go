@@ -48,7 +48,7 @@ func RtFrontpage(c echo.Context) error {
 	// will set if missing
 	s := SessionMap[readUUIDCookie(c)]
 
-	env := fmt.Sprintf("%s: %s - %s (%d workers)", runtime.Version(), runtime.GOOS, runtime.GOARCH, cfg.WorkerCount)
+	env := fmt.Sprintf("%s: %s - %s (%d workers)", runtime.Version(), runtime.GOOS, runtime.GOARCH, Config.WorkerCount)
 
 	subs := map[string]interface{}{
 		"version":       VERSION,
@@ -77,7 +77,7 @@ func makedefaultsession(id string) ServerSession {
 
 	var s ServerSession
 	s.ID = id
-	s.ActiveCorp = cfg.DefCorp
+	s.ActiveCorp = Config.DefCorp
 	s.VariaOK = true
 	s.IncertaOK = true
 	s.SpuriaOK = true
@@ -87,7 +87,7 @@ func makedefaultsession(id string) ServerSession {
 	s.Latest = MAXDATESTR
 	s.SortHitsBy = SORTBY
 	s.HitContext = DEFAULTLINESOFCONTEXT
-	s.BrowseCtx = cfg.BrowserCtx
+	s.BrowseCtx = Config.BrowserCtx
 	s.SearchScope = DEFAULTPROXIMITYSCOPE
 	s.Proximity = DEFAULTPROXIMITY
 

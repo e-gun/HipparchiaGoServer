@@ -36,10 +36,10 @@ func FillPSQLPoool() *pgxpool.Pool {
 		FAIL2 = "Could not connect to PostgreSQL via %s"
 	)
 
-	min := cfg.WorkerCount
-	max := SIMULTANEOUSSEARCHES * cfg.WorkerCount
+	min := Config.WorkerCount
+	max := SIMULTANEOUSSEARCHES * Config.WorkerCount
 
-	pl := cfg.PGLogin
+	pl := Config.PGLogin
 	url := fmt.Sprintf(UTPL, pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName, min, max)
 
 	config, e := pgxpool.ParseConfig(url)

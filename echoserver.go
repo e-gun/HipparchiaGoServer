@@ -55,15 +55,15 @@ func StartEchoServer() {
 	}
 	e.Renderer = renderer
 
-	if cfg.EchoLog == 2 {
+	if Config.EchoLog == 2 {
 		e.Use(middleware.Logger())
-	} else if cfg.EchoLog == 1 {
+	} else if Config.EchoLog == 1 {
 		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: "r: ${status}\tt: ${latency_human}\tu: ${uri}\n"}))
 	}
 
 	e.Use(middleware.Recover())
 
-	if cfg.Gzip {
+	if Config.Gzip {
 		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
 	}
 
@@ -268,7 +268,7 @@ func StartEchoServer() {
 	e.GET("/sc/get/:num", RtSessionGetCookie)
 
 	e.HideBanner = true
-	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", cfg.HostIP, cfg.HostPort)))
+	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", Config.HostIP, Config.HostPort)))
 }
 
 //

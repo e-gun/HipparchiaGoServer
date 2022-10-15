@@ -35,7 +35,7 @@ func chke(err error) {
 
 // msg - send a color-coded message; will not be seen unless threshold <= go log level
 func msg(message string, threshold int) {
-	if cfg.LogLevel < threshold {
+	if Config.LogLevel < threshold {
 		return
 	}
 
@@ -88,7 +88,7 @@ func gcstats(fn string) {
 		MSG = "%s runtime.GC() %s --> %s"
 	)
 
-	if !cfg.ManualGC {
+	if !Config.ManualGC {
 		return
 	}
 	var m runtime.MemStats

@@ -201,7 +201,7 @@ func RtVocabMaker(c echo.Context) error {
 	start := time.Now()
 
 	id := c.Param("id")
-	id = purgechars(cfg.BadChars, id)
+	id = purgechars(Config.BadChars, id)
 
 	// "si" is a blank search struct used for progress reporting
 	si := builddefaultsearch(c)
@@ -212,7 +212,7 @@ func RtVocabMaker(c echo.Context) error {
 	SearchMap[si.ID].Remain.Set(1)
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
-	max := cfg.MaxText * MAXVOCABLINEGENERATION
+	max := Config.MaxText * MAXVOCABLINEGENERATION
 	vocabsrch := sessionintobulksearch(c, int64(max)) // allow bigger vocab lists
 
 	if len(vocabsrch.Results) == 0 {
@@ -389,9 +389,9 @@ func RtVocabMaker(c echo.Context) error {
 
 	// clean up progress reporting
 
-	maplocker.Lock()
+	MapLocker.Lock()
 	delete(SearchMap, si.ID)
-	maplocker.Unlock()
+	MapLocker.Unlock()
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
@@ -439,7 +439,7 @@ func RtIndexMaker(c echo.Context) error {
 	start := time.Now()
 
 	id := c.Param("id")
-	id = purgechars(cfg.BadChars, id)
+	id = purgechars(Config.BadChars, id)
 
 	// "si" is a blank search struct used for progress reporting
 	si := builddefaultsearch(c)
@@ -680,9 +680,9 @@ func RtIndexMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "indexobserved") + fmt.Sprintf(BROWSERJS, "indexedlocation")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	maplocker.Lock()
+	MapLocker.Lock()
 	delete(SearchMap, si.ID)
-	maplocker.Unlock()
+	MapLocker.Unlock()
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
@@ -948,7 +948,7 @@ func polishtrans(tr string, pat *regexp.Regexp) string {
 
 // swapintosearchmap - swap a SearchStruct into SearchMap via its ID
 func swapintosearchmap(ss SearchStruct) {
-	maplocker.Lock()
+	MapLocker.Lock()
 	SearchMap[ss.ID] = ss
-	maplocker.Unlock()
+	MapLocker.Unlock()
 }

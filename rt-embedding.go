@@ -43,7 +43,7 @@ func RtEmbJS(c echo.Context) error {
 
 func RtEmbHCSS(c echo.Context) error {
 	f := ECSS
-	if cfg.Font != FONTSETTING {
+	if Config.Font != FONTSETTING {
 		f = ECSL
 	}
 
@@ -54,7 +54,7 @@ func RtEmbHCSS(c echo.Context) error {
 	}
 
 	subs := map[string]interface{}{
-		"fontname": cfg.Font,
+		"fontname": Config.Font,
 	}
 
 	tmpl, e := template.New("fp").Parse(string(j))

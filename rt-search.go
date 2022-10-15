@@ -25,7 +25,7 @@ var (
 
 // RtSearchConfirm - just tells the client JS where to find the poll
 func RtSearchConfirm(c echo.Context) error {
-	pt := fmt.Sprintf("%d", cfg.HostPort)
+	pt := fmt.Sprintf("%d", Config.HostPort)
 	return c.String(http.StatusOK, pt)
 }
 
@@ -106,9 +106,9 @@ func RtSearch(c echo.Context) error {
 		soj = FormatWithContextResults(completed)
 	}
 
-	maplocker.Lock()
+	MapLocker.Lock()
 	delete(SearchMap, id)
-	maplocker.Unlock()
+	MapLocker.Unlock()
 
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }

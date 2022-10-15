@@ -64,9 +64,9 @@ func RtWebsocket(c echo.Context) error {
 	}
 
 	for {
-		maplocker.RLock()
+		MapLocker.RLock()
 		ls := len(SearchMap)
-		maplocker.RUnlock()
+		MapLocker.RUnlock()
 		if ls != 0 {
 			break
 		}
@@ -139,9 +139,9 @@ func RtWebsocket(c echo.Context) error {
 					time.Sleep(WSPOLLINGPAUSE)
 				}
 
-				maplocker.RLock()
+				MapLocker.RLock()
 				_, exists := SearchMap[bs]
-				maplocker.RUnlock()
+				MapLocker.RUnlock()
 				if !exists {
 					done = true
 					break

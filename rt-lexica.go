@@ -108,7 +108,7 @@ type JSB struct {
 // RtLexLookup - search the dictionary for a headword substring
 func RtLexLookup(c echo.Context) error {
 	req := c.Param("wd")
-	seeking := purgechars(cfg.BadChars, req)
+	seeking := purgechars(Config.BadChars, req)
 	seeking = swapacuteforgrave(seeking)
 
 	dict := "latin"
@@ -158,7 +158,7 @@ func RtLexFindByForm(c echo.Context) error {
 		au = elem[1]
 	}
 
-	word := purgechars(cfg.BadChars, elem[0])
+	word := purgechars(Config.BadChars, elem[0])
 
 	clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "") // you can get sent here by the indexer ...
 	word = clean.Replace(word)
@@ -186,8 +186,8 @@ func RtLexId(c echo.Context) error {
 		msg(fmt.Sprintf("RtLexId() received bad request: '%s'", req), 1)
 		return emptyjsreturn(c)
 	}
-	d := purgechars(cfg.BadChars, elem[0])
-	w := purgechars(cfg.BadChars, elem[1])
+	d := purgechars(Config.BadChars, elem[0])
+	w := purgechars(Config.BadChars, elem[1])
 
 	f := dictgrabber(w, d, "id_number", "=")
 	if len(f) == 0 {
@@ -215,7 +215,7 @@ func RtLexReverse(c echo.Context) error {
 		return emptyjsreturn(c)
 	}
 
-	word := purgechars(cfg.BadChars, elem[1])
+	word := purgechars(Config.BadChars, elem[1])
 
 	s := SessionMap[readUUIDCookie(c)]
 
@@ -570,7 +570,7 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 
 // paralleldictformatter - send N workers off to turn []DbLexicon into a map: [entryid]entryhtml
 func paralleldictformatter(lexicalfinds []DbLexicon) map[float32]string {
-	workers := cfg.WorkerCount
+	workers := Config.WorkerCount
 	totalwork := len(lexicalfinds)
 	chunksize := totalwork / workers
 	leftover := totalwork % workers
