@@ -61,6 +61,8 @@ func StartEchoServer() {
 		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: "r: ${status}\tt: ${latency_human}\tu: ${uri}\n"}))
 	}
 
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(MAXECHOREQPERSECONDPERIP)))
+
 	e.Use(middleware.Recover())
 
 	if Config.Gzip {

@@ -76,7 +76,7 @@ func RtSearch(c echo.Context) error {
 
 	srch.TableSize = len(srch.Queries)
 	srch.IsActive = true
-	swapintosearchmap(srch)
+	lockandswapintosearchmap(srch)
 
 	var completed SearchStruct
 	if SearchMap[id].Twobox {
@@ -484,6 +484,13 @@ func buildhollowsearch() SearchStruct {
 	s.AcqHitCounter()
 	s.AcqRemainCounter()
 	return s
+}
+
+// lockandswapintosearchmap - lock and then swap a SearchStruct into the master SearchMap via the SearchStruct's ID
+func lockandswapintosearchmap(ss SearchStruct) {
+	MapLocker.Lock()
+	SearchMap[ss.ID] = ss
+	MapLocker.Unlock()
 }
 
 // whitespacer - massage search string to let regex accept start/end of a line as whitespace

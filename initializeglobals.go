@@ -22,8 +22,26 @@ const (
 		firstline, lastline, authentic`
 )
 
+// These maps are all possible race condition candidates, but most of them are write once, read many.
+// It does not really possible to race on read. 20 goroutines reading the same static map simultaneously can each
+// get to 3,540,000,000 reads without triggering a race.
+
+// SessionMap and SearchMap receive infrequent additions and deletions; MapLocker should be locking these but that does
+// not mean there can never be a race: 20 goroutines reading the same L/U updated map simultaneously as fast as they can
+// are each able get to >100,000,000 on average if you update the map every .1 seconds. [without L/U writes, this will
+// die right away]
+
+// You will seemingly never race if you L/U all writes and RL/RU all reads. This is astonishingly slow: good luck
+// getting to 100,000,000 reads this way to confirm that you can get to 100x that number...
+
+// So, the current policy here is: it was virtually impossible to race SessionMap and SearchMap even without L/U writes.
+// But we will L/U their writes anyway. We will leave the reads exposed to a race. But one user interacting with the UI
+// is never going to be able to get in his/her own way. Meanwhile the worst case networked scenario will have a very
+// hard time triggering the race. MAXECHOREQPERSECONDPERIP should prevent the ultra-hard hammering required to produce
+// the panic. The question might need revisiting at some point, but HipparchiaGoServer is not supposed to be exposed
+// to everyone, everywhere all the time. Someone requesting 100 searches is a bigger worry than the race condition.
+
 var (
-	// order matters
 	Config       CurrentConfiguration
 	SQLPool      *pgxpool.Pool
 	SessionMap   = make(map[string]ServerSession)

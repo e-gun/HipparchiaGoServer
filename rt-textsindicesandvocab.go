@@ -208,7 +208,7 @@ func RtVocabMaker(c echo.Context) error {
 	si.ID = id
 	si.InitSum = MSG1
 	si.IsActive = true
-	swapintosearchmap(si)
+	lockandswapintosearchmap(si)
 	SearchMap[si.ID].Remain.Set(1)
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
@@ -254,7 +254,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	si.InitSum = MSG2
 
-	swapintosearchmap(si)
+	lockandswapintosearchmap(si)
 
 	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 	// [c2] map observed words to possibilities
@@ -321,12 +321,12 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	si.InitSum = MSG3
-	swapintosearchmap(si)
+	lockandswapintosearchmap(si)
 
 	sort.Slice(vis, func(i, j int) bool { return vis[i].Strip < vis[j].Strip })
 
 	si.InitSum = MSG4
-	swapintosearchmap(si)
+	lockandswapintosearchmap(si)
 
 	// [g] format
 
@@ -446,7 +446,7 @@ func RtIndexMaker(c echo.Context) error {
 	si.ID = id
 	si.InitSum = MSG1
 	si.IsActive = true
-	swapintosearchmap(si)
+	lockandswapintosearchmap(si)
 	SearchMap[si.ID].Remain.Set(1)
 
 	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
@@ -490,7 +490,7 @@ func RtIndexMaker(c echo.Context) error {
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
 	si.InitSum = MSG2
-	swapintosearchmap(si)
+	lockandswapintosearchmap(si)
 
 	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 	var slicedlookups []WordInfo
@@ -581,7 +581,7 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	si.InitSum = MSG3
-	swapintosearchmap(si)
+	lockandswapintosearchmap(si)
 
 	indexmap := make(map[SorterStruct][]WordInfo, len(trimslices))
 	for _, w := range trimslices {
@@ -625,7 +625,7 @@ func RtIndexMaker(c echo.Context) error {
 	indexmap = make(map[SorterStruct][]WordInfo, 1) // drop after use
 
 	si.InitSum = MSG4
-	swapintosearchmap(si)
+	lockandswapintosearchmap(si)
 
 	trr := make([]string, len(plainkeys))
 	for i, k := range plainkeys {
@@ -944,11 +944,4 @@ func polishtrans(tr string, pat *regexp.Regexp) string {
 		elem[i] = pat.ReplaceAllString(e, TT)
 	}
 	return strings.Join(elem, "; ")
-}
-
-// swapintosearchmap - swap a SearchStruct into SearchMap via its ID
-func swapintosearchmap(ss SearchStruct) {
-	MapLocker.Lock()
-	SearchMap[ss.ID] = ss
-	MapLocker.Unlock()
 }
