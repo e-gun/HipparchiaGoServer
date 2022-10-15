@@ -78,7 +78,7 @@ func RtSearch(c echo.Context) error {
 
 	srch.TableSize = len(srch.Queries)
 	srch.IsActive = true
-	lockandswapintosearchmap(srch)
+	SafeSearchMapInsert(srch)
 
 	var completed SearchStruct
 	if SearchMap[id].Twobox {
@@ -256,7 +256,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 	// [b] run the second "search" for anything/everything: ""
 
-	SearchMap[originalsrch.ID] = HGoSrch(second)
+	ss := HGoSrch(second)
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	msg(fmt.Sprintf(MSG2, d, len(first.Results)), 4)
@@ -265,7 +265,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	// [c] convert these finds into strings and then search those strings
 	// [c1] build bundles of lines
 	bundlemapper := make(map[int][]DbWorkline)
-	for _, r := range SearchMap[originalsrch.ID].Results {
+	for _, r := range ss.Results {
 		url := r.BuildHyperlink()
 		bun := resultmapper[url]
 		bundlemapper[bun] = append(bundlemapper[bun], r)
@@ -487,13 +487,6 @@ func buildhollowsearch() SearchStruct {
 	s.AcqHitCounter()
 	s.AcqRemainCounter()
 	return s
-}
-
-// lockandswapintosearchmap - lock and then swap a SearchStruct into the master SearchMap via the SearchStruct's ID
-func lockandswapintosearchmap(ss SearchStruct) {
-	MapLocker.Lock()
-	SearchMap[ss.ID] = ss
-	MapLocker.Unlock()
 }
 
 // whitespacer - massage search string to let regex accept start/end of a line as whitespace
@@ -765,4 +758,24 @@ func searchtermfinder(term string) *regexp.Regexp {
 		pattern = regexp.MustCompile("FAILED_FIND_NOTHING")
 	}
 	return pattern
+}
+
+// SafeSearchMapInsert - use a lock to safely swap a SearchStruct into the SearchMap
+func SafeSearchMapInsert(ns SearchStruct) {
+	MapLocker.Lock()
+	defer MapLocker.Unlock()
+	SearchMap[ns.ID] = ns
+}
+
+// SafeSearchMapRead - use a lock to safely read a SearchStruct from the SearchMap
+func SafeSearchMapRead(id string) SearchStruct {
+	MapLocker.RLock()
+	defer MapLocker.RUnlock()
+	s, e := SearchMap[id]
+	if e != true {
+		s = buildhollowsearch()
+		s.ID = id
+		s.IsActive = false
+	}
+	return s
 }

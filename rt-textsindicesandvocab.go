@@ -68,15 +68,13 @@ func RtTextMaker(c echo.Context) error {
 		return emptyjsreturn(c)
 	}
 
-	SearchMap[srch.ID] = srch
-
 	// now we have the lines we need....
-	firstline := SearchMap[srch.ID].Results[0]
+	firstline := srch.Results[0]
 	firstwork := firstline.MyWk()
 	firstauth := firstline.MyAu()
 
-	lines := SearchMap[srch.ID].Results
-	block := make([]string, len(lines))
+	lines := srch.Results
+	block := make([]string, len(srch.Results))
 	for i, l := range lines {
 		l.PurgeMetadata()
 		block[i] = l.MarkedUp
@@ -209,7 +207,7 @@ func RtVocabMaker(c echo.Context) error {
 	si.ID = id
 	si.InitSum = MSG1
 	si.IsActive = true
-	lockandswapintosearchmap(si)
+	SafeSearchMapInsert(si)
 	SearchMap[si.ID].Remain.Set(1)
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
@@ -255,7 +253,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	si.InitSum = MSG2
 
-	lockandswapintosearchmap(si)
+	SafeSearchMapInsert(si)
 
 	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 	// [c2] map observed words to possibilities
@@ -322,12 +320,12 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	si.InitSum = MSG3
-	lockandswapintosearchmap(si)
+	SafeSearchMapInsert(si)
 
 	sort.Slice(vis, func(i, j int) bool { return vis[i].Strip < vis[j].Strip })
 
 	si.InitSum = MSG4
-	lockandswapintosearchmap(si)
+	SafeSearchMapInsert(si)
 
 	// [g] format
 
@@ -447,7 +445,7 @@ func RtIndexMaker(c echo.Context) error {
 	si.ID = id
 	si.InitSum = MSG1
 	si.IsActive = true
-	lockandswapintosearchmap(si)
+	SafeSearchMapInsert(si)
 	SearchMap[si.ID].Remain.Set(1)
 
 	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
@@ -491,7 +489,7 @@ func RtIndexMaker(c echo.Context) error {
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
 	si.InitSum = MSG2
-	lockandswapintosearchmap(si)
+	SafeSearchMapInsert(si)
 
 	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 	var slicedlookups []WordInfo
@@ -582,7 +580,7 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	si.InitSum = MSG3
-	lockandswapintosearchmap(si)
+	SafeSearchMapInsert(si)
 
 	indexmap := make(map[SorterStruct][]WordInfo, len(trimslices))
 	for _, w := range trimslices {
@@ -626,7 +624,7 @@ func RtIndexMaker(c echo.Context) error {
 	indexmap = make(map[SorterStruct][]WordInfo, 1) // drop after use
 
 	si.InitSum = MSG4
-	lockandswapintosearchmap(si)
+	SafeSearchMapInsert(si)
 
 	trr := make([]string, len(plainkeys))
 	for i, k := range plainkeys {

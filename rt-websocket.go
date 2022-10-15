@@ -79,30 +79,28 @@ func RtWebsocket(c echo.Context) error {
 		if done {
 			break
 		}
-		// Read
 
+		// Read
 		var m []byte
-		_, m, e := ws.ReadMessage()
+		_, m, e := ws.ReadMessage() // will yield: websocket received: "205da19d"; bug-trap: the quotes around that string
 		if e != nil {
 			msg(FAILRD, 5)
 			break
 		}
 
-		// will yield: websocket received: "205da19d"
-		// bug-trap: the quotes around that string
-
 		bs = string(m)
 		bs = strings.Replace(bs, `"`, "", -1)
-		_, found := SearchMap[bs]
 
-		if found && SearchMap[bs].IsActive {
+		srch := SafeSearchMapRead(bs) // but you still have to use the map's version for some things...
+
+		if srch.IsActive {
 			var r PollData
-			r.TwoBox = SearchMap[bs].Twobox
+			r.TwoBox = srch.Twobox
+			r.ID = bs
+			r.TotalWrk = srch.TableSize
 
 			for {
-				r.ID = bs
-				r.TotalWrk = SearchMap[bs].TableSize
-				r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(SearchMap[bs].Launched).Seconds())
+				r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(srch.Launched).Seconds())
 
 				if SearchMap[bs].PhaseNum > 1 {
 					r.Extra = "(second pass)"
@@ -115,7 +113,9 @@ func RtWebsocket(c echo.Context) error {
 				r.Hits = SearchMap[bs].Hits.Get()
 
 				// inside the loop because indexing modifies InitSum to send simple progress messages
+				MapLocker.RLock()
 				r.Msg = strings.Replace(SearchMap[bs].InitSum, "Sought", "Seeking", -1)
+				MapLocker.RUnlock()
 
 				// Write
 				pd := formatpoll(r)

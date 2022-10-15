@@ -341,7 +341,7 @@ func RtSessionGetCookie(c echo.Context) error {
 		return c.String(http.StatusOK, "")
 	}
 
-	SafeSessionSwap(s)
+	SafeSessionMapInsert(s)
 
 	e := c.Redirect(http.StatusFound, "/")
 	chke(e)

@@ -16,6 +16,10 @@ import (
 	"time"
 )
 
+//
+// SERVERSESSIONS
+//
+
 type ServerSession struct {
 	ID          string
 	IsLoggedIn  bool
@@ -43,6 +47,7 @@ type ServerSession struct {
 	TmpStr      string
 }
 
+// SafeSessionRead - use a lock to safely read a ServerSession from the SessionMap
 func SafeSessionRead(u string) ServerSession {
 	MapLocker.RLock()
 	defer MapLocker.RUnlock()
@@ -53,11 +58,16 @@ func SafeSessionRead(u string) ServerSession {
 	return s
 }
 
-func SafeSessionSwap(ns ServerSession) {
+// SafeSessionMapInsert - use a lock to safely swap a ServerSession into the SessionMap
+func SafeSessionMapInsert(ns ServerSession) {
 	MapLocker.Lock()
 	defer MapLocker.Unlock()
 	SessionMap[ns.ID] = ns
 }
+
+//
+// ROUTING
+//
 
 // RtFrontpage - send the html for "/"
 func RtFrontpage(c echo.Context) error {

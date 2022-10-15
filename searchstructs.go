@@ -49,6 +49,7 @@ type SearchStruct struct {
 	TableSize    int // # of tables searched
 	Hits         *SrchCounter
 	Remain       *SrchCounter
+	lock         *sync.RWMutex
 }
 
 // CleanInput - remove bad chars, etc. from the submitted data

@@ -107,7 +107,7 @@ func RtSelectionMake(c echo.Context) error {
 	}
 
 	ns := selected(user, sel)
-	SafeSessionSwap(ns)
+	SafeSessionMapInsert(ns)
 
 	cs := reportcurrentselections(c)
 
@@ -195,7 +195,7 @@ func RtSelectionClear(c echo.Context) error {
 	newsess.Inclusions = newincl
 	newsess.Exclusions = newexcl
 
-	SafeSessionSwap(newsess)
+	SafeSessionMapInsert(newsess)
 
 	r := RtSelectionFetch(c)
 
