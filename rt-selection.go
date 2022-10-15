@@ -106,7 +106,10 @@ func RtSelectionMake(c echo.Context) error {
 		sel.IsExcl = false
 	}
 
+	MapLocker.Lock()
 	SessionMap[user] = selected(user, sel)
+	MapLocker.Unlock()
+
 	cs := reportcurrentselections(c)
 
 	return c.JSONPretty(http.StatusOK, cs, JSONINDENT)
@@ -141,59 +144,61 @@ func RtSelectionClear(c echo.Context) error {
 
 	// cat := []string{"agn", "wgn", "aloc", "wloc", "au", "wk", "psg"}
 
-	mod := SessionMap[user]
-	modi := mod.Inclusions
-	mode := mod.Exclusions
+	newsess := SessionMap[user]
+	newincl := newsess.Inclusions
+	newexcl := newsess.Exclusions
 
 	switch cat {
 	case "agnselections":
-		modi.AuGenres = RemoveIndex(modi.AuGenres, id)
+		newincl.AuGenres = RemoveIndex(newincl.AuGenres, id)
 	case "wgnselections":
-		modi.WkGenres = RemoveIndex(modi.WkGenres, id)
+		newincl.WkGenres = RemoveIndex(newincl.WkGenres, id)
 	case "alocselections":
-		modi.AuLocations = RemoveIndex(modi.AuLocations, id)
+		newincl.AuLocations = RemoveIndex(newincl.AuLocations, id)
 	case "wlocselections":
-		modi.WkLocations = RemoveIndex(modi.WkLocations, id)
+		newincl.WkLocations = RemoveIndex(newincl.WkLocations, id)
 	case "auselections":
-		//key := modi.Passages[id]
-		//delete(modi.MappedAuthByName, key)
-		modi.Authors = RemoveIndex(modi.Authors, id)
+		//key := newincl.Passages[id]
+		//delete(newincl.MappedAuthByName, key)
+		newincl.Authors = RemoveIndex(newincl.Authors, id)
 	case "wkselections":
-		//key := modi.Passages[id]
-		//delete(modi.MappedWkByName, key)
-		modi.Works = RemoveIndex(modi.Works, id)
+		//key := newincl.Passages[id]
+		//delete(newincl.MappedWkByName, key)
+		newincl.Works = RemoveIndex(newincl.Works, id)
 	case "psgselections":
-		key := modi.Passages[id]
-		delete(modi.MappedPsgByName, key)
-		modi.Passages = RemoveIndex(modi.Passages, id)
+		key := newincl.Passages[id]
+		delete(newincl.MappedPsgByName, key)
+		newincl.Passages = RemoveIndex(newincl.Passages, id)
 	case "agnexclusions":
-		mode.AuGenres = RemoveIndex(mode.AuGenres, id)
+		newexcl.AuGenres = RemoveIndex(newexcl.AuGenres, id)
 	case "wgnexclusions":
-		mode.WkGenres = RemoveIndex(mode.WkGenres, id)
+		newexcl.WkGenres = RemoveIndex(newexcl.WkGenres, id)
 	case "alocexclusions":
-		mode.AuLocations = RemoveIndex(mode.AuLocations, id)
+		newexcl.AuLocations = RemoveIndex(newexcl.AuLocations, id)
 	case "wlocexclusions":
-		mode.WkLocations = RemoveIndex(mode.WkLocations, id)
+		newexcl.WkLocations = RemoveIndex(newexcl.WkLocations, id)
 	case "auexclusions":
-		//key := mode.Passages[id]
-		//delete(mode.MappedAuthByName, key)
-		mode.Authors = RemoveIndex(mode.Authors, id)
+		//key := newexcl.Passages[id]
+		//delete(newexcl.MappedAuthByName, key)
+		newexcl.Authors = RemoveIndex(newexcl.Authors, id)
 	case "wkexclusions":
-		//key := mode.Passages[id]
-		//delete(mode.MappedPsgByName, key)
-		mode.Works = RemoveIndex(mode.Works, id)
+		//key := newexcl.Passages[id]
+		//delete(newexcl.MappedPsgByName, key)
+		newexcl.Works = RemoveIndex(newexcl.Works, id)
 	case "psgexclusions":
-		key := mode.Passages[id]
-		delete(mode.MappedAuthByName, key)
-		mode.Passages = RemoveIndex(mode.Passages, id)
+		key := newexcl.Passages[id]
+		delete(newexcl.MappedAuthByName, key)
+		newexcl.Passages = RemoveIndex(newexcl.Passages, id)
 	default:
 		msg(fmt.Sprintf(FAIL2, cat), 1)
 	}
 
-	mod.Inclusions = modi
-	mod.Exclusions = mode
+	newsess.Inclusions = newincl
+	newsess.Exclusions = newexcl
 
-	SessionMap[user] = mod
+	MapLocker.Lock()
+	SessionMap[user] = newsess
+	MapLocker.Unlock()
 
 	r := RtSelectionFetch(c)
 

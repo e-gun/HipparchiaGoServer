@@ -113,7 +113,9 @@ func readUUIDCookie(c echo.Context) string {
 	id := cookie.Value
 
 	if _, t := SessionMap[id]; !t {
+		MapLocker.Lock()
 		SessionMap[id] = makedefaultsession(id)
+		MapLocker.Unlock()
 	}
 
 	if !SessionMap[id].IsLoggedIn {

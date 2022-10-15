@@ -348,7 +348,11 @@ func RtSessionGetCookie(c echo.Context) error {
 
 // RtResetSession - delete and then reset the session
 func RtResetSession(c echo.Context) error {
-	delete(SessionMap, readUUIDCookie(c))
+	user := readUUIDCookie(c)
+
+	MapLocker.Lock()
+	delete(SessionMap, user)
+	MapLocker.Unlock()
 
 	// then reset it
 	readUUIDCookie(c)
@@ -363,6 +367,7 @@ func RtSetOption(c echo.Context) error {
 		FAIL1 = "RtSetOption() was given bad input: %s"
 		FAIL2 = "RtSetOption() hit an impossible case"
 	)
+	user := readUUIDCookie(c)
 	optandval := c.Param("opt")
 	parsed := strings.Split(optandval, "/")
 
@@ -377,7 +382,7 @@ func RtSetOption(c echo.Context) error {
 	ynoptionlist := []string{"greekcorpus", "latincorpus", "papyruscorpus", "inscriptioncorpus", "christiancorpus",
 		"rawinputstyle", "onehit", "headwordindexing", "indexbyfrequency", "spuria", "incerta", "varia"}
 
-	s := SessionMap[readUUIDCookie(c)]
+	s := SessionMap[user]
 
 	if isinslice(ynoptionlist, opt) {
 		valid := []string{"yes", "no"}
@@ -518,8 +523,10 @@ func RtSetOption(c echo.Context) error {
 		}
 	}
 
-	delete(SessionMap, readUUIDCookie(c))
-	SessionMap[readUUIDCookie(c)] = s
+	MapLocker.Lock()
+	delete(SessionMap, user)
+	SessionMap[user] = s
+	MapLocker.Unlock()
 
 	return c.String(http.StatusOK, "")
 }
