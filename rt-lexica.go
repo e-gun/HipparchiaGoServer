@@ -217,7 +217,8 @@ func RtLexReverse(c echo.Context) error {
 
 	word := purgechars(Config.BadChars, elem[1])
 
-	s := SessionMap[readUUIDCookie(c)]
+	user := readUUIDCookie(c)
+	s := SafeSessionRead(user)
 
 	var dd []string
 	// map[string]bool{"gr": true, "lt": true, "in": false, "ch": false, "dp": false}

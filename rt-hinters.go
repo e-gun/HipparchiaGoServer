@@ -44,7 +44,9 @@ func RtAuthorHints(c echo.Context) error {
 	}
 
 	// trim by active corpora
-	s := SessionMap[readUUIDCookie(c)]
+	user := readUUIDCookie(c)
+	s := SafeSessionRead(user)
+
 	var trimmed [][2]string
 	for _, a := range auu {
 		co := a[1][0:2]

@@ -106,9 +106,8 @@ func RtSelectionMake(c echo.Context) error {
 		sel.IsExcl = false
 	}
 
-	MapLocker.Lock()
-	SessionMap[user] = selected(user, sel)
-	MapLocker.Unlock()
+	ns := selected(user, sel)
+	SafeSessionSwap(ns)
 
 	cs := reportcurrentselections(c)
 
@@ -144,7 +143,7 @@ func RtSelectionClear(c echo.Context) error {
 
 	// cat := []string{"agn", "wgn", "aloc", "wloc", "au", "wk", "psg"}
 
-	newsess := SessionMap[user]
+	newsess := SafeSessionRead(user)
 	newincl := newsess.Inclusions
 	newexcl := newsess.Exclusions
 
@@ -196,9 +195,7 @@ func RtSelectionClear(c echo.Context) error {
 	newsess.Inclusions = newincl
 	newsess.Exclusions = newexcl
 
-	MapLocker.Lock()
-	SessionMap[user] = newsess
-	MapLocker.Unlock()
+	SafeSessionSwap(newsess)
 
 	r := RtSelectionFetch(c)
 
@@ -224,7 +221,8 @@ func selected(user string, sv SelectionValues) ServerSession {
 	// [f] author location: "GET /selection/make/_?auloc=Abdera HTTP/1.1"
 	// [g] work proven: "GET /selection/make/_?wkprov=Abdera%20(Thrace) HTTP/1.1"
 
-	s := SessionMap[user]
+	s := SafeSessionRead(user)
+
 	sep := "|"
 	if s.RawInput {
 		sep = "."
@@ -760,7 +758,8 @@ func reportcurrentselections(c echo.Context) SelectionData {
 		TL = `Unless specifically listed, authors/works must come from %s to %s`
 	)
 
-	s := SessionMap[readUUIDCookie(c)]
+	user := readUUIDCookie(c)
+	s := SafeSessionRead(user)
 	s.Inclusions.BuildAuByName()
 	s.Exclusions.BuildAuByName()
 	s.Inclusions.BuildWkByName()

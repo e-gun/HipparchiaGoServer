@@ -67,7 +67,9 @@ func RtSearch(c echo.Context) error {
 	srch.Seeking = whitespacer(srch.Seeking, &srch)
 	srch.Proximate = whitespacer(srch.Proximate, &srch)
 
-	sl := SessionIntoSearchlist(SessionMap[user])
+	se := SafeSessionRead(user)
+	sl := SessionIntoSearchlist(se)
+
 	srch.SearchIn = sl.Inc
 	srch.SearchEx = sl.Excl
 	srch.SearchSize = sl.Size
@@ -100,7 +102,7 @@ func RtSearch(c echo.Context) error {
 	completed.SortResults()
 
 	soj := SearchOutputJSON{}
-	if SessionMap[readUUIDCookie(c)].HitContext == 0 {
+	if se.HitContext == 0 {
 		soj = FormatNoContextResults(completed)
 	} else {
 		soj = FormatWithContextResults(completed)
@@ -411,36 +413,37 @@ func generateinitialhits(first SearchStruct) SearchStruct {
 // builddefaultsearch - fill out the basic values for a new search
 func builddefaultsearch(c echo.Context) SearchStruct {
 	user := readUUIDCookie(c)
+	sess := SafeSessionRead(user)
 
-	var s SearchStruct
-	s.User = user
-	s.Launched = time.Now()
-	s.Limit = SessionMap[user].HitLimit
-	s.SrchColumn = DEFAULTCOLUMN
-	s.SrchSyntax = DEFAULTSYNTAX
-	s.OrderBy = ORDERBY
-	s.SearchIn = SessionMap[user].Inclusions
-	s.SearchEx = SessionMap[user].Exclusions
-	s.ProxDist = int64(SessionMap[user].Proximity)
-	s.ProxScope = SessionMap[user].SearchScope
-	s.NotNear = false
-	s.Twobox = false
-	s.HasPhrase = false
-	s.HasLemma = false
-	s.SkgRewritten = false
-	s.OneHit = SessionMap[user].OneHit
-	s.PhaseNum = 1
-	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
-	s.AcqHitCounter()
-	s.AcqRemainCounter()
+	var srch SearchStruct
+	srch.User = user
+	srch.Launched = time.Now()
+	srch.Limit = sess.HitLimit
+	srch.SrchColumn = DEFAULTCOLUMN
+	srch.SrchSyntax = DEFAULTSYNTAX
+	srch.OrderBy = ORDERBY
+	srch.SearchIn = sess.Inclusions
+	srch.SearchEx = sess.Exclusions
+	srch.ProxDist = int64(sess.Proximity)
+	srch.ProxScope = sess.SearchScope
+	srch.NotNear = false
+	srch.Twobox = false
+	srch.HasPhrase = false
+	srch.HasLemma = false
+	srch.SkgRewritten = false
+	srch.OneHit = sess.OneHit
+	srch.PhaseNum = 1
+	srch.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
+	srch.AcqHitCounter()
+	srch.AcqRemainCounter()
 
-	if SessionMap[user].NearOrNot == "notnear" {
-		s.NotNear = true
+	if sess.NearOrNot == "notnear" {
+		srch.NotNear = true
 	}
 
 	// msg("nonstandard builddefaultsearch() for testing", 1)
 
-	return s
+	return srch
 }
 
 // buildhollowsearch - is really a way to grab line collections via synthetic searchlists

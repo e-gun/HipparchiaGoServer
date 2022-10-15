@@ -43,10 +43,27 @@ type ServerSession struct {
 	TmpStr      string
 }
 
+func SafeSessionRead(u string) ServerSession {
+	MapLocker.RLock()
+	defer MapLocker.RUnlock()
+	s, e := SessionMap[u]
+	if e != true {
+		s = makedefaultsession(u)
+	}
+	return s
+}
+
+func SafeSessionSwap(ns ServerSession) {
+	MapLocker.Lock()
+	defer MapLocker.Unlock()
+	SessionMap[ns.ID] = ns
+}
+
 // RtFrontpage - send the html for "/"
 func RtFrontpage(c echo.Context) error {
 	// will set if missing
-	s := SessionMap[readUUIDCookie(c)]
+	user := readUUIDCookie(c)
+	s := SafeSessionRead(user)
 
 	env := fmt.Sprintf("%s: %s - %s (%d workers)", runtime.Version(), runtime.GOOS, runtime.GOARCH, Config.WorkerCount)
 
@@ -118,7 +135,9 @@ func readUUIDCookie(c echo.Context) string {
 		MapLocker.Unlock()
 	}
 
-	if !SessionMap[id].IsLoggedIn {
+	s := SafeSessionRead(id)
+
+	if !s.IsLoggedIn {
 		// go to authentication code
 		// at the moment everyone should always be marked as logged in
 	}

@@ -106,7 +106,7 @@ type ResultPassageLine struct {
 	IsHighlight     bool
 }
 
-func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
+func FormatWithContextResults(thesearch SearchStruct) SearchOutputJSON {
 	const (
 		FINDTEMPL = `
 		<locus>
@@ -124,7 +124,7 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 		HIGHLIGHTER = `<span class="highlight">%s</span>`
 		SNIP        = `✃✃✃`
 	)
-	thesession := SessionMap[ss.User]
+	thesession := SafeSessionRead(thesearch.User)
 
 	type PsgFormattingTemplate struct {
 		Findnumber  int
@@ -141,13 +141,13 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 
 	// gather all the lines you need: this is much faster than simplecontextgrabber() 200x in a single threaded loop
 	// turn it into a new search where we accept any character as enough to yield a hit: ""
-	res := clonesearch(ss, 3)
-	res.Results = ss.Results
+	res := clonesearch(thesearch, 3)
+	res.Results = thesearch.Results
 	res.Seeking = ""
 	res.LemmaOne = ""
 	res.Proximate = ""
 	res.LemmaTwo = ""
-	res.Limit = (ss.Limit * int64(thesession.HitContext)) * 3
+	res.Limit = (thesearch.Limit * int64(thesession.HitContext)) * 3
 
 	context := int64(thesession.HitContext / 2)
 
@@ -174,8 +174,8 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 
 	// iterate over the results to build the raw core data
 
-	allpassages := make([]PsgFormattingTemplate, len(ss.Results))
-	for i, r := range ss.Results {
+	allpassages := make([]PsgFormattingTemplate, len(thesearch.Results))
+	for i, r := range thesearch.Results {
 		var psg PsgFormattingTemplate
 		psg.Findnumber = i + 1
 		psg.Foundauthor = r.MyAu().Name
@@ -233,7 +233,7 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 	}
 
 	// highlight the search term: this includes the hyphenated_line issue
-	searchterm := gethighlighter(&ss)
+	searchterm := gethighlighter(&thesearch)
 
 	for _, p := range allpassages {
 		for i, r := range p.CookedCTX {
@@ -242,9 +242,9 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 				// highlightfocusline(&p.CookedCTX[i])
 				highlightsearchterm(searchterm, &p.CookedCTX[i])
 			}
-			if len(ss.LemmaTwo) > 0 {
+			if len(thesearch.LemmaTwo) > 0 {
 				// look for the proximate term
-				re := lemmaintoregexslice(ss.LemmaTwo)
+				re := lemmaintoregexslice(thesearch.LemmaTwo)
 				pat, e := regexp.Compile(strings.Join(re, "|"))
 				if e != nil {
 					pat = regexp.MustCompile("FAILED_FIND_NOTHING")
@@ -252,9 +252,9 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 				}
 				highlightsearchterm(pat, &p.CookedCTX[i])
 			}
-			if len(ss.Proximate) > 0 {
+			if len(thesearch.Proximate) > 0 {
 				// look for the proximate term
-				pat := searchtermfinder(ss.Proximate)
+				pat := searchtermfinder(thesearch.Proximate)
 				highlightsearchterm(pat, &p.CookedCTX[i])
 			}
 		}
@@ -282,9 +282,9 @@ func FormatWithContextResults(ss SearchStruct) SearchOutputJSON {
 
 	var out SearchOutputJSON
 	out.JS = fmt.Sprintf(BROWSERJS, "browser")
-	out.Title = restorewhitespace(ss.Seeking)
+	out.Title = restorewhitespace(thesearch.Seeking)
 	out.Image = ""
-	out.Searchsummary = formatfinalsearchsummary(&ss)
+	out.Searchsummary = formatfinalsearchsummary(&thesearch)
 	out.Found = strings.Join(rows, "")
 
 	return out
@@ -314,6 +314,7 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 		%s
 		%s
 	`
+		BETW   = "Searched between %s and %s<br>"
 		DDM    = "<!-- dates did not matter -->"
 		NOCAP  = "<!-- did not hit the results cap -->"
 		YESCAP = "[Search suspended: result cap reached.]"
@@ -322,12 +323,12 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 	)
 
 	m := message.NewPrinter(language.English)
-
+	sess := SafeSessionRead(s.User)
 	var dr string
-	if SessionMap[s.User].Earliest != MINDATESTR || SessionMap[s.User].Latest != MAXDATESTR {
-		a := formatbcedate(SessionMap[s.User].Earliest)
-		b := formatbcedate(SessionMap[s.User].Latest)
-		dr = fmt.Sprintf("Searched between %s and %s<br>", a, b)
+	if sess.Earliest != MINDATESTR || sess.Latest != MAXDATESTR {
+		a := formatbcedate(sess.Earliest)
+		b := formatbcedate(sess.Latest)
+		dr = fmt.Sprintf(BETW, a, b)
 	} else {
 		dr = DDM
 	}
@@ -344,9 +345,9 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 		oh = ONEAU
 	}
 
-	so := SessionMap[s.User].SortHitsBy
-	// shortname, converted_date, provenance, universalid
-	switch so {
+	var so string
+
+	switch sess.SortHitsBy {
 	case "shortname":
 		so = "author name"
 	case "converted_date":

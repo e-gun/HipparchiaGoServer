@@ -195,7 +195,8 @@ func (s *SearchStruct) SortResults() {
 		return one.MyWk().Prov < two.MyWk().Prov
 	}
 
-	crit := SessionMap[s.User].SortHitsBy
+	sess := SafeSessionRead(s.User)
+	crit := sess.SortHitsBy
 
 	switch {
 	case crit == "shortname":

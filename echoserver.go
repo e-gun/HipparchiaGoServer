@@ -290,7 +290,7 @@ func RtSessionSetsCookie(c echo.Context) error {
 	)
 	num := c.Param("num")
 	user := readUUIDCookie(c)
-	s := SessionMap[user]
+	s := SafeSessionRead(user)
 
 	v, e := json.Marshal(s)
 	if e != nil {
@@ -341,7 +341,7 @@ func RtSessionGetCookie(c echo.Context) error {
 		return c.String(http.StatusOK, "")
 	}
 
-	SessionMap[user] = s
+	SafeSessionSwap(s)
 
 	e := c.Redirect(http.StatusFound, "/")
 	chke(e)
@@ -384,7 +384,7 @@ func RtSetOption(c echo.Context) error {
 	ynoptionlist := []string{"greekcorpus", "latincorpus", "papyruscorpus", "inscriptioncorpus", "christiancorpus",
 		"rawinputstyle", "onehit", "headwordindexing", "indexbyfrequency", "spuria", "incerta", "varia"}
 
-	s := SessionMap[user]
+	s := SafeSessionRead(user)
 
 	if isinslice(ynoptionlist, opt) {
 		valid := []string{"yes", "no"}

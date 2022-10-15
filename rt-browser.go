@@ -44,7 +44,12 @@ func RtBrowseline(c echo.Context) error {
 	// sample input: '/browse/index/lt0550/001/1855'
 	// the one route that calls generatebrowsedpassage() directly
 
+	const (
+		FAIL = "RtBrowseline() could not parse %s"
+	)
+
 	user := readUUIDCookie(c)
+	s := SafeSessionRead(user)
 
 	locus := c.Param("locus")
 	elem := strings.Split(locus, "/")
@@ -53,11 +58,11 @@ func RtBrowseline(c echo.Context) error {
 		wk := elem[1]
 		ln, e := strconv.Atoi(elem[2])
 		chke(e)
-		ctx := SessionMap[user].BrowseCtx
+		ctx := s.BrowseCtx
 		bp := generatebrowsedpassage(au, wk, int64(ln), ctx)
 		return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
 	} else {
-		msg(fmt.Sprintf("RtBrowseline() could not parse %s", locus), 3)
+		msg(fmt.Sprintf(FAIL, locus), 3)
 		return emptyjsreturn(c)
 	}
 }
@@ -81,7 +86,12 @@ type BrowsedPassage struct {
 // Browse - parse request and send a request to generatebrowsedpassage
 func Browse(c echo.Context, sep string) BrowsedPassage {
 	// sample input: http://localhost:8000//browse/perseus/lt0550/001/2:717
+	const (
+		FAIL = "Browse() could not parse %s"
+	)
+
 	user := readUUIDCookie(c)
+	s := SafeSessionRead(user)
 
 	locus := c.Param("locus")
 	elem := strings.Split(locus, "/")
@@ -92,10 +102,10 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 
 		// findendpointsfromlocus() lives in rt-selection.go
 		ln := findendpointsfromlocus(uid, elem[2], sep)
-		ctx := SessionMap[user].BrowseCtx
+		ctx := s.BrowseCtx
 		return generatebrowsedpassage(au, wk, ln[0], ctx)
 	} else {
-		msg(fmt.Sprintf("Browse() could not parse %s", locus), 3)
+		msg(fmt.Sprintf(FAIL, locus), 3)
 		return BrowsedPassage{}
 	}
 }

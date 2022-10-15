@@ -29,10 +29,7 @@ func RtGetJSSession(c echo.Context) error {
 	// see hipparchiajs/coreinterfaceclicks_go.js
 
 	user := readUUIDCookie(c)
-	if _, exists := SessionMap[user]; !exists {
-		SessionMap[user] = makedefaultsession(user)
-	}
-	s := SessionMap[user]
+	s := SafeSessionRead(user)
 
 	type JSO struct {
 		// what the JS is looking for; note that vector stuff, etc is being skipped vs the python session dump
@@ -320,8 +317,11 @@ func RtGetJSSearchlist(c echo.Context) error {
 		SUMMARY   = `<br><span class="emph">%d</span> total words`
 	)
 
+	user := readUUIDCookie(c)
+	sess := SafeSessionRead(user)
+
 	m := message.NewPrinter(language.English)
-	sl := SessionIntoSearchlist(SessionMap[readUUIDCookie(c)])
+	sl := SessionIntoSearchlist(sess)
 	tw := int64(0)
 
 	var wkk []string

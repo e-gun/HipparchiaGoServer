@@ -61,6 +61,7 @@ func RtTextMaker(c echo.Context) error {
 	)
 
 	user := readUUIDCookie(c)
+	sess := SafeSessionRead(user)
 	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 
 	if len(srch.Results) == 0 {
@@ -120,7 +121,7 @@ func RtTextMaker(c echo.Context) error {
 
 	// <div id="searchsummary">Cicero,&nbsp;<span class="foundwork">Philippicae</span><br><br>citation format:&nbsp;oration 3, section 13, line 1<br></div>
 
-	sui := SessionMap[user].Inclusions
+	sui := sess.Inclusions
 
 	au := firstauth.Shortname
 	if len(sui.Authors) > 1 || len(sui.AuGenres) > 0 || len(sui.AuLocations) > 0 {
@@ -694,6 +695,7 @@ func RtIndexMaker(c echo.Context) error {
 // sessionintobulksearch - grab every line of text in the currently selected set of authors, works, and passages
 func sessionintobulksearch(c echo.Context, lim int64) SearchStruct {
 	user := readUUIDCookie(c)
+	sess := SafeSessionRead(user)
 
 	srch := builddefaultsearch(c)
 	srch.Seeking = ""
@@ -703,7 +705,7 @@ func sessionintobulksearch(c echo.Context, lim int64) SearchStruct {
 
 	srch.CleanInput()
 
-	sl := SessionIntoSearchlist(SessionMap[user])
+	sl := SessionIntoSearchlist(sess)
 	srch.SearchIn = sl.Inc
 	srch.SearchEx = sl.Excl
 	srch.SearchSize = sl.Size
