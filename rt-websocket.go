@@ -25,7 +25,7 @@ type PollData struct {
 	TwoBox   bool
 }
 
-// RtWebsocket - progress info for SearchMap
+// RtWebsocket - progress info for a search
 func RtWebsocket(c echo.Context) error {
 	// 	the client sends the name of a poll and this will output
 	//	the status of the poll continuously while the poll remains active
@@ -73,7 +73,7 @@ func RtWebsocket(c echo.Context) error {
 	}
 
 	done := false
-	bs := ""
+	id := ""
 
 	for {
 		if done {
@@ -88,33 +88,33 @@ func RtWebsocket(c echo.Context) error {
 			break
 		}
 
-		bs = string(m)
-		bs = strings.Replace(bs, `"`, "", -1)
+		id = string(m)
+		id = strings.Replace(id, `"`, "", -1)
 
-		srch := SafeSearchMapRead(bs) // but you still have to use the map's version for some things...
+		srch := SafeSearchMapRead(id) // but you still have to use the map's version for some things...
 
 		if srch.IsActive {
 			var r PollData
 			r.TwoBox = srch.Twobox
-			r.ID = bs
+			r.ID = id
 			r.TotalWrk = srch.TableSize
 
 			for {
 				r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(srch.Launched).Seconds())
 
-				if SearchMap[bs].PhaseNum > 1 {
+				if srch.PhaseNum > 1 {
 					r.Extra = "(second pass)"
 				} else {
 					r.Extra = ""
 				}
 
-				// is lock/unlock of the relevant mutex in fact unneeded: only this loop will read this value from that map
-				r.Remain = SearchMap[bs].Remain.Get()
-				r.Hits = SearchMap[bs].Hits.Get()
+				// mutex protected gets
+				r.Remain = SearchMap[id].Remain.Get()
+				r.Hits = SearchMap[id].Hits.Get()
 
 				// inside the loop because indexing modifies InitSum to send simple progress messages
 				MapLocker.RLock()
-				r.Msg = strings.Replace(SearchMap[bs].InitSum, "Sought", "Seeking", -1)
+				r.Msg = strings.Replace(SearchMap[id].InitSum, "Sought", "Seeking", -1)
 				MapLocker.RUnlock()
 
 				// Write
@@ -140,7 +140,7 @@ func RtWebsocket(c echo.Context) error {
 				}
 
 				MapLocker.RLock()
-				_, exists := SearchMap[bs]
+				_, exists := SearchMap[id]
 				MapLocker.RUnlock()
 				if !exists {
 					done = true
@@ -154,7 +154,7 @@ func RtWebsocket(c echo.Context) error {
 	// this is not supposed to be strictly necessary, but there have been problems reconnecting after multiple SearchMap
 	end := JSOut{
 		V:     "",
-		ID:    bs,
+		ID:    id,
 		Close: "close",
 	}
 

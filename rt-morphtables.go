@@ -389,6 +389,10 @@ func generateverbtable(lang string, words map[string]string) string {
 			<td rowspan="1" colspan="%d" class="moodlabel">%s<br>
 			</td>
 		</tr>`
+		TRT  = "<tr class=\"morphrow\">\n"
+		TDT  = "\t<td class=\"morphcell\">%s</td>\n"
+		TDLT = "\t<td class=\"tenselabel\">%s %s</td>\n"
+		TLT  = "<tr align=\"center\"><td rowspan=\"1\" colspan=\"%d\" class=\"morphrow emph\">%s<br></td></tr>\n"
 	)
 
 	vm := make(map[string]map[string]map[int]bool)
@@ -498,8 +502,8 @@ func generateverbtable(lang string, words map[string]string) string {
 					continue
 				}
 				// np := fmt.Sprintf("%s %s", n, p)
-				trr = append(trr, "<tr class=\"morphrow\">\n")
-				trr = append(trr, fmt.Sprintf("\t<td class=\"morphlabelcell\">%s %s</td>\n", n, p))
+				trr = append(trr, TRT)
+				trr = append(trr, fmt.Sprintf(TDLT, n, p))
 				var tdd []string
 				for _, t := range tenses {
 					// not ever combination should be generated
@@ -517,7 +521,7 @@ func generateverbtable(lang string, words map[string]string) string {
 					cellcount += 1
 				}
 				for _, td := range tdd {
-					trr = append(trr, fmt.Sprintf("\t<td class=\"morphcell\">%s</td>\n", td))
+					trr = append(trr, fmt.Sprintf(TDT, td))
 				}
 				trr = append(trr, "</tr>\n")
 			}
@@ -536,6 +540,10 @@ func generateverbtable(lang string, words map[string]string) string {
 
 		//[HGS] aor_part_mid_fem_nom_sg_attic
 		//[HGS] perf_part_mp_fem_voc_pl_attic
+		const (
+			TNAT = `<tr align="center"><td rowspan="1" colspan="%d" class="morphrow">[n/a]<br></td></tr>`
+		)
+
 		var trr []string
 		blankcount := 0
 		cellcount := 0
@@ -545,8 +553,7 @@ func generateverbtable(lang string, words map[string]string) string {
 			if !thevm[tm[t]] {
 				continue
 			}
-			tl := "<tr align=\"center\"><td rowspan=\"1\" colspan=\"%d\" class=\"morphrow emph\">%s<br></td></tr>\n"
-			trr = append(trr, fmt.Sprintf(tl, len(neednumb)+2, t))
+			trr = append(trr, fmt.Sprintf(TLT, len(neednumb)+2, t))
 
 			// we are going to skip building individual tenses that yield nothing but blanks
 			var provisional []string
@@ -554,8 +561,8 @@ func generateverbtable(lang string, words map[string]string) string {
 			totaltense := 0
 			for _, n := range neednumb {
 				for _, c := range cases {
-					provisional = append(provisional, "<tr class=\"morphrow\">\n")
-					provisional = append(provisional, fmt.Sprintf("\t<td class=\"morphlabelcell\">%s %s</td>\n", n, c))
+					provisional = append(provisional, TRT)
+					provisional = append(provisional, fmt.Sprintf(TDLT, n, c))
 					var tdd []string
 					for _, g := range needgend {
 						// not every combination should be generated
@@ -575,15 +582,14 @@ func generateverbtable(lang string, words map[string]string) string {
 						totaltense += 1
 					}
 					for _, td := range tdd {
-						provisional = append(provisional, fmt.Sprintf("\t<td class=\"morphcell\">%s</td>\n", td))
+						provisional = append(provisional, fmt.Sprintf(TDT, td))
 					}
 					provisional = append(provisional, "</tr>\n")
 				}
 			}
 			// skip empty tenses
 			if emptytense == totaltense {
-				mt := `<tr align="center"><td rowspan="1" colspan="%d" class="morphrow">[n/a]<br></td></tr>`
-				trr = append(trr, fmt.Sprintf(mt, len(neednumb)+2))
+				trr = append(trr, fmt.Sprintf(TNAT, len(neednumb)+2))
 			} else {
 				trr = append(trr, provisional...)
 			}
@@ -613,14 +619,13 @@ func generateverbtable(lang string, words map[string]string) string {
 			needgend = []string{"neut"}
 		}
 
-		tl := `<tr align="center"><td rowspan="1" colspan="%d" class="morphrow emph center">%s<br></td></tr>`
-		trr = append(trr, fmt.Sprintf(tl, len(nn)+1, ""))
+		trr = append(trr, fmt.Sprintf(TLT, len(nn)+1, ""))
 		blankcount := 0
 		cellcount := 0
 		for _, n := range nn {
 			for _, c := range cc {
-				trr = append(trr, "<tr class=\"morphrow\">\n")
-				trr = append(trr, fmt.Sprintf("\t<td class=\"morphlabelcell\">%s %s</td>\n", n, c))
+				trr = append(trr, TRT)
+				trr = append(trr, fmt.Sprintf(TDLT, n, c))
 				var tdd []string
 				for _, g := range needgend {
 					// not every combination should be generated
@@ -635,7 +640,7 @@ func generateverbtable(lang string, words map[string]string) string {
 					cellcount += 1
 				}
 				for _, td := range tdd {
-					trr = append(trr, fmt.Sprintf("<td class=\"morphcell\">%s</td>", td))
+					trr = append(trr, fmt.Sprintf(TDT, td))
 				}
 				trr = append(trr, "</tr>\n")
 			}
@@ -666,8 +671,13 @@ func generateverbtable(lang string, words map[string]string) string {
 		//		<td class="morphcell"><verbform searchterm="τετροφέναι">τετροφέναι</verbform> (<span class="counter">2</span>)</td>
 		//	</tr>
 		//
+
+		const (
+			TDLTNBSP = "<td class=\"tenselabel\">&nbsp;</td>\n"
+		)
+
 		var trr []string
-		trr = append(trr, "<td class=\"tenselabel\">&nbsp;</td>\n")
+		trr = append(trr, TDLTNBSP)
 		// need to loop the tenses...
 		blankcount := 0
 		cellcount := 0
@@ -690,7 +700,7 @@ func generateverbtable(lang string, words map[string]string) string {
 			cellcount += 1
 		}
 		for _, td := range tdd {
-			trr = append(trr, fmt.Sprintf("<td class=\"morphcell\">%s</td>\n", td))
+			trr = append(trr, fmt.Sprintf(TDT, td))
 		}
 		isblank := false
 		if cellcount == blankcount {
@@ -787,6 +797,14 @@ func generateverbtable(lang string, words map[string]string) string {
 
 // generatedeclinedtable - given a map of grammar IDs to words, build a declined from table
 func generatedeclinedtable(lang string, words map[string]string) string {
+	const (
+		TDGL  = "<td class=\"genderlabel\">&nbsp;</td>\n"
+		TDGC  = "\t<td class=\"gendercell\">%s<br></td>\n"
+		TRMR  = "<tr class=\"morphrow\">\n"
+		TDMLC = "\t<td class=\"morphlabelcell\">%s %s</td>\n"
+		TDMC  = "<td class=\"morphcell\">%s</td>\n"
+	)
+
 	var dialect []string
 	var cases []string
 	var numbers []string
@@ -825,9 +843,9 @@ func generatedeclinedtable(lang string, words map[string]string) string {
 		<tr>
 			%s
 		</tr>`
-		tdd := []string{"<td class=\"genderlabel\">&nbsp;</td>\n"}
+		tdd := []string{TDGL}
 		for _, g := range needgend {
-			tdd = append(tdd, fmt.Sprintf("\t<td class=\"gendercell\">%s<br></td>\n", g))
+			tdd = append(tdd, fmt.Sprintf(TDGC, g))
 		}
 		td := strings.Join(tdd, "")
 		return fmt.Sprintf(hd, td)
@@ -838,8 +856,8 @@ func generatedeclinedtable(lang string, words map[string]string) string {
 		var trr []string
 		for _, n := range neednumb {
 			for _, c := range cases {
-				trr = append(trr, "<tr class=\"morphrow\">\n")
-				trr = append(trr, fmt.Sprintf("\t<td class=\"morphlabelcell\">%s %s</td>\n", n, c))
+				trr = append(trr, TRMR)
+				trr = append(trr, fmt.Sprintf(TDMLC, n, c))
 				var tdd []string
 				blankcount := 0
 				for _, g := range needgend {
@@ -854,7 +872,7 @@ func generatedeclinedtable(lang string, words map[string]string) string {
 					}
 				}
 				for _, td := range tdd {
-					trr = append(trr, fmt.Sprintf("<td class=\"morphcell\">%s</td>\n", td))
+					trr = append(trr, fmt.Sprintf(TDMC, td))
 				}
 				trr = append(trr, "</tr>\n")
 			}

@@ -315,6 +315,7 @@ func RtGetJSSearchlist(c echo.Context) error {
 		WORKTMPL  = `%s, <span class="italic">%s</span> [%d words]`
 		SPILLOVER = `<br>(and <span class="emph">%d</span> additional works)`
 		SUMMARY   = `<br><span class="emph">%d</span> total words`
+		REG       = `(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
 	)
 
 	user := readUUIDCookie(c)
@@ -342,7 +343,7 @@ func RtGetJSSearchlist(c echo.Context) error {
 		tw += thiswk.WdCount
 	}
 
-	pattern := regexp.MustCompile(`(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`)
+	pattern := regexp.MustCompile(REG)
 	for _, p := range sl.Inc.Passages {
 		cit, count := searchlistpassages(pattern, p)
 		wkk = append(wkk, cit)
