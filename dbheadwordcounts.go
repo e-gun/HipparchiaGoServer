@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
+	"math"
 	"reflect"
 	"sort"
 	"strings"
@@ -343,7 +344,7 @@ func headwordprevalence(wc DbHeadwordCount) string {
 	}
 	pd = append(pd, m.Sprintf("%s %d", "Ⓣ", wc.Total))
 
-	p := "Prevalence (all forms): " + strings.Join(pd, " / ")
+	p := "<br>Prevalence (all forms): " + strings.Join(pd, " / ")
 
 	return p
 }
@@ -359,12 +360,11 @@ func headworddistrib(wc DbHeadwordCount) string {
 	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })
 
 	max := cv[0].count
-	pd := weightedpdslice(cv)
 
-	p := "<br>Distribution by corpus: " + strings.Join(pd, " / ")
-
-	if max == 0 {
-		p = ""
+	p := ""
+	if max != 0 {
+		pd := weightedpdslice(cv)
+		p = "<br>Distribution by corpus: " + strings.Join(pd, "; ")
 	}
 
 	return p
@@ -381,12 +381,12 @@ func headwordchronology(wc DbHeadwordCount) string {
 	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })
 
 	max := cv[0].count
-	pd := weightedpdslice(cv)
 
-	p := "<br>Distribution by time: " + strings.Join(pd, " / ")
+	p := ""
+	if max != 0 {
+		pd := weightedpdslice(cv)
+		p = "<br>Distribution by time: " + strings.Join(pd, "; ")
 
-	if max == 0 {
-		p = ""
 	}
 
 	return p
@@ -414,14 +414,13 @@ func headwordgenres(wc DbHeadwordCount) string {
 	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })
 
 	max := cv[0].count
-	pd := weightedpdslice(cv)
 
-	pd = pd[0:GENRESTOCOUNT]
-
-	p := "<br>Distribution by genre: " + strings.Join(pd, "; ")
-
-	if max == 0 {
-		p = ""
+	p := ""
+	if max != 0 {
+		pd := weightedpdslice(cv)
+		lim := math.Min(GENRESTOCOUNT, float64(len(pd)))
+		pd = pd[0:int(lim)]
+		p = "<br>Distribution by genre: " + strings.Join(pd, "; ")
 	}
 
 	return p

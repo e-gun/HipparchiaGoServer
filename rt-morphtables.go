@@ -67,6 +67,19 @@ func RtMorphchart(c echo.Context) error {
 
 	// should reach this route exclusively via a click from rt-lexica.go
 
+	const (
+		MFLD = `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
+		MQT  = `SELECT %s FROM %s_morphology WHERE xrefs ~ '%s' AND prefixrefs=''`
+		TTT  = `CREATE TEMPORARY TABLE ttw_%s AS SELECT values AS wordforms FROM unnest(ARRAY[%s]) values`
+		WCQT = `SELECT entry_name, total_count FROM wordcounts_%s WHERE EXISTS 
+		(SELECT 1 FROM ttw_%s temptable WHERE temptable.wordforms = wordcounts_%s.entry_name)`
+		CTM   = `<verbform searchterm="%s">%s</verbform> (<span class="counter">%d</span>)`
+		TBTOP = `
+		<div class="center">
+			<span class="verylarge">All known forms of <dictionaryidsearch entryid="%f" language="%s">%s</dictionaryidsearch></span>
+		</div>`
+	)
+
 	// [a] parse request
 
 	req := c.Param("wd")
@@ -110,8 +123,7 @@ func RtMorphchart(c echo.Context) error {
 
 	// SQL: "AND prefixrefs=''" cleans things out...; and that is what was chosen
 
-	fld := `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
-	psq := fmt.Sprintf(`SELECT %s FROM %s_morphology WHERE xrefs ~ '%s' AND prefixrefs=''`, fld, lg, xr)
+	psq := fmt.Sprintf(MQT, MFLD, lg, xr)
 
 	foundrows, err := dbconn.Query(context.Background(), psq)
 	chke(err)
@@ -178,10 +190,6 @@ func RtMorphchart(c echo.Context) error {
 	// κώρα       |           9
 	//(12 rows)
 
-	tt := `CREATE TEMPORARY TABLE ttw_%s AS SELECT values AS wordforms FROM unnest(ARRAY[%s]) values`
-	qt := `SELECT entry_name, total_count FROM wordcounts_%s WHERE EXISTS 
-		(SELECT 1 FROM ttw_%s temptable WHERE temptable.wordforms = wordcounts_%s.entry_name)`
-
 	wcc := make(map[string]DbWordCount)
 	for l, _ := range lett {
 		if []rune(l)[0] == 0 {
@@ -189,10 +197,10 @@ func RtMorphchart(c echo.Context) error {
 		}
 
 		rnd := strings.Replace(uuid.New().String(), "-", "", -1)
-		_, e := dbconn.Exec(context.Background(), fmt.Sprintf(tt, rnd, arr))
+		_, e := dbconn.Exec(context.Background(), fmt.Sprintf(TTT, rnd, arr))
 		chke(e)
 
-		q := fmt.Sprintf(qt, l, rnd, l)
+		q := fmt.Sprintf(WCQT, l, rnd, l)
 		rr, e := dbconn.Query(context.Background(), q)
 		chke(e)
 		var wc DbWordCount
@@ -312,12 +320,11 @@ func RtMorphchart(c echo.Context) error {
 	}
 
 	// [e4] add markup and format the counts
-	ctm := `<verbform searchterm="%s">%s</verbform> (<span class="counter">%d</span>)`
 	pdxm := make(map[string]string)
 	for kk, pd := range pdcm {
 		var vv []string
 		for k, v := range pd {
-			vv = append(vv, fmt.Sprintf(ctm, k, k, v))
+			vv = append(vv, fmt.Sprintf(CTM, k, k, v))
 		}
 		pdxm[kk] = strings.Join(vv, " / ")
 
@@ -331,13 +338,16 @@ func RtMorphchart(c echo.Context) error {
 	}
 
 	isverb := func() bool {
+		const (
+			MSG = "RtMorphchart() isverb counts cases: %d; tenses: %d"
+		)
 		kk := stringmapkeysintoslice(pdxm)
 		// ῥώμη will trigger "verb"... : you can't choose via a single verb hit; you have to compare total form counts
 		// NO GOOD: return arraystringseeker(GKTENSES, kk)
 
 		tc := arraystringcounter(GKTENSES, kk)
 		cc := arraystringcounter(LTCASES, kk)
-		msg(fmt.Sprintf("RtMorphchart() isverb counts cases: %d; tenses: %d", cc, tc), 4)
+		msg(fmt.Sprintf(MSG, cc, tc), 4)
 
 		// in greek tc is 2x cc or (far) more; in latin tc can just squeak by cc: "[HGS] cc: 94; tc: 104"
 		// the "(3*tc)/2" below is required to keep ἀγαθόϲ from returning as if ἀγαθόω; otherwise "2*" would make sense
@@ -355,16 +365,10 @@ func RtMorphchart(c echo.Context) error {
 	if isverb {
 		jb.HTML = generateverbtable(lg, pdxm)
 	} else {
-		// jb.HTML = "[RtMorphchart() is a work in progress...]<br>" + strings.Join(oo, "<br>")
 		jb.HTML = generatedeclinedtable(lg, pdxm)
 	}
 
-	tabletop := `
-	<div class="center">
-		<span class="verylarge">All known forms of <dictionaryidsearch entryid="%f" language="%s">%s</dictionaryidsearch></span>
-	</div>`
-
-	jb.HTML = fmt.Sprintf(tabletop, id, lg, wd) + jb.HTML
+	jb.HTML = fmt.Sprintf(TBTOP, id, lg, wd) + jb.HTML
 
 	jb.JS = MORPHJS
 
@@ -389,10 +393,11 @@ func generateverbtable(lang string, words map[string]string) string {
 			<td rowspan="1" colspan="%d" class="moodlabel">%s<br>
 			</td>
 		</tr>`
-		TRT  = "<tr class=\"morphrow\">\n"
-		TDT  = "\t<td class=\"morphcell\">%s</td>\n"
-		TDLT = "\t<td class=\"tenselabel\">%s %s</td>\n"
-		TLT  = "<tr align=\"center\"><td rowspan=\"1\" colspan=\"%d\" class=\"morphrow emph\">%s<br></td></tr>\n"
+		TRT   = "<tr class=\"morphrow\">\n"
+		TDT   = "\t<td class=\"morphcell\">%s</td>\n"
+		TDLT  = "\t<td class=\"tenselabel\">%s %s</td>\n"
+		TLT   = "<tr align=\"center\"><td rowspan=\"1\" colspan=\"%d\" class=\"morphrow emph\">%s<br></td></tr>\n"
+		EMPTY = "<tr><td align=\"center\">[n/a]</td></tr>\n"
 	)
 
 	vm := make(map[string]map[string]map[int]bool)
@@ -769,7 +774,7 @@ func generateverbtable(lang string, words map[string]string) string {
 				html = append(html, fmt.Sprintf(MOODTR, ct, m))
 
 				if isblank {
-					trrhtml = []string{"<tr><td>[n/a]</td></tr>\n"}
+					trrhtml = []string{EMPTY}
 				} else {
 					switch m {
 					case "part":
