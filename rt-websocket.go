@@ -178,35 +178,45 @@ func formatpoll(pd PollData) string {
 	// example:
 	// Seeking <span class="sought">»μελιϲϲα«</span>: <span class="progress">31%</span> completed&nbsp;(0.3s)<br>
 	// (<span class="progress">199</span> found)<br>
+
+	const (
+		FU  = `Finishing up...&nbsp;`
+		MS  = `Searching for matches among the initial finds...&nbsp;`
+		PCT = `: <span class="progress">%s</span> completed&nbsp;(%s)<br>`
+		EL1 = `&nbsp;(%s)<br>%s`
+		EL2 = `&nbsp;(%s)`
+		HIT = `(<span class="progress">%d</span> found)<br>`
+	)
+
 	pctd := ((float32(pd.TotalWrk) - float32(pd.Remain)) / float32(pd.TotalWrk)) * 100
 	pcts := fmt.Sprintf("%.0f", pctd) + "%"
 
 	htm := pd.Msg
 
 	tp := func() string {
-		m := `Finishing up...&nbsp;`
+		m := FU
 		if pd.TwoBox {
-			m = `Searching for matches among the initial finds...&nbsp;`
+			m = MS
 		}
-		return fmt.Sprintf(`&nbsp;(%s)<br>%s`, pd.Elapsed, m)
+		return fmt.Sprintf(EL1, pd.Elapsed, m)
 	}()
 
 	if pctd != 0 && pd.Remain != 0 && pd.TotalWrk != 0 {
 		// normal in progress
-		htm += fmt.Sprintf(`: <span class="progress">%s</span> completed&nbsp;(%s)<br>`, pcts, pd.Elapsed)
+		htm += fmt.Sprintf(PCT, pcts, pd.Elapsed)
 	} else if pd.Remain == 0 && pd.TotalWrk != 0 {
 		// finished, mostly
 		htm += tp
 	} else if pd.TotalWrk == 0 {
 		// vocab or index run have no "total work"
-		htm += fmt.Sprintf(`&nbsp;(%s)`, pd.Elapsed)
+		htm += fmt.Sprintf(EL2, pd.Elapsed)
 	} else {
 		// fallback
-		htm += fmt.Sprintf(`&nbsp;(%s)`, pd.Elapsed)
+		htm += fmt.Sprintf(EL2, pd.Elapsed)
 	}
 
 	if pd.Hits > 0 {
-		htm += fmt.Sprintf(`(<span class="progress">%d</span> found)<br>`, pd.Hits)
+		htm += fmt.Sprintf(HIT, pd.Hits)
 	}
 
 	if len(pd.Extra) != 0 {

@@ -186,7 +186,7 @@ func RtSelectionClear(c echo.Context) error {
 		newexcl.Works = RemoveIndex(newexcl.Works, id)
 	case "psgexclusions":
 		key := newexcl.Passages[id]
-		delete(newexcl.MappedAuthByName, key)
+		delete(newexcl.MappedPsgByName, key)
 		newexcl.Passages = RemoveIndex(newexcl.Passages, id)
 	default:
 		msg(fmt.Sprintf(FAIL2, cat), 1)
@@ -220,6 +220,10 @@ func selected(user string, sv SelectionValues) ServerSession {
 	// [e] work genre: "GET /selection/make/_?wkgenre=Apocalyp. HTTP/1.1"
 	// [f] author location: "GET /selection/make/_?auloc=Abdera HTTP/1.1"
 	// [g] work proven: "GET /selection/make/_?wkprov=Abdera%20(Thrace) HTTP/1.1"
+
+	const (
+		PSGT = `%s_FROM_%d_TO_%d`
+	)
 
 	s := SafeSessionRead(user)
 
@@ -258,8 +262,7 @@ func selected(user string, sv SelectionValues) ServerSession {
 		ra := AllAuthors[sv.Auth].Shortname
 		rw := AllWorks[sv.WUID()].Title
 		cs := fmt.Sprintf("%s, %s, %s", ra, rw, r)
-		t := `%s_FROM_%d_TO_%d`
-		i := fmt.Sprintf(t, sv.Auth, b[0], b[1])
+		i := fmt.Sprintf(PSGT, sv.Auth, b[0], b[1])
 		if !sv.IsExcl {
 			s.Inclusions.Passages = unique(append(s.Inclusions.Passages, i))
 			s.Inclusions.MappedPsgByName[i] = cs
@@ -278,8 +281,7 @@ func selected(user string, sv SelectionValues) ServerSession {
 		rs := strings.Replace(sv.Start, "|", ".", -1)
 		re := strings.Replace(sv.End, "|", ".", -1)
 		cs := fmt.Sprintf("%s, %s, %s - %s", ra, rw, rs, re)
-		t := `%s_FROM_%d_TO_%d`
-		i := fmt.Sprintf(t, sv.Auth, b[0], e[1])
+		i := fmt.Sprintf(PSGT, sv.Auth, b[0], e[1])
 		if !sv.IsExcl {
 			s.Inclusions.Passages = unique(append(s.Inclusions.Passages, i))
 			s.Inclusions.MappedPsgByName[i] = cs
@@ -339,6 +341,9 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 	// if you select "book 2" after selecting the whole, select only book 2
 	// if you select the whole after book 2, then the whole
 	// etc...
+	const (
+		PSGT = `%s_FROM_%s_TO_%s`
+	)
 
 	rationalized := original
 
@@ -348,7 +353,6 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 	// there are clever ways to do this with reflection, but they won't be readable
 
 	if sv.A() && !sv.IsExcl {
-		msg("rationalizeselections() 339", 5)
 		// [a] kick this author from the other column
 		var clean []string
 		for _, a := range se.Authors {
@@ -376,7 +380,6 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		}
 		si.Passages = clean
 	} else if sv.A() && sv.IsExcl {
-		msg("rationalizeselections() 367", 5)
 		// [a] kick this author from the other column
 		var clean []string
 		for _, a := range si.Authors {
@@ -424,7 +427,6 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		}
 		se.Passages = clean
 	} else if sv.AW() && !sv.IsExcl {
-		msg("rationalizeselections() 417", 5)
 		// [a] kick this author from both columns
 		var clean []string
 		for _, a := range si.Authors {
@@ -462,7 +464,6 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		}
 		si.Passages = clean
 	} else if sv.AW() && sv.IsExcl {
-		msg("rationalizeselections() 451", 5)
 		// [a] kick this author from both columns
 		var clean []string
 		for _, a := range si.Authors {
@@ -510,7 +511,6 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		}
 		se.Passages = clean
 	} else if sv.AWP() && !sv.IsExcl {
-		msg("rationalizeselections() 499", 5)
 		// [a] kick this author from both columns
 		var clean []string
 		for _, a := range si.Authors {
@@ -547,8 +547,7 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 
 		// [c] kick this passage from the other column
 		clean = []string{}
-		t := `%s_FROM_%s_TO_%s`
-		s := fmt.Sprintf(t, sv.Auth, sv.Start, sv.End)
+		s := fmt.Sprintf(PSGT, sv.Auth, sv.Start, sv.End)
 		for _, p := range se.Passages {
 			if p != s {
 				clean = append(clean, p)
@@ -559,7 +558,6 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		se.Passages = clean
 		// not going to sweat overlapping passages: hard to make them in the first place
 	} else if sv.AWP() && sv.IsExcl {
-		msg("rationalizeselections() 548", 5)
 		// [a] kick this author from both columns
 		var clean []string
 		for _, a := range si.Authors {
@@ -588,8 +586,7 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 
 		// [c] kick this passage from the other column
 		clean = []string{}
-		t := `%s_FROM_%s_TO_%s`
-		s := fmt.Sprintf(t, sv.Auth, sv.Start, sv.End)
+		s := fmt.Sprintf(PSGT, sv.Auth, sv.Start, sv.End)
 		for _, p := range si.Passages {
 			if p != s {
 				clean = append(clean, p)
@@ -623,7 +620,6 @@ func workvalueofpassage(psg string) string {
 		}
 	}
 
-	//msg(fmt.Sprintf("workvalueofpassage() '%s' is: %s", psg, AllWorks[thework].UID), 1)
 	return thework
 }
 

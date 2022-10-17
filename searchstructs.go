@@ -122,6 +122,7 @@ func (s *SearchStruct) FormatInitialSummary() {
 	const (
 		TPM = `Sought %s<span class="sought">»%s«</span>%s`
 		WIN = `%s within %d %s of %s<span class="sought">»%s«</span>`
+		ADF = "all %d forms of "
 	)
 
 	yn := ""
@@ -132,9 +133,8 @@ func (s *SearchStruct) FormatInitialSummary() {
 	af1 := ""
 	sk := s.Seeking
 	if len(s.LemmaOne) != 0 {
-		af := "all %d forms of "
 		sk = s.LemmaOne
-		af1 = fmt.Sprintf(af, len(AllLemm[sk].Deriv))
+		af1 = fmt.Sprintf(ADF, len(AllLemm[sk].Deriv))
 	}
 
 	two := ""
@@ -142,9 +142,8 @@ func (s *SearchStruct) FormatInitialSummary() {
 		sk2 := s.Proximate
 		af2 := ""
 		if len(s.LemmaTwo) != 0 {
-			af3 := "all %d forms of "
 			sk2 = s.LemmaTwo
-			af2 = fmt.Sprintf(af3, len(AllLemm[sk2].Deriv))
+			af2 = fmt.Sprintf(ADF, len(AllLemm[sk2].Deriv))
 		}
 		two = fmt.Sprintf(WIN, yn, s.ProxDist, s.ProxScope, af2, sk2)
 	}
