@@ -578,6 +578,15 @@ func lemmaintoregexslice(hdwd string) []string {
 func findphrasesacrosslines(ss *SearchStruct) {
 	// modify ss in place
 
+	const (
+		FAIL = "<code>SEARCH FAILED: term sent to findphrasesacrosslines() yielded error inside regexp.Compile()</code><br><br>"
+	)
+
+	recordfailure := func() {
+		ss.Results = []DbWorkline{}
+		ss.ExtraMsg = FAIL
+	}
+
 	getcombinations := func(phr string) [][2]string {
 		// 'one two three four five' -->
 		// [('one', 'two three four five'), ('one two', 'three four five'), ('one two three', 'four five'), ('one two three four', 'five')]
@@ -628,13 +637,13 @@ func findphrasesacrosslines(ss *SearchStruct) {
 	if e != nil {
 		// Καῖϲα[ρ can be requested, but it will cause big problems
 		// this mechanism likely needs to be inserted in more locations...
-		ss.ExtraMsg = "<code>SEARCH FAILED: invalid search term sent to findphrasesacrosslines()</code><br>"
+		recordfailure()
 		return
 	}
 
 	altfp, e := regexp.Compile(ss.Seeking)
 	if e != nil {
-		ss.ExtraMsg = "<code>SEARCH FAILED: invalid search term sent to findphrasesacrosslines()</code><br>"
+		recordfailure()
 		return
 	}
 
@@ -671,9 +680,17 @@ func findphrasesacrosslines(ss *SearchStruct) {
 			nl := columnpicker(ss.SrchColumn, nxt)
 			comb := getcombinations(re)
 			for _, c := range comb {
-				fp = regexp.MustCompile(c[0])
-				sp := regexp.MustCompile(c[1])
-				f = fp.MatchString(li)
+				fp2, e1 := regexp.Compile(c[0])
+				if e1 != nil {
+					recordfailure()
+					return
+				}
+				sp, e2 := regexp.Compile(c[1])
+				if e2 != nil {
+					recordfailure()
+					return
+				}
+				f = fp2.MatchString(li)
 				s := sp.MatchString(nl)
 				if f && s && r.WkUID == nxt.WkUID {
 					valid[r.BuildHyperlink()] = r
