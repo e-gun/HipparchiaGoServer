@@ -47,6 +47,7 @@ type SearchStruct struct {
 	TTName       string
 	SearchSize   int // # of works searched
 	TableSize    int // # of tables searched
+	ExtraMsg     string
 	Hits         *SrchCounter
 	Remain       *SrchCounter
 	lock         *sync.RWMutex

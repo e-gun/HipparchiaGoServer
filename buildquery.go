@@ -54,6 +54,18 @@ const (
 		( SELECT * FROM
 			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
 				concat(%s, ' ', lead(%s) OVER (ORDER BY index ASC) ) AS linebundle`
+	TAILBASIC  = `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
+	TAILBASIDX = `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' AND ({{ .IDX }}) ORDER BY index ASC LIMIT {{ .LIM }}`
+	TAILBASWIN = ` FROM {{ .AU }} ) first
+			) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
+	TAILWINIDX = ` FROM {{ .AU }} WHERE {{ .IDX }} ) first 
+			) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
+	TAILTT = ` {{ .AU }} WHERE EXISTS
+		(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}.index AND {{ .COL }} {{ .SYN }} '{{ .SK }}') LIMIT {{ .LIM }}`
+	TAILWINTT = ` FROM {{ .AU }} WHERE EXISTS
+			(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}.index ) 
+			) first
+		) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' LIMIT {{ .LIM }}`
 )
 
 // search types
@@ -245,18 +257,12 @@ func acquiretails() map[string]*template.Template {
 	// this avoids recompiling them a bunch of times in a loop
 
 	mm := make(map[string]string)
-	mm["basic"] = `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
-	mm["basic_and_indices"] = `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' AND ({{ .IDX }}) ORDER BY index ASC LIMIT {{ .LIM }}`
-	mm["basic_window"] = ` FROM {{ .AU }} ) first
-			) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
-	mm["window_with_indices"] = ` FROM {{ .AU }} WHERE {{ .IDX }} ) first 
-			) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
-	mm["simple_tt"] = ` {{ .AU }} WHERE EXISTS
-		(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}.index AND {{ .COL }} {{ .SYN }} '{{ .SK }}') LIMIT {{ .LIM }}`
-	mm["window_with_tt"] = ` FROM {{ .AU }} WHERE EXISTS
-			(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}.index ) 
-			) first
-		) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' LIMIT {{ .LIM }}`
+	mm["basic"] = TAILBASIC
+	mm["basic_and_indices"] = TAILBASIDX
+	mm["basic_window"] = TAILBASWIN
+	mm["window_with_indices"] = TAILWINIDX
+	mm["simple_tt"] = TAILTT
+	mm["window_with_tt"] = TAILWINTT
 
 	t := make(map[string]*template.Template)
 	for k, v := range mm {
@@ -267,8 +273,8 @@ func acquiretails() map[string]*template.Template {
 	return t
 }
 
+// basicprq - PrerolledQuery for a string in an author table as a whole
 func basicprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
-	// word in an author
 	//
 	//		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
 	//			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations
@@ -285,8 +291,9 @@ func basicprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	return prq
 }
 
+// basicidxprq - PrerolledQuery for a string in a subsection of an author table (word in a work, e.g.)
 func basicidxprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
-	// word in a work
+	//
 	//		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
 	//			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt0472 WHERE stripped_line ~* 'nomen' AND (index BETWEEN 1 AND 2548) ORDER BY index ASC LIMIT 200
 
@@ -302,8 +309,9 @@ func basicidxprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 
 }
 
+// basicwindowprq - PrerolledQuery for a phrase in an author table as a whole (i.e., a string with a whitespace)
 func basicwindowprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
-	// phrase in an author
+	//
 	//		SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value,
 	//			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
 	//		( SELECT * FROM
@@ -325,8 +333,9 @@ func basicwindowprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	return prq
 }
 
+// windandidxprq - PrerolledQuery for a phrase within selections of an author table
 func windandidxprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
-	// phrase within selections from the author
+	//
 	// 		SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value,
 	//			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
 	//		( SELECT * FROM
@@ -349,6 +358,7 @@ func windandidxprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	return prq
 }
 
+// simplettprq - PrerolledQuery that involves a temporary table to generate author table selections (but not a phrase search)
 func simplettprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	// 	CREATE TEMPORARY TABLE lt0472_includelist_f5d653cfcdab44c6bfb662f688d47e73 AS
 	//		SELECT values AS includeindex FROM
@@ -371,6 +381,7 @@ func simplettprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	return prq
 }
 
+// windowandttprq - PrerolledQuery that involves a temporary table to generate author table selections and is a phrase search
 func windowandttprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	// 	CREATE TEMPORARY TABLE lt0893_includelist_fce25efdd0d4f4ecab77e636f8c512224 AS
 	//		SELECT values AS includeindex FROM

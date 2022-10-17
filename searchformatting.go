@@ -305,6 +305,7 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 	const (
 		TEMPL = `
 		%s
+		%s
 		<br>
 		Searched %d works and found %d passages (%ss)
 		<br>
@@ -360,7 +361,7 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 
 	el := fmt.Sprintf("%.2f", time.Now().Sub(s.Launched).Seconds())
 	// need to record # of works and not # of tables somewhere & at the right moment...
-	sum := m.Sprintf(TEMPL, s.InitSum, s.SearchSize, len(s.Results), el, so, oh, dr, hitcap)
+	sum := m.Sprintf(TEMPL, s.ExtraMsg, s.InitSum, s.SearchSize, len(s.Results), el, so, oh, dr, hitcap)
 	return sum
 }
 

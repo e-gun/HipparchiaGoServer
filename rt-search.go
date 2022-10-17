@@ -623,8 +623,20 @@ func findphrasesacrosslines(ss *SearchStruct) {
 	re := find.ReplaceAllString(skg, "(^|\\s)")
 	find = regexp.MustCompile(` $`)
 	re = find.ReplaceAllString(re, "(\\s|$)")
-	fp := regexp.MustCompile(re)
-	altfp := regexp.MustCompile(ss.Seeking)
+
+	fp, e := regexp.Compile(re)
+	if e != nil {
+		// Καῖϲα[ρ can be requested, but it will cause big problems
+		// this mechanism likely needs to be inserted in more locations...
+		ss.ExtraMsg = "<code>SEARCH FAILED: invalid search term sent to findphrasesacrosslines()</code><br>"
+		return
+	}
+
+	altfp, e := regexp.Compile(ss.Seeking)
+	if e != nil {
+		ss.ExtraMsg = "<code>SEARCH FAILED: invalid search term sent to findphrasesacrosslines()</code><br>"
+		return
+	}
 
 	for i, r := range ss.Results {
 		// do the "it's all on this line" case separately

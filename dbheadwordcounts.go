@@ -50,6 +50,8 @@ import (
 // ...
 
 // see CALCULATEWORDWEIGHTS in HipparchiaServer's startup.py on where these really come from
+// alternate chars: "🄶", "🄻", "🄸", "🄳", "🄲"; but these align awkwardly on the page
+
 var (
 	CORPUSWEIGTING = map[string]float32{"Ⓖ": 1.0, "Ⓛ": 12.7, "Ⓘ": 15.19, "Ⓓ": 18.14, "Ⓒ": 85.78}
 	ERAWEIGHTING   = map[string]float32{"ⓔ": 6.93, "ⓜ": 1.87, "ⓛ": 1}
@@ -442,5 +444,3 @@ func weightedpdslice(cv []HWData) []string {
 	}
 	return pd
 }
-
-// "🄶": 1.0, "🄻": 12.7, "🄸": 15.19, "🄳": 18.14, "🄲": 85.78
