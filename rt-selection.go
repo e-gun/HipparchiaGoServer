@@ -157,12 +157,8 @@ func RtSelectionClear(c echo.Context) error {
 	case "wlocselections":
 		newincl.WkLocations = RemoveIndex(newincl.WkLocations, id)
 	case "auselections":
-		//key := newincl.Passages[id]
-		//delete(newincl.MappedAuthByName, key)
 		newincl.Authors = RemoveIndex(newincl.Authors, id)
 	case "wkselections":
-		//key := newincl.Passages[id]
-		//delete(newincl.MappedWkByName, key)
 		newincl.Works = RemoveIndex(newincl.Works, id)
 	case "psgselections":
 		key := newincl.Passages[id]
@@ -177,12 +173,8 @@ func RtSelectionClear(c echo.Context) error {
 	case "wlocexclusions":
 		newexcl.WkLocations = RemoveIndex(newexcl.WkLocations, id)
 	case "auexclusions":
-		//key := newexcl.Passages[id]
-		//delete(newexcl.MappedAuthByName, key)
 		newexcl.Authors = RemoveIndex(newexcl.Authors, id)
 	case "wkexclusions":
-		//key := newexcl.Passages[id]
-		//delete(newexcl.MappedPsgByName, key)
 		newexcl.Works = RemoveIndex(newexcl.Works, id)
 	case "psgexclusions":
 		key := newexcl.Passages[id]
@@ -748,10 +740,14 @@ func reportcurrentselections(c echo.Context) SelectionData {
 	//    $('#selectionscriptholder').html(selectiondata['newjs']);
 
 	const (
-		PL = `<span class="picklabel">%s</span><br>`
-		SL = `<span class="%sselections selection" id="%sselections_%02d" title="Double-click to remove this item">%s</span><br>`
-		EL = `<span class="%ssexclusions selection" id="%sexclusions_%02d" title="Double-click to remove this item">%s</span><br>`
-		TL = `Unless specifically listed, authors/works must come from %s to %s`
+		PL    = `<span class="picklabel">%s</span><br>`
+		SL    = `<span class="%sselections selection" id="%sselections_%02d" title="Double-click to remove this item">%s</span><br>`
+		EL    = `<span class="%ssexclusions selection" id="%sexclusions_%02d" title="Double-click to remove this item">%s</span><br>`
+		TL    = `Unless specifically listed, authors/works must come from %s to %s`
+		JSIN  = `%sselections_%02d`
+		JSINU = `/selection/clear/%sselections/%d`
+		JSEX  = `%sexclusions_%02d`
+		JSEXU = `/selection/clear/%sexclusions/%d`
 	)
 
 	user := readUUIDCookie(c)
@@ -779,10 +775,6 @@ func reportcurrentselections(c echo.Context) SelectionData {
 	}
 
 	var jsinfo []JSData
-	jsin := `%sselections_%02d`
-	jsinu := `/selection/clear/%sselections/%d`
-	jsex := `%sexclusions_%02d`
-	jsexu := `/selection/clear/%sexclusions/%d`
 
 	var sd SelectionData
 
@@ -803,12 +795,12 @@ func reportcurrentselections(c echo.Context) SelectionData {
 					st := fmt.Sprintf(swap[idx], ct, ct, n, g)
 					rows[idx] = append(rows[idx], st)
 					if swap[idx] == SL {
-						a := fmt.Sprintf(jsin, ct, n)
-						b := fmt.Sprintf(jsinu, ct, n)
+						a := fmt.Sprintf(JSIN, ct, n)
+						b := fmt.Sprintf(JSINU, ct, n)
 						jsinfo = append(jsinfo, JSData{a, b})
 					} else {
-						a := fmt.Sprintf(jsex, ct, n)
-						b := fmt.Sprintf(jsexu, ct, n)
+						a := fmt.Sprintf(JSEX, ct, n)
+						b := fmt.Sprintf(JSEXU, ct, n)
 						jsinfo = append(jsinfo, JSData{a, b})
 					}
 				}
