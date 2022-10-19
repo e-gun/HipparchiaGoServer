@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.0.2"
+	VERSION                  = "1.0.3"
 	AUTHENTICATIONREQUIRED   = false // unused ATM
 	AVGWORDSPERLINE          = 8     // hard coding a suspect assumption
 	CONFIGLOCATION           = "."
@@ -64,6 +64,7 @@ const (
 	SHOWCITATIONEVERYNLINES  = 10
 	SORTBY                   = "shortname"
 	TEMPTABLETHRESHOLD       = 100 // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
+	TERMINATIONS             = `(\s|\.|\]|\<|⟩|’|”|\!|,|:|;|\?|·|$)`
 	TIMETRACKERMSGTHRESH     = 3
 	USEGZIP                  = false
 	VARIADATE                = 2000

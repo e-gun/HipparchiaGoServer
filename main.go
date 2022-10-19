@@ -108,6 +108,7 @@ type CurrentConfiguration struct {
 	PGLogin     PostgresLogin
 	QuietStart  bool
 	WorkerCount int
+	ZapLunates  bool
 }
 
 // configatlaunch - read the configuration values from JSON and/or command line
@@ -131,6 +132,7 @@ func configatlaunch() {
 	Config.MaxText = MAXTEXTLINEGENERATION
 	Config.QuietStart = false
 	Config.WorkerCount = runtime.NumCPU()
+	Config.ZapLunates = false
 
 	e := json.Unmarshal([]byte(DEFAULTCORPORA), &Config.DefCorp)
 	chke(e)
@@ -216,6 +218,8 @@ func configatlaunch() {
 			wc, err := strconv.Atoi(args[i+1])
 			chke(err)
 			Config.WorkerCount = wc
+		case "-zl":
+			Config.ZapLunates = true
 		default:
 			// do nothing
 		}

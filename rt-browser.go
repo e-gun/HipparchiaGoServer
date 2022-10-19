@@ -325,7 +325,7 @@ func basiccitation(l DbWorkline) string {
 // buildbrowsertable - where the actual HTML gets generated
 func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	const (
-		OBSREGTEMPL = "(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)(\\s|\\.|\\]|\\<|⟩|’|”|\\!|,|:|;|\\?|·|$)"
+		OBSREGTEMPL = "(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)" + TERMINATIONS
 		TRTMPL      = `
             <tr class="browser">
                 <td class="browserembeddedannotations">%s</td>
@@ -455,6 +455,10 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	top += `<tr class="spacing">` + strings.Repeat("&nbsp;", MINBROWSERWIDTH) + `</tr>`
 
 	tab = top + tab + `</tbody></table>`
+
+	if Config.ZapLunates {
+		tab = delunate(tab)
+	}
 
 	return tab
 }

@@ -161,8 +161,11 @@ func RtSelectionClear(c echo.Context) error {
 	case "wkselections":
 		newincl.Works = RemoveIndex(newincl.Works, id)
 	case "psgselections":
-		key := newincl.Passages[id]
-		delete(newincl.MappedPsgByName, key)
+		// restarting the server with an open browser can leave an impossible click; not really a bug, but...
+		if len(newincl.Passages) != 0 {
+			key := newincl.Passages[id]
+			delete(newincl.MappedPsgByName, key)
+		}
 		newincl.Passages = RemoveIndex(newincl.Passages, id)
 	case "agnexclusions":
 		newexcl.AuGenres = RemoveIndex(newexcl.AuGenres, id)
@@ -177,8 +180,10 @@ func RtSelectionClear(c echo.Context) error {
 	case "wkexclusions":
 		newexcl.Works = RemoveIndex(newexcl.Works, id)
 	case "psgexclusions":
-		key := newexcl.Passages[id]
-		delete(newexcl.MappedPsgByName, key)
+		if len(newincl.Passages) != 0 {
+			key := newexcl.Passages[id]
+			delete(newexcl.MappedPsgByName, key)
+		}
 		newexcl.Passages = RemoveIndex(newexcl.Passages, id)
 	default:
 		msg(fmt.Sprintf(FAIL2, cat), 1)

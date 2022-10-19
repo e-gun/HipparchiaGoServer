@@ -7,6 +7,7 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -251,6 +252,14 @@ func uvσςϲreducer() map[rune]rune {
 		}
 	}
 	return reducer
+}
+
+// delunate - Τὴν οὖν τῶν ϲωμάτων ϲύνταξιν ϲκεψαμένουϲ πρὸϲ --> Τὴν οὖν τῶν σωμάτων σύνταξιν σκεψαμένους πρὸς
+func delunate(txt string) string {
+	swap := regexp.MustCompile("σ" + TERMINATIONS)
+	txt = strings.Replace(txt, "ϲ", "σ", -1)
+	txt = swap.ReplaceAllString(txt, "ς$1")
+	return txt
 }
 
 // formatbcedate - turn "-300" into "300 B.C.E."

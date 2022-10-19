@@ -312,6 +312,10 @@ func findbyform(word string, author string) string {
 
 	html := allformpd + parsing + entries
 
+	if Config.ZapLunates {
+		html = delunate(html)
+	}
+
 	return html
 }
 
@@ -430,6 +434,10 @@ func dictsearch(seeking string, dict string) string {
 
 	if len(html) == 0 {
 		html = "(nothing found)"
+	}
+
+	if Config.ZapLunates {
+		html = delunate(html)
 	}
 
 	return html

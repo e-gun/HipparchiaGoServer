@@ -95,6 +95,9 @@ func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 	}
 
 	out.Found = "<tbody>" + strings.Join(rows, "") + "</tbody>"
+	if Config.ZapLunates {
+		out.Found = delunate(out.Found)
+	}
 	return out
 }
 
@@ -286,6 +289,10 @@ func FormatWithContextResults(thesearch SearchStruct) SearchOutputJSON {
 	out.Image = ""
 	out.Searchsummary = formatfinalsearchsummary(&thesearch)
 	out.Found = strings.Join(rows, "")
+
+	if Config.ZapLunates {
+		out.Found = delunate(out.Found)
+	}
 
 	return out
 }

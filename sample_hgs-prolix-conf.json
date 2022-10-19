@@ -15,5 +15,6 @@
   "PGLogin":
     {"Pass": "YOURPASSWORDHERE" ,"Host": "127.0.0.1", "Port": 5432, "DBName": "hipparchiaDB" ,"User": "hippa_wr"},
   "QuietStart": true,
-  "WorkerCount": 6
+  "WorkerCount": 6,
+  "ZapLunates": false
 }

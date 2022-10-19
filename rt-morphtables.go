@@ -372,6 +372,10 @@ func RtMorphchart(c echo.Context) error {
 
 	jb.JS = MORPHJS
 
+	if Config.ZapLunates {
+		jb.HTML = delunate(jb.HTML)
+	}
+
 	return c.JSONPretty(http.StatusOK, jb, JSONINDENT)
 }
 
@@ -965,8 +969,9 @@ func rcombinator(slc []int, start int, posit int) [][]int {
 	head := slc[0:posit]
 	tail := slc[posit+1:]
 	for j := start; j > 0; j-- {
-		// the following overwrites the slices in the end...
-		// combin[j] = append(append(head, j), tail...)
+		// the following overwrites the slices in the end...: [[1 1 1 1 1] [1 1 1 1 1] [1 1 1 1 1] [1 1 1 1 1]]
+		// c := make([]int, len(head)+len(tail)+1)
+		// c = append(append(head, j), tail...)
 
 		// so we will do it the tedious way: copy()
 		c := make([]int, len(head)+len(tail)+1)
