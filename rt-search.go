@@ -74,7 +74,11 @@ func RtSearch(c echo.Context) error {
 	srch.SearchEx = sl.Excl
 	srch.SearchSize = sl.Size
 
+	if srch.Twobox {
+		srch.Limit = FIRSTSEARCHLIM
+	}
 	SSBuildQueries(&srch)
+	srch.Limit = reallimit
 
 	srch.TableSize = len(srch.Queries)
 	srch.IsActive = true
@@ -139,6 +143,11 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 
 	previous := time.Now()
 	first := generateinitialhits(originalsrch)
+
+	//for i, r := range first.Results {
+	//	m := fmt.Sprintf("[%d] %d\t%s", i, r.TbIndex, r.Accented)
+	//	msg(m, 2)
+	//}
 
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	msg(fmt.Sprintf(MSG1, d, len(first.Results)), 4)
@@ -397,12 +406,14 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 // generateinitialhits - part one of a two-part search
 func generateinitialhits(first SearchStruct) SearchStruct {
+	reallimit := first.Limit
 	first.Limit = FIRSTSEARCHLIM
 	first = HGoSrch(first)
 
 	if first.HasPhrase {
 		findphrasesacrosslines(&first)
 	}
+	first.Limit = reallimit
 	return first
 }
 
