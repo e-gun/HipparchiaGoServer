@@ -18,7 +18,6 @@
 
 ### TODO (in vague order of priority)
 
-* problem deleting a passage when you add the whole author
 * WithinXWordsSearch() needs to have more corner cases checked
 * room to improve lemma highlighting
 

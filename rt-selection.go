@@ -369,6 +369,8 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		for _, p := range si.Passages {
 			if p[0:6] != sv.Auth {
 				clean = append(clean, p)
+			} else {
+				delete(si.MappedPsgByName, p)
 			}
 		}
 		si.Passages = clean
