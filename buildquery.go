@@ -210,7 +210,7 @@ func SSBuildQueries(s *SearchStruct) {
 			t.AU = au
 			t.COL = s.SrchColumn
 			t.SYN = syn
-			t.LIM = fmt.Sprintf("%d", s.Limit)
+			t.LIM = fmt.Sprintf("%d", s.CurrentLimit)
 			t.TTN = ntt
 			t.PSCol = s.SrchColumn
 			t.SK = skg

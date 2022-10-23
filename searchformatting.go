@@ -150,7 +150,7 @@ func FormatWithContextResults(thesearch SearchStruct) SearchOutputJSON {
 	res.LemmaOne = ""
 	res.Proximate = ""
 	res.LemmaTwo = ""
-	res.Limit = (thesearch.Limit * int64(thesession.HitContext)) * 3
+	res.CurrentLimit = (thesearch.CurrentLimit * int64(thesession.HitContext)) * 3
 
 	context := int64(thesession.HitContext / 2)
 
@@ -342,7 +342,7 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 	}
 
 	var hitcap string
-	if int64(len(s.Results)) == s.Limit {
+	if int64(len(s.Results)) == s.CurrentLimit {
 		hitcap = YESCAP
 	} else {
 		hitcap = NOCAP

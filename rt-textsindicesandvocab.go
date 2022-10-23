@@ -697,7 +697,7 @@ func sessionintobulksearch(c echo.Context, lim int64) SearchStruct {
 
 	srch := builddefaultsearch(c)
 	srch.Seeking = ""
-	srch.Limit = lim
+	srch.CurrentLimit = lim
 	srch.InitSum = "(gathering and formatting lines of text)"
 	srch.ID = strings.Replace(uuid.New().String(), "-", "", -1)
 

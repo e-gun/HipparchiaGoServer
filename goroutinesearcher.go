@@ -49,10 +49,10 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 		findchannels[i] = fc
 	}
 
-	max := ss.Limit
+	max := ss.CurrentLimit
 	if ss.HasPhrase {
 		// windowing double-hits; c. 55% are valid; these get pared via findphrasesacrosslines()
-		max = ss.Limit * 3
+		max = ss.CurrentLimit * 3
 	}
 
 	results := ResultCollation(ctx, &ss, max, ResultAggregator(ctx, findchannels...))

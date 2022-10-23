@@ -57,7 +57,7 @@ func RtSearch(c echo.Context) error {
 	srch.ID = c.Param("id")
 	srch.IsVector = false
 	// HasPhrase makes us use a fake limit temporarily
-	reallimit := srch.Limit
+	reallimit := srch.CurrentLimit
 
 	srch.CleanInput()
 	srch.SetType() // must happen before SSBuildQueries()
@@ -75,10 +75,9 @@ func RtSearch(c echo.Context) error {
 	srch.SearchSize = sl.Size
 
 	if srch.Twobox {
-		srch.Limit = FIRSTSEARCHLIM
+		srch.CurrentLimit = FIRSTSEARCHLIM
 	}
 	SSBuildQueries(&srch)
-	srch.Limit = reallimit
 
 	srch.TableSize = len(srch.Queries)
 	srch.IsActive = true
@@ -94,6 +93,14 @@ func RtSearch(c echo.Context) error {
 	} else {
 		completed = HGoSrch(SearchMap[id])
 	}
+
+	// deduplicate
+	dedup := make(map[string]DbWorkline)
+	for _, r := range completed.Results {
+		dedup[r.BuildHyperlink()] = r
+	}
+
+	completed.Results = stringmapintoslice(dedup)
 
 	if completed.HasPhrase {
 		// you did HGoSrch() and need to check the windowed lines
@@ -172,7 +179,7 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 		newpsg[i] = np
 	}
 
-	second.Limit = originalsrch.Limit
+	second.CurrentLimit = originalsrch.CurrentLimit
 	second.SearchIn.Passages = newpsg
 
 	SSBuildQueries(&second)
@@ -406,14 +413,13 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 // generateinitialhits - part one of a two-part search
 func generateinitialhits(first SearchStruct) SearchStruct {
-	reallimit := first.Limit
-	first.Limit = FIRSTSEARCHLIM
 	first = HGoSrch(first)
 
 	if first.HasPhrase {
 		findphrasesacrosslines(&first)
 	}
-	first.Limit = reallimit
+	// this was toggled just before the queries were written; it needs to be reset now
+	first.CurrentLimit = first.OriginalLimit
 	return first
 }
 
@@ -429,7 +435,8 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	var srch SearchStruct
 	srch.User = user
 	srch.Launched = time.Now()
-	srch.Limit = sess.HitLimit
+	srch.CurrentLimit = sess.HitLimit
+	srch.OriginalLimit = sess.HitLimit
 	srch.SrchColumn = DEFAULTCOLUMN
 	srch.SrchSyntax = DEFAULTSYNTAX
 	srch.OrderBy = ORDERBY
@@ -460,40 +467,41 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 // buildhollowsearch - is really a way to grab line collections via synthetic searchlists
 func buildhollowsearch() SearchStruct {
 	s := SearchStruct{
-		User:         "",
-		ID:           strings.Replace(uuid.New().String(), "-", "", -1),
-		Seeking:      "",
-		Proximate:    "",
-		LemmaOne:     "",
-		LemmaTwo:     "",
-		InitSum:      "",
-		Summary:      "",
-		ProxScope:    "",
-		ProxType:     "",
-		ProxDist:     0,
-		HasLemma:     false,
-		HasPhrase:    false,
-		IsVector:     false,
-		IsActive:     false,
-		OneHit:       false,
-		Twobox:       false,
-		NotNear:      false,
-		SkgRewritten: false,
-		PhaseNum:     0,
-		SrchColumn:   DEFAULTCOLUMN,
-		SrchSyntax:   DEFAULTSYNTAX,
-		OrderBy:      ORDERBY,
-		Limit:        FIRSTSEARCHLIM,
-		SkgSlice:     nil,
-		PrxSlice:     nil,
-		SearchIn:     SearchIncExl{},
-		SearchEx:     SearchIncExl{},
-		Queries:      nil,
-		Results:      nil,
-		Launched:     time.Now(),
-		TTName:       strings.Replace(uuid.New().String(), "-", "", -1),
-		SearchSize:   0,
-		TableSize:    0,
+		User:          "",
+		ID:            strings.Replace(uuid.New().String(), "-", "", -1),
+		Seeking:       "",
+		Proximate:     "",
+		LemmaOne:      "",
+		LemmaTwo:      "",
+		InitSum:       "",
+		Summary:       "",
+		ProxScope:     "",
+		ProxType:      "",
+		ProxDist:      0,
+		HasLemma:      false,
+		HasPhrase:     false,
+		IsVector:      false,
+		IsActive:      false,
+		OneHit:        false,
+		Twobox:        false,
+		NotNear:       false,
+		SkgRewritten:  false,
+		PhaseNum:      0,
+		SrchColumn:    DEFAULTCOLUMN,
+		SrchSyntax:    DEFAULTSYNTAX,
+		OrderBy:       ORDERBY,
+		CurrentLimit:  FIRSTSEARCHLIM,
+		OriginalLimit: FIRSTSEARCHLIM,
+		SkgSlice:      nil,
+		PrxSlice:      nil,
+		SearchIn:      SearchIncExl{},
+		SearchEx:      SearchIncExl{},
+		Queries:       nil,
+		Results:       nil,
+		Launched:      time.Now(),
+		TTName:        strings.Replace(uuid.New().String(), "-", "", -1),
+		SearchSize:    0,
+		TableSize:     0,
 	}
 	s.AcqHitCounter()
 	s.AcqRemainCounter()

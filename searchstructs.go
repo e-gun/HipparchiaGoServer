@@ -13,44 +13,45 @@ import (
 //
 
 type SearchStruct struct {
-	User         string
-	ID           string
-	Seeking      string
-	Proximate    string
-	LemmaOne     string
-	LemmaTwo     string
-	InitSum      string
-	Summary      string
-	ProxScope    string // "lines" or "words"
-	ProxType     string // "near" or "not near"
-	ProxDist     int64
-	HasLemma     bool
-	HasPhrase    bool
-	IsVector     bool
-	IsActive     bool
-	OneHit       bool
-	Twobox       bool
-	NotNear      bool
-	SkgRewritten bool
-	PhaseNum     int
-	SrchColumn   string // usually "stripped_line", sometimes "accented_line"
-	SrchSyntax   string // almost always "~"
-	OrderBy      string // almost always "index" + ASC
-	Limit        int64
-	SkgSlice     []string // either just Seeking or a decomposed version of a Lemma's possibilities
-	PrxSlice     []string
-	SearchIn     SearchIncExl
-	SearchEx     SearchIncExl
-	Queries      []PrerolledQuery
-	Results      []DbWorkline
-	Launched     time.Time
-	TTName       string
-	SearchSize   int // # of works searched
-	TableSize    int // # of tables searched
-	ExtraMsg     string
-	Hits         *SrchCounter
-	Remain       *SrchCounter
-	lock         *sync.RWMutex
+	User          string
+	ID            string
+	Seeking       string
+	Proximate     string
+	LemmaOne      string
+	LemmaTwo      string
+	InitSum       string
+	Summary       string
+	ProxScope     string // "lines" or "words"
+	ProxType      string // "near" or "not near"
+	ProxDist      int64
+	HasLemma      bool
+	HasPhrase     bool
+	IsVector      bool
+	IsActive      bool
+	OneHit        bool
+	Twobox        bool
+	NotNear       bool
+	SkgRewritten  bool
+	PhaseNum      int
+	SrchColumn    string // usually "stripped_line", sometimes "accented_line"
+	SrchSyntax    string // almost always "~"
+	OrderBy       string // almost always "index" + ASC
+	CurrentLimit  int64
+	OriginalLimit int64
+	SkgSlice      []string // either just Seeking or a decomposed version of a Lemma's possibilities
+	PrxSlice      []string
+	SearchIn      SearchIncExl
+	SearchEx      SearchIncExl
+	Queries       []PrerolledQuery
+	Results       []DbWorkline
+	Launched      time.Time
+	TTName        string
+	SearchSize    int // # of works searched
+	TableSize     int // # of tables searched
+	ExtraMsg      string
+	Hits          *SrchCounter
+	Remain        *SrchCounter
+	lock          *sync.RWMutex
 }
 
 // CleanInput - remove bad chars, etc. from the submitted data
