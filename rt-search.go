@@ -311,7 +311,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 		// it will hit the 'victor' in 'liberarat uictoria'
 		// re = "(" + strings.Join(AllLemm[first.LemmaOne].Deriv, "|") + ")"
 
-		// the risk on this one is ^ or $. But is it possible for LemmaOne to be at the edge of a stringmapper string?
+		// the risk on this one is ^ or $. But you can add " " to the head and tail
 		re = "(" + strings.Join(AllLemm[first.LemmaOne].Deriv, " | ") + ")"
 
 	} else {
@@ -345,17 +345,16 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	// "non solum pecuniae sed etiam..."
 
 	pd := first.ProxDist
-
-	ph1 := int64(len(strings.Split(strings.TrimSpace(first.Seeking), " ")))
 	ph2 := int64(len(strings.Split(strings.TrimSpace(first.Proximate), " ")))
-
-	if ph1 > 1 {
-		pd = pd + ph1
-	}
 
 	if ph2 > 1 {
 		pd = pd + ph2
 	}
+
+	// now we have a new problem: Sought all 19 forms of »φύϲιϲ« within 4 words of »ἀδύνατον γὰρ«
+	// what if the str contains multiple values?
+	// [291]	ϲτερεῶν ἅψηται ὁ πυρετόϲ ἐπειδὴ μὴ ὁμαλῶϲ θερμαίνεται ἀλλὰ ἀνωμάλωϲ εἰϲὶ γάρ τινα μόρια κατὰ φύϲιν ἔχοντα τινὰ δὲ παρὰ φύϲιν ϲυμβαίνει τὰ κατὰ φύϲιν ἔχοντα ἀντιλαμβάνεϲθαι τῶν παρὰ φύϲιν διακειμένων ἀδύνατον γὰρ ὁμαλὴν γενέϲθαι τὴν δυϲκραϲίαν οἱ δὲ ἑκτικῷ κατεϲχημένοι πυρετῷ τοῦτο δέ ἐϲτιν οἱ τὰ ϲτερεὰ πυρέττοντεϲ
+	//
 
 	var validresults []DbWorkline
 	for idx, str := range stringmapper {
@@ -369,17 +368,19 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 		hh := strings.Split(head, " ")
 		start := int64(0)
-		if int64(len(hh))-first.ProxDist-1 > 0 {
-			start = int64(len(hh)) - first.ProxDist - 1
+		if int64(len(hh))-pd-1 > 0 {
+			start = int64(len(hh)) - pd - 1
 		}
 		hh = hh[start:]
-		head = strings.Join(hh, " ")
+		head = " " + strings.Join(hh, " ")
 
 		tt := strings.Split(tail, " ")
 		if int64(len(tt)) >= pd+1 {
 			tt = tt[0 : pd+1]
 		}
-		tail = strings.Join(tt, " ")
+		tail = strings.Join(tt, " ") + " "
+		// fmt.Printf("[H%d] l: %d\t%s\n", idx, len(tt), tail)
+		// fmt.Printf("[%d]\t%s\n", idx, str)
 
 		if first.NotNear {
 			// toss hits

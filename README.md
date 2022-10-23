@@ -19,7 +19,6 @@
 ### TODO (in vague order of priority)
 
 * WithinXWordsSearch() needs to have more corner cases checked
-* Sought all 19 known forms of »φύϲιϲ« within 4 words of »ἀδύνατον γὰρ« will return wrong AND variable # of hits
 * room to improve lemma highlighting
 
 ### DISTANT FANTASIES
