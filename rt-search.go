@@ -11,6 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 )
@@ -94,22 +95,13 @@ func RtSearch(c echo.Context) error {
 		completed = HGoSrch(SearchMap[id])
 	}
 
-	// deduplicate
-	dedup := make(map[string]DbWorkline)
-	for _, r := range completed.Results {
-		dedup[r.BuildHyperlink()] = r
-	}
-
-	completed.Results = stringmapintoslice(dedup)
-
 	if completed.HasPhrase {
-		// you did HGoSrch() and need to check the windowed lines
-		// WithinXLinesSearch() has already done the checking
 		findphrasesacrosslines(&completed)
 		if int64(len(completed.Results)) > reallimit {
 			completed.Results = completed.Results[0:reallimit]
 		}
 	}
+
 	completed.SortResults()
 
 	soj := SearchOutputJSON{}
@@ -179,7 +171,7 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 		newpsg[i] = np
 	}
 
-	second.CurrentLimit = originalsrch.CurrentLimit
+	second.CurrentLimit = originalsrch.OriginalLimit
 	second.SearchIn.Passages = newpsg
 
 	SSBuildQueries(&second)
@@ -254,6 +246,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	newpsg := make([]string, len(first.Results))
 
 	// [a2] pick the lines to grab and associate them with the hits they go with
+	// map[index/gr0007/018/15195:93 index/gr0007/018/15196:93 index/gr0007/018/15197:93 index/gr0007/018/15198:93 ...
 	for i, r := range first.Results {
 		low := r.TbIndex - need
 		if low < 1 {
@@ -267,6 +260,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 		}
 	}
 
+	second.CurrentLimit = FIRSTSEARCHLIM
 	second.SearchIn.Passages = newpsg
 	SSBuildQueries(&second)
 
@@ -285,6 +279,11 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 		url := r.BuildHyperlink()
 		bun := resultmapper[url]
 		bundlemapper[bun] = append(bundlemapper[bun], r)
+	}
+
+	for i, b := range bundlemapper {
+		sort.Slice(b, func(i, j int) bool { return b[i].TbIndex < b[j].TbIndex })
+		bundlemapper[i] = b
 	}
 
 	// [c2] decompose them into long strings
@@ -370,8 +369,8 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 		hh := strings.Split(head, " ")
 		start := int64(0)
-		if int64(len(hh))-pd-1 > 0 {
-			start = int64(len(hh)) - pd - 1
+		if int64(len(hh))-first.ProxDist-1 > 0 {
+			start = int64(len(hh)) - first.ProxDist - 1
 		}
 		hh = hh[start:]
 		head = strings.Join(hh, " ")

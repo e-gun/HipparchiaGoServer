@@ -38,6 +38,9 @@ pg_restore -v -h localhost --clean --create --format=directory --username=hippa_
 [if you are restoring]
 pg_restore -v -h localhost --clean --format=directory --username=hippa_wr --dbname=hipparchiaDB ./hDB
 
+[if either of those is failing try...]
+pg_restore -v --format=directory --username=hippa_wr --dbname=hipparchiaDB ./hDB
+
 ```
 the password for `hippa_wr` will be requested when archiving/loading
 
