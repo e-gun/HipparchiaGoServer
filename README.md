@@ -18,7 +18,7 @@
 
 ### TODO (in vague order of priority)
 
-* WithinXWordsSearch() needs to have more corner cases checked
+* WithinXWordsSearch() needs triple-checking
 * room to improve lemma highlighting
 
 ### DISTANT FANTASIES

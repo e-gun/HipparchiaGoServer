@@ -124,8 +124,10 @@ func makedefaultsession(id string) ServerSession {
 		s.IsLoggedIn = true
 	}
 
-	//msg("makedefaultsession() in non-default state for testing", 1)
+	//msg("makedefaultsession() in non-default state for testing; this is not a release build of HGS", 0)
 	//s.Inclusions.Passages = []string{"gr5030_FROM_10106_TO_10122"}
+	//s.Proximity = 4
+	//s.SearchScope = "words"
 
 	return s
 }

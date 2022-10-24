@@ -213,8 +213,8 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 		RGX  = `^(?P<head>.*?)%s(?P<tail>.*?)$`
 		MSG1 = "%s WithinXWordsSearch(): %d initial hits"
 		MSG2 = "%s WithinXWordsSearch(): %d subsequent hits"
-		BAD1 = "WithinXWordsSearch() could not compile second pass regex term 'patternone': %s"
-		BAD2 = "WithinXWordsSearch() could not compile second pass regex term 'patterntwo': %s"
+		BAD1 = "WithinXWordsSearch() could not compile second pass regex term 'submatchsrchfinder': %s"
+		BAD2 = "WithinXWordsSearch() could not compile second pass regex term 'basicprxfinder': %s"
 	)
 	previous := time.Now()
 	first := generateinitialhits(originalsrch)
@@ -297,43 +297,31 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	}
 
 	// [c3] grab the head and tail of each
+	// Sought »ἀδύνατον γὰρ« within 4 words of all 19 forms of »φύϲιϲ«...
 	var re string
-	if len(first.LemmaOne) != 0 {
-		// this next makes things insanely slow
-		// re = "(" + strings.Join(lemmaintoregexslice(first.LemmaOne), "|") + ")"
-
-		// but the next will not find all "tribuo" near all "beneficium" in Hyginus
-		// [169a.2.3] compressit. pro quo beneficium ei tribuit, iussitque eius fuscinam
-		// re = strings.Join(lemmaintoregexslice(first.LemmaOne), "|")
-
-		// this is going to catch and slice incomplete words? The cost is a miscalculation of distance, no?
-		// this also will misfind  »uinco« within 3 words of all forms of »libero« at VP, Historia Romana 2.33.1.7
-		// it will hit the 'victor' in 'liberarat uictoria'
-		// re = "(" + strings.Join(AllLemm[first.LemmaOne].Deriv, "|") + ")"
-
-		// the risk on this one is ^ or $. But you can add " " to the head and tail
-		re = "(" + strings.Join(AllLemm[first.LemmaOne].Deriv, " | ") + ")"
-
-	} else {
-		re = first.Seeking
-	}
-
-	patternone, e := regexp.Compile(fmt.Sprintf(RGX, re))
-	if e != nil {
-		m := fmt.Sprintf(BAD1, re)
-		msg(m, 1)
-		return badsearch(m)
-	}
-
 	if len(slem) != 0 {
 		re = strings.Join(lemmaintoregexslice(slem), "|")
 	} else {
 		re = sskg
 	}
 
-	patterntwo, e := regexp.Compile(re)
+	basicprxfinder, e := regexp.Compile(re)
 	if e != nil {
 		m := fmt.Sprintf(BAD2, re)
+		msg(m, 1)
+		return badsearch(m)
+	}
+
+	if len(first.LemmaOne) != 0 {
+		re = "(" + strings.Join(AllLemm[first.LemmaOne].Deriv, " | ") + ")"
+
+	} else {
+		re = first.Seeking
+	}
+
+	submatchsrchfinder, e := regexp.Compile(fmt.Sprintf(RGX, re))
+	if e != nil {
+		m := fmt.Sprintf(BAD1, re)
 		msg(m, 1)
 		return badsearch(m)
 	}
@@ -352,18 +340,30 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	}
 
 	// now we have a new problem: Sought all 19 forms of »φύϲιϲ« within 4 words of »ἀδύνατον γὰρ«
-	// what if the str contains multiple values?
+	// what if the str contains multiple valid values for term #1?
 	// [291]	ϲτερεῶν ἅψηται ὁ πυρετόϲ ἐπειδὴ μὴ ὁμαλῶϲ θερμαίνεται ἀλλὰ ἀνωμάλωϲ εἰϲὶ γάρ τινα μόρια κατὰ φύϲιν ἔχοντα τινὰ δὲ παρὰ φύϲιν ϲυμβαίνει τὰ κατὰ φύϲιν ἔχοντα ἀντιλαμβάνεϲθαι τῶν παρὰ φύϲιν διακειμένων ἀδύνατον γὰρ ὁμαλὴν γενέϲθαι τὴν δυϲκραϲίαν οἱ δὲ ἑκτικῷ κατεϲχημένοι πυρετῷ τοῦτο δέ ἐϲτιν οἱ τὰ ϲτερεὰ πυρέττοντεϲ
 	//
 
-	var validresults []DbWorkline
+	// [c4a] quick prune of the finds by checking for the second term in the word bundle
+	possiblyvalid := make(map[int]string)
 	for idx, str := range stringmapper {
-		subs := patternone.FindStringSubmatch(str)
+		if basicprxfinder.MatchString(str) && !first.NotNear {
+			possiblyvalid[idx] = str
+		} else if first.NotNear {
+			possiblyvalid[idx] = str
+		}
+	}
+
+	// [c4b] now make sure the first term is near enough to the second term: zoom to termtwo and then look out from it
+
+	var validresults []DbWorkline
+	for idx, str := range possiblyvalid {
+		subs := submatchsrchfinder.FindStringSubmatch(str)
 		head := ""
 		tail := ""
 		if len(subs) != 0 {
-			head = subs[patternone.SubexpIndex("head")]
-			tail = subs[patternone.SubexpIndex("tail")]
+			head = subs[submatchsrchfinder.SubexpIndex("head")]
+			tail = subs[submatchsrchfinder.SubexpIndex("tail")]
 		}
 
 		hh := strings.Split(head, " ")
@@ -379,17 +379,19 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 			tt = tt[0 : pd+1]
 		}
 		tail = strings.Join(tt, " ") + " "
-		// fmt.Printf("[H%d] l: %d\t%s\n", idx, len(tt), tail)
-		// fmt.Printf("[%d]\t%s\n", idx, str)
+		//fmt.Println(submatchsrchfinder)
+		//fmt.Println(str)
+		//fmt.Printf("[%d] h: %s\n", idx, head)
+		//fmt.Printf("[%d] \tt: %s\n", idx, tail)
 
 		if first.NotNear {
 			// toss hits
-			if !patterntwo.MatchString(head) && !patterntwo.MatchString(tail) {
+			if !basicprxfinder.MatchString(head) && !basicprxfinder.MatchString(tail) {
 				validresults = append(validresults, first.Results[idx])
 			}
 		} else {
 			// collect hits
-			if patterntwo.MatchString(head) || patterntwo.MatchString(tail) {
+			if basicprxfinder.MatchString(head) || basicprxfinder.MatchString(tail) {
 				validresults = append(validresults, first.Results[idx])
 			}
 		}
