@@ -617,7 +617,7 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	plainmap := make(map[string][]WordInfo, len(indexmap))
-	for k, _ := range indexmap {
+	for k := range indexmap {
 		plainmap[k.value] = indexmap[k]
 	}
 
@@ -770,7 +770,6 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 		foundrows, e := dbconn.Query(context.Background(), fmt.Sprintf(QT, uselang, id, uselang))
 		chke(e)
 
-		defer foundrows.Close()
 		count := 0
 		for foundrows.Next() {
 			count += 1
@@ -779,6 +778,7 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 			chke(err)
 			foundmorph[thehit.Observed] = thehit
 		}
+		foundrows.Close()
 	}
 	return foundmorph
 }
@@ -879,7 +879,7 @@ func convertwordinfototablerow(ww []WordInfo) string {
 	// sort the keys
 	keys := make([]string, len(indexmap))
 	count := 0
-	for k, _ := range indexmap {
+	for k := range indexmap {
 		keys[count] = k
 		count += 1
 	}

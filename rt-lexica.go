@@ -348,7 +348,7 @@ func reversefind(word string, dicts []string) string {
 	htmlmap := paralleldictformatter(lexicalfinds)
 
 	var keys []float32
-	for k, _ := range htmlmap {
+	for k := range htmlmap {
 		keys = append(keys, k)
 	}
 
@@ -396,7 +396,7 @@ func dictsearch(seeking string, dict string) string {
 	htmlmap := paralleldictformatter(lexicalfinds)
 
 	var keys []float32
-	for k, _ := range htmlmap {
+	for k := range htmlmap {
 		keys = append(keys, k)
 	}
 	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
@@ -557,7 +557,6 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 		foundrows, err := dbconn.Query(context.Background(), q)
 		chke(err)
 
-		defer foundrows.Close()
 		for foundrows.Next() {
 			var thehit DbLexicon
 			e := foundrows.Scan(&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry)
@@ -569,6 +568,7 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 				lexicalfinds = append(lexicalfinds, thehit)
 			}
 		}
+		foundrows.Close()
 	}
 	return lexicalfinds
 }

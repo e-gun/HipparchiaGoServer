@@ -622,7 +622,7 @@ func findphrasesacrosslines(ss *SearchStruct) {
 
 		ww := strings.Split(phr, " ")
 		var comb [][2]string
-		for i, _ := range ww {
+		for i := range ww {
 			h := strings.Join(gh(i, ww), " ")
 			t := strings.Join(gt(i, ww), " ")
 			h = h + "$"

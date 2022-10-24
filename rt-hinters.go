@@ -123,7 +123,7 @@ func basichinter(c echo.Context, mastermap map[string]bool) error {
 
 	// is what we have a match?
 	var ff []string
-	for f, _ := range mastermap {
+	for f := range mastermap {
 		if strings.Contains(f, skg) {
 			ff = append(ff, f)
 		}

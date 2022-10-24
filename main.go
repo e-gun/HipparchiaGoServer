@@ -254,7 +254,7 @@ func configatlaunch() {
 		if erra != nil && errb != nil {
 			msg(fmt.Sprintf(FAIL3, cf, acf), 0)
 			msg(fmt.Sprintf(FAIL4), 0)
-			fmt.Println(MINCONFIG)
+			fmt.Printf(MINCONFIG)
 			os.Exit(0)
 		}
 		conf := ConfigFile{}

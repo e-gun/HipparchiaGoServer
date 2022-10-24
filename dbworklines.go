@@ -390,7 +390,7 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	vals.Low = lines[0].LvlVal(atlvl)
 	vals.High = lines[len(lines)-1].LvlVal(atlvl)
 	var r []string
-	for i, _ := range lines {
+	for i := range lines {
 		r = append(r, lines[i].LvlVal(atlvl))
 	}
 	r = unique(r)

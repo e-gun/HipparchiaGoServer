@@ -31,7 +31,7 @@ type SearchIncExl struct {
 	ListedWBN []string
 }
 
-func (i SearchIncExl) isEmpty() bool {
+func (i *SearchIncExl) isEmpty() bool {
 	l := len(i.AuGenres) + len(i.WkGenres) + len(i.AuLocations) + len(i.WkLocations) + len(i.Authors)
 	l += len(i.Works) + len(i.Passages)
 	if l > 0 {
@@ -41,7 +41,7 @@ func (i SearchIncExl) isEmpty() bool {
 	}
 }
 
-func (i SearchIncExl) CountItems() int {
+func (i *SearchIncExl) CountItems() int {
 	l := len(i.AuGenres) + len(i.WkGenres) + len(i.AuLocations) + len(i.WkLocations) + len(i.Authors)
 	l += len(i.Works) + len(i.Passages)
 	return l

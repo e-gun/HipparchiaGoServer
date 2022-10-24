@@ -191,7 +191,7 @@ func RtMorphchart(c echo.Context) error {
 	//(12 rows)
 
 	wcc := make(map[string]DbWordCount)
-	for l, _ := range lett {
+	for l := range lett {
 		if []rune(l)[0] == 0 {
 			continue
 		}
@@ -204,13 +204,13 @@ func RtMorphchart(c echo.Context) error {
 		rr, e := dbconn.Query(context.Background(), q)
 		chke(e)
 		var wc DbWordCount
-		defer rr.Close()
 		for rr.Next() {
 			ee := rr.Scan(&wc.Word, &wc.Total)
 			chke(ee)
 			// you just found »ἥρμοττ« which gives you »ἥρμοττ'«: see below for where this becomes an issue
 			wcc[wc.Word] = wc
 		}
+		rr.Close()
 	}
 
 	// [d] extract parsing info for all forms
@@ -1017,16 +1017,6 @@ func sliceseeker(s string, spp []string) bool {
 func multistringseeker(ss []string, split string) bool {
 	for _, s := range ss {
 		if stringseeker(s, split) {
-			return true
-		}
-	}
-	return false
-}
-
-// arraystringseeker - if any s in []string is in the []strings produced via splitting each of spp, then true
-func arraystringseeker(ss []string, spp []string) bool {
-	for _, sp := range spp {
-		if multistringseeker(ss, sp) {
 			return true
 		}
 	}

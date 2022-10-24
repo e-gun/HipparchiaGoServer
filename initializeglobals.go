@@ -297,7 +297,6 @@ func lemmamapper() map[string]DbLemma {
 		q := fmt.Sprintf(t, lg)
 		foundrows, err := dbconn.Query(context.Background(), q)
 		chke(err)
-		defer foundrows.Close()
 		for foundrows.Next() {
 			var thehit DbLemma
 			e := foundrows.Scan(&thehit.Entry, &thehit.Xref, &thehit.Deriv)
@@ -305,6 +304,7 @@ func lemmamapper() map[string]DbLemma {
 			thehit.Entry = clean.Replace(thehit.Entry)
 			unnested[thehit.Entry] = thehit
 		}
+		foundrows.Close()
 	}
 
 	return unnested

@@ -160,7 +160,7 @@ func generatebrowsedpassage(au string, wk string, fc int64, ctx int64) BrowsedPa
 	// want to do what follows in some sort of regular order
 	nk := []string{"#", "", "loc", "pub", "c:", "r:", "d:"}
 
-	for i, _ := range lines {
+	for i := range lines {
 		lines[i].GatherMetadata()
 		if len(lines[i].EmbNotes) != 0 {
 			nt := `%s %s<br>`
@@ -315,7 +315,7 @@ func basiccitation(l DbWorkline) string {
 	cf = cf[6-(len(loc)) : 6]
 
 	var cit []string
-	for i, _ := range loc {
+	for i := range loc {
 		cit = append(cit, fmt.Sprintf("%s %s", cf[i], loc[i]))
 	}
 	fullcit := strings.Join(cit, ", ")
@@ -363,7 +363,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 
 	allwords := func() []string {
 		wm := make(map[string]bool)
-		for i, _ := range lines {
+		for i := range lines {
 			wds := strings.Split(lines[i].Accented, " ")
 			for _, w := range wds {
 				wm[w] = true
@@ -388,7 +388,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		return ar
 	}()
 
-	for i, _ := range lines {
+	for i := range lines {
 		// turn "abc def" into "<observed id="abc">abc</observed> <observed id="def">def</observed>"
 		// the complication is that x.MarkedUp contains html; use x.Accented to find the words
 
@@ -403,9 +403,9 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		mw := strings.Split(lines[i].MarkedUp, " ")
 		lmw := mw[len(mw)-1]
 
-		for w, _ := range wds {
-			p := almostallregex[wds[w]]
-			if w == len(wds)-1 && terminalhyph.MatchString(lmw) {
+		for j := range wds {
+			p := almostallregex[wds[j]]
+			if j == len(wds)-1 && terminalhyph.MatchString(lmw) {
 				// wds[lastwordindex] is the unhyphenated word
 				// almostallregex does not contain this pattern: "ἱμα-", e.g.
 				np, e := regexp.Compile(fmt.Sprintf(OBSREGTEMPL, capsvariants(lmw)))
