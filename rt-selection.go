@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"reflect"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -122,6 +123,7 @@ func RtSelectionClear(c echo.Context) error {
 	const (
 		FAIL1 = "RtSelectionClear() was given bad input: %s"
 		FAIL2 = "RtSelectionClear() was given bad category: %s"
+		REG   = `(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
 	)
 
 	user := readUUIDCookie(c)
@@ -147,6 +149,20 @@ func RtSelectionClear(c echo.Context) error {
 	newincl := newsess.Inclusions
 	newexcl := newsess.Exclusions
 
+	// issue: newincl.Passages is a []string that is built by order of arrival, but the display is order of appearance
+	// this means that if "book 1" and "book 3" are on the list, but you added "book 3" first, clicking "book 1" will
+	// remove item #0 from the list, and drop... "book 3"
+
+	pattern := regexp.MustCompile(REG)
+	pimap := make(map[string]string)
+	for _, p := range newincl.Passages {
+		k, _ := searchlistpassages(pattern, p)
+		pimap[k] = p
+	}
+
+	psgk := stringmapkeysintoslice(pimap)
+	sort.Strings(psgk) // psgk is nor in the order that things appear in on the page: "id" now in sync with it
+
 	switch cat {
 	case "agnselections":
 		newincl.AuGenres = RemoveIndex(newincl.AuGenres, id)
@@ -162,9 +178,9 @@ func RtSelectionClear(c echo.Context) error {
 		newincl.Works = RemoveIndex(newincl.Works, id)
 	case "psgselections":
 		// restarting the server with an open browser can leave an impossible click; not really a bug, but...
-		key := newincl.Passages[id]
-		delete(newincl.MappedPsgByName, key)
+		del := pimap[psgk[id]]
 		newincl.Passages = RemoveIndex(newincl.Passages, id)
+		delete(newincl.MappedPsgByName, del)
 	case "agnexclusions":
 		newexcl.AuGenres = RemoveIndex(newexcl.AuGenres, id)
 	case "wgnexclusions":
@@ -189,9 +205,7 @@ func RtSelectionClear(c echo.Context) error {
 	newsess.Exclusions = newexcl
 
 	SafeSessionMapInsert(newsess)
-
 	r := RtSelectionFetch(c)
-
 	return r
 }
 
