@@ -152,7 +152,7 @@ func (s *SearchStruct) FormatInitialSummary() {
 	s.InitSum = sum
 }
 
-// SortResults - sort the search results by the session's selected criterion
+// SortResults - sort the search results by the session's registerselection criterion
 func (s *SearchStruct) SortResults() {
 	// Closures that order the DbWorkline structure:
 	// see generichelpers.go and https://pkg.go.dev/sort#example__sortMultiKeys

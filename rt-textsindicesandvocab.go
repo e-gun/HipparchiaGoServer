@@ -690,7 +690,7 @@ func RtIndexMaker(c echo.Context) error {
 // HELPERS
 //
 
-// sessionintobulksearch - grab every line of text in the currently selected set of authors, works, and passages
+// sessionintobulksearch - grab every line of text in the currently registerselection set of authors, works, and passages
 func sessionintobulksearch(c echo.Context, lim int64) SearchStruct {
 	user := readUUIDCookie(c)
 	sess := SafeSessionRead(user)

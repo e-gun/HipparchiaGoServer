@@ -100,6 +100,25 @@ func gcstats(fn string) {
 	msg(fmt.Sprintf(MSG, fn, b, a), 4)
 }
 
+// stringmapprinter - print out the k/v pairs of a map
+func stringmapprinter[T any](n string, m map[string]T) {
+	msg(n, 1)
+	counter := 0
+	for k, v := range m {
+		fmt.Printf("[%d] %s\t", counter, k)
+		fmt.Println(v)
+		counter += 1
+	}
+}
+
+func sliceprinter[T any](n string, s []T) {
+	msg(n, 1)
+	for i, v := range s {
+		fmt.Printf("[%d]\t", i)
+		fmt.Println(v)
+	}
+}
+
 //
 // SETS AND SLICES
 //

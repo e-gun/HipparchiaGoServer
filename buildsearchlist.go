@@ -172,7 +172,7 @@ func SessionIntoSearchlist(s ServerSession) ProcessedList {
 
 		inc.Works = prunebydate(inc.Works, s)
 
-		// [b6] add all works of the authors selected
+		// [b6] add all works of the authors registerselection
 
 		for _, au := range sessincl.Authors {
 			// this should be superfluous, but...
@@ -182,7 +182,7 @@ func SessionIntoSearchlist(s ServerSession) ProcessedList {
 			}
 		}
 
-		// [b7] add the individual works selected
+		// [b7] add the individual works registerselection
 
 		for _, wk := range sessincl.Works {
 			// this should be superfluous, but...
@@ -192,7 +192,7 @@ func SessionIntoSearchlist(s ServerSession) ProcessedList {
 			}
 		}
 
-		// [b8] add the individual passages selected
+		// [b8] add the individual passages registerselection
 
 		inc.Passages = append(inc.Passages, sessincl.Passages...)
 
@@ -210,7 +210,7 @@ func SessionIntoSearchlist(s ServerSession) ProcessedList {
 
 	// [c1] do we allow spuria (varia and incerta already lost via prunebydate)
 
-	// note that the following will kill explicitly selected spuria: basically a logic bug, but not a priority...
+	// note that the following will kill explicitly registerselection spuria: basically a logic bug, but not a priority...
 
 	if !s.SpuriaOK {
 		var trimmed []string

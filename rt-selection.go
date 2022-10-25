@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"reflect"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -22,7 +21,7 @@ type JSData struct {
 	Url   string
 }
 
-// SelectionValues - what was selected?
+// SelectionValues - what was registerselection?
 type SelectionValues struct {
 	Auth   string
 	Work   string
@@ -107,7 +106,7 @@ func RtSelectionMake(c echo.Context) error {
 		sel.IsExcl = false
 	}
 
-	ns := selected(user, sel)
+	ns := registerselection(user, sel)
 	SafeSessionMapInsert(ns)
 
 	cs := reportcurrentselections(c)
@@ -149,19 +148,29 @@ func RtSelectionClear(c echo.Context) error {
 	newincl := newsess.Inclusions
 	newexcl := newsess.Exclusions
 
-	// issue: newincl.Passages is a []string that is built by order of arrival, but the display is order of appearance
-	// this means that if "book 1" and "book 3" are on the list, but you added "book 3" first, clicking "book 1" will
-	// remove item #0 from the list, and drop... "book 3"
+	// sliceprinter("ListedPBN", newincl.ListedPBN)
 
-	pattern := regexp.MustCompile(REG)
-	pimap := make(map[string]string)
-	for _, p := range newincl.Passages {
-		k, _ := searchlistpassages(pattern, p)
-		pimap[k] = p
+	findkey := func(n int, ixl SearchIncExl) string {
+		// issue: newincl.Passages is a []string that is built by order of arrival, but the display is ordered by AU & LINE
+		// this means that if "book 1" and "book 3" are on the list, but you added "book 3" first, clicking "book 1" will
+		// remove item #0 from the list, and drop... "book 3"
+
+		// ListedPBN is the page order and name
+		// its index value is the click id value
+		// so, fetch the string from ListedPBN[id]
+		// then search for that string in the values of MappedPsgByName
+
+		ixl.BuildPsgByName()
+		citation := ixl.ListedPBN[n]
+		thekey := ""
+		for k, v := range ixl.MappedPsgByName {
+			if v == citation {
+				thekey = k
+				break
+			}
+		}
+		return thekey
 	}
-
-	psgk := stringmapkeysintoslice(pimap)
-	sort.Strings(psgk) // psgk is nor in the order that things appear in on the page: "id" now in sync with it
 
 	switch cat {
 	case "agnselections":
@@ -177,9 +186,9 @@ func RtSelectionClear(c echo.Context) error {
 	case "wkselections":
 		newincl.Works = RemoveIndex(newincl.Works, id)
 	case "psgselections":
-		// restarting the server with an open browser can leave an impossible click; not really a bug, but...
-		del := pimap[psgk[id]]
-		newincl.Passages = RemoveIndex(newincl.Passages, id)
+		// NB: restarting the server with an open browser can leave an impossible click; not really a bug, but...
+		del := findkey(id, newincl)
+		newincl.Passages = setsubtraction(newincl.Passages, []string{del})
 		delete(newincl.MappedPsgByName, del)
 	case "agnexclusions":
 		newexcl.AuGenres = RemoveIndex(newexcl.AuGenres, id)
@@ -194,9 +203,9 @@ func RtSelectionClear(c echo.Context) error {
 	case "wkexclusions":
 		newexcl.Works = RemoveIndex(newexcl.Works, id)
 	case "psgexclusions":
-		key := newexcl.Passages[id]
-		delete(newexcl.MappedPsgByName, key)
-		newexcl.Passages = RemoveIndex(newexcl.Passages, id)
+		del := findkey(id, newexcl)
+		newexcl.Passages = setsubtraction(newexcl.Passages, []string{del})
+		delete(newexcl.MappedPsgByName, del)
 	default:
 		msg(fmt.Sprintf(FAIL2, cat), 1)
 	}
@@ -206,6 +215,9 @@ func RtSelectionClear(c echo.Context) error {
 
 	SafeSessionMapInsert(newsess)
 	r := RtSelectionFetch(c)
+
+	//sliceprinter("newincl.Passages", newincl.Passages)
+	//stringmapprinter("newincl.MappedPsgByName", newincl.MappedPsgByName)
 	return r
 }
 
@@ -214,8 +226,8 @@ func RtSelectionFetch(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, sd, JSONINDENT)
 }
 
-// selected - do the hard work of parsing a selection
-func selected(user string, sv SelectionValues) ServerSession {
+// registerselection - do the hard work of parsing a selection
+func registerselection(user string, sv SelectionValues) ServerSession {
 	// have to deal with all sorts of possibilities
 	// [a] author: "GET /selection/make/_?auth=gr7000 HTTP/1.1"
 	// [b] work: "GET /selection/make/_?auth=lt0474&work=001 HTTP/1.1"
@@ -348,6 +360,7 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 	// if you select "book 2" after selecting the whole, select only book 2
 	// if you select the whole after book 2, then the whole
 	// etc...
+
 	const (
 		PSGT = `%s_FROM_%s_TO_%s`
 	)
