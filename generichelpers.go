@@ -72,6 +72,7 @@ func msg(message string, threshold int) {
 
 }
 
+// timetracker - report time elapsed since last checkpoint
 func timetracker(letter string, m string, start time.Time, previous time.Time) {
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	m = fmt.Sprintf("[%s: %.3fs]", letter, time.Now().Sub(start).Seconds()) + d + m
@@ -111,6 +112,7 @@ func stringmapprinter[T any](n string, m map[string]T) {
 	}
 }
 
+// sliceprinter - print out the members of a slice
 func sliceprinter[T any](n string, s []T) {
 	msg(n, 1)
 	for i, v := range s {
@@ -172,7 +174,7 @@ func setsubtraction[T comparable](aa []T, bb []T) []T {
 	}
 
 	result := make([]T, 0, len(remain))
-	for r, _ := range remain {
+	for r := range remain {
 		result = append(result, r)
 	}
 	return result
@@ -224,7 +226,7 @@ func stringmapintoslice[T any](mp map[string]T) []T {
 func stringmapkeysintoslice[T any](mp map[string]T) []string {
 	sl := make([]string, len(mp))
 	i := 0
-	for k, _ := range mp {
+	for k := range mp {
 		sl[i] = k
 		i += 1
 	}

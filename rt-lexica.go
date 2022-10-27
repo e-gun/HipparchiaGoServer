@@ -249,6 +249,10 @@ func RtLexReverse(c echo.Context) error {
 
 // findbyform - observed word into HTML dictionary entry
 func findbyform(word string, author string) string {
+	const (
+		SRCH = `<bibl id="perseus/%s/`
+		REPL = `<bibl class="flagged" id="perseus/%s/`
+	)
 
 	d := "latin"
 	if isGreek.MatchString(word) {
@@ -301,12 +305,18 @@ func findbyform(word string, author string) string {
 
 	parsing := formatparsingdata(mpp)
 
-	// [f] generate the lexical output: multiple entries possible - <div id="δημόϲιοϲ_23337644"> ... <div id="δημοϲίᾳ_23333080"> ...
+	// [f1] generate the lexical output: multiple entries possible - <div id="δημόϲιοϲ_23337644"> ... <div id="δημοϲίᾳ_23333080"> ...
 
 	var entries string
 	for _, w := range lexicalfinds {
 		entries += formatlexicaloutput(w)
 	}
+
+	// [f2] add author flagging
+	// author = lt0474: "<bibl id="perseus/lt0474" --> "<bibl class="flagged" id="perseus/lt0474"
+	srch := fmt.Sprintf(SRCH, author)
+	repl := fmt.Sprintf(REPL, author)
+	entries = strings.ReplaceAll(entries, srch, repl)
 
 	// [g] add the HTML + JS to inject `{"newhtml": "...", "newjs":"..."}`
 
