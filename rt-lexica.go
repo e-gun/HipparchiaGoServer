@@ -117,8 +117,8 @@ func RtLexLookup(c echo.Context) error {
 	}
 
 	seeking = uvσςϲ(seeking)
-	seeking = universalpatternmaker(seeking)
-	// universalpatternmaker() returns the term with brackets around it
+	seeking = universalpatternmaker(seeking) // universalpatternmaker() returns the term with brackets around it
+
 	seeking = strings.Replace(seeking, "(", "", -1)
 	seeking = strings.Replace(seeking, ")", "", -1)
 
@@ -179,11 +179,15 @@ func RtLexFindByForm(c echo.Context) error {
 // RtLexId - grab a word by its entry value
 func RtLexId(c echo.Context) error {
 	// http://127.0.0.1:8000/lexica/idlookup/latin/24236.0
+	const (
+		FAIL1 = "RtLexId() received bad request: '%s'"
+		FAIL2 = "RtLexId() found nothing at id_number '%s'"
+	)
 
 	req := c.Param("wd")
 	elem := strings.Split(req, "/")
 	if len(elem) != 2 {
-		msg(fmt.Sprintf("RtLexId() received bad request: '%s'", req), 1)
+		msg(fmt.Sprintf(FAIL1, req), 1)
 		return emptyjsreturn(c)
 	}
 	d := purgechars(Config.BadChars, elem[0])
@@ -191,7 +195,7 @@ func RtLexId(c echo.Context) error {
 
 	f := dictgrabber(w, d, "id_number", "=")
 	if len(f) == 0 {
-		msg(fmt.Sprintf("RtLexId() found nothing at id_number '%s'", w), 1)
+		msg(fmt.Sprintf(FAIL2, w), 1)
 		return emptyjsreturn(c)
 	}
 
@@ -250,6 +254,8 @@ func RtLexReverse(c echo.Context) error {
 // findbyform - observed word into HTML dictionary entry
 func findbyform(word string, author string) string {
 	const (
+		FLDS = `entry_name, total_count, gr_count, lt_count, dp_count, in_count, ch_count`
+		PSQQ = `SELECT %s FROM wordcounts_%s where entry_name = '%s'`
 		SRCH = `<bibl id="perseus/%s/`
 		REPL = `<bibl class="flagged" id="perseus/%s/`
 	)
@@ -280,11 +286,9 @@ func findbyform(word string, author string) string {
 
 	// [d] generate and format the prevalence data for this form: cf formatprevalencedata() in lexicalformatting.py
 
-	fld := `entry_name, total_count, gr_count, lt_count, dp_count, in_count, ch_count`
-	psq := `SELECT %s FROM wordcounts_%s where entry_name = '%s'`
 	// golang hates indexing unicode strings: strings are bytes, and unicode chars take more than one byte
 	c := []rune(word)
-	q := fmt.Sprintf(psq, fld, stripaccentsSTR(string(c[0])), word)
+	q := fmt.Sprintf(PSQQ, FLDS, stripaccentsSTR(string(c[0])), word)
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
@@ -305,26 +309,24 @@ func findbyform(word string, author string) string {
 
 	parsing := formatparsingdata(mpp)
 
-	// [f1] generate the lexical output: multiple entries possible - <div id="δημόϲιοϲ_23337644"> ... <div id="δημοϲίᾳ_23333080"> ...
+	// [f] generate the lexical output: multiple entries possible - <div id="δημόϲιοϲ_23337644"> ... <div id="δημοϲίᾳ_23333080"> ...
 
 	var entries string
 	for _, w := range lexicalfinds {
 		entries += formatlexicaloutput(w)
 	}
 
-	// [f2] add author flagging
-	// author = lt0474: "<bibl id="perseus/lt0474" --> "<bibl class="flagged" id="perseus/lt0474"
-	srch := fmt.Sprintf(SRCH, author)
-	repl := fmt.Sprintf(REPL, author)
-	entries = strings.ReplaceAll(entries, srch, repl)
-
 	// [g] add the HTML + JS to inject `{"newhtml": "...", "newjs":"..."}`
 
 	html := allformpd + parsing + entries
 
+	// [h] conditionally rewrite the html
 	if Config.ZapLunates {
 		html = delunate(html)
 	}
+
+	// author flagging: "<bibl id="perseus/lt0474" --> "<bibl class="flagged" id="perseus/lt0474"
+	html = strings.ReplaceAll(html, fmt.Sprintf(SRCH, author), fmt.Sprintf(REPL, author))
 
 	return html
 }
@@ -334,6 +336,8 @@ func reversefind(word string, dicts []string) string {
 	const (
 		ENTRYSPAN = `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="#%s_%f">%s</a>
 			<span class="small">&nbsp;(%d)</span></span><br />`
+		SEPARATOR = `<hr>`
+		ITEMIZER  = `<hr><span class="small">(%d)</span>`
 	)
 
 	var lexicalfinds []DbLexicon
@@ -375,8 +379,8 @@ func reversefind(word string, dicts []string) string {
 
 	htmlchunks := make([]string, len(keys))
 	for i, k := range keys {
-		n := fmt.Sprintf(`<hr><span class="small">(%d)</span>`, i+1)
-		h := strings.Replace(htmlmap[k], "<hr>", n, 1)
+		n := fmt.Sprintf(ITEMIZER, i+1)
+		h := strings.Replace(htmlmap[k], SEPARATOR, n, 1)
 		htmlchunks[i] = h
 	}
 
@@ -398,10 +402,13 @@ func dictsearch(seeking string, dict string) string {
 	const (
 		ENTRYLINE = `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="#%s_%f">%s</a><span class="small">&nbsp;(%d)</span><br>`
 		HITCAP    = `<span class="small">[stopped searching after %d entries found]</span><br>`
+		SEPARATOR = `<hr>`
 		CHUNKHEAD = `<hr><span class="small">(%d)</span>`
+		COLUMN    = "entry_name"
+		SYNTAX    = "~*"
 	)
 
-	lexicalfinds := dictgrabber(seeking, dict, "entry_name", "~*")
+	lexicalfinds := dictgrabber(seeking, dict, COLUMN, SYNTAX)
 
 	htmlmap := paralleldictformatter(lexicalfinds)
 
@@ -414,7 +421,7 @@ func dictsearch(seeking string, dict string) string {
 	htmlchunks := make([]string, len(keys))
 	for i, k := range keys {
 		n := fmt.Sprintf(CHUNKHEAD, i+1)
-		h := strings.Replace(htmlmap[k], "<hr>", n, 1)
+		h := strings.Replace(htmlmap[k], SEPARATOR, n, 1)
 		htmlchunks[i] = h
 	}
 
@@ -455,13 +462,15 @@ func dictsearch(seeking string, dict string) string {
 
 // dictgrabber - search postgres tables and return []DbLexicon
 func dictgrabber(seeking string, dict string, col string, syntax string) []DbLexicon {
+	const (
+		FLDS = `entry_name, metrical_entry, id_number, pos, translations, html_body`
+		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s %s '%s' ORDER BY id_number ASC LIMIT %d`
+	)
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 
 	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
-	fld := `entry_name, metrical_entry, id_number, pos, translations, html_body`
-	psq := `SELECT %s FROM %s_dictionary WHERE %s %s '%s' ORDER BY id_number ASC LIMIT %d`
-	q := fmt.Sprintf(psq, fld, dict, col, syntax, seeking, MAXDICTLOOKUP)
+	q := fmt.Sprintf(PSQQ, FLDS, dict, col, syntax, seeking, MAXDICTLOOKUP)
 
 	var lexicalfinds []DbLexicon
 
@@ -481,11 +490,15 @@ func dictgrabber(seeking string, dict string, col string, syntax string) []DbLex
 
 // getmorphmatch - word into []DbMorphology
 func getmorphmatch(word string, lang string) []DbMorphology {
+	const (
+		FLDS = `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
+		PSQQ = "SELECT %s FROM %s_morphology WHERE observed_form = '%s'"
+	)
+
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 
-	fld := `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
-	psq := fmt.Sprintf("SELECT %s FROM %s_morphology WHERE observed_form = '%s'", fld, lang, word)
+	psq := fmt.Sprintf(PSQQ, FLDS, lang, word)
 
 	foundrows, err := dbconn.Query(context.Background(), psq)
 	chke(err)
@@ -520,6 +533,10 @@ func extractmorphpossibilities(raw string, boundary *regexp.Regexp) []MorphPossi
 
 	// boundary is not really a variable, we are just avoiding looping it
 	// boundary := regexp.MustCompile(`(\{|, )"\d": `)
+
+	const (
+		FAIL = "dbmorphintomorphpossib() could not unmarshal %s"
+	)
 	possible := boundary.Split(raw, -1)
 
 	var mpp []MorphPossib
@@ -530,7 +547,7 @@ func extractmorphpossibilities(raw string, boundary *regexp.Regexp) []MorphPossi
 		if len(p) > 0 {
 			err := json.Unmarshal([]byte(p), &mp)
 			if err != nil {
-				msg(fmt.Sprintf("dbmorphintomorphpossib() could not unmarshal %s", p), 5)
+				msg(fmt.Sprintf(FAIL, p), 5)
 			}
 		}
 		mpp = append(mpp, mp)
@@ -541,6 +558,11 @@ func extractmorphpossibilities(raw string, boundary *regexp.Regexp) []MorphPossi
 
 // morphpossibintolexpossib - []MorphPossib into []DbLexicon
 func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
+	const (
+		FLDS = `entry_name, metrical_entry, id_number, pos, translations, html_body`
+		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴)$' ORDER BY id_number ASC`
+		COLM = "entry_name"
+	)
 	var hwm []string
 	for _, p := range mpp {
 		if strings.TrimSpace(p.Headwd) != "" {
@@ -556,14 +578,11 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
-	fld := `entry_name, metrical_entry, id_number, pos, translations, html_body`
-	psq := `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴)$' ORDER BY id_number ASC`
-	col := "entry_name"
 
 	var lexicalfinds []DbLexicon
 	dedup := make(map[float32]bool)
 	for _, w := range hwm {
-		q := fmt.Sprintf(psq, fld, d, col, w)
+		q := fmt.Sprintf(PSQQ, FLDS, d, COLM, w)
 		foundrows, err := dbconn.Query(context.Background(), q)
 		chke(err)
 
@@ -623,7 +642,7 @@ func paralleldictformatter(lexicalfinds []DbLexicon) map[float32]string {
 			defer wg.Done()
 			dbconn := GetPSQLconnection()
 			defer dbconn.Release()
-			outputchannels <- multipleentriesashtml(j, entrymap[j])
+			outputchannels <- multipleentriesashtml(entrymap[j])
 		}(entrymap[i], i)
 	}
 
@@ -650,9 +669,7 @@ func paralleldictformatter(lexicalfinds []DbLexicon) map[float32]string {
 }
 
 // multipleentriesashtml - turn []DbLexicon into a map: [entryid]entryhtml
-func multipleentriesashtml(workerid int, ee []DbLexicon) map[float32]string {
-	msg(fmt.Sprintf("multipleentriesashtml() - worker %d sent %d entries", workerid, len(ee)), 5)
-
+func multipleentriesashtml(ee []DbLexicon) map[float32]string {
 	oneentry := func(e DbLexicon) (float32, string) {
 		body := formatlexicaloutput(e)
 		return e.ID, body

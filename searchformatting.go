@@ -426,6 +426,7 @@ func textblockcleaner(html string) string {
 	html = unbalancedspancleaner(html)
 	html = formateditorialbrackets(html)
 	html = formatmultilinebrackets(html)
+	html = formatmultilinespans(html)
 
 	return html
 }
@@ -543,6 +544,43 @@ func formatmultilinebrackets(html string) string {
 	return html
 }
 
+func formatmultilinespans(html string) string {
+	//without intervention span highlight fails for: ἡ γλῶϲϲά ϲου οὐκ ἐν τῷ | ϲτόματί ϲου κάθηται ἀλλ’ ἐπὶ οἰκήματοϲ
+	//
+	//hipparchiaDB=# select index,marked_up_line from gr0535 where index between 307 and 309;
+	// index |                                                                            marked_up_line
+	//-------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	//   307 | νεανίϲκου τὰ αἴϲχιϲτα, <span class="expanded_text">‘νεανίϲκε,</span> ἔφη, <span class="expanded_text">ἡ γλῶϲϲά ϲου οὐκ ἐν τῷ
+	//   308 | ϲτόματί ϲου κάθηται ἀλλ’ ἐπὶ οἰκήματοϲ’.</span>
+	//   309 | &nbsp;&nbsp;&nbsp;<span class="latin normal">PS. DEMAD.</span> ὑπ. τ. δωδ. <span class="latin normal">§ 15:</span> <span class="expanded_text">‘κρεῖττον γὰρ ἐπερχό-
+	//(3 rows)
+
+	// NB: this will only do 2 lines, not 3+
+	// still failing with...
+
+	// hipparchiaDB=# select index,marked_up_line from gr0535 where index between 328 and 332;
+	// index |                                                                                 marked_up_line
+	//-------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	//   328 | των οὐκ ἀξιοπίϲτουϲ εἶναι φαϲκόντων, <span class="expanded_text">‘τοιοῦτοϲ γάρ,</span> φηϲί, <span class="expanded_text">καὶ
+	//   329 | ὁ τόποϲ ἦν ἐν ᾧ ἡ ὕβριϲ ἐπετελέϲθη· εἰ δὲ ἐν τῷ δου-
+	//   330 | ρείῳ ἵππῳ ὑβρίϲθη, τοὺϲ ἀριϲτεῖϲ ἂν ὑμῖν παρει-
+	//   331 | χόμην μάρτυραϲ Μενέλαον καὶ Διομήδη καὶ Ὀδυϲϲέα’</span>. <hmu_standalone_endofpage />
+	//   332 | &nbsp;&nbsp;&nbsp;<span class="latin normal">MAXIM. CONF. </span><span class="latin italic">l. comm. </span><span class="latin normal">p. 586 Comb. (Migne, PG 91, 828):</span>
+	//(5 rows)
+
+	const (
+		PATT = "(?P<spantype><span class=\"%s\">)(?P<line_end>[^\\<]*?)✃✃✃(?P<line_start>[^\\]]*?</span>)"
+		REPL = "$1$2</span>✃✃✃$1$3"
+	)
+
+	tocheck := []string{"expanded_text"}
+	for _, c := range tocheck {
+		pattern := regexp.MustCompile(fmt.Sprintf(PATT, c))
+		html = pattern.ReplaceAllString(html, REPL)
+	}
+	return html
+}
+
 // gethighlighter - set regex to highlight the search term
 func gethighlighter(ss *SearchStruct) *regexp.Regexp {
 	const (
@@ -611,3 +649,18 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 	}
 	return r
 }
+
+/*
+multi-line span highlight fails for: ἡ γλῶϲϲά ϲου οὐκ ἐν τῷ | ϲτόματί ϲου κάθηται ἀλλ’ ἐπὶ οἰκήματοϲ
+
+need a version of formatmultilinebrackets() that handles this
+
+hipparchiaDB=# select index,marked_up_line from gr0535 where index between 307 and 309;
+ index |                                                                            marked_up_line
+-------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   307 | νεανίϲκου τὰ αἴϲχιϲτα, <span class="expanded_text">‘νεανίϲκε,</span> ἔφη, <span class="expanded_text">ἡ γλῶϲϲά ϲου οὐκ ἐν τῷ
+   308 | ϲτόματί ϲου κάθηται ἀλλ’ ἐπὶ οἰκήματοϲ’.</span>
+   309 | &nbsp;&nbsp;&nbsp;<span class="latin normal">PS. DEMAD.</span> ὑπ. τ. δωδ. <span class="latin normal">§ 15:</span> <span class="expanded_text">‘κρεῖττον γὰρ ἐπερχό-
+(3 rows)
+
+*/

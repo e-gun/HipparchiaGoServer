@@ -116,7 +116,7 @@ func generatebrowsedpassage(au string, wk string, fc int64, ctx int64) BrowsedPa
 
 	const (
 		FAIL1 = "could not find a work for %s"
-		FAIL2 = "generatebrowsedpassage() called simplecontextgrabber() and failed: %s, %d, %d"
+		FAIL2 = "<br>Called simplecontextgrabber() and failed.<br><br><code>No data for %sw%s where idx=%d</code><br>"
 	)
 
 	k := fmt.Sprintf("%sw%s", au, wk)
@@ -153,8 +153,9 @@ func generatebrowsedpassage(au string, wk string, fc int64, ctx int64) BrowsedPa
 	lines = trimmed
 
 	if len(lines) == 0 {
-		msg(fmt.Sprintf(FAIL2, au, fc, ctx/2), 1)
-		return BrowsedPassage{}
+		var bp BrowsedPassage
+		bp.Browserhtml = fmt.Sprintf(FAIL2, au, wk, fc)
+		return bp
 	}
 
 	// want to do what follows in some sort of regular order
@@ -218,6 +219,11 @@ func formatpublicationinfo(w DbWork) string {
 	//	out:
 	//		<span class="pubvolumename">FHG <br /></span><span class="pubpress">Didot , </span><span class="pubcity">Paris , </span><span class="pubyear">1841–1870. </span><span class="pubeditor"> (Müller, K. )</span>
 
+	const (
+		REGS = "<%s>(?P<data>.*?)</%s>"
+		REGD = "<%d>(?P<data>.*?)</%d>"
+	)
+
 	type Swapper struct {
 		Name  string
 		Sub   int
@@ -241,7 +247,7 @@ func formatpublicationinfo(w DbWork) string {
 
 	// shorten the strings so you can split
 	for _, t := range tags {
-		tag := fmt.Sprintf("<%s>(?P<data>.*?)</%s>", t.Name, t.Name)
+		tag := fmt.Sprintf(REGS, t.Name, t.Name)
 		pattern := regexp.MustCompile(tag)
 		found := pattern.MatchString(w.Pub)
 		if found {
@@ -257,7 +263,7 @@ func formatpublicationinfo(w DbWork) string {
 	// restore the strings
 	var reconstituted string
 	for _, t := range tags {
-		tag := fmt.Sprintf("<%d>(?P<data>.*?)</%d>", t.Sub, t.Sub)
+		tag := fmt.Sprintf(REGD, t.Sub, t.Sub)
 		pattern := regexp.MustCompile(tag)
 		found := pattern.MatchString(pubinfo)
 		if found {
@@ -336,6 +342,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		FOCA = `<span class="focusline">`
 		FOCB = `</span>`
 		SNIP = "✃✃✃"
+		FAIL = "buildbrowsertable() could not regex compile %s"
 	)
 
 	block := make([]string, len(lines))
@@ -380,7 +387,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 			pattern, e := regexp.Compile(r)
 			if e != nil {
 				// you will barf if w = *
-				msg(fmt.Sprintf("buildbrowsertable() could not regex compile %s", w), 4)
+				msg(fmt.Sprintf(FAIL, w), 4)
 				pattern = regexp.MustCompile("FIND_NOTHING")
 			}
 			ar[w] = pattern
@@ -410,7 +417,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 				// almostallregex does not contain this pattern: "ἱμα-", e.g.
 				np, e := regexp.Compile(fmt.Sprintf(OBSREGTEMPL, capsvariants(lmw)))
 				if e != nil {
-					msg(fmt.Sprintf("buildbrowsertable() could not regex compile %s", lmw), 4)
+					msg(fmt.Sprintf(FAIL, lmw), 4)
 					np = regexp.MustCompile("FIND_NOTHING")
 				}
 
