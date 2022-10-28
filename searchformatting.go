@@ -546,17 +546,10 @@ func formatmultilinebrackets(html string) string {
 
 func formatmultilinespans(html string) string {
 	//without intervention span highlight fails for: ἡ γλῶϲϲά ϲου οὐκ ἐν τῷ | ϲτόματί ϲου κάθηται ἀλλ’ ἐπὶ οἰκήματοϲ
-	//
-	//hipparchiaDB=# select index,marked_up_line from gr0535 where index between 307 and 309;
-	// index |                                                                            marked_up_line
-	//-------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	//   307 | νεανίϲκου τὰ αἴϲχιϲτα, <span class="expanded_text">‘νεανίϲκε,</span> ἔφη, <span class="expanded_text">ἡ γλῶϲϲά ϲου οὐκ ἐν τῷ
-	//   308 | ϲτόματί ϲου κάθηται ἀλλ’ ἐπὶ οἰκήματοϲ’.</span>
-	//   309 | &nbsp;&nbsp;&nbsp;<span class="latin normal">PS. DEMAD.</span> ὑπ. τ. δωδ. <span class="latin normal">§ 15:</span> <span class="expanded_text">‘κρεῖττον γὰρ ἐπερχό-
-	//(3 rows)
+	// NB: not so hard to do 2 lines; 3+ is a different story
 
-	// NB: this will only do 2 lines, not 3+
-	// still failing with...
+	// good test zone follows; not, though, that the original data seems not to have been marked right
+	// that makes seeing whether this code is doing its job a bit tougher...
 
 	// hipparchiaDB=# select index,marked_up_line from gr0535 where index between 328 and 332;
 	// index |                                                                                 marked_up_line
@@ -569,15 +562,45 @@ func formatmultilinespans(html string) string {
 	//(5 rows)
 
 	const (
-		PATT = "(?P<spantype><span class=\"%s\">)(?P<line_end>[^\\<]*?)✃✃✃(?P<line_start>[^\\]]*?</span>)"
-		REPL = "$1$2</span>✃✃✃$1$3"
+		SPLT = "✃✃✃"
 	)
 
-	tocheck := []string{"expanded_text"}
-	for _, c := range tocheck {
-		pattern := regexp.MustCompile(fmt.Sprintf(PATT, c))
-		html = pattern.ReplaceAllString(html, REPL)
+	type spantype struct {
+		open  string
+		close string
 	}
+
+	st1 := spantype{"<span class=\"expanded_text\">", "</span>"}
+	st2 := spantype{"<hmu_serviusformatting>", "</hmu_serviusformatting>"}
+
+	tocheck := []spantype{st1, st2}
+
+	spanner := func(block string, st spantype) string {
+		lines := strings.Split(block, SPLT)
+		add := ""
+		newlines := make([]string, len(lines))
+		for i, l := range lines {
+			l = add + l
+			back := strings.Split(l, st.open)
+			if len(back) > 1 {
+				if strings.Contains(back[len(back)-1], st.close) {
+					add = ""
+				} else {
+					add = st.open
+					l = l + st.close
+				}
+			}
+			newlines[i] = l
+		}
+		return strings.Join(newlines, SPLT)
+	}
+
+	for _, c := range tocheck {
+		if strings.Contains(html, c.open) {
+			html = spanner(html, c)
+		}
+	}
+
 	return html
 }
 
