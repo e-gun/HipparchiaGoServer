@@ -436,10 +436,12 @@ body {
 
 .epigraphical_text_after_correction {
 	color: var(--red);
-	font-family: 'hipparchiaobliquestatic', sans-serif;
+	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	}
 
 .epigraphical_text_inserted_after_erasure {
+	font-family: 'hipparchiasemiboldstatic', sans-serif;
+	text-decoration: underline;
 	color: var(--red);
 	}
 
@@ -526,6 +528,7 @@ body {
 
 .hmu_discarded_form {
     text-decoration: line-through;
+	color: var(--dkteal);
     }
 
 .hmu_emendation_by_editor_of_text_not_obviously_incorrect {
@@ -536,7 +539,7 @@ body {
 
 .hmu_form_altered_by_scribe {
     color: var(--red);
-    font-family: 'hipparchiabolditalicstatic', sans-serif;
+    font-family: 'hipparchiacondenseditalicstatic', sans-serif;
     }
 
 .hmu_impression_of_stamp_on_papyrus {
@@ -611,7 +614,7 @@ body {
 
 .hmu_unconventional_form_written_by_scribe {
     color: var(--sicklyyellow);
-    font-stretch: condensed; font-family: 'hipparchiaobliquestatic', sans-serif;
+    font-family: 'hipparchiacondenseditalicstatic', sans-serif;
     }
 
 .homonym {

@@ -64,13 +64,15 @@ func (i *SearchIncExl) BuildAuByName() {
 }
 
 func (i *SearchIncExl) BuildWkByName() {
+	const (
+		TMPL = `%s, <i>%s</i>`
+	)
 	bn := make(map[string]string, len(i.MappedWkByName))
 	for _, w := range i.Works {
-		tp := `%s, <i>%s</i>`
 		ws := AllWorks[w]
 		au := ws.MyAu().Name
 		ti := ws.Title
-		bn[w] = fmt.Sprintf(tp, au, ti)
+		bn[w] = fmt.Sprintf(TMPL, au, ti)
 	}
 	i.MappedWkByName = bn
 
@@ -322,7 +324,6 @@ func SessionIntoSearchlist(s ServerSession) ProcessedList {
 // prunebydate - drop items from searchlist if they are not inside the valid date range
 func prunebydate(searchlist []string, s ServerSession) []string {
 	// 'varia' and 'incerta' have special dates: incerta = 2500; varia = 2000
-	// msg("prunebydate()", 1)
 
 	if s.Earliest == MINDATESTR && s.Latest == MAXDATESTR && s.VariaOK && s.IncertaOK {
 		// no work for us to do...
@@ -340,8 +341,6 @@ func prunebydate(searchlist []string, s ServerSession) []string {
 		e = l
 	}
 
-	msg(fmt.Sprintf("[1] prunebydate() initial list size: %d", len(searchlist)), 5)
-
 	// [b5a] first prune the bad dates; nb: the inscriptions have lots of work dates; the gl and lt works don't
 	var trimmed []string
 	for _, uid := range searchlist {
@@ -352,8 +351,6 @@ func prunebydate(searchlist []string, s ServerSession) []string {
 			// msg(fmt.Sprintf("added: %s w/ date of %d", uid, cd), 1)
 		}
 	}
-
-	msg(fmt.Sprintf("[2] prunebydate() trimmed list size: %d", len(trimmed)), 5)
 
 	// [b5b] add back in any varia and/or incerta as needed
 	if s.VariaOK {
@@ -366,8 +363,6 @@ func prunebydate(searchlist []string, s ServerSession) []string {
 		}
 	}
 
-	msg(fmt.Sprintf("[3] prunebydate() VariaOK list size: %d", len(trimmed)), 5)
-
 	if s.IncertaOK {
 		for _, uid := range searchlist {
 			cda := AllAuthors[AllWorks[uid].AuID()].ConvDate
@@ -378,7 +373,6 @@ func prunebydate(searchlist []string, s ServerSession) []string {
 		}
 	}
 
-	msg(fmt.Sprintf("[4] prunebydate() recomposed list size: %d", len(trimmed)), 5)
 	searchlist = trimmed
 
 	return searchlist

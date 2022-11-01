@@ -43,6 +43,8 @@ func main() {
 
 	SQLPool = FillPSQLPoool()
 
+	go wspool.WSPoolStartLoop()
+
 	// concurrent launching
 	var awaiting sync.WaitGroup
 

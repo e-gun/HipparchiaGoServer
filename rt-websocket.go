@@ -25,37 +25,154 @@ type PollData struct {
 	TwoBox   bool
 }
 
-// RtWebsocket - progress info for a search
+type WSClient struct {
+	ID   string
+	Conn *websocket.Conn
+	Pool *WSPool
+}
+
+type WSPool struct {
+	Register   chan *WSClient
+	Unregister chan *WSClient
+	Clients    map[*WSClient]bool
+	JSO        chan WSJSOut
+	ReadID     chan string
+}
+
+type WSJSOut struct {
+	V     string `json:"value"`
+	ID    string `json:"ID"`
+	Close string `json:"close"`
+}
+
+func WSNewPool() *WSPool {
+	return &WSPool{
+		Register:   make(chan *WSClient),
+		Unregister: make(chan *WSClient),
+		Clients:    make(map[*WSClient]bool),
+		JSO:        make(chan WSJSOut),
+		ReadID:     make(chan string),
+	}
+}
+
+func (c *WSClient) ReadID() {
+	const (
+		FAIL = `WSClient.ReadID() failed`
+	)
+	for {
+		_, m, err := c.Conn.ReadMessage()
+		if err != nil {
+			msg(FAIL, 3)
+			return
+		}
+
+		if len(m) != 0 {
+			id := string(m)
+			id = strings.Replace(id, `"`, "", -1)
+			c.ID = id
+			c.Pool.ReadID <- id
+			break
+		}
+	}
+}
+
+func (c *WSClient) WSWriteJSON() {
+	// wait for the search to exist
+	for {
+		MapLocker.RLock()
+		ls := len(SearchMap)
+		_, exists := SearchMap[c.ID]
+		MapLocker.RUnlock()
+		if ls != 0 && exists {
+			break
+		}
+	}
+
+	srch := SafeSearchMapRead(c.ID)
+
+	var r PollData
+	r.TwoBox = srch.Twobox
+	r.TotalWrk = srch.TableSize
+
+	for {
+		r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(srch.Launched).Seconds())
+
+		if srch.PhaseNum > 1 {
+			r.Extra = "(second pass)"
+		} else {
+			r.Extra = ""
+		}
+
+		// mutex protected gets
+		r.Remain = SearchMap[c.ID].Remain.Get()
+		r.Hits = SearchMap[c.ID].Hits.Get()
+
+		MapLocker.RLock()
+		r.Msg = strings.Replace(SearchMap[c.ID].InitSum, "Sought", "Seeking", -1)
+		MapLocker.RUnlock()
+
+		pd := formatpoll(r)
+
+		jso := WSJSOut{
+			V:     pd,
+			ID:    c.ID,
+			Close: "open",
+		}
+
+		c.Pool.JSO <- jso
+		time.Sleep(WSPOLLINGPAUSE)
+
+		MapLocker.RLock()
+		_, exists := SearchMap[c.ID]
+		MapLocker.RUnlock()
+
+		if !exists {
+			break
+		}
+	}
+}
+
+func (pool *WSPool) WSPoolStartLoop() {
+	const (
+		MGS1 = "[WSPool register] Size of Connection Pool: %d"
+		MSG2 = "[WSPool unregister] Size of Connection Pool: %d"
+		MSG3 = "Starting polling loop for '%s'"
+	)
+	for {
+		select {
+		case id := <-pool.Register:
+			pool.Clients[id] = true
+			msg(fmt.Sprintf(MGS1, len(pool.Clients)), 4)
+			break
+		case id := <-pool.Unregister:
+			delete(pool.Clients, id)
+			msg(fmt.Sprintf(MSG2, len(pool.Clients)), 4)
+			break
+		case m := <-pool.ReadID:
+			msg(fmt.Sprintf(MSG3, m), 4)
+		case jso := <-pool.JSO:
+			for client, _ := range pool.Clients {
+				if client.ID == jso.ID {
+					js, y := json.Marshal(jso)
+					chke(y)
+					er := client.Conn.WriteMessage(websocket.TextMessage, js)
+					if er != nil {
+						fmt.Println(er)
+						return
+					}
+				}
+			}
+		}
+	}
+}
+
+// RtWebsocket - progress info for a search (multiple clients client at a time)
 func RtWebsocket(c echo.Context) error {
-	// 	the client sends the name of a poll and this will output
-	//	the status of the poll continuously while the poll remains active
-	//
-	//	example:
-	//		progress {'active': 1, 'total': 20, 'remaining': 20, 'hits': 48, 'message': 'Putting the results in context',
-	//		'elapsed': 14.0, 'extrainfo': '<span class="small"></span>'}
-
-	// see also /static/hipparchiajs/progressindicator_go.js
-
-	// https://echo.labstack.com/cookbook/websocket/
-
-	// you can spend 3.5s on a search vs 2.0 seconds if you poll as fast as possible
-	// POLLEVERYNTABLES in SrchFeeder() and WSPOLLINGPAUSE here make a huge difference
-
-	// does not look like you can run two wss at once; not obvious why this is the case...
+	// see https://tutorialedge.net/projects/chat-system-in-go-and-react/part-4-handling-multiple-clients/
 
 	const (
-		FAILCON   = "RtWebsocket(): ws connection failed"
-		FAILRD    = "RtWebsocket(): ws failed to read: breaking"
-		FAILWR    = "RtWebsocket(): ws failed to write: breaking"
-		FAILSND   = "RtWebsocket() could not send stop message"
-		FAILCLOSE = "RtWebsocket() failed to close"
+		FAILCON = "RtWebsocket(): ws connection failed"
 	)
-
-	type JSOut struct {
-		V     string `json:"value"`
-		ID    string `json:"ID"`
-		Close string `json:"close"`
-	}
 
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
@@ -63,113 +180,15 @@ func RtWebsocket(c echo.Context) error {
 		return nil
 	}
 
-	for {
-		MapLocker.RLock()
-		ls := len(SearchMap)
-		MapLocker.RUnlock()
-		if ls != 0 {
-			break
-		}
+	client := &WSClient{
+		Conn: ws,
+		Pool: wspool,
 	}
 
-	done := false
-	id := ""
-
-	for {
-		if done {
-			break
-		}
-
-		// Read
-		var m []byte
-		_, m, e := ws.ReadMessage() // will yield: websocket received: "205da19d"; bug-trap: the quotes around that string
-		if e != nil {
-			msg(FAILRD, 5)
-			break
-		}
-
-		id = string(m)
-		id = strings.Replace(id, `"`, "", -1)
-
-		srch := SafeSearchMapRead(id) // but you still have to use the map's version for some things...
-
-		if srch.IsActive {
-			var r PollData
-			r.TwoBox = srch.Twobox
-			r.ID = id
-			r.TotalWrk = srch.TableSize
-
-			for {
-				r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(srch.Launched).Seconds())
-
-				if srch.PhaseNum > 1 {
-					r.Extra = "(second pass)"
-				} else {
-					r.Extra = ""
-				}
-
-				// mutex protected gets
-				r.Remain = SearchMap[id].Remain.Get()
-				r.Hits = SearchMap[id].Hits.Get()
-
-				// inside the loop because indexing modifies InitSum to send simple progress messages
-				MapLocker.RLock()
-				r.Msg = strings.Replace(SearchMap[id].InitSum, "Sought", "Seeking", -1)
-				MapLocker.RUnlock()
-
-				// Write
-				pd := formatpoll(r)
-
-				jso := JSOut{
-					V:     pd,
-					ID:    r.ID,
-					Close: "open",
-				}
-
-				js, y := json.Marshal(jso)
-				chke(y)
-
-				er := ws.WriteMessage(websocket.TextMessage, js)
-
-				if er != nil {
-					msg(FAILWR, 5)
-					done = true
-					break
-				} else {
-					time.Sleep(WSPOLLINGPAUSE)
-				}
-
-				MapLocker.RLock()
-				_, exists := SearchMap[id]
-				MapLocker.RUnlock()
-				if !exists {
-					done = true
-					break
-				}
-			}
-		}
-	}
-
-	// tell the websocket on the other end to close
-	// this is not supposed to be strictly necessary, but there have been problems reconnecting after multiple SearchMap
-	end := JSOut{
-		V:     "",
-		ID:    id,
-		Close: "close",
-	}
-
-	stop, y := json.Marshal(end)
-	chke(y)
-
-	er := ws.WriteMessage(websocket.TextMessage, stop)
-	if er != nil {
-		msg(FAILSND, 5)
-	}
-
-	err = ws.Close()
-	if err != nil {
-		msg(FAILCLOSE, 5)
-	}
+	wspool.Register <- client
+	client.ReadID()
+	client.WSWriteJSON()
+	wspool.Unregister <- client
 	return nil
 }
 

@@ -102,6 +102,16 @@ func gcstats(fn string) {
 }
 
 // stringmapprinter - print out the k/v pairs of a map
+func stringkeyprinter[T any](n string, m map[string]T) {
+	msg(n, 1)
+	counter := 0
+	for k, _ := range m {
+		fmt.Printf("[%d] %s\n", counter, k)
+		counter += 1
+	}
+}
+
+// stringmapprinter - print out the k/v pairs of a map
 func stringmapprinter[T any](n string, m map[string]T) {
 	msg(n, 1)
 	counter := 0

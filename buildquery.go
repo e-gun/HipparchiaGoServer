@@ -82,6 +82,10 @@ const (
 
 // SSBuildQueries - populate a SearchStruct with []PrerolledQuery
 func SSBuildQueries(s *SearchStruct) {
+	const (
+		REG = `(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
+		IDX = `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
+	)
 	// modifies the SearchStruct in place
 	inc := s.SearchIn
 	exc := s.SearchEx
@@ -124,7 +128,7 @@ func SSBuildQueries(s *SearchStruct) {
 
 	// [a2] individual passages included/excluded
 
-	pattern := regexp.MustCompile(`(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`)
+	pattern := regexp.MustCompile(REG)
 	for _, p := range inc.Passages {
 		// "gr0032_FROM_11313_TO_11843"
 		// there is an "index out of range" panic you will see in here if "gr0028_FROM_-1_TO_5" arrives
@@ -147,7 +151,6 @@ func SSBuildQueries(s *SearchStruct) {
 	}
 
 	// [b] build the queries for the author tables
-	idxtmpl := `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
 
 	// [b1] collapse inc.Authors, inc.Works, incl.Passages to find all tables in use
 	// but the keys to boundedincl in fact gives you the answer to the latter two
@@ -171,7 +174,7 @@ func SSBuildQueries(s *SearchStruct) {
 			if len(bb) > TEMPTABLETHRESHOLD {
 				prq.TempTable = requiresindextemptable(au, bb, s)
 			} else {
-				qb.WhrIdxInc = andorwhereclause(bb, idxtmpl, "", " OR ")
+				qb.WhrIdxInc = andorwhereclause(bb, IDX, "", " OR ")
 			}
 		}
 
@@ -181,7 +184,7 @@ func SSBuildQueries(s *SearchStruct) {
 				// note that 200 incl + 200 excl will produce garbage; in practice you have only au ton of one of them
 				prq.TempTable = requiresindextemptable(au, bb, s)
 			} else {
-				qb.WhrIdxExc = andorwhereclause(bb, idxtmpl, "NOT ", " AND ")
+				qb.WhrIdxExc = andorwhereclause(bb, IDX, "NOT ", " AND ")
 			}
 		}
 
@@ -415,8 +418,16 @@ func windowandttprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 
 func requiresindextemptable(au string, bb []Boundaries, ss *SearchStruct) string {
 	// mimic wholeworktemptablecontents() in whereclauses.py
-	m := fmt.Sprintf("%s requiresindextemptable(): %d []Boundaries", au, len(bb))
-	msg(m, 5)
+	const (
+		MSG = "%s requiresindextemptable(): %d []Boundaries"
+		CTT = `
+		CREATE TEMPORARY TABLE %s_includelist_%s AS 
+			SELECT values AS includeindex FROM 
+				unnest(ARRAY[%s])
+			values`
+	)
+
+	msg(fmt.Sprintf(MSG, au, len(bb)), 5)
 	var required []int64
 	for _, b := range bb {
 		for i := b.Start; i <= b.Stop; i++ {
@@ -424,18 +435,12 @@ func requiresindextemptable(au string, bb []Boundaries, ss *SearchStruct) string
 		}
 	}
 
-	ctt := `
-	CREATE TEMPORARY TABLE %s_includelist_%s AS 
-		SELECT values AS includeindex FROM 
-			unnest(ARRAY[%s])
-		values`
-
 	var arr []string
 	for _, r := range required {
 		arr = append(arr, strconv.FormatInt(r, 10))
 	}
 	a := strings.Join(arr, ",")
-	ttsq := fmt.Sprintf(ctt, au, ss.TTName, a)
+	ttsq := fmt.Sprintf(CTT, au, ss.TTName, a)
 
 	return ttsq
 }

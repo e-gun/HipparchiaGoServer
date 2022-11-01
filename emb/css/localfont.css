@@ -440,12 +440,14 @@ body {
 
 .epigraphical_text_after_correction {
 	color: var(--red);
-	font-style: italic;
-	}
+	font-family: 'hipparchiasemiboldstatic', sans-serif;
+}
 
 .epigraphical_text_inserted_after_erasure {
+	font-family: 'hipparchiasemiboldstatic', sans-serif;
+	text-decoration: underline;
 	color: var(--red);
-	}
+}
 
 .erasedepigraphicaltext {
 	text-decoration: line-through;
@@ -614,7 +616,7 @@ body {
 
 .hmu_unconventional_form_written_by_scribe {
     color: var(--sicklyyellow);
-    font-stretch: condensed; font-style: italic;
+	font-family: 'hipparchiacondenseditalicstatic', sans-serif;
     }
 
 .homonym {

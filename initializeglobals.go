@@ -58,6 +58,7 @@ var (
 	TheCorpora   = [5]string{"gr", "lt", "in", "ch", "dp"}
 	TheLanguages = [2]string{"greek", "latin"}
 	MapLocker    sync.RWMutex
+	wspool       = WSNewPool()
 )
 
 type DbAuthor struct {

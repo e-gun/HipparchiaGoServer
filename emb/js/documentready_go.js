@@ -233,6 +233,7 @@ function checkactivityviawebsocket(searchid) {
         s.onopen = function(e){ s.send(JSON.stringify(searchid)); }
         s.onmessage = function(e){
             let progress = JSON.parse(e.data);
+            // console.log(progress);
             if (progress['ID'] === searchid) {
                 $('#pollingdata').html(progress['value']);
                 if  (progress['close'] === 'close') { s.close(); s = null; }

@@ -476,12 +476,12 @@ func unbalancedspancleaner(html string) string {
 	return html
 }
 
-// don't let regex compliation get looped...
+// don't let regex compilation get looped...
 var (
-	esbboth = regexp.MustCompile("\\[(.*?)\\]")
+	esbboth = regexp.MustCompile("\\[(.*?)]")
 	erbboth = regexp.MustCompile("\\((.*?)\\)")
 	eabboth = regexp.MustCompile("⟨(.*?)⟩")
-	ecbboth = regexp.MustCompile("\\{(.*?)\\}")
+	ecbboth = regexp.MustCompile("\\{(.*?)}")
 )
 
 // formateditorialbrackets - helper for textblockcleaner()
