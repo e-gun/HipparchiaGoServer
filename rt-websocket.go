@@ -14,157 +14,9 @@ import (
 	"time"
 )
 
-type PollData struct {
-	TotalWrk int    `json:"Poolofwork"`
-	Remain   int    `json:"Remaining"`
-	Hits     int    `json:"Hitcount"`
-	Msg      string `json:"Statusmessage"`
-	Elapsed  string `json:"Elapsed"`
-	Extra    string `json:"Notes"`
-	ID       string `json:"ID"`
-	TwoBox   bool
-}
-
-type WSClient struct {
-	ID   string
-	Conn *websocket.Conn
-	Pool *WSPool
-}
-
-type WSPool struct {
-	Register   chan *WSClient
-	Unregister chan *WSClient
-	Clients    map[*WSClient]bool
-	JSO        chan WSJSOut
-	ReadID     chan string
-}
-
-type WSJSOut struct {
-	V     string `json:"value"`
-	ID    string `json:"ID"`
-	Close string `json:"close"`
-}
-
-func WSNewPool() *WSPool {
-	return &WSPool{
-		Register:   make(chan *WSClient),
-		Unregister: make(chan *WSClient),
-		Clients:    make(map[*WSClient]bool),
-		JSO:        make(chan WSJSOut),
-		ReadID:     make(chan string),
-	}
-}
-
-func (c *WSClient) ReadID() {
-	const (
-		FAIL = `WSClient.ReadID() failed`
-	)
-	for {
-		_, m, err := c.Conn.ReadMessage()
-		if err != nil {
-			msg(FAIL, 3)
-			return
-		}
-
-		if len(m) != 0 {
-			id := string(m)
-			id = strings.Replace(id, `"`, "", -1)
-			c.ID = id
-			c.Pool.ReadID <- id
-			break
-		}
-	}
-}
-
-func (c *WSClient) WSWriteJSON() {
-	// wait for the search to exist
-	for {
-		MapLocker.RLock()
-		ls := len(SearchMap)
-		_, exists := SearchMap[c.ID]
-		MapLocker.RUnlock()
-		if ls != 0 && exists {
-			break
-		}
-	}
-
-	srch := SafeSearchMapRead(c.ID)
-
-	var r PollData
-	r.TwoBox = srch.Twobox
-	r.TotalWrk = srch.TableSize
-
-	for {
-		r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(srch.Launched).Seconds())
-
-		if srch.PhaseNum > 1 {
-			r.Extra = "(second pass)"
-		} else {
-			r.Extra = ""
-		}
-
-		// mutex protected gets
-		r.Remain = SearchMap[c.ID].Remain.Get()
-		r.Hits = SearchMap[c.ID].Hits.Get()
-
-		MapLocker.RLock()
-		r.Msg = strings.Replace(SearchMap[c.ID].InitSum, "Sought", "Seeking", -1)
-		MapLocker.RUnlock()
-
-		pd := formatpoll(r)
-
-		jso := WSJSOut{
-			V:     pd,
-			ID:    c.ID,
-			Close: "open",
-		}
-
-		c.Pool.JSO <- jso
-		time.Sleep(WSPOLLINGPAUSE)
-
-		MapLocker.RLock()
-		_, exists := SearchMap[c.ID]
-		MapLocker.RUnlock()
-
-		if !exists {
-			break
-		}
-	}
-}
-
-func (pool *WSPool) WSPoolStartLoop() {
-	const (
-		MGS1 = "[WSPool register] Size of Connection Pool: %d"
-		MSG2 = "[WSPool unregister] Size of Connection Pool: %d"
-		MSG3 = "Starting polling loop for '%s'"
-	)
-	for {
-		select {
-		case id := <-pool.Register:
-			pool.Clients[id] = true
-			msg(fmt.Sprintf(MGS1, len(pool.Clients)), 4)
-			break
-		case id := <-pool.Unregister:
-			delete(pool.Clients, id)
-			msg(fmt.Sprintf(MSG2, len(pool.Clients)), 4)
-			break
-		case m := <-pool.ReadID:
-			msg(fmt.Sprintf(MSG3, m), 4)
-		case jso := <-pool.JSO:
-			for client, _ := range pool.Clients {
-				if client.ID == jso.ID {
-					js, y := json.Marshal(jso)
-					chke(y)
-					er := client.Conn.WriteMessage(websocket.TextMessage, js)
-					if er != nil {
-						fmt.Println(er)
-						return
-					}
-				}
-			}
-		}
-	}
-}
+//
+// THE ROUTE
+//
 
 // RtWebsocket - progress info for a search (multiple clients client at a time)
 func RtWebsocket(c echo.Context) error {
@@ -180,15 +32,15 @@ func RtWebsocket(c echo.Context) error {
 		return nil
 	}
 
-	client := &WSClient{
+	progresspoll := &WSClient{
 		Conn: ws,
-		Pool: wspool,
+		Pool: WebsocketPool,
 	}
 
-	wspool.Register <- client
-	client.ReadID()
-	client.WSWriteJSON()
-	wspool.Unregister <- client
+	WebsocketPool.Add <- progresspoll
+	progresspoll.ReadID()
+	progresspoll.WSWriteJSON()
+	WebsocketPool.Remove <- progresspoll
 	return nil
 }
 
@@ -243,4 +95,161 @@ func formatpoll(pd PollData) string {
 	}
 
 	return htm
+}
+
+//
+// WEBSOCKET INFRASTRUCTURE
+//
+
+type PollData struct {
+	TotalWrk int    `json:"Poolofwork"`
+	Remain   int    `json:"Remaining"`
+	Hits     int    `json:"Hitcount"`
+	Msg      string `json:"Statusmessage"`
+	Elapsed  string `json:"Elapsed"`
+	Extra    string `json:"Notes"`
+	ID       string `json:"ID"`
+	TwoBox   bool
+}
+
+type WSClient struct {
+	ID   string
+	Conn *websocket.Conn
+	Pool *WSPool
+}
+
+type WSPool struct {
+	Add       chan *WSClient
+	Remove    chan *WSClient
+	ClientMap map[*WSClient]bool
+	JSO       chan WSJSOut
+	ReadID    chan string
+}
+
+type WSJSOut struct {
+	V     string `json:"value"`
+	ID    string `json:"ID"`
+	Close string `json:"close"`
+}
+
+func (c *WSClient) ReadID() {
+	const (
+		FAIL = `WSClient.ReadID() failed`
+	)
+	for {
+		_, m, err := c.Conn.ReadMessage()
+		if err != nil {
+			msg(FAIL, 3)
+			return
+		}
+
+		if len(m) != 0 {
+			id := string(m)
+			id = strings.Replace(id, `"`, "", -1)
+			c.ID = id
+			c.Pool.ReadID <- id
+			break
+		}
+	}
+}
+
+func (c *WSClient) WSWriteJSON() {
+	// wait for the search to exist
+	for {
+		MapLocker.RLock()
+		ls := len(SearchMap)
+		_, exists := SearchMap[c.ID]
+		MapLocker.RUnlock()
+		if ls != 0 && exists {
+			break
+		}
+	}
+
+	srch := SafeSearchMapRead(c.ID)
+
+	var r PollData
+	r.TwoBox = srch.Twobox
+	r.TotalWrk = srch.TableSize
+
+	// loop until search finishes
+	for {
+		r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(srch.Launched).Seconds())
+
+		if srch.PhaseNum > 1 {
+			r.Extra = "(second pass)"
+		} else {
+			r.Extra = ""
+		}
+
+		// mutex protected gets
+		r.Remain = SearchMap[c.ID].Remain.Get()
+		r.Hits = SearchMap[c.ID].Hits.Get()
+
+		MapLocker.RLock()
+		r.Msg = strings.Replace(SearchMap[c.ID].InitSum, "Sought", "Seeking", -1)
+		MapLocker.RUnlock()
+
+		pd := formatpoll(r)
+
+		jso := WSJSOut{
+			V:     pd,
+			ID:    c.ID,
+			Close: "open",
+		}
+
+		c.Pool.JSO <- jso
+		time.Sleep(WSPOLLINGPAUSE)
+
+		MapLocker.RLock()
+		_, exists := SearchMap[c.ID]
+		MapLocker.RUnlock()
+
+		if !exists {
+			break
+		}
+	}
+}
+
+func (pool *WSPool) WSPoolStartListening() {
+	const (
+		MGS1 = "WSPool add: size of connection pool is %d"
+		MSG2 = "WSPool remove: size of connection pool is %d"
+		MSG3 = "Starting polling loop for %s"
+	)
+	for {
+		select {
+		case id := <-pool.Add:
+			pool.ClientMap[id] = true
+			msg(fmt.Sprintf(MGS1, len(pool.ClientMap)), 4)
+			break
+		case id := <-pool.Remove:
+			delete(pool.ClientMap, id)
+			msg(fmt.Sprintf(MSG2, len(pool.ClientMap)), 4)
+			break
+		case m := <-pool.ReadID:
+			msg(fmt.Sprintf(MSG3, m), 4)
+		case jso := <-pool.JSO:
+			for client, _ := range pool.ClientMap {
+				if client.ID == jso.ID {
+					js, y := json.Marshal(jso)
+					chke(y)
+					er := client.Conn.WriteMessage(websocket.TextMessage, js)
+					if er != nil {
+						fmt.Println(er)
+						return
+					}
+				}
+			}
+		}
+	}
+}
+
+func WSFillNewPool() *WSPool {
+	return &WSPool{
+		Add:       make(chan *WSClient),
+		Remove:    make(chan *WSClient),
+		ClientMap: make(map[*WSClient]bool),
+		JSO:       make(chan WSJSOut),
+		ReadID:    make(chan string),
+	}
 }
