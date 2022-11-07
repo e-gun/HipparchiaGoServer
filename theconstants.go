@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.0.4"
+	VERSION                  = "1.0.5b"
 	AUTHENTICATIONREQUIRED   = false // unused ATM
 	AVGWORDSPERLINE          = 8     // hard coding a suspect assumption
 	CONFIGLOCATION           = "."
@@ -109,7 +109,7 @@ const (
    -ti {num}    maximum # of lines that text/index/vocab maker will ingest [default: %d]
    -ui {string} unacceptable input characters [default: %s]
    -v           print version and exit
-   -wc {int}    number of workers [default: cpu_count]
+   -wc {int}    number of workers [default: cpu_count (%d)]
    -zs          zap lunate sigmas and replace them with σ/ς
 
      (*) example: 

@@ -122,7 +122,7 @@ type WSPool struct {
 	Add       chan *WSClient
 	Remove    chan *WSClient
 	ClientMap map[*WSClient]bool
-	JSO       chan WSJSOut
+	JSO       chan *WSJSOut
 	ReadID    chan string
 }
 
@@ -132,14 +132,19 @@ type WSJSOut struct {
 	Close string `json:"close"`
 }
 
+// ReadID - get the searchID from the client; record it; then exit
 func (c *WSClient) ReadID() {
 	const (
-		FAIL = `WSClient.ReadID() failed`
+		FAIL1 = `WSClient.ReadID() failed`
+		FAIL2 = `WSClient.ReadID() never received the search id`
 	)
+
+	quit := time.Now().Add(time.Second * 1)
+
 	for {
 		_, m, err := c.Conn.ReadMessage()
 		if err != nil {
-			msg(FAIL, 3)
+			msg(FAIL1, 3)
 			return
 		}
 
@@ -150,17 +155,35 @@ func (c *WSClient) ReadID() {
 			c.Pool.ReadID <- id
 			break
 		}
+
+		if time.Now().After(quit) {
+			msg(FAIL2, 3)
+			break
+		}
 	}
 }
 
+// WSWriteJSON - output the constantly updated search progress to the websocket; then exit
 func (c *WSClient) WSWriteJSON() {
+	const (
+		FAIL = `WSClient.WSWriteJSON() never found '%s' in the SearchMap`
+	)
+
 	// wait for the search to exist
+	quit := time.Now().Add(time.Second * 1)
+
 	for {
 		MapLocker.RLock()
 		ls := len(SearchMap)
 		_, exists := SearchMap[c.ID]
 		MapLocker.RUnlock()
+
 		if ls != 0 && exists {
+			break
+		}
+
+		if time.Now().After(quit) {
+			msg(fmt.Sprintf(FAIL, c.ID), 3)
 			break
 		}
 	}
@@ -173,6 +196,18 @@ func (c *WSClient) WSWriteJSON() {
 
 	// loop until search finishes
 	for {
+		MapLocker.RLock()
+		_, exists := SearchMap[c.ID]
+		if exists {
+			r.Remain = SearchMap[c.ID].Remain.Get()
+			r.Hits = SearchMap[c.ID].Hits.Get()
+		}
+		MapLocker.RUnlock()
+
+		if !exists {
+			break
+		}
+
 		r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(srch.Launched).Seconds())
 
 		if srch.PhaseNum > 1 {
@@ -181,17 +216,13 @@ func (c *WSClient) WSWriteJSON() {
 			r.Extra = ""
 		}
 
-		// mutex protected gets
-		r.Remain = SearchMap[c.ID].Remain.Get()
-		r.Hits = SearchMap[c.ID].Hits.Get()
-
 		MapLocker.RLock()
 		r.Msg = strings.Replace(SearchMap[c.ID].InitSum, "Sought", "Seeking", -1)
 		MapLocker.RUnlock()
 
 		pd := formatpoll(r)
 
-		jso := WSJSOut{
+		jso := &WSJSOut{
 			V:     pd,
 			ID:    c.ID,
 			Close: "open",
@@ -199,22 +230,16 @@ func (c *WSClient) WSWriteJSON() {
 
 		c.Pool.JSO <- jso
 		time.Sleep(WSPOLLINGPAUSE)
-
-		MapLocker.RLock()
-		_, exists := SearchMap[c.ID]
-		MapLocker.RUnlock()
-
-		if !exists {
-			break
-		}
 	}
 }
 
+// WSPoolStartListening - the WSPool will listen for activity on its various channels (only called once at app launch)
 func (pool *WSPool) WSPoolStartListening() {
 	const (
 		MGS1 = "WSPool add: size of connection pool is %d"
 		MSG2 = "WSPool remove: size of connection pool is %d"
 		MSG3 = "Starting polling loop for %s"
+		MSG4 = "WSPool client failed on WriteMessage()"
 	)
 	for {
 		select {
@@ -235,7 +260,7 @@ func (pool *WSPool) WSPoolStartListening() {
 					chke(y)
 					er := client.Conn.WriteMessage(websocket.TextMessage, js)
 					if er != nil {
-						fmt.Println(er)
+						msg(MSG4, 1)
 						return
 					}
 				}
@@ -244,12 +269,13 @@ func (pool *WSPool) WSPoolStartListening() {
 	}
 }
 
+// WSFillNewPool - build a new WSPool (one and only one built at app startup)
 func WSFillNewPool() *WSPool {
 	return &WSPool{
 		Add:       make(chan *WSClient),
 		Remove:    make(chan *WSClient),
 		ClientMap: make(map[*WSClient]bool),
-		JSO:       make(chan WSJSOut),
+		JSO:       make(chan *WSJSOut),
 		ReadID:    make(chan string),
 	}
 }
