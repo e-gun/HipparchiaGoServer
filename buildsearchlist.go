@@ -380,14 +380,14 @@ func prunebydate(searchlist []string, s ServerSession) []string {
 
 // calculatewholeauthorsearches - find all authors where 100% of works are requested in the searchlist
 func calculatewholeauthorsearches(sl []string) [2][]string {
-	// 	we have applied all of our inclusions and exclusions by this point and we might well be sitting on a pile of authorsandworks
+	// 	we have applied all of our inclusions and exclusions by this point, and we might well be sitting on a pile of authorsandworks
 	//	that is really a pile of full author dbs. for example, imagine we have not excluded anything from 'Cicero'
 	//
 	//	there is no reason to search that DB work by work since that just means doing a series of "WHERE" SearchMap
 	//	instead of a single, faster search of the whole thing: hits are turned into full citations via the info contained in the
 	//	hit itself and there is no need to derive the work from the item name sent to the dispatcher
 	//
-	//	this function will figure out if the list of work uids contains all of the works for an author and can accordingly be collapsed
+	//	this function will figure out if the list of work uids contains all the works for an author and can accordingly be collapsed
 
 	//start := time.Now()
 	//previous := time.Now()
@@ -407,10 +407,6 @@ func calculatewholeauthorsearches(sl []string) [2][]string {
 			pruner = append(pruner, AllAuthors[k].WorkList...)
 		}
 	}
-
-	//fmt.Printf("len(aa[lt0474].WorkList): %d\n", len(aa["lt0474"].WorkList))
-	//fmt.Printf("members[lt0474]: %d\n", members["lt0474"])
-	// timetracker("-", "calculatewholeauthorsearches()", start, previous)
 
 	return [2][]string{wholes, pruner}
 }

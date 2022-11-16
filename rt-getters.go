@@ -173,6 +173,24 @@ func RtGetJSHelpdata(c echo.Context) error {
 }
 
 func RtGetJSAuthorinfo(c echo.Context) error {
+	const (
+		MTEMPL = `
+		<span class="emph"><span class="emph">{{.Name}}</span></span>&nbsp;
+		[id: {{.ID}}]<br>&nbsp;
+		{{.Gen}}
+		{{.DateCalc}} {{.DateRec}}
+		<br>
+		Total words: {{.TotalWd}}
+		<br><br><span class="italic">work numbers:</span><br>`
+
+		WTEMPL = `
+		({{.ID}})&nbsp;
+		<span class="title">{{.Title}}</span>
+		[{{.Genre}}]&nbsp;
+		[{{.WdCount}} wds]
+		{{.PubInfo}}<br>`
+	)
+
 	type AUTempl struct {
 		Name     string
 		ID       string
@@ -234,24 +252,9 @@ func RtGetJSAuthorinfo(c echo.Context) error {
 
 	sort.Slice(ww, func(i, j int) bool { return ww[i].ID < ww[j].ID })
 
-	mt := `
-    <span class="emph"><span class="emph">{{.Name}}</span></span>&nbsp;
-    [id: {{.ID}}]<br>&nbsp;
-    {{.Gen}}
-    {{.DateCalc}} {{.DateRec}}
-	<br>
-	Total words: {{.TotalWd}}
-	<br><br><span class="italic">work numbers:</span><br>`
-
-	wt := `({{.ID}})&nbsp;
-		<span class="title">{{.Title}}</span>
-		[{{.Genre}}]&nbsp;
-		[{{.WdCount}} wds]
-		{{.PubInfo}}<br>`
-
-	mtt, e := template.New("mt").Parse(mt)
+	mtt, e := template.New("mt").Parse(MTEMPL)
 	chke(e)
-	wtt, e := template.New("wt").Parse(wt)
+	wtt, e := template.New("wt").Parse(WTEMPL)
 	chke(e)
 
 	var b bytes.Buffer

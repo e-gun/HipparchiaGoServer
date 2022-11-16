@@ -20,8 +20,6 @@ import (
 
 // RtWebsocket - progress info for a search (multiple clients client at a time)
 func RtWebsocket(c echo.Context) error {
-	// see https://tutorialedge.net/projects/chat-system-in-go-and-react/part-4-handling-multiple-clients/
-
 	const (
 		FAILCON = "RtWebsocket(): ws connection failed"
 	)
@@ -98,7 +96,7 @@ func formatpoll(pd PollData) string {
 }
 
 //
-// WEBSOCKET INFRASTRUCTURE
+// WEBSOCKET INFRASTRUCTURE: see https://tutorialedge.net/projects/chat-system-in-go-and-react/part-4-handling-multiple-clients/
 //
 
 type PollData struct {
@@ -241,6 +239,7 @@ func (pool *WSPool) WSPoolStartListening() {
 		MSG3 = "Starting polling loop for %s"
 		MSG4 = "WSPool client failed on WriteMessage()"
 	)
+
 	for {
 		select {
 		case id := <-pool.Add:
@@ -254,12 +253,12 @@ func (pool *WSPool) WSPoolStartListening() {
 		case m := <-pool.ReadID:
 			msg(fmt.Sprintf(MSG3, m), 4)
 		case jso := <-pool.JSO:
-			for client, _ := range pool.ClientMap {
-				if client.ID == jso.ID {
+			for cl := range pool.ClientMap {
+				if cl.ID == jso.ID {
 					js, y := json.Marshal(jso)
 					chke(y)
-					er := client.Conn.WriteMessage(websocket.TextMessage, js)
-					if er != nil {
+					e := cl.Conn.WriteMessage(websocket.TextMessage, js)
+					if e != nil {
 						msg(MSG4, 1)
 						return
 					}

@@ -95,22 +95,23 @@ func main() {
 }
 
 type CurrentConfiguration struct {
-	BadChars    string
-	BrowserCtx  int64
-	DbDebug     bool
-	DefCorp     map[string]bool
-	EchoLog     int // "none", "terse", "verbose"
-	Font        string
-	Gzip        bool
-	HostIP      string
-	HostPort    int
-	LogLevel    int
-	ManualGC    bool // see gcstats()
-	MaxText     int
-	PGLogin     PostgresLogin
-	QuietStart  bool
-	WorkerCount int
-	ZapLunates  bool
+	Authenticate bool
+	BadChars     string
+	BrowserCtx   int64
+	DbDebug      bool
+	DefCorp      map[string]bool
+	EchoLog      int // "none", "terse", "verbose"
+	Font         string
+	Gzip         bool
+	HostIP       string
+	HostPort     int
+	LogLevel     int
+	ManualGC     bool // see gcstats()
+	MaxText      int
+	PGLogin      PostgresLogin
+	QuietStart   bool
+	WorkerCount  int
+	ZapLunates   bool
 }
 
 // configatlaunch - read the configuration values from JSON and/or command line
@@ -123,6 +124,13 @@ func configatlaunch() {
 		FAIL5 = "Improperly formatted corpus list. Using:\n\t%s"
 	)
 
+	defaultuser := "hgs"
+	defaultpass := "testing"
+	//pass, err := bcrypt.GenerateFromPassword([]byte(defaultpass), bcrypt.DefaultCost)
+	//chke(err)
+	UserPassPairs[defaultuser] = defaultpass
+
+	Config.Authenticate = true
 	Config.BadChars = UNACCEPTABLEINPUT
 	Config.BrowserCtx = DEFAULTBROWSERCTX
 	Config.DbDebug = false

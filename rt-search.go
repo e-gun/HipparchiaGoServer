@@ -775,7 +775,7 @@ func clonesearch(f SearchStruct, iteration int) SearchStruct {
 func universalpatternmaker(term string) string {
 	// also used by searchformatting.go
 	// converter := extendedrunefeeder()
-	converter := erunef // see top of generichelpers.go
+	converter := ERuneFd // see top of generichelpers.go
 	st := []rune(term)
 	var stre string
 	for _, r := range st {

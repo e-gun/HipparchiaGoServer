@@ -45,6 +45,8 @@ var (
 	SQLPool       *pgxpool.Pool
 	SessionMap    = make(map[string]ServerSession)
 	SearchMap     = make(map[string]SearchStruct)
+	AuthorizedMap = make(map[string]bool)
+	UserPassPairs = make(map[string]string)
 	AllWorks      = make(map[string]DbWork)
 	AllAuthors    = make(map[string]DbAuthor)
 	AllLemm       = make(map[string]DbLemma)

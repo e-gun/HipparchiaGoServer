@@ -14,10 +14,10 @@ import (
 
 var (
 	// to avoid looping this in hot code
-	runef   = getrunefeeder()
-	erunef  = extendedrunefeeder()
-	runered = getrunereducer()
-	uvred   = uvσςϲreducer()
+	RuneFd  = getrunefeeder()
+	ERuneFd = extendedrunefeeder()
+	RuneRed = getrunereducer()
+	UvRed   = uvσςϲreducer()
 )
 
 // stripaccentsSTR - ὀκνεῖϲ --> οκνειϲ, etc.
@@ -26,7 +26,7 @@ func stripaccentsSTR(u string) string {
 	ru := []rune(u)
 	stripped := make([]rune, len(ru))
 	for i, x := range ru {
-		stripped[i] = runered[x]
+		stripped[i] = RuneRed[x]
 	}
 	s := string(stripped)
 	return s
@@ -37,19 +37,19 @@ func stripaccentsRUNE(u []rune) []rune {
 	// reducer := getrunereducer()
 	stripped := make([]rune, len(u))
 	for i, x := range u {
-		stripped[i] = runered[x]
+		stripped[i] = RuneRed[x]
 	}
 	return stripped
 }
 
 func getrunereducer() map[rune]rune {
 	// because we don't have access to python's transtable function
-	// runef := getrunefeeder()
-	// runef now a var at top of file
+	// RuneFd := getrunefeeder()
+	// RuneFd now a var at top of file
 
 	reducer := make(map[rune]rune)
-	for f, _ := range runef {
-		for _, r := range runef[f] {
+	for f, _ := range RuneFd {
+		for _, r := range RuneFd[f] {
 			reducer[r] = f
 		}
 	}
@@ -225,8 +225,8 @@ func uvσςϲ(u string) string {
 	ru := []rune(u)
 	stripped := make([]rune, len(ru))
 	for i, x := range ru {
-		if _, ok := uvred[x]; ok {
-			stripped[i] = uvred[x]
+		if _, ok := UvRed[x]; ok {
+			stripped[i] = UvRed[x]
 		} else {
 			stripped[i] = x
 		}
@@ -276,7 +276,7 @@ func formatbcedate(d string) string {
 	return d
 }
 
-// i64tobce - torn an i64 into something like "300 B.C.E."
+// i64tobce - turn an i64 into something like "300 B.C.E."
 func i64tobce(i int64) string {
 	return formatbcedate(fmt.Sprintf("%d", i))
 }

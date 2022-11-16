@@ -453,6 +453,5 @@ func andorwhereclause(bounds []Boundaries, templ string, negation string, syntax
 		in = append(in, i)
 	}
 
-	// msg(fmt.Sprintf("andorwhereclause(): '%s'", strings.Join(in, syntax)), 1)
 	return strings.Join(in, syntax)
 }

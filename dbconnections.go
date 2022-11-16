@@ -61,6 +61,7 @@ func GetPSQLconnection() *pgxpool.Conn {
 	const (
 		FAIL = "GetPSQLconnection() could not Acquire() from SQLPool"
 	)
+
 	dbc, e := SQLPool.Acquire(context.Background())
 	if e != nil {
 		msg(fmt.Sprintf(FAIL), -1)

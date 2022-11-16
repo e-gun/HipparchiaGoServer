@@ -331,6 +331,7 @@ func headwordprevalence(wc DbHeadwordCount) string {
 	// Prevalence (all forms): Ⓖ 95,843 / Ⓛ 10 / Ⓘ 151 / Ⓓ 751 / Ⓒ 64 / Ⓣ 96,819
 	const (
 		PREVSPAN = `<span class="prevalence">%s</span>&nbsp;%d`
+		PREVSUM  = `<br>Prevalence (all forms): `
 	)
 
 	m := message.NewPrinter(language.English)
@@ -346,13 +347,16 @@ func headwordprevalence(wc DbHeadwordCount) string {
 	}
 	pd = append(pd, m.Sprintf("%s %d", "Ⓣ", wc.Total))
 
-	p := "<br>Prevalence (all forms): " + strings.Join(pd, " / ")
+	p := PREVSUM + strings.Join(pd, " / ")
 
 	return p
 }
 
 func headworddistrib(wc DbHeadwordCount) string {
 	// Weighted distribution by corpus: Ⓖ 100 / Ⓓ 14 / Ⓒ 6 / Ⓘ 2 / Ⓛ 0
+	const (
+		DIST = `<br>Distribution by corpus: `
+	)
 	cv := wc.CorpVal
 
 	for i, c := range cv {
@@ -366,7 +370,7 @@ func headworddistrib(wc DbHeadwordCount) string {
 	p := ""
 	if max != 0 {
 		pd := weightedpdslice(cv)
-		p = "<br>Distribution by corpus: " + strings.Join(pd, "; ")
+		p = DIST + strings.Join(pd, "; ")
 	}
 
 	return p
@@ -374,6 +378,9 @@ func headworddistrib(wc DbHeadwordCount) string {
 
 func headwordchronology(wc DbHeadwordCount) string {
 	// Weighted chronological distribution: ⓔ 100 / ⓛ 84 / ⓜ 62
+	const (
+		DIST = `<br>Distribution by time: `
+	)
 	cv := wc.TimeVal
 
 	for i, c := range cv {
@@ -387,7 +394,7 @@ func headwordchronology(wc DbHeadwordCount) string {
 	p := ""
 	if max != 0 {
 		pd := weightedpdslice(cv)
-		p = "<br>Distribution by time: " + strings.Join(pd, "; ")
+		p = DIST + strings.Join(pd, "; ")
 
 	}
 
@@ -396,6 +403,10 @@ func headwordchronology(wc DbHeadwordCount) string {
 
 func headwordgenres(wc DbHeadwordCount) string {
 	// Predominant genres: comm (100), mech (97), jurisprud (93), med (84), mus (75), nathist (61), paroem (60), allrelig (57)
+	const (
+		DIST = `<br>Distribution by genre: `
+	)
+
 	cv := wc.GenreVal
 
 	wt := map[string]float32{}
@@ -422,7 +433,7 @@ func headwordgenres(wc DbHeadwordCount) string {
 		pd := weightedpdslice(cv)
 		lim := math.Min(GENRESTOCOUNT, float64(len(pd)))
 		pd = pd[0:int(lim)]
-		p = "<br>Distribution by genre: " + strings.Join(pd, "; ")
+		p = DIST + strings.Join(pd, "; ")
 	}
 
 	return p

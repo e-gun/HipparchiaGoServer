@@ -33,7 +33,6 @@ var (
 	GKTENSES      = []string{"pres", "imperf", "fut", "aor", "perf", "plup", "futperf"} // order matters
 	GKINTTENSEMAP = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 4: "Aorist", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
 	GKTENSEMAP    = map[string]int{"pres": 1, "imperf": 2, "fut": 3, "aor": 4, "perf": 5, "plup": 6, "futperf": 7}
-	GKVERBS       = getgkvbmap()
 	GKDIALECT     = []string{"attic", "aeolic", "doric", "epic", "homeric", "ionic"}
 	GKDIALINVALID = []string{"parad", "form"}
 	LTCASES       = []string{"nom", "gen", "dat", "acc", "abl", "voc"}
@@ -43,7 +42,6 @@ var (
 	LTTENSES      = []string{"pres", "imperf", "fut", "perf", "plup", "futperf"} // order needs to match LTINTTENSEMAP
 	LTINTTENSEMAP = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
 	LTTENSEMAP    = map[string]int{"pres": 1, "imperf": 2, "fut": 3, "perf": 5, "plup": 6, "futperf": 7}
-	LTVERBS       = getltvbmap()
 	GENDERS       = []string{"masc", "fem", "neut"}
 	PERSONS       = []string{"1st", "2nd", "3rd"}
 )

@@ -122,7 +122,6 @@ func RtSelectionClear(c echo.Context) error {
 	const (
 		FAIL1 = "RtSelectionClear() was given bad input: %s"
 		FAIL2 = "RtSelectionClear() was given bad category: %s"
-		REG   = `(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
 	)
 
 	user := readUUIDCookie(c)
@@ -141,8 +140,6 @@ func RtSelectionClear(c echo.Context) error {
 		msg(fmt.Sprintf(FAIL1, locus), 1)
 		return emptyjsreturn(c)
 	}
-
-	// cat := []string{"agn", "wgn", "aloc", "wloc", "au", "wk", "psg"}
 
 	newsess := SafeSessionRead(user)
 	newincl := newsess.Inclusions

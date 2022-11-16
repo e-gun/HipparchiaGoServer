@@ -375,13 +375,26 @@ Environment: {{index . "env"}}
         <span id="cookiemessage">Enable <span class="outline red">cookies</span> and/or <span class="outline red">javascript</span> in your browser and then reload this page.</span>
     </div>
 
-    <!-- optional authentication html begins -->
-    {{index . "authentic"}}
-    <!-- optional authentication html ends -->
+    <!-- authentication html begins -->
+    <div id="currentuser" class="unobtrusive">
+        <span class="ui-icon ui-icon-person"></span>
+        <span id="userid" class="user">{{index . "user" }}</span>
+        <span id="executelogout" class="ui-icon ui-icon-squaresmall-close"></span>
+        <span id="executelogin" class="ui-icon ui-icon-key"></span>
+        <br>
+        <span id="alertarea"></span>
+    </div>
+    <div id="validateusers" class="center unobtrusive ui-dialog-content ui-widget-content">
+        <form id="hipparchiauserlogin" method="POST" action="/authentication/attemptlogin">
+            <input id="user" name="user" placeholder="[username]" required="" size="12" type="text" value="">
+            <input id="pw" name="pw" placeholder="[password]" required="" size="12" type="password" value="">
+            <p class="center"><input type="submit" name="login" value="Login"></p>
+        </form>
+    </div>
+    <!-- authentication html ends -->
 
     <!-- load uielementlists first: others will use its values -->
     <script src="/emb/js/uielementlists_go.js"></script>
-    <script src="/emb/js/authentication.js"></script>
     <script src="/emb/js/autocomplete.js"></script>
     <script src="/emb/js/browser.js"></script>
     <script src="/emb/js/coreinterfaceclicks_go.js"></script>

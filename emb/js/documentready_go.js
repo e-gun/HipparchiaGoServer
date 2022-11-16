@@ -249,8 +249,9 @@ function checkactivityviawebsocket(searchid) {
 
 $.getJSON('/authentication/checkuser', function(data){
     var u = data['userid'];
+    var a = Boolean(data['authorized']);
     $('#userid').html(u);
-    if (u === 'Anonymous') {
+    if (a !== true) {
         $('#executelogin').show();
         $('#executelogout').hide();
     } else {
@@ -258,6 +259,20 @@ $.getJSON('/authentication/checkuser', function(data){
         $('#executelogout').show();
         }
     });
+
+$('#validateusers').dialog({ autoOpen: false });
+
+$('#executelogin').click( function() {
+    $('#validateusers').dialog( 'open' );
+});
+
+$('#executelogout').click( function() {
+    $.getJSON('/authentication/logout', function(data){
+        $('#userid').html(data);
+    });
+    $('#executelogout').hide();
+    $('#executelogin').show();
+});
 
 
 //

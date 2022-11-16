@@ -22,7 +22,6 @@ import (
 
 type ServerSession struct {
 	ID          string
-	IsLoggedIn  bool
 	Inclusions  SearchIncExl
 	Exclusions  SearchIncExl
 	ActiveCorp  map[string]bool
@@ -45,6 +44,7 @@ type ServerSession struct {
 	Latest      string
 	TmpInt      int
 	TmpStr      string
+	LoginName   string
 }
 
 // SafeSessionRead - use a lock to safely read a ServerSession from the SessionMap
@@ -80,7 +80,7 @@ func RtFrontpage(c echo.Context) error {
 	subs := map[string]interface{}{
 		"version":       VERSION,
 		"env":           env,
-		"authentic":     "",
+		"user":          "Anonymous",
 		"resultcontext": s.HitContext,
 		"browsecontext": s.BrowseCtx,
 		"proxval":       s.Proximity}
@@ -117,11 +117,13 @@ func makedefaultsession(id string) ServerSession {
 	s.BrowseCtx = Config.BrowserCtx
 	s.SearchScope = DEFAULTPROXIMITYSCOPE
 	s.Proximity = DEFAULTPROXIMITY
+	s.LoginName = "Anonymous"
 
-	if AUTHENTICATIONREQUIRED {
-		s.IsLoggedIn = false
+	// readUUIDCookie() called this function, and it already holds a lock
+	if Config.Authenticate {
+		AuthorizedMap[id] = false
 	} else {
-		s.IsLoggedIn = true
+		AuthorizedMap[id] = true
 	}
 
 	//msg("makedefaultsession() in non-default state for testing; this is not a release build of HGS", 0)
@@ -150,25 +152,18 @@ func readUUIDCookie(c echo.Context) string {
 	}
 	id := cookie.Value
 
+	MapLocker.Lock()
 	if _, t := SessionMap[id]; !t {
-		MapLocker.Lock()
 		SessionMap[id] = makedefaultsession(id)
-		MapLocker.Unlock()
 	}
-
-	s := SafeSessionRead(id)
-
-	if !s.IsLoggedIn {
-		// go to authentication code
-		// at the moment everyone should always be marked as logged in
-	}
-
+	MapLocker.Unlock()
+	m := fmt.Sprintf("readUUIDCookie() says %s authentication status is %t", id, AuthorizedMap[id])
+	msg(m, 1)
 	return id
 }
 
 // writeUUIDCookie - set the ID of the client
 func writeUUIDCookie(c echo.Context) string {
-	// note that cookie.Path = "/" is essential; otherwise different cookies for different contexts: "/browse" vs "/"
 	cookie := new(http.Cookie)
 	cookie.Name = "ID"
 	cookie.Path = "/"

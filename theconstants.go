@@ -9,8 +9,7 @@ const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
 	VERSION                  = "1.0.5b"
-	AUTHENTICATIONREQUIRED   = false // unused ATM
-	AVGWORDSPERLINE          = 8     // hard coding a suspect assumption
+	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	CONFIGLOCATION           = "."
 	CONFIGALTAPTH            = "%s/.config/" // %s = os.UserHomeDir()
 	CONFIGNAME               = "hgs-conf.json"

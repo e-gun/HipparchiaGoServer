@@ -10,33 +10,20 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"html/template"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 )
 
-type TemplateRenderer struct {
-	templates *template.Template
-}
-
-// Render renders a template document
-func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
-
-	// Add global methods if data is a map
-	if viewContext, isMap := data.(map[string]interface{}); isMap {
-		viewContext["reverse"] = c.Echo().Reverse
-	}
-
-	return t.templates.ExecuteTemplate(w, name, data)
-}
-
 // StartEchoServer - start serving; this blocks and does not return while the program remains alive
 func StartEchoServer() {
 	// https://echo.labstack.com/guide/
 	// cf https://medium.com/cuddle-ai/building-microservice-using-golang-echo-framework-ff10ba06d508
+
+	const (
+		LOGFMT = "r: ${status}\tt: ${latency_human}\tu: ${uri}\n"
+	)
 
 	//
 	// SETUP
@@ -44,21 +31,10 @@ func StartEchoServer() {
 
 	e := echo.New()
 
-	fp, err := efs.ReadFile("emb/frontpage.html")
-	chke(err)
-
-	fpt, err := template.New("fp").Parse(string(fp))
-	chke(err)
-
-	renderer := &TemplateRenderer{
-		templates: fpt,
-	}
-	e.Renderer = renderer
-
 	if Config.EchoLog == 2 {
 		e.Use(middleware.Logger())
 	} else if Config.EchoLog == 1 {
-		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: "r: ${status}\tt: ${latency_human}\tu: ${uri}\n"}))
+		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: LOGFMT}))
 	}
 
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(MAXECHOREQPERSECONDPERIP)))
@@ -78,7 +54,9 @@ func StartEchoServer() {
 	//
 
 	// [a1] '/authentication/attemptlogin'
+	e.POST("/authentication/attemptlogin", RtAuthLogin)
 	// [a2] '/authentication/logout'
+	e.GET("/authentication/logout", RtAuthLogout)
 	// [a3] '/authentication/checkuser'
 	e.GET("/authentication/checkuser", RtAuthChkuser)
 
@@ -276,12 +254,6 @@ func StartEchoServer() {
 //
 // MISC SIMPLE ROUTES
 //
-
-// RtAuthChkuser - placeholder for authentication code [post v.1.0.0]
-func RtAuthChkuser(c echo.Context) error {
-	// currently unused
-	return c.String(http.StatusOK, "")
-}
 
 // RtSessionSetsCookie - turn the session into a cookie
 func RtSessionSetsCookie(c echo.Context) error {
