@@ -77,8 +77,14 @@ func RtFrontpage(c echo.Context) error {
 
 	env := fmt.Sprintf("%s: %s - %s (%d workers)", runtime.Version(), runtime.GOOS, runtime.GOARCH, Config.WorkerCount)
 
+	ahtm := AUTHHTML
+	if !Config.Authenticate {
+		ahtm = ""
+	}
+
 	subs := map[string]interface{}{
 		"version":       VERSION,
+		"authhtm":       ahtm,
 		"env":           env,
 		"user":          "Anonymous",
 		"resultcontext": s.HitContext,
@@ -145,6 +151,10 @@ func makedefaultsession(id string) ServerSession {
 
 // readUUIDCookie - find the ID of the client
 func readUUIDCookie(c echo.Context) string {
+	const (
+		MSG = "readUUIDCookie() says %s authentication status is %t"
+	)
+
 	cookie, err := c.Cookie("ID")
 	if err != nil {
 		id := writeUUIDCookie(c)
@@ -157,8 +167,8 @@ func readUUIDCookie(c echo.Context) string {
 		SessionMap[id] = makedefaultsession(id)
 	}
 	MapLocker.Unlock()
-	m := fmt.Sprintf("readUUIDCookie() says %s authentication status is %t", id, AuthorizedMap[id])
-	msg(m, 1)
+
+	msg(fmt.Sprintf(MSG, id, AuthorizedMap[id]), 4)
 	return id
 }
 

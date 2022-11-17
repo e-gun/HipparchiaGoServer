@@ -9,6 +9,7 @@ import (
 	"C"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"runtime"
 	"strconv"
@@ -122,15 +123,10 @@ func configatlaunch() {
 		FAIL3 = "FAILED to load the configuration from either '%s' or '%s'"
 		FAIL4 = "Make sure that the file exists and that it has the following format:"
 		FAIL5 = "Improperly formatted corpus list. Using:\n\t%s"
+		FAIL6 = "Could not open '%s'"
 	)
 
-	defaultuser := "hgs"
-	defaultpass := "testing"
-	//pass, err := bcrypt.GenerateFromPassword([]byte(defaultpass), bcrypt.DefaultCost)
-	//chke(err)
-	UserPassPairs[defaultuser] = defaultpass
-
-	Config.Authenticate = true
+	Config.Authenticate = false
 	Config.BadChars = UNACCEPTABLEINPUT
 	Config.BrowserCtx = DEFAULTBROWSERCTX
 	Config.DbDebug = false
@@ -147,14 +143,24 @@ func configatlaunch() {
 	e := json.Unmarshal([]byte(DEFAULTCORPORA), &Config.DefCorp)
 	chke(e)
 
-	cf := fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGNAME)
+	cf := fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGBASIC)
 
 	uh, _ := os.UserHomeDir()
 	h := fmt.Sprintf(CONFIGALTAPTH, uh)
-	acf := fmt.Sprintf("%s/%s", h, CONFIGNAME)
-	pcf := fmt.Sprintf("%s/%s", h, PROLIXCONFIGFILE)
+	acf := fmt.Sprintf("%s/%s", h, CONFIGBASIC)
+	pcf := fmt.Sprintf("%s/%s", h, CONFIGPROLIX)
+	pwf := fmt.Sprintf("%s%s", h, CONFIGAUTH)
 
-	cfc, _ := os.Open(pcf)
+	cfc, e := os.Open(pcf)
+	if e != nil {
+		msg(fmt.Sprintf(FAIL6, pcf), 4)
+	}
+	defer func(cfc *os.File) {
+		err := cfc.Close()
+		if err != nil {
+		} // the file was almost certainly not found in the first place...
+	}(cfc)
+
 	decoderc := json.NewDecoder(cfc)
 	confc := CurrentConfiguration{}
 	errc := decoderc.Decode(&confc)
@@ -177,6 +183,8 @@ func configatlaunch() {
 			if err != nil {
 				msg(fmt.Sprintf(FAIL5, DEFAULTCORPORA), 0)
 			}
+		case "-au":
+			Config.Authenticate = true
 		case "-bc":
 			bc, err := strconv.Atoi(args[i+1])
 			chke(err)
@@ -199,9 +207,9 @@ func configatlaunch() {
 			Config.Gzip = true
 		case "-h":
 			printversion()
-			fmt.Println(fmt.Sprintf(HELPTEXT, DEFAULTBROWSERCTX, CONFIGLOCATION, CONFIGNAME, h, CONFIGNAME,
+			fmt.Println(fmt.Sprintf(HELPTEXT, pwf, DEFAULTBROWSERCTX, CONFIGLOCATION, CONFIGBASIC, h, CONFIGBASIC,
 				DEFAULTECHOLOGLEVEL, DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT, MAXTEXTLINEGENERATION,
-				UNACCEPTABLEINPUT, runtime.NumCPU(), PROLIXCONFIGFILE, h, PROJURL))
+				UNACCEPTABLEINPUT, runtime.NumCPU(), CONFIGPROLIX, h, PROJURL))
 			os.Exit(1)
 		case "-pg":
 			js := args[i+1]
@@ -239,7 +247,7 @@ func configatlaunch() {
 	if errc != nil {
 		y = " *not*"
 	}
-	msg(fmt.Sprintf("'%s%s'%s loaded", h, PROLIXCONFIGFILE, y), 5)
+	msg(fmt.Sprintf("'%s%s'%s loaded", h, CONFIGPROLIX, y), 5)
 
 	type ConfigFile struct {
 		PosgreSQLPassword string
@@ -250,8 +258,25 @@ func configatlaunch() {
 	if pl.Pass != "" {
 		Config.PGLogin = pl
 	} else {
-		cfa, _ := os.Open(cf)
-		cfb, _ := os.Open(acf)
+		cfa, ee := os.Open(cf)
+		if ee != nil {
+			msg(fmt.Sprintf(FAIL6, cf), 5)
+		}
+		cfb, ee := os.Open(acf)
+		if ee != nil {
+			msg(fmt.Sprintf(FAIL6, acf), 5)
+		}
+
+		defer func(cfa *os.File) {
+			err := cfa.Close()
+			if err != nil {
+			} // the file was almost certainly not found in the first place...
+		}(cfa)
+		defer func(cfb *os.File) {
+			err := cfb.Close()
+			if err != nil {
+			} // the file was almost certainly not found in the first place...
+		}(cfb)
 
 		decodera := json.NewDecoder(cfa)
 		confa := ConfigFile{}
@@ -281,6 +306,55 @@ func configatlaunch() {
 			DBName: DEFAULTPSQLDB,
 			Pass:   conf.PosgreSQLPassword,
 		}
+	}
+
+	if Config.Authenticate {
+		BuildUserPassPairs()
+	}
+}
+
+// BuildUserPassPairs - set up authentication map
+func BuildUserPassPairs() {
+	const (
+		FAIL1 = `failed to unmarshall authorization config file`
+		FAIL2 = `You are requiring authentication but there are no UserPassPairs: aborting launch`
+		FAIL3 = "Could not open '%s'"
+	)
+
+	uh, _ := os.UserHomeDir()
+	h := fmt.Sprintf(CONFIGALTAPTH, uh)
+	pwf := fmt.Sprintf("%s%s", h, CONFIGAUTH)
+
+	pwc, e := os.Open(pwf)
+	if e != nil {
+		msg(fmt.Sprintf(FAIL3, pwf), 0)
+	}
+	defer func(pwc *os.File) {
+		err := pwc.Close()
+		if err != nil {
+		} // the file was almost certainly not found in the first place...
+	}(pwc)
+
+	filebytes, _ := io.ReadAll(pwc)
+
+	type UserPass struct {
+		User string
+		Pass string
+	}
+
+	var upp []UserPass
+	err := json.Unmarshal(filebytes, &upp)
+	if err != nil {
+		msg(FAIL1, 2)
+	}
+
+	for _, u := range upp {
+		UserPassPairs[u.User] = u.Pass
+	}
+
+	if Config.Authenticate && len(UserPassPairs) == 0 {
+		msg(FAIL2, 0)
+		os.Exit(1)
 	}
 }
 

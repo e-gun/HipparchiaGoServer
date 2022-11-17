@@ -60,7 +60,18 @@ func RtTextMaker(c echo.Context) error {
 		HITCAP = `<span class="small"><span class="red emph">text generation incomplete:</span> hit the cap of %d on allowed lines</span>`
 	)
 
+	type JSFeeder struct {
+		SU string `json:"searchsummary"`
+		HT string `json:"thehtml"`
+		JS string `json:"newjs"`
+	}
+
 	user := readUUIDCookie(c)
+	if !SafeAuthenticationRead(user) {
+		bp := JSFeeder{JS: JSVALIDATION}
+		return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
+	}
+
 	sess := SafeSessionRead(user)
 	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 
@@ -142,12 +153,6 @@ func RtTextMaker(c echo.Context) error {
 	}
 	sum = sum + cp
 
-	type JSFeeder struct {
-		SU string `json:"searchsummary"`
-		HT string `json:"thehtml"`
-		JS string `json:"newjs"`
-	}
-
 	var jso JSFeeder
 	jso.SU = sum
 	jso.HT = tab
@@ -196,6 +201,17 @@ func RtVocabMaker(c echo.Context) error {
 		MSG4   = "Building the HTML...(part 4 of 4)"
 		HITCAP = `<span class="small"><span class="red emph">vocabulary generation incomplete:</span>: hit the cap of %d on allowed lines</span>`
 	)
+
+	type JSFeeder struct {
+		SU string `json:"searchsummary"`
+		HT string `json:"thehtml"`
+		NJ string `json:"newjs"`
+	}
+	user := readUUIDCookie(c)
+	if !SafeAuthenticationRead(user) {
+		bp := JSFeeder{NJ: JSVALIDATION}
+		return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
+	}
 
 	start := time.Now()
 
@@ -373,12 +389,6 @@ func RtVocabMaker(c echo.Context) error {
 
 	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, el, cp, ky)
 
-	type JSFeeder struct {
-		SU string `json:"searchsummary"`
-		HT string `json:"thehtml"`
-		NJ string `json:"newjs"`
-	}
-
 	var jso JSFeeder
 	jso.SU = sum
 	jso.HT = htm
@@ -434,6 +444,18 @@ func RtIndexMaker(c echo.Context) error {
 		MSG4   = "Building the HTML...&nbsp;(part 4 of 4)"
 		HITCAP = `<span class="small"><span class="red emph">indexing incomplete:</span>: hit the cap of %d on allowed lines</span>`
 	)
+
+	type JSFeeder struct {
+		SU string `json:"searchsummary"`
+		HT string `json:"thehtml"`
+		NJ string `json:"newjs"`
+	}
+
+	user := readUUIDCookie(c)
+	if !SafeAuthenticationRead(user) {
+		bp := JSFeeder{NJ: JSVALIDATION}
+		return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
+	}
 
 	start := time.Now()
 
@@ -665,12 +687,6 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, el, cp, ky)
-
-	type JSFeeder struct {
-		SU string `json:"searchsummary"`
-		HT string `json:"thehtml"`
-		NJ string `json:"newjs"`
-	}
 
 	var jso JSFeeder
 	jso.SU = sum

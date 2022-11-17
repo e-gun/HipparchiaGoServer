@@ -10,12 +10,6 @@ import (
 	"net/http"
 )
 
-// the following routes will need authentication checks:
-//	/browse/...
-//	/lex/...
-//	/srch/...
-//  /text/...
-
 // RtAuthLogin - accept and validate login info sent from <form id="hipparchiauserlogin"...>
 func RtAuthLogin(c echo.Context) error {
 	cid := readUUIDCookie(c)
@@ -23,7 +17,6 @@ func RtAuthLogin(c echo.Context) error {
 	u := c.FormValue("user")
 	p := c.FormValue("pw")
 
-	MapLocker.Lock()
 	if UserPassPairs[u] == p {
 		SafeAuthenticationWrite(cid, true)
 		s.LoginName = u
@@ -31,7 +24,7 @@ func RtAuthLogin(c echo.Context) error {
 		SafeAuthenticationWrite(cid, false)
 		s.LoginName = "Anonymous"
 	}
-	MapLocker.Unlock()
+
 	SafeSessionMapInsert(s)
 	e := c.Redirect(http.StatusFound, "/")
 	chke(e)
@@ -44,7 +37,7 @@ func RtAuthLogout(c echo.Context) error {
 	s := SafeSessionRead(u)
 	s.LoginName = "Anonymous"
 	SafeSessionMapInsert(s)
-	SafeAuthenticationWrite(u, true)
+	SafeAuthenticationWrite(u, false)
 	return c.JSONPretty(http.StatusOK, "Anonymous", JSONINDENT)
 }
 

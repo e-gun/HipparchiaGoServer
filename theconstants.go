@@ -8,11 +8,13 @@ package main
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.0.5b"
+	VERSION                  = "1.0.5"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	CONFIGLOCATION           = "."
 	CONFIGALTAPTH            = "%s/.config/" // %s = os.UserHomeDir()
-	CONFIGNAME               = "hgs-conf.json"
+	CONFIGAUTH               = "hgs-users.json"
+	CONFIGBASIC              = "hgs-conf.json"
+	CONFIGPROLIX             = "hgs-prolix-conf.json"
 	DBAUMAPSIZE              = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
 	DBLMMAPSIZE              = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
 	DBWKMAPSIZE              = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
@@ -56,7 +58,6 @@ const (
 	NESTEDLEMMASIZE          = 543
 	ORDERBY                  = "index"
 	POLLEVERYNTABLES         = 50 // 3455 is the max number of tables in a search...
-	PROLIXCONFIGFILE         = "hgs-prolix-conf.json"
 	SERVEDFROMHOST           = "127.0.0.1"
 	SERVEDFROMPORT           = 8000
 	SIMULTANEOUSSEARCHES     = 3 // cap on the number of db connections at (S * Config.WorkerCount)
@@ -92,8 +93,10 @@ const (
 
 	HELPTEXT = `command line options:
    -ac {string} set corpora active on startup and reset (*)
+   -au          require authentication 
+                   also implies "%s" exists and has been properly configured (**)
    -bc {num}    default lines of browser context to display [current: %d]
-   -cf {file}   read PSQL password from file [default: "%s/%s" or "%s%s"]
+   -cf {file}   read PSQL password from file [default: looks for "%s/%s" and "%s%s"]
    -db          debug database: show internal references in browsed passages
    -el {num}    set echo server log level (0-2) [default: %d]
    -ft {string} force a client-side font instead of serving Noto fonts
@@ -114,12 +117,16 @@ const (
      (*) example: 
          "{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"
 
+     (**) example:
+         [{"User": "user1","Pass": "pass1"}, {"User":"user2","Pass":"pass2"}, ...]
+
      (†) example: 
          "{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"
      
      NB: place a properly formatted version of '%s' in '%s' 
-         if you want to avoid constantly setting multiple options. See 'sample_hgs-prolix-conf.json' at
-         %s
+         if you want to avoid constantly setting multiple options. 
+         See 'sample_hgs-prolix-conf.json' as well as other sample configuration files at
+             %s
 `
 	LEXFINDJS = `
 		$('%s').click( function(e) {
@@ -297,4 +304,23 @@ const (
 		
 		});
 `
+	AUTHHTML = `    
+	<div id="currentuser" class="unobtrusive">
+        <span class="ui-icon ui-icon-person"></span>
+        <span id="userid" class="user">{{index . "user" }}</span>
+        <span id="executelogout" class="ui-icon ui-icon-squaresmall-close"></span>
+        <span id="executelogin" class="ui-icon ui-icon-key"></span>
+        <br>
+        <span id="alertarea"></span>
+    </div>
+    <div id="validateusers" class="center unobtrusive ui-dialog-content ui-widget-content" title="Please log in...">
+        <form id="hipparchiauserlogin" method="POST" action="/authentication/attemptlogin">
+            <input id="user" name="user" placeholder="[username]" required="" size="12" type="text" value="">
+            <input id="pw" name="pw" placeholder="[password]" required="" size="12" type="password" value="">
+            <p class="center"><input type="submit" name="login" value="Login"></p>
+        </form>
+    </div>`
+	AUTHWARN      = "Please log in first..."
+	VALIDATIONBOX = "$('#validateusers').dialog( 'open' );"
+	JSVALIDATION  = "<script>" + VALIDATIONBOX + "</script>"
 )

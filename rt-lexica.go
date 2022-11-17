@@ -107,6 +107,12 @@ type JSB struct {
 
 // RtLexLookup - search the dictionary for a headword substring
 func RtLexLookup(c echo.Context) error {
+	user := readUUIDCookie(c)
+	if !SafeAuthenticationRead(user) {
+		jsb := JSB{JS: JSVALIDATION}
+		return c.JSONPretty(http.StatusOK, jsb, JSONINDENT)
+	}
+
 	req := c.Param("wd")
 	seeking := purgechars(Config.BadChars, req)
 	seeking = swapacuteforgrave(seeking)
@@ -144,6 +150,12 @@ func RtLexLookup(c echo.Context) error {
 // RtLexFindByForm - search the dictionary for a specific headword
 func RtLexFindByForm(c echo.Context) error {
 	// be able to respond to "GET /lexica/findbyform/ἀμιϲθὶ/gr0062 HTTP/1.1"
+	user := readUUIDCookie(c)
+	if !SafeAuthenticationRead(user) {
+		jsb := JSB{JS: JSVALIDATION}
+		return c.JSONPretty(http.StatusOK, jsb, JSONINDENT)
+	}
+
 	req := c.Param("wd")
 	elem := strings.Split(req, "/")
 
@@ -184,6 +196,12 @@ func RtLexId(c echo.Context) error {
 		FAIL2 = "RtLexId() found nothing at id_number '%s'"
 	)
 
+	user := readUUIDCookie(c)
+	if !SafeAuthenticationRead(user) {
+		jsb := JSB{JS: JSVALIDATION}
+		return c.JSONPretty(http.StatusOK, jsb, JSONINDENT)
+	}
+
 	req := c.Param("wd")
 	elem := strings.Split(req, "/")
 	if len(elem) != 2 {
@@ -212,6 +230,13 @@ func RtLexId(c echo.Context) error {
 // RtLexReverse - look for the headwords that have the sought word in their body
 func RtLexReverse(c echo.Context) error {
 	// be able to respond to "/lexica/reverselookup/0ae94619/sorrow"
+
+	user := readUUIDCookie(c)
+	if !SafeAuthenticationRead(user) {
+		jsb := JSB{JS: JSVALIDATION}
+		return c.JSONPretty(http.StatusOK, jsb, JSONINDENT)
+	}
+
 	req := c.Param("wd")
 	elem := strings.Split(req, "/")
 
@@ -221,7 +246,6 @@ func RtLexReverse(c echo.Context) error {
 
 	word := purgechars(Config.BadChars, elem[1])
 
-	user := readUUIDCookie(c)
 	s := SafeSessionRead(user)
 
 	var dd []string

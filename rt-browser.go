@@ -14,6 +14,18 @@ import (
 	"strings"
 )
 
+// BrowsedPassage - a JSON output struct
+type BrowsedPassage struct {
+	Browseforwards    string `json:"browseforwards"`
+	Browseback        string `json:"browseback"`
+	Authornumber      string `json:"authornumber"`
+	Workid            string `json:"workid"`
+	Worknumber        string `json:"worknumber"`
+	Authorboxcontents string `json:"authorboxcontents"`
+	Workboxcontents   string `json:"workboxcontents"`
+	Browserhtml       string `json:"browserhtml"`
+}
+
 //
 // ROUTING
 //
@@ -49,8 +61,12 @@ func RtBrowseline(c echo.Context) error {
 	)
 
 	user := readUUIDCookie(c)
-	s := SafeSessionRead(user)
+	if !SafeAuthenticationRead(user) {
+		bp := BrowsedPassage{Browserhtml: AUTHWARN}
+		return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
+	}
 
+	s := SafeSessionRead(user)
 	locus := c.Param("locus")
 	elem := strings.Split(locus, "/")
 	if len(elem) == 3 {
@@ -71,18 +87,6 @@ func RtBrowseline(c echo.Context) error {
 // BROWSING
 //
 
-// BrowsedPassage - a JSON output struct
-type BrowsedPassage struct {
-	Browseforwards    string `json:"browseforwards"`
-	Browseback        string `json:"browseback"`
-	Authornumber      string `json:"authornumber"`
-	Workid            string `json:"workid"`
-	Worknumber        string `json:"worknumber"`
-	Authorboxcontents string `json:"authorboxcontents"`
-	Workboxcontents   string `json:"workboxcontents"`
-	Browserhtml       string `json:"browserhtml"`
-}
-
 // Browse - parse request and send a request to generatebrowsedpassage
 func Browse(c echo.Context, sep string) BrowsedPassage {
 	// sample input: http://localhost:8000//browse/perseus/lt0550/001/2:717
@@ -92,6 +96,10 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 
 	user := readUUIDCookie(c)
 	s := SafeSessionRead(user)
+
+	if !SafeAuthenticationRead(user) {
+		return BrowsedPassage{Browserhtml: AUTHWARN}
+	}
 
 	locus := c.Param("locus")
 	elem := strings.Split(locus, "/")

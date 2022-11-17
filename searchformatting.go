@@ -614,6 +614,14 @@ func gethighlighter(ss *SearchStruct) *regexp.Regexp {
 
 	skg := ss.Seeking
 	prx := ss.Proximate
+
+	// "s", "sp", "spa", ... will mean html gets highlighting: `<span class="" ...>`
+	// these has to be a more clever way to do this...
+	skip := regexp.MustCompile("^s$|^sp$|^spa$|^span$|^hmu$")
+	if skip.MatchString(skg) || skip.MatchString(prx) {
+		return re
+	}
+
 	if ss.SkgRewritten {
 		// quasi-bugged because of "\s" --> "\[sS]"; meanwhile whitespacer() can't use " " for its own reasons...
 		// ((^|\[sS])[εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ][νΝ] [οὀὁὂὃὄὅόὸὈὉὊὋὌὍΟ][ρῤῥῬ][εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ][ϲσΣςϹ][τΤ][ηᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧᾘᾙᾚᾛᾜᾝᾞᾟἨἩἪἫἬἭἮἯΗ](\[sS]|$))
