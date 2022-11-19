@@ -14,6 +14,10 @@ import (
 	"time"
 )
 
+var (
+	Upgrader = websocket.Upgrader{}
+)
+
 //
 // THE ROUTE
 //
@@ -24,7 +28,7 @@ func RtWebsocket(c echo.Context) error {
 		FAILCON = "RtWebsocket(): ws connection failed"
 	)
 
-	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	ws, err := Upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		msg(FAILCON, 2)
 		return nil
@@ -260,7 +264,8 @@ func (pool *WSPool) WSPoolStartListening() {
 					e := cl.Conn.WriteMessage(websocket.TextMessage, js)
 					if e != nil {
 						msg(MSG4, 1)
-						return
+						delete(pool.ClientMap, cl)
+						break
 					}
 				}
 			}

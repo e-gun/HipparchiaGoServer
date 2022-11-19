@@ -148,8 +148,8 @@ func RemoveIndex[T any](s []T, index int) []T {
 	return append(ret, s[index+1:]...)
 }
 
-// unique - return only the unique items from a slice
-func unique[T comparable](s []T) []T {
+// Unique - return only the unique items from a slice
+func Unique[T comparable](s []T) []T {
 	// https://gosamples.dev/generics-remove-duplicates-slice/
 	inResult := make(map[T]bool)
 	var result []T
@@ -162,14 +162,16 @@ func unique[T comparable](s []T) []T {
 	return result
 }
 
-// setsubtraction - returns [](set(aa) - set(bb))
-func setsubtraction[T comparable](aa []T, bb []T) []T {
+// SetSubtraction - returns [](set(aa) - set(bb))
+func SetSubtraction[T comparable](aa []T, bb []T) []T {
 	//  NB this is SLOW: be careful looping it 10k times
 	// 	aa := []string{"a", "b", "c", "d"}
 	//	bb := []string{"a", "b", "e", "f"}
-	//	dd := setsubtraction(aa, bb)
+	//	dd := SetSubtraction(aa, bb)
 	//	fmt.Println(dd)
 	//  [c d]
+
+	// might be faster: https://github.com/emirpasic/gods
 
 	pruner := make(map[T]bool)
 	for _, b := range bb {

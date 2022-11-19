@@ -46,11 +46,11 @@ const (
 )
 
 var (
-	nohtml   = regexp.MustCompile("<[^>]*>") // crude, and will not do all of everything
-	metadata = regexp.MustCompile(`<hmu_metadata_(.*?) value="(.*?)" />`)
-	mdformat = regexp.MustCompile(`&3(.*?)&`) // see andsubstitutes in betacodefontshifts.py
-	// mdremap has to be kept in sync w/ l 150 of rt-browser.go ()
-	mdremap = map[string]string{"provenance": "loc:", "documentnumber": "#", "publicationinfo": "pub:", "notes": "",
+	NoHTML   = regexp.MustCompile("<[^>]*>") // crude, and will not do all of everything
+	Metadata = regexp.MustCompile(`<hmu_metadata_(.*?) value="(.*?)" />`)
+	MDFormat = regexp.MustCompile(`&3(.*?)&`) // see andsubstitutes in betacodefontshifts.py
+	// MDRemap has to be kept in sync w/ l 150 of rt-browser.go ()
+	MDRemap = map[string]string{"provenance": "loc:", "documentnumber": "#", "publicationinfo": "pub:", "notes": "",
 		"city": "c:", "region": "r:", "date": "d:"}
 )
 
@@ -148,19 +148,19 @@ func (dbw *DbWorkline) BuildHyperlink() string {
 
 func (dbw *DbWorkline) GatherMetadata() {
 	md := make(map[string]string)
-	if metadata.MatchString(dbw.MarkedUp) {
-		mm := metadata.FindAllStringSubmatch(dbw.MarkedUp, -1)
+	if Metadata.MatchString(dbw.MarkedUp) {
+		mm := Metadata.FindAllStringSubmatch(dbw.MarkedUp, -1)
 		for _, m := range mm {
 			// sample location:
 			// hipparchiaDB=# select index, marked_up_line from lt0474 where index = 116946;
 			md[m[1]] = m[2]
 		}
 
-		dbw.MarkedUp = metadata.ReplaceAllString(dbw.MarkedUp, "")
+		dbw.MarkedUp = Metadata.ReplaceAllString(dbw.MarkedUp, "")
 		for k, v := range md {
-			md[k] = mdformat.ReplaceAllString(v, WLNMETADATATEMPL)
-			if _, y := mdremap[k]; y {
-				md[mdremap[k]] = md[k]
+			md[k] = MDFormat.ReplaceAllString(v, WLNMETADATATEMPL)
+			if _, y := MDRemap[k]; y {
+				md[MDRemap[k]] = md[k]
 				delete(md, k)
 			}
 		}
@@ -168,10 +168,10 @@ func (dbw *DbWorkline) GatherMetadata() {
 	dbw.EmbNotes = md
 }
 
-// PurgeMetadata - delete the line metadata
+// PurgeMetadata - delete the line Metadata
 func (dbw *DbWorkline) PurgeMetadata() {
-	if metadata.MatchString(dbw.MarkedUp) {
-		dbw.MarkedUp = metadata.ReplaceAllString(dbw.MarkedUp, "")
+	if Metadata.MatchString(dbw.MarkedUp) {
+		dbw.MarkedUp = Metadata.ReplaceAllString(dbw.MarkedUp, "")
 	}
 }
 
@@ -204,7 +204,7 @@ func (dbw *DbWorkline) AccentedSlice() []string {
 }
 
 func (dbw *DbWorkline) MarkedUpSlice() []string {
-	cln := nohtml.ReplaceAllString(dbw.MarkedUp, "")
+	cln := NoHTML.ReplaceAllString(dbw.MarkedUp, "")
 	return strings.Split(cln, " ")
 }
 
@@ -361,7 +361,6 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 		q := lvls - i
 		a := fmt.Sprintf(`%s='%s'`, qmap[q], locc[i])
 		ands = append(ands, a)
-		// fmt.Println(ands)
 	}
 
 	var and string
@@ -393,7 +392,7 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	for i := range lines {
 		r = append(r, lines[i].LvlVal(atlvl))
 	}
-	r = unique(r)
+	r = Unique(r)
 	sort.Strings(r)
 	vals.Range = r
 

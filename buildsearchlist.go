@@ -248,7 +248,7 @@ func SessionIntoSearchlist(s ServerSession) ProcessedList {
 			}
 		}
 
-		blacklist = unique(blacklist)
+		blacklist = Unique(blacklist)
 
 		// [c2d] all works of all excluded authors are themselves excluded
 		// we are now moving over from AuUIDs to WkUIDS...
@@ -278,7 +278,7 @@ func SessionIntoSearchlist(s ServerSession) ProcessedList {
 			}
 		}
 
-		inc.Works = setsubtraction(inc.Works, exc.Works)
+		inc.Works = SetSubtraction(inc.Works, exc.Works)
 	}
 
 	// this is the moment when you know the total # of locations searched: worth recording
@@ -304,13 +304,13 @@ func SessionIntoSearchlist(s ServerSession) ProcessedList {
 
 	inc.Works = trim
 
-	inc.Passages = unique(inc.Passages)
-	inc.Works = unique(inc.Works)
-	inc.Authors = unique(inc.Authors)
+	inc.Passages = Unique(inc.Passages)
+	inc.Works = Unique(inc.Works)
+	inc.Authors = Unique(inc.Authors)
 
-	exc.Passages = unique(exc.Passages)
-	exc.Works = unique(exc.Works)
-	exc.Authors = unique(exc.Authors)
+	exc.Passages = Unique(exc.Passages)
+	exc.Works = Unique(exc.Works)
+	exc.Authors = Unique(exc.Authors)
 
 	var proc ProcessedList
 	proc.Inc = inc

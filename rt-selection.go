@@ -185,7 +185,7 @@ func RtSelectionClear(c echo.Context) error {
 	case "psgselections":
 		// NB: restarting the server with an open browser can leave an impossible click; not really a bug, but...
 		del := findkey(id, newincl)
-		newincl.Passages = setsubtraction(newincl.Passages, []string{del})
+		newincl.Passages = SetSubtraction(newincl.Passages, []string{del})
 		delete(newincl.MappedPsgByName, del)
 	case "agnexclusions":
 		newexcl.AuGenres = RemoveIndex(newexcl.AuGenres, id)
@@ -201,7 +201,7 @@ func RtSelectionClear(c echo.Context) error {
 		newexcl.Works = RemoveIndex(newexcl.Works, id)
 	case "psgexclusions":
 		del := findkey(id, newexcl)
-		newexcl.Passages = setsubtraction(newexcl.Passages, []string{del})
+		newexcl.Passages = SetSubtraction(newexcl.Passages, []string{del})
 		delete(newexcl.MappedPsgByName, del)
 	default:
 		msg(fmt.Sprintf(FAIL2, cat), 1)
@@ -257,17 +257,17 @@ func registerselection(user string, sv SelectionValues) ServerSession {
 
 	if sv.A() {
 		if !sv.IsExcl {
-			s.Inclusions.Authors = unique(append(s.Inclusions.Authors, sv.Auth))
+			s.Inclusions.Authors = Unique(append(s.Inclusions.Authors, sv.Auth))
 		} else {
-			s.Exclusions.Authors = unique(append(s.Exclusions.Authors, sv.Auth))
+			s.Exclusions.Authors = Unique(append(s.Exclusions.Authors, sv.Auth))
 		}
 	}
 
 	if sv.AW() {
 		if !sv.IsExcl {
-			s.Inclusions.Works = unique(append(s.Inclusions.Works, fmt.Sprintf("%sw%s", sv.Auth, sv.Work)))
+			s.Inclusions.Works = Unique(append(s.Inclusions.Works, fmt.Sprintf("%sw%s", sv.Auth, sv.Work)))
 		} else {
-			s.Exclusions.Works = unique(append(s.Exclusions.Works, fmt.Sprintf("%sw%s", sv.Auth, sv.Work)))
+			s.Exclusions.Works = Unique(append(s.Exclusions.Works, fmt.Sprintf("%sw%s", sv.Auth, sv.Work)))
 		}
 	}
 
@@ -280,10 +280,10 @@ func registerselection(user string, sv SelectionValues) ServerSession {
 		cs := fmt.Sprintf("%s, %s, %s", ra, rw, r)
 		i := fmt.Sprintf(PSGT, sv.Auth, b[0], b[1])
 		if !sv.IsExcl {
-			s.Inclusions.Passages = unique(append(s.Inclusions.Passages, i))
+			s.Inclusions.Passages = Unique(append(s.Inclusions.Passages, i))
 			s.Inclusions.MappedPsgByName[i] = cs
 		} else {
-			s.Exclusions.Passages = unique(append(s.Exclusions.Passages, i))
+			s.Exclusions.Passages = Unique(append(s.Exclusions.Passages, i))
 			s.Exclusions.MappedPsgByName[i] = cs
 		}
 	}
@@ -299,10 +299,10 @@ func registerselection(user string, sv SelectionValues) ServerSession {
 		cs := fmt.Sprintf("%s, %s, %s - %s", ra, rw, rs, re)
 		i := fmt.Sprintf(PSGT, sv.Auth, b[0], e[1])
 		if !sv.IsExcl {
-			s.Inclusions.Passages = unique(append(s.Inclusions.Passages, i))
+			s.Inclusions.Passages = Unique(append(s.Inclusions.Passages, i))
 			s.Inclusions.MappedPsgByName[i] = cs
 		} else {
-			s.Exclusions.Passages = unique(append(s.Exclusions.Passages, i))
+			s.Exclusions.Passages = Unique(append(s.Exclusions.Passages, i))
 			s.Exclusions.MappedPsgByName[i] = cs
 		}
 	}
@@ -310,9 +310,9 @@ func registerselection(user string, sv SelectionValues) ServerSession {
 	if len(sv.AGenre) != 0 {
 		if _, ok := AuGenres[sv.AGenre]; ok {
 			if !sv.IsExcl {
-				s.Inclusions.AuGenres = unique(append(s.Inclusions.AuGenres, sv.AGenre))
+				s.Inclusions.AuGenres = Unique(append(s.Inclusions.AuGenres, sv.AGenre))
 			} else {
-				s.Exclusions.AuGenres = unique(append(s.Exclusions.AuGenres, sv.AGenre))
+				s.Exclusions.AuGenres = Unique(append(s.Exclusions.AuGenres, sv.AGenre))
 			}
 		}
 	}
@@ -320,9 +320,9 @@ func registerselection(user string, sv SelectionValues) ServerSession {
 	if len(sv.ALoc) != 0 {
 		if _, ok := AuLocs[sv.ALoc]; ok {
 			if !sv.IsExcl {
-				s.Inclusions.AuLocations = unique(append(s.Inclusions.AuLocations, sv.ALoc))
+				s.Inclusions.AuLocations = Unique(append(s.Inclusions.AuLocations, sv.ALoc))
 			} else {
-				s.Exclusions.AuLocations = unique(append(s.Exclusions.AuLocations, sv.ALoc))
+				s.Exclusions.AuLocations = Unique(append(s.Exclusions.AuLocations, sv.ALoc))
 			}
 		}
 	}
@@ -330,9 +330,9 @@ func registerselection(user string, sv SelectionValues) ServerSession {
 	if len(sv.WGenre) != 0 {
 		if _, ok := WkGenres[sv.WGenre]; ok {
 			if !sv.IsExcl {
-				s.Inclusions.WkGenres = unique(append(s.Inclusions.WkGenres, sv.WGenre))
+				s.Inclusions.WkGenres = Unique(append(s.Inclusions.WkGenres, sv.WGenre))
 			} else {
-				s.Exclusions.WkGenres = unique(append(s.Exclusions.WkGenres, sv.WGenre))
+				s.Exclusions.WkGenres = Unique(append(s.Exclusions.WkGenres, sv.WGenre))
 			}
 		}
 	}
@@ -340,9 +340,9 @@ func registerselection(user string, sv SelectionValues) ServerSession {
 	if len(sv.WLoc) != 0 {
 		if _, ok := WkLocs[sv.WLoc]; ok {
 			if !sv.IsExcl {
-				s.Inclusions.WkLocations = unique(append(s.Inclusions.WkLocations, sv.WLoc))
+				s.Inclusions.WkLocations = Unique(append(s.Inclusions.WkLocations, sv.WLoc))
 			} else {
-				s.Exclusions.WkLocations = unique(append(s.Exclusions.WkLocations, sv.WLoc))
+				s.Exclusions.WkLocations = Unique(append(s.Exclusions.WkLocations, sv.WLoc))
 			}
 		}
 	}

@@ -61,7 +61,7 @@ func RtBrowseline(c echo.Context) error {
 	)
 
 	user := readUUIDCookie(c)
-	if !SafeAuthenticationRead(user) {
+	if !SafeAuthenticationCheck(user) {
 		bp := BrowsedPassage{Browserhtml: AUTHWARN}
 		return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
 	}
@@ -97,7 +97,7 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 	user := readUUIDCookie(c)
 	s := SafeSessionRead(user)
 
-	if !SafeAuthenticationRead(user) {
+	if !SafeAuthenticationCheck(user) {
 		return BrowsedPassage{Browserhtml: AUTHWARN}
 	}
 
@@ -412,7 +412,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 		wds := strings.Split(lines[i].Accented, " ")
 		lastwordindex := len(wds) - 1
 		lwd := wds[lastwordindex] // preserve this before potentially shrinking wds
-		wds = unique(wds)
+		wds = Unique(wds)
 
 		newline := lines[i].MarkedUp
 		mw := strings.Split(lines[i].MarkedUp, " ")

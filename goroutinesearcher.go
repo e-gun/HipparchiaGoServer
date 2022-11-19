@@ -7,13 +7,8 @@ package main
 
 import (
 	"context"
-	"github.com/gorilla/websocket"
 	"log"
 	"sync"
-)
-
-var (
-	upgrader = websocket.Upgrader{}
 )
 
 //

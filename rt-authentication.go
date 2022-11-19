@@ -45,7 +45,7 @@ func RtAuthLogout(c echo.Context) error {
 func RtAuthChkuser(c echo.Context) error {
 	user := readUUIDCookie(c)
 	s := SafeSessionRead(user)
-	a := SafeAuthenticationRead(s.ID)
+	a := SafeAuthenticationCheck(s.ID)
 
 	type JSO struct {
 		ID   string `json:"userid"`
@@ -60,8 +60,12 @@ func RtAuthChkuser(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, o, JSONINDENT)
 }
 
-// SafeAuthenticationRead - use a lock to safely read from AuthorizedMap
-func SafeAuthenticationRead(u string) bool {
+// SafeAuthenticationCheck - use a lock to safely read from AuthorizedMap; "true" if you have access
+func SafeAuthenticationCheck(u string) bool {
+	if !Config.Authenticate {
+		return true
+	}
+
 	MapLocker.RLock()
 	defer MapLocker.RUnlock()
 	s, e := AuthorizedMap[u]

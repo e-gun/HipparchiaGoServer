@@ -108,9 +108,8 @@ type JSB struct {
 // RtLexLookup - search the dictionary for a headword substring
 func RtLexLookup(c echo.Context) error {
 	user := readUUIDCookie(c)
-	if !SafeAuthenticationRead(user) {
-		jsb := JSB{JS: JSVALIDATION}
-		return c.JSONPretty(http.StatusOK, jsb, JSONINDENT)
+	if !SafeAuthenticationCheck(user) {
+		return c.JSONPretty(http.StatusOK, JSB{JS: JSVALIDATION}, JSONINDENT)
 	}
 
 	req := c.Param("wd")
@@ -151,9 +150,8 @@ func RtLexLookup(c echo.Context) error {
 func RtLexFindByForm(c echo.Context) error {
 	// be able to respond to "GET /lexica/findbyform/ἀμιϲθὶ/gr0062 HTTP/1.1"
 	user := readUUIDCookie(c)
-	if !SafeAuthenticationRead(user) {
-		jsb := JSB{JS: JSVALIDATION}
-		return c.JSONPretty(http.StatusOK, jsb, JSONINDENT)
+	if !SafeAuthenticationCheck(user) {
+		return c.JSONPretty(http.StatusOK, JSB{JS: JSVALIDATION}, JSONINDENT)
 	}
 
 	req := c.Param("wd")
@@ -197,9 +195,8 @@ func RtLexId(c echo.Context) error {
 	)
 
 	user := readUUIDCookie(c)
-	if !SafeAuthenticationRead(user) {
-		jsb := JSB{JS: JSVALIDATION}
-		return c.JSONPretty(http.StatusOK, jsb, JSONINDENT)
+	if !SafeAuthenticationCheck(user) {
+		return c.JSONPretty(http.StatusOK, JSB{JS: JSVALIDATION}, JSONINDENT)
 	}
 
 	req := c.Param("wd")
@@ -232,9 +229,8 @@ func RtLexReverse(c echo.Context) error {
 	// be able to respond to "/lexica/reverselookup/0ae94619/sorrow"
 
 	user := readUUIDCookie(c)
-	if !SafeAuthenticationRead(user) {
-		jsb := JSB{JS: JSVALIDATION}
-		return c.JSONPretty(http.StatusOK, jsb, JSONINDENT)
+	if !SafeAuthenticationCheck(user) {
+		return c.JSONPretty(http.StatusOK, JSB{JS: JSVALIDATION}, JSONINDENT)
 	}
 
 	req := c.Param("wd")
@@ -596,9 +592,9 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 
 	// the next is primed to produce problems: see καρποῦ which will turn καρπόϲ1 and καρπόϲ2 into just καρπόϲ; need xref_value?
 	// but we have probably taken care of this below: see the comments
-	hwm = unique(hwm)
+	hwm = Unique(hwm)
 
-	// [d] get the wordobjects for each unique headword: probedictionary()
+	// [d] get the wordobjects for each Unique headword: probedictionary()
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+

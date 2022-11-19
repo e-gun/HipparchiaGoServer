@@ -422,10 +422,9 @@ func formatinscriptionplaces(dbw *DbWorkline) string {
 func textblockcleaner(html string) string {
 	// do it early and in this order
 	// presupposes the snippers are in there: "✃✃✃"
-	// used by tr-browser and rt-texsindicesandvocab as well
+	// used by rt-browser and rt-texsindicesandvocab as well
 	html = unbalancedspancleaner(html)
 	html = formateditorialbrackets(html)
-	html = formatmultilinebrackets(html)
 	html = formatmultilinespans(html)
 
 	return html
@@ -478,6 +477,7 @@ func unbalancedspancleaner(html string) string {
 
 // don't let regex compilation get looped...
 var (
+	spkr    = regexp.MustCompile("<speaker>\\[(.*?)</speaker>") // really just "[ϲτρ. α." problem in Aeschylus? fix in builder?
 	esbboth = regexp.MustCompile("\\[(.*?)]")
 	erbboth = regexp.MustCompile("\\((.*?)\\)")
 	eabboth = regexp.MustCompile("⟨(.*?)⟩")
@@ -501,45 +501,18 @@ func formateditorialbrackets(html string) string {
 	// see buildtext() in textbuilder.py for some regex recipies
 
 	const (
+		SPEAK  = `<speaker>$1</speaker>`
 		SQUARE = `[<span class="editorialmarker_squarebrackets">$1</span>]`
 		ROUND  = `(<span class="editorialmarker_roundbrackets">$1</span>)`
 		ANGLE  = `⟨<span class="editorialmarker_angledbrackets">$1</span>⟩`
 		CURLY  = `{<span class="editorialmarker_curlybrackets">$1</span>}`
 	)
 
+	html = spkr.ReplaceAllString(html, SPEAK)
 	html = esbboth.ReplaceAllString(html, SQUARE)
 	html = erbboth.ReplaceAllString(html, ROUND)
 	html = eabboth.ReplaceAllString(html, ANGLE)
 	html = ecbboth.ReplaceAllString(html, CURLY)
-
-	return html
-}
-
-// formatmultilinebrackets - helper for textblockcleaner()
-func formatmultilinebrackets(html string) string {
-	// try to get the spanning right in a browser table for the following:
-	// porrigant; sunt qui non usque ad vitium accedant (necesse 	114.11.4
-	// est enim hoc facere aliquid grande temptanti) sed qui ipsum 	114.11.5
-
-	// we have already marked the opening w/ necesse... but it needs to close and reopen for a new table row
-	// use the block delimiter ("✃✃✃") to help with this
-
-	// sunt qui illos detineant et✃✃✃porrigant; sunt qui non usque ad vitium accedant (<span class="editorialmarker_roundbrackets">necesse✃✃✃est enim hoc facere aliquid grande temptanti</span>) sed qui ipsum✃✃✃vitium ament.✃✃✃
-
-	// also want to do this before you have a lot of "span" spam in the line...
-
-	// the next ovverruns; need to stop at "<"
-	// pattern := regexp.MustCompile("(?P<brktype><span class=\"editorialmarker_\\w+brackets\">)(?P<line_end>.*?)✃✃✃(?P<line_start>.*?</span>)")
-
-	// this won't dow 3+ lines, just 2...
-
-	const (
-		PATT = "(?P<brktype><span class=\"editorialmarker_\\w+brackets\">)(?P<line_end>[^\\<]*?)✃✃✃(?P<line_start>[^\\]]*?</span>)"
-		REPL = "$1$2</span>✃✃✃$1$3"
-	)
-
-	pattern := regexp.MustCompile(PATT)
-	html = pattern.ReplaceAllString(html, REPL)
 
 	return html
 }
@@ -561,6 +534,13 @@ func formatmultilinespans(html string) string {
 	//   332 | &nbsp;&nbsp;&nbsp;<span class="latin normal">MAXIM. CONF. </span><span class="latin italic">l. comm. </span><span class="latin normal">p. 586 Comb. (Migne, PG 91, 828):</span>
 	//(5 rows)
 
+	// square bracket run @ antiphon: οὖν τοῦτο καὶ ἐμοὶ γενέϲθω, εἴπερ ἐμοῦ θέλοντοϲ ἔλεγχον
+
+	// this can get too "greedy" in the fragments of the tragedians where lines end "[ " and then the next is not " ]"
+	// the irregularities in the original data make this basically insoluble as a problem; but formatmultilinespans()
+	// in this form probably gets more things right than wrong; contrast [defunct] formatmultilinebrackets() which
+	// prevented a lot of spillage but not all, and mostly because it was so naive
+
 	const (
 		SPLT = "✃✃✃"
 	)
@@ -572,8 +552,12 @@ func formatmultilinespans(html string) string {
 
 	st1 := spantype{"<span class=\"expanded_text\">", "</span>"}
 	st2 := spantype{"<hmu_serviusformatting>", "</hmu_serviusformatting>"}
+	st3 := spantype{"<span class=\"editorialmarker_squarebrackets\">", "</span>"}
+	st4 := spantype{"<span class=\"editorialmarker_roundbrackets\">", "</span>"}
+	st5 := spantype{"<span class=\"editorialmarker_angledbrackets\">", "</span>"}
+	st6 := spantype{"<span class=\"editorialmarker_curlybrackets\">", "</span>"}
 
-	tocheck := []spantype{st1, st2}
+	tocheck := []spantype{st1, st2, st3, st4, st5, st6}
 
 	spanner := func(block string, st spantype) string {
 		lines := strings.Split(block, SPLT)
@@ -680,18 +664,3 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 	}
 	return r
 }
-
-/*
-multi-line span highlight fails for: ἡ γλῶϲϲά ϲου οὐκ ἐν τῷ | ϲτόματί ϲου κάθηται ἀλλ’ ἐπὶ οἰκήματοϲ
-
-need a version of formatmultilinebrackets() that handles this
-
-hipparchiaDB=# select index,marked_up_line from gr0535 where index between 307 and 309;
- index |                                                                            marked_up_line
--------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-   307 | νεανίϲκου τὰ αἴϲχιϲτα, <span class="expanded_text">‘νεανίϲκε,</span> ἔφη, <span class="expanded_text">ἡ γλῶϲϲά ϲου οὐκ ἐν τῷ
-   308 | ϲτόματί ϲου κάθηται ἀλλ’ ἐπὶ οἰκήματοϲ’.</span>
-   309 | &nbsp;&nbsp;&nbsp;<span class="latin normal">PS. DEMAD.</span> ὑπ. τ. δωδ. <span class="latin normal">§ 15:</span> <span class="expanded_text">‘κρεῖττον γὰρ ἐπερχό-
-(3 rows)
-
-*/

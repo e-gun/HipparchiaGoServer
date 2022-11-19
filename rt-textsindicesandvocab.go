@@ -67,9 +67,8 @@ func RtTextMaker(c echo.Context) error {
 	}
 
 	user := readUUIDCookie(c)
-	if !SafeAuthenticationRead(user) {
-		bp := JSFeeder{JS: JSVALIDATION}
-		return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
+	if !SafeAuthenticationCheck(user) {
+		return c.JSONPretty(http.StatusOK, JSFeeder{JS: JSVALIDATION}, JSONINDENT)
 	}
 
 	sess := SafeSessionRead(user)
@@ -208,9 +207,8 @@ func RtVocabMaker(c echo.Context) error {
 		NJ string `json:"newjs"`
 	}
 	user := readUUIDCookie(c)
-	if !SafeAuthenticationRead(user) {
-		bp := JSFeeder{NJ: JSVALIDATION}
-		return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
+	if !SafeAuthenticationCheck(user) {
+		return c.JSONPretty(http.StatusOK, JSFeeder{NJ: JSVALIDATION}, JSONINDENT)
 	}
 
 	start := time.Now()
@@ -250,7 +248,7 @@ func RtVocabMaker(c echo.Context) error {
 		}
 	}
 
-	// [b] find the unique values we are working with
+	// [b] find the Unique values we are working with
 	distinct := make(map[string]bool, len(slicedwords))
 	for _, w := range slicedwords {
 		distinct[w.Wd] = true
@@ -452,9 +450,8 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	user := readUUIDCookie(c)
-	if !SafeAuthenticationRead(user) {
-		bp := JSFeeder{NJ: JSVALIDATION}
-		return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
+	if !SafeAuthenticationCheck(user) {
+		return c.JSONPretty(http.StatusOK, JSFeeder{NJ: JSVALIDATION}, JSONINDENT)
 	}
 
 	start := time.Now()
@@ -492,7 +489,7 @@ func RtIndexMaker(c echo.Context) error {
 		}
 	}
 
-	// [b] find the unique values
+	// [b] find the Unique values
 	distinct := make(map[string]bool, len(slicedwords))
 	for _, w := range slicedwords {
 		distinct[w.Wd] = true
@@ -810,7 +807,7 @@ func addkeystowordinfo(wii []WordInfo) ([]WordInfo, map[string]rune) {
 	for i, w := range wii {
 		uu[i] = w.Wk
 	}
-	uu = unique(uu)
+	uu = Unique(uu)
 	sort.Slice(uu, func(i, j int) bool { return uu[i] < uu[j] })
 	mp := make(map[string]rune)
 	for i, u := range uu {
@@ -954,7 +951,7 @@ func polishtrans(tr string, pat *regexp.Regexp) string {
 		TT = `<span class="transtree">$1</span> `
 	)
 
-	tr = nohtml.ReplaceAllString(tr, "")
+	tr = NoHTML.ReplaceAllString(tr, "")
 	elem := strings.Split(tr, "; ")
 	for i, e := range elem {
 		elem[i] = pat.ReplaceAllString(e, TT)
