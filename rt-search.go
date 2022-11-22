@@ -562,11 +562,15 @@ func badsearch(msg string) SearchStruct {
 func lemmaintoregexslice(hdwd string) []string {
 	// rather than do one word per query, bundle things up: some words have >100 forms
 	// ...(^|\\s)ἐδηλώϲαντο(\\s|$)|(^|\\s)δεδηλωμένοϲ(\\s|$)|(^|\\s)δήλουϲ(\\s|$)|(^|\\s)δηλούϲαϲ(\\s|$)...
+	const (
+		FAILMSG = "lemmaintoregexslice() could not find '%s'"
+		FAILSLC = "FIND_NOTHING"
+	)
 
 	var qq []string
 	if _, ok := AllLemm[hdwd]; !ok {
-		msg(fmt.Sprintf("lemmaintoregexslice() could not find '%s'", hdwd), 1)
-		return qq
+		msg(fmt.Sprintf(FAILMSG, hdwd), 1)
+		return []string{FAILSLC}
 	}
 
 	tp := `(^|\s)%s(\s|$)`
@@ -582,9 +586,6 @@ func lemmaintoregexslice(hdwd string) []string {
 		var bnd []string
 		for i := 0; i < MAXLEMMACHUNKSIZE; i++ {
 			if ct > len(lemm)-1 {
-				//re := fmt.Sprintf(tp, lemm[ct])
-				//bnd = append(bnd, re)
-				//qq = append(qq, strings.Join(bnd, "|"))
 				break
 			}
 			re := fmt.Sprintf(tp, lemm[ct])

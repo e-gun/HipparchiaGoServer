@@ -32,13 +32,13 @@ const (
 func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 	const (
 		TABLEROW = `
-		<tr class="%s">
+		<tr class="{{.TRClass}}">
 			<td>
-				<span class="findnumber">[%d]</span>&nbsp;&nbsp;%s%s
-				%s
+				<span class="findnumber">[{{.FindNumber}}]</span>&nbsp;&nbsp;{{.FindDate}}{{.FindCity}}
+				{{.FindLocus}}
 			</td>
 			<td class="leftpad">
-				<span class="foundtext">%s</span>
+				<span class="foundtext">{{.TheLine}}</span>
 			</td>
 		</tr>`
 
@@ -46,15 +46,22 @@ func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 		SPSUBBER = `<spcauthor">%s</span>,&nbsp;<spcwork">%s</span>: <browser_id="%s"><spclocus">%s</span></browser>`
 	)
 
-	var out SearchOutputJSON
-	out.JS = fmt.Sprintf(BROWSERJS, "browser")
-	out.Title = ss.Seeking
-	out.Image = ""
-	out.Searchsummary = formatfinalsearchsummary(&ss)
+	type TRTempl struct {
+		TRClass    string
+		FindNumber int
+		FindDate   string
+		FindCity   string
+		FindLocus  string
+		TheLine    string
+	}
 
 	searchterm := gethighlighter(&ss)
 
-	rows := make([]string, len(ss.Results))
+	mtt, e := template.New("mt").Parse(TABLEROW)
+	chke(e)
+
+	var b bytes.Buffer
+
 	for i, r := range ss.Results {
 		r.PurgeMetadata()
 		// highlight search term; should be folded into a single function w/ highlightsearchterm() below [type problem now]
@@ -81,8 +88,6 @@ func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 		wk := r.MyWk().Title
 		lk := r.BuildHyperlink()
 		lc := strings.Join(r.FindLocus(), ".")
-		wd := formatinscriptiondates(DATES, &r)
-		pl := formatinscriptionplaces(&r)
 
 		// <span class="foundauthor">%s</span>,&nbsp;<span class="foundwork">%s</span>: <browser id="%s"><span class="foundlocus">%s</span></browser>
 		ci := fmt.Sprintf(SPSUBBER, au, wk, lk, lc)
@@ -90,14 +95,31 @@ func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 		ci = strings.Replace(ci, "<spc", `<span class="found`, -1)
 		ci = strings.Replace(ci, `browser_id`, `browser id`, -1)
 
-		fm := fmt.Sprintf(TABLEROW, rc, i+1, wd, pl, ci, mu)
-		rows[i] = fm
+		tr := TRTempl{
+			TRClass:    rc,
+			FindNumber: i + 1,
+			FindDate:   formatinscriptiondates(DATES, &r),
+			FindCity:   formatinscriptionplaces(&r),
+			FindLocus:  ci,
+			TheLine:    mu,
+		}
+
+		err := mtt.Execute(&b, tr)
+		chke(err)
+
 	}
 
-	out.Found = "<tbody>" + strings.Join(rows, "") + "</tbody>"
+	var out SearchOutputJSON
+	out.JS = fmt.Sprintf(BROWSERJS, "browser")
+	out.Title = ss.Seeking
+	out.Image = ""
+	out.Searchsummary = formatfinalsearchsummary(&ss)
+
+	out.Found = "<tbody>" + b.String() + "</tbody>"
 	if Config.ZapLunates {
 		out.Found = delunate(out.Found)
 	}
+
 	return out
 }
 
@@ -518,9 +540,6 @@ func formateditorialbrackets(html string) string {
 }
 
 func formatmultilinespans(html string) string {
-	//without intervention span highlight fails for: ἡ γλῶϲϲά ϲου οὐκ ἐν τῷ | ϲτόματί ϲου κάθηται ἀλλ’ ἐπὶ οἰκήματοϲ
-	// NB: not so hard to do 2 lines; 3+ is a different story
-
 	// good test zone follows; not, though, that the original data seems not to have been marked right
 	// that makes seeing whether this code is doing its job a bit tougher...
 
@@ -559,8 +578,7 @@ func formatmultilinespans(html string) string {
 
 	tocheck := []spantype{st1, st2, st3, st4, st5, st6}
 
-	spanner := func(block string, st spantype) string {
-		lines := strings.Split(block, SPLT)
+	spanner := func(lines []string, st spantype) []string {
 		add := ""
 		newlines := make([]string, len(lines))
 		for i, l := range lines {
@@ -576,22 +594,31 @@ func formatmultilinespans(html string) string {
 			}
 			newlines[i] = l
 		}
-		return strings.Join(newlines, SPLT)
+		return newlines
 	}
 
+	htmlslc := strings.Split(html, SPLT)
 	for _, c := range tocheck {
 		if strings.Contains(html, c.open) {
-			html = spanner(html, c)
+			htmlslc = spanner(htmlslc, c)
 		}
 	}
-
+	html = strings.Join(htmlslc, SPLT)
 	return html
 }
 
 // gethighlighter - set regex to highlight the search term
 func gethighlighter(ss *SearchStruct) *regexp.Regexp {
+	// "s", "sp", "spa", ... will mean html gets highlighting: `<span class="xyz" ...>`
+	// there has to be a more clever way to do this...
 	const (
-		FAIL = "gethighlighter() cannot find anything to highlight\n\t%ss"
+		FAIL   = "gethighlighter() cannot find anything to highlight\n\t%ss"
+		FAILRE = "MATCH_NOTHING"
+		SKIP1  = "^s$|^sp$|^spa$|^span$|^hmu$"
+		SKIP2  = "|^c$|^cl$|^cla$|^clas$|^class$"
+		SKIP3  = "|^a$|^as$|^ass$"
+		SKIP4  = "|^l$|^la$|^lat$|^lati$|^latin$"
+		SKIP   = SKIP1 + SKIP2 + SKIP3 + SKIP4
 	)
 
 	var re *regexp.Regexp
@@ -599,11 +626,9 @@ func gethighlighter(ss *SearchStruct) *regexp.Regexp {
 	skg := ss.Seeking
 	prx := ss.Proximate
 
-	// "s", "sp", "spa", ... will mean html gets highlighting: `<span class="" ...>`
-	// these has to be a more clever way to do this...
-	skip := regexp.MustCompile("^s$|^sp$|^spa$|^span$|^hmu$")
+	skip := regexp.MustCompile(SKIP)
 	if skip.MatchString(skg) || skip.MatchString(prx) {
-		return re
+		return regexp.MustCompile(FAILRE)
 	}
 
 	if ss.SkgRewritten {
@@ -625,7 +650,7 @@ func gethighlighter(ss *SearchStruct) *regexp.Regexp {
 		re = lemmahighlighter(ss.LemmaTwo)
 	} else {
 		msg(fmt.Sprintf(FAIL, ss.InitSum), 3)
-		re = nil
+		re = regexp.MustCompile(FAILRE)
 	}
 	return re
 }
