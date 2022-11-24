@@ -97,13 +97,13 @@ func RtSearch(c echo.Context) error {
 		}
 	} else {
 		completed = HGoSrch(SearchMap[id])
+		if completed.HasPhrase {
+			findphrasesacrosslines(&completed)
+		}
 	}
 
-	if completed.HasPhrase {
-		findphrasesacrosslines(&completed)
-		if int64(len(completed.Results)) > reallimit {
-			completed.Results = completed.Results[0:reallimit]
-		}
+	if int64(len(completed.Results)) > reallimit {
+		completed.Results = completed.Results[0:reallimit]
 	}
 
 	completed.SortResults()
@@ -181,13 +181,18 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	previous = time.Now()
 
 	second = HGoSrch(second)
+	if second.HasPhrase {
+		findphrasesacrosslines(&second)
+	}
 
 	if first.NotNear {
 		hitmapper := make(map[string]DbWorkline)
+
 		// all the original hits start as "good"
 		for i := 0; i < len(first.Results); i++ {
 			hitmapper[first.Results[i].BuildHyperlink()] = first.Results[i]
 		}
+
 		// delete any hit that is within N-lines of any second hit
 		// hence "second.NotNear = false" above vs "first.NotNear" to get here: need matches, not misses
 		for i := 0; i < len(second.Results); i++ {
@@ -206,7 +211,6 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	msg(fmt.Sprintf(MSG3, d, len(first.Results)), 4)
 
-	// findphrasesacrosslines() check happens just after you exit this function
 	return second
 }
 
@@ -384,10 +388,6 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 			tt = tt[0 : pd+1]
 		}
 		tail = strings.Join(tt, " ") + " "
-		//fmt.Println(submatchsrchfinder)
-		//fmt.Println(str)
-		//fmt.Printf("[%d] h: %s\n", idx, head)
-		//fmt.Printf("[%d] \tt: %s\n", idx, tail)
 
 		if first.NotNear {
 			// toss hits
@@ -403,15 +403,6 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	}
 
 	second.Results = validresults
-
-	// the next will drop a hit in findphrasesacrosslines()
-	// 	Sought » non tribuit« within 5 words of »mihi autem« in Vitr. Arch 2 will have its hit pruned
-	//	this is because "non tribuit" is there but "mihi autem" is not.
-
-	//second.Seeking = sskg
-	//second.LemmaOne = slem
-
-	// so do this instead...
 	second.Seeking = first.Seeking
 	second.LemmaOne = first.LemmaOne
 
@@ -835,93 +826,3 @@ func SafeSearchMapRead(id string) SearchStruct {
 	}
 	return s
 }
-
-/*
-PROBLEM
-
-cic, in caec.
-
-on both lists:
-
-[3]   Cicero,  In Q. Caecilium: 4.1
-	      Tuli graviter et acerbe, iudices, in eum me locum adduci
-[4]   Cicero,  In Q. Caecilium: 5.1
-	quaestor non fuisset. Adductus sum, iudices, officio, fide,
-
-
-Sought »iudices«
-Searched 1 works and found 13 passages (0.01s)
-Sorted by author name
-[1]   Cicero,  In Q. Caecilium: 1.1
-	      Si quis vestrum, iudices, aut eorum qui adsunt, forte
-[2]   Cicero,  In Q. Caecilium: 2.1
-	      Cum quaestor in Sicilia fuissem, iudices, itaque ex ea
-[3]   Cicero,  In Q. Caecilium: 4.1
-	      Tuli graviter et acerbe, iudices, in eum me locum adduci
-[4]   Cicero,  In Q. Caecilium: 5.1
-	quaestor non fuisset. Adductus sum, iudices, officio, fide,
-[5]   Cicero,  In Q. Caecilium: 5.6
-	      Quo in negotio tamen illa me res, iudices, consolatur,
-[6]   Cicero,  In Q. Caecilium: 10.4
-	habeatis. Ego sic intellego, iudices: cum de pecuniis
-[7]   Cicero,  In Q. Caecilium: 11.2
-	iudices, tametsi utrumque esse arbitror perspicuum, tamen
-[8]   Cicero,  In Q. Caecilium: 14.7
-	obsecrant, iudices, ut in actore causae suae deligendo
-[9]   Cicero,  In Q. Caecilium: 16.1
-	esse delectum. Verum id mihi non sumo, iudices, et hoc
-[10]   Cicero,  In Q. Caecilium: 43.4
-	potuisset, iudices,’ aut aliquid eius modi ediscere potueris,
-[11]   Cicero,  In Q. Caecilium: 54.4
-	censes hos iudices gravius ferre oportere, te ab illo esse
-[12]   Cicero,  In Q. Caecilium: 71.7
-	      Quam ob rem hoc statuere, iudices, debetis, Q. Caecilium,
-[13]   Cicero,  In Q. Caecilium: 73.2
-	propter, iudices, vestrum est deligere quem existimetis
-
-===================
-
-Sought »iudices« within 1 lines of »aut«
-Searched 1 works and found 5 passages (0.01s)
-Sorted by author name
-[1]   Cicero,  In Q. Caecilium: 1.1
-	      Si quis vestrum, iudices, aut eorum qui adsunt, forte
-[2]   Cicero,  In Q. Caecilium: 4.2
-	ut aut eos homines spes falleret qui opem a me atque
-[3]   Cicero,  In Q. Caecilium: 4.10
-	remisissent si istum non nossent, aut si iste apud eos
-[4]   Cicero,  In Q. Caecilium: 43.3
-	‘Iovem ego Optimum Maximum,’ aut ‘Vellem, si fieri
-[5]   Cicero,  In Q. Caecilium: 43.4
-	potuisset, iudices,’ aut aliquid eius modi ediscere potueris,
-
-======================
-
- Sought »iudices« not within 1 lines of »aut«
-Searched 1 works and found 11 passages (0.01s)
-Sorted by author name
-[1]   Cicero,  In Q. Caecilium: 2.1
-	      Cum quaestor in Sicilia fuissem, iudices, itaque ex ea
-[2]   Cicero,  In Q. Caecilium: 4.1
-	      Tuli graviter et acerbe, iudices, in eum me locum adduci
-[3]   Cicero,  In Q. Caecilium: 5.1
-	quaestor non fuisset. Adductus sum, iudices, officio, fide,
-[4]   Cicero,  In Q. Caecilium: 5.6
-	      Quo in negotio tamen illa me res, iudices, consolatur,
-[5]   Cicero,  In Q. Caecilium: 10.4
-	habeatis. Ego sic intellego, iudices: cum de pecuniis
-[6]   Cicero,  In Q. Caecilium: 11.2
-	iudices, tametsi utrumque esse arbitror perspicuum, tamen
-[7]   Cicero,  In Q. Caecilium: 14.7
-	obsecrant, iudices, ut in actore causae suae deligendo
-[8]   Cicero,  In Q. Caecilium: 16.1
-	esse delectum. Verum id mihi non sumo, iudices, et hoc
-[9]   Cicero,  In Q. Caecilium: 54.4
-	censes hos iudices gravius ferre oportere, te ab illo esse
-[10]   Cicero,  In Q. Caecilium: 71.7
-	      Quam ob rem hoc statuere, iudices, debetis, Q. Caecilium,
-[11]   Cicero,  In Q. Caecilium: 73.2
-	propter, iudices, vestrum est deligere quem existimetis
-
-
-*/

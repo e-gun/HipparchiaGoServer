@@ -18,8 +18,7 @@
 
 ### TODO (in vague order of priority)
 
-* WithinXWordsSearch() needs triple-checking
-* room to improve lemma highlighting
+* room to improve result highlighting
 
 ### DISTANT FANTASIES
 * vectors
@@ -36,13 +35,14 @@
       27 unique files.                              
        0 files ignored.
 
-github.com/AlDanial/cloc v 1.94  T=0.03 s (998.6 files/s, 444320.3 lines/s)
+github.com/AlDanial/cloc v 1.94  T=0.03 s (971.0 files/s, 431683.6 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                              27           1770           1990           8254
+Go                              27           1762           1957           8284
 -------------------------------------------------------------------------------
-SUM:                            27           1770           1990           8254
+SUM:                            27           1762           1957           8284
 -------------------------------------------------------------------------------
+
 
 ```
