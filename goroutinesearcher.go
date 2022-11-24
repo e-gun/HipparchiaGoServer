@@ -71,7 +71,7 @@ func SrchFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, e
 
 	go func() {
 		defer close(emitqueries)
-		for i, q := range ss.Queries {
+		for i := 0; i < len(ss.Queries); i++ {
 			select {
 			case <-ctx.Done():
 				break
@@ -80,7 +80,7 @@ func SrchFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, e
 				if remainder%POLLEVERYNTABLES == 0 {
 					ss.Remain.Set(remainder)
 				}
-				emitqueries <- q
+				emitqueries <- ss.Queries[i]
 			}
 		}
 	}()

@@ -340,6 +340,7 @@ func basiccitation(l DbWorkline) string {
 func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	const (
 		OBSREGTEMPL = "(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)" + TERMINATIONS
+		UIDDIV      = `<div id="browsertableuid" uid="%s"></div>`
 		TRTMPL      = `
             <tr class="browser">
                 <td class="browserembeddedannotations">%s</td>
@@ -465,7 +466,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 	tab := strings.Join(trr, "")
 
 	// that was the body, now do the head and tail
-	top := fmt.Sprintf(`<div id="browsertableuid" uid="%s"></div>`, lines[0].AuID())
+	top := fmt.Sprintf(UIDDIV, lines[0].AuID())
 	top += `<table><tbody>`
 	top += `<tr class="spacing">` + strings.Repeat("&nbsp;", MINBROWSERWIDTH) + `</tr>`
 

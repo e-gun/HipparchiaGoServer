@@ -29,6 +29,7 @@ const (
 	HYPHREPLACE = `&nbsp;&nbsp;(&nbsp;match:&nbsp;<span class="match">%s</span>&nbsp;)`
 )
 
+// FormatNoContextResults - build zero context search results table
 func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 	const (
 		TABLEROW = `
@@ -57,7 +58,7 @@ func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 
 	searchterm := gethighlighter(&ss)
 
-	mtt, e := template.New("mt").Parse(TABLEROW)
+	trt, e := template.New("trt").Parse(TABLEROW)
 	chke(e)
 
 	var b bytes.Buffer
@@ -104,7 +105,7 @@ func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 			TheLine:    mu,
 		}
 
-		err := mtt.Execute(&b, tr)
+		err := trt.Execute(&b, tr)
 		chke(err)
 
 	}
@@ -131,6 +132,7 @@ type ResultPassageLine struct {
 	IsHighlight     bool
 }
 
+// FormatWithContextResults - build n-lines of context search results table
 func FormatWithContextResults(thesearch SearchStruct) SearchOutputJSON {
 	const (
 		FINDTEMPL = `
@@ -575,6 +577,7 @@ func formatmultilinespans(html string) string {
 	st4 := spantype{"<span class=\"editorialmarker_roundbrackets\">", "</span>"}
 	st5 := spantype{"<span class=\"editorialmarker_angledbrackets\">", "</span>"}
 	st6 := spantype{"<span class=\"editorialmarker_curlybrackets\">", "</span>"}
+	// st7 := spantype{"<span class=\"bold\">", "</span>"} // gr4089 has span problems via the build itself
 
 	tocheck := []spantype{st1, st2, st3, st4, st5, st6}
 

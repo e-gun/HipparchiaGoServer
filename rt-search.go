@@ -147,11 +147,6 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	previous := time.Now()
 	first := generateinitialhits(originalsrch)
 
-	//for i, r := range first.Results {
-	//	m := fmt.Sprintf("[%d] %d\t%s", i, r.TbIndex, r.Accented)
-	//	msg(m, 2)
-	//}
-
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	msg(fmt.Sprintf(MSG1, d, len(first.Results)), 4)
 	previous = time.Now()
@@ -165,18 +160,19 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	second.SetType()
 
 	newpsg := make([]string, len(first.Results))
-	for i, r := range first.Results {
+	for i := 0; i < len(first.Results); i++ {
 		// avoid "gr0028_FROM_-1_TO_5"
-		low := r.TbIndex - first.ProxDist
+		low := first.Results[i].TbIndex - first.ProxDist
 		if low < 1 {
 			low = 1
 		}
-		np := fmt.Sprintf(PSGT, r.AuID(), low, r.TbIndex+first.ProxDist)
+		np := fmt.Sprintf(PSGT, first.Results[i].AuID(), low, first.Results[i].TbIndex+first.ProxDist)
 		newpsg[i] = np
 	}
 
 	second.CurrentLimit = originalsrch.OriginalLimit
 	second.SearchIn.Passages = newpsg
+	second.NotNear = false
 
 	SSBuildQueries(&second)
 
@@ -186,20 +182,25 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 
 	second = HGoSrch(second)
 
-	// was this a "notnear" search?
-	if second.NotNear {
-		var actualhits []DbWorkline
-		// any original hits that match lines from pt2 are the "real" hits
-		mapper := make(map[string]bool)
-		for _, r := range first.Results {
-			mapper[r.Citation()] = true
+	if first.NotNear {
+		hitmapper := make(map[string]DbWorkline)
+		// all the original hits start as "good"
+		for i := 0; i < len(first.Results); i++ {
+			hitmapper[first.Results[i].BuildHyperlink()] = first.Results[i]
 		}
-		for _, r := range second.Results {
-			if _, ok := mapper[r.Citation()]; ok {
-				actualhits = append(actualhits, r)
+		// delete any hit that is within N-lines of any second hit
+		// hence "second.NotNear = false" above vs "first.NotNear" to get here: need matches, not misses
+		for i := 0; i < len(second.Results); i++ {
+			low := second.Results[i].TbIndex - first.ProxDist
+			high := second.Results[i].TbIndex + first.ProxDist
+			for j := low; j <= high; j++ {
+				hlk := fmt.Sprintf(WKLNHYPERLNKTEMPL, second.Results[i].AuID(), second.Results[i].WkID(), j)
+				if _, ok := hitmapper[hlk]; ok {
+					delete(hitmapper, hlk)
+				}
 			}
 		}
-		second.Results = actualhits
+		second.Results = stringmapintoslice(hitmapper)
 	}
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
@@ -251,15 +252,15 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 	// [a2] pick the lines to grab and associate them with the hits they go with
 	// map[index/gr0007/018/15195:93 index/gr0007/018/15196:93 index/gr0007/018/15197:93 index/gr0007/018/15198:93 ...
-	for i, r := range first.Results {
-		low := r.TbIndex - need
+	for i := 0; i < len(first.Results); i++ {
+		low := first.Results[i].TbIndex - need
 		if low < 1 {
 			low = 1
 		}
-		np := fmt.Sprintf(PSGT, r.AuID(), low, r.TbIndex+need)
+		np := fmt.Sprintf(PSGT, first.Results[i].AuID(), low, first.Results[i].TbIndex+need)
 		newpsg[i] = np
-		for j := r.TbIndex - need; j <= r.TbIndex+need; j++ {
-			m := fmt.Sprintf(LNK, r.AuID(), r.WkID(), j)
+		for j := first.Results[i].TbIndex - need; j <= first.Results[i].TbIndex+need; j++ {
+			m := fmt.Sprintf(LNK, first.Results[i].AuID(), first.Results[i].WkID(), j)
 			resultmapper[m] = i
 		}
 	}
@@ -834,3 +835,93 @@ func SafeSearchMapRead(id string) SearchStruct {
 	}
 	return s
 }
+
+/*
+PROBLEM
+
+cic, in caec.
+
+on both lists:
+
+[3]   Cicero,  In Q. Caecilium: 4.1
+	      Tuli graviter et acerbe, iudices, in eum me locum adduci
+[4]   Cicero,  In Q. Caecilium: 5.1
+	quaestor non fuisset. Adductus sum, iudices, officio, fide,
+
+
+Sought »iudices«
+Searched 1 works and found 13 passages (0.01s)
+Sorted by author name
+[1]   Cicero,  In Q. Caecilium: 1.1
+	      Si quis vestrum, iudices, aut eorum qui adsunt, forte
+[2]   Cicero,  In Q. Caecilium: 2.1
+	      Cum quaestor in Sicilia fuissem, iudices, itaque ex ea
+[3]   Cicero,  In Q. Caecilium: 4.1
+	      Tuli graviter et acerbe, iudices, in eum me locum adduci
+[4]   Cicero,  In Q. Caecilium: 5.1
+	quaestor non fuisset. Adductus sum, iudices, officio, fide,
+[5]   Cicero,  In Q. Caecilium: 5.6
+	      Quo in negotio tamen illa me res, iudices, consolatur,
+[6]   Cicero,  In Q. Caecilium: 10.4
+	habeatis. Ego sic intellego, iudices: cum de pecuniis
+[7]   Cicero,  In Q. Caecilium: 11.2
+	iudices, tametsi utrumque esse arbitror perspicuum, tamen
+[8]   Cicero,  In Q. Caecilium: 14.7
+	obsecrant, iudices, ut in actore causae suae deligendo
+[9]   Cicero,  In Q. Caecilium: 16.1
+	esse delectum. Verum id mihi non sumo, iudices, et hoc
+[10]   Cicero,  In Q. Caecilium: 43.4
+	potuisset, iudices,’ aut aliquid eius modi ediscere potueris,
+[11]   Cicero,  In Q. Caecilium: 54.4
+	censes hos iudices gravius ferre oportere, te ab illo esse
+[12]   Cicero,  In Q. Caecilium: 71.7
+	      Quam ob rem hoc statuere, iudices, debetis, Q. Caecilium,
+[13]   Cicero,  In Q. Caecilium: 73.2
+	propter, iudices, vestrum est deligere quem existimetis
+
+===================
+
+Sought »iudices« within 1 lines of »aut«
+Searched 1 works and found 5 passages (0.01s)
+Sorted by author name
+[1]   Cicero,  In Q. Caecilium: 1.1
+	      Si quis vestrum, iudices, aut eorum qui adsunt, forte
+[2]   Cicero,  In Q. Caecilium: 4.2
+	ut aut eos homines spes falleret qui opem a me atque
+[3]   Cicero,  In Q. Caecilium: 4.10
+	remisissent si istum non nossent, aut si iste apud eos
+[4]   Cicero,  In Q. Caecilium: 43.3
+	‘Iovem ego Optimum Maximum,’ aut ‘Vellem, si fieri
+[5]   Cicero,  In Q. Caecilium: 43.4
+	potuisset, iudices,’ aut aliquid eius modi ediscere potueris,
+
+======================
+
+ Sought »iudices« not within 1 lines of »aut«
+Searched 1 works and found 11 passages (0.01s)
+Sorted by author name
+[1]   Cicero,  In Q. Caecilium: 2.1
+	      Cum quaestor in Sicilia fuissem, iudices, itaque ex ea
+[2]   Cicero,  In Q. Caecilium: 4.1
+	      Tuli graviter et acerbe, iudices, in eum me locum adduci
+[3]   Cicero,  In Q. Caecilium: 5.1
+	quaestor non fuisset. Adductus sum, iudices, officio, fide,
+[4]   Cicero,  In Q. Caecilium: 5.6
+	      Quo in negotio tamen illa me res, iudices, consolatur,
+[5]   Cicero,  In Q. Caecilium: 10.4
+	habeatis. Ego sic intellego, iudices: cum de pecuniis
+[6]   Cicero,  In Q. Caecilium: 11.2
+	iudices, tametsi utrumque esse arbitror perspicuum, tamen
+[7]   Cicero,  In Q. Caecilium: 14.7
+	obsecrant, iudices, ut in actore causae suae deligendo
+[8]   Cicero,  In Q. Caecilium: 16.1
+	esse delectum. Verum id mihi non sumo, iudices, et hoc
+[9]   Cicero,  In Q. Caecilium: 54.4
+	censes hos iudices gravius ferre oportere, te ab illo esse
+[10]   Cicero,  In Q. Caecilium: 71.7
+	      Quam ob rem hoc statuere, iudices, debetis, Q. Caecilium,
+[11]   Cicero,  In Q. Caecilium: 73.2
+	propter, iudices, vestrum est deligere quem existimetis
+
+
+*/

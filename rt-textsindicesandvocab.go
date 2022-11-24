@@ -233,16 +233,16 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	var slicedwords []WordInfo
-	for _, r := range vocabsrch.Results {
-		wds := r.AccentedSlice()
+	for i := 0; i < len(vocabsrch.Results); i++ {
+		wds := vocabsrch.Results[i].AccentedSlice()
 		for _, w := range wds {
 			this := WordInfo{
 				HW:         "",
 				Wd:         uvσςϲ(swapacuteforgrave(w)),
-				Loc:        r.BuildHyperlink(),
-				Cit:        r.Citation(),
+				Loc:        vocabsrch.Results[i].BuildHyperlink(),
+				Cit:        vocabsrch.Results[i].Citation(),
 				IsHomonymn: false,
-				Wk:         r.WkUID,
+				Wk:         vocabsrch.Results[i].WkUID,
 			}
 			slicedwords = append(slicedwords, this)
 		}
@@ -394,8 +394,6 @@ func RtVocabMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "vocabobserved") + fmt.Sprintf(BROWSERJS, "vocabobserved")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	// clean up progress reporting
-
 	MapLocker.Lock()
 	delete(SearchMap, si.ID)
 	MapLocker.Unlock()
@@ -407,8 +405,11 @@ func RtVocabMaker(c echo.Context) error {
 func RtIndexMaker(c echo.Context) error {
 	c.Response().After(func() { gcstats("RtIndexMaker()") })
 
-	// diverging from the way the python works
-	// build not via the selection boxes but via the actual selection made and stored in the session
+	// note that templates + bytes.Buffer is more legible than '%s' time and again BUT it is also slightly slower
+	// this was tested via a rewrite of RtIndexMaker() and other rt-textindicesandvocab functions
+	// Ar., Acharnians will index via template in 0.35s vs 0.28s without the templates
+
+	// for the bytes.Buffer pattern see FormatNoContextResults() and FormatWithContextResults()
 
 	// a lot of code duplication with RtVocabMaker() but consolidation is not as direct a matter as one might guess
 
@@ -474,16 +475,16 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	var slicedwords []WordInfo
-	for _, r := range srch.Results {
-		wds := r.AccentedSlice()
+	for i := 0; i < len(srch.Results); i++ {
+		wds := srch.Results[i].AccentedSlice()
 		for _, w := range wds {
 			this := WordInfo{
 				HW:         "",
 				Wd:         uvσςϲ(swapacuteforgrave(w)),
-				Loc:        r.BuildHyperlink(),
-				Cit:        r.Citation(),
+				Loc:        srch.Results[i].BuildHyperlink(),
+				Cit:        srch.Results[i].Citation(),
 				IsHomonymn: false,
-				Wk:         r.WkUID,
+				Wk:         srch.Results[i].WkUID,
 			}
 			slicedwords = append(slicedwords, this)
 		}
@@ -671,8 +672,6 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	cit := strings.Join(tc, ", ")
-
-	// wf := m.Sprintf("%d", len(trimslices))
 
 	el := fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
 
