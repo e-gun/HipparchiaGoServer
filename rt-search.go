@@ -102,7 +102,7 @@ func RtSearch(c echo.Context) error {
 		}
 	}
 
-	if int64(len(completed.Results)) > reallimit {
+	if len(completed.Results) > reallimit {
 		completed.Results = completed.Results[0:reallimit]
 	}
 
@@ -249,7 +249,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	second.SetType()
 
 	// [a1] hard code a suspect assumption...
-	need := 2 + (first.ProxDist / int64(AVGWORDSPERLINE))
+	need := 2 + (first.ProxDist / AVGWORDSPERLINE)
 
 	resultmapper := make(map[string]int, len(first.Results))
 	newpsg := make([]string, len(first.Results))
@@ -342,7 +342,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	// "non solum pecuniae sed etiam..."
 
 	pd := first.ProxDist
-	ph2 := int64(len(strings.Split(strings.TrimSpace(first.Proximate), " ")))
+	ph2 := len(strings.Split(strings.TrimSpace(first.Proximate), " "))
 
 	if ph2 > 1 {
 		pd = pd + ph2
@@ -376,15 +376,15 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 		}
 
 		hh := strings.Split(head, " ")
-		start := int64(0)
-		if int64(len(hh))-pd-1 > 0 {
-			start = int64(len(hh)) - pd - 1
+		start := 0
+		if len(hh)-pd-1 > 0 {
+			start = len(hh) - pd - 1
 		}
 		hh = hh[start:]
 		head = " " + strings.Join(hh, " ")
 
 		tt := strings.Split(tail, " ")
-		if int64(len(tt)) >= pd+1 {
+		if len(tt) >= pd+1 {
 			tt = tt[0 : pd+1]
 		}
 		tail = strings.Join(tt, " ") + " "
@@ -440,7 +440,7 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	srch.OrderBy = ORDERBY
 	srch.SearchIn = sess.Inclusions
 	srch.SearchEx = sess.Exclusions
-	srch.ProxDist = int64(sess.Proximity)
+	srch.ProxDist = sess.Proximity
 	srch.ProxScope = sess.SearchScope
 	srch.NotNear = false
 	srch.Twobox = false

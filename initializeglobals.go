@@ -72,7 +72,7 @@ type DbAuthor struct {
 	Cleaname  string
 	Genres    string
 	RecDate   string
-	ConvDate  int64
+	ConvDate  int
 	Location  string
 	// beyond the DB starts here
 	WorkList []string
@@ -94,10 +94,10 @@ type DbWork struct {
 	Type      string
 	Prov      string
 	RecDate   string
-	ConvDate  int64
-	WdCount   int64
-	FirstLine int64
-	LastLine  int64
+	ConvDate  int
+	WdCount   int
+	FirstLine int
+	LastLine  int
 	Authentic bool
 }
 
@@ -144,7 +144,7 @@ func (dbw DbWork) CountLevels() int {
 }
 
 // DateInRange - is the work dated between X and Y?
-func (dbw DbWork) DateInRange(earliest int64, latest int64) bool {
+func (dbw DbWork) DateInRange(earliest int, latest int) bool {
 	if earliest >= dbw.ConvDate && dbw.ConvDate <= latest {
 		return true
 	} else {
@@ -155,7 +155,7 @@ func (dbw DbWork) DateInRange(earliest int64, latest int64) bool {
 type DbLemma struct {
 	// dictionary_entry | xref_number |    derivative_forms
 	Entry string
-	Xref  int64
+	Xref  int
 	Deriv []string
 }
 

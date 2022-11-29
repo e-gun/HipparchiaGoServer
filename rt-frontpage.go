@@ -36,9 +36,9 @@ type ServerSession struct {
 	SearchScope string `json:"searchscope"`
 	SortHitsBy  string `json:"sortorder"`
 	Proximity   int    `json:"proximity"`
-	BrowseCtx   int64
+	BrowseCtx   int
 	InputStyle  string
-	HitLimit    int64
+	HitLimit    int
 	HitContext  int
 	Earliest    string
 	Latest      string

@@ -226,7 +226,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
 	max := Config.MaxText * MAXVOCABLINEGENERATION
-	vocabsrch := sessionintobulksearch(c, int64(max)) // allow bigger vocab lists
+	vocabsrch := sessionintobulksearch(c, max) // allow bigger vocab lists
 
 	if len(vocabsrch.Results) == 0 {
 		return emptyjsreturn(c)
@@ -703,7 +703,7 @@ func RtIndexMaker(c echo.Context) error {
 //
 
 // sessionintobulksearch - grab every line of text in the currently registerselection set of authors, works, and passages
-func sessionintobulksearch(c echo.Context, lim int64) SearchStruct {
+func sessionintobulksearch(c echo.Context, lim int) SearchStruct {
 	user := readUUIDCookie(c)
 	sess := SafeSessionRead(user)
 

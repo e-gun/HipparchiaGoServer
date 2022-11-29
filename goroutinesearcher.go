@@ -51,7 +51,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	}
 
 	results := ResultCollation(ctx, &ss, max, ResultAggregator(ctx, findchannels...))
-	if int64(len(results)) > max {
+	if len(results) > max {
 		results = results[0:max]
 	}
 
@@ -135,7 +135,7 @@ func ResultAggregator(ctx context.Context, findchannels ...<-chan []DbWorkline) 
 }
 
 // ResultCollation - return the actual []DbWorkline results after pulling them from the ResultAggregator channel
-func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int64, values <-chan []DbWorkline) []DbWorkline {
+func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, values <-chan []DbWorkline) []DbWorkline {
 	var allhits []DbWorkline
 	done := false
 	for {
@@ -155,7 +155,7 @@ func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int64, value
 				}
 				ss.Hits.Set(len(allhits))
 
-				if int64(len(allhits)) > maxhits {
+				if len(allhits) > maxhits {
 					done = true
 				}
 			} else {

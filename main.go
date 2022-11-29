@@ -98,7 +98,7 @@ func main() {
 type CurrentConfiguration struct {
 	Authenticate bool
 	BadChars     string
-	BrowserCtx   int64
+	BrowserCtx   int
 	DbDebug      bool
 	DefCorp      map[string]bool
 	EchoLog      int // "none", "terse", "verbose"
@@ -188,7 +188,7 @@ func configatlaunch() {
 		case "-bc":
 			bc, err := strconv.Atoi(args[i+1])
 			chke(err)
-			Config.BrowserCtx = int64(bc)
+			Config.BrowserCtx = bc
 		case "-cf":
 			cf = args[i+1]
 		case "-db":

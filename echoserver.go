@@ -428,7 +428,7 @@ func RtSetOption(c echo.Context) error {
 			switch opt {
 			case "maxresults":
 				if intval < MAXHITLIMIT {
-					s.HitLimit = int64(intval)
+					s.HitLimit = intval
 				} else {
 					s.HitLimit = MAXHITLIMIT
 				}
@@ -440,7 +440,7 @@ func RtSetOption(c echo.Context) error {
 				}
 			case "browsercontext":
 				if intval < MAXBROWSERCONTEXT {
-					s.BrowseCtx = int64(intval)
+					s.BrowseCtx = intval
 				} else {
 					s.BrowseCtx = MAXBROWSERCONTEXT
 				}

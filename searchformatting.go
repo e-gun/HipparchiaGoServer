@@ -174,9 +174,9 @@ func FormatWithContextResults(thesearch SearchStruct) SearchOutputJSON {
 	res.LemmaOne = ""
 	res.Proximate = ""
 	res.LemmaTwo = ""
-	res.CurrentLimit = (thesearch.CurrentLimit * int64(thesession.HitContext)) * 3
+	res.CurrentLimit = (thesearch.CurrentLimit * thesession.HitContext) * 3
 
-	context := int64(thesession.HitContext / 2)
+	context := thesession.HitContext / 2
 
 	res.SearchIn.Passages = make([]string, len(res.Results))
 	for i, r := range res.Results {
@@ -218,7 +218,7 @@ func FormatWithContextResults(thesearch SearchStruct) SearchOutputJSON {
 		}
 
 		// if you want to do this the horrifyingly slow way...
-		// psg.RawCTX = simplecontextgrabber(r.AuID(), r.TbIndex, int64(thesession.HitContext/2))
+		// psg.RawCTX = simplecontextgrabber(r.AuID(), r.TbIndex, thesession.HitContext/2)
 
 		psg.CookedCTX = make([]ResultPassageLine, len(psg.RawCTX))
 		for j := 0; j < len(psg.RawCTX); j++ {
@@ -366,7 +366,7 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 	}
 
 	var hitcap string
-	if int64(len(s.Results)) == s.CurrentLimit {
+	if len(s.Results) == s.CurrentLimit {
 		hitcap = YESCAP
 	} else {
 		hitcap = NOCAP
@@ -418,7 +418,7 @@ func formatinscriptiondates(template string, dbw *DbWorkline) string {
 	fc := dbw.FindCorpus()
 	dated := fc == "in" || fc == "ch" || fc == "dp"
 	if dated {
-		cd := i64tobce(AllWorks[dbw.WkUID].ConvDate)
+		cd := IntToBCE(AllWorks[dbw.WkUID].ConvDate)
 		if cd == "2500 C.E." {
 			cd = "??? BCE/CE"
 		}

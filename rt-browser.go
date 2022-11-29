@@ -75,7 +75,7 @@ func RtBrowseline(c echo.Context) error {
 		ln, e := strconv.Atoi(elem[2])
 		chke(e)
 		ctx := s.BrowseCtx
-		bp := generatebrowsedpassage(au, wk, int64(ln), ctx)
+		bp := generatebrowsedpassage(au, wk, ln, ctx)
 		return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
 	} else {
 		msg(fmt.Sprintf(FAIL, locus), 3)
@@ -119,7 +119,7 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 }
 
 // generatebrowsedpassage - browse Author A at line X with a context of Y lines
-func generatebrowsedpassage(au string, wk string, fc int64, ctx int64) BrowsedPassage {
+func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassage {
 	// build a response to "GET /browse/index/gr0062/028/14672 HTTP/1.1"
 
 	const (
@@ -337,7 +337,7 @@ func basiccitation(l DbWorkline) string {
 }
 
 // buildbrowsertable - where the actual HTML gets generated
-func buildbrowsertable(focus int64, lines []DbWorkline) string {
+func buildbrowsertable(focus int, lines []DbWorkline) string {
 	const (
 		OBSREGTEMPL = "(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)" + TERMINATIONS
 		UIDDIV      = `<div id="browsertableuid" uid="%s"></div>`
@@ -480,7 +480,7 @@ func buildbrowsertable(focus int64, lines []DbWorkline) string {
 }
 
 // selectivelydisplaycitations - only show line numbers every N lines, etc.
-func selectivelydisplaycitations(theline DbWorkline, previous DbWorkline, focus int64) string {
+func selectivelydisplaycitations(theline DbWorkline, previous DbWorkline, focus int) string {
 	// figure out whether to display a citation
 	// pulled this out because it is common with the textbuilder (who will always send "0" as the focus)
 

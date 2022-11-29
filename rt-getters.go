@@ -63,11 +63,11 @@ func RtGetJSSession(c echo.Context) error {
 			return "no"
 		}
 	}
-	i64s := func(i int64) string { return fmt.Sprintf("%d", i) }
+
 	is := func(i int) string { return fmt.Sprintf("%d", i) }
 
 	var jso JSO
-	jso.Browsercontext = i64s(s.BrowseCtx)
+	jso.Browsercontext = is(s.BrowseCtx)
 	jso.Christiancorpus = t2y(s.ActiveCorp["ch"])
 	jso.Earliestdate = s.Earliest
 	jso.Greekcorpus = t2y(s.ActiveCorp["gr"])
@@ -78,7 +78,7 @@ func RtGetJSSession(c echo.Context) error {
 	jso.Latestdate = s.Latest
 	jso.Latincorpus = t2y(s.ActiveCorp["lt"])
 	jso.Linesofcontext = is(s.HitContext)
-	jso.Maxresults = i64s(s.HitLimit)
+	jso.Maxresults = is(s.HitLimit)
 	jso.Nearornot = s.NearOrNot
 	jso.Papyruscorpus = t2y(s.ActiveCorp["dp"])
 	jso.Proximity = is(s.Proximity)
@@ -221,7 +221,7 @@ func RtGetJSAuthorinfo(c echo.Context) error {
 	}
 
 	if au.ConvDate != 2500 {
-		at.DateCalc = fmt.Sprintf("assigned to approx date: %s ", i64tobce(au.ConvDate))
+		at.DateCalc = fmt.Sprintf("assigned to approx date: %s ", IntToBCE(au.ConvDate))
 	} else {
 		at.DateCalc = "(date is unavalable)"
 	}
@@ -233,7 +233,7 @@ func RtGetJSAuthorinfo(c echo.Context) error {
 	}
 
 	var ww []WKTempl
-	var twc int64
+	var twc int
 	p := message.NewPrinter(language.English)
 
 	for _, w := range au.WorkList {
@@ -326,7 +326,7 @@ func RtGetJSSearchlist(c echo.Context) error {
 
 	m := message.NewPrinter(language.English)
 	sl := SessionIntoSearchlist(sess)
-	tw := int64(0)
+	tw := 0
 
 	var wkk []string
 	for _, a := range sl.Inc.Authors {
@@ -350,13 +350,13 @@ func RtGetJSSearchlist(c echo.Context) error {
 	for _, p := range sl.Inc.Passages {
 		cit, count := searchlistpassages(pattern, p)
 		wkk = append(wkk, cit)
-		tw += int64(count)
+		tw += count
 	}
 
 	for _, p := range sl.Excl.Passages {
 		cit, count := searchlistpassages(pattern, p)
 		wkk = append(wkk, cit+"[EXCLUDED]")
-		tw -= int64(count)
+		tw -= count
 	}
 
 	if len(wkk) > MAXSEARCHINFOLISTLEN {
@@ -384,8 +384,8 @@ func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
 	au := subs[pattern.SubexpIndex("auth")]
 	st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
 	sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
-	f := graboneline(au, int64(st))
-	l := graboneline(au, int64(sp))
+	f := graboneline(au, st)
+	l := graboneline(au, sp)
 	s := buildhollowsearch()
 	s.SearchIn.Passages = []string{p}
 	SSBuildQueries(&s)

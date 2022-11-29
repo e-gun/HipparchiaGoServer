@@ -330,11 +330,8 @@ func prunebydate(searchlist []string, s ServerSession) []string {
 		return searchlist
 	}
 
-	earliest, _ := strconv.Atoi(s.Earliest)
-	latest, _ := strconv.Atoi(s.Latest)
-
-	e := int64(earliest)
-	l := int64(latest)
+	e, _ := strconv.Atoi(s.Earliest)
+	l, _ := strconv.Atoi(s.Latest)
 
 	// should have already been validated elsewhere...
 	if e > l {

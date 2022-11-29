@@ -272,7 +272,7 @@ func registerselection(user string, sv SelectionValues) ServerSession {
 	}
 
 	if sv.AWP() {
-		// [2]int64 comes back: first and last lines found via the query
+		// [2]int comes back: first and last lines found via the query
 		b := findendpointsfromlocus(sv.WUID(), sv.Start, sep)
 		r := strings.Replace(sv.Start, "|", ".", -1)
 		ra := AllAuthors[sv.Auth].Shortname
@@ -289,7 +289,7 @@ func registerselection(user string, sv SelectionValues) ServerSession {
 	}
 
 	if sv.AWPR() {
-		// [2]int64 comes back: first and last lines found via the query
+		// [2]int comes back: first and last lines found via the query
 		b := findendpointsfromlocus(sv.WUID(), sv.Start, sep)
 		e := findendpointsfromlocus(sv.WUID(), sv.End, sep)
 		ra := AllAuthors[sv.Auth].Shortname
@@ -634,7 +634,7 @@ func workvalueofpassage(psg string) string {
 	for _, w := range AllAuthors[au].WorkList {
 		ws := AllWorks[w].FirstLine
 		we := AllWorks[w].LastLine
-		if int64(st) >= ws && int64(sp) <= we {
+		if st >= ws && sp <= we {
 			thework = w
 		}
 	}
@@ -643,7 +643,7 @@ func workvalueofpassage(psg string) string {
 }
 
 // findendpointsfromlocus - given a locus, what index values correspond to the start and end of that text segment?
-func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
+func findendpointsfromlocus(wuid string, locus string, sep string) [2]int {
 	// we are wrapping endpointer() to give us a couple of bites at perseus citaiton problems
 
 	const (
@@ -680,7 +680,7 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int64 {
 }
 
 // endpinter - given a locus, what index values correspond to the start and end of that text segment?
-func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
+func endpointer(wuid string, locus string, sep string) ([2]int, bool) {
 	// msg(fmt.Sprintf("wuid: '%s'; locus: '%s'; sep: '%s'", wuid, locus, sep), 1)
 	// [HGS] wuid: 'lt0474w049'; locus: '3|14|_0'; sep: '|'
 	// [HGS] wuid: 'lt0474w049'; locus: '4:8:18'; sep: ':'
@@ -691,7 +691,7 @@ func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
 	)
 
 	success := false
-	fl := [2]int64{0, 0}
+	fl := [2]int{0, 0}
 	wk := AllWorks[wuid]
 
 	wl := wk.CountLevels()
@@ -701,7 +701,7 @@ func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
 	}
 
 	if len(ll) == 0 || ll[0] == "_0" {
-		fl = [2]int64{wk.FirstLine, wk.LastLine}
+		fl = [2]int{wk.FirstLine, wk.LastLine}
 		return fl, true
 	}
 
@@ -728,11 +728,11 @@ func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
 	foundrows, err := dbconn.Query(context.Background(), q)
 	chke(err)
 
-	var idx []int64
+	var idx []int
 
 	defer foundrows.Close()
 	for foundrows.Next() {
-		var thehit int64
+		var thehit int
 		err := foundrows.Scan(&thehit)
 		chke(err)
 		idx = append(idx, thehit)
@@ -740,9 +740,9 @@ func endpointer(wuid string, locus string, sep string) ([2]int64, bool) {
 	if len(idx) == 0 {
 		// bogus input
 		msg(fmt.Sprintf(FAIL, wuid, locus), 3)
-		fl = [2]int64{1, 1}
+		fl = [2]int{1, 1}
 	} else {
-		fl = [2]int64{idx[0], idx[len(idx)-1]}
+		fl = [2]int{idx[0], idx[len(idx)-1]}
 		success = true
 	}
 

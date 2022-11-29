@@ -27,8 +27,8 @@ type QueryBuilder struct {
 }
 
 type Boundaries struct {
-	Start int64
-	Stop  int64
+	Start int
+	Stop  int
 }
 
 type PRQTemplate struct {
@@ -136,7 +136,7 @@ func SSBuildQueries(s *SearchStruct) {
 		au := subs[pattern.SubexpIndex("auth")]
 		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
 		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
-		b := Boundaries{int64(st), int64(sp)}
+		b := Boundaries{st, sp}
 		boundedincl[au] = append(boundedincl[au], b)
 		// fmt.Printf("%s: %d - %d\n", au, st, sp)
 	}
@@ -146,7 +146,7 @@ func SSBuildQueries(s *SearchStruct) {
 		au := subs[pattern.SubexpIndex("auth")]
 		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
 		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
-		b := Boundaries{int64(st), int64(sp)}
+		b := Boundaries{st, sp}
 		boundedexcl[au] = append(boundedexcl[au], b)
 	}
 
@@ -428,7 +428,7 @@ func requiresindextemptable(au string, bb []Boundaries, ss *SearchStruct) string
 	)
 
 	msg(fmt.Sprintf(MSG, au, len(bb)), 5)
-	var required []int64
+	var required []int
 	for _, b := range bb {
 		for i := b.Start; i <= b.Stop; i++ {
 			required = append(required, i)
@@ -437,7 +437,7 @@ func requiresindextemptable(au string, bb []Boundaries, ss *SearchStruct) string
 
 	var arr []string
 	for _, r := range required {
-		arr = append(arr, strconv.FormatInt(r, 10))
+		arr = append(arr, fmt.Sprintf("%d", r))
 	}
 	a := strings.Join(arr, ",")
 	ttsq := fmt.Sprintf(CTT, au, ss.TTName, a)

@@ -79,12 +79,12 @@ func (dbm DbMorphology) PossibSlice() []string {
 
 type DbWordCount struct {
 	Word  string
-	Total int64
-	Gr    int64
-	Lt    int64
-	Dp    int64
-	In    int64
-	Ch    int64
+	Total int
+	Gr    int
+	Lt    int
+	Dp    int
+	In    int
+	Ch    int
 }
 
 type MorphPossib struct {

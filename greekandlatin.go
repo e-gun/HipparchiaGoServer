@@ -276,7 +276,7 @@ func formatbcedate(d string) string {
 	return d
 }
 
-// i64tobce - turn an i64 into something like "300 B.C.E."
-func i64tobce(i int64) string {
+// IntToBCE - turn an int into something like "300 B.C.E."
+func IntToBCE(i int) string {
 	return formatbcedate(fmt.Sprintf("%d", i))
 }

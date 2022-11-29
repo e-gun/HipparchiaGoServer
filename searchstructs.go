@@ -23,7 +23,7 @@ type SearchStruct struct {
 	Summary       string
 	ProxScope     string // "lines" or "words"
 	ProxType      string // "near" or "not near"
-	ProxDist      int64
+	ProxDist      int
 	HasLemma      bool
 	HasPhrase     bool
 	IsVector      bool
@@ -36,8 +36,8 @@ type SearchStruct struct {
 	SrchColumn    string // usually "stripped_line", sometimes "accented_line"
 	SrchSyntax    string // almost always "~"
 	OrderBy       string // almost always "index" + ASC
-	CurrentLimit  int64
-	OriginalLimit int64
+	CurrentLimit  int
+	OriginalLimit int
 	SkgSlice      []string // either just Seeking or a decomposed version of a Lemma's possibilities
 	PrxSlice      []string
 	SearchIn      SearchIncExl
