@@ -113,7 +113,7 @@ func RtLexLookup(c echo.Context) error {
 	}
 
 	req := c.Param("wd")
-	seeking := purgechars(Config.BadChars, req)
+	seeking := Purgechars(Config.BadChars, req)
 	seeking = swapacuteforgrave(seeking)
 
 	dict := "latin"
@@ -168,7 +168,7 @@ func RtLexFindByForm(c echo.Context) error {
 		au = elem[1]
 	}
 
-	word := purgechars(Config.BadChars, elem[0])
+	word := Purgechars(Config.BadChars, elem[0])
 
 	clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "") // you can get sent here by the indexer ...
 	word = clean.Replace(word)
@@ -205,8 +205,8 @@ func RtLexId(c echo.Context) error {
 		msg(fmt.Sprintf(FAIL1, req), 1)
 		return emptyjsreturn(c)
 	}
-	d := purgechars(Config.BadChars, elem[0])
-	w := purgechars(Config.BadChars, elem[1])
+	d := Purgechars(Config.BadChars, elem[0])
+	w := Purgechars(Config.BadChars, elem[1])
 
 	f := dictgrabber(w, d, "id_number", "=")
 	if len(f) == 0 {
@@ -240,7 +240,7 @@ func RtLexReverse(c echo.Context) error {
 		return emptyjsreturn(c)
 	}
 
-	word := purgechars(Config.BadChars, elem[1])
+	word := Purgechars(Config.BadChars, elem[1])
 
 	s := SafeSessionRead(user)
 

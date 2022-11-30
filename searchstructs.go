@@ -59,7 +59,7 @@ func (s *SearchStruct) CleanInput() {
 	// address uv issues; lunate issues; ...
 	// no need to parse a lemma: this bounces if there is not a key match to a map
 	dropping := USELESSINPUT + Config.BadChars
-	s.ID = purgechars(dropping, s.ID)
+	s.ID = Purgechars(dropping, s.ID)
 	s.Seeking = strings.ToLower(s.Seeking)
 	s.Proximate = strings.ToLower(s.Proximate)
 
@@ -81,8 +81,8 @@ func (s *SearchStruct) CleanInput() {
 	s.Seeking = uvσςϲ(s.Seeking)
 	s.Proximate = uvσςϲ(s.Proximate)
 
-	s.Seeking = purgechars(dropping, s.Seeking)
-	s.Proximate = purgechars(dropping, s.Proximate)
+	s.Seeking = Purgechars(dropping, s.Seeking)
+	s.Proximate = Purgechars(dropping, s.Proximate)
 }
 
 // SetType - set internal values via self-probe

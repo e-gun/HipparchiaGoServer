@@ -151,12 +151,12 @@ func RemoveIndex[T any](s []T, index int) []T {
 // Unique - return only the unique items from a slice
 func Unique[T comparable](s []T) []T {
 	// https://gosamples.dev/generics-remove-duplicates-slice/
-	inResult := make(map[T]bool)
+	dedup := make(map[T]bool)
 	var result []T
-	for _, str := range s {
-		if _, ok := inResult[str]; !ok {
-			inResult[str] = true
-			result = append(result, str)
+	for i := 0; i < len(s); i++ {
+		if _, ok := dedup[s[i]]; !ok {
+			dedup[s[i]] = true
+			result = append(result, s[i])
 		}
 	}
 	return result
@@ -174,14 +174,14 @@ func SetSubtraction[T comparable](aa []T, bb []T) []T {
 	// might be faster: https://github.com/emirpasic/gods
 
 	pruner := make(map[T]bool)
-	for _, b := range bb {
-		pruner[b] = true
+	for i := 0; i < len(bb); i++ {
+		pruner[bb[i]] = true
 	}
 
 	remain := make(map[T]bool)
-	for _, a := range aa {
-		if _, y := pruner[a]; !y {
-			remain[a] = true
+	for i := 0; i < len(aa); i++ {
+		if _, y := pruner[aa[i]]; !y {
+			remain[aa[i]] = true
 		}
 	}
 
@@ -306,8 +306,8 @@ func (ms *multiSorter) Less(i, j int) bool {
 // STRINGS and []RUNE
 //
 
-// purgechars - drop any of the chars in the []byte from the string
-func purgechars(bad string, checking string) string {
+// Purgechars - drop any of the chars in the []byte from the string
+func Purgechars(bad string, checking string) string {
 	reducer := make(map[rune]bool)
 	for _, r := range []rune(bad) {
 		reducer[r] = true

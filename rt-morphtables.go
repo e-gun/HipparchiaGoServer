@@ -34,16 +34,19 @@ var (
 	GKINTTENSEMAP = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 4: "Aorist", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
 	GKTENSEMAP    = map[string]int{"pres": 1, "imperf": 2, "fut": 3, "aor": 4, "perf": 5, "plup": 6, "futperf": 7}
 	GKDIALECT     = []string{"attic", "aeolic", "doric", "epic", "homeric", "ionic"}
-	// GKDIALINVALID = []string{"parad", "form"}
+
 	LTCASES  = []string{"nom", "gen", "dat", "acc", "abl", "voc"}
 	LTNUMB   = []string{"sg", "pl"}
 	LTMOODS  = []string{"ind", "subj", "imperat", "inf", "part", "gerundive", "supine"}
 	LTVOICE  = []string{"act", "pass"}
 	LTTENSES = []string{"pres", "imperf", "fut", "perf", "plup", "futperf"} // order needs to match LTINTTENSEMAP
-	// LTINTTENSEMAP = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
+
 	LTTENSEMAP = map[string]int{"pres": 1, "imperf": 2, "fut": 3, "perf": 5, "plup": 6, "futperf": 7}
 	GENDERS    = []string{"masc", "fem", "neut"}
 	PERSONS    = []string{"1st", "2nd", "3rd"}
+	// unused
+	// GKDIALINVALID = []string{"parad", "form"}
+	// LTINTTENSEMAP = map[int]string{1: "Present", 2: "Imperfect", 3: "Future", 5: "Perfect", 6: "Pluperfect", 7: "Future Perfect"}
 )
 
 // RtMorphchart - return a chart mapping known forms of a word to their grammatical identification
@@ -90,7 +93,7 @@ func RtMorphchart(c echo.Context) error {
 	lg := elem[0]
 	id, e1 := strconv.ParseFloat(elem[1], 32)
 	_, e2 := strconv.Atoi(elem[2])
-	wd := purgechars(UNACCEPTABLEINPUT, elem[3])
+	wd := Purgechars(UNACCEPTABLEINPUT, elem[3])
 	gl := lg == "greek" || lg == "latin"
 
 	if !gl || e1 != nil || e2 != nil {

@@ -214,7 +214,7 @@ func RtVocabMaker(c echo.Context) error {
 	start := time.Now()
 
 	id := c.Param("id")
-	id = purgechars(Config.BadChars, id)
+	id = Purgechars(Config.BadChars, id)
 
 	// "si" is a blank search struct used for progress reporting
 	si := builddefaultsearch(c)
@@ -458,7 +458,7 @@ func RtIndexMaker(c echo.Context) error {
 	start := time.Now()
 
 	id := c.Param("id")
-	id = purgechars(Config.BadChars, id)
+	id = Purgechars(Config.BadChars, id)
 
 	// "si" is a blank search struct used for progress reporting
 	si := builddefaultsearch(c)

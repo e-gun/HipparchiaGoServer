@@ -284,10 +284,10 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	// [c] convert these finds into strings and then search those strings
 	// [c1] build bundles of lines
 	bundlemapper := make(map[int][]DbWorkline)
-	for _, r := range ss.Results {
-		url := r.BuildHyperlink()
+	for i := 0; i < len(ss.Results); i++ {
+		url := ss.Results[i].BuildHyperlink()
 		bun := resultmapper[url]
-		bundlemapper[bun] = append(bundlemapper[bun], r)
+		bundlemapper[bun] = append(bundlemapper[bun], ss.Results[i])
 	}
 
 	for i, b := range bundlemapper {
@@ -299,8 +299,8 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	stringmapper := make(map[int]string)
 	for idx, lines := range bundlemapper {
 		var bundle []string
-		for _, l := range lines {
-			bundle = append(bundle, columnpicker(first.SrchColumn, l))
+		for i := 0; i < len(lines); i++ {
+			bundle = append(bundle, columnpicker(first.SrchColumn, lines[i]))
 		}
 		stringmapper[idx] = strings.Join(bundle, " ")
 	}
@@ -665,7 +665,8 @@ func findphrasesacrosslines(ss *SearchStruct) {
 		return
 	}
 
-	for i, r := range ss.Results {
+	for i := 0; i < len(ss.Results); i++ {
+		r := ss.Results[i]
 		// do the "it's all on this line" case separately
 		li := columnpicker(ss.SrchColumn, r)
 		f := fp.MatchString(li)

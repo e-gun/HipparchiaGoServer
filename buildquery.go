@@ -285,7 +285,6 @@ func basicprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 
 	// tail := `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
 
-	msg(t.Tail.Name(), 5)
 	var b bytes.Buffer
 	e := t.Tail.Execute(&b, t)
 	chke(e)
@@ -302,7 +301,6 @@ func basicidxprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 
 	// tail := `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' AND ({{ .IDX }}) ORDER BY index ASC LIMIT {{ .LIM }}`
 
-	msg(t.Tail.Name(), 5)
 	var b bytes.Buffer
 	e := t.Tail.Execute(&b, t)
 	chke(e)
@@ -325,7 +323,6 @@ func basicwindowprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	//tail := ` FROM {{ .AU }} ) first
 	//		) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
 
-	msg(t.Tail.Name(), 5)
 	var b bytes.Buffer
 	e := t.Tail.Execute(&b, t)
 	chke(e)
@@ -349,7 +346,6 @@ func windandidxprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	// tail := ` FROM {{ .AU }} WHERE {{ .IDX }} ) first
 	//		) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
 
-	msg(t.Tail.Name(), 5)
 	var b bytes.Buffer
 	e := t.Tail.Execute(&b, t)
 	chke(e)
@@ -375,7 +371,6 @@ func simplettprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	//tail := ` {{ .AU }} WHERE EXISTS
 	//	(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}.index AND {{ .COL }} {{ .SYN }} '{{ .SK }}') LIMIT {{ .LIM }}`
 
-	msg(t.Tail.Name(), 5)
 	var b bytes.Buffer
 	e := t.Tail.Execute(&b, t)
 	chke(e)
@@ -405,7 +400,6 @@ func windowandttprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	//		) first
 	//	) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' LIMIT {{ .LIM }}`
 
-	msg(t.Tail.Name(), 5)
 	var b bytes.Buffer
 	e := t.Tail.Execute(&b, t)
 	chke(e)
