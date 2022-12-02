@@ -580,7 +580,7 @@ func extractmorphpossibilities(raw string, boundary *regexp.Regexp) []MorphPossi
 func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 	const (
 		FLDS = `entry_name, metrical_entry, id_number, pos, translations, html_body`
-		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴)$' ORDER BY id_number ASC`
+		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴|1|2)$' ORDER BY id_number ASC`
 		COLM = "entry_name"
 	)
 	var hwm []string

@@ -112,7 +112,7 @@ const (
    -ui {string} unacceptable input characters [default: %s]
    -v           print version and exit
    -wc {int}    number of workers [default: cpu_count (%d)]
-   -zs          zap lunate sigmas and replace them with σ/ς
+   -zl          zap lunate sigmas and replace them with σ/ς
 
      (*) example: 
          "{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"

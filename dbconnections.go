@@ -34,12 +34,12 @@ func FillPSQLPoool() *pgxpool.Pool {
 
 	const (
 		UTPL    = "postgres://%s:%s@%s:%d/%s?pool_min_conns=%d&pool_max_conns=%d"
-		FAIL1   = "Could not execute pgxpool.ParseConfig(url) via %s"
+		FAIL1   = "Configuration error. Could not execute ParseConfig(url) via '%s'"
 		FAIL2   = "Could not connect to PostgreSQL"
 		ERRRUN  = `dial error`
-		FAILRUN = `'%s': PostgreSQL cannot be found; check that it is running and serving on port %d`
+		FAILRUN = `'%s': the PostgreSQL server cannot be found; check that it is running and serving on port %d`
 		ERRSRV  = `server error`
-		FAILSRV = `'%s': configuration error; see the following response from PostgreSQL:`
+		FAILSRV = `'%s': there is configuration problem; see the following response from PostgreSQL:`
 	)
 
 	min := Config.WorkerCount
@@ -51,7 +51,7 @@ func FillPSQLPoool() *pgxpool.Pool {
 	config, e := pgxpool.ParseConfig(url)
 	if e != nil {
 		msg(fmt.Sprintf(FAIL1, url), -1)
-		panic(e)
+		os.Exit(0)
 	}
 
 	thepool, e := pgxpool.ConnectConfig(context.Background(), config)

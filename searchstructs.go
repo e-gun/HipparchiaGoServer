@@ -49,9 +49,11 @@ type SearchStruct struct {
 	SearchSize    int // # of works searched
 	TableSize     int // # of tables searched
 	ExtraMsg      string
-	Hits          *SrchCounter
-	Remain        *SrchCounter
-	lock          *sync.RWMutex
+	// Hits          *SrchCounter
+	// Remain        *SrchCounter
+	// lock   *sync.RWMutex
+	Remain *SCClient
+	Hits   *SCClient
 }
 
 // CleanInput - remove bad chars, etc. from the submitted data
@@ -218,8 +220,15 @@ func (s *SearchStruct) SortResults() {
 
 // AcqHitCounter - get a SrchCounter for storing Hits values
 func (s *SearchStruct) AcqHitCounter() {
-	h := func() *SrchCounter { return &SrchCounter{} }()
-	s.Hits = h
+	//h := func() *SrchCounter { return &SrchCounter{} }()
+	//s.Hits = h
+	m := &SCMessage{
+		ID:      s.ID + "-hits",
+		Val:     0,
+		ValChan: make(chan int),
+	}
+	s.Hits = &SCClient{ID: s.ID + "-hits", Count: 0, SCM: m}
+	SearchCountPool.Add <- s.Hits
 }
 
 // GetHitCount - concurrency aware way to read a SrchCounter
@@ -234,8 +243,14 @@ func (s *SearchStruct) SetHitCount(c int) {
 
 // AcqRemainCounter - get a SrchCounter for storing Remain values
 func (s *SearchStruct) AcqRemainCounter() {
-	r := func() *SrchCounter { return &SrchCounter{} }()
-	s.Remain = r
+	//r := func() *SrchCounter { return &SrchCounter{} }()
+	m := &SCMessage{
+		ID:      s.ID + "-remain",
+		Val:     0,
+		ValChan: make(chan int),
+	}
+	s.Remain = &SCClient{ID: s.ID + "-remain", Count: 0, SCM: m}
+	SearchCountPool.Add <- s.Remain
 }
 
 // GetRemainCount - concurrency aware way to read a SrchCounter
@@ -270,4 +285,77 @@ func (h *SrchCounter) Set(c int) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 	h.count = c
+}
+
+//
+// POOLED SEARCHCOUNTERS
+//
+
+type SCPool struct {
+	Add         chan *SCClient
+	Remove      chan *SCClient
+	SCClientMap map[*SCClient]bool
+	Get         chan *SCMessage
+	Set         chan *SCMessage
+}
+
+type SCClient struct {
+	ID    string
+	Count int
+	SCM   *SCMessage
+}
+
+type SCMessage struct {
+	ID      string
+	Val     int
+	ValChan chan int
+}
+
+func (s *SCClient) Get() int {
+	SearchCountPool.Get <- s.SCM
+	return <-s.SCM.ValChan
+}
+
+func (s *SCClient) Set(n int) int {
+	s.SCM.Val = n
+	SearchCountPool.Set <- s.SCM
+	return s.Count
+}
+
+func SCFillNewPool() *SCPool {
+	return &SCPool{
+		Add:         make(chan *SCClient),
+		Remove:      make(chan *SCClient),
+		SCClientMap: make(map[*SCClient]bool),
+		Get:         make(chan *SCMessage),
+		Set:         make(chan *SCMessage),
+	}
+}
+
+func (pool *SCPool) SCPoolStartListening() {
+	for {
+		select {
+		case sc := <-pool.Add:
+			pool.SCClientMap[sc] = true
+			break
+		case sc := <-pool.Remove:
+			delete(pool.SCClientMap, sc)
+			break
+		case s := <-pool.Set:
+			for cl := range pool.SCClientMap {
+				if cl.ID == s.ID {
+					cl.Count = s.Val
+					break
+				}
+			}
+			break
+		case g := <-pool.Get:
+			for cl := range pool.SCClientMap {
+				if cl.ID == g.ID {
+					g.ValChan <- cl.Count
+					break
+				}
+			}
+		}
+	}
 }

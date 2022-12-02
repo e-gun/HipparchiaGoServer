@@ -152,6 +152,10 @@ func RtTextMaker(c echo.Context) error {
 	}
 	sum = sum + cp
 
+	if Config.ZapLunates {
+		tab = delunate(tab)
+	}
+
 	var jso JSFeeder
 	jso.SU = sum
 	jso.HT = tab
@@ -386,6 +390,10 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, el, cp, ky)
+
+	if Config.ZapLunates {
+		htm = delunate(htm)
+	}
 
 	var jso JSFeeder
 	jso.SU = sum
@@ -683,6 +691,10 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, el, cp, ky)
+
+	if Config.ZapLunates {
+		htm = delunate(htm)
+	}
 
 	var jso JSFeeder
 	jso.SU = sum
