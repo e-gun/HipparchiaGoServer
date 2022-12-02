@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -223,9 +222,8 @@ func (s *SearchStruct) AcqHitCounter() {
 	//h := func() *SrchCounter { return &SrchCounter{} }()
 	//s.Hits = h
 	m := &SCMessage{
-		ID:      s.ID + "-hits",
-		Val:     0,
-		ValChan: make(chan int),
+		ID:  s.ID + "-hits",
+		Val: 0,
 	}
 	s.Hits = &SCClient{ID: s.ID + "-hits", Count: 0, SCM: m}
 	SearchCountPool.Add <- s.Hits
@@ -244,10 +242,10 @@ func (s *SearchStruct) SetHitCount(c int) {
 // AcqRemainCounter - get a SrchCounter for storing Remain values
 func (s *SearchStruct) AcqRemainCounter() {
 	//r := func() *SrchCounter { return &SrchCounter{} }()
+	// s.Remain = r
 	m := &SCMessage{
-		ID:      s.ID + "-remain",
-		Val:     0,
-		ValChan: make(chan int),
+		ID:  s.ID + "-remain",
+		Val: 0,
 	}
 	s.Remain = &SCClient{ID: s.ID + "-remain", Count: 0, SCM: m}
 	SearchCountPool.Add <- s.Remain
@@ -263,29 +261,36 @@ func (s *SearchStruct) SetRemainCount(c int) {
 	s.Remain.Set(c)
 }
 
+// Finished - clean up a finished search
+func (s *SearchStruct) Finished() {
+	s.IsActive = false
+	SearchCountPool.Remove <- s.Remain
+	SearchCountPool.Remove <- s.Hits
+}
+
 //
 // SEARCHCOUNTERS
 //
 
-type SrchCounter struct {
-	// atomic package could do this more simply, but this architecture is more flexible in the long term
-	count int
-	lock  sync.RWMutex
-}
-
-// Get - concurrency aware way to read a SrchCounter
-func (h *SrchCounter) Get() int {
-	h.lock.RLock()
-	defer h.lock.RUnlock()
-	return h.count
-}
-
-// Set - concurrency aware way to write to a SrchCounter
-func (h *SrchCounter) Set(c int) {
-	h.lock.Lock()
-	defer h.lock.Unlock()
-	h.count = c
-}
+//type SrchCounter struct {
+//	// atomic package could do this more simply, but this architecture is more flexible in the long term
+//	count int
+//	lock  sync.RWMutex
+//}
+//
+//// Get - concurrency aware way to read a SrchCounter
+//func (h *SrchCounter) Get() int {
+//	h.lock.RLock()
+//	defer h.lock.RUnlock()
+//	return h.count
+//}
+//
+//// Set - concurrency aware way to write to a SrchCounter
+//func (h *SrchCounter) Set(c int) {
+//	h.lock.Lock()
+//	defer h.lock.Unlock()
+//	h.count = c
+//}
 
 //
 // POOLED SEARCHCOUNTERS
@@ -306,14 +311,13 @@ type SCClient struct {
 }
 
 type SCMessage struct {
-	ID      string
-	Val     int
-	ValChan chan int
+	ID  string
+	Val int
 }
 
 func (s *SCClient) Get() int {
 	SearchCountPool.Get <- s.SCM
-	return <-s.SCM.ValChan
+	return s.SCM.Val
 }
 
 func (s *SCClient) Set(n int) int {
@@ -341,18 +345,18 @@ func (pool *SCPool) SCPoolStartListening() {
 		case sc := <-pool.Remove:
 			delete(pool.SCClientMap, sc)
 			break
-		case s := <-pool.Set:
+		case set := <-pool.Set:
 			for cl := range pool.SCClientMap {
-				if cl.ID == s.ID {
-					cl.Count = s.Val
+				if cl.ID == set.ID {
+					cl.Count = set.Val
 					break
 				}
 			}
 			break
-		case g := <-pool.Get:
+		case get := <-pool.Get:
 			for cl := range pool.SCClientMap {
-				if cl.ID == g.ID {
-					g.ValChan <- cl.Count
+				if cl.ID == get.ID {
+					get.Val = cl.Count
 					break
 				}
 			}

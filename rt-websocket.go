@@ -203,10 +203,12 @@ func (c *WSClient) WSWriteJSON() {
 		if exists {
 			r.Remain = SearchMap[c.ID].Remain.Get()
 			r.Hits = SearchMap[c.ID].Hits.Get()
-		} else {
-			break
 		}
 		MapLocker.RUnlock()
+
+		if !exists {
+			break
+		}
 
 		r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(srch.Launched).Seconds())
 
