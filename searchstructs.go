@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -48,11 +49,9 @@ type SearchStruct struct {
 	SearchSize    int // # of works searched
 	TableSize     int // # of tables searched
 	ExtraMsg      string
-	// Hits          *SrchCounter
-	// Remain        *SrchCounter
-	// lock   *sync.RWMutex
-	Remain *SCClient
-	Hits   *SCClient
+	Hits          *SrchCounter
+	Remain        *SrchCounter
+	lock          *sync.RWMutex
 }
 
 // CleanInput - remove bad chars, etc. from the submitted data
@@ -219,14 +218,8 @@ func (s *SearchStruct) SortResults() {
 
 // AcqHitCounter - get a SrchCounter for storing Hits values
 func (s *SearchStruct) AcqHitCounter() {
-	//h := func() *SrchCounter { return &SrchCounter{} }()
-	//s.Hits = h
-	m := &SCMessage{
-		ID:  s.ID + "-hits",
-		Val: 0,
-	}
-	s.Hits = &SCClient{ID: s.ID + "-hits", Count: 0, SCM: m}
-	SearchCountPool.Add <- s.Hits
+	h := func() *SrchCounter { return &SrchCounter{} }()
+	s.Hits = h
 }
 
 // GetHitCount - concurrency aware way to read a SrchCounter
@@ -241,14 +234,8 @@ func (s *SearchStruct) SetHitCount(c int) {
 
 // AcqRemainCounter - get a SrchCounter for storing Remain values
 func (s *SearchStruct) AcqRemainCounter() {
-	//r := func() *SrchCounter { return &SrchCounter{} }()
-	// s.Remain = r
-	m := &SCMessage{
-		ID:  s.ID + "-remain",
-		Val: 0,
-	}
-	s.Remain = &SCClient{ID: s.ID + "-remain", Count: 0, SCM: m}
-	SearchCountPool.Add <- s.Remain
+	r := func() *SrchCounter { return &SrchCounter{} }()
+	s.Remain = r
 }
 
 // GetRemainCount - concurrency aware way to read a SrchCounter
@@ -261,105 +248,26 @@ func (s *SearchStruct) SetRemainCount(c int) {
 	s.Remain.Set(c)
 }
 
-// Finished - clean up a finished search
-func (s *SearchStruct) Finished() {
-	s.IsActive = false
-	SearchCountPool.Remove <- s.Remain
-	SearchCountPool.Remove <- s.Hits
-}
-
 //
 // SEARCHCOUNTERS
 //
 
-//type SrchCounter struct {
-//	// atomic package could do this more simply, but this architecture is more flexible in the long term
-//	count int
-//	lock  sync.RWMutex
-//}
-//
-//// Get - concurrency aware way to read a SrchCounter
-//func (h *SrchCounter) Get() int {
-//	h.lock.RLock()
-//	defer h.lock.RUnlock()
-//	return h.count
-//}
-//
-//// Set - concurrency aware way to write to a SrchCounter
-//func (h *SrchCounter) Set(c int) {
-//	h.lock.Lock()
-//	defer h.lock.Unlock()
-//	h.count = c
-//}
-
-//
-// POOLED SEARCHCOUNTERS
-//
-
-type SCPool struct {
-	Add         chan *SCClient
-	Remove      chan *SCClient
-	SCClientMap map[*SCClient]bool
-	Get         chan *SCMessage
-	Set         chan *SCMessage
+type SrchCounter struct {
+	// atomic package could do this more simply, but this architecture is more flexible in the long term
+	count int
+	lock  sync.RWMutex
 }
 
-type SCClient struct {
-	ID    string
-	Count int
-	SCM   *SCMessage
+// Get - concurrency aware way to read a SrchCounter
+func (h *SrchCounter) Get() int {
+	h.lock.RLock()
+	defer h.lock.RUnlock()
+	return h.count
 }
 
-type SCMessage struct {
-	ID  string
-	Val int
-}
-
-func (s *SCClient) Get() int {
-	SearchCountPool.Get <- s.SCM
-	return s.SCM.Val
-}
-
-func (s *SCClient) Set(n int) int {
-	s.SCM.Val = n
-	SearchCountPool.Set <- s.SCM
-	return s.Count
-}
-
-func SCFillNewPool() *SCPool {
-	return &SCPool{
-		Add:         make(chan *SCClient),
-		Remove:      make(chan *SCClient),
-		SCClientMap: make(map[*SCClient]bool),
-		Get:         make(chan *SCMessage),
-		Set:         make(chan *SCMessage),
-	}
-}
-
-func (pool *SCPool) SCPoolStartListening() {
-	for {
-		select {
-		case sc := <-pool.Add:
-			pool.SCClientMap[sc] = true
-			break
-		case sc := <-pool.Remove:
-			delete(pool.SCClientMap, sc)
-			break
-		case set := <-pool.Set:
-			for cl := range pool.SCClientMap {
-				if cl.ID == set.ID {
-					cl.Count = set.Val
-					break
-				}
-			}
-			break
-		case get := <-pool.Get:
-			for cl := range pool.SCClientMap {
-				if cl.ID == get.ID {
-					get.Val = cl.Count
-					break
-				}
-			}
-		}
-	}
+// Set - concurrency aware way to write to a SrchCounter
+func (h *SrchCounter) Set(c int) {
+	h.lock.Lock()
+	defer h.lock.Unlock()
+	h.count = c
 }

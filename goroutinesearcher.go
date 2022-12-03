@@ -56,8 +56,6 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	}
 
 	ss.Results = results
-	ss.Finished()
-
 	return ss
 }
 
