@@ -115,9 +115,7 @@ func RtSearch(c echo.Context) error {
 		soj = FormatWithContextResults(completed)
 	}
 
-	MapLocker.Lock()
-	delete(SearchMap, id)
-	MapLocker.Unlock()
+	SafeSearchMapDelete(id)
 
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
@@ -826,4 +824,10 @@ func SafeSearchMapRead(id string) SearchStruct {
 		s.IsActive = false
 	}
 	return s
+}
+
+func SafeSearchMapDelete(id string) {
+	MapLocker.RLock()
+	defer MapLocker.RUnlock()
+	delete(SearchMap, id)
 }

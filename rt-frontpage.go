@@ -65,6 +65,13 @@ func SafeSessionMapInsert(ns ServerSession) {
 	SessionMap[ns.ID] = ns
 }
 
+// SafeSessionMapDelete - use a lock to safely delete a ServerSession from the SessionMap
+func SafeSessionMapDelete(u string) {
+	MapLocker.Lock()
+	defer MapLocker.Unlock()
+	delete(SessionMap, u)
+}
+
 //
 // ROUTING
 //

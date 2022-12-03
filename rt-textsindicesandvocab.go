@@ -402,9 +402,7 @@ func RtVocabMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "vocabobserved") + fmt.Sprintf(BROWSERJS, "vocabobserved")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	MapLocker.Lock()
-	delete(SearchMap, si.ID)
-	MapLocker.Unlock()
+	SafeSearchMapDelete(si.ID)
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
@@ -703,9 +701,7 @@ func RtIndexMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "indexobserved") + fmt.Sprintf(BROWSERJS, "indexedlocation")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	MapLocker.Lock()
-	delete(SearchMap, si.ID)
-	MapLocker.Unlock()
+	SafeSearchMapDelete(si.ID)
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }

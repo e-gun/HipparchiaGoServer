@@ -203,6 +203,7 @@ func (c *WSClient) WSWriteJSON() {
 		if exists {
 			r.Remain = SearchMap[c.ID].Remain.Get()
 			r.Hits = SearchMap[c.ID].Hits.Get()
+			r.Msg = strings.Replace(SearchMap[c.ID].InitSum, "Sought", "Seeking", -1)
 		}
 		MapLocker.RUnlock()
 
@@ -217,10 +218,6 @@ func (c *WSClient) WSWriteJSON() {
 		} else {
 			r.Extra = ""
 		}
-
-		MapLocker.RLock()
-		r.Msg = strings.Replace(SearchMap[c.ID].InitSum, "Sought", "Seeking", -1)
-		MapLocker.RUnlock()
 
 		pd := formatpoll(r)
 

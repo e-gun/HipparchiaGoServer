@@ -252,6 +252,10 @@ func (s *SearchStruct) SetRemainCount(c int) {
 // SEARCHCOUNTERS
 //
 
+// NB: the WEBSOCKET INFRASTRUCTURE paradigm can be used to build POOLED SEARCHCOUNTERS and POOLED SEARCHSTRUCTURES
+// See the dead-end "pooled-everything" branch for what this file will look like then. You can get a lockless
+// "share memory by communicating" environment, but it adds a lot of code for a very abstract gain.
+
 type SrchCounter struct {
 	// atomic package could do this more simply, but this architecture is more flexible in the long term
 	count int
