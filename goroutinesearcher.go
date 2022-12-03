@@ -31,7 +31,12 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	SearchPool.Add <- &ss
+	//SearchPool.RequestSS <- z.ID
+	//ss := <-SearchPool.SendSS
 	emitqueries, err := SrchFeeder(ctx, &ss)
+
+	// emitqueries, err := SrchFeeder(ctx, &ss)
 	chke(err)
 
 	workers := Config.WorkerCount
@@ -57,6 +62,8 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 
 	ss.Results = results
 	ss.Finished()
+
+	SearchPool.Remove <- &ss
 
 	return ss
 }

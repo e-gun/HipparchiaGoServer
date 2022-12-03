@@ -363,3 +363,95 @@ func (pool *SCPool) SCPoolStartListening() {
 		}
 	}
 }
+
+//
+// POOLED SEARCHSTRUCTURES
+//
+
+type SStructPool struct {
+	Add           chan *SearchStruct
+	Remove        chan *SearchStruct
+	SSClientMap   map[*SearchStruct]bool
+	Update        chan *SearchStruct
+	RequestRemain chan *SearchStruct
+	SendRemain    chan SSOut
+	SendHits      chan SSOut
+	RequestSS     chan string
+	RequestHits   chan string
+	RequestStats  chan string
+	SendSS        chan *SearchStruct
+	RequestExist  chan string
+	Exists        chan SSOut
+}
+
+type SSOut struct {
+	ID  string
+	Val int
+}
+
+func SStructFillNewPool() *SStructPool {
+	return &SStructPool{
+		Add:           make(chan *SearchStruct),
+		Remove:        make(chan *SearchStruct),
+		SSClientMap:   make(map[*SearchStruct]bool),
+		Update:        make(chan *SearchStruct),
+		RequestRemain: make(chan *SearchStruct),
+		SendRemain:    make(chan SSOut),
+		SendHits:      make(chan SSOut),
+		RequestSS:     make(chan string),
+		RequestHits:   make(chan string),
+		RequestStats:  make(chan string),
+		SendSS:        make(chan *SearchStruct),
+		RequestExist:  make(chan string),
+		Exists:        make(chan SSOut),
+	}
+}
+
+func (pool *SStructPool) SStructPoolStartListening() {
+	for {
+		select {
+		case sc := <-pool.Add:
+			pool.SSClientMap[sc] = true
+			break
+		case sc := <-pool.Remove:
+			delete(pool.SSClientMap, sc)
+			break
+		case set := <-pool.Update:
+			for cl := range pool.SSClientMap {
+				if cl.ID == set.ID {
+					cl = set
+					break
+				}
+			}
+			break
+		case get := <-pool.RequestSS:
+			for cl := range pool.SSClientMap {
+				if cl.ID == get {
+					pool.SendSS <- cl
+					break
+				}
+			}
+			break
+		case stats := <-pool.RequestStats:
+			for cl := range pool.SSClientMap {
+				if cl.ID == stats {
+					pool.SendRemain <- SSOut{ID: stats, Val: cl.Remain.Get()}
+					pool.SendHits <- SSOut{ID: stats, Val: cl.Hits.Get()}
+					break
+				}
+			}
+			break
+		case exists := <-pool.RequestExist:
+			found := 0
+			for cl := range pool.SSClientMap {
+				if cl.ID == exists {
+					found = 1
+					break
+				}
+			}
+			pool.Exists <- SSOut{ID: exists, Val: found}
+			break
+		}
+
+	}
+}

@@ -51,7 +51,7 @@ func RtSearch(c echo.Context) error {
 		return c.JSONPretty(http.StatusOK, SearchOutputJSON{JS: VALIDATIONBOX}, JSONINDENT)
 	}
 
-	id := c.Param("id")
+	// id := c.Param("id")
 	srch := builddefaultsearch(c)
 	srch.User = user
 
@@ -86,17 +86,17 @@ func RtSearch(c echo.Context) error {
 
 	srch.TableSize = len(srch.Queries)
 	srch.IsActive = true
-	SafeSearchMapInsert(srch)
+	// SafeSearchMapInsert(srch)
 
 	var completed SearchStruct
-	if SearchMap[id].Twobox {
-		if SearchMap[id].ProxScope == "words" {
-			completed = WithinXWordsSearch(SearchMap[id])
+	if srch.Twobox {
+		if srch.ProxScope == "words" {
+			completed = WithinXWordsSearch(srch)
 		} else {
-			completed = WithinXLinesSearch(SearchMap[id])
+			completed = WithinXLinesSearch(srch)
 		}
 	} else {
-		completed = HGoSrch(SearchMap[id])
+		completed = HGoSrch(srch)
 		if completed.HasPhrase {
 			findphrasesacrosslines(&completed)
 		}
@@ -115,9 +115,9 @@ func RtSearch(c echo.Context) error {
 		soj = FormatWithContextResults(completed)
 	}
 
-	MapLocker.Lock()
-	delete(SearchMap, id)
-	MapLocker.Unlock()
+	//MapLocker.Lock()
+	//delete(SearchMap, id)
+	//MapLocker.Unlock()
 
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }

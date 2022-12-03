@@ -175,12 +175,15 @@ func (c *WSClient) WSWriteJSON() {
 	quit := time.Now().Add(time.Second * 1)
 
 	for {
-		MapLocker.RLock()
-		ls := len(SearchMap)
-		_, exists := SearchMap[c.ID]
-		MapLocker.RUnlock()
+		//MapLocker.RLock()
+		//ls := len(SearchMap)
+		//_, exists := SearchMap[c.ID]
+		//MapLocker.RUnlock()
 
-		if ls != 0 && exists {
+		SearchPool.RequestExist <- c.ID
+		exists := <-SearchPool.Exists
+
+		if exists.Val == 1 && exists.ID == c.ID {
 			break
 		}
 
@@ -190,7 +193,9 @@ func (c *WSClient) WSWriteJSON() {
 		}
 	}
 
-	srch := SafeSearchMapRead(c.ID)
+	SearchPool.RequestSS <- c.ID
+	// srch := SafeSearchMapRead(c.ID)
+	srch := <-SearchPool.SendSS
 
 	var r PollData
 	r.TwoBox = srch.Twobox
@@ -198,16 +203,27 @@ func (c *WSClient) WSWriteJSON() {
 
 	// loop until search finishes
 	for {
-		MapLocker.RLock()
-		_, exists := SearchMap[c.ID]
-		if exists {
-			r.Remain = SearchMap[c.ID].Remain.Get()
-			r.Hits = SearchMap[c.ID].Hits.Get()
-		}
-		MapLocker.RUnlock()
+		//MapLocker.RLock()
+		//_, exists := SearchMap[c.ID]
+		//if exists {
+		//	r.Remain = SearchMap[c.ID].Remain.Get()
+		//	r.Hits = SearchMap[c.ID].Hits.Get()
+		//}
+		//MapLocker.RUnlock()
 
-		if !exists {
+		SearchPool.RequestExist <- c.ID
+		exists := <-SearchPool.Exists
+
+		if exists.Val == 0 && exists.ID == c.ID {
 			break
+		}
+
+		SearchPool.RequestStats <- c.ID
+		rem := <-SearchPool.SendRemain
+		hit := <-SearchPool.SendHits
+		if rem.ID == c.ID && hit.ID == c.ID {
+			r.Remain = rem.Val
+			r.Hits = hit.Val
 		}
 
 		r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(srch.Launched).Seconds())
@@ -218,9 +234,9 @@ func (c *WSClient) WSWriteJSON() {
 			r.Extra = ""
 		}
 
-		MapLocker.RLock()
-		r.Msg = strings.Replace(SearchMap[c.ID].InitSum, "Sought", "Seeking", -1)
-		MapLocker.RUnlock()
+		// MapLocker.RLock()
+		r.Msg = strings.Replace(srch.InitSum, "Sought", "Seeking", -1)
+		// MapLocker.RUnlock()
 
 		pd := formatpoll(r)
 

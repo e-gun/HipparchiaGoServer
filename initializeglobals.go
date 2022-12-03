@@ -62,6 +62,7 @@ var (
 	MapLocker       sync.RWMutex
 	WebsocketPool   = WSFillNewPool()
 	SearchCountPool = SCFillNewPool()
+	SearchPool      = SStructFillNewPool()
 )
 
 type DbAuthor struct {
