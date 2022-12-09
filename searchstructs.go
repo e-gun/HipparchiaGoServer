@@ -195,7 +195,7 @@ func (s *SearchStruct) SortResults() {
 		return one.MyWk().Prov < two.MyWk().Prov
 	}
 
-	sess := SafeSessionRead(s.User)
+	sess := FetchSession(s.User)
 	crit := sess.SortHitsBy
 
 	switch {
@@ -337,10 +337,10 @@ func (p *CounterPool) SCPoolStartListening() {
 type SrchStructPool struct {
 	ClientMap     map[string]*SearchStruct
 	AddSrch       chan *SearchStruct
-	RemoveSrch    chan *SearchStruct
+	RemoveSrch    chan string
 	Update        chan *SearchStruct
-	RequestSS     chan string
-	SendSS        chan *SearchStruct
+	FetchSS       chan string
+	ReturnSS      chan *SearchStruct
 	RequestExist  chan string
 	Exists        chan SrchMsg
 	RequestUpdate chan string
@@ -356,12 +356,12 @@ type SrchMsg struct {
 
 func SStructFillNewPool() *SrchStructPool {
 	return &SrchStructPool{
-		AddSrch:       make(chan *SearchStruct),
-		RemoveSrch:    make(chan *SearchStruct),
 		ClientMap:     make(map[string]*SearchStruct),
+		AddSrch:       make(chan *SearchStruct),
+		RemoveSrch:    make(chan string),
 		Update:        make(chan *SearchStruct),
-		RequestSS:     make(chan string),
-		SendSS:        make(chan *SearchStruct),
+		FetchSS:       make(chan string),
+		ReturnSS:      make(chan *SearchStruct),
 		RequestExist:  make(chan string),
 		Exists:        make(chan SrchMsg),
 		RequestUpdate: make(chan string),
@@ -370,25 +370,22 @@ func SStructFillNewPool() *SrchStructPool {
 }
 
 func (p *SrchStructPool) SStructPoolStartListening() {
-	const (
-		REM = "SrchStructPool: removing '%s' from ClientMap"
-	)
-
 	for {
 		select {
 		case sc := <-p.AddSrch:
 			p.ClientMap[sc.ID] = sc
 			break
 		case sc := <-p.RemoveSrch:
-			delete(p.ClientMap, sc.ID)
-			msg(fmt.Sprintf(REM, sc.ID), 4)
+			if _, ok := p.ClientMap[sc]; ok {
+				delete(p.ClientMap, sc)
+			}
 			break
 		case set := <-p.Update:
 			p.ClientMap[set.ID] = set
 			break
-		case get := <-p.RequestSS:
+		case get := <-p.FetchSS:
 			if s, ok := p.ClientMap[get]; ok {
-				p.SendSS <- s
+				p.ReturnSS <- s
 			}
 			break
 		case exists := <-p.RequestExist:

@@ -71,7 +71,7 @@ func RtTextMaker(c echo.Context) error {
 		return c.JSONPretty(http.StatusOK, JSFeeder{JS: JSVALIDATION}, JSONINDENT)
 	}
 
-	sess := SafeSessionRead(user)
+	sess := FetchSession(user)
 	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 
 	if len(srch.Results) == 0 {
@@ -400,7 +400,7 @@ func RtVocabMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "vocabobserved") + fmt.Sprintf(BROWSERJS, "vocabobserved")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	SearchPool.RemoveSrch <- &progressinfo
+	SearchPool.RemoveSrch <- progressinfo.ID
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
 
@@ -698,7 +698,7 @@ func RtIndexMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "indexobserved") + fmt.Sprintf(BROWSERJS, "indexedlocation")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	SearchPool.RemoveSrch <- &progressinfo
+	SearchPool.RemoveSrch <- progressinfo.ID
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
@@ -710,7 +710,7 @@ func RtIndexMaker(c echo.Context) error {
 // sessionintobulksearch - grab every line of text in the currently registerselection set of authors, works, and passages
 func sessionintobulksearch(c echo.Context, lim int) SearchStruct {
 	user := readUUIDCookie(c)
-	sess := SafeSessionRead(user)
+	sess := FetchSession(user)
 
 	srch := builddefaultsearch(c)
 	srch.Seeking = ""

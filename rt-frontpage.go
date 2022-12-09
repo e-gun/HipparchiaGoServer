@@ -17,8 +17,69 @@ import (
 )
 
 //
-// SERVERSESSIONS
+// POOLED SERVERSESSIONS
 //
+
+type ServerSessionPool struct {
+	ClientMap    map[string]*ServerSession
+	AddSess      chan *ServerSession
+	RemoveSess   chan string
+	Update       chan *ServerSession
+	FetchSS      chan string
+	ReturnSess   chan *ServerSession
+	RequestExist chan string
+	Exists       chan SrchMsg
+}
+
+func SessionsFillNewPool() *ServerSessionPool {
+	return &ServerSessionPool{
+		ClientMap:    make(map[string]*ServerSession),
+		AddSess:      make(chan *ServerSession),
+		RemoveSess:   make(chan string),
+		Update:       make(chan *ServerSession),
+		FetchSS:      make(chan string),
+		ReturnSess:   make(chan *ServerSession),
+		RequestExist: make(chan string),
+		Exists:       make(chan SrchMsg),
+	}
+}
+
+func (p *ServerSessionPool) ServerSessionPoolStartListening() {
+	for {
+		select {
+		case ss := <-p.AddSess:
+			p.ClientMap[ss.ID] = ss
+			msg(fmt.Sprintf("Session added; SessionPool size is %d", len(p.ClientMap)), 4)
+			break
+		case ss := <-p.RemoveSess:
+			if _, ok := p.ClientMap[ss]; ok {
+				delete(p.ClientMap, ss)
+			}
+			break
+		case up := <-p.Update:
+			p.ClientMap[up.ID] = up
+			break
+		case get := <-p.FetchSS:
+			if s, ok := p.ClientMap[get]; ok {
+				p.ReturnSess <- s
+			}
+			break
+		case f := <-p.FetchSS:
+			var ss *ServerSession
+			if s, ok := p.ClientMap[f]; ok {
+				ss = s
+			}
+			p.ReturnSess <- ss
+		case exists := <-p.RequestExist:
+			found := false
+			if _, ok := p.ClientMap[exists]; ok {
+				found = true
+			}
+			p.Exists <- SrchMsg{ID: exists, Yes: found}
+			break
+		}
+	}
+}
 
 type ServerSession struct {
 	ID          string
@@ -47,29 +108,25 @@ type ServerSession struct {
 	LoginName   string
 }
 
-// SafeSessionRead - use a lock to safely read a ServerSession from the SessionMap
-func SafeSessionRead(u string) ServerSession {
-	MapLocker.RLock()
-	defer MapLocker.RUnlock()
-	s, e := SessionMap[u]
-	if e != true {
-		s = makedefaultsession(u)
+// FetchSession - get a session from the session pool
+func FetchSession(u string) ServerSession {
+	SessionPool.FetchSS <- u
+	s := <-SessionPool.ReturnSess
+	if s.ID != u {
+		ds := makedefaultsession(u)
+		s = &ds
 	}
-	return s
+	return *s
 }
 
-// SafeSessionMapInsert - use a lock to safely swap a ServerSession into the SessionMap
-func SafeSessionMapInsert(ns ServerSession) {
-	MapLocker.Lock()
-	defer MapLocker.Unlock()
-	SessionMap[ns.ID] = ns
+// SessionInsert - insert a session into the session pool
+func SessionInsert(ns ServerSession) {
+	SessionPool.AddSess <- &ns
 }
 
-// SafeSessionMapDelete - use a lock to safely delete a ServerSession from the SessionMap
-func SafeSessionMapDelete(u string) {
-	MapLocker.Lock()
-	defer MapLocker.Unlock()
-	delete(SessionMap, u)
+// SessionRemove - remove a session from the session pool
+func SessionRemove(u string) {
+	SessionPool.RemoveSess <- u
 }
 
 //
@@ -80,7 +137,7 @@ func SafeSessionMapDelete(u string) {
 func RtFrontpage(c echo.Context) error {
 	// will set if missing
 	user := readUUIDCookie(c)
-	s := SafeSessionRead(user)
+	s := FetchSession(user)
 
 	env := fmt.Sprintf("%s: %s - %s (%d workers)", runtime.Version(), runtime.GOOS, runtime.GOARCH, Config.WorkerCount)
 
@@ -158,10 +215,6 @@ func makedefaultsession(id string) ServerSession {
 
 // readUUIDCookie - find the ID of the client
 func readUUIDCookie(c echo.Context) string {
-	const (
-		MSG = "readUUIDCookie(): %s authentication status is '%t'"
-	)
-
 	cookie, err := c.Cookie("ID")
 	if err != nil {
 		id := writeUUIDCookie(c)
@@ -169,13 +222,13 @@ func readUUIDCookie(c echo.Context) string {
 	}
 	id := cookie.Value
 
-	MapLocker.Lock()
-	if _, t := SessionMap[id]; !t {
-		SessionMap[id] = makedefaultsession(id)
+	SessionPool.RequestExist <- id
+	exists := <-SessionPool.Exists
+	if !exists.Yes && exists.ID == id {
+		s := makedefaultsession(id)
+		SessionPool.AddSess <- &s
 	}
-	MapLocker.Unlock()
 
-	msg(fmt.Sprintf(MSG, id, AuthorizedMap[id]), 4)
 	return id
 }
 

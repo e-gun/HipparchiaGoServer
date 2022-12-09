@@ -242,7 +242,7 @@ func RtLexReverse(c echo.Context) error {
 
 	word := Purgechars(Config.BadChars, elem[1])
 
-	s := SafeSessionRead(user)
+	s := FetchSession(user)
 
 	var dd []string
 	// map[string]bool{"gr": true, "lt": true, "in": false, "ch": false, "dp": false}

@@ -45,7 +45,7 @@ func RtAuthorHints(c echo.Context) error {
 
 	// trim by active corpora
 	user := readUUIDCookie(c)
-	s := SafeSessionRead(user)
+	s := FetchSession(user)
 
 	var trimmed [][2]string
 	for _, a := range auu {

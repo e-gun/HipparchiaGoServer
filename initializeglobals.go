@@ -43,7 +43,6 @@ const (
 var (
 	Config          CurrentConfiguration
 	SQLPool         *pgxpool.Pool
-	SessionMap      = make(map[string]ServerSession)
 	AuthorizedMap   = make(map[string]bool)
 	UserPassPairs   = make(map[string]string)
 	AllWorks        = make(map[string]DbWork)
@@ -62,6 +61,7 @@ var (
 	WebsocketPool   = WSFillNewPool()
 	SearchCountPool = SCFillNewPool()
 	SearchPool      = SStructFillNewPool()
+	SessionPool     = SessionsFillNewPool()
 )
 
 type DbAuthor struct {

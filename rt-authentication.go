@@ -13,7 +13,7 @@ import (
 // RtAuthLogin - accept and validate login info sent from <form id="hipparchiauserlogin"...>
 func RtAuthLogin(c echo.Context) error {
 	cid := readUUIDCookie(c)
-	s := SafeSessionRead(cid)
+	s := FetchSession(cid)
 	u := c.FormValue("user")
 	p := c.FormValue("pw")
 
@@ -25,7 +25,7 @@ func RtAuthLogin(c echo.Context) error {
 		s.LoginName = "Anonymous"
 	}
 
-	SafeSessionMapInsert(s)
+	SessionInsert(s)
 	e := c.Redirect(http.StatusFound, "/")
 	chke(e)
 	return nil
@@ -34,9 +34,9 @@ func RtAuthLogin(c echo.Context) error {
 // RtAuthLogout - log this session out
 func RtAuthLogout(c echo.Context) error {
 	u := readUUIDCookie(c)
-	s := SafeSessionRead(u)
+	s := FetchSession(u)
 	s.LoginName = "Anonymous"
-	SafeSessionMapInsert(s)
+	SessionInsert(s)
 	SafeAuthenticationWrite(u, false)
 	return c.JSONPretty(http.StatusOK, "Anonymous", JSONINDENT)
 }
@@ -44,7 +44,7 @@ func RtAuthLogout(c echo.Context) error {
 // RtAuthChkuser - report who this session is logged in as
 func RtAuthChkuser(c echo.Context) error {
 	user := readUUIDCookie(c)
-	s := SafeSessionRead(user)
+	s := FetchSession(user)
 	a := SafeAuthenticationCheck(s.ID)
 
 	type JSO struct {

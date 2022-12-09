@@ -21,7 +21,7 @@ func RtSessionSetsCookie(c echo.Context) error {
 	)
 	num := c.Param("num")
 	user := readUUIDCookie(c)
-	s := SafeSessionRead(user)
+	s := FetchSession(user)
 
 	v, e := json.Marshal(s)
 	if e != nil {
@@ -72,7 +72,7 @@ func RtSessionGetCookie(c echo.Context) error {
 		return c.String(http.StatusOK, "")
 	}
 
-	SafeSessionMapInsert(s)
+	SessionInsert(s)
 
 	e := c.Redirect(http.StatusFound, "/")
 	chke(e)
@@ -82,7 +82,7 @@ func RtSessionGetCookie(c echo.Context) error {
 // RtResetSession - delete and then reset the session
 func RtResetSession(c echo.Context) error {
 	user := readUUIDCookie(c)
-	SafeSessionMapDelete(user)
+	SessionRemove(user)
 
 	// then reset it
 	readUUIDCookie(c)

@@ -47,6 +47,7 @@ func main() {
 	go WebsocketPool.WSPoolStartListening()
 	go SearchCountPool.SCPoolStartListening()
 	go SearchPool.SStructPoolStartListening()
+	go SessionPool.ServerSessionPoolStartListening()
 
 	// concurrent launching
 	var awaiting sync.WaitGroup

@@ -71,7 +71,7 @@ func RtSearch(c echo.Context) error {
 	srch.Seeking = whitespacer(srch.Seeking, &srch)
 	srch.Proximate = whitespacer(srch.Proximate, &srch)
 
-	se := SafeSessionRead(user)
+	se := FetchSession(user)
 	sl := SessionIntoSearchlist(se)
 
 	srch.SearchIn = sl.Inc
@@ -416,7 +416,7 @@ func generateinitialhits(first SearchStruct) SearchStruct {
 // builddefaultsearch - fill out the basic values for a new search
 func builddefaultsearch(c echo.Context) SearchStruct {
 	user := readUUIDCookie(c)
-	sess := SafeSessionRead(user)
+	sess := FetchSession(user)
 
 	var srch SearchStruct
 	srch.User = user

@@ -188,8 +188,8 @@ func (c *WSClient) WSWriteJSON() {
 		}
 	}
 
-	SearchPool.RequestSS <- c.ID
-	srch := <-SearchPool.SendSS
+	SearchPool.FetchSS <- c.ID
+	srch := <-SearchPool.ReturnSS
 
 	var r PollData
 	r.TwoBox = srch.Twobox

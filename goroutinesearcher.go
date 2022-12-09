@@ -60,7 +60,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 
 	ss.Finished()
 
-	SearchPool.RemoveSrch <- &ss
+	SearchPool.RemoveSrch <- ss.ID
 
 	return ss
 }

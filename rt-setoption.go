@@ -34,7 +34,7 @@ func RtSetOption(c echo.Context) error {
 	ynoptionlist := []string{"greekcorpus", "latincorpus", "papyruscorpus", "inscriptioncorpus", "christiancorpus",
 		"rawinputstyle", "onehit", "headwordindexing", "indexbyfrequency", "spuria", "incerta", "varia"}
 
-	s := SafeSessionRead(user)
+	s := FetchSession(user)
 
 	if isinslice(ynoptionlist, opt) {
 		valid := []string{"yes", "no"}
@@ -175,6 +175,6 @@ func RtSetOption(c echo.Context) error {
 		}
 	}
 
-	SafeSessionMapInsert(s)
+	SessionInsert(s)
 	return c.String(http.StatusOK, "")
 }
