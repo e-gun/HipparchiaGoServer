@@ -1,6 +1,6 @@
 # HipparchiaGoServer
 
-### STATUS (`v1.0.7`):
+### STATUS (`v1.0.8`):
 
 * 25%-700% faster than HipparchiaServer depending on the function. Uses c. 60% as much RAM.
 * monolithic binary: no need for extra files/folders beyond setting a password in `hgs-conf.json`
@@ -35,13 +35,13 @@
       29 unique files.                              
        0 files ignored.
 
-github.com/AlDanial/cloc v 1.94  T=0.03 s (1029.8 files/s, 413514.4 lines/s)
+github.com/AlDanial/cloc v 1.94  T=0.03 s (1041.8 files/s, 424668.3 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                              29           1729           1635           8281
+Go                              29           1743           1638           8440
 -------------------------------------------------------------------------------
-SUM:                            29           1729           1635           8281
+SUM:                            29           1743           1638           8440
 -------------------------------------------------------------------------------
 
 ```

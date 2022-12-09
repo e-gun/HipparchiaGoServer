@@ -47,7 +47,7 @@ func RtSearch(c echo.Context) error {
 	c.Response().After(func() { gcstats("RtSearch()") })
 
 	user := readUUIDCookie(c)
-	if !SafeAuthenticationCheck(user) {
+	if !AuthenticationCheck(user) {
 		return c.JSONPretty(http.StatusOK, SearchOutputJSON{JS: VALIDATIONBOX}, JSONINDENT)
 	}
 

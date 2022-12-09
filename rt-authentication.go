@@ -18,10 +18,10 @@ func RtAuthLogin(c echo.Context) error {
 	p := c.FormValue("pw")
 
 	if UserPassPairs[u] == p {
-		SafeAuthenticationWrite(cid, true)
+		AuthenticationWrite(cid, true)
 		s.LoginName = u
 	} else {
-		SafeAuthenticationWrite(cid, false)
+		AuthenticationWrite(cid, false)
 		s.LoginName = "Anonymous"
 	}
 
@@ -37,7 +37,7 @@ func RtAuthLogout(c echo.Context) error {
 	s := FetchSession(u)
 	s.LoginName = "Anonymous"
 	SessionInsert(s)
-	SafeAuthenticationWrite(u, false)
+	AuthenticationWrite(u, false)
 	return c.JSONPretty(http.StatusOK, "Anonymous", JSONINDENT)
 }
 
@@ -45,7 +45,7 @@ func RtAuthLogout(c echo.Context) error {
 func RtAuthChkuser(c echo.Context) error {
 	user := readUUIDCookie(c)
 	s := FetchSession(user)
-	a := SafeAuthenticationCheck(s.ID)
+	a := AuthenticationCheck(s.ID)
 
 	type JSO struct {
 		ID   string `json:"userid"`
@@ -60,8 +60,8 @@ func RtAuthChkuser(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, o, JSONINDENT)
 }
 
-// SafeAuthenticationCheck - use a lock to safely read from AuthorizedMap; "true" if you have access
-func SafeAuthenticationCheck(u string) bool {
+// AuthenticationCheck - use a lock to safely read from AuthorizedMap; "true" if you have access
+func AuthenticationCheck(u string) bool {
 	if !Config.Authenticate {
 		return true
 	}
@@ -76,8 +76,8 @@ func SafeAuthenticationCheck(u string) bool {
 	return s
 }
 
-// SafeAuthenticationWrite - use a lock to safely write to AuthorizedMap
-func SafeAuthenticationWrite(u string, b bool) {
+// AuthenticationWrite - use a lock to safely write to AuthorizedMap
+func AuthenticationWrite(u string, b bool) {
 	MapLocker.RLock()
 	defer MapLocker.RUnlock()
 	AuthorizedMap[u] = b

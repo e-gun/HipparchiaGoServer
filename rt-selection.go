@@ -211,6 +211,7 @@ func RtSelectionClear(c echo.Context) error {
 	newsess.Exclusions = newexcl
 
 	SessionInsert(newsess)
+
 	r := RtSelectionFetch(c)
 
 	//sliceprinter("newincl.Passages", newincl.Passages)
