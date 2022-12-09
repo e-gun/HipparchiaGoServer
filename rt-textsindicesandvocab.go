@@ -225,7 +225,7 @@ func RtVocabMaker(c echo.Context) error {
 	progressinfo.InitSum = MSG1
 	progressinfo.IsActive = true
 	progressinfo.Remain.Set(1)
-	SearchPool.Add <- &progressinfo
+	SearchPool.AddSrch <- &progressinfo
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
 	max := Config.MaxText * MAXVOCABLINEGENERATION
@@ -400,7 +400,7 @@ func RtVocabMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "vocabobserved") + fmt.Sprintf(BROWSERJS, "vocabobserved")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	SearchPool.Remove <- &progressinfo
+	SearchPool.RemoveSrch <- &progressinfo
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
 
@@ -469,7 +469,7 @@ func RtIndexMaker(c echo.Context) error {
 	progressinfo.InitSum = MSG1
 	progressinfo.IsActive = true
 	progressinfo.Remain.Set(1)
-	SearchPool.Add <- &progressinfo
+	SearchPool.AddSrch <- &progressinfo
 
 	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 
@@ -698,7 +698,7 @@ func RtIndexMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "indexobserved") + fmt.Sprintf(BROWSERJS, "indexedlocation")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	SearchPool.Remove <- &progressinfo
+	SearchPool.RemoveSrch <- &progressinfo
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }

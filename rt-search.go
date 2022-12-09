@@ -438,8 +438,6 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 	srch.OneHit = sess.OneHit
 	srch.PhaseNum = 1
 	srch.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
-	srch.AcqHitCounter()
-	srch.AcqRemainCounter()
 
 	if sess.NearOrNot == "notnear" {
 		srch.NotNear = true
@@ -489,8 +487,6 @@ func buildhollowsearch() SearchStruct {
 		SearchSize:    0,
 		TableSize:     0,
 	}
-	s.AcqHitCounter()
-	s.AcqRemainCounter()
 	return s
 }
 

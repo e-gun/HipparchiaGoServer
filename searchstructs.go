@@ -214,14 +214,21 @@ func (s *SearchStruct) SortResults() {
 	}
 }
 
-// AcqHitCounter - get a SrchCounter for storing Hits values
-func (s *SearchStruct) AcqHitCounter() {
+// InitializeCounters - initialize SrchCounters for storing Hits values and Remain values
+func (s *SearchStruct) InitializeCounters() {
 	m := &SCMessage{
 		ID:  s.ID + "-hits",
 		Val: 0,
 	}
 	s.Hits = &SCClient{ID: s.ID + "-hits", Count: 0, SCM: m}
-	SearchCountPool.Add <- s.Hits
+	SearchCountPool.AddCounter <- s.Hits
+
+	m = &SCMessage{
+		ID:  s.ID + "-remain",
+		Val: 0,
+	}
+	s.Remain = &SCClient{ID: s.ID + "-remain", Count: 0, SCM: m}
+	SearchCountPool.AddCounter <- s.Remain
 }
 
 // GetHitCount - concurrency aware way to read a SrchCounter
@@ -232,16 +239,6 @@ func (s *SearchStruct) GetHitCount() int {
 // SetHitCount - concurrency aware way to write to a SrchCounter
 func (s *SearchStruct) SetHitCount(c int) {
 	s.Hits.Set(c)
-}
-
-// AcqRemainCounter - get a SrchCounter for storing Remain values
-func (s *SearchStruct) AcqRemainCounter() {
-	m := &SCMessage{
-		ID:  s.ID + "-remain",
-		Val: 0,
-	}
-	s.Remain = &SCClient{ID: s.ID + "-remain", Count: 0, SCM: m}
-	SearchCountPool.Add <- s.Remain
 }
 
 // GetRemainCount - concurrency aware way to read a SrchCounter
@@ -266,7 +263,7 @@ func (s *SearchStruct) Finished() {
 //
 
 type SCPool struct {
-	Add         chan *SCClient
+	AddCounter  chan *SCClient
 	Remove      chan *SCClient
 	SCClientMap map[*SCClient]bool
 	Get         chan *SCMessage
@@ -297,7 +294,7 @@ func (s *SCClient) Set(n int) int {
 
 func SCFillNewPool() *SCPool {
 	return &SCPool{
-		Add:         make(chan *SCClient),
+		AddCounter:  make(chan *SCClient),
 		Remove:      make(chan *SCClient),
 		SCClientMap: make(map[*SCClient]bool),
 		Get:         make(chan *SCMessage),
@@ -308,7 +305,7 @@ func SCFillNewPool() *SCPool {
 func (pool *SCPool) SCPoolStartListening() {
 	for {
 		select {
-		case sc := <-pool.Add:
+		case sc := <-pool.AddCounter:
 			pool.SCClientMap[sc] = true
 			break
 		case sc := <-pool.Remove:
@@ -341,45 +338,40 @@ func (pool *SCPool) SCPoolStartListening() {
 // WHY DO IT THIS WAY?
 // channels as alternative to mutex locks on a map[string]SearchStruct
 // the complexities all a function of trying to make search progress information available to the websocket while the search is in progress
-// so "Add" and "Remove" are called when polling is about to start and stop, not when a search is requested or finalized
+// so "AddSrch" and "RemoveSrch" are called when polling is about to start and stop, not when a search is requested or finalized
 
 type SrchStructPool struct {
-	Add           chan *SearchStruct
-	Remove        chan *SearchStruct
-	SSClientMap   map[*SearchStruct]bool
+	SSClientMap   map[string]*SearchStruct
+	AddSrch       chan *SearchStruct
+	RemoveSrch    chan *SearchStruct
 	Update        chan *SearchStruct
-	RequestRemain chan *SearchStruct
-	SendRemain    chan SrchMsg
-	SendHits      chan SrchMsg
 	RequestSS     chan string
-	RequestHits   chan string
-	RequestStats  chan string
 	SendSS        chan *SearchStruct
 	RequestExist  chan string
 	Exists        chan SrchMsg
+	RequestUpdate chan string
+	SendUpdate    chan SrchMsg
 }
 
 type SrchMsg struct {
-	ID  string
-	Val int
-	Str string
+	ID   string
+	Yes  bool
+	Hits int
+	Rem  int
 }
 
 func SStructFillNewPool() *SrchStructPool {
 	return &SrchStructPool{
-		Add:           make(chan *SearchStruct),
-		Remove:        make(chan *SearchStruct),
-		SSClientMap:   make(map[*SearchStruct]bool),
+		AddSrch:       make(chan *SearchStruct),
+		RemoveSrch:    make(chan *SearchStruct),
+		SSClientMap:   make(map[string]*SearchStruct),
 		Update:        make(chan *SearchStruct),
-		RequestRemain: make(chan *SearchStruct),
-		SendRemain:    make(chan SrchMsg),
-		SendHits:      make(chan SrchMsg),
 		RequestSS:     make(chan string),
-		RequestHits:   make(chan string),
-		RequestStats:  make(chan string),
 		SendSS:        make(chan *SearchStruct),
 		RequestExist:  make(chan string),
 		Exists:        make(chan SrchMsg),
+		RequestUpdate: make(chan string),
+		SendUpdate:    make(chan SrchMsg),
 	}
 }
 
@@ -390,48 +382,34 @@ func (p *SrchStructPool) SStructPoolStartListening() {
 
 	for {
 		select {
-		case sc := <-p.Add:
-			p.SSClientMap[sc] = true
+		case sc := <-p.AddSrch:
+			p.SSClientMap[sc.ID] = sc
 			break
-		case sc := <-p.Remove:
-			delete(p.SSClientMap, sc)
+		case sc := <-p.RemoveSrch:
+			delete(p.SSClientMap, sc.ID)
 			msg(fmt.Sprintf(REM, sc.ID), 4)
 			break
 		case set := <-p.Update:
-			for cl := range p.SSClientMap {
-				if cl.ID == set.ID {
-					cl = set
-					break
-				}
-			}
+			p.SSClientMap[set.ID] = set
 			break
 		case get := <-p.RequestSS:
-			for cl := range p.SSClientMap {
-				if cl.ID == get {
-					p.SendSS <- cl
-					break
-				}
-			}
-			break
-		case stats := <-p.RequestStats:
-			for cl := range p.SSClientMap {
-				if cl.ID == stats {
-					p.SendRemain <- SrchMsg{ID: stats, Val: cl.Remain.Get()}
-					p.SendHits <- SrchMsg{ID: stats, Val: cl.Hits.Get()}
-					break
-				}
+			if s, ok := p.SSClientMap[get]; ok {
+				p.SendSS <- s
 			}
 			break
 		case exists := <-p.RequestExist:
-			found := 0
-			for cl := range p.SSClientMap {
-				if cl.ID == exists {
-					found = 1
-					break
-				}
+			found := false
+			if _, ok := p.SSClientMap[exists]; ok {
+				found = true
 			}
-			p.Exists <- SrchMsg{ID: exists, Val: found}
+			p.Exists <- SrchMsg{ID: exists, Yes: found}
 			break
+		case updatepoll := <-p.RequestUpdate:
+			var m SrchMsg
+			if s, ok := p.SSClientMap[updatepoll]; ok {
+				m = SrchMsg{ID: updatepoll, Hits: s.Hits.Get(), Rem: s.Remain.Get()}
+			}
+			p.SendUpdate <- m
 		}
 
 	}

@@ -178,7 +178,7 @@ func (c *WSClient) WSWriteJSON() {
 		SearchPool.RequestExist <- c.ID
 		exists := <-SearchPool.Exists
 
-		if exists.Val == 1 && exists.ID == c.ID {
+		if exists.Yes && exists.ID == c.ID {
 			break
 		}
 
@@ -200,16 +200,17 @@ func (c *WSClient) WSWriteJSON() {
 		SearchPool.RequestExist <- c.ID
 		exists := <-SearchPool.Exists
 
-		if exists.Val == 0 && exists.ID == c.ID {
+		if !exists.Yes && exists.ID == c.ID {
 			break
 		}
 
-		SearchPool.RequestStats <- c.ID
-		rem := <-SearchPool.SendRemain
-		hit := <-SearchPool.SendHits
-		if rem.ID == c.ID && hit.ID == c.ID {
-			r.Remain = rem.Val
-			r.Hits = hit.Val
+		// note that if multiple searches are running, there is no guarantee that the right data is on the channel unless you
+		// also look at the ID
+		SearchPool.RequestUpdate <- c.ID
+		u := <-SearchPool.SendUpdate
+		if u.ID == c.ID {
+			r.Remain = u.Rem
+			r.Hits = u.Rem
 		}
 
 		r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(srch.Launched).Seconds())

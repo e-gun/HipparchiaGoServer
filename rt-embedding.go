@@ -123,7 +123,7 @@ func fileembedder(c echo.Context, f string) error {
 
 // addresponsehead - set the response header for various file types
 func addresponsehead(f string) string {
-	// c.Response().Header().Add("Content-Type", "text/css")
+	// c.Response().Header().AddSrch("Content-Type", "text/css")
 	add := ""
 
 	if strings.Contains(f, ".css") {
