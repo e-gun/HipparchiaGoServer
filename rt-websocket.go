@@ -205,7 +205,7 @@ func (c *WSClient) WSWriteJSON() {
 		}
 
 		// note that if multiple searches are running, there is no guarantee that the right data is on the channel unless you
-		// also look at the ID
+		// also look at the ID; but if each search polls every .1s, competition on the channel will not happen in practice
 		SearchPool.RequestUpdate <- c.ID
 		u := <-SearchPool.SendUpdate
 		if u.ID == c.ID {

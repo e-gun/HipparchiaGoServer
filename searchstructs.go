@@ -262,12 +262,12 @@ func (s *SearchStruct) Finished() {
 // POOLED SEARCHCOUNTERS
 //
 
-type SCPool struct {
-	AddCounter  chan *SCClient
-	Remove      chan *SCClient
-	SCClientMap map[*SCClient]bool
-	Get         chan *SCMessage
-	Set         chan *SCMessage
+type CounterPool struct {
+	ClientMap  map[string]*SCClient
+	AddCounter chan *SCClient
+	Remove     chan *SCClient
+	Get        chan *SCMessage
+	Set        chan *SCMessage
 }
 
 type SCClient struct {
@@ -292,39 +292,33 @@ func (s *SCClient) Set(n int) int {
 	return s.Count
 }
 
-func SCFillNewPool() *SCPool {
-	return &SCPool{
-		AddCounter:  make(chan *SCClient),
-		Remove:      make(chan *SCClient),
-		SCClientMap: make(map[*SCClient]bool),
-		Get:         make(chan *SCMessage),
-		Set:         make(chan *SCMessage),
+func SCFillNewPool() *CounterPool {
+	return &CounterPool{
+		ClientMap:  make(map[string]*SCClient),
+		AddCounter: make(chan *SCClient),
+		Remove:     make(chan *SCClient),
+		Get:        make(chan *SCMessage),
+		Set:        make(chan *SCMessage),
 	}
 }
 
-func (pool *SCPool) SCPoolStartListening() {
+func (p *CounterPool) SCPoolStartListening() {
 	for {
 		select {
-		case sc := <-pool.AddCounter:
-			pool.SCClientMap[sc] = true
+		case sc := <-p.AddCounter:
+			p.ClientMap[sc.ID] = sc
 			break
-		case sc := <-pool.Remove:
-			delete(pool.SCClientMap, sc)
+		case sc := <-p.Remove:
+			delete(p.ClientMap, sc.ID)
 			break
-		case set := <-pool.Set:
-			for cl := range pool.SCClientMap {
-				if cl.ID == set.ID {
-					cl.Count = set.Val
-					break
-				}
+		case set := <-p.Set:
+			if _, ok := p.ClientMap[set.ID]; ok {
+				p.ClientMap[set.ID].Count = set.Val
 			}
 			break
-		case get := <-pool.Get:
-			for cl := range pool.SCClientMap {
-				if cl.ID == get.ID {
-					get.Val = cl.Count
-					break
-				}
+		case get := <-p.Get:
+			if _, ok := p.ClientMap[get.ID]; ok {
+				get.Val = p.ClientMap[get.ID].Count
 			}
 			break
 		}
@@ -341,7 +335,7 @@ func (pool *SCPool) SCPoolStartListening() {
 // so "AddSrch" and "RemoveSrch" are called when polling is about to start and stop, not when a search is requested or finalized
 
 type SrchStructPool struct {
-	SSClientMap   map[string]*SearchStruct
+	ClientMap     map[string]*SearchStruct
 	AddSrch       chan *SearchStruct
 	RemoveSrch    chan *SearchStruct
 	Update        chan *SearchStruct
@@ -364,7 +358,7 @@ func SStructFillNewPool() *SrchStructPool {
 	return &SrchStructPool{
 		AddSrch:       make(chan *SearchStruct),
 		RemoveSrch:    make(chan *SearchStruct),
-		SSClientMap:   make(map[string]*SearchStruct),
+		ClientMap:     make(map[string]*SearchStruct),
 		Update:        make(chan *SearchStruct),
 		RequestSS:     make(chan string),
 		SendSS:        make(chan *SearchStruct),
@@ -377,36 +371,36 @@ func SStructFillNewPool() *SrchStructPool {
 
 func (p *SrchStructPool) SStructPoolStartListening() {
 	const (
-		REM = "SrchStructPool: removing '%s' from SSClientMap"
+		REM = "SrchStructPool: removing '%s' from ClientMap"
 	)
 
 	for {
 		select {
 		case sc := <-p.AddSrch:
-			p.SSClientMap[sc.ID] = sc
+			p.ClientMap[sc.ID] = sc
 			break
 		case sc := <-p.RemoveSrch:
-			delete(p.SSClientMap, sc.ID)
+			delete(p.ClientMap, sc.ID)
 			msg(fmt.Sprintf(REM, sc.ID), 4)
 			break
 		case set := <-p.Update:
-			p.SSClientMap[set.ID] = set
+			p.ClientMap[set.ID] = set
 			break
 		case get := <-p.RequestSS:
-			if s, ok := p.SSClientMap[get]; ok {
+			if s, ok := p.ClientMap[get]; ok {
 				p.SendSS <- s
 			}
 			break
 		case exists := <-p.RequestExist:
 			found := false
-			if _, ok := p.SSClientMap[exists]; ok {
+			if _, ok := p.ClientMap[exists]; ok {
 				found = true
 			}
 			p.Exists <- SrchMsg{ID: exists, Yes: found}
 			break
 		case updatepoll := <-p.RequestUpdate:
 			var m SrchMsg
-			if s, ok := p.SSClientMap[updatepoll]; ok {
+			if s, ok := p.ClientMap[updatepoll]; ok {
 				m = SrchMsg{ID: updatepoll, Hits: s.Hits.Get(), Rem: s.Remain.Get()}
 			}
 			p.SendUpdate <- m

@@ -159,7 +159,7 @@ func makedefaultsession(id string) ServerSession {
 // readUUIDCookie - find the ID of the client
 func readUUIDCookie(c echo.Context) string {
 	const (
-		MSG = "readUUIDCookie() says %s authentication status is %t"
+		MSG = "readUUIDCookie(): %s authentication status is '%t'"
 	)
 
 	cookie, err := c.Cookie("ID")
