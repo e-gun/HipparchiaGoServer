@@ -192,18 +192,19 @@ func (c *WSClient) WSWriteJSON() {
 
 	srch := SafeSearchMapRead(c.ID)
 
-	var r PollData
-	r.TwoBox = srch.Twobox
-	r.TotalWrk = srch.TableSize
+	var pd PollData
+	pd.TwoBox = srch.Twobox
+	pd.TotalWrk = srch.TableSize
 
 	// loop until search finishes
 	for {
 		MapLocker.RLock()
+		// don't set a variable: you will copy the whole struct and so the (waxing) results
 		_, exists := SearchMap[c.ID]
 		if exists {
-			r.Remain = SearchMap[c.ID].Remain.Get()
-			r.Hits = SearchMap[c.ID].Hits.Get()
-			r.Msg = strings.Replace(SearchMap[c.ID].InitSum, "Sought", "Seeking", -1)
+			pd.Remain = SearchMap[c.ID].Remain.Get()
+			pd.Hits = SearchMap[c.ID].Hits.Get()
+			pd.Msg = strings.Replace(SearchMap[c.ID].InitSum, "Sought", "Seeking", -1)
 		}
 		MapLocker.RUnlock()
 
@@ -211,18 +212,16 @@ func (c *WSClient) WSWriteJSON() {
 			break
 		}
 
-		r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(srch.Launched).Seconds())
+		pd.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(srch.Launched).Seconds())
 
 		if srch.PhaseNum > 1 {
-			r.Extra = "(second pass)"
+			pd.Extra = "(second pass)"
 		} else {
-			r.Extra = ""
+			pd.Extra = ""
 		}
 
-		pd := formatpoll(r)
-
 		jso := &WSJSOut{
-			V:     pd,
+			V:     formatpoll(pd),
 			ID:    c.ID,
 			Close: "open",
 		}

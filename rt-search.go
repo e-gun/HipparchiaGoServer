@@ -110,9 +110,9 @@ func RtSearch(c echo.Context) error {
 
 	soj := SearchOutputJSON{}
 	if se.HitContext == 0 {
-		soj = FormatNoContextResults(completed)
+		soj = FormatNoContextResults(&completed)
 	} else {
-		soj = FormatWithContextResults(completed)
+		soj = FormatWithContextResults(&completed)
 	}
 
 	SafeSearchMapDelete(id)

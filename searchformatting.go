@@ -30,7 +30,7 @@ const (
 )
 
 // FormatNoContextResults - build zero context search results table
-func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
+func FormatNoContextResults(ss *SearchStruct) SearchOutputJSON {
 	const (
 		TABLEROW = `
 		<tr class="{{.TRClass}}">
@@ -56,7 +56,7 @@ func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 		TheLine    string
 	}
 
-	searchterm := gethighlighter(&ss)
+	searchterm := gethighlighter(ss)
 
 	trt, e := template.New("trt").Parse(TABLEROW)
 	chke(e)
@@ -114,7 +114,7 @@ func FormatNoContextResults(ss SearchStruct) SearchOutputJSON {
 	out.JS = fmt.Sprintf(BROWSERJS, "browser")
 	out.Title = ss.Seeking
 	out.Image = ""
-	out.Searchsummary = formatfinalsearchsummary(&ss)
+	out.Searchsummary = formatfinalsearchsummary(ss)
 
 	out.Found = "<tbody>" + b.String() + "</tbody>"
 	if Config.ZapLunates {
@@ -133,7 +133,7 @@ type ResultPassageLine struct {
 }
 
 // FormatWithContextResults - build n-lines of context search results table
-func FormatWithContextResults(thesearch SearchStruct) SearchOutputJSON {
+func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 	const (
 		FINDTEMPL = `
 		<locus>
@@ -168,7 +168,7 @@ func FormatWithContextResults(thesearch SearchStruct) SearchOutputJSON {
 
 	// gather all the lines you need: this is much faster than simplecontextgrabber() 200x in a single threaded loop
 	// turn it into a new search where we accept any character as enough to yield a hit: ""
-	res := clonesearch(thesearch, 3)
+	res := clonesearch(*thesearch, 3)
 	res.Results = thesearch.Results
 	res.Seeking = ""
 	res.LemmaOne = ""
@@ -260,7 +260,7 @@ func FormatWithContextResults(thesearch SearchStruct) SearchOutputJSON {
 	}
 
 	// highlight the search term: this includes the hyphenated_line issue
-	searchterm := gethighlighter(&thesearch)
+	searchterm := gethighlighter(thesearch)
 
 	for _, p := range allpassages {
 		for i, r := range p.CookedCTX {
@@ -311,7 +311,7 @@ func FormatWithContextResults(thesearch SearchStruct) SearchOutputJSON {
 	out.JS = fmt.Sprintf(BROWSERJS, "browser")
 	out.Title = restorewhitespace(thesearch.Seeking)
 	out.Image = ""
-	out.Searchsummary = formatfinalsearchsummary(&thesearch)
+	out.Searchsummary = formatfinalsearchsummary(thesearch)
 	out.Found = strings.Join(rows, "")
 
 	if Config.ZapLunates {
