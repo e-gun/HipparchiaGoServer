@@ -31,6 +31,8 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	SearchPool.Add <- &ss
+
 	emitqueries, err := SrchFeeder(ctx, &ss)
 	chke(err)
 
@@ -50,12 +52,15 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 		max = ss.CurrentLimit * 3
 	}
 
-	results := ResultCollation(ctx, &ss, max, ResultAggregator(ctx, findchannels...))
-	if len(results) > max {
-		results = results[0:max]
+	ss.Results = ResultCollation(ctx, &ss, max, ResultAggregator(ctx, findchannels...))
+	if len(ss.Results) > max {
+		ss.Results = ss.Results[0:max]
 	}
 
-	ss.Results = results
+	ss.Finished()
+
+	SearchPool.Remove <- &ss
+
 	return ss
 }
 

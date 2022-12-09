@@ -51,7 +51,6 @@ func RtSearch(c echo.Context) error {
 		return c.JSONPretty(http.StatusOK, SearchOutputJSON{JS: VALIDATIONBOX}, JSONINDENT)
 	}
 
-	id := c.Param("id")
 	srch := builddefaultsearch(c)
 	srch.User = user
 
@@ -86,17 +85,16 @@ func RtSearch(c echo.Context) error {
 
 	srch.TableSize = len(srch.Queries)
 	srch.IsActive = true
-	SafeSearchMapInsert(srch)
 
 	var completed SearchStruct
-	if SearchMap[id].Twobox {
-		if SearchMap[id].ProxScope == "words" {
-			completed = WithinXWordsSearch(SearchMap[id])
+	if srch.Twobox {
+		if srch.ProxScope == "words" {
+			completed = WithinXWordsSearch(srch)
 		} else {
-			completed = WithinXLinesSearch(SearchMap[id])
+			completed = WithinXLinesSearch(srch)
 		}
 	} else {
-		completed = HGoSrch(SearchMap[id])
+		completed = HGoSrch(srch)
 		if completed.HasPhrase {
 			findphrasesacrosslines(&completed)
 		}
@@ -107,17 +105,9 @@ func RtSearch(c echo.Context) error {
 	}
 
 	completed.SortResults()
+	output := FormatResults(&completed, se.HitContext)
 
-	soj := SearchOutputJSON{}
-	if se.HitContext == 0 {
-		soj = FormatNoContextResults(&completed)
-	} else {
-		soj = FormatWithContextResults(&completed)
-	}
-
-	SafeSearchMapDelete(id)
-
-	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
+	return c.JSONPretty(http.StatusOK, output, JSONINDENT)
 }
 
 //
@@ -207,7 +197,7 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	}
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf(MSG3, d, len(first.Results)), 4)
+	msg(fmt.Sprintf(MSG3, d, len(second.Results)), 4)
 
 	return second
 }
@@ -804,30 +794,4 @@ func searchtermfinder(term string) *regexp.Regexp {
 		pattern = regexp.MustCompile("FAILED_FIND_NOTHING")
 	}
 	return pattern
-}
-
-// SafeSearchMapInsert - use a lock to safely swap a SearchStruct into the SearchMap
-func SafeSearchMapInsert(ns SearchStruct) {
-	MapLocker.Lock()
-	defer MapLocker.Unlock()
-	SearchMap[ns.ID] = ns
-}
-
-// SafeSearchMapRead - use a lock to safely read a SearchStruct from the SearchMap
-func SafeSearchMapRead(id string) SearchStruct {
-	MapLocker.RLock()
-	defer MapLocker.RUnlock()
-	s, e := SearchMap[id]
-	if e != true {
-		s = buildhollowsearch()
-		s.ID = id
-		s.IsActive = false
-	}
-	return s
-}
-
-func SafeSearchMapDelete(id string) {
-	MapLocker.RLock()
-	defer MapLocker.RUnlock()
-	delete(SearchMap, id)
 }

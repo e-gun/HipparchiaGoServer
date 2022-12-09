@@ -5,10 +5,12 @@
 
 package main
 
+import "time"
+
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.0.7b"
+	VERSION                  = "1.0.8"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	CONFIGLOCATION           = "."
 	CONFIGALTAPTH            = "%s/.config/" // %s = os.UserHomeDir()
@@ -65,6 +67,8 @@ const (
 	SORTBY                   = "shortname"
 	TEMPTABLETHRESHOLD       = 100 // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
 	TERMINATIONS             = `(\s|\.|\]|\<|⟩|’|”|\!|,|:|;|\?|·|$)`
+	TIMEOUTRD                = 15 * time.Second // only set if Config.Authenticate is true (and so in a "serve the net" situation)
+	TIMEOUTWR                = 90 * time.Second // this is *very* generous, but some searches are slow/long
 	TIMETRACKERMSGTHRESH     = 3
 	USEGZIP                  = false
 	VARIADATE                = 2000

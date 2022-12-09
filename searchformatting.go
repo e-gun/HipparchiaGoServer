@@ -29,6 +29,17 @@ const (
 	HYPHREPLACE = `&nbsp;&nbsp;(&nbsp;match:&nbsp;<span class="match">%s</span>&nbsp;)`
 )
 
+// FormatResults - build search results table
+func FormatResults(ss *SearchStruct, linesofcontext int) SearchOutputJSON {
+	soj := SearchOutputJSON{}
+	if linesofcontext == 0 {
+		soj = FormatNoContextResults(ss)
+	} else {
+		soj = FormatWithContextResults(ss)
+	}
+	return soj
+}
+
 // FormatNoContextResults - build zero context search results table
 func FormatNoContextResults(ss *SearchStruct) SearchOutputJSON {
 	const (
@@ -191,6 +202,7 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 
 	res.Results = []DbWorkline{}
 	SSBuildQueries(&res)
+
 	res = HGoSrch(res)
 
 	// now you have all the lines you will ever need

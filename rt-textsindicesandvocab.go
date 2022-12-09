@@ -126,7 +126,6 @@ func RtTextMaker(c echo.Context) error {
 	tab = top + tab + `</tbody></table>`
 
 	// but we don't want/need "observed" tags
-
 	// <div id="searchsummary">Cicero,&nbsp;<span class="foundwork">Philippicae</span><br><br>citation format:&nbsp;oration 3, section 13, line 1<br></div>
 
 	sui := sess.Inclusions
@@ -220,13 +219,13 @@ func RtVocabMaker(c echo.Context) error {
 	id := c.Param("id")
 	id = Purgechars(Config.BadChars, id)
 
-	// "si" is a blank search struct used for progress reporting
-	si := builddefaultsearch(c)
-	si.ID = id
-	si.InitSum = MSG1
-	si.IsActive = true
-	SafeSearchMapInsert(si)
-	SearchMap[si.ID].Remain.Set(1)
+	// "progressinfo" is a blank search struct used for progress reporting
+	progressinfo := builddefaultsearch(c)
+	progressinfo.ID = id
+	progressinfo.InitSum = MSG1
+	progressinfo.IsActive = true
+	progressinfo.Remain.Set(1)
+	SearchPool.Add <- &progressinfo
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
 	max := Config.MaxText * MAXVOCABLINEGENERATION
@@ -269,9 +268,8 @@ func RtVocabMaker(c echo.Context) error {
 	// [c1] get and map all the DbMorphology
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
-	si.InitSum = MSG2
-
-	SafeSearchMapInsert(si)
+	progressinfo.InitSum = MSG2
+	SearchPool.Update <- &progressinfo
 
 	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 	// [c2] map observed words to possibilities
@@ -337,13 +335,13 @@ func RtVocabMaker(c echo.Context) error {
 		ct += 1
 	}
 
-	si.InitSum = MSG3
-	SafeSearchMapInsert(si)
+	progressinfo.InitSum = MSG3
+	SearchPool.Update <- &progressinfo
 
 	sort.Slice(vis, func(i, j int) bool { return vis[i].Strip < vis[j].Strip })
 
-	si.InitSum = MSG4
-	SafeSearchMapInsert(si)
+	progressinfo.InitSum = MSG4
+	SearchPool.Update <- &progressinfo
 
 	// [g] format
 
@@ -402,8 +400,7 @@ func RtVocabMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "vocabobserved") + fmt.Sprintf(BROWSERJS, "vocabobserved")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	SafeSearchMapDelete(si.ID)
-
+	SearchPool.Remove <- &progressinfo
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
 
@@ -466,13 +463,13 @@ func RtIndexMaker(c echo.Context) error {
 	id := c.Param("id")
 	id = Purgechars(Config.BadChars, id)
 
-	// "si" is a blank search struct used for progress reporting
-	si := builddefaultsearch(c)
-	si.ID = id
-	si.InitSum = MSG1
-	si.IsActive = true
-	SafeSearchMapInsert(si)
-	SearchMap[si.ID].Remain.Set(1)
+	// "progressinfo" is a blank search struct used for progress reporting
+	progressinfo := builddefaultsearch(c)
+	progressinfo.ID = id
+	progressinfo.InitSum = MSG1
+	progressinfo.IsActive = true
+	progressinfo.Remain.Set(1)
+	SearchPool.Add <- &progressinfo
 
 	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 
@@ -514,8 +511,8 @@ func RtIndexMaker(c echo.Context) error {
 
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
-	si.InitSum = MSG2
-	SafeSearchMapInsert(si)
+	progressinfo.InitSum = MSG2
+	SearchPool.Update <- &progressinfo
 
 	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 	var slicedlookups []WordInfo
@@ -605,8 +602,8 @@ func RtIndexMaker(c echo.Context) error {
 		count  int
 	}
 
-	si.InitSum = MSG3
-	SafeSearchMapInsert(si)
+	progressinfo.InitSum = MSG3
+	SearchPool.Update <- &progressinfo
 
 	indexmap := make(map[SorterStruct][]WordInfo, len(trimslices))
 	for _, w := range trimslices {
@@ -649,8 +646,8 @@ func RtIndexMaker(c echo.Context) error {
 
 	indexmap = make(map[SorterStruct][]WordInfo, 1) // drop after use
 
-	si.InitSum = MSG4
-	SafeSearchMapInsert(si)
+	progressinfo.InitSum = MSG4
+	SearchPool.Update <- &progressinfo
 
 	trr := make([]string, len(plainkeys))
 	for i, k := range plainkeys {
@@ -701,7 +698,7 @@ func RtIndexMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "indexobserved") + fmt.Sprintf(BROWSERJS, "indexedlocation")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	SafeSearchMapDelete(si.ID)
+	SearchPool.Remove <- &progressinfo
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }

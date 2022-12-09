@@ -41,26 +41,27 @@ const (
 // trust to begin with.
 
 var (
-	Config        CurrentConfiguration
-	SQLPool       *pgxpool.Pool
-	SessionMap    = make(map[string]ServerSession)
-	SearchMap     = make(map[string]SearchStruct)
-	AuthorizedMap = make(map[string]bool)
-	UserPassPairs = make(map[string]string)
-	AllWorks      = make(map[string]DbWork)
-	AllAuthors    = make(map[string]DbAuthor)
-	AllLemm       = make(map[string]DbLemma)
-	NestedLemm    = make(map[string]map[string]DbLemma)
-	WkCorpusMap   = make(map[string][]string)
-	AuCorpusMap   = make(map[string][]string)
-	AuGenres      = make(map[string]bool)
-	WkGenres      = make(map[string]bool)
-	AuLocs        = make(map[string]bool)
-	WkLocs        = make(map[string]bool)
-	TheCorpora    = [5]string{"gr", "lt", "in", "ch", "dp"}
-	TheLanguages  = [2]string{"greek", "latin"}
-	MapLocker     sync.RWMutex
-	WebsocketPool = WSFillNewPool()
+	Config          CurrentConfiguration
+	SQLPool         *pgxpool.Pool
+	SessionMap      = make(map[string]ServerSession)
+	AuthorizedMap   = make(map[string]bool)
+	UserPassPairs   = make(map[string]string)
+	AllWorks        = make(map[string]DbWork)
+	AllAuthors      = make(map[string]DbAuthor)
+	AllLemm         = make(map[string]DbLemma)
+	NestedLemm      = make(map[string]map[string]DbLemma)
+	WkCorpusMap     = make(map[string][]string)
+	AuCorpusMap     = make(map[string][]string)
+	AuGenres        = make(map[string]bool)
+	WkGenres        = make(map[string]bool)
+	AuLocs          = make(map[string]bool)
+	WkLocs          = make(map[string]bool)
+	TheCorpora      = [5]string{"gr", "lt", "in", "ch", "dp"}
+	TheLanguages    = [2]string{"greek", "latin"}
+	MapLocker       sync.RWMutex
+	WebsocketPool   = WSFillNewPool()
+	SearchCountPool = SCFillNewPool()
+	SearchPool      = SStructFillNewPool()
 )
 
 type DbAuthor struct {

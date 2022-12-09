@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -49,9 +48,8 @@ type SearchStruct struct {
 	SearchSize    int // # of works searched
 	TableSize     int // # of tables searched
 	ExtraMsg      string
-	Hits          *SrchCounter
-	Remain        *SrchCounter
-	lock          *sync.RWMutex
+	Remain        *SCClient
+	Hits          *SCClient
 }
 
 // CleanInput - remove bad chars, etc. from the submitted data
@@ -218,8 +216,12 @@ func (s *SearchStruct) SortResults() {
 
 // AcqHitCounter - get a SrchCounter for storing Hits values
 func (s *SearchStruct) AcqHitCounter() {
-	h := func() *SrchCounter { return &SrchCounter{} }()
-	s.Hits = h
+	m := &SCMessage{
+		ID:  s.ID + "-hits",
+		Val: 0,
+	}
+	s.Hits = &SCClient{ID: s.ID + "-hits", Count: 0, SCM: m}
+	SearchCountPool.Add <- s.Hits
 }
 
 // GetHitCount - concurrency aware way to read a SrchCounter
@@ -234,8 +236,12 @@ func (s *SearchStruct) SetHitCount(c int) {
 
 // AcqRemainCounter - get a SrchCounter for storing Remain values
 func (s *SearchStruct) AcqRemainCounter() {
-	r := func() *SrchCounter { return &SrchCounter{} }()
-	s.Remain = r
+	m := &SCMessage{
+		ID:  s.ID + "-remain",
+		Val: 0,
+	}
+	s.Remain = &SCClient{ID: s.ID + "-remain", Count: 0, SCM: m}
+	SearchCountPool.Add <- s.Remain
 }
 
 // GetRemainCount - concurrency aware way to read a SrchCounter
@@ -248,30 +254,185 @@ func (s *SearchStruct) SetRemainCount(c int) {
 	s.Remain.Set(c)
 }
 
-//
-// SEARCHCOUNTERS
-//
-
-// NB: the WEBSOCKET INFRASTRUCTURE paradigm can be used to build POOLED SEARCHCOUNTERS and POOLED SEARCHSTRUCTURES
-// See the dead-end "pooled-everything" branch for what this file will look like then. You can get a lockless
-// "share memory by communicating" environment, but it adds a lot of code for a very abstract gain.
-
-type SrchCounter struct {
-	// atomic package could do this more simply, but this architecture is more flexible in the long term
-	count int
-	lock  sync.RWMutex
+// Finished - clean up a finished search
+func (s *SearchStruct) Finished() {
+	s.IsActive = false
+	SearchCountPool.Remove <- s.Remain
+	SearchCountPool.Remove <- s.Hits
 }
 
-// Get - concurrency aware way to read a SrchCounter
-func (h *SrchCounter) Get() int {
-	h.lock.RLock()
-	defer h.lock.RUnlock()
-	return h.count
+//
+// POOLED SEARCHCOUNTERS
+//
+
+type SCPool struct {
+	Add         chan *SCClient
+	Remove      chan *SCClient
+	SCClientMap map[*SCClient]bool
+	Get         chan *SCMessage
+	Set         chan *SCMessage
 }
 
-// Set - concurrency aware way to write to a SrchCounter
-func (h *SrchCounter) Set(c int) {
-	h.lock.Lock()
-	defer h.lock.Unlock()
-	h.count = c
+type SCClient struct {
+	ID    string
+	Count int
+	SCM   *SCMessage
+}
+
+type SCMessage struct {
+	ID  string
+	Val int
+}
+
+func (s *SCClient) Get() int {
+	SearchCountPool.Get <- s.SCM
+	return s.SCM.Val
+}
+
+func (s *SCClient) Set(n int) int {
+	s.SCM.Val = n
+	SearchCountPool.Set <- s.SCM
+	return s.Count
+}
+
+func SCFillNewPool() *SCPool {
+	return &SCPool{
+		Add:         make(chan *SCClient),
+		Remove:      make(chan *SCClient),
+		SCClientMap: make(map[*SCClient]bool),
+		Get:         make(chan *SCMessage),
+		Set:         make(chan *SCMessage),
+	}
+}
+
+func (pool *SCPool) SCPoolStartListening() {
+	for {
+		select {
+		case sc := <-pool.Add:
+			pool.SCClientMap[sc] = true
+			break
+		case sc := <-pool.Remove:
+			delete(pool.SCClientMap, sc)
+			break
+		case set := <-pool.Set:
+			for cl := range pool.SCClientMap {
+				if cl.ID == set.ID {
+					cl.Count = set.Val
+					break
+				}
+			}
+			break
+		case get := <-pool.Get:
+			for cl := range pool.SCClientMap {
+				if cl.ID == get.ID {
+					get.Val = cl.Count
+					break
+				}
+			}
+			break
+		}
+	}
+}
+
+//
+// POOLED SEARCHSTRUCTURES
+//
+
+// WHY DO IT THIS WAY?
+// channels as alternative to mutex locks on a map[string]SearchStruct
+// the complexities all a function of trying to make search progress information available to the websocket while the search is in progress
+// so "Add" and "Remove" are called when polling is about to start and stop, not when a search is requested or finalized
+
+type SrchStructPool struct {
+	Add           chan *SearchStruct
+	Remove        chan *SearchStruct
+	SSClientMap   map[*SearchStruct]bool
+	Update        chan *SearchStruct
+	RequestRemain chan *SearchStruct
+	SendRemain    chan SrchMsg
+	SendHits      chan SrchMsg
+	RequestSS     chan string
+	RequestHits   chan string
+	RequestStats  chan string
+	SendSS        chan *SearchStruct
+	RequestExist  chan string
+	Exists        chan SrchMsg
+}
+
+type SrchMsg struct {
+	ID  string
+	Val int
+	Str string
+}
+
+func SStructFillNewPool() *SrchStructPool {
+	return &SrchStructPool{
+		Add:           make(chan *SearchStruct),
+		Remove:        make(chan *SearchStruct),
+		SSClientMap:   make(map[*SearchStruct]bool),
+		Update:        make(chan *SearchStruct),
+		RequestRemain: make(chan *SearchStruct),
+		SendRemain:    make(chan SrchMsg),
+		SendHits:      make(chan SrchMsg),
+		RequestSS:     make(chan string),
+		RequestHits:   make(chan string),
+		RequestStats:  make(chan string),
+		SendSS:        make(chan *SearchStruct),
+		RequestExist:  make(chan string),
+		Exists:        make(chan SrchMsg),
+	}
+}
+
+func (p *SrchStructPool) SStructPoolStartListening() {
+	const (
+		REM = "SrchStructPool: removing '%s' from SSClientMap"
+	)
+
+	for {
+		select {
+		case sc := <-p.Add:
+			p.SSClientMap[sc] = true
+			break
+		case sc := <-p.Remove:
+			delete(p.SSClientMap, sc)
+			msg(fmt.Sprintf(REM, sc.ID), 4)
+			break
+		case set := <-p.Update:
+			for cl := range p.SSClientMap {
+				if cl.ID == set.ID {
+					cl = set
+					break
+				}
+			}
+			break
+		case get := <-p.RequestSS:
+			for cl := range p.SSClientMap {
+				if cl.ID == get {
+					p.SendSS <- cl
+					break
+				}
+			}
+			break
+		case stats := <-p.RequestStats:
+			for cl := range p.SSClientMap {
+				if cl.ID == stats {
+					p.SendRemain <- SrchMsg{ID: stats, Val: cl.Remain.Get()}
+					p.SendHits <- SrchMsg{ID: stats, Val: cl.Hits.Get()}
+					break
+				}
+			}
+			break
+		case exists := <-p.RequestExist:
+			found := 0
+			for cl := range p.SSClientMap {
+				if cl.ID == exists {
+					found = 1
+					break
+				}
+			}
+			p.Exists <- SrchMsg{ID: exists, Val: found}
+			break
+		}
+
+	}
 }

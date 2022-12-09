@@ -175,12 +175,10 @@ func (c *WSClient) WSWriteJSON() {
 	quit := time.Now().Add(time.Second * 1)
 
 	for {
-		MapLocker.RLock()
-		ls := len(SearchMap)
-		_, exists := SearchMap[c.ID]
-		MapLocker.RUnlock()
+		SearchPool.RequestExist <- c.ID
+		exists := <-SearchPool.Exists
 
-		if ls != 0 && exists {
+		if exists.Val == 1 && exists.ID == c.ID {
 			break
 		}
 
@@ -190,38 +188,44 @@ func (c *WSClient) WSWriteJSON() {
 		}
 	}
 
-	srch := SafeSearchMapRead(c.ID)
+	SearchPool.RequestSS <- c.ID
+	srch := <-SearchPool.SendSS
 
-	var pd PollData
-	pd.TwoBox = srch.Twobox
-	pd.TotalWrk = srch.TableSize
+	var r PollData
+	r.TwoBox = srch.Twobox
+	r.TotalWrk = srch.TableSize
 
 	// loop until search finishes
 	for {
-		MapLocker.RLock()
-		// don't set a variable: you will copy the whole struct and so the (waxing) results
-		_, exists := SearchMap[c.ID]
-		if exists {
-			pd.Remain = SearchMap[c.ID].Remain.Get()
-			pd.Hits = SearchMap[c.ID].Hits.Get()
-			pd.Msg = strings.Replace(SearchMap[c.ID].InitSum, "Sought", "Seeking", -1)
-		}
-		MapLocker.RUnlock()
+		SearchPool.RequestExist <- c.ID
+		exists := <-SearchPool.Exists
 
-		if !exists {
+		if exists.Val == 0 && exists.ID == c.ID {
 			break
 		}
 
-		pd.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(srch.Launched).Seconds())
-
-		if srch.PhaseNum > 1 {
-			pd.Extra = "(second pass)"
-		} else {
-			pd.Extra = ""
+		SearchPool.RequestStats <- c.ID
+		rem := <-SearchPool.SendRemain
+		hit := <-SearchPool.SendHits
+		if rem.ID == c.ID && hit.ID == c.ID {
+			r.Remain = rem.Val
+			r.Hits = hit.Val
 		}
 
+		r.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(srch.Launched).Seconds())
+
+		if srch.PhaseNum > 1 {
+			r.Extra = "(second pass)"
+		} else {
+			r.Extra = ""
+		}
+
+		r.Msg = strings.Replace(srch.InitSum, "Sought", "Seeking", -1)
+
+		pd := formatpoll(r)
+
 		jso := &WSJSOut{
-			V:     formatpoll(pd),
+			V:     pd,
 			ID:    c.ID,
 			Close: "open",
 		}

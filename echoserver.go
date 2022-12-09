@@ -26,6 +26,12 @@ func StartEchoServer() {
 
 	e := echo.New()
 
+	if Config.Authenticate {
+		// assume that anyone who is using authentication is serving via the internet and so set timeouts
+		e.Server.ReadTimeout = TIMEOUTRD
+		e.Server.WriteTimeout = TIMEOUTWR
+	}
+
 	if Config.EchoLog == 2 {
 		e.Use(middleware.Logger())
 	} else if Config.EchoLog == 1 {
