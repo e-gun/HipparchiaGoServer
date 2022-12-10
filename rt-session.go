@@ -185,16 +185,20 @@ type ServerSession struct {
 
 // FetchSession - get a session from the session pool
 func FetchSession(u string) ServerSession {
+	const (
+		FAIL = "FetchSession() did not return the session requested. Resetting."
+	)
 	SessionPool.FetchSS <- u
 	s := <-SessionPool.ReturnSess
 	if s.ID != u {
+		msg(FAIL, 3)
 		ds := makedefaultsession(u)
 		s = &ds
 	}
 	return *s
 }
 
-// SessionInsert - insert a session into the session pool
+// SessionInsert - insert a session into the session pool (simple function whose implementation might change)
 func SessionInsert(ns ServerSession) {
 	SessionPool.AddSess <- &ns
 }
@@ -225,12 +229,13 @@ func makedefaultsession(id string) ServerSession {
 	s.Proximity = DEFAULTPROXIMITY
 	s.LoginName = "Anonymous"
 
-	// readUUIDCookie() called this function, and it already holds a lock
+	MapLocker.Lock()
 	if Config.Authenticate {
 		AuthorizedMap[id] = false
 	} else {
 		AuthorizedMap[id] = true
 	}
+	MapLocker.Unlock()
 
 	//msg("makedefaultsession() in non-default state for testing; this is not a release build of HGS", 0)
 	//m := make(map[string]string)

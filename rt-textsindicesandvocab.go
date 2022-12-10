@@ -221,6 +221,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	// "progressinfo" is a blank search struct used for progress reporting
 	progressinfo := builddefaultsearch(c)
+	progressinfo.InitializeCounters()
 	progressinfo.ID = id
 	progressinfo.InitSum = MSG1
 	progressinfo.IsActive = true
@@ -400,6 +401,7 @@ func RtVocabMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "vocabobserved") + fmt.Sprintf(BROWSERJS, "vocabobserved")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
+	progressinfo.Finished()
 	SearchPool.RemoveSrch <- progressinfo.ID
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
@@ -465,6 +467,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// "progressinfo" is a blank search struct used for progress reporting
 	progressinfo := builddefaultsearch(c)
+	progressinfo.InitializeCounters()
 	progressinfo.ID = id
 	progressinfo.InitSum = MSG1
 	progressinfo.IsActive = true
@@ -698,6 +701,7 @@ func RtIndexMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "indexobserved") + fmt.Sprintf(BROWSERJS, "indexedlocation")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
+	progressinfo.Finished()
 	SearchPool.RemoveSrch <- progressinfo.ID
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
