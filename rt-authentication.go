@@ -66,8 +66,8 @@ func SafeAuthenticationCheck(u string) bool {
 		return true
 	}
 
-	MapLocker.RLock()
-	defer MapLocker.RUnlock()
+	AuthorizLocker.RLock()
+	defer AuthorizLocker.RUnlock()
 	s, e := AuthorizedMap[u]
 	if e != true {
 		AuthorizedMap[u] = false
@@ -78,8 +78,8 @@ func SafeAuthenticationCheck(u string) bool {
 
 // SafeAuthenticationWrite - use a lock to safely write to AuthorizedMap
 func SafeAuthenticationWrite(u string, b bool) {
-	MapLocker.RLock()
-	defer MapLocker.RUnlock()
+	AuthorizLocker.RLock()
+	defer AuthorizLocker.RUnlock()
 	AuthorizedMap[u] = b
 	return
 }

@@ -47,8 +47,8 @@ type ServerSession struct {
 
 // SafeSessionRead - use a lock to safely read a ServerSession from the SessionMap
 func SafeSessionRead(u string) ServerSession {
-	MapLocker.RLock()
-	defer MapLocker.RUnlock()
+	SessionLocker.RLock()
+	defer SessionLocker.RUnlock()
 	s, e := SessionMap[u]
 	if e != true {
 		s = makedefaultsession(u)
@@ -58,15 +58,15 @@ func SafeSessionRead(u string) ServerSession {
 
 // SafeSessionMapInsert - use a lock to safely swap a ServerSession into the SessionMap
 func SafeSessionMapInsert(ns ServerSession) {
-	MapLocker.Lock()
-	defer MapLocker.Unlock()
+	SessionLocker.Lock()
+	defer SessionLocker.Unlock()
 	SessionMap[ns.ID] = ns
 }
 
 // SafeSessionMapDelete - use a lock to safely delete a ServerSession from the SessionMap
 func SafeSessionMapDelete(u string) {
-	MapLocker.Lock()
-	defer MapLocker.Unlock()
+	SessionLocker.Lock()
+	defer SessionLocker.Unlock()
 	delete(SessionMap, u)
 }
 

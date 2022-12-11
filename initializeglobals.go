@@ -26,7 +26,7 @@ const (
 // to race on read. 20 goroutines reading the same static map simultaneously can each get to 3,540,000,000 reads without
 // triggering a race.
 
-// SessionMap and SearchMap receive infrequent additions and deletions. MapLocker should be locking these but that does
+// SessionMap and SearchMap receive infrequent additions and deletions. SearchLocker should be locking these but that does
 // not mean there can never be a race: 20 goroutines reading the same L/U updated map simultaneously as fast as they can
 // are each able get to >100,000,000 on average if you update the map every .1 seconds. [without L/U writes, this will
 // die right away]
@@ -41,26 +41,28 @@ const (
 // trust to begin with.
 
 var (
-	Config        CurrentConfiguration
-	SQLPool       *pgxpool.Pool
-	SessionMap    = make(map[string]ServerSession)
-	SearchMap     = make(map[string]SearchStruct)
-	AuthorizedMap = make(map[string]bool)
-	UserPassPairs = make(map[string]string)
-	AllWorks      = make(map[string]DbWork)
-	AllAuthors    = make(map[string]DbAuthor)
-	AllLemm       = make(map[string]DbLemma)
-	NestedLemm    = make(map[string]map[string]DbLemma)
-	WkCorpusMap   = make(map[string][]string)
-	AuCorpusMap   = make(map[string][]string)
-	AuGenres      = make(map[string]bool)
-	WkGenres      = make(map[string]bool)
-	AuLocs        = make(map[string]bool)
-	WkLocs        = make(map[string]bool)
-	TheCorpora    = [5]string{"gr", "lt", "in", "ch", "dp"}
-	TheLanguages  = [2]string{"greek", "latin"}
-	MapLocker     sync.RWMutex
-	WebsocketPool = WSFillNewPool()
+	Config         CurrentConfiguration
+	SQLPool        *pgxpool.Pool
+	SessionMap     = make(map[string]ServerSession)
+	SearchMap      = make(map[string]SearchStruct)
+	AuthorizedMap  = make(map[string]bool)
+	UserPassPairs  = make(map[string]string)
+	AllWorks       = make(map[string]DbWork)
+	AllAuthors     = make(map[string]DbAuthor)
+	AllLemm        = make(map[string]DbLemma)
+	NestedLemm     = make(map[string]map[string]DbLemma)
+	WkCorpusMap    = make(map[string][]string)
+	AuCorpusMap    = make(map[string][]string)
+	AuGenres       = make(map[string]bool)
+	WkGenres       = make(map[string]bool)
+	AuLocs         = make(map[string]bool)
+	WkLocs         = make(map[string]bool)
+	TheCorpora     = [5]string{"gr", "lt", "in", "ch", "dp"}
+	TheLanguages   = [2]string{"greek", "latin"}
+	SearchLocker   sync.RWMutex
+	SessionLocker  sync.RWMutex
+	AuthorizLocker sync.RWMutex
+	WebsocketPool  = WSFillNewPool()
 )
 
 type DbAuthor struct {

@@ -175,10 +175,10 @@ func (c *WSClient) WSWriteJSON() {
 	quit := time.Now().Add(time.Second * 1)
 
 	for {
-		MapLocker.RLock()
+		SearchLocker.RLock()
 		ls := len(SearchMap)
 		_, exists := SearchMap[c.ID]
-		MapLocker.RUnlock()
+		SearchLocker.RUnlock()
 
 		if ls != 0 && exists {
 			break
@@ -198,7 +198,7 @@ func (c *WSClient) WSWriteJSON() {
 
 	// loop until search finishes
 	for {
-		MapLocker.Lock()
+		SearchLocker.Lock()
 		// don't set a variable: you will copy the whole struct and so the (waxing) results
 		_, exists := SearchMap[c.ID]
 		if exists {
@@ -206,7 +206,7 @@ func (c *WSClient) WSWriteJSON() {
 			pd.Hits = SearchMap[c.ID].Hits.Get()
 			pd.Msg = strings.Replace(SearchMap[c.ID].InitSum, "Sought", "Seeking", -1)
 		}
-		MapLocker.Unlock()
+		SearchLocker.Unlock()
 
 		if !exists {
 			break
@@ -238,17 +238,18 @@ func (pool *WSPool) WSPoolStartListening() {
 		MSG2 = "WSPool remove: size of connection pool is %d"
 		MSG3 = "Starting polling loop for %s"
 		MSG4 = "WSPool client failed on WriteMessage()"
+		MVAL = 5
 	)
 
 	for {
 		select {
 		case id := <-pool.Add:
 			pool.ClientMap[id] = true
-			msg(fmt.Sprintf(MGS1, len(pool.ClientMap)), 4)
+			msg(fmt.Sprintf(MGS1, len(pool.ClientMap)), MVAL)
 			break
 		case id := <-pool.Remove:
 			delete(pool.ClientMap, id)
-			msg(fmt.Sprintf(MSG2, len(pool.ClientMap)), 4)
+			msg(fmt.Sprintf(MSG2, len(pool.ClientMap)), MVAL)
 			break
 		case m := <-pool.ReadID:
 			msg(fmt.Sprintf(MSG3, m), 4)

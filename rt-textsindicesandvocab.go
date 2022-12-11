@@ -93,8 +93,9 @@ func RtTextMaker(c echo.Context) error {
 	whole := strings.Join(block, SNIP)
 	whole = textblockcleaner(whole)
 	block = strings.Split(whole, SNIP)
-	for i, b := range block {
-		lines[i].MarkedUp = b
+
+	for i := 0; i < len(block); i++ {
+		lines[i].MarkedUp = block[i]
 	}
 
 	// delete after use...
@@ -104,19 +105,21 @@ func RtTextMaker(c echo.Context) error {
 	trr := make([]string, len(lines))
 	previous := lines[0]
 	workcount := 1
-	for i, l := range lines {
+
+	for i := 0; i < len(lines); i++ {
 		cit := selectivelydisplaycitations(lines[i], previous, -1)
 		trr[i] = fmt.Sprintf(TBLRW, lines[i].Annotations, lines[i].MarkedUp, cit)
-		if l.WkUID != previous.WkUID {
+		if lines[i].WkUID != previous.WkUID {
 			// you were doing multi-text generation
 			workcount += 1
-			aw := l.MyAu().Name + fmt.Sprintf(`, <span class="italic">%s</span>`, l.MyWk().Title)
+			aw := lines[i].MyAu().Name + fmt.Sprintf(`, <span class="italic">%s</span>`, lines[i].MyWk().Title)
 			aw = fmt.Sprintf(`<hr><span class="emph">[%d] %s</span>`, workcount, aw)
 			extra := fmt.Sprintf(TBLRW, "", aw, "")
 			trr[i] = extra + trr[i]
 		}
 		previous = lines[i]
 	}
+
 	tab := strings.Join(trr, "")
 	// that was the body, now do the head and tail
 	top := fmt.Sprintf(`<div id="browsertableuid" uid="%s"></div>`, lines[0].AuID())

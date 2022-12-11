@@ -64,11 +64,11 @@ func readUUIDCookie(c echo.Context) string {
 	}
 	id := cookie.Value
 
-	MapLocker.Lock()
+	SessionLocker.Lock()
 	if _, t := SessionMap[id]; !t {
 		SessionMap[id] = makedefaultsession(id)
 	}
-	MapLocker.Unlock()
+	SessionLocker.Unlock()
 
 	return id
 }

@@ -87,6 +87,7 @@ func gcstats(fn string) {
 	// nevertheless it turns HGS into a 380MB program instead of a 540MB program
 	const (
 		MSG = "%s runtime.GC() %s --> %s"
+		MPR = 4
 	)
 
 	if !Config.ManualGC {
@@ -98,7 +99,7 @@ func gcstats(fn string) {
 	runtime.GC()
 	runtime.ReadMemStats(&m)
 	a := fmt.Sprintf("%dM", m.HeapAlloc/1024/1024)
-	msg(fmt.Sprintf(MSG, fn, b, a), 4)
+	msg(fmt.Sprintf(MSG, fn, b, a), MPR)
 }
 
 // stringmapprinter - print out the k/v pairs of a map

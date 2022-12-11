@@ -119,3 +119,29 @@ you should alias `psql` and `pg_restore` in your shell:
 `Set-Alias psql 'C:\Program Files\PostgreSQL\*\bin\pg_restore.exe'`
 
 After this you can execute the command to load...
+
+---
+
+### troubleshooting: mac postgresql fails to launch
+
+An empty file created when postgresql launches. It says, effectively, "I am running". 
+It is deleted when postgresql stops. 
+A crash of your computer or other "irregular" exit from postgresql can leave that file behind. 
+Then when postgresql tries to launch it sees the file and fails to launch because it thinks, 
+"Another copy of postgresql is already running..." The messages you are given are **not** helpful
+in letting you know that this is the problem.
+
+If you delete this file with the `rm` command, then postgresql will launch on your next reboot.
+
+The location varies:
+
+Intel:
+
+`rm /usr/local/var/postgresql@14/postmaster.pid`
+
+M1:
+
+`rm /opt/homebrew/var/postgresql@14/postmaster.pid`
+
+NB: if you are running `postgresqlNN` and `NN` is not `14`, then substitute `NN` for `14` above.  
+

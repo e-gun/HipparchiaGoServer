@@ -32,10 +32,10 @@ func main() {
 		MSG3 = "corpus maps built"
 		MSG4 = "unnested lemma map built (%d items)"
 		MSG5 = "nested lemma map built"
+		SUMM = "initialization took %.3fs before reaching StartEchoServer()"
 	)
-
+	launch := time.Now()
 	configatlaunch()
-
 	printversion()
 
 	if !Config.QuietStart {
@@ -43,12 +43,10 @@ func main() {
 	}
 
 	SQLPool = FillPSQLPoool()
-
 	go WebsocketPool.WSPoolStartListening()
 
 	// concurrent launching
 	var awaiting sync.WaitGroup
-
 	awaiting.Add(1)
 	go func(awaiting *sync.WaitGroup) {
 		defer awaiting.Done()
@@ -91,7 +89,7 @@ func main() {
 	awaiting.Wait()
 
 	gcstats("main() post-initialization")
-
+	msg(fmt.Sprintf(SUMM, time.Now().Sub(launch).Seconds()), 1)
 	StartEchoServer()
 }
 

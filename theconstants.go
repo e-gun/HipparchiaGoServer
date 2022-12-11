@@ -8,7 +8,7 @@ package main
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.0.7m"
+	VERSION                  = "1.0.7"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	CONFIGLOCATION           = "."
 	CONFIGALTAPTH            = "%s/.config/" // %s = os.UserHomeDir()

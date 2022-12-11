@@ -808,15 +808,15 @@ func searchtermfinder(term string) *regexp.Regexp {
 
 // SafeSearchMapInsert - use a lock to safely swap a SearchStruct into the SearchMap
 func SafeSearchMapInsert(ns SearchStruct) {
-	MapLocker.Lock()
-	defer MapLocker.Unlock()
+	SearchLocker.Lock()
+	defer SearchLocker.Unlock()
 	SearchMap[ns.ID] = ns
 }
 
 // SafeSearchMapRead - use a lock to safely read a SearchStruct from the SearchMap
 func SafeSearchMapRead(id string) SearchStruct {
-	MapLocker.RLock()
-	defer MapLocker.RUnlock()
+	SearchLocker.RLock()
+	defer SearchLocker.RUnlock()
 	s, e := SearchMap[id]
 	if e != true {
 		s = buildhollowsearch()
@@ -827,7 +827,7 @@ func SafeSearchMapRead(id string) SearchStruct {
 }
 
 func SafeSearchMapDelete(id string) {
-	MapLocker.RLock()
-	defer MapLocker.RUnlock()
+	SearchLocker.RLock()
+	defer SearchLocker.RUnlock()
 	delete(SearchMap, id)
 }
