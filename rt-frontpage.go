@@ -17,62 +17,6 @@ import (
 )
 
 //
-// SERVERSESSIONS
-//
-
-type ServerSession struct {
-	ID          string
-	Inclusions  SearchIncExl
-	Exclusions  SearchIncExl
-	ActiveCorp  map[string]bool
-	VariaOK     bool   `json:"varia"`
-	IncertaOK   bool   `json:"incerta"`
-	SpuriaOK    bool   `json:"spuria"`
-	RawInput    bool   `json:"rawinputstyle"`
-	OneHit      bool   `json:"onehit"`
-	HeadwordIdx bool   `json:"headwordindexing"`
-	FrqIdx      bool   `json:"indexbyfrequency"`
-	NearOrNot   string `json:"nearornot"`
-	SearchScope string `json:"searchscope"`
-	SortHitsBy  string `json:"sortorder"`
-	Proximity   int    `json:"proximity"`
-	BrowseCtx   int
-	InputStyle  string
-	HitLimit    int
-	HitContext  int
-	Earliest    string
-	Latest      string
-	TmpInt      int
-	TmpStr      string
-	LoginName   string
-}
-
-// SafeSessionRead - use a lock to safely read a ServerSession from the SessionMap
-func SafeSessionRead(u string) ServerSession {
-	MapLocker.RLock()
-	defer MapLocker.RUnlock()
-	s, e := SessionMap[u]
-	if e != true {
-		s = makedefaultsession(u)
-	}
-	return s
-}
-
-// SafeSessionMapInsert - use a lock to safely swap a ServerSession into the SessionMap
-func SafeSessionMapInsert(ns ServerSession) {
-	MapLocker.Lock()
-	defer MapLocker.Unlock()
-	SessionMap[ns.ID] = ns
-}
-
-// SafeSessionMapDelete - use a lock to safely delete a ServerSession from the SessionMap
-func SafeSessionMapDelete(u string) {
-	MapLocker.Lock()
-	defer MapLocker.Unlock()
-	delete(SessionMap, u)
-}
-
-//
 // ROUTING
 //
 
@@ -111,57 +55,8 @@ func RtFrontpage(c echo.Context) error {
 	return c.HTML(http.StatusOK, b.String())
 }
 
-// makedefaultsession - fill in the blanks when setting up a new session
-func makedefaultsession(id string) ServerSession {
-	// note that SessionMap clears every time the server restarts
-
-	var s ServerSession
-	s.ID = id
-	s.ActiveCorp = Config.DefCorp
-	s.VariaOK = true
-	s.IncertaOK = true
-	s.SpuriaOK = true
-	s.NearOrNot = "near"
-	s.HitLimit = DEFAULTHITLIMIT
-	s.Earliest = MINDATESTR
-	s.Latest = MAXDATESTR
-	s.SortHitsBy = SORTBY
-	s.HitContext = DEFAULTLINESOFCONTEXT
-	s.BrowseCtx = Config.BrowserCtx
-	s.SearchScope = DEFAULTPROXIMITYSCOPE
-	s.Proximity = DEFAULTPROXIMITY
-	s.LoginName = "Anonymous"
-
-	// readUUIDCookie() called this function, and it already holds a lock
-	if Config.Authenticate {
-		AuthorizedMap[id] = false
-	} else {
-		AuthorizedMap[id] = true
-	}
-
-	//msg("makedefaultsession() in non-default state for testing; this is not a release build of HGS", 0)
-	//m := make(map[string]string)
-	//m["lt0917_FROM_1431_TO_2193"] = "Lucanus, Marcus Annaeus, Bellum Civile, 3"
-	//m["lt0917_FROM_2_TO_692"] = "Lucanus, Marcus Annaeus, Bellum Civile, 1"
-	//m["lt0917_FROM_5539_TO_6410"] = "Lucanus, Marcus Annaeus, Bellum Civile, 8"
-	//m["lt0917_FROM_6411_TO_7520"] = "Lucanus, Marcus Annaeus, Bellum Civile, 9"
-	//m["lt0917_FROM_4666_TO_5538"] = "Lucanus, Marcus Annaeus, Bellum Civile, 7"
-	//m["lt0917_FROM_3019_TO_3835"] = "Lucanus, Marcus Annaeus, Bellum Civile, 5"
-	//s.Inclusions.Passages = []string{"lt0917_FROM_6411_TO_7520", "lt0917_FROM_4666_TO_5538", "lt0917_FROM_3019_TO_3835",
-	//	"lt0917_FROM_1431_TO_2193", "lt0917_FROM_2_TO_692", "lt0917_FROM_5539_TO_6410"}
-	//s.Inclusions.MappedPsgByName = m
-	//s.Proximity = 4
-	//s.SearchScope = "words"
-	// s.Inclusions.BuildPsgByName()
-	return s
-}
-
 // readUUIDCookie - find the ID of the client
 func readUUIDCookie(c echo.Context) string {
-	const (
-		MSG = "readUUIDCookie() says %s authentication status is %t"
-	)
-
 	cookie, err := c.Cookie("ID")
 	if err != nil {
 		id := writeUUIDCookie(c)
@@ -175,7 +70,6 @@ func readUUIDCookie(c echo.Context) string {
 	}
 	MapLocker.Unlock()
 
-	msg(fmt.Sprintf(MSG, id, AuthorizedMap[id]), 4)
 	return id
 }
 
@@ -187,6 +81,6 @@ func writeUUIDCookie(c echo.Context) string {
 	cookie.Value = uuid.New().String()
 	cookie.Expires = time.Now().Add(4800 * time.Hour)
 	c.SetCookie(cookie)
-	msg(fmt.Sprintf("new ID set: %s", cookie.Value), 4)
+	msg(fmt.Sprintf("writeUUIDCookie() - new ID set: %s", cookie.Value), 4)
 	return cookie.Value
 }

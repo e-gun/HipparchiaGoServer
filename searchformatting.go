@@ -217,9 +217,6 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 			psg.RawCTX = append(psg.RawCTX, linemap[url])
 		}
 
-		// if you want to do this the horrifyingly slow way...
-		// psg.RawCTX = simplecontextgrabber(r.AuID(), r.TbIndex, thesession.HitContext/2)
-
 		psg.CookedCTX = make([]ResultPassageLine, len(psg.RawCTX))
 		for j := 0; j < len(psg.RawCTX); j++ {
 			c := ResultPassageLine{}
@@ -266,7 +263,6 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 		for i, r := range p.CookedCTX {
 			if r.IsHighlight && searchterm != nil {
 				p.CookedCTX[i].Contents = fmt.Sprintf(HIGHLIGHTER, p.CookedCTX[i].Contents)
-				// highlightfocusline(&p.CookedCTX[i])
 				highlightsearchterm(searchterm, &p.CookedCTX[i])
 			}
 			if len(thesearch.LemmaTwo) > 0 {
@@ -290,19 +286,16 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 	tmpl, e := template.New("tr").Parse(FINDTEMPL)
 	chke(e)
 
-	rows := make([]string, len(allpassages))
-	for i, p := range allpassages {
+	var b bytes.Buffer
+	for _, p := range allpassages {
 		lines := make([]string, len(p.CookedCTX))
 		for j, l := range p.CookedCTX {
 			c := fmt.Sprintf(FOUNDLINE, l.Locus, l.Contents)
 			lines[j] = c
 		}
 		p.LocusBody = strings.Join(lines, "")
-		var b bytes.Buffer
 		err := tmpl.Execute(&b, p)
 		chke(err)
-
-		rows[i] = b.String()
 	}
 
 	// ouput
@@ -312,7 +305,7 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 	out.Title = restorewhitespace(thesearch.Seeking)
 	out.Image = ""
 	out.Searchsummary = formatfinalsearchsummary(thesearch)
-	out.Found = strings.Join(rows, "")
+	out.Found = b.String()
 
 	if Config.ZapLunates {
 		out.Found = delunate(out.Found)

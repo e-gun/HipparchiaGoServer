@@ -198,7 +198,7 @@ func (c *WSClient) WSWriteJSON() {
 
 	// loop until search finishes
 	for {
-		MapLocker.RLock()
+		MapLocker.Lock()
 		// don't set a variable: you will copy the whole struct and so the (waxing) results
 		_, exists := SearchMap[c.ID]
 		if exists {
@@ -206,7 +206,7 @@ func (c *WSClient) WSWriteJSON() {
 			pd.Hits = SearchMap[c.ID].Hits.Get()
 			pd.Msg = strings.Replace(SearchMap[c.ID].InitSum, "Sought", "Seeking", -1)
 		}
-		MapLocker.RUnlock()
+		MapLocker.Unlock()
 
 		if !exists {
 			break
