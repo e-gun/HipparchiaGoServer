@@ -9,6 +9,7 @@ import (
 	"C"
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/profile"
 	"io"
 	"os"
 	"runtime"
@@ -18,8 +19,8 @@ import (
 )
 
 func main() {
-	// cpu profile:
-	// defer profile.Start().Stop()
+	// cpu profile via import of "github.com/pkg/profile":
+	defer profile.Start().Stop()
 
 	// mem profile:
 	// defer profile.Start(profile.MemProfile).Stop()

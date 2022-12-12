@@ -233,7 +233,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
 	max := Config.MaxText * MAXVOCABLINEGENERATION
-	vocabsrch := sessionintobulksearch(c, max) // allow bigger vocab lists
+	vocabsrch := sessionintobulksearch(c, max) // allow vocab lists to ingest more lines that text & index makers
 
 	if len(vocabsrch.Results) == 0 {
 		return emptyjsreturn(c)
@@ -273,14 +273,12 @@ func RtVocabMaker(c echo.Context) error {
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
 	si.InitSum = MSG2
-
 	SafeSearchMapInsert(si)
 
-	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 	// [c2] map observed words to possibilities
 	poss := make(map[string][]MorphPossib)
 	for k, v := range morphmap {
-		poss[k] = extractmorphpossibilities(v.RawPossib, boundary)
+		poss[k] = extractmorphpossibilities(v.RawPossib)
 	}
 
 	// [c3] build a new slice of seen words with headwords attached
@@ -308,8 +306,8 @@ func RtVocabMaker(c echo.Context) error {
 
 	// [e] get the translations
 	vit := make(map[string]string)
-	for _, p := range parsedwords {
-		vit[p.HW] = p.Trans
+	for i := 0; i < len(parsedwords); i++ {
+		vit[parsedwords[i].HW] = parsedwords[i].Trans
 	}
 
 	// [f] consolidate the information
@@ -520,14 +518,13 @@ func RtIndexMaker(c echo.Context) error {
 	si.InitSum = MSG2
 	SafeSearchMapInsert(si)
 
-	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 	var slicedlookups []WordInfo
 	for _, w := range slicedwords {
 		emm := false
 		mme := w.Wd
 		if _, ok := morphmap[w.Wd]; !ok {
 			// here is where you check to see if the word + an apostrophe can be found: γ is really γ' (i.e. γε)
-			// this also means that you had to grab all of those extra forms in the first plac
+			// this also means that you had to grab all of those extra forms in the first place
 			if _, y := morphmap[w.Wd+"'"]; y {
 				emm = true
 				w.Wd = w.Wd + "'"
@@ -541,13 +538,12 @@ func RtIndexMaker(c echo.Context) error {
 		}
 
 		if emm {
-			mps := extractmorphpossibilities(morphmap[mme].RawPossib, boundary)
+			mps := extractmorphpossibilities(morphmap[mme].RawPossib)
 			if len(mps) > 1 {
 				for i := 0; i < len(mps); i++ {
 					var additionalword WordInfo
 					additionalword = w
 					additionalword.HW = mps[i].Headwd
-					// additionalword.Stripped = stripaccentsSTR(additionalword.HW)
 					slicedlookups = append(slicedlookups, additionalword)
 				}
 			}

@@ -536,42 +536,32 @@ func getmorphmatch(word string, lang string) []DbMorphology {
 
 // dbmorphintomorphpossib - from []DbMorphology yield up []MorphPossib
 func dbmorphintomorphpossib(dbmm []DbMorphology) []MorphPossib {
+
 	var mpp []MorphPossib
-	boundary := regexp.MustCompile(`(\{|, )"\d": `)
 
 	for _, d := range dbmm {
-		mpp = append(mpp, extractmorphpossibilities(d.RawPossib, boundary)...)
+		mpp = append(mpp, extractmorphpossibilities(d.RawPossib)...)
 	}
 
 	return mpp
 }
 
-func extractmorphpossibilities(raw string, boundary *regexp.Regexp) []MorphPossib {
-	// RawPossib is JSON + JSON; nested JSON is a PITA, but the structure is: {"1": {...}, "2": {...}, ...}
-	// that is splittable
-	// just need to clean the '}}' at the end
-
-	// boundary is not really a variable, we are just avoiding looping it
-	// boundary := regexp.MustCompile(`(\{|, )"\d": `)
+// extractmorphpossibilities - turn nested morphological JSON into []MorphPossib
+func extractmorphpossibilities(raw string) []MorphPossib {
+	// Input:     {"1": {"transl": "A.I. stem, tree; II. shaft of a spear", "analysis": "neut nom/voc/acc sg", "headword": "δόρυ", "scansion": "", "xref_kind": "9", "xref_value": "26874791"}}
+	// Unmarshal: map[1:{A.I. stem, tree; II. shaft of a spear neut nom/voc/acc sg δόρυ  9 26874791}]
 
 	const (
 		FAIL = "dbmorphintomorphpossib() could not unmarshal %s"
 	)
-	possible := boundary.Split(raw, -1)
 
-	var mpp []MorphPossib
-	for _, p := range possible {
-		p = strings.Replace(p, "}}", "}", -1)
-		p = strings.TrimSpace(p)
-		var mp MorphPossib
-		if len(p) > 0 {
-			err := json.Unmarshal([]byte(p), &mp)
-			if err != nil {
-				msg(fmt.Sprintf(FAIL, p), 5)
-			}
-		}
-		mpp = append(mpp, mp)
+	nested := make(map[string]MorphPossib)
+	e := json.Unmarshal([]byte(raw), &nested)
+	if e != nil {
+		msg(fmt.Sprintf(FAIL, raw), 5)
 	}
+
+	mpp := stringmapintoslice(nested)
 
 	return mpp
 }
