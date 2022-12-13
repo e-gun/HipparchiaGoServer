@@ -214,6 +214,9 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 
 // WithinXWordsSearch - find A within N words of B
 func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
+	// profiling will show that all your time is spent on "if basicprxfinder.MatchString(str) && !first.NotNear"
+	// as one would guess...
+
 	const (
 		PSGT = `%s_FROM_%d_TO_%d`
 		LNK  = `index/%s/%s/%d`

@@ -8,7 +8,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"os"
 	"strings"
 )
@@ -54,7 +54,7 @@ func FillPSQLPoool() *pgxpool.Pool {
 		os.Exit(0)
 	}
 
-	thepool, e := pgxpool.ConnectConfig(context.Background(), config)
+	thepool, e := pgxpool.NewWithConfig(context.Background(), config)
 	if e != nil {
 		msg(fmt.Sprintf(FAIL2), -1)
 		if strings.Contains(e.Error(), ERRRUN) {

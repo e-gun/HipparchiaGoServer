@@ -283,16 +283,15 @@ func headwordlookup(word string) DbHeadwordCount {
 	chke(err)
 
 	var thesefinds []DbHeadwordCount
+	var thehit DbHeadwordCount
+	var co DbHeadwordCorpusCounts
+	var chr DbHeadwordTimeCounts
+	var g DbHeadwordGenreCounts
+	var th DbHeadwordTheologyCounts
+	var rh DbHeadwordRhetoricaCounts
+
 	defer foundrows.Close()
 	for foundrows.Next() {
-		var thehit DbHeadwordCount
-		// "cannot assign 16380 into *main.DbHeadwordTimeCounts"
-		var co DbHeadwordCorpusCounts
-		var chr DbHeadwordTimeCounts
-		var g DbHeadwordGenreCounts
-		var th DbHeadwordTheologyCounts
-		var rh DbHeadwordRhetoricaCounts
-
 		e := foundrows.Scan(&thehit.Entry, &thehit.Total, &co.TGrk, &co.TLat, &co.TDP, &co.TIN, &co.TCh,
 			&thehit.FrqCla, &chr.Early, &chr.Middle, &chr.Late,
 			&th.Acta, &g.Agric, &g.Alchem, &g.Anthol, &th.Apocal, &th.Apocr, &th.Apol, &g.Astrol, &g.Astron, &g.Biogr, &g.Bucol,

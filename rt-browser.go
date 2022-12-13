@@ -171,11 +171,11 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassag
 
 	for i := range lines {
 		lines[i].GatherMetadata()
-		if len(lines[i].EmbNotes) != 0 {
+		if len(lines[i].embnotes) != 0 {
 			nt := `%s %s<br>`
 			lines[i].Annotations = ""
 			for _, key := range nk {
-				if v, y := lines[i].EmbNotes[key]; y {
+				if v, y := lines[i].embnotes[key]; y {
 					lines[i].Annotations += fmt.Sprintf(nt, key, v)
 				}
 			}

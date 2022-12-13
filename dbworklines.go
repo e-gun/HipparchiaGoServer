@@ -8,7 +8,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"regexp"
 	"sort"
 	"strings"
@@ -78,8 +79,8 @@ type DbWorkline struct {
 	Stripped    string
 	Hyphenated  string
 	Annotations string
-	// beyond the db stuff
-	EmbNotes map[string]string
+	// beyond the db stuff; do not make this "public": pgx.RowToStructByPos will balk
+	embnotes map[string]string
 }
 
 func (dbw *DbWorkline) FindLocus() []string {
@@ -164,7 +165,7 @@ func (dbw *DbWorkline) GatherMetadata() {
 			}
 		}
 	}
-	dbw.EmbNotes = md
+	dbw.embnotes = md
 }
 
 // PurgeMetadata - delete the line Metadata
@@ -254,18 +255,22 @@ func worklinequery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
 	chke(err)
 
 	// [c] convert the finds into []DbWorkline
-	var thesefinds []DbWorkline
 
-	defer foundrows.Close()
-	for foundrows.Next() {
-		// [vi.1] convert the finds into DbWorklines
-		var thehit DbWorkline
-		e := foundrows.Scan(&thehit.WkUID, &thehit.TbIndex, &thehit.Lvl5Value, &thehit.Lvl4Value, &thehit.Lvl3Value,
-			&thehit.Lvl2Value, &thehit.Lvl1Value, &thehit.Lvl0Value, &thehit.MarkedUp, &thehit.Accented,
-			&thehit.Stripped, &thehit.Hyphenated, &thehit.Annotations)
-		chke(e)
-		thesefinds = append(thesefinds, thehit)
-	}
+	// 	var thesefinds []DbWorkline
+	//
+	//	defer foundrows.Close()
+	//	for foundrows.Next() {
+	//		// [vi.1] convert the finds into DbWorklines
+	//		var thehit DbWorkline
+	//		e := foundrows.Scan(&thehit.WkUID, &thehit.TbIndex, &thehit.Lvl5Value, &thehit.Lvl4Value, &thehit.Lvl3Value,
+	//			&thehit.Lvl2Value, &thehit.Lvl1Value, &thehit.Lvl0Value, &thehit.MarkedUp, &thehit.Accented,
+	//			&thehit.Stripped, &thehit.Hyphenated, &thehit.Annotations)
+	//		chke(e)
+	//		thesefinds = append(thesefinds, thehit)
+	//	}
+
+	thesefinds, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[DbWorkline])
+	chke(err)
 
 	return thesefinds
 }

@@ -134,6 +134,10 @@ type ResultPassageLine struct {
 
 // FormatWithContextResults - build n-lines of context search results table
 func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
+	// profiling will show that the bulk of your time is spent on (in descending order):
+	// lemmaintoregexslice(), regexp.Compile(strings.Join(re, "|")), and highlightsearchterm()
+	// the cost is not outlandish, but regex is fairly expensive
+
 	const (
 		FINDTEMPL = `
 		<locus>

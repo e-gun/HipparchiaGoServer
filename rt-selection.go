@@ -8,6 +8,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"reflect"
@@ -728,15 +729,9 @@ func endpointer(wuid string, locus string, sep string) ([2]int, bool) {
 	foundrows, err := dbconn.Query(context.Background(), q)
 	chke(err)
 
-	var idx []int
+	idx, err := pgx.CollectRows(foundrows, pgx.RowTo[int])
+	chke(err)
 
-	defer foundrows.Close()
-	for foundrows.Next() {
-		var thehit int
-		err := foundrows.Scan(&thehit)
-		chke(err)
-		idx = append(idx, thehit)
-	}
 	if len(idx) == 0 {
 		// bogus input
 		msg(fmt.Sprintf(FAIL, wuid, locus), 3)

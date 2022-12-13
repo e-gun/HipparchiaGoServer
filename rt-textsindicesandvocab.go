@@ -790,9 +790,9 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 		chke(e)
 
 		count := 0
+		var thehit DbMorphology
 		for foundrows.Next() {
 			count += 1
-			var thehit DbMorphology
 			err = foundrows.Scan(&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW)
 			chke(err)
 			foundmorph[thehit.Observed] = thehit

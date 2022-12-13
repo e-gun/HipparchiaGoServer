@@ -8,7 +8,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"strings"
 	"sync"
 )
@@ -169,6 +169,10 @@ func (dbl DbLemma) EntryRune() []rune {
 
 // workmapper - build a map of all works keyed to the authorUID: map[string]DbWork
 func workmapper() map[string]DbWork {
+	// this is far and away the "heaviest" bit of the whole program:
+	// Total: 265.13MB
+	// 78.86MB   103.62MB (flat, cum) 39.08% of Total
+
 	// hipparchiaDB-# \d works
 	//                            Table "public.works"
 	//      Column      |          Type          | Collation | Nullable | Default
@@ -204,6 +208,15 @@ func workmapper() map[string]DbWork {
 
 	workmap := make(map[string]DbWork, DBWKMAPSIZE)
 
+	// THE EVEN MORE RAM-INTENSIVE SOLUTION...
+
+	//works, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[DbWork])
+	//chke(err)
+	//
+	//for i := 0; i < len(works); i++ {
+	//	workmap[works[i].UID] = works[i]
+	//}
+
 	defer foundrows.Close()
 	for foundrows.Next() {
 		// this will die if <nil> comes back inside any of the columns; and so you have to use builds from HipparchiaBuilder 1.6.0+
@@ -220,6 +233,8 @@ func workmapper() map[string]DbWork {
 
 // authormapper - build a map of all authors keyed to the authorUID: map[string]DbAuthor
 func authormapper(ww map[string]DbWork) map[string]DbAuthor {
+	//  5.26MB     5.80MB (flat, cum)  2.19% of Total
+
 	// hipparchiaDB-# \d authors
 	//                          Table "public.authors"
 	//     Column     |          Type          | Collation | Nullable | Default
@@ -317,6 +332,7 @@ func lemmamapper() map[string]DbLemma {
 
 // nestedlemmamapper - map[string]map[string]DbLemma for the hinter
 func nestedlemmamapper(unnested map[string]DbLemma) map[string]map[string]DbLemma {
+	// 20.96MB    20.96MB (flat, cum)  7.91% of Total
 	// you need both a nested and the unnested version; nested is for the hinter
 	nested := make(map[string]map[string]DbLemma, NESTEDLEMMASIZE)
 	swap := strings.NewReplacer("j", "i", "v", "u")

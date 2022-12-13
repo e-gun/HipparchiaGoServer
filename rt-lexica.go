@@ -314,6 +314,7 @@ func findbyform(word string, author string) string {
 	defer dbconn.Release()
 	foundrows, err := dbconn.Query(context.Background(), q)
 	chke(err)
+
 	var wc DbWordCount
 	defer foundrows.Close()
 	for foundrows.Next() {
@@ -493,13 +494,13 @@ func dictgrabber(seeking string, dict string, col string, syntax string) []DbLex
 	q := fmt.Sprintf(PSQQ, FLDS, dict, col, syntax, seeking, MAXDICTLOOKUP)
 
 	var lexicalfinds []DbLexicon
+	var thehit DbLexicon
 
 	foundrows, err := dbconn.Query(context.Background(), q)
 	chke(err)
 
 	defer foundrows.Close()
 	for foundrows.Next() {
-		var thehit DbLexicon
 		e := foundrows.Scan(&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry)
 		chke(e)
 		thehit.Lang = dict
@@ -524,9 +525,9 @@ func getmorphmatch(word string, lang string) []DbMorphology {
 	chke(err)
 
 	var thesefinds []DbMorphology
+	var thehit DbMorphology
 	defer foundrows.Close()
 	for foundrows.Next() {
-		var thehit DbMorphology
 		e := foundrows.Scan(&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW)
 		chke(e)
 		thesefinds = append(thesefinds, thehit)
@@ -590,14 +591,14 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
 
 	var lexicalfinds []DbLexicon
+	var thehit DbLexicon
+
 	dedup := make(map[float32]bool)
 	for _, w := range hwm {
 		q := fmt.Sprintf(PSQQ, FLDS, d, COLM, w)
 		foundrows, err := dbconn.Query(context.Background(), q)
 		chke(err)
-
 		for foundrows.Next() {
-			var thehit DbLexicon
 			e := foundrows.Scan(&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry)
 			chke(e)
 			thehit.Lang = d
@@ -868,6 +869,7 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	foundrows, err := dbconn.Query(context.Background(), fmt.Sprintf(qt, w.Lang, "<", w.ID, "DESC"))
 	chke(err)
+
 	var prev DbLexicon
 	defer foundrows.Close()
 	for foundrows.Next() {
@@ -877,6 +879,7 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	foundrows, err = dbconn.Query(context.Background(), fmt.Sprintf(qt, w.Lang, ">", w.ID, "ASC"))
 	chke(err)
+
 	var nxt DbLexicon
 	defer foundrows.Close()
 	for foundrows.Next() {

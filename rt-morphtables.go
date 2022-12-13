@@ -204,6 +204,7 @@ func RtMorphchart(c echo.Context) error {
 		q := fmt.Sprintf(WCQT, l, rnd, l)
 		rr, e := dbconn.Query(context.Background(), q)
 		chke(e)
+
 		var wc DbWordCount
 		for rr.Next() {
 			ee := rr.Scan(&wc.Word, &wc.Total)
