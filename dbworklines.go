@@ -249,25 +249,12 @@ func worklinequery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
 		chke(err)
 	}
 
-	// [b] execute the main query
+	// [b] execute the main query (nb: query needs to satisfy needs of RowToStructByPos in [c])
 
 	foundrows, err := dbconn.Query(context.Background(), prq.PsqlQuery)
 	chke(err)
 
 	// [c] convert the finds into []DbWorkline
-
-	// 	var thesefinds []DbWorkline
-	//
-	//	defer foundrows.Close()
-	//	for foundrows.Next() {
-	//		// [vi.1] convert the finds into DbWorklines
-	//		var thehit DbWorkline
-	//		e := foundrows.Scan(&thehit.WkUID, &thehit.TbIndex, &thehit.Lvl5Value, &thehit.Lvl4Value, &thehit.Lvl3Value,
-	//			&thehit.Lvl2Value, &thehit.Lvl1Value, &thehit.Lvl0Value, &thehit.MarkedUp, &thehit.Accented,
-	//			&thehit.Stripped, &thehit.Hyphenated, &thehit.Annotations)
-	//		chke(e)
-	//		thesefinds = append(thesefinds, thehit)
-	//	}
 
 	thesefinds, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[DbWorkline])
 	chke(err)

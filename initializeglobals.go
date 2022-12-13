@@ -8,6 +8,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"strings"
 	"sync"
@@ -207,27 +208,17 @@ func workmapper() map[string]DbWork {
 	chke(err)
 
 	workmap := make(map[string]DbWork, DBWKMAPSIZE)
+	var w DbWork
 
-	// THE EVEN MORE RAM-INTENSIVE SOLUTION...
+	foreach := []any{&w.UID, &w.Title, &w.Language, &w.Pub, &w.LL0, &w.LL1, &w.LL2, &w.LL3, &w.LL4, &w.LL5, &w.Genre,
+		&w.Xmit, &w.Type, &w.Prov, &w.RecDate, &w.ConvDate, &w.WdCount, &w.FirstLine, &w.LastLine, &w.Authentic}
 
-	//works, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[DbWork])
-	//chke(err)
-	//
-	//for i := 0; i < len(works); i++ {
-	//	workmap[works[i].UID] = works[i]
-	//}
-
-	defer foundrows.Close()
-	for foundrows.Next() {
-		// this will die if <nil> comes back inside any of the columns; and so you have to use builds from HipparchiaBuilder 1.6.0+
-		var w DbWork
-		e := foundrows.Scan(&w.UID, &w.Title, &w.Language, &w.Pub, &w.LL0,
-			&w.LL1, &w.LL2, &w.LL3, &w.LL4, &w.LL5, &w.Genre,
-			&w.Xmit, &w.Type, &w.Prov, &w.RecDate, &w.ConvDate, &w.WdCount,
-			&w.FirstLine, &w.LastLine, &w.Authentic)
-		chke(e)
+	_, e := pgx.ForEachRow(foundrows, foreach, func() error {
 		workmap[w.UID] = w
-	}
+		return nil
+	})
+	chke(e)
+
 	return workmap
 }
 
@@ -272,16 +263,15 @@ func authormapper(ww map[string]DbWork) map[string]DbAuthor {
 	chke(err)
 
 	authormap := make(map[string]DbAuthor, DBAUMAPSIZE)
-	defer foundrows.Close()
-	for foundrows.Next() {
-		// this will die if <nil> comes back inside any of the columns; and so you have to use builds from HipparchiaBuilder 1.6.0+
-		var a DbAuthor
-		e := foundrows.Scan(&a.UID, &a.Language, &a.IDXname, &a.Name, &a.Shortname,
-			&a.Cleaname, &a.Genres, &a.RecDate, &a.ConvDate, &a.Location)
-		chke(e)
+	var a DbAuthor
+	foreach := []any{&a.UID, &a.Language, &a.IDXname, &a.Name, &a.Shortname, &a.Cleaname, &a.Genres, &a.RecDate, &a.ConvDate, &a.Location}
+
+	_, e := pgx.ForEachRow(foundrows, foreach, func() error {
 		a.WorkList = worklists[a.UID]
 		authormap[a.UID] = a
-	}
+		return nil
+	})
+	chke(e)
 
 	return authormap
 }
@@ -313,18 +303,19 @@ func lemmamapper() map[string]DbLemma {
 	clean := strings.NewReplacer("-", "", "j", "i", "v", "u")
 
 	unnested := make(map[string]DbLemma, DBLMMAPSIZE)
+	var thehit DbLemma
+	foreach := []any{&thehit.Entry, &thehit.Xref, &thehit.Deriv}
+
 	for _, lg := range TheLanguages {
 		q := fmt.Sprintf(t, lg)
 		foundrows, err := dbconn.Query(context.Background(), q)
 		chke(err)
-		for foundrows.Next() {
-			var thehit DbLemma
-			e := foundrows.Scan(&thehit.Entry, &thehit.Xref, &thehit.Deriv)
-			chke(e)
+		_, e := pgx.ForEachRow(foundrows, foreach, func() error {
 			thehit.Entry = clean.Replace(thehit.Entry)
 			unnested[thehit.Entry] = thehit
-		}
-		foundrows.Close()
+			return nil
+		})
+		chke(e)
 	}
 
 	return unnested

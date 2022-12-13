@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
@@ -130,14 +131,16 @@ func RtMorphchart(c echo.Context) error {
 	chke(err)
 
 	dbmmap := make(map[string]DbMorphology)
-	defer foundrows.Close()
-	for foundrows.Next() {
-		var thehit DbMorphology
-		e := foundrows.Scan(&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW)
-		chke(e)
+	var thehit DbMorphology
+
+	foreach := []any{&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW}
+
+	_, e := pgx.ForEachRow(foundrows, foreach, func() error {
 		thehit.Observed = strings.ToLower(thehit.Observed)
 		dbmmap[thehit.Observed] = thehit
-	}
+		return nil
+	})
+	chke(e)
 
 	// [c] get all counts for all forms: [c] and [d-e] can run concurrently
 	// [c1] slice of the words; map of the first letters of those words
@@ -161,7 +164,6 @@ func RtMorphchart(c echo.Context) error {
 
 	var esc []string
 	for _, w := range ww {
-		// esc = append(esc, strings.Replace(w, "'", "''", -1))
 		esc = append(esc, strings.Replace(w, "'", "", -1))
 	}
 	arr := fmt.Sprintf("'%s'", strings.Join(esc, "', '"))
@@ -192,27 +194,29 @@ func RtMorphchart(c echo.Context) error {
 	//(12 rows)
 
 	wcc := make(map[string]DbWordCount)
+	var wc DbWordCount
+
+	each := []any{&wc.Word, &wc.Total}
+
 	for l := range lett {
 		if []rune(l)[0] == 0 {
 			continue
 		}
 
 		rnd := strings.Replace(uuid.New().String(), "-", "", -1)
-		_, e := dbconn.Exec(context.Background(), fmt.Sprintf(TTT, rnd, arr))
-		chke(e)
+		_, ee := dbconn.Exec(context.Background(), fmt.Sprintf(TTT, rnd, arr))
+		chke(ee)
 
 		q := fmt.Sprintf(WCQT, l, rnd, l)
-		rr, e := dbconn.Query(context.Background(), q)
-		chke(e)
+		rr, ee := dbconn.Query(context.Background(), q)
+		chke(ee)
 
-		var wc DbWordCount
-		for rr.Next() {
-			ee := rr.Scan(&wc.Word, &wc.Total)
-			chke(ee)
+		_, er := pgx.ForEachRow(rr, each, func() error {
 			// you just found »ἥρμοττ« which gives you »ἥρμοττ'«: see below for where this becomes an issue
 			wcc[wc.Word] = wc
-		}
-		rr.Close()
+			return nil
+		})
+		chke(er)
 	}
 
 	// [d] extract parsing info for all forms
