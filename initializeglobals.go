@@ -295,10 +295,17 @@ func lemmamapper() map[string]DbLemma {
 	//Indexes:
 	//    "greek_lemmata_idx" btree (dictionary_entry)
 
-	// a list of 140k words is too long to send to 'getlemmahint' without offering quicker access
-	// [HGS] [D: 0.199s][Δ: 0.199s] unnested lemma map built
+	// a list of 152k words is too long to send to 'getlemmahint' without offering quicker access
+	// [HGS] [B1: 0.167s][Δ: 0.167s] unnested lemma map built (152382 items)
 
-	t := `SELECT dictionary_entry, xref_number, derivative_forms FROM %s_lemmata`
+	// move to pgx v5 slows this function down (and will add .1s to startup time...):
+	// [HGS] [B1: 0.436s][Δ: 0.436s] unnested lemma map built (152382 items)
+	// see devel-mutex 1.0.7 at e841c135f22ffaae26cb5cc29e20be58bf4801d7 vs 9457ace03e048c0e367d132cef595ed1661a8c12
+	// but pgx v5 does seem faster and more memory efficient in general: must not like returning huge lists
+
+	const (
+		THEQUERY = `SELECT dictionary_entry, xref_number, derivative_forms FROM %s_lemmata`
+	)
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
@@ -310,6 +317,7 @@ func lemmamapper() map[string]DbLemma {
 	unnested := make(map[string]DbLemma, DBLMMAPSIZE)
 	var thehit DbLemma
 	foreach := []any{&thehit.Entry, &thehit.Xref, &thehit.Deriv}
+
 	rfnc := func() error {
 		thehit.Entry = clean.Replace(thehit.Entry)
 		unnested[thehit.Entry] = thehit
@@ -317,7 +325,7 @@ func lemmamapper() map[string]DbLemma {
 	}
 
 	for _, lg := range TheLanguages {
-		q := fmt.Sprintf(t, lg)
+		q := fmt.Sprintf(THEQUERY, lg)
 		foundrows, err := dbconn.Query(context.Background(), q)
 		chke(err)
 		_, e := pgx.ForEachRow(foundrows, foreach, rfnc)

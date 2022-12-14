@@ -63,7 +63,8 @@ type DbLexicon struct {
 	POS      string
 	Transl   string
 	Entry    string
-	Lang     string
+	// not part of the table...
+	lang string // must be lower-case because of the call to pgx.RowToStructByPos[DbLexicon]
 }
 
 type DbMorphology struct {
@@ -313,16 +314,10 @@ func findbyform(word string, author string) string {
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
-	foundrows, err := dbconn.Query(context.Background(), q)
-	chke(err)
-
 	var wc DbWordCount
-	defer foundrows.Close()
-	for foundrows.Next() {
-		// only one should ever return...
-		e := foundrows.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
-		chke(e)
-	}
+	ct := dbconn.QueryRow(context.Background(), q)
+	e := ct.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
+	chke(e)
 
 	label := wc.Word
 	allformpd := formatprevalencedata(wc, label)
@@ -494,19 +489,16 @@ func dictgrabber(seeking string, dict string, col string, syntax string) []DbLex
 	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
 	q := fmt.Sprintf(PSQQ, FLDS, dict, col, syntax, seeking, MAXDICTLOOKUP)
 
-	var lexicalfinds []DbLexicon
-	var thehit DbLexicon
-
 	foundrows, err := dbconn.Query(context.Background(), q)
 	chke(err)
 
-	defer foundrows.Close()
-	for foundrows.Next() {
-		e := foundrows.Scan(&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry)
-		chke(e)
-		thehit.Lang = dict
-		lexicalfinds = append(lexicalfinds, thehit)
+	lexicalfinds, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[DbLexicon])
+	chke(err)
+
+	for i := 0; i < len(lexicalfinds); i++ {
+		lexicalfinds[i].lang = dict
 	}
+
 	return lexicalfinds
 }
 
@@ -525,14 +517,9 @@ func getmorphmatch(word string, lang string) []DbMorphology {
 	foundrows, err := dbconn.Query(context.Background(), psq)
 	chke(err)
 
-	var thesefinds []DbMorphology
-	var thehit DbMorphology
-	defer foundrows.Close()
-	for foundrows.Next() {
-		e := foundrows.Scan(&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW)
-		chke(e)
-		thesefinds = append(thesefinds, thehit)
-	}
+	thesefinds, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[DbMorphology])
+	chke(err)
+
 	return thesefinds
 }
 
@@ -598,7 +585,7 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 	foreach := []any{&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry}
 
 	rwfnc := func() error {
-		thehit.Lang = d
+		thehit.lang = d
 		if _, dup := dedup[thehit.ID]; !dup {
 			// use ID and not Lex because καρπόϲ.53442 is not καρπόϲ.53443
 			dedup[thehit.ID] = true
@@ -827,6 +814,8 @@ func formatlexicaloutput(w DbLexicon) string {
 			</tr>
 			</tbody>
 		</table>`
+
+		PROXENTRYQUERY = `SELECT entry_name, id_number from %s_dictionary WHERE id_number %s %.0f ORDER BY id_number %s LIMIT 1`
 	)
 
 	var elem []string
@@ -847,7 +836,7 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	lw := uvσςϲ(w.Word) // otherwise "venio" will hit AllLemm instead of "uenio"
 	if _, ok := AllLemm[lw]; ok {
-		elem = append(elem, fmt.Sprintf(FORMSUMM, AllLemm[lw].Xref, w.ID, w.Word, w.Lang, len(AllLemm[lw].Deriv)))
+		elem = append(elem, fmt.Sprintf(FORMSUMM, AllLemm[lw].Xref, w.ID, w.Word, w.lang, len(AllLemm[lw].Deriv)))
 	}
 
 	// [h1b] principle parts
@@ -869,31 +858,20 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	// [h5] previous & next entry
 
-	qt := `SELECT entry_name, id_number from %s_dictionary WHERE id_number %s %.0f ORDER BY id_number %s LIMIT 1`
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 
-	foundrows, err := dbconn.Query(context.Background(), fmt.Sprintf(qt, w.Lang, "<", w.ID, "DESC"))
-	chke(err)
-
 	var prev DbLexicon
-	defer foundrows.Close()
-	for foundrows.Next() {
-		err = foundrows.Scan(&prev.Entry, &prev.ID)
-		chke(err)
-	}
-
-	foundrows, err = dbconn.Query(context.Background(), fmt.Sprintf(qt, w.Lang, ">", w.ID, "ASC"))
-	chke(err)
+	p := dbconn.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.lang, "<", w.ID, "DESC"))
+	e := p.Scan(&prev.Entry, &prev.ID)
+	chke(e)
 
 	var nxt DbLexicon
-	defer foundrows.Close()
-	for foundrows.Next() {
-		err = foundrows.Scan(&nxt.Entry, &nxt.ID)
-		chke(err)
-	}
+	n := dbconn.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.lang, ">", w.ID, "ASC"))
+	e = n.Scan(&nxt.Entry, &nxt.ID)
+	chke(e)
 
-	pn := fmt.Sprintf(NAVTABLE, prev.ID, w.Lang, prev.Entry, nxt.ID, w.Lang, nxt.Entry)
+	pn := fmt.Sprintf(NAVTABLE, prev.ID, w.lang, prev.Entry, nxt.ID, w.lang, nxt.Entry)
 	elem = append(elem, pn)
 
 	html := strings.Join(elem, "")
@@ -902,14 +880,16 @@ func formatlexicaloutput(w DbLexicon) string {
 }
 
 func insertlexicaljs() string {
-	js := `
+	const (
+		LJS = `
 	<script>
 	%s
 	%s
 	</script>`
+	)
 
 	jscore := fmt.Sprintf(BROWSERJS, "bibl")
 
-	thejs := fmt.Sprintf(js, jscore, DICTIDJS)
+	thejs := fmt.Sprintf(LJS, jscore, DICTIDJS)
 	return thejs
 }
