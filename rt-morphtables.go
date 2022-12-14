@@ -134,12 +134,12 @@ func RtMorphchart(c echo.Context) error {
 	var thehit DbMorphology
 
 	foreach := []any{&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW}
-
-	_, e := pgx.ForEachRow(foundrows, foreach, func() error {
+	rfnc := func() error {
 		thehit.Observed = strings.ToLower(thehit.Observed)
 		dbmmap[thehit.Observed] = thehit
 		return nil
-	})
+	}
+	_, e := pgx.ForEachRow(foundrows, foreach, rfnc)
 	chke(e)
 
 	// [c] get all counts for all forms: [c] and [d-e] can run concurrently
@@ -198,6 +198,11 @@ func RtMorphchart(c echo.Context) error {
 
 	each := []any{&wc.Word, &wc.Total}
 
+	rfnc = func() error {
+		wcc[wc.Word] = wc
+		return nil
+	}
+
 	for l := range lett {
 		if []rune(l)[0] == 0 {
 			continue
@@ -211,11 +216,8 @@ func RtMorphchart(c echo.Context) error {
 		rr, ee := dbconn.Query(context.Background(), q)
 		chke(ee)
 
-		_, er := pgx.ForEachRow(rr, each, func() error {
-			// you just found »ἥρμοττ« which gives you »ἥρμοττ'«: see below for where this becomes an issue
-			wcc[wc.Word] = wc
-			return nil
-		})
+		// you just found »ἥρμοττ« which gives you »ἥρμοττ'«: see below for where this becomes an issue
+		_, er := pgx.ForEachRow(rr, each, rfnc)
 		chke(er)
 	}
 

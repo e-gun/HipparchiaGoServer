@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
@@ -775,6 +776,16 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 	defer dbconn.Release()
 
 	foundmorph := make(map[string]DbMorphology)
+	var thehit DbMorphology
+	count := 0
+
+	foreach := []any{&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW}
+
+	rwfnc := func() error {
+		count += 1
+		foundmorph[thehit.Observed] = thehit
+		return nil
+	}
 
 	// a waste of time to check the language on every word; just flail/fail once
 	for _, uselang := range TheLanguages {
@@ -789,15 +800,8 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 		foundrows, e := dbconn.Query(context.Background(), fmt.Sprintf(QT, uselang, id, uselang))
 		chke(e)
 
-		count := 0
-		var thehit DbMorphology
-		for foundrows.Next() {
-			count += 1
-			err = foundrows.Scan(&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW)
-			chke(err)
-			foundmorph[thehit.Observed] = thehit
-		}
-		foundrows.Close()
+		_, ee := pgx.ForEachRow(foundrows, foreach, rwfnc)
+		chke(ee)
 	}
 	return foundmorph
 }

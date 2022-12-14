@@ -171,8 +171,9 @@ func (dbl DbLemma) EntryRune() []rune {
 // workmapper - build a map of all works keyed to the authorUID: map[string]DbWork
 func workmapper() map[string]DbWork {
 	// this is far and away the "heaviest" bit of the whole program:
-	// Total: 265.13MB
-	// 78.86MB   103.62MB (flat, cum) 39.08% of Total
+	// Total: 204MB
+	// 65.35MB (flat, cum) 32.03% of Total
+	// "pgx.ForEachRow()" shaves about 12MB off of this function vs. "for foundrows.Next()"
 
 	// hipparchiaDB-# \d works
 	//                            Table "public.works"
@@ -213,10 +214,12 @@ func workmapper() map[string]DbWork {
 	foreach := []any{&w.UID, &w.Title, &w.Language, &w.Pub, &w.LL0, &w.LL1, &w.LL2, &w.LL3, &w.LL4, &w.LL5, &w.Genre,
 		&w.Xmit, &w.Type, &w.Prov, &w.RecDate, &w.ConvDate, &w.WdCount, &w.FirstLine, &w.LastLine, &w.Authentic}
 
-	_, e := pgx.ForEachRow(foundrows, foreach, func() error {
+	rwfnc := func() error {
 		workmap[w.UID] = w
 		return nil
-	})
+	}
+
+	_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
 	chke(e)
 
 	return workmap
@@ -266,11 +269,13 @@ func authormapper(ww map[string]DbWork) map[string]DbAuthor {
 	var a DbAuthor
 	foreach := []any{&a.UID, &a.Language, &a.IDXname, &a.Name, &a.Shortname, &a.Cleaname, &a.Genres, &a.RecDate, &a.ConvDate, &a.Location}
 
-	_, e := pgx.ForEachRow(foundrows, foreach, func() error {
+	rfnc := func() error {
 		a.WorkList = worklists[a.UID]
 		authormap[a.UID] = a
 		return nil
-	})
+	}
+
+	_, e := pgx.ForEachRow(foundrows, foreach, rfnc)
 	chke(e)
 
 	return authormap
@@ -305,16 +310,17 @@ func lemmamapper() map[string]DbLemma {
 	unnested := make(map[string]DbLemma, DBLMMAPSIZE)
 	var thehit DbLemma
 	foreach := []any{&thehit.Entry, &thehit.Xref, &thehit.Deriv}
+	rfnc := func() error {
+		thehit.Entry = clean.Replace(thehit.Entry)
+		unnested[thehit.Entry] = thehit
+		return nil
+	}
 
 	for _, lg := range TheLanguages {
 		q := fmt.Sprintf(t, lg)
 		foundrows, err := dbconn.Query(context.Background(), q)
 		chke(err)
-		_, e := pgx.ForEachRow(foundrows, foreach, func() error {
-			thehit.Entry = clean.Replace(thehit.Entry)
-			unnested[thehit.Entry] = thehit
-			return nil
-		})
+		_, e := pgx.ForEachRow(foundrows, foreach, rfnc)
 		chke(e)
 	}
 

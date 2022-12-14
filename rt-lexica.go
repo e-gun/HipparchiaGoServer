@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
@@ -592,23 +593,28 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 
 	var lexicalfinds []DbLexicon
 	var thehit DbLexicon
-
 	dedup := make(map[float32]bool)
+
+	foreach := []any{&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry}
+
+	rwfnc := func() error {
+		thehit.Lang = d
+		if _, dup := dedup[thehit.ID]; !dup {
+			// use ID and not Lex because καρπόϲ.53442 is not καρπόϲ.53443
+			dedup[thehit.ID] = true
+			lexicalfinds = append(lexicalfinds, thehit)
+		}
+		return nil
+	}
+
 	for _, w := range hwm {
 		q := fmt.Sprintf(PSQQ, FLDS, d, COLM, w)
 		foundrows, err := dbconn.Query(context.Background(), q)
 		chke(err)
-		for foundrows.Next() {
-			e := foundrows.Scan(&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry)
-			chke(e)
-			thehit.Lang = d
-			if _, dup := dedup[thehit.ID]; !dup {
-				// use ID and not Lex because καρπόϲ.53442 is not καρπόϲ.53443
-				dedup[thehit.ID] = true
-				lexicalfinds = append(lexicalfinds, thehit)
-			}
-		}
-		foundrows.Close()
+
+		_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
+		chke(e)
+
 	}
 	return lexicalfinds
 }
