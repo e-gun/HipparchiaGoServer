@@ -10,7 +10,7 @@ import "time"
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.0.8m"
+	VERSION                  = "1.0.8"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	CONFIGLOCATION           = "."
 	CONFIGALTAPTH            = "%s/.config/" // %s = os.UserHomeDir()
