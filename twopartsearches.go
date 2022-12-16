@@ -293,7 +293,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	chke(err)
 
 	workers := Config.WorkerCount
-	findchannels := make([]<-chan KVPair, workers)
+	findchannels := make([]<-chan int, workers)
 
 	for i := 0; i < workers; i++ {
 		fc, ee := XWordsConsumer(ctx, emit, basicprxfinder, submatchsrchfinder, pd, originalsrch.NotNear)
@@ -308,12 +308,13 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 	res := make([]DbWorkline, len(results))
 	for i := 0; i < len(results); i++ {
-		res[i] = first.Results[results[i].k]
+		res[i] = first.Results[results[i]]
 	}
 
 	second.Results = res
 	second.Seeking = first.Seeking
 	second.LemmaOne = first.LemmaOne
+	second.CurrentLimit = first.OriginalLimit
 
 	return second
 }
@@ -323,8 +324,8 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 //
 
 type KVPair struct {
-	k int
-	v string
+	K int
+	V string
 }
 
 // XWordsFeeder - emit items to a channel from the []KVPair that will be consumed by the XWordsConsumer
@@ -352,8 +353,8 @@ func XWordsFeeder(ctx context.Context, kvp *[]KVPair, ss *SearchStruct) (<-chan 
 }
 
 // XWordsConsumer - grab a KVPair; check to see if it is a hit; emit the valid hits to a channel
-func XWordsConsumer(ctx context.Context, kvp <-chan KVPair, bf *regexp.Regexp, sf *regexp.Regexp, dist int, notnear bool) (<-chan KVPair, error) {
-	emitfinds := make(chan KVPair)
+func XWordsConsumer(ctx context.Context, kvp <-chan KVPair, bf *regexp.Regexp, sf *regexp.Regexp, dist int, notnear bool) (<-chan int, error) {
+	emitfinds := make(chan int)
 	go func() {
 		defer close(emitfinds)
 		for p := range kvp {
@@ -369,14 +370,14 @@ func XWordsConsumer(ctx context.Context, kvp <-chan KVPair, bf *regexp.Regexp, s
 }
 
 // XWordsAggregator - gather all hits from the findchannels into one place and then feed them to XWordsCollation
-func XWordsAggregator(ctx context.Context, findchannels ...<-chan KVPair) <-chan KVPair {
+func XWordsAggregator(ctx context.Context, findchannels ...<-chan int) <-chan int {
 	var wg sync.WaitGroup
-	emitaggregate := make(chan KVPair)
-	broadcast := func(ll <-chan KVPair) {
+	emitaggregate := make(chan int)
+	broadcast := func(hits <-chan int) {
 		defer wg.Done()
-		for l := range ll {
+		for h := range hits {
 			select {
-			case emitaggregate <- l:
+			case emitaggregate <- h:
 			case <-ctx.Done():
 				return
 			}
@@ -396,8 +397,8 @@ func XWordsAggregator(ctx context.Context, findchannels ...<-chan KVPair) <-chan
 }
 
 // XWordsCollation - return the actual []KVPair results after pulling them from the XWordsAggregator channel
-func XWordsCollation(ctx context.Context, ss *SearchStruct, values <-chan KVPair) []KVPair {
-	var allhits []KVPair
+func XWordsCollation(ctx context.Context, ss *SearchStruct, hits <-chan int) []int {
+	var allhits []int
 	done := false
 	for {
 		if done {
@@ -406,11 +407,11 @@ func XWordsCollation(ctx context.Context, ss *SearchStruct, values <-chan KVPair
 		select {
 		case <-ctx.Done():
 			done = true
-		case val, ok := <-values:
+		case h, ok := <-hits:
 			if ok {
-				if val.k != -1 {
+				if h != -1 {
 					// *something* came back from XWordsCheckFinds; a negative result is {-1, ""}
-					allhits = append(allhits, val)
+					allhits = append(allhits, h)
 					ss.Hits.Set(len(allhits))
 				}
 				if len(allhits) > ss.OriginalLimit {
@@ -425,12 +426,9 @@ func XWordsCollation(ctx context.Context, ss *SearchStruct, values <-chan KVPair
 }
 
 // XWordsCheckFinds - parallel hit checker logic for WithinXWordsSearch
-func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinder *regexp.Regexp, pd int, notnear bool) KVPair {
+func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinder *regexp.Regexp, pd int, notnear bool) int {
 	// the default return is "not a hit"
-	result := KVPair{
-		k: -1,
-		v: "",
-	}
+	result := -1
 
 	// now we have a new problem: Sought all 19 forms of »φύϲιϲ« within 4 words of »ἀδύνατον γὰρ«
 	// what if the string contains multiple valid values for term #1?
@@ -439,7 +437,7 @@ func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinde
 
 	// quick preliminary test (which does seem to shave 5-10% from your time...)
 	possible := false
-	if basicprxfinder.MatchString(p.v) && !notnear {
+	if basicprxfinder.MatchString(p.V) && !notnear {
 		possible = true
 	} else if notnear {
 		possible = true
@@ -448,7 +446,7 @@ func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinde
 		return result
 	}
 
-	subs := submatchsrchfinder.FindStringSubmatch(p.v)
+	subs := submatchsrchfinder.FindStringSubmatch(p.V)
 	head := ""
 	tail := ""
 	if len(subs) != 0 {
@@ -473,12 +471,12 @@ func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinde
 	if notnear {
 		// toss hits
 		if !basicprxfinder.MatchString(head) && !basicprxfinder.MatchString(tail) {
-			result = p
+			result = p.K
 		}
 	} else {
 		// collect hits
 		if basicprxfinder.MatchString(head) || basicprxfinder.MatchString(tail) {
-			result = p
+			result = p.K
 		}
 	}
 	return result
