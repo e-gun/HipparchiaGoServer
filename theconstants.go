@@ -5,6 +5,8 @@
 
 package main
 
+import "time"
+
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
@@ -65,10 +67,12 @@ const (
 	SORTBY                   = "shortname"
 	TEMPTABLETHRESHOLD       = 100 // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
 	TERMINATIONS             = `(\s|\.|\]|\<|⟩|’|”|\!|,|:|;|\?|·|$)`
+	TIMEOUTRD                = 15 * time.Second  // only set if Config.Authenticate is true (and so in a "serve the net" situation)
+	TIMEOUTWR                = 120 * time.Second // this is *very* generous, but some searches are slow/long
 	TIMETRACKERMSGTHRESH     = 3
 	USEGZIP                  = false
 	VARIADATE                = 2000
-	WSPOLLINGPAUSE           = 99999999 // 99999999 is 9 9s; consider also 6666666
+	WSPOLLINGPAUSE           = 10000000 * 10 // 100000000 * 10 = every .1s
 
 	// UNACCEPTABLEINPUT       = `|"'!@:,=+_\/`
 	UNACCEPTABLEINPUT = `"'!@:,=_/` // we want to be able to do regex...; echo+net/url means some can't even make it into a parser: #%&;

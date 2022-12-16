@@ -104,8 +104,6 @@ func SSBuildQueries(s *SearchStruct) {
 	// if there are too many "in0001wXXX" type entries: requiresindextemptable()
 
 	// au query looks like: SELECTFROM + WHERETERM + WHEREINDEX + ORDERBY&LIMIT
-	// FROM gr0308 WHERE ( (index BETWEEN 138 AND 175) OR (index BETWEEN 471 AND 510) ) AND ( stripped_line ~* $1 )
-	// FROM lt0917 WHERE ( (index BETWEEN 1 AND 8069) OR (index BETWEEN 8070 AND 8092) ) AND ( (index NOT BETWEEN 1431 AND 2193) ) AND ( stripped_line ~* $1 )
 
 	// [au] figure out all bounded selections
 
@@ -411,7 +409,6 @@ func windowandttprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 }
 
 func requiresindextemptable(au string, bb []Boundaries, ss *SearchStruct) string {
-	// mimic wholeworktemptablecontents() in whereclauses.py
 	const (
 		MSG = "%s requiresindextemptable(): %d []Boundaries"
 		CTT = `

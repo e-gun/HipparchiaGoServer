@@ -6,6 +6,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -13,6 +14,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -355,59 +357,238 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	//
 
 	// [c4a] quick prune of the finds by checking for the second term in the word bundle
-	possiblyvalid := make(map[int]string)
-	for idx, str := range stringmapper {
-		if basicprxfinder.MatchString(str) && !first.NotNear {
-			possiblyvalid[idx] = str
-		} else if first.NotNear {
-			possiblyvalid[idx] = str
-		}
+	//possiblyvalid := make(map[int]string)
+	//for idx, str := range stringmapper {
+	//	if basicprxfinder.MatchString(str) && !first.NotNear {
+	//		possiblyvalid[idx] = str
+	//	} else if first.NotNear {
+	//		possiblyvalid[idx] = str
+	//	}
+	//}
+	//
+	//// [c4b] now make sure the first term is near enough to the second term: zoom to termtwo and then look out from it
+	//
+	//var validresults []DbWorkline
+	//for idx, str := range possiblyvalid {
+	//	subs := submatchsrchfinder.FindStringSubmatch(str)
+	//	head := ""
+	//	tail := ""
+	//	if len(subs) != 0 {
+	//		head = subs[submatchsrchfinder.SubexpIndex("head")]
+	//		tail = subs[submatchsrchfinder.SubexpIndex("tail")]
+	//	}
+	//
+	//	hh := strings.Split(head, " ")
+	//	start := 0
+	//	if len(hh)-pd-1 > 0 {
+	//		start = len(hh) - pd - 1
+	//	}
+	//	hh = hh[start:]
+	//	head = " " + strings.Join(hh, " ")
+	//
+	//	tt := strings.Split(tail, " ")
+	//	if len(tt) >= pd+1 {
+	//		tt = tt[0 : pd+1]
+	//	}
+	//	tail = strings.Join(tt, " ") + " "
+	//
+	//	if first.NotNear {
+	//		// toss hits
+	//		if !basicprxfinder.MatchString(head) && !basicprxfinder.MatchString(tail) {
+	//			validresults = append(validresults, first.Results[idx])
+	//		}
+	//	} else {
+	//		// collect hits
+	//		if basicprxfinder.MatchString(head) || basicprxfinder.MatchString(tail) {
+	//			validresults = append(validresults, first.Results[idx])
+	//		}
+	//	}
+	//}
+
+	kvp := XWordsSecondSearch(&ss, stringmapper, basicprxfinder, submatchsrchfinder, pd)
+
+	var res []DbWorkline
+	for _, v := range kvp {
+		res = append(res, first.Results[v.k])
 	}
 
-	// [c4b] now make sure the first term is near enough to the second term: zoom to termtwo and then look out from it
-
-	var validresults []DbWorkline
-	for idx, str := range possiblyvalid {
-		subs := submatchsrchfinder.FindStringSubmatch(str)
-		head := ""
-		tail := ""
-		if len(subs) != 0 {
-			head = subs[submatchsrchfinder.SubexpIndex("head")]
-			tail = subs[submatchsrchfinder.SubexpIndex("tail")]
-		}
-
-		hh := strings.Split(head, " ")
-		start := 0
-		if len(hh)-pd-1 > 0 {
-			start = len(hh) - pd - 1
-		}
-		hh = hh[start:]
-		head = " " + strings.Join(hh, " ")
-
-		tt := strings.Split(tail, " ")
-		if len(tt) >= pd+1 {
-			tt = tt[0 : pd+1]
-		}
-		tail = strings.Join(tt, " ") + " "
-
-		if first.NotNear {
-			// toss hits
-			if !basicprxfinder.MatchString(head) && !basicprxfinder.MatchString(tail) {
-				validresults = append(validresults, first.Results[idx])
-			}
-		} else {
-			// collect hits
-			if basicprxfinder.MatchString(head) || basicprxfinder.MatchString(tail) {
-				validresults = append(validresults, first.Results[idx])
-			}
-		}
-	}
-
-	second.Results = validresults
+	second.Results = res
 	second.Seeking = first.Seeking
 	second.LemmaOne = first.LemmaOne
 
 	return second
+}
+
+//
+// FAN-OUT AND FAN-IN SECOND HALF OF WithinXWordsSearch()
+//
+
+func XWordsCheckFinds(p kvpair, basicprxfinder *regexp.Regexp, submatchsrchfinder *regexp.Regexp, pd int, notnear bool) kvpair {
+	subs := submatchsrchfinder.FindStringSubmatch(p.v)
+	head := ""
+	tail := ""
+	if len(subs) != 0 {
+		head = subs[submatchsrchfinder.SubexpIndex("head")]
+		tail = subs[submatchsrchfinder.SubexpIndex("tail")]
+	}
+
+	hh := strings.Split(head, " ")
+	start := 0
+	if len(hh)-pd-1 > 0 {
+		start = len(hh) - pd - 1
+	}
+	hh = hh[start:]
+	head = " " + strings.Join(hh, " ")
+
+	tt := strings.Split(tail, " ")
+	if len(tt) >= pd+1 {
+		tt = tt[0 : pd+1]
+	}
+	tail = strings.Join(tt, " ") + " "
+
+	var valid kvpair
+	if notnear {
+		// toss hits
+		if !basicprxfinder.MatchString(head) && !basicprxfinder.MatchString(tail) {
+			valid = p
+		}
+	} else {
+		// collect hits
+		if basicprxfinder.MatchString(head) || basicprxfinder.MatchString(tail) {
+			valid = p
+		}
+	}
+	return valid
+}
+
+type kvpair struct {
+	k int
+	v string
+}
+
+func XWordsSecondSearch(ss *SearchStruct, stringmapper map[int]string, bf *regexp.Regexp, sf *regexp.Regexp, dist int) []kvpair {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	kvp := make([]kvpair, len(stringmapper))
+	count := 0
+	for k, v := range stringmapper {
+		kvp[count] = kvpair{k, v}
+		count += 1
+	}
+
+	emit, err := XWordsFeeder(ctx, &kvp, ss)
+	chke(err)
+
+	workers := Config.WorkerCount
+	findchannels := make([]<-chan kvpair, workers)
+
+	for i := 0; i < workers; i++ {
+		fc, e := XWordsConsumer(ctx, emit, bf, sf, dist, ss.NotNear)
+		chke(e)
+		findchannels[i] = fc
+	}
+
+	results := XWordsCollation(ctx, ss, XWordsAggregator(ctx, findchannels...))
+	if len(results) > ss.CurrentLimit {
+		results = results[0:ss.CurrentLimit]
+	}
+
+	return results
+
+}
+
+func XWordsFeeder(ctx context.Context, kvp *[]kvpair, ss *SearchStruct) (<-chan kvpair, error) {
+	emit := make(chan kvpair, Config.WorkerCount)
+	remainder := -1
+
+	go func() {
+		defer close(emit)
+		for i := 0; i < len(*kvp); i++ {
+			select {
+			case <-ctx.Done():
+				break
+			default:
+				remainder = len(ss.Queries) - i - 1
+				if remainder%POLLEVERYNTABLES == 0 {
+					ss.Remain.Set(remainder)
+				}
+				emit <- (*kvp)[i]
+			}
+		}
+	}()
+
+	return emit, nil
+}
+
+func XWordsConsumer(ctx context.Context, kvp <-chan kvpair, bf *regexp.Regexp, sf *regexp.Regexp, dist int, notnear bool) (<-chan kvpair, error) {
+	emitfinds := make(chan kvpair)
+	go func() {
+		defer close(emitfinds)
+		for p := range kvp {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				emitfinds <- XWordsCheckFinds(p, bf, sf, dist, notnear)
+			}
+		}
+	}()
+	return emitfinds, nil
+}
+
+func XWordsAggregator(ctx context.Context, findchannels ...<-chan kvpair) <-chan kvpair {
+	var wg sync.WaitGroup
+	emitaggregate := make(chan kvpair)
+	broadcast := func(ll <-chan kvpair) {
+		defer wg.Done()
+		for l := range ll {
+			select {
+			case emitaggregate <- l:
+			case <-ctx.Done():
+				return
+			}
+		}
+	}
+	wg.Add(len(findchannels))
+	for _, fc := range findchannels {
+		go broadcast(fc)
+	}
+
+	go func() {
+		wg.Wait()
+		close(emitaggregate)
+	}()
+
+	return emitaggregate
+}
+
+func XWordsCollation(ctx context.Context, ss *SearchStruct, values <-chan kvpair) []kvpair {
+	var allhits []kvpair
+	done := false
+	for {
+		if done {
+			break
+		}
+		select {
+		case <-ctx.Done():
+			done = true
+		case val, ok := <-values:
+			if ok {
+				if len(val.v) != 0 {
+					// *something* came back, but a negative result is {0, ""}
+					allhits = append(allhits, val)
+					ss.Hits.Set(len(allhits))
+				}
+				if len(allhits) > ss.OriginalLimit {
+					done = true
+				}
+			} else {
+				done = true
+			}
+		}
+	}
+	return allhits
 }
 
 // generateinitialhits - part one of a two-part search
