@@ -72,13 +72,18 @@ func FillPSQLPoool() *pgxpool.Pool {
 // GetPSQLconnection - Acquire() a connection from the main pgxpool
 func GetPSQLconnection() *pgxpool.Conn {
 	const (
-		FAIL = "GetPSQLconnection() could not Acquire() from SQLPool"
+		FAIL1   = "GetPSQLconnection() could not Acquire() from SQLPool"
+		ERRRUN  = `dial error`
+		FAILRUN = `'%s': the PostgreSQL server cannot be found; check that it is running and serving on port %d`
 	)
 
 	dbc, e := SQLPool.Acquire(context.Background())
 	if e != nil {
-		msg(fmt.Sprintf(FAIL), -1)
-		panic(e)
+		msg(fmt.Sprintf(FAIL1), -1)
+		if strings.Contains(e.Error(), ERRRUN) {
+			msg(fmt.Sprintf(FAILRUN, ERRRUN, Config.PGLogin.Port), 0)
+		}
+		os.Exit(0)
 	}
 	return dbc
 }

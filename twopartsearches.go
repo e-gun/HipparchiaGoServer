@@ -19,18 +19,6 @@ import (
 // TWO-PART SEARCHES
 //
 
-// generateinitialhits - part one of a two-part search
-func generateinitialhits(first SearchStruct) SearchStruct {
-	first = HGoSrch(first)
-
-	if first.HasPhrase {
-		findphrasesacrosslines(&first)
-	}
-	// this was toggled just before the queries were written; it needs to be reset now
-	first.CurrentLimit = first.OriginalLimit
-	return first
-}
-
 // WithinXLinesSearch - find A within N lines of B
 func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	// after finding A, look for B within N lines of A
@@ -50,7 +38,13 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	)
 
 	previous := time.Now()
-	first := generateinitialhits(originalsrch)
+	first := HGoSrch(originalsrch)
+
+	if first.HasPhrase {
+		findphrasesacrosslines(&first)
+	}
+	// this was toggled just before the queries were written; it needs to be reset now
+	first.CurrentLimit = first.OriginalLimit
 
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	msg(fmt.Sprintf(MSG1, d, len(first.Results)), 4)
@@ -145,8 +139,15 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 		BAD1 = "WithinXWordsSearch() could not compile second pass regex term 'submatchsrchfinder': %s"
 		BAD2 = "WithinXWordsSearch() could not compile second pass regex term 'basicprxfinder': %s"
 	)
+
 	previous := time.Now()
-	first := generateinitialhits(originalsrch)
+	first := HGoSrch(originalsrch)
+
+	if first.HasPhrase {
+		findphrasesacrosslines(&first)
+	}
+	// this was toggled just before the queries were written; it needs to be reset now
+	first.CurrentLimit = first.OriginalLimit
 
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	msg(fmt.Sprintf(MSG1, d, len(first.Results)), 4)
@@ -215,14 +216,17 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 		bundlemapper[i] = b
 	}
 
-	// [c2] decompose them into long strings
-	stringmapper := make(map[int]string)
+	// [c2] decompose them into long strings and assign to a KVPair (K will let you get back to first.Results[i])
+
+	kvp := make([]KVPair, len(bundlemapper))
+	count := 0
 	for idx, lines := range bundlemapper {
 		var bundle []string
 		for i := 0; i < len(lines); i++ {
 			bundle = append(bundle, columnpicker(first.SrchColumn, lines[i]))
 		}
-		stringmapper[idx] = strings.Join(bundle, " ")
+		kvp[count] = KVPair{K: idx, V: strings.Join(bundle, " ")}
+		count += 1
 	}
 
 	// [c3] grab the head and tail of each
@@ -277,17 +281,10 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 	// [MONO]
 	// Sought all 50 forms of »Πόλιϲ« within 5 words of all 16 forms of »τοξότηϲ«
-	// Searched 7,461 works and found 15 passages (20.44s)
+	// Searched 7,461 works and found 14 passages (20.19s)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	kvp := make([]KVPair, len(stringmapper))
-	count := 0
-	for k, v := range stringmapper {
-		kvp[count] = KVPair{k, v}
-		count += 1
-	}
 
 	emit, err := XWordsFeeder(ctx, &kvp, &ss)
 	chke(err)
@@ -457,14 +454,16 @@ func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinde
 	hh := strings.Split(head, " ")
 	start := 0
 	if len(hh)-pd-1 > 0 {
+		// "len(hh) - pd" is wrong; will only find Ἔχειϲ within 6 words of λανθάνει in S. Ant.; it is 5 words before
 		start = len(hh) - pd - 1
 	}
 	hh = hh[start:]
 	head = " " + strings.Join(hh, " ")
 
 	tt := strings.Split(tail, " ")
-	if len(tt) >= pd+1 {
-		tt = tt[0 : pd+1]
+	if len(tt) >= pd {
+		// "tt[0:pd+1]" is wrong; will find τοξότηϲ within 5 words of πόλιν in S. Ant.; it comes 6 words later
+		tt = tt[0:pd]
 	}
 	tail = strings.Join(tt, " ") + " "
 

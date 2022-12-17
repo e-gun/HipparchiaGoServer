@@ -7,7 +7,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"runtime"
@@ -24,11 +23,33 @@ var (
 // DEBUGGING
 //
 
+// see https://www.ditig.com/256-colors-cheat-sheet
+
+const (
+	RESET   = "\033[0m"
+	BLUE1   = "\033[38;5;38m"  // DeepSkyBlue2
+	BLUE2   = "\033[38;5;68m"  // SteelBlue3
+	CYAN1   = "\033[38;5;109m" // LightSkyBlue3
+	CYAN2   = "\033[38;5;152m" // LightCyan3
+	GREEN   = "\033[38;5;108m" // DarkSeaGreen
+	RED1    = "\033[38;5;160m" // Red3
+	RED2    = "\033[38;5;168m" // HotPink3
+	YELLOW1 = "\033[38;5;187m" // LightYellow3
+	YELLOW2 = "\033[38;5;229m" // Wheat1
+	GREY1   = "\033[38;5;254m" // Grey89
+	GREY2   = "\033[38;5;247m" // Grey62
+	GREY3   = "\033[38;5;242m" // Grey42
+	WHITE   = "\033[38;5;255m" // Grey93
+)
+
 // chke - send a generic message and panic on error
 func chke(err error) {
+	const (
+		PANIC = "[%s%s v.%s%s] %sUNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE%s\n"
+	)
+
 	if err != nil {
-		red := color.New(color.FgHiRed).PrintfFunc()
-		red("[%s v.%s] UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE\n", MYNAME, VERSION)
+		fmt.Printf(PANIC, YELLOW2, MYNAME, VERSION, RESET, RED2, RESET)
 		panic(err)
 	}
 }
@@ -39,35 +60,33 @@ func msg(message string, threshold int) {
 		return
 	}
 
-	hgc := color.New(color.FgYellow).SprintFunc()
-	c := color.FgRed
+	var color string
+
 	switch threshold {
 	case -1:
-		// c = color.FgHiRed
-		c = color.FgCyan
+		color = GREEN
 	case 0:
-		c = color.FgRed
+		color = RED2
 	case 1:
-		c = color.FgMagenta
+		color = YELLOW1
 	case 2:
-		c = color.FgYellow
+		color = YELLOW2
 	case 3:
-		c = color.FgWhite
+		color = CYAN2
 	case 4:
-		c = color.FgHiBlue
+		color = BLUE2
 	case 5:
-		c = color.FgHiBlack
+		color = GREY3
 	default:
-		c = color.FgWhite
+		color = WHITE
 	}
-	mc := color.New(c).SprintFunc()
 
 	switch runtime.GOOS {
 	case "windows":
 		// terminal color codes not w's friend
 		fmt.Printf("[%s] %s\n", SHORTNAME, message)
 	default:
-		fmt.Printf("[%s] %s\n", hgc(SHORTNAME), mc(message))
+		fmt.Printf("[%s%s%s] %s%s%s\n", YELLOW1, SHORTNAME, RESET, color, message, RESET)
 	}
 
 }
