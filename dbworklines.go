@@ -264,12 +264,15 @@ func worklinequery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
 
 // graboneline - return a single DbWorkline from a table
 func graboneline(table string, line int) DbWorkline {
+	const (
+		QTMPL = "SELECT %s FROM %s WHERE index = %d ORDER by index"
+	)
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
-	qt := "SELECT %s FROM %s WHERE index = %d ORDER by index"
+
 	var prq PrerolledQuery
 	prq.TempTable = ""
-	prq.PsqlQuery = fmt.Sprintf(qt, WORLINETEMPLATE, table, line)
+	prq.PsqlQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, line)
 	foundlines := worklinequery(prq, dbconn)
 	if len(foundlines) != 0 {
 		return foundlines[0]
@@ -280,17 +283,19 @@ func graboneline(table string, line int) DbWorkline {
 
 // simplecontextgrabber - grab a pile of lines centered around the focusline
 func simplecontextgrabber(table string, focus int, context int) []DbWorkline {
+	const (
+		QTMPL = "SELECT %s FROM %s WHERE (index BETWEEN %d AND %d) ORDER by index"
+	)
+
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
-
-	qt := "SELECT %s FROM %s WHERE (index BETWEEN %d AND %d) ORDER by index"
 
 	low := focus - context
 	high := focus + context
 
 	var prq PrerolledQuery
 	prq.TempTable = ""
-	prq.PsqlQuery = fmt.Sprintf(qt, WORLINETEMPLATE, table, low, high)
+	prq.PsqlQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, low, high)
 
 	foundlines := worklinequery(prq, dbconn)
 
@@ -298,7 +303,7 @@ func simplecontextgrabber(table string, focus int, context int) []DbWorkline {
 }
 
 func findvalidlevelvalues(wkid string, locc []string) LevelValues {
-	// tell me some of a citation and i can tell you what is a valid choice at the next step
+	// tell me some of a citation and I can tell you what is a valid choice at the next step
 	// curl localhost:5000/get/json/workstructure/lt0959/001
 	// {"totallevels": 3, "level": 2, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
 	// curl localhost:5000/get/json/workstructure/lt0959/001/2

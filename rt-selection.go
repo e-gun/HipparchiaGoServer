@@ -667,11 +667,16 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int {
 		fl, success = endpointer(wuid, newlocus, sep)
 	} else {
 		// cicero, et.al
-		// [HGS] findendpointsfromlocus() failed to find the following inside of lt0474w049: 4:8:18
+		// [a] [HGS] findendpointsfromlocus() failed to find the following inside of lt0474w049: 4:8:18
 		// this should in fact be "4.18"
+		// [b] BUT in lt0474w024 "10:24" you want "24"
 		ll := strings.Split(locus, sep)
-		if len(ll) >= 2 {
+		if len(ll) > 2 {
 			newlocus := strings.Join(RemoveIndex(ll, 1), ":")
+			msg(fmt.Sprintf(MSG, locus, newlocus), 3)
+			fl, success = endpointer(wuid, newlocus, sep)
+		} else if len(ll) == 2 {
+			newlocus := strings.Join(RemoveIndex(ll, 0), ":")
 			msg(fmt.Sprintf(MSG, locus, newlocus), 3)
 			fl, success = endpointer(wuid, newlocus, sep)
 		}

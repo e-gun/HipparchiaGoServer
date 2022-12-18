@@ -1,9 +1,12 @@
 # HipparchiaGoServer
 
-### STATUS (`v1.0.8`):
+### STATUS (`v1.0.9`):
 
 * 25%-700% faster than HipparchiaServer depending on the function. Uses c. 60% as much RAM.
 * monolithic binary: no need for extra files/folders beyond setting a password in `hgs-conf.json`
+
+### FEATURES
+
 * searching
 * browsing 
 * selections 
@@ -26,10 +29,9 @@
 
 ### NOTES
 
-* c. 325MB resident RAM on launch
-* a very heavy search like "all forms of Πόλιϲ near..." can kick you up into 660MB
+* c. 325MB resident RAM on launch (note that a simple application like iTerm2 uses 354MB and Firefox uses 855MB)
 * add about 125MB of RAM per postgres client connection in the pool
-* note that a simple application like iTerm2 uses 354MB and firefox uses 855MB.
+* a very heavy search like "all forms of Πόλιϲ near..." can kick you up into 660MB
 
 ![options](gitimg/hgscli.png)
 
@@ -50,7 +52,5 @@ Go                              30           1776           1671           8382
 -------------------------------------------------------------------------------
 SUM:                            30           1776           1671           8382
 -------------------------------------------------------------------------------
-
-```
 
 ```
