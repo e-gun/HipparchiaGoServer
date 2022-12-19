@@ -283,7 +283,6 @@ func headwordlookup(word string) DbHeadwordCount {
 	chke(err)
 
 	var thesefinds []DbHeadwordCount
-	var thehit DbHeadwordCount
 	var co DbHeadwordCorpusCounts
 	var chr DbHeadwordTimeCounts
 	var g DbHeadwordGenreCounts
@@ -292,6 +291,7 @@ func headwordlookup(word string) DbHeadwordCount {
 
 	defer foundrows.Close()
 	for foundrows.Next() {
+		var thehit DbHeadwordCount
 		e := foundrows.Scan(&thehit.Entry, &thehit.Total, &co.TGrk, &co.TLat, &co.TDP, &co.TIN, &co.TCh,
 			&thehit.FrqCla, &chr.Early, &chr.Middle, &chr.Late,
 			&th.Acta, &g.Agric, &g.Alchem, &g.Anthol, &th.Apocal, &th.Apocr, &th.Apol, &g.Astrol, &g.Astron, &g.Biogr, &g.Bucol,

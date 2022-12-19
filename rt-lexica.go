@@ -280,6 +280,7 @@ func findbyform(word string, author string) string {
 		PSQQ = `SELECT %s FROM wordcounts_%s where entry_name = '%s'`
 		SRCH = `<bibl id="perseus/%s/`
 		REPL = `<bibl class="flagged" id="perseus/%s/`
+		NOTH = `findbyform() found no results for '%s'`
 	)
 
 	d := "latin"
@@ -317,7 +318,9 @@ func findbyform(word string, author string) string {
 	var wc DbWordCount
 	ct := dbconn.QueryRow(context.Background(), q)
 	e := ct.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
-	chke(e)
+	if e != nil {
+		msg(fmt.Sprintf(NOTH, word), 3)
+	}
 
 	label := wc.Word
 	allformpd := formatprevalencedata(wc, label)
@@ -816,6 +819,7 @@ func formatlexicaloutput(w DbLexicon) string {
 		</table>`
 
 		PROXENTRYQUERY = `SELECT entry_name, id_number from %s_dictionary WHERE id_number %s %.0f ORDER BY id_number %s LIMIT 1`
+		NOTH           = `formatlexicaloutput() found no entry %s '%s'`
 	)
 
 	var elem []string
@@ -864,12 +868,16 @@ func formatlexicaloutput(w DbLexicon) string {
 	var prev DbLexicon
 	p := dbconn.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.lang, "<", w.ID, "DESC"))
 	e := p.Scan(&prev.Entry, &prev.ID)
-	chke(e)
+	if e != nil {
+		msg(fmt.Sprintf(NOTH, "before", w.Entry), 3)
+	}
 
 	var nxt DbLexicon
 	n := dbconn.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.lang, ">", w.ID, "ASC"))
 	e = n.Scan(&nxt.Entry, &nxt.ID)
-	chke(e)
+	if e != nil {
+		msg(fmt.Sprintf(NOTH, "after", w.Entry), 3)
+	}
 
 	pn := fmt.Sprintf(NAVTABLE, prev.ID, w.lang, prev.Entry, nxt.ID, w.lang, nxt.Entry)
 	elem = append(elem, pn)

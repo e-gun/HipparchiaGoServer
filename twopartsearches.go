@@ -454,7 +454,7 @@ func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinde
 	hh := strings.Split(head, " ")
 	start := 0
 	if len(hh)-pd-1 > 0 {
-		// "len(hh) - pd" is wrong; will only find Ἔχειϲ within 6 words of λανθάνει in S. Ant.; it is 5 words before
+		// "len(hh) - pd" is wrong; "within 5" will only find Ἔχειϲ within 6 words of λανθάνει in S. Ant.; it comes 5 words before
 		start = len(hh) - pd - 1
 	}
 	hh = hh[start:]
@@ -462,7 +462,7 @@ func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinde
 
 	tt := strings.Split(tail, " ")
 	if len(tt) >= pd {
-		// "tt[0:pd+1]" is wrong; will find τοξότηϲ within 5 words of πόλιν in S. Ant.; it comes 6 words later
+		// "tt[0:pd+1]" is wrong; "within 5" will find τοξότηϲ within 5 words of πόλιν in S. Ant.; but it comes 6 words later
 		tt = tt[0:pd]
 	}
 	tail = strings.Join(tt, " ") + " "
