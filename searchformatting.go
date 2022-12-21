@@ -275,7 +275,7 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 				pat, e := regexp.Compile(strings.Join(re, "|"))
 				if e != nil {
 					pat = regexp.MustCompile("FAILED_FIND_NOTHING")
-					msg(fmt.Sprintf("searchtermfinder() could not compile the following: %s", strings.Join(re, "|")), 1)
+					msg(fmt.Sprintf("searchtermfinder() could not compile the following: %s", strings.Join(re, "|")), MSGWARN)
 				}
 				highlightsearchterm(pat, &p.CookedCTX[i])
 			}
@@ -649,7 +649,7 @@ func gethighlighter(ss *SearchStruct) *regexp.Regexp {
 	} else if len(ss.LemmaTwo) != 0 {
 		re = lemmahighlighter(ss.LemmaTwo)
 	} else {
-		msg(fmt.Sprintf(FAIL, ss.InitSum), 3)
+		msg(fmt.Sprintf(FAIL, ss.InitSum), MSGFYI)
 		re = regexp.MustCompile(FAILRE)
 	}
 	return re
@@ -685,7 +685,7 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 
 	r, e := regexp.Compile(rec)
 	if e != nil {
-		msg(FAIL, 3)
+		msg(FAIL, MSGFYI)
 	}
 	return r
 }

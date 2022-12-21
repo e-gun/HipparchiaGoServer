@@ -418,7 +418,7 @@ func requiresindextemptable(au string, bb []Boundaries, ss *SearchStruct) string
 			values`
 	)
 
-	msg(fmt.Sprintf(MSG, au, len(bb)), 5)
+	msg(fmt.Sprintf(MSG, au, len(bb)), MSGTMI)
 	var required []int
 	for _, b := range bb {
 		for i := b.Start; i <= b.Stop; i++ {

@@ -78,7 +78,7 @@ func RtBrowseline(c echo.Context) error {
 		bp := generatebrowsedpassage(au, wk, ln, ctx)
 		return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
 	} else {
-		msg(fmt.Sprintf(FAIL, locus), 3)
+		msg(fmt.Sprintf(FAIL, locus), MSGFYI)
 		return emptyjsreturn(c)
 	}
 }
@@ -113,7 +113,7 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 		ctx := s.BrowseCtx
 		return generatebrowsedpassage(au, wk, ln[0], ctx)
 	} else {
-		msg(fmt.Sprintf(FAIL, locus), 3)
+		msg(fmt.Sprintf(FAIL, locus), MSGFYI)
 		return BrowsedPassage{}
 	}
 }
@@ -142,7 +142,7 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassag
 	}
 
 	if w.UID == "null" {
-		msg(fmt.Sprintf(FAIL1, k), 1)
+		msg(fmt.Sprintf(FAIL1, k), MSGFYI)
 		return BrowsedPassage{}
 	}
 
@@ -396,7 +396,7 @@ func buildbrowsertable(focus int, lines []DbWorkline) string {
 			pattern, e := regexp.Compile(r)
 			if e != nil {
 				// you will barf if w = *
-				msg(fmt.Sprintf(FAIL, w), 4)
+				msg(fmt.Sprintf(FAIL, w), MSGPEEK)
 				pattern = regexp.MustCompile("FIND_NOTHING")
 			}
 			ar[w] = pattern
@@ -426,7 +426,7 @@ func buildbrowsertable(focus int, lines []DbWorkline) string {
 				// almostallregex does not contain this pattern: "ἱμα-", e.g.
 				np, e := regexp.Compile(fmt.Sprintf(OBSREGTEMPL, capsvariants(lmw)))
 				if e != nil {
-					msg(fmt.Sprintf(FAIL, lmw), 4)
+					msg(fmt.Sprintf(FAIL, lmw), MSGPEEK)
 					np = regexp.MustCompile("FIND_NOTHING")
 				}
 

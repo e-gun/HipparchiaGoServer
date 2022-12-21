@@ -49,7 +49,7 @@ func RtEmbHCSS(c echo.Context) error {
 
 	j, e := efs.ReadFile(f)
 	if e != nil {
-		msg(fmt.Sprintf("RtEmbHCSS() can't find %s", f), 1)
+		msg(fmt.Sprintf("RtEmbHCSS() can't find %s", f), MSGWARN)
 		return c.String(http.StatusNotFound, "")
 	}
 
@@ -93,7 +93,7 @@ func pathembedder(c echo.Context, d string) error {
 	f := c.Param("file")
 	j, e := efs.ReadFile(d + f)
 	if e != nil {
-		msg(fmt.Sprintf("can't find %s", d+f), 1)
+		msg(fmt.Sprintf("can't find %s", d+f), MSGWARN)
 		return c.String(http.StatusNotFound, "")
 	}
 
@@ -109,7 +109,7 @@ func pathembedder(c echo.Context, d string) error {
 func fileembedder(c echo.Context, f string) error {
 	j, e := efs.ReadFile(f)
 	if e != nil {
-		msg(fmt.Sprintf("can't find %s", f), 1)
+		msg(fmt.Sprintf("can't find %s", f), MSGWARN)
 		return c.String(http.StatusNotFound, "")
 	}
 

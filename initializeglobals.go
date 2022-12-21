@@ -116,7 +116,7 @@ func (dbw DbWork) AuID() string {
 func (dbw DbWork) MyAu() DbAuthor {
 	a, ok := AllAuthors[dbw.AuID()]
 	if !ok {
-		msg(fmt.Sprintf("DbWork.MyAu() failed to find '%s'", dbw.AuID()), 1)
+		msg(fmt.Sprintf("DbWork.MyAu() failed to find '%s'", dbw.AuID()), MSGWARN)
 		a = DbAuthor{}
 	}
 	return a
@@ -194,10 +194,14 @@ func workmapper() map[string]DbWork {
 	// lastline         | integer                |           |          |
 	// authentic        | boolean                |           |          |
 
+	const (
+		QT = `SELECT %s FROM works`
+	)
+
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
-	qt := "SELECT %s FROM works"
-	q := fmt.Sprintf(qt, WORKTEMPLATE)
+
+	q := fmt.Sprintf(QT, WORKTEMPLATE)
 
 	foundrows, err := dbconn.Query(context.Background(), q)
 	chke(err)
@@ -240,6 +244,11 @@ func authormapper(ww map[string]DbWork) map[string]DbAuthor {
 
 	// need to be ready to load the worklists into the authors
 	// so: build a map of {UID: WORKLIST...}
+
+	const (
+		QT = `SELECT %s FROM authors`
+	)
+
 	worklists := make(map[string][]string)
 	for _, w := range ww {
 		wk := w.UID
@@ -253,8 +262,7 @@ func authormapper(ww map[string]DbWork) map[string]DbAuthor {
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
-	qt := "SELECT %s FROM authors ORDER by universalid ASC"
-	q := fmt.Sprintf(qt, AUTHORTEMPLATE)
+	q := fmt.Sprintf(QT, AUTHORTEMPLATE)
 
 	foundrows, err := dbconn.Query(context.Background(), q)
 	chke(err)

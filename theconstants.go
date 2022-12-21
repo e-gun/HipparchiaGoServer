@@ -57,6 +57,13 @@ const (
 	MINDATE                  = -850
 	MINDATESTR               = "-850"
 	MINORGENREWTCAP          = 250
+	MSGMAND                  = -1
+	MSGCRIT                  = 0
+	MSGWARN                  = 1
+	MSGNOTE                  = 2
+	MSGFYI                   = 3
+	MSGPEEK                  = 4
+	MSGTMI                   = 5
 	NESTEDLEMMASIZE          = 543
 	ORDERBY                  = "index"
 	POLLEVERYNTABLES         = 50 // 3455 is the max number of tables in a search...

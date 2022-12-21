@@ -355,7 +355,7 @@ func RtMorphchart(c echo.Context) error {
 
 		tc := arraystringcounter(GKTENSES, kk)
 		cc := arraystringcounter(LTCASES, kk)
-		msg(fmt.Sprintf(MSG, cc, tc), 4)
+		msg(fmt.Sprintf(MSG, cc, tc), MSGPEEK)
 
 		// in greek tc is 2x cc or (far) more; in latin tc can just squeak by cc: "[HGS] cc: 94; tc: 104"
 		// the "(3*tc)/2" below is required to keep ἀγαθόϲ from returning as if ἀγαθόω; otherwise "2*" would make sense

@@ -49,20 +49,20 @@ func FillPSQLPoool() *pgxpool.Pool {
 
 	config, e := pgxpool.ParseConfig(url)
 	if e != nil {
-		msg(fmt.Sprintf(FAIL1, url), -1)
+		msg(fmt.Sprintf(FAIL1, url), MSGMAND)
 		os.Exit(0)
 	}
 
 	thepool, e := pgxpool.NewWithConfig(context.Background(), config)
 	if e != nil {
-		msg(fmt.Sprintf(FAIL2), -1)
+		msg(fmt.Sprintf(FAIL2), MSGMAND)
 		if strings.Contains(e.Error(), ERRRUN) {
-			msg(fmt.Sprintf(FAILRUN, ERRRUN, Config.PGLogin.Port), -1)
+			msg(fmt.Sprintf(FAILRUN, ERRRUN, Config.PGLogin.Port), MSGMAND)
 		}
 		if strings.Contains(e.Error(), ERRSRV) {
-			msg(fmt.Sprintf(FAILSRV, ERRSRV), -1)
+			msg(fmt.Sprintf(FAILSRV, ERRSRV), MSGMAND)
 			parts := strings.Split(e.Error(), ERRSRV)
-			msg(parts[1], 0)
+			msg(parts[1], MSGCRIT)
 		}
 		os.Exit(0)
 	}
@@ -79,9 +79,9 @@ func GetPSQLconnection() *pgxpool.Conn {
 
 	dbc, e := SQLPool.Acquire(context.Background())
 	if e != nil {
-		msg(fmt.Sprintf(FAIL1), -1)
+		msg(fmt.Sprintf(FAIL1), MSGMAND)
 		if strings.Contains(e.Error(), ERRRUN) {
-			msg(fmt.Sprintf(FAILRUN, ERRRUN, Config.PGLogin.Port), 0)
+			msg(fmt.Sprintf(FAILRUN, ERRRUN, Config.PGLogin.Port), MSGCRIT)
 		}
 		os.Exit(0)
 	}

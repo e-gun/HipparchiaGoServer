@@ -345,7 +345,6 @@ func prunebydate(searchlist []string, s ServerSession) []string {
 		cdb := AllWorks[uid].ConvDate
 		if (cda >= e && cda <= l) || (cdb >= e && cdb <= l) {
 			trimmed = append(trimmed, uid)
-			// msg(fmt.Sprintf("added: %s w/ date of %d", uid, cd), 1)
 		}
 	}
 

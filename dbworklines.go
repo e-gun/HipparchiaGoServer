@@ -111,7 +111,7 @@ func (dbw *DbWorkline) AuID() string {
 func (dbw *DbWorkline) MyAu() DbAuthor {
 	a, ok := AllAuthors[dbw.AuID()]
 	if !ok {
-		msg(fmt.Sprintf("DbWorkline.MyAu() failed to find '%s'", dbw.AuID()), 1)
+		msg(fmt.Sprintf("DbWorkline.MyAu() failed to find '%s'", dbw.AuID()), MSGWARN)
 		a = DbAuthor{}
 	}
 	return a
@@ -126,7 +126,7 @@ func (dbw *DbWorkline) WkID() string {
 func (dbw *DbWorkline) MyWk() DbWork {
 	w, ok := AllWorks[dbw.WkUID]
 	if !ok {
-		msg(fmt.Sprintf("MyAu() failed to find '%s'", dbw.AuID()), 1)
+		msg(fmt.Sprintf("MyAu() failed to find '%s'", dbw.AuID()), MSGWARN)
 		w = DbWork{}
 	}
 	return w
@@ -140,7 +140,7 @@ func (dbw *DbWorkline) FindCorpus() string {
 func (dbw *DbWorkline) BuildHyperlink() string {
 	if len(dbw.WkUID) == 0 {
 		// FormatWithContextResults() will trigger this
-		msg("BuildHyperlink() on empty dbworkline", 5)
+		msg("BuildHyperlink() on empty dbworkline", MSGTMI)
 		return ""
 	}
 	return fmt.Sprintf(WKLNHYPERLNKTEMPL, dbw.AuID(), dbw.WkID(), dbw.TbIndex)
@@ -338,7 +338,7 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 
 	if atlvl < 0 || need < 0 {
 		// logic bug in here somewhere...
-		msg(FAIL, 1)
+		msg(FAIL, MSGWARN)
 		return LevelValues{}
 	}
 

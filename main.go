@@ -39,7 +39,7 @@ func main() {
 	printversion()
 
 	if !Config.QuietStart {
-		msg(fmt.Sprintf(TERMINALTEXT, PROJYEAR, PROJAUTH, PROJMAIL), -1)
+		msg(fmt.Sprintf(TERMINALTEXT, PROJYEAR, PROJAUTH, PROJMAIL), MSGMAND)
 	}
 
 	SQLPool = FillPSQLPoool()
@@ -89,7 +89,7 @@ func main() {
 	awaiting.Wait()
 
 	gcstats("main() post-initialization")
-	msg(fmt.Sprintf(SUMM, time.Now().Sub(launch).Seconds()), 1)
+	msg(fmt.Sprintf(SUMM, time.Now().Sub(launch).Seconds()), MSGWARN)
 	StartEchoServer()
 }
 
@@ -151,7 +151,7 @@ func configatlaunch() {
 
 	cfc, e := os.Open(pcf)
 	if e != nil {
-		msg(fmt.Sprintf(FAIL6, pcf), 4)
+		msg(fmt.Sprintf(FAIL6, pcf), MSGPEEK)
 	}
 	defer func(cfc *os.File) {
 		err := cfc.Close()
@@ -179,7 +179,7 @@ func configatlaunch() {
 		case "-ac":
 			err := json.Unmarshal([]byte(args[i+1]), &Config.DefCorp)
 			if err != nil {
-				msg(fmt.Sprintf(FAIL5, DEFAULTCORPORA), 0)
+				msg(fmt.Sprintf(FAIL5, DEFAULTCORPORA), MSGCRIT)
 			}
 		case "-au":
 			Config.Authenticate = true
@@ -213,8 +213,8 @@ func configatlaunch() {
 			js := args[i+1]
 			err := json.Unmarshal([]byte(js), &pl)
 			if err != nil {
-				msg(FAIL1, -1)
-				msg(FAIL2, 0)
+				msg(FAIL1, MSGMAND)
+				msg(FAIL2, MSGCRIT)
 			}
 		case "-q":
 			Config.QuietStart = true
@@ -245,7 +245,7 @@ func configatlaunch() {
 	if errc != nil {
 		y = " *not*"
 	}
-	msg(fmt.Sprintf("'%s%s'%s loaded", h, CONFIGPROLIX, y), 5)
+	msg(fmt.Sprintf("'%s%s'%s loaded", h, CONFIGPROLIX, y), MSGTMI)
 
 	type ConfigFile struct {
 		PosgreSQLPassword string
@@ -258,11 +258,11 @@ func configatlaunch() {
 	} else {
 		cfa, ee := os.Open(cf)
 		if ee != nil {
-			msg(fmt.Sprintf(FAIL6, cf), 5)
+			msg(fmt.Sprintf(FAIL6, cf), MSGTMI)
 		}
 		cfb, ee := os.Open(acf)
 		if ee != nil {
-			msg(fmt.Sprintf(FAIL6, acf), 5)
+			msg(fmt.Sprintf(FAIL6, acf), MSGTMI)
 		}
 
 		defer func(cfa *os.File) {
@@ -285,8 +285,8 @@ func configatlaunch() {
 		errb := decoderb.Decode(&confb)
 
 		if erra != nil && errb != nil {
-			msg(fmt.Sprintf(FAIL3, cf, acf), 0)
-			msg(fmt.Sprintf(FAIL4), 0)
+			msg(fmt.Sprintf(FAIL3, cf, acf), MSGCRIT)
+			msg(fmt.Sprintf(FAIL4), MSGCRIT)
 			fmt.Printf(MINCONFIG)
 			os.Exit(0)
 		}
@@ -325,7 +325,7 @@ func BuildUserPassPairs() {
 
 	pwc, e := os.Open(pwf)
 	if e != nil {
-		msg(fmt.Sprintf(FAIL3, pwf), 0)
+		msg(fmt.Sprintf(FAIL3, pwf), MSGCRIT)
 	}
 	defer func(pwc *os.File) {
 		err := pwc.Close()
@@ -343,7 +343,7 @@ func BuildUserPassPairs() {
 	var upp []UserPass
 	err := json.Unmarshal(filebytes, &upp)
 	if err != nil {
-		msg(FAIL1, 2)
+		msg(FAIL1, MSGNOTE)
 	}
 
 	for _, u := range upp {
@@ -351,7 +351,7 @@ func BuildUserPassPairs() {
 	}
 
 	if Config.Authenticate && len(UserPassPairs) == 0 {
-		msg(FAIL2, 0)
+		msg(FAIL2, MSGCRIT)
 		os.Exit(1)
 	}
 }
@@ -360,5 +360,5 @@ func printversion() {
 	ll := fmt.Sprintf(" [gl=%d; el=%d]", Config.LogLevel, Config.EchoLog)
 	versioninfo := fmt.Sprintf("%s (v%s)", MYNAME, VERSION)
 	versioninfo = versioninfo + ll
-	msg(versioninfo, 0)
+	msg(versioninfo, MSGCRIT)
 }

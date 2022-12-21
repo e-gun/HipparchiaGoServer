@@ -155,7 +155,7 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 		srch.NotNear = true
 	}
 
-	// msg("nonstandard builddefaultsearch() for testing", 1)
+	// msg("nonstandard builddefaultsearch() for testing", MSGCRIT)
 
 	return srch
 }
@@ -259,7 +259,7 @@ func lemmaintoregexslice(hdwd string) []string {
 
 	var qq []string
 	if _, ok := AllLemm[hdwd]; !ok {
-		msg(fmt.Sprintf(FAILMSG, hdwd), 1)
+		msg(fmt.Sprintf(FAILMSG, hdwd), MSGWARN)
 		return []string{FAILSLC}
 	}
 
@@ -372,10 +372,8 @@ func findphrasesacrosslines(ss *SearchStruct) {
 			valid[r.BuildHyperlink()] = r
 		} else if ss.SkgRewritten && altfp.MatchString(li) {
 			// i.e. "it's all on this line" (second try)
-			// msg("althit", 1)
 			valid[r.BuildHyperlink()] = r
 		} else {
-			// msg("'else'", 4)
 			var nxt DbWorkline
 			if i+1 < len(ss.Results) {
 				nxt = ss.Results[i+1]
@@ -442,7 +440,7 @@ func columnpicker(c string, r DbWorkline) string {
 		li = r.MarkedUp
 	default:
 		li = r.Stripped
-		msg(MSG, 2)
+		msg(MSG, MSGNOTE)
 	}
 	return li
 }
@@ -500,7 +498,7 @@ func searchtermfinder(term string) *regexp.Regexp {
 	stre := universalpatternmaker(term)
 	pattern, e := regexp.Compile(stre)
 	if e != nil {
-		msg(fmt.Sprintf(MSG, stre), 1)
+		msg(fmt.Sprintf(MSG, stre), MSGWARN)
 		pattern = regexp.MustCompile("FAILED_FIND_NOTHING")
 	}
 	return pattern

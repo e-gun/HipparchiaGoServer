@@ -302,7 +302,7 @@ func headwordlookup(word string) DbHeadwordCount {
 			&g.Paradox, &g.Parod, &g.Paroem, &g.Perig, &g.Phil, &g.Physiog, &g.Poem, &g.Polyhist, &th.Proph, &g.Pseud, &rh.Rhet,
 			&g.Satura, &g.Satyr, &g.Schol, &g.Tact, &g.Test, &th.Theol, &g.Trag)
 		if e != nil {
-			msg(fmt.Sprintf(FAIL, word), 4)
+			msg(fmt.Sprintf(FAIL, word), MSGPEEK)
 		}
 		thehit.Corpus = co
 		thehit.Chron = chr
@@ -316,7 +316,7 @@ func headwordlookup(word string) DbHeadwordCount {
 	if len(thesefinds) == 1 {
 		thefind = thesefinds[0]
 	} else {
-		msg(fmt.Sprintf(INFO, word, len(thesefinds)), 4)
+		msg(fmt.Sprintf(INFO, word, len(thesefinds)), MSGPEEK)
 	}
 
 	thefind.LoadCorpVals()

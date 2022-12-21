@@ -19,7 +19,7 @@
   - see [https://www.postgresql.org/download/](https://www.postgresql.org/download/) for more details and options
  - after installing `PostgreSQL`
    - from the command line of a terminal execute `psql postgres` (or `sudo -u postgres psql postgres` if you do not have permission to do the first). NB: `Postgres.app` on macOS will install `psql` somewhere where you can't just type `psql postgres` to get into the database...
-   - pick a password for `hippa_wr` then send the followin commands from the postgres shell: (all punctuation matters...)
+   - pick a password for `hippa_wr` then send the following commands from the postgres shell: (all punctuation matters...)
        - `CREATE USER hippa_wr WITH PASSWORD 'some_random_password';`
        - `CREATE DATABASE "hipparchiaDB";`
        - `ALTER DATABASE "hipparchiaDB" OWNER TO hippa_wr;`

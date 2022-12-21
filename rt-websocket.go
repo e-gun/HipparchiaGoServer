@@ -30,7 +30,7 @@ func RtWebsocket(c echo.Context) error {
 
 	ws, err := Upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		msg(FAILCON, 2)
+		msg(FAILCON, MSGNOTE)
 		return nil
 	}
 
@@ -146,7 +146,7 @@ func (c *WSClient) ReadID() {
 	for {
 		_, m, err := c.Conn.ReadMessage()
 		if err != nil {
-			msg(FAIL1, 3)
+			msg(FAIL1, MSGFYI)
 			return
 		}
 
@@ -159,7 +159,7 @@ func (c *WSClient) ReadID() {
 		}
 
 		if time.Now().After(quit) {
-			msg(FAIL2, 3)
+			msg(FAIL2, MSGFYI)
 			break
 		}
 	}
@@ -185,7 +185,7 @@ func (c *WSClient) WSWriteJSON() {
 		}
 
 		if time.Now().After(quit) {
-			msg(fmt.Sprintf(FAIL, c.ID), 3)
+			msg(fmt.Sprintf(FAIL, c.ID), MSGFYI)
 			break
 		}
 	}
@@ -238,7 +238,7 @@ func (pool *WSPool) WSPoolStartListening() {
 		MSG2 = "WSPool remove: size of connection pool is %d"
 		MSG3 = "Starting polling loop for %s"
 		MSG4 = "WSPool client failed on WriteMessage()"
-		MVAL = 5
+		MVAL = MSGTMI
 	)
 
 	for {
@@ -252,7 +252,7 @@ func (pool *WSPool) WSPoolStartListening() {
 			msg(fmt.Sprintf(MSG2, len(pool.ClientMap)), MVAL)
 			break
 		case m := <-pool.ReadID:
-			msg(fmt.Sprintf(MSG3, m), 4)
+			msg(fmt.Sprintf(MSG3, m), MSGPEEK)
 		case jso := <-pool.JSO:
 			for cl := range pool.ClientMap {
 				if cl.ID == jso.ID {
@@ -260,7 +260,7 @@ func (pool *WSPool) WSPoolStartListening() {
 					chke(y)
 					e := cl.Conn.WriteMessage(websocket.TextMessage, js)
 					if e != nil {
-						msg(MSG4, 1)
+						msg(MSG4, MSGWARN)
 						delete(pool.ClientMap, cl)
 						break
 					}

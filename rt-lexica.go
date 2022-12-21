@@ -204,7 +204,7 @@ func RtLexId(c echo.Context) error {
 	req := c.Param("wd")
 	elem := strings.Split(req, "/")
 	if len(elem) != 2 {
-		msg(fmt.Sprintf(FAIL1, req), 1)
+		msg(fmt.Sprintf(FAIL1, req), MSGWARN)
 		return emptyjsreturn(c)
 	}
 	d := Purgechars(Config.BadChars, elem[0])
@@ -212,7 +212,7 @@ func RtLexId(c echo.Context) error {
 
 	f := dictgrabber(w, d, "id_number", "=")
 	if len(f) == 0 {
-		msg(fmt.Sprintf(FAIL2, w), 1)
+		msg(fmt.Sprintf(FAIL2, w), MSGWARN)
 		return emptyjsreturn(c)
 	}
 
@@ -319,7 +319,7 @@ func findbyform(word string, author string) string {
 	ct := dbconn.QueryRow(context.Background(), q)
 	e := ct.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
 	if e != nil {
-		msg(fmt.Sprintf(NOTH, word), 3)
+		msg(fmt.Sprintf(NOTH, word), MSGFYI)
 	}
 
 	label := wc.Word
@@ -550,11 +550,18 @@ func extractmorphpossibilities(raw string) []MorphPossib {
 	nested := make(map[string]MorphPossib)
 	e := json.Unmarshal([]byte(raw), &nested)
 	if e != nil {
-		msg(fmt.Sprintf(FAIL, raw), 5)
+		msg(fmt.Sprintf(FAIL, raw), MSGTMI)
 	}
 
-	mpp := stringmapintoslice(nested)
+	// ob-caec --> obcaec, dēmorsico --> demorsico...
+	// note that there is a macron in there in the second pair: ̄
+	clean := strings.NewReplacer("-", "", "̄", "")
 
+	mpp := stringmapintoslice(nested)
+	for i := 0; i < len(mpp); i++ {
+		// "ob-caec" --> "obcaec", etc.
+		mpp[i].Headwd = clean.Replace(mpp[i].Headwd)
+	}
 	return mpp
 }
 
@@ -869,14 +876,14 @@ func formatlexicaloutput(w DbLexicon) string {
 	p := dbconn.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.lang, "<", w.ID, "DESC"))
 	e := p.Scan(&prev.Entry, &prev.ID)
 	if e != nil {
-		msg(fmt.Sprintf(NOTH, "before", w.Entry), 3)
+		msg(fmt.Sprintf(NOTH, "before", w.Entry), MSGFYI)
 	}
 
 	var nxt DbLexicon
 	n := dbconn.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.lang, ">", w.ID, "ASC"))
 	e = n.Scan(&nxt.Entry, &nxt.ID)
 	if e != nil {
-		msg(fmt.Sprintf(NOTH, "after", w.Entry), 3)
+		msg(fmt.Sprintf(NOTH, "after", w.Entry), MSGFYI)
 	}
 
 	pn := fmt.Sprintf(NAVTABLE, prev.ID, w.lang, prev.Entry, nxt.ID, w.lang, nxt.Entry)

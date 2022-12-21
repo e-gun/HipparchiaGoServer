@@ -24,7 +24,7 @@ func RtSetOption(c echo.Context) error {
 	parsed := strings.Split(optandval, "/")
 
 	if len(parsed) != 2 {
-		msg(fmt.Sprintf(FAIL1, optandval), 1)
+		msg(fmt.Sprintf(FAIL1, optandval), MSGWARN)
 		return c.String(http.StatusOK, "")
 	}
 
@@ -71,7 +71,7 @@ func RtSetOption(c echo.Context) error {
 			case "varia":
 				s.VariaOK = b
 			default:
-				msg(FAIL2, 1)
+				msg(FAIL2, MSGWARN)
 			}
 		}
 	}
@@ -95,7 +95,7 @@ func RtSetOption(c echo.Context) error {
 				s.SortHitsBy = val
 			}
 		default:
-			msg(FAIL2, 1)
+			msg(FAIL2, MSGWARN)
 		}
 	}
 
@@ -129,7 +129,7 @@ func RtSetOption(c echo.Context) error {
 					s.HitLimit = MAXHITLIMIT
 				}
 			default:
-				msg(FAIL2, 1)
+				msg(FAIL2, MSGWARN)
 			}
 		}
 	}
@@ -156,7 +156,7 @@ func RtSetOption(c echo.Context) error {
 					s.Latest = val
 				}
 			default:
-				msg(FAIL2, 1)
+				msg(FAIL2, MSGWARN)
 			}
 		}
 

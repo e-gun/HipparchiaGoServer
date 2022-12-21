@@ -47,7 +47,7 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	first.CurrentLimit = first.OriginalLimit
 
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf(MSG1, d, len(first.Results)), 4)
+	msg(fmt.Sprintf(MSG1, d, len(first.Results)), MSGPEEK)
 	previous = time.Now()
 
 	second := clonesearch(first, 2)
@@ -76,7 +76,7 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	SSBuildQueries(&second)
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf(MSG2, d), 4)
+	msg(fmt.Sprintf(MSG2, d), MSGPEEK)
 	previous = time.Now()
 
 	second = HGoSrch(second)
@@ -108,7 +108,7 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	}
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf(MSG3, d, len(first.Results)), 4)
+	msg(fmt.Sprintf(MSG3, d, len(first.Results)), MSGPEEK)
 
 	return second
 }
@@ -150,7 +150,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	first.CurrentLimit = first.OriginalLimit
 
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf(MSG1, d, len(first.Results)), 4)
+	msg(fmt.Sprintf(MSG1, d, len(first.Results)), MSGPEEK)
 	previous = time.Now()
 
 	// the trick is we are going to grab ALL lines near the initial hit; then build strings; then search those strings ourselves
@@ -199,7 +199,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	ss := HGoSrch(second)
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf(MSG2, d, len(first.Results)), 4)
+	msg(fmt.Sprintf(MSG2, d, len(first.Results)), MSGPEEK)
 	previous = time.Now()
 
 	// [c] convert these finds into strings and then search those strings
@@ -241,7 +241,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	basicprxfinder, e := regexp.Compile(re)
 	if e != nil {
 		m := fmt.Sprintf(BAD2, re)
-		msg(m, 1)
+		msg(m, MSGWARN)
 		return badsearch(m)
 	}
 
@@ -255,7 +255,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	submatchsrchfinder, e := regexp.Compile(fmt.Sprintf(RGX, re))
 	if e != nil {
 		m := fmt.Sprintf(BAD1, re)
-		msg(m, 1)
+		msg(m, MSGWARN)
 		return badsearch(m)
 	}
 

@@ -131,14 +131,14 @@ func RtSelectionClear(c echo.Context) error {
 	which := strings.Split(locus, "/")
 
 	if len(which) != 2 {
-		msg(fmt.Sprintf(FAIL1, locus), 1)
+		msg(fmt.Sprintf(FAIL1, locus), MSGWARN)
 		return emptyjsreturn(c)
 	}
 
 	cat := which[0]
 	id, e := strconv.Atoi(which[1])
 	if e != nil {
-		msg(fmt.Sprintf(FAIL1, locus), 1)
+		msg(fmt.Sprintf(FAIL1, locus), MSGWARN)
 		return emptyjsreturn(c)
 	}
 
@@ -205,7 +205,7 @@ func RtSelectionClear(c echo.Context) error {
 		newexcl.Passages = SetSubtraction(newexcl.Passages, []string{del})
 		delete(newexcl.MappedPsgByName, del)
 	default:
-		msg(fmt.Sprintf(FAIL2, cat), 1)
+		msg(fmt.Sprintf(FAIL2, cat), MSGWARN)
 	}
 
 	newsess.Inclusions = newincl
@@ -663,7 +663,7 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int {
 		// [HGS] findendpointsfromlocus() retrying endpointer(): '407e' --> '407:e'
 		r := fmt.Sprintf("$1%s$2", sep)
 		newlocus := dc.ReplaceAllString(locus, r)
-		msg(fmt.Sprintf(MSG, locus, newlocus), 3)
+		msg(fmt.Sprintf(MSG, locus, newlocus), MSGPEEK)
 		fl, success = endpointer(wuid, newlocus, sep)
 	} else {
 		// cicero, et.al
@@ -673,11 +673,11 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int {
 		ll := strings.Split(locus, sep)
 		if len(ll) > 2 {
 			newlocus := strings.Join(RemoveIndex(ll, 1), ":")
-			msg(fmt.Sprintf(MSG, locus, newlocus), 3)
+			msg(fmt.Sprintf(MSG, locus, newlocus), MSGPEEK)
 			fl, success = endpointer(wuid, newlocus, sep)
 		} else if len(ll) == 2 {
 			newlocus := strings.Join(RemoveIndex(ll, 0), ":")
-			msg(fmt.Sprintf(MSG, locus, newlocus), 3)
+			msg(fmt.Sprintf(MSG, locus, newlocus), MSGPEEK)
 			fl, success = endpointer(wuid, newlocus, sep)
 		}
 	}
@@ -739,7 +739,7 @@ func endpointer(wuid string, locus string, sep string) ([2]int, bool) {
 
 	if len(idx) == 0 {
 		// bogus input
-		msg(fmt.Sprintf(FAIL, wuid, locus), 3)
+		msg(fmt.Sprintf(FAIL, wuid, locus), MSGPEEK)
 		fl = [2]int{1, 1}
 	} else {
 		fl = [2]int{idx[0], idx[len(idx)-1]}

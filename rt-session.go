@@ -131,7 +131,7 @@ func RtSessionSetsCookie(c echo.Context) error {
 	v, e := json.Marshal(s)
 	if e != nil {
 		v = []byte{}
-		msg(FAIL, 1)
+		msg(FAIL, MSGWARN)
 	}
 	swap := strings.NewReplacer(`"`, "%22", ",", "%2C", " ", "%20")
 	vs := swap.Replace(string(v))
@@ -159,7 +159,7 @@ func RtSessionGetCookie(c echo.Context) error {
 	num := c.Param("num")
 	cookie, err := c.Cookie("session" + num)
 	if err != nil {
-		msg(fmt.Sprintf(FAIL1, num, user), 1)
+		msg(fmt.Sprintf(FAIL1, num, user), MSGWARN)
 		return c.String(http.StatusOK, "")
 	}
 
@@ -172,7 +172,7 @@ func RtSessionGetCookie(c echo.Context) error {
 	err = json.Unmarshal([]byte(cv), &s)
 	if err != nil {
 		// invalid character '%' looking for beginning of object key string
-		msg(fmt.Sprintf(FAIL2, num, user), 1)
+		msg(fmt.Sprintf(FAIL2, num, user), MSGWARN)
 		fmt.Println(err)
 		return c.String(http.StatusOK, "")
 	}

@@ -63,19 +63,19 @@ func msg(message string, threshold int) {
 	var color string
 
 	switch threshold {
-	case -1:
+	case MSGMAND:
 		color = GREEN
-	case 0:
+	case MSGCRIT:
 		color = RED2
-	case 1:
+	case MSGWARN:
 		color = YELLOW1
-	case 2:
+	case MSGNOTE:
 		color = YELLOW2
-	case 3:
+	case MSGFYI:
 		color = CYAN2
-	case 4:
+	case MSGPEEK:
 		color = BLUE2
-	case 5:
+	case MSGTMI:
 		color = GREY3
 	default:
 		color = WHITE
@@ -106,7 +106,7 @@ func gcstats(fn string) {
 	// nevertheless it turns HGS into a 380MB program instead of a 540MB program
 	const (
 		MSG = "%s runtime.GC() %s --> %s"
-		MPR = 4
+		MPR = MSGPEEK
 	)
 
 	if !Config.ManualGC {
@@ -123,7 +123,7 @@ func gcstats(fn string) {
 
 // stringmapprinter - print out the k/v pairs of a map
 func stringkeyprinter[T any](n string, m map[string]T) {
-	msg(n, 1)
+	msg(n, MSGWARN)
 	counter := 0
 	for k, _ := range m {
 		fmt.Printf("[%d] %s\n", counter, k)
@@ -133,7 +133,7 @@ func stringkeyprinter[T any](n string, m map[string]T) {
 
 // stringmapprinter - print out the k/v pairs of a map
 func stringmapprinter[T any](n string, m map[string]T) {
-	msg(n, 1)
+	msg(n, MSGWARN)
 	counter := 0
 	for k, v := range m {
 		fmt.Printf("[%d] %s\t", counter, k)
@@ -144,7 +144,7 @@ func stringmapprinter[T any](n string, m map[string]T) {
 
 // sliceprinter - print out the members of a slice
 func sliceprinter[T any](n string, s []T) {
-	msg(n, 1)
+	msg(n, MSGWARN)
 	for i, v := range s {
 		fmt.Printf("[%d]\t", i)
 		fmt.Println(v)
@@ -159,7 +159,7 @@ func sliceprinter[T any](n string, s []T) {
 func RemoveIndex[T any](s []T, index int) []T {
 	// https://stackoverflow.com/questions/37334119/how-to-delete-an-element-from-a-slice-in-golang
 	if len(s) == 0 || len(s) < index {
-		msg("RemoveIndex() tried to drop an out of range element", 3)
+		msg("RemoveIndex() tried to drop an out of range element", MSGFYI)
 		return s
 	}
 
