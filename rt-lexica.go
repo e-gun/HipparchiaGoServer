@@ -740,6 +740,15 @@ func formatparsingdata(mpp []MorphPossib) string {
 	)
 	pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
 
+	mpmap := make(map[string]MorphPossib, len(mpp))
+	for _, p := range mpp {
+		k := p.Headwd + " - " + p.Anal + " - " + p.Transl
+		mpmap[k] = p
+	}
+
+	keys := stringmapkeysintoslice(mpmap)
+	sort.Strings(keys)
+
 	var html string
 	usecounter := false
 	// on mpp is always empty: why?
@@ -751,9 +760,11 @@ func formatparsingdata(mpp []MorphPossib) string {
 	// there are duplicates in the original parsing data
 	dedup := make(map[string]bool)
 	letter := 0
-	for _, m := range mpp {
-		// we always get an empty entry: this should be fixed elsewhere; dodging ATM
-		if strings.TrimSpace(m.Headwd) == "" {
+
+	for _, k := range keys {
+		m := mpmap[k]
+
+		if strings.TrimSpace(m.Anal) == "" {
 			continue
 		}
 
@@ -777,7 +788,8 @@ func formatparsingdata(mpp []MorphPossib) string {
 			}
 		}
 
-		if _, ok := dedup[m.Anal]; !ok {
+		dd := m.Headwd + " - " + m.Anal
+		if _, ok := dedup[dd]; !ok {
 			pos := strings.Split(m.Anal, " ")
 			var tab string
 			tab = fmt.Sprintf(MORPHTD, "morphcell", getlett)
@@ -788,7 +800,7 @@ func formatparsingdata(mpp []MorphPossib) string {
 			tab = fmt.Sprintf(MORPHTAB, tab)
 			html += tab
 			memo = m.Xrefval
-			dedup[m.Anal] = true
+			dedup[dd] = true
 		} else {
 			letter -= 1
 		}
