@@ -77,14 +77,14 @@ func RtLemmaHints(c echo.Context) error {
 		return emptyjsreturn(c)
 	}
 
-	skg = stripaccentsRUNE(skg)
+	skg = StripaccentsRUNE(skg)
 	nl := string(skg[0:2])
 
 	var match []JSStruct
 	if _, ok := NestedLemm[nl]; ok {
 		for _, l := range NestedLemm[nl] {
 			er := l.EntryRune()
-			potential := stripaccentsRUNE(er[0:len(skg)])
+			potential := StripaccentsRUNE(er[0:len(skg)])
 			if len(er) >= len(skg) && string(potential) == string(skg) {
 				// need to filter ab-cedo¹ --> abcedo
 				match = append(match, JSStruct{l.Entry})

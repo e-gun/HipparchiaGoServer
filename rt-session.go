@@ -51,7 +51,7 @@ func SafeSessionRead(u string) ServerSession {
 	defer SessionLocker.RUnlock()
 	s, e := SessionMap[u]
 	if e != true {
-		s = makedefaultsession(u)
+		s = MakeDefaultSession(u)
 	}
 	return s
 }
@@ -70,8 +70,8 @@ func SafeSessionMapDelete(u string) {
 	delete(SessionMap, u)
 }
 
-// makedefaultsession - fill in the blanks when setting up a new session
-func makedefaultsession(id string) ServerSession {
+// MakeDefaultSession - fill in the blanks when setting up a new session
+func MakeDefaultSession(id string) ServerSession {
 	// note that SessionMap clears every time the server restarts
 
 	var s ServerSession
@@ -98,7 +98,7 @@ func makedefaultsession(id string) ServerSession {
 		AuthorizedMap[id] = true
 	}
 
-	//msg("makedefaultsession() in non-default state for testing; this is not a release build of HGS", 0)
+	//msg("MakeDefaultSession() in non-default state for testing; this is not a release build of HGS", 0)
 	//m := make(map[string]string)
 	//m["lt0917_FROM_1431_TO_2193"] = "Lucanus, Marcus Annaeus, Bellum Civile, 3"
 	//m["lt0917_FROM_2_TO_692"] = "Lucanus, Marcus Annaeus, Bellum Civile, 1"

@@ -118,7 +118,7 @@ func FormatNoContextResults(ss *SearchStruct) SearchOutputJSON {
 
 	out.Found = "<tbody>" + b.String() + "</tbody>"
 	if Config.ZapLunates {
-		out.Found = delunate(out.Found)
+		out.Found = DeLunate(out.Found)
 	}
 
 	return out
@@ -312,7 +312,7 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 	out.Found = b.String()
 
 	if Config.ZapLunates {
-		out.Found = delunate(out.Found)
+		out.Found = DeLunate(out.Found)
 	}
 
 	return out
@@ -355,8 +355,8 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 	sess := SafeSessionRead(s.User)
 	var dr string
 	if sess.Earliest != MINDATESTR || sess.Latest != MAXDATESTR {
-		a := formatbcedate(sess.Earliest)
-		b := formatbcedate(sess.Latest)
+		a := FormatBCEDate(sess.Earliest)
+		b := FormatBCEDate(sess.Latest)
 		dr = fmt.Sprintf(BETW, a, b)
 	} else {
 		dr = DDM

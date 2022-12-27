@@ -142,6 +142,8 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassag
 	}
 
 	if w.UID == "null" {
+		// some problem cases (that arise via rt-lexica.go and the bad clicks embedded in teh lexical data):
+		// gr0161w001
 		msg(fmt.Sprintf(FAIL1, k), MSGFYI)
 		return BrowsedPassage{}
 	}
@@ -385,14 +387,14 @@ func buildbrowsertable(focus int, lines []DbWorkline) string {
 				wm[w] = true
 			}
 		}
-		return stringmapkeysintoslice(wm)
+		return StringMapKeysIntoSlice(wm)
 	}()
 
 	almostallregex := func() map[string]*regexp.Regexp {
 		// you will have "ἱματίῳ", but the marked up line has "ἱμα- | τίῳ"
 		ar := make(map[string]*regexp.Regexp)
 		for _, w := range allwords {
-			r := fmt.Sprintf(OBSREGTEMPL, capsvariants(w))
+			r := fmt.Sprintf(OBSREGTEMPL, CapsVariants(w))
 			pattern, e := regexp.Compile(r)
 			if e != nil {
 				// you will barf if w = *
@@ -424,7 +426,7 @@ func buildbrowsertable(focus int, lines []DbWorkline) string {
 			if j == len(wds)-1 && terminalhyph.MatchString(lmw) {
 				// wds[lastwordindex] is the unhyphenated word
 				// almostallregex does not contain this pattern: "ἱμα-", e.g.
-				np, e := regexp.Compile(fmt.Sprintf(OBSREGTEMPL, capsvariants(lmw)))
+				np, e := regexp.Compile(fmt.Sprintf(OBSREGTEMPL, CapsVariants(lmw)))
 				if e != nil {
 					msg(fmt.Sprintf(FAIL, lmw), MSGPEEK)
 					np = regexp.MustCompile("FIND_NOTHING")
@@ -473,7 +475,7 @@ func buildbrowsertable(focus int, lines []DbWorkline) string {
 	tab = top + tab + `</tbody></table>`
 
 	if Config.ZapLunates {
-		tab = delunate(tab)
+		tab = DeLunate(tab)
 	}
 
 	return tab

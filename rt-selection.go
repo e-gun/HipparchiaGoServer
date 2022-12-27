@@ -839,7 +839,7 @@ func reportcurrentselections(c echo.Context) SelectionData {
 
 	if s.Earliest != MINDATESTR || s.Latest != MAXDATESTR {
 		mustshow = true
-		sd.TimeRestr = fmt.Sprintf(TL, formatbcedate(s.Earliest), formatbcedate(s.Latest))
+		sd.TimeRestr = fmt.Sprintf(TL, FormatBCEDate(s.Earliest), FormatBCEDate(s.Latest))
 	}
 
 	sd.Select = strings.Join(rows[0], "")

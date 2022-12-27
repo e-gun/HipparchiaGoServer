@@ -78,8 +78,8 @@ func (s *SearchStruct) CleanInput() {
 		s.Proximate = string(rs[0:MAXINPUTLEN])
 	}
 
-	s.Seeking = uvσςϲ(s.Seeking)
-	s.Proximate = uvσςϲ(s.Proximate)
+	s.Seeking = UVσςϲ(s.Seeking)
+	s.Proximate = UVσςϲ(s.Proximate)
 
 	s.Seeking = Purgechars(dropping, s.Seeking)
 	s.Proximate = Purgechars(dropping, s.Proximate)

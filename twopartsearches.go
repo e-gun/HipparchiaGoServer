@@ -104,7 +104,7 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 				}
 			}
 		}
-		second.Results = stringmapintoslice(hitmapper)
+		second.Results = StringMapIntoSlice(hitmapper)
 	}
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())

@@ -66,7 +66,7 @@ func readUUIDCookie(c echo.Context) string {
 
 	SessionLocker.Lock()
 	if _, t := SessionMap[id]; !t {
-		SessionMap[id] = makedefaultsession(id)
+		SessionMap[id] = MakeDefaultSession(id)
 	}
 	SessionLocker.Unlock()
 

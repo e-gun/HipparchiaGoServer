@@ -36,9 +36,9 @@ func RtSetOption(c echo.Context) error {
 
 	s := SafeSessionRead(user)
 
-	if isinslice(ynoptionlist, opt) {
+	if IsInSlice(ynoptionlist, opt) {
 		valid := []string{"yes", "no"}
-		if isinslice(valid, val) {
+		if IsInSlice(valid, val) {
 			var b bool
 			if val == "yes" {
 				b = true
@@ -77,21 +77,21 @@ func RtSetOption(c echo.Context) error {
 	}
 
 	valoptionlist := []string{"nearornot", "searchscope", "sortorder"}
-	if isinslice(valoptionlist, opt) {
+	if IsInSlice(valoptionlist, opt) {
 		switch opt {
 		case "nearornot":
 			valid := []string{"near", "notnear"}
-			if isinslice(valid, val) {
+			if IsInSlice(valid, val) {
 				s.NearOrNot = val
 			}
 		case "searchscope":
 			valid := []string{"lines", "words"}
-			if isinslice(valid, val) {
+			if IsInSlice(valid, val) {
 				s.SearchScope = val
 			}
 		case "sortorder":
 			valid := []string{"shortname", "converted_date", "provenance", "universalid"}
-			if isinslice(valid, val) {
+			if IsInSlice(valid, val) {
 				s.SortHitsBy = val
 			}
 		default:
@@ -100,7 +100,7 @@ func RtSetOption(c echo.Context) error {
 	}
 
 	spinoptionlist := []string{"maxresults", "linesofcontext", "browsercontext", "proximity"}
-	if isinslice(spinoptionlist, opt) {
+	if IsInSlice(spinoptionlist, opt) {
 		intval, e := strconv.Atoi(val)
 		if e == nil {
 			switch opt {
@@ -135,7 +135,7 @@ func RtSetOption(c echo.Context) error {
 	}
 
 	dateoptionlist := []string{"earliestdate", "latestdate"}
-	if isinslice(dateoptionlist, opt) {
+	if IsInSlice(dateoptionlist, opt) {
 		intval, e := strconv.Atoi(val)
 		if e == nil {
 			switch opt {

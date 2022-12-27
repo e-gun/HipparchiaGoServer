@@ -55,11 +55,11 @@ func main() {
 		previous := time.Now()
 
 		AllWorks = workmapper()
-		timetracker("A1", fmt.Sprintf(MSG1, len(AllWorks)), start, previous)
+		TimeTracker("A1", fmt.Sprintf(MSG1, len(AllWorks)), start, previous)
 
 		previous = time.Now()
 		AllAuthors = authormapper(AllWorks)
-		timetracker("A2", fmt.Sprintf(MSG2, len(AllAuthors)), start, previous)
+		TimeTracker("A2", fmt.Sprintf(MSG2, len(AllAuthors)), start, previous)
 
 		previous = time.Now()
 		WkCorpusMap = buildwkcorpusmap()
@@ -68,7 +68,7 @@ func main() {
 		WkGenres = buildwkgenresmap()
 		AuLocs = buildaulocationmap()
 		WkLocs = buildwklocationmap()
-		timetracker("A3", MSG3, start, previous)
+		TimeTracker("A3", MSG3, start, previous)
 	}(&awaiting)
 
 	awaiting.Add(1)
@@ -79,16 +79,16 @@ func main() {
 		previous := time.Now()
 
 		AllLemm = lemmamapper()
-		timetracker("B1", fmt.Sprintf(MSG4, len(AllLemm)), start, previous)
+		TimeTracker("B1", fmt.Sprintf(MSG4, len(AllLemm)), start, previous)
 
 		previous = time.Now()
 		NestedLemm = nestedlemmamapper(AllLemm)
-		timetracker("B2", MSG5, start, previous)
+		TimeTracker("B2", MSG5, start, previous)
 	}(&awaiting)
 
 	awaiting.Wait()
 
-	gcstats("main() post-initialization")
+	GCStats("main() post-initialization")
 	msg(fmt.Sprintf(SUMM, time.Now().Sub(launch).Seconds()), MSGWARN)
 	StartEchoServer()
 }
@@ -105,7 +105,7 @@ type CurrentConfiguration struct {
 	HostIP       string
 	HostPort     int
 	LogLevel     int
-	ManualGC     bool // see gcstats()
+	ManualGC     bool // see GCStats()
 	MaxText      int
 	PGLogin      PostgresLogin
 	QuietStart   bool

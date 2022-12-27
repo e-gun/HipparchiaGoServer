@@ -216,7 +216,7 @@ func (dbw *DbWorkline) Citation() string {
 func (dbw *DbWorkline) Lvls() int {
 	//alternate is: "return dbw.MyWk().CountLevels()"
 	vv := []string{dbw.Lvl0Value, dbw.Lvl1Value, dbw.Lvl2Value, dbw.Lvl3Value, dbw.Lvl4Value, dbw.Lvl5Value}
-	empty := containsN(vv, "-1")
+	empty := ContainsN(vv, "-1")
 	return 6 - empty
 }
 

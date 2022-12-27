@@ -40,14 +40,11 @@ const (
 	GREY2   = "\033[38;5;247m" // Grey62
 	GREY3   = "\033[38;5;242m" // Grey42
 	WHITE   = "\033[38;5;255m" // Grey93
+	PANIC   = "[%s%s v.%s%s] %sUNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE%s\n"
 )
 
 // chke - send a generic message and panic on error
 func chke(err error) {
-	const (
-		PANIC = "[%s%s v.%s%s] %sUNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE%s\n"
-	)
-
 	if err != nil {
 		fmt.Printf(PANIC, YELLOW2, MYNAME, VERSION, RESET, RED2, RESET)
 		panic(err)
@@ -91,15 +88,15 @@ func msg(message string, threshold int) {
 
 }
 
-// timetracker - report time elapsed since last checkpoint
-func timetracker(letter string, m string, start time.Time, previous time.Time) {
+// TimeTracker - report time elapsed since last checkpoint
+func TimeTracker(letter string, m string, start time.Time, previous time.Time) {
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	m = fmt.Sprintf("[%s: %.3fs]", letter, time.Now().Sub(start).Seconds()) + d + m
 	msg(m, TIMETRACKERMSGTHRESH)
 }
 
-// gcstats - force garbage collection and report on the results
-func gcstats(fn string) {
+// GCStats - force garbage collection and report on the results
+func GCStats(fn string) {
 	// NB: this could potentially backfire
 	// "GC runs a garbage collection and blocks the caller until the garbage collection is complete.
 	// It may also block the entire program." (https://pkg.go.dev/runtime#GC)
@@ -206,14 +203,17 @@ func SetSubtraction[T comparable](aa []T, bb []T) []T {
 	}
 
 	result := make([]T, 0, len(remain))
+	count := 0
 	for r := range remain {
-		result = append(result, r)
+		result[count] = r
+		count += 1
 	}
+
 	return result
 }
 
-// isinslice - is item X an element of slice A?
-func isinslice[T comparable](sl []T, seek T) bool {
+// IsInSlice - is item X an element of slice A?
+func IsInSlice[T comparable](sl []T, seek T) bool {
 	for _, v := range sl {
 		if v == seek {
 			return true
@@ -222,8 +222,8 @@ func isinslice[T comparable](sl []T, seek T) bool {
 	return false
 }
 
-// containsN - how many Xs in slice A?
-func containsN[T comparable](sl []T, seek T) int {
+// ContainsN - how many Xs in slice A?
+func ContainsN[T comparable](sl []T, seek T) int {
 	count := 0
 	for _, v := range sl {
 		if v == seek {
@@ -233,8 +233,8 @@ func containsN[T comparable](sl []T, seek T) int {
 	return count
 }
 
-// flatten - turn a slice of slices into a slice: [][]T --> []T
-func flatten[T any](lists [][]T) []T {
+// FlattenSlices - turn a slice of slices into a slice: [][]T --> []T
+func FlattenSlices[T any](lists [][]T) []T {
 	// https://stackoverflow.com/questions/59579121/how-to-flatten-a-2d-slice-into-1d-slice
 	var res []T
 	for _, list := range lists {
@@ -243,8 +243,8 @@ func flatten[T any](lists [][]T) []T {
 	return res
 }
 
-// stringmapintoslice - convert map[string]T to []T
-func stringmapintoslice[T any](mp map[string]T) []T {
+// StringMapIntoSlice - convert map[string]T to []T
+func StringMapIntoSlice[T any](mp map[string]T) []T {
 	sl := make([]T, len(mp))
 	i := 0
 	for _, v := range mp {
@@ -254,8 +254,8 @@ func stringmapintoslice[T any](mp map[string]T) []T {
 	return sl
 }
 
-// stringmapkeysintoslice - convert map[string]T to []string
-func stringmapkeysintoslice[T any](mp map[string]T) []string {
+// StringMapKeysIntoSlice - convert map[string]T to []string
+func StringMapKeysIntoSlice[T any](mp map[string]T) []string {
 	sl := make([]string, len(mp))
 	i := 0
 	for k := range mp {
@@ -271,37 +271,37 @@ func stringmapkeysintoslice[T any](mp map[string]T) []string {
 
 type lessFunc func(p1, p2 *DbWorkline) bool
 
-// multiSorter implements the Sort interface, sorting the changes within.
-type multiSorter struct {
+// MultiSorter implements the Sort interface, sorting the changes within.
+type MultiSorter struct {
 	changes []DbWorkline
 	less    []lessFunc
 }
 
 // Sort sorts the argument slice according to the less functions passed to OrderedBy.
-func (ms *multiSorter) Sort(changes []DbWorkline) {
+func (ms *MultiSorter) Sort(changes []DbWorkline) {
 	ms.changes = changes
 	sort.Sort(ms)
 }
 
 // OrderedBy returns a Sorter that sorts using the less functions, in order.
 // Call its Sort method to sort the data.
-func OrderedBy(less ...lessFunc) *multiSorter {
-	return &multiSorter{
+func OrderedBy(less ...lessFunc) *MultiSorter {
+	return &MultiSorter{
 		less: less,
 	}
 }
 
 // Len is part of sort.Interface.
-func (ms *multiSorter) Len() int {
+func (ms *MultiSorter) Len() int {
 	return len(ms.changes)
 }
 
 // Swap is part of sort.Interface.
-func (ms *multiSorter) Swap(i, j int) {
+func (ms *MultiSorter) Swap(i, j int) {
 	ms.changes[i], ms.changes[j] = ms.changes[j], ms.changes[i]
 }
 
-func (ms *multiSorter) Less(i, j int) bool {
+func (ms *MultiSorter) Less(i, j int) bool {
 	p, q := &ms.changes[i], &ms.changes[j]
 	// Try all but the last comparison.
 	var k int
@@ -326,10 +326,11 @@ func (ms *multiSorter) Less(i, j int) bool {
 // STRINGS and []RUNE
 //
 
-// Purgechars - drop any of the chars in the []byte from the string
+// Purgechars - drop any of the chars in the bad-string from the check-string
 func Purgechars(bad string, checking string) string {
-	reducer := make(map[rune]bool)
-	for _, r := range []rune(bad) {
+	rb := []rune(bad)
+	reducer := make(map[rune]bool, len(rb))
+	for _, r := range rb {
 		reducer[r] = true
 	}
 

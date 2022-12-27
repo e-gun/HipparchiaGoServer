@@ -345,7 +345,7 @@ func nestedlemmamapper(unnested map[string]DbLemma) map[string]map[string]DbLemm
 	swap := strings.NewReplacer("j", "i", "v", "u")
 	for k, v := range unnested {
 		rbag := []rune(v.Entry)[0:2]
-		rbag = stripaccentsRUNE(rbag)
+		rbag = StripaccentsRUNE(rbag)
 		bag := strings.ToLower(string(rbag))
 		bag = swap.Replace(bag)
 		if _, y := nested[bag]; !y {

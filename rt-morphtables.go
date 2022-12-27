@@ -152,7 +152,7 @@ func RtMorphchart(c echo.Context) error {
 		fo := f.Observed
 		ww[count] = fo
 		r := []rune(fo)
-		init := stripaccentsRUNE(r)
+		init := StripaccentsRUNE(r)
 		lett[string(init[0])] = true
 		count += 1
 	}
@@ -292,7 +292,7 @@ func RtMorphchart(c echo.Context) error {
 				parts := strings.Split(k, "(")
 				diall := strings.Split(parts[1], JOINER)
 				for _, d := range diall {
-					if isinslice(GKDIALECT, d) {
+					if IsInSlice(GKDIALECT, d) {
 						newkey := parts[0] + JOINER + d
 						newkey = strings.Replace(newkey, JOINER+JOINER, JOINER, 1)
 						newpdm[newkey] = v
@@ -349,7 +349,7 @@ func RtMorphchart(c echo.Context) error {
 		const (
 			MSG = "RtMorphchart() isverb counts cases: %d; tenses: %d"
 		)
-		kk := stringmapkeysintoslice(pdxm)
+		kk := StringMapKeysIntoSlice(pdxm)
 		// ῥώμη will trigger "verb"... : you can't choose via a single verb hit; you have to compare total form counts
 		// NO GOOD: return arraystringseeker(GKTENSES, kk)
 
@@ -381,7 +381,7 @@ func RtMorphchart(c echo.Context) error {
 	jb.JS = MORPHJS
 
 	if Config.ZapLunates {
-		jb.HTML = delunate(jb.HTML)
+		jb.HTML = DeLunate(jb.HTML)
 	}
 
 	return c.JSONPretty(http.StatusOK, jb, JSONINDENT)
@@ -443,7 +443,7 @@ func generateverbtable(lang string, words map[string]string) string {
 		cases = LTCASES
 	}
 
-	kk := stringmapkeysintoslice(words)
+	kk := StringMapKeysIntoSlice(words)
 
 	// do we need all theoretically possible categories?
 	needy := func(someslice []string) []string {
@@ -840,7 +840,7 @@ func generatedeclinedtable(lang string, words map[string]string) string {
 		gend = GENDERS
 	}
 
-	kk := stringmapkeysintoslice(words)
+	kk := StringMapKeysIntoSlice(words)
 	needy := func(someslice []string) []string {
 		var need []string
 		for _, g := range someslice {

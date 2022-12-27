@@ -116,14 +116,14 @@ func RtLexLookup(c echo.Context) error {
 
 	req := c.Param("wd")
 	seeking := Purgechars(Config.BadChars, req)
-	seeking = swapacuteforgrave(seeking)
+	seeking = SwapAcuteForGrave(seeking)
 
 	dict := "latin"
 	if isGreek.MatchString(seeking) {
 		dict = "greek"
 	}
 
-	seeking = uvσςϲ(seeking)
+	seeking = UVσςϲ(seeking)
 	seeking = universalpatternmaker(seeking) // universalpatternmaker() returns the term with brackets around it
 
 	seeking = strings.Replace(seeking, "(", "", -1)
@@ -175,8 +175,8 @@ func RtLexFindByForm(c echo.Context) error {
 	clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "") // you can get sent here by the indexer ...
 	word = clean.Replace(word)
 
-	word = swapacuteforgrave(word)
-	word = uvσςϲ(word)
+	word = SwapAcuteForGrave(word)
+	word = UVσςϲ(word)
 
 	html := findbyform(word, au)
 	js := insertlexicaljs()
@@ -311,7 +311,7 @@ func findbyform(word string, author string) string {
 
 	// golang hates indexing unicode strings: strings are bytes, and unicode chars take more than one byte
 	c := []rune(word)
-	q := fmt.Sprintf(PSQQ, FLDS, stripaccentsSTR(string(c[0])), word)
+	q := fmt.Sprintf(PSQQ, FLDS, StripaccentsSTR(string(c[0])), word)
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
@@ -342,7 +342,7 @@ func findbyform(word string, author string) string {
 
 	// [h] conditionally rewrite the html
 	if Config.ZapLunates {
-		html = delunate(html)
+		html = DeLunate(html)
 	}
 
 	// author flagging: "<bibl id="perseus/lt0474" --> "<bibl class="flagged" id="perseus/lt0474"
@@ -474,7 +474,7 @@ func dictsearch(seeking string, dict string) string {
 	}
 
 	if Config.ZapLunates {
-		html = delunate(html)
+		html = DeLunate(html)
 	}
 
 	return html
@@ -557,7 +557,7 @@ func extractmorphpossibilities(raw string) []MorphPossib {
 	// note that there is a macron in there in the second pair: ̄
 	clean := strings.NewReplacer("-", "", "̄", "")
 
-	mpp := stringmapintoslice(nested)
+	mpp := StringMapIntoSlice(nested)
 	for i := 0; i < len(mpp); i++ {
 		// "ob-caec" --> "obcaec", etc.
 		mpp[i].Headwd = clean.Replace(mpp[i].Headwd)
@@ -746,7 +746,7 @@ func formatparsingdata(mpp []MorphPossib) string {
 		mpmap[k] = p
 	}
 
-	keys := stringmapkeysintoslice(mpmap)
+	keys := StringMapKeysIntoSlice(mpmap)
 	sort.Strings(keys)
 
 	var html string
@@ -857,7 +857,7 @@ func formatlexicaloutput(w DbLexicon) string {
 	hwc := headwordlookup(w.Word)
 	elem = append(elem, fmt.Sprintf(FRQSUM, hwc.FrqCla))
 
-	lw := uvσςϲ(w.Word) // otherwise "venio" will hit AllLemm instead of "uenio"
+	lw := UVσςϲ(w.Word) // otherwise "venio" will hit AllLemm instead of "uenio"
 	if _, ok := AllLemm[lw]; ok {
 		elem = append(elem, fmt.Sprintf(FORMSUMM, AllLemm[lw].Xref, w.ID, w.Word, w.lang, len(AllLemm[lw].Deriv)))
 	}

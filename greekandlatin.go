@@ -20,8 +20,8 @@ var (
 	UvRed   = uvσςϲreducer()
 )
 
-// stripaccentsSTR - ὀκνεῖϲ --> οκνειϲ, etc.
-func stripaccentsSTR(u string) string {
+// StripaccentsSTR - ὀκνεῖϲ --> οκνειϲ, etc.
+func StripaccentsSTR(u string) string {
 	// reducer := getrunereducer()
 	ru := []rune(u)
 	stripped := make([]rune, len(ru))
@@ -32,8 +32,8 @@ func stripaccentsSTR(u string) string {
 	return s
 }
 
-// stripaccentsRUNE - ὀκνεῖϲ --> οκνειϲ, etc.
-func stripaccentsRUNE(u []rune) []rune {
+// StripaccentsRUNE - ὀκνεῖϲ --> οκνειϲ, etc.
+func StripaccentsRUNE(u []rune) []rune {
 	// reducer := getrunereducer()
 	stripped := make([]rune, len(u))
 	for i, x := range u {
@@ -192,7 +192,7 @@ func findacuteorgrave(s string) string {
 	return string(mod)
 }
 
-func swapacuteforgrave(thetext string) string {
+func SwapAcuteForGrave(thetext string) string {
 	swap := strings.NewReplacer("ὰ", "ά", "ὲ", "έ", "ὶ", "ί", "ὸ", "ό", "ὺ", "ύ", "ὴ", "ή", "ὼ", "ώ",
 		"ἂ", "ἄ", "ἃ", "ἅ", "ᾲ", "ᾴ", "ᾂ", "ᾄ", "ᾃ", "ᾅ", "ἒ", "ἔ", "ἲ", "ἴ", "ὂ", "ὄ", "ὃ", "ὅ", "ὒ", "ὔ", "ὓ", "ὕ",
 		"ἢ", "ἤ", "ἣ", "ἥ", "ᾓ", "ᾕ", "ᾒ", "ᾔ", "ὢ", "ὤ", "ὣ", "ὥ", "ᾣ", "ᾥ", "ᾢ", "ᾤ", "á", "a", "é", "e",
@@ -200,7 +200,7 @@ func swapacuteforgrave(thetext string) string {
 	return swap.Replace(thetext)
 }
 
-func swapgraveforacute(thetext string) string {
+func SwapGraveForAcute(thetext string) string {
 	swap := strings.NewReplacer("ά", "ὰ", "έ", "ὲ", "ί", "ὶ", "ό", "ὸ", "ύ", "ὺ", "ή", "ὴ", "ώ", "ὼ",
 		"ἄ", "ἂ", "ἅ", "ἃ", "ᾴ", "ᾲ", "ᾄ", "ᾂ", "ᾅ", "ᾃ", "ἔ", "ἒ", "ἴ", "ἲ", "ὄ", "ὂ", "ὅ", "ὃ", "ὔ", "ὒ", "ὕ", "ὓ",
 		"ἤ", "ἢ", "ἥ", "ἣ", "ᾕ", "ᾓ", "ᾔ", "ᾒ", "ὤ", "ὢ", "ὥ", "ὣ", "ᾥ", "ᾣ", "ᾤ", "ᾢ", "a", "á", "e", "é",
@@ -208,8 +208,8 @@ func swapgraveforacute(thetext string) string {
 	return swap.Replace(thetext)
 }
 
-// capsvariants - build regex compilation template for a word and its capitalized variant: [aA][bB][cC]
-func capsvariants(word string) string {
+// CapsVariants - build regex compilation template for a word and its capitalized variant: [aA][bB][cC]
+func CapsVariants(word string) string {
 	cv := ""
 	rr := []rune(word)
 	for _, r := range rr {
@@ -220,8 +220,8 @@ func capsvariants(word string) string {
 	return cv
 }
 
-// uvσςϲ - v to u, etc
-func uvσςϲ(u string) string {
+// UVσςϲ - v to u, etc
+func UVσςϲ(u string) string {
 	ru := []rune(u)
 	stripped := make([]rune, len(ru))
 	for i, x := range ru {
@@ -236,7 +236,7 @@ func uvσςϲ(u string) string {
 
 }
 
-// uvσςϲreducer - provide map to uvσςϲ
+// uvσςϲreducer - provide map to UVσςϲ
 func uvσςϲreducer() map[rune]rune {
 	// map[73:105 74:105 85:117 86:117 105:105 106:105 ...]
 	feeder := make(map[rune][]rune)
@@ -254,8 +254,8 @@ func uvσςϲreducer() map[rune]rune {
 	return reducer
 }
 
-// delunate - Τὴν οὖν τῶν ϲωμάτων ϲύνταξιν ϲκεψαμένουϲ πρὸϲ --> Τὴν οὖν τῶν σωμάτων σύνταξιν σκεψαμένους πρὸς
-func delunate(txt string) string {
+// DeLunate - Τὴν οὖν τῶν ϲωμάτων ϲύνταξιν ϲκεψαμένουϲ πρὸϲ --> Τὴν οὖν τῶν σωμάτων σύνταξιν σκεψαμένους πρὸς
+func DeLunate(txt string) string {
 	// be careful not to loop regexp.MustCompile; this function should be called on text blocks not single lines
 	swap := regexp.MustCompile("σ" + TERMINATIONS)
 	txt = strings.Replace(txt, "ϲ", "σ", -1)
@@ -264,8 +264,8 @@ func delunate(txt string) string {
 	return txt
 }
 
-// formatbcedate - turn "-300" into "300 B.C.E."
-func formatbcedate(d string) string {
+// FormatBCEDate - turn "-300" into "300 B.C.E."
+func FormatBCEDate(d string) string {
 	s, e := strconv.Atoi(d)
 	if e != nil {
 		s = 9999
@@ -280,5 +280,5 @@ func formatbcedate(d string) string {
 
 // IntToBCE - turn an int into something like "300 B.C.E."
 func IntToBCE(i int) string {
-	return formatbcedate(fmt.Sprintf("%d", i))
+	return FormatBCEDate(fmt.Sprintf("%d", i))
 }

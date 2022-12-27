@@ -36,7 +36,7 @@ type WordInfo struct {
 
 // RtTextMaker - make a text of whatever collection of lines you would be searching
 func RtTextMaker(c echo.Context) error {
-	c.Response().After(func() { gcstats("RtTextMaker()") })
+	c.Response().After(func() { GCStats("RtTextMaker()") })
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
 
@@ -157,7 +157,7 @@ func RtTextMaker(c echo.Context) error {
 	sum = sum + cp
 
 	if Config.ZapLunates {
-		tab = delunate(tab)
+		tab = DeLunate(tab)
 	}
 
 	var jso JSFeeder
@@ -170,7 +170,7 @@ func RtTextMaker(c echo.Context) error {
 
 // RtVocabMaker - get the vocabulary for whatever collection of lines you would be searching
 func RtVocabMaker(c echo.Context) error {
-	c.Response().After(func() { gcstats("RtVocabMaker()") })
+	c.Response().After(func() { GCStats("RtVocabMaker()") })
 
 	// diverging from the way the python works
 	// build not via the selection boxes but via the actual selection made and stored in the session
@@ -246,7 +246,7 @@ func RtVocabMaker(c echo.Context) error {
 		for _, w := range wds {
 			this := WordInfo{
 				HW:         "",
-				Wd:         uvσςϲ(swapacuteforgrave(w)),
+				Wd:         UVσςϲ(SwapAcuteForGrave(w)),
 				Loc:        vocabsrch.Results[i].BuildHyperlink(),
 				Cit:        vocabsrch.Results[i].Citation(),
 				IsHomonymn: false,
@@ -328,7 +328,7 @@ func RtVocabMaker(c echo.Context) error {
 			Wd:    k,
 			C:     v,
 			TR:    polishtrans(vit[k], pat),
-			Strip: strings.Replace(stripaccentsSTR(k), "ϲ", "σ", -1),
+			Strip: strings.Replace(StripaccentsSTR(k), "ϲ", "σ", -1),
 		}
 	}
 
@@ -394,7 +394,7 @@ func RtVocabMaker(c echo.Context) error {
 	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, el, cp, ky)
 
 	if Config.ZapLunates {
-		htm = delunate(htm)
+		htm = DeLunate(htm)
 	}
 
 	var jso JSFeeder
@@ -411,7 +411,7 @@ func RtVocabMaker(c echo.Context) error {
 
 // RtIndexMaker - build an index for whatever collection of lines you would be searching
 func RtIndexMaker(c echo.Context) error {
-	c.Response().After(func() { gcstats("RtIndexMaker()") })
+	c.Response().After(func() { GCStats("RtIndexMaker()") })
 
 	// note that templates + bytes.Buffer is more legible than '%s' time and again BUT it is also slightly slower
 	// this was tested via a rewrite of RtIndexMaker() and other rt-textindicesandvocab functions
@@ -488,7 +488,7 @@ func RtIndexMaker(c echo.Context) error {
 		for _, w := range wds {
 			this := WordInfo{
 				HW:         "",
-				Wd:         uvσςϲ(swapacuteforgrave(w)),
+				Wd:         UVσςϲ(SwapAcuteForGrave(w)),
 				Loc:        srch.Results[i].BuildHyperlink(),
 				Cit:        srch.Results[i].Citation(),
 				IsHomonymn: false,
@@ -611,7 +611,7 @@ func RtIndexMaker(c echo.Context) error {
 	indexmap := make(map[SorterStruct][]WordInfo, len(trimslices))
 	for _, w := range trimslices {
 		// lunate sigma sorts after omega
-		sigma := strings.Replace(stripaccentsSTR(w.HW), "ϲ", "σ", -1)
+		sigma := strings.Replace(StripaccentsSTR(w.HW), "ϲ", "σ", -1)
 		ss := SorterStruct{
 			sorter: sigma + w.HW,
 			value:  w.HW,
@@ -691,7 +691,7 @@ func RtIndexMaker(c echo.Context) error {
 	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, el, cp, ky)
 
 	if Config.ZapLunates {
-		htm = delunate(htm)
+		htm = DeLunate(htm)
 	}
 
 	var jso JSFeeder
