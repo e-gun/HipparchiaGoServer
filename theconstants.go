@@ -80,6 +80,7 @@ const (
 	USEGZIP                  = false
 	VARIADATE                = 2000
 	VOCABSCANSION            = false
+	VOCABBYCOUNT             = false
 	WSPOLLINGPAUSE           = 10000000 * 10 // 100000000 * 10 = every .1s
 
 	// UNACCEPTABLEINPUT       = `|"'!@:,=+_\/`
@@ -123,6 +124,7 @@ const (
    -ti {num}    maximum # of lines that text/index/vocab maker will ingest [default: %d]
    -ui {string} unacceptable input characters [default: %s]
    -v           print version and exit
+   -vc          sort vocabulary lists in descending order by headword count: "qui", etc. will move to the top
    -vs          add scansion info to vocabulary lists: "abstĭnĕo", etc.
    -wc {int}    number of workers [default: cpu_count (%d)]
    -zl          zap lunate sigmas and replace them with σ/ς

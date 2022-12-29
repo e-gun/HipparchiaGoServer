@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"net/http"
@@ -28,6 +29,14 @@ type WordInfo struct {
 	IsHomonymn bool
 	Trans      string
 	Wk         string
+}
+
+type VocInf struct {
+	Wd    string
+	C     int
+	TR    string
+	Strip string
+	Metr  string
 }
 
 //
@@ -330,26 +339,25 @@ func RtVocabMaker(c echo.Context) error {
 
 	scansion := arraytogetscansion(StringMapKeysIntoSlice(vit))
 
-	// [f] consolidate the information
-
-	type VocInf struct {
-		Wd    string
-		C     int
-		TR    string
-		Strip string
-		Metr  string
-	}
+	// [f1] consolidate the information
 
 	pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
 
 	vim := make(map[string]VocInf)
 	for k, v := range vic {
+		m := scansion[k]
+		if len(m) == 0 {
+			// still might return "", of course...
+			// but will do "aegyptius" --> "Aegyptĭus"
+			m = scansion[cases.Title(language.Und).String(k)]
+		}
+
 		vim[k] = VocInf{
 			Wd:    k,
 			C:     v,
 			TR:    polishtrans(vit[k], pat),
 			Strip: strings.Replace(StripaccentsSTR(k), "ϲ", "σ", -1),
-			Metr:  scansion[k],
+			Metr:  m,
 		}
 	}
 
@@ -363,12 +371,23 @@ func RtVocabMaker(c echo.Context) error {
 	si.InitSum = MSG3
 	SafeSearchMapInsert(si)
 
-	sort.Slice(vis, func(i, j int) bool { return vis[i].Strip < vis[j].Strip })
+	// [f2] sort the results
+	if Config.VocabByCt {
+		countDecreasing := func(one, two *VocInf) bool {
+			return one.C > two.C
+		}
+		wordIncreasing := func(one, two *VocInf) bool {
+			return one.Strip < two.Strip
+		}
+		VIOrderedBy(countDecreasing, wordIncreasing).Sort(vis)
+	} else {
+		sort.Slice(vis, func(i, j int) bool { return vis[i].Strip < vis[j].Strip })
+	}
 
 	si.InitSum = MSG4
 	SafeSearchMapInsert(si)
 
-	// [g] format
+	// [g] format the output
 
 	headtempl := THH
 	if Config.VocabScans {
@@ -772,6 +791,10 @@ func arraytogetscansion(wordlist []string) map[string]string {
 		QT = `SELECT entry_name, metrical_entry FROM %s_dictionary WHERE EXISTS 
 				(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = %s_dictionary.entry_name)`
 	)
+
+	if !Config.VocabScans {
+		return make(map[string]string)
+	}
 
 	type entryandmeter struct {
 		Entry string

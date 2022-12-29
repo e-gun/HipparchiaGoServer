@@ -202,17 +202,17 @@ func (s *SearchStruct) SortResults() {
 
 	switch {
 	case crit == "shortname":
-		OrderedBy(nameIncreasing, titleIncreasing, increasingLines).Sort(s.Results)
+		WLOrderedBy(nameIncreasing, titleIncreasing, increasingLines).Sort(s.Results)
 	case crit == "converted_date":
-		OrderedBy(dateIncreasing, nameIncreasing, titleIncreasing, increasingLines).Sort(s.Results)
+		WLOrderedBy(dateIncreasing, nameIncreasing, titleIncreasing, increasingLines).Sort(s.Results)
 	case crit == "universalid":
-		OrderedBy(increasingID).Sort(s.Results)
+		WLOrderedBy(increasingID).Sort(s.Results)
 	case crit == "provenance":
 		// as this is likely an inscription search, why not sort next by date?
-		OrderedBy(increasingWLOC, dateIncreasing).Sort(s.Results)
+		WLOrderedBy(increasingWLOC, dateIncreasing).Sort(s.Results)
 	default:
 		// author nameIncreasing
-		OrderedBy(nameIncreasing, increasingLines).Sort(s.Results)
+		WLOrderedBy(nameIncreasing, increasingLines).Sort(s.Results)
 	}
 }
 

@@ -269,39 +269,88 @@ func StringMapKeysIntoSlice[T any](mp map[string]T) []string {
 // SORTING: https://pkg.go.dev/sort#example__sortMultiKeys
 //
 
-type lessFunc func(p1, p2 *DbWorkline) bool
+type WLLessFunc func(p1, p2 *DbWorkline) bool
 
-// MultiSorter implements the Sort interface, sorting the changes within.
-type MultiSorter struct {
+// WLMultiSorter implements the Sort interface, sorting the changes within.
+type WLMultiSorter struct {
 	changes []DbWorkline
-	less    []lessFunc
+	less    []WLLessFunc
 }
 
-// Sort sorts the argument slice according to the less functions passed to OrderedBy.
-func (ms *MultiSorter) Sort(changes []DbWorkline) {
+// Sort sorts the argument slice according to the less functions passed to WLOrderedBy.
+func (ms *WLMultiSorter) Sort(changes []DbWorkline) {
 	ms.changes = changes
 	sort.Sort(ms)
 }
 
-// OrderedBy returns a Sorter that sorts using the less functions, in order.
+// WLOrderedBy returns a Sorter that sorts using the less functions, in order.
 // Call its Sort method to sort the data.
-func OrderedBy(less ...lessFunc) *MultiSorter {
-	return &MultiSorter{
+func WLOrderedBy(less ...WLLessFunc) *WLMultiSorter {
+	return &WLMultiSorter{
 		less: less,
 	}
 }
 
 // Len is part of sort.Interface.
-func (ms *MultiSorter) Len() int {
+func (ms *WLMultiSorter) Len() int {
 	return len(ms.changes)
 }
 
 // Swap is part of sort.Interface.
-func (ms *MultiSorter) Swap(i, j int) {
+func (ms *WLMultiSorter) Swap(i, j int) {
 	ms.changes[i], ms.changes[j] = ms.changes[j], ms.changes[i]
 }
 
-func (ms *MultiSorter) Less(i, j int) bool {
+func (ms *WLMultiSorter) Less(i, j int) bool {
+	p, q := &ms.changes[i], &ms.changes[j]
+	// Try all but the last comparison.
+	var k int
+	for k = 0; k < len(ms.less)-1; k++ {
+		less := ms.less[k]
+		switch {
+		case less(p, q):
+			// p < q, so we have a decision.
+			return true
+		case less(q, p):
+			// p > q, so we have a decision.
+			return false
+		}
+		// p == q; try the next comparison.
+	}
+	// All comparisons to here said "equal", so just return whatever
+	// the final comparison reports.
+	return ms.less[k](p, q)
+}
+
+type VILessFunc func(p1, p2 *VocInf) bool
+
+type VIMultiSorter struct {
+	changes []VocInf
+	less    []VILessFunc
+}
+
+func VIOrderedBy(less ...VILessFunc) *VIMultiSorter {
+	return &VIMultiSorter{
+		less: less,
+	}
+}
+
+func (ms *VIMultiSorter) Sort(changes []VocInf) {
+	ms.changes = changes
+	sort.Sort(ms)
+}
+
+// Len is part of sort.Interface.
+func (ms *VIMultiSorter) Len() int {
+	return len(ms.changes)
+}
+
+// Swap is part of sort.Interface.
+func (ms *VIMultiSorter) Swap(i, j int) {
+	ms.changes[i], ms.changes[j] = ms.changes[j], ms.changes[i]
+}
+
+func (ms *VIMultiSorter) Less(i, j int) bool {
 	p, q := &ms.changes[i], &ms.changes[j]
 	// Try all but the last comparison.
 	var k int
