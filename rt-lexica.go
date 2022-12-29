@@ -877,6 +877,8 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	// [h4] the actual body of the entry
 
+	w.Entry = entryqickfixes(w.Entry)
+
 	elem = append(elem, w.Entry)
 
 	// [h5] previous & next entry
@@ -902,6 +904,24 @@ func formatlexicaloutput(w DbLexicon) string {
 	elem = append(elem, pn)
 
 	html := strings.Join(elem, "")
+
+	return html
+}
+
+// entryqickfixes - tidy up wonky things that are in "html_body" in the DB; the builder should be doing this instead...
+func entryqickfixes(html string) string {
+	// [a]
+	// <span class="dictquote dictlang_la">sedile"><span class="dictcit"><span class="dictquote dictlang_la">sedile</dictionaryentry>
+	//     "sedile" is here twice and will print as 'sedile">sedile,'
+
+	badpatt1, err := regexp.Compile("<span class=\"dictquote dictlang_la\">(\\w+)\"><span class=\"dictcit\"><span class=\"dictquote dictlang_la\">(\\w+)")
+	chke(err)
+	html = badpatt1.ReplaceAllString(html, "<span class=\"dictcit\"><span class=\"dictquote dictlang_la\">$1")
+
+	// [b] ē^ -> ē̆
+	longshort := strings.NewReplacer("ā^", "ā̆", "ē^", "ē̆", "ō^", "ō̆")
+
+	html = longshort.Replace(html)
 
 	return html
 }
