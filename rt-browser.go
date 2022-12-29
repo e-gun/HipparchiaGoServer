@@ -124,7 +124,7 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassag
 
 	const (
 		FAIL1 = "could not find a work for %s"
-		FAIL2 = "<br>Called simplecontextgrabber() and failed.<br><br><code>No data for %sw%s where idx=%d</code><br>"
+		FAIL2 = "<br>Called SimpleContextGrabber() and failed.<br><br><code>No data for %sw%s where idx=%d</code><br>"
 	)
 
 	k := fmt.Sprintf("%sw%s", au, wk)
@@ -150,7 +150,7 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassag
 
 	// [b] acquire the lines we need to display in the body
 
-	lines := simplecontextgrabber(au, fc, ctx/2)
+	lines := SimpleContextGrabber(au, fc, ctx/2)
 
 	// [b1] drop lines that are part of another work (matters in DP, IN, and CH)
 	var trimmed []DbWorkline

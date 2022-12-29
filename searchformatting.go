@@ -170,9 +170,9 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 		LocusBody   string
 	}
 
-	// gather all the lines you need: this is much faster than simplecontextgrabber() 200x in a single threaded loop
+	// gather all the lines you need: this is much faster than SimpleContextGrabber() 200x in a single threaded loop
 	// turn it into a new search where we accept any character as enough to yield a hit: ""
-	res := clonesearch(*thesearch, 3)
+	res := CloneSearch(*thesearch, 3)
 	res.Results = thesearch.Results
 	res.Seeking = ""
 	res.LemmaOne = ""
@@ -275,13 +275,13 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 				pat, e := regexp.Compile(strings.Join(re, "|"))
 				if e != nil {
 					pat = regexp.MustCompile("FAILED_FIND_NOTHING")
-					msg(fmt.Sprintf("searchtermfinder() could not compile the following: %s", strings.Join(re, "|")), MSGWARN)
+					msg(fmt.Sprintf("SearchTermFinder() could not compile the following: %s", strings.Join(re, "|")), MSGWARN)
 				}
 				highlightsearchterm(pat, &p.CookedCTX[i])
 			}
 			if len(thesearch.Proximate) > 0 {
 				// look for the proximate term
-				pat := searchtermfinder(thesearch.Proximate)
+				pat := SearchTermFinder(thesearch.Proximate)
 				highlightsearchterm(pat, &p.CookedCTX[i])
 			}
 		}
@@ -395,7 +395,7 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 
 // highlightsearchterm - html markup for the search term in the line so it can jump out at you
 func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
-	//	regexequivalent is compiled via searchtermfinder() in rt-search.go
+	//	regexequivalent is compiled via SearchTermFinder() in rt-search.go
 
 	// see the warnings and caveats at highlightsearchterm() in searchformatting.py
 	if pattern.MatchString(line.Contents) {
@@ -641,11 +641,11 @@ func gethighlighter(ss *SearchStruct) *regexp.Regexp {
 	}
 
 	if len(ss.Seeking) != 0 {
-		re = searchtermfinder(skg)
+		re = SearchTermFinder(skg)
 	} else if len(ss.LemmaOne) != 0 {
 		re = lemmahighlighter(ss.LemmaOne)
 	} else if len(ss.Proximate) != 0 {
-		re = searchtermfinder(prx)
+		re = SearchTermFinder(prx)
 	} else if len(ss.LemmaTwo) != 0 {
 		re = lemmahighlighter(ss.LemmaTwo)
 	} else {
@@ -659,7 +659,7 @@ func gethighlighter(ss *SearchStruct) *regexp.Regexp {
 func lemmahighlighter(lm string) *regexp.Regexp {
 	// don't let "(^|\s)τρεῖϲ(\s|$)|(^|\s)τρία(\s|$)|(^|\s)τριϲίν(\s|$)|(^|\s)τριῶν(\s|$)|(^|\s)τρί(\s|$)|(^|\s)τριϲί(\s|$)"
 	// turn into "(^|\[sS])[τΤ][ρῤῥῬ][εἐἑἒἓἔἕὲέἘἙἚἛἜἝΕ]ῖ[ϲσΣςϹ](\[sS]|$)|(^|\[sS])..."
-	// can't send "(^|\s)" through universalpatternmaker()
+	// can't send "(^|\s)" through UniversalPatternMaker()
 
 	// abutting markup is killing off some items, but adding "<" and ">" produces worse problems still
 
@@ -676,7 +676,7 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 	lemm := AllLemm[lm].Deriv
 
 	whole := strings.Join(lemm, JOINER)
-	st := universalpatternmaker(whole)
+	st := UniversalPatternMaker(whole)
 	lup := strings.Split(st, SNIP)
 	for i, l := range lup {
 		lup[i] = fmt.Sprintf(TP, l)

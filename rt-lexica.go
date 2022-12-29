@@ -124,7 +124,7 @@ func RtLexLookup(c echo.Context) error {
 	}
 
 	seeking = UVσςϲ(seeking)
-	seeking = universalpatternmaker(seeking) // universalpatternmaker() returns the term with brackets around it
+	seeking = UniversalPatternMaker(seeking) // UniversalPatternMaker() returns the term with brackets around it
 
 	seeking = strings.Replace(seeking, "(", "", -1)
 	seeking = strings.Replace(seeking, ")", "", -1)

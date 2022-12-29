@@ -240,8 +240,8 @@ func (dbw *DbWorkline) LvlVal(lvl int) string {
 	}
 }
 
-// worklinequery - use a PrerolledQuery to acquire []DbWorkline
-func worklinequery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
+// WorklineQuery - use a PrerolledQuery to acquire []DbWorkline
+func WorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
 	// [a] build a temp table if needed
 
 	if prq.TempTable != "" {
@@ -262,8 +262,8 @@ func worklinequery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
 	return thesefinds
 }
 
-// graboneline - return a single DbWorkline from a table
-func graboneline(table string, line int) DbWorkline {
+// GrabOneLine - return a single DbWorkline from a table
+func GrabOneLine(table string, line int) DbWorkline {
 	const (
 		QTMPL = "SELECT %s FROM %s WHERE index = %d ORDER by index"
 	)
@@ -273,7 +273,7 @@ func graboneline(table string, line int) DbWorkline {
 	var prq PrerolledQuery
 	prq.TempTable = ""
 	prq.PsqlQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, line)
-	foundlines := worklinequery(prq, dbconn)
+	foundlines := WorklineQuery(prq, dbconn)
 	if len(foundlines) != 0 {
 		return foundlines[0]
 	} else {
@@ -281,8 +281,8 @@ func graboneline(table string, line int) DbWorkline {
 	}
 }
 
-// simplecontextgrabber - grab a pile of lines centered around the focusline
-func simplecontextgrabber(table string, focus int, context int) []DbWorkline {
+// SimpleContextGrabber - grab a pile of lines centered around the focusline
+func SimpleContextGrabber(table string, focus int, context int) []DbWorkline {
 	const (
 		QTMPL = "SELECT %s FROM %s WHERE (index BETWEEN %d AND %d) ORDER by index"
 	)
@@ -297,13 +297,13 @@ func simplecontextgrabber(table string, focus int, context int) []DbWorkline {
 	prq.TempTable = ""
 	prq.PsqlQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, low, high)
 
-	foundlines := worklinequery(prq, dbconn)
+	foundlines := WorklineQuery(prq, dbconn)
 
 	return foundlines
 }
 
+// findvalidlevelvalues - tell me some of a citation and I can tell you what is a valid choice at the next step
 func findvalidlevelvalues(wkid string, locc []string) LevelValues {
-	// tell me some of a citation and I can tell you what is a valid choice at the next step
 	// curl localhost:5000/get/json/workstructure/lt0959/001
 	// {"totallevels": 3, "level": 2, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
 	// curl localhost:5000/get/json/workstructure/lt0959/001/2
@@ -370,7 +370,7 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
-	lines := worklinequery(prq, dbconn)
+	lines := WorklineQuery(prq, dbconn)
 
 	// [c] extract info from the hitlines returned
 	var vals LevelValues

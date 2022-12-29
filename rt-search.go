@@ -51,7 +51,7 @@ func RtSearch(c echo.Context) error {
 	}
 
 	id := c.Param("id")
-	srch := builddefaultsearch(c)
+	srch := BuildDefaultSearch(c)
 	srch.User = user
 
 	srch.Seeking = c.QueryParam("skg")
@@ -123,8 +123,8 @@ func RtSearch(c echo.Context) error {
 // INITIAL SETUP
 //
 
-// builddefaultsearch - fill out the basic values for a new search
-func builddefaultsearch(c echo.Context) SearchStruct {
+// BuildDefaultSearch - fill out the basic values for a new search
+func BuildDefaultSearch(c echo.Context) SearchStruct {
 	user := readUUIDCookie(c)
 	sess := SafeSessionRead(user)
 
@@ -155,13 +155,13 @@ func builddefaultsearch(c echo.Context) SearchStruct {
 		srch.NotNear = true
 	}
 
-	// msg("nonstandard builddefaultsearch() for testing", MSGCRIT)
+	// msg("nonstandard BuildDefaultSearch() for testing", MSGCRIT)
 
 	return srch
 }
 
-// buildhollowsearch - is really a way to grab line collections via synthetic searchlists
-func buildhollowsearch() SearchStruct {
+// BuildHollowSearch - is really a way to grab line collections via synthetic searchlists
+func BuildHollowSearch() SearchStruct {
 	s := SearchStruct{
 		User:          "",
 		ID:            strings.Replace(uuid.New().String(), "-", "", -1),
@@ -268,7 +268,7 @@ func lemmaintoregexslice(hdwd string) []string {
 	// there is a problem: unless you do something, "(^|\s)ἁλιεύϲ(\s|$)" will be a search term but this will not find "ἁλιεὺϲ"
 	var lemm []string
 	for _, l := range AllLemm[hdwd].Deriv {
-		lemm = append(lemm, findacuteorgrave(l))
+		lemm = append(lemm, FindAcuteOrGrave(l))
 	}
 
 	ct := 0
@@ -366,7 +366,7 @@ func findphrasesacrosslines(ss *SearchStruct) {
 	for i := 0; i < len(ss.Results); i++ {
 		r := ss.Results[i]
 		// do the "it's all on this line" case separately
-		li := columnpicker(ss.SrchColumn, r)
+		li := ColumnPicker(ss.SrchColumn, r)
 		f := fp.MatchString(li)
 		if f {
 			valid[r.BuildHyperlink()] = r
@@ -381,18 +381,18 @@ func findphrasesacrosslines(ss *SearchStruct) {
 					nxt = DbWorkline{}
 				} else if r.WkUID != nxt.WkUID || r.TbIndex+1 != nxt.TbIndex {
 					// grab the actual next line (i.e. index = 101)
-					nxt = graboneline(r.AuID(), r.TbIndex+1)
+					nxt = GrabOneLine(r.AuID(), r.TbIndex+1)
 				}
 			} else {
 				// grab the actual next line (i.e. index = 101)
-				nxt = graboneline(r.AuID(), r.TbIndex+1)
+				nxt = GrabOneLine(r.AuID(), r.TbIndex+1)
 				if r.WkUID != nxt.WkUID {
 					nxt = DbWorkline{}
 				}
 			}
 
 			// combinator dodges double-register of hits
-			nl := columnpicker(ss.SrchColumn, nxt)
+			nl := ColumnPicker(ss.SrchColumn, nxt)
 			comb := getcombinations(re)
 			for _, c := range comb {
 				fp2, e1 := regexp.Compile(c[0])
@@ -424,8 +424,8 @@ func findphrasesacrosslines(ss *SearchStruct) {
 	ss.Results = slc
 }
 
-// columnpicker - convert from db column name into struct name
-func columnpicker(c string, r DbWorkline) string {
+// ColumnPicker - convert from db column name into struct name
+func ColumnPicker(c string, r DbWorkline) string {
 	const (
 		MSG = "second.SrchColumn was not set; defaulting to 'stripped_line'"
 	)
@@ -445,8 +445,8 @@ func columnpicker(c string, r DbWorkline) string {
 	return li
 }
 
-// clonesearch - make a copy of a search with results and queries, inter alia, ripped out
-func clonesearch(f SearchStruct, iteration int) SearchStruct {
+// CloneSearch - make a copy of a search with results and queries, inter alia, ripped out
+func CloneSearch(f SearchStruct, iteration int) SearchStruct {
 	// note that the clone is not accessible to RtWebsocket() because it never gets registered in the global SearchMap
 	// this means no progress for second pass SearchMap; this can be achieved, but it is not currently a priority
 	s := f
@@ -465,8 +465,8 @@ func clonesearch(f SearchStruct, iteration int) SearchStruct {
 	return s
 }
 
-// universalpatternmaker - feeder for searchtermfinder()
-func universalpatternmaker(term string) string {
+// UniversalPatternMaker - feeder for SearchTermFinder()
+func UniversalPatternMaker(term string) string {
 	// also used by searchformatting.go
 	// converter := extendedrunefeeder()
 	converter := ERuneFd // see top of generichelpers.go
@@ -484,18 +484,18 @@ func universalpatternmaker(term string) string {
 	return stre
 }
 
-// searchtermfinder - find the universal regex equivalent of the search term
-func searchtermfinder(term string) *regexp.Regexp {
+// SearchTermFinder - find the universal regex equivalent of the search term
+func SearchTermFinder(term string) *regexp.Regexp {
 	//	you need to convert:
 	//		ποταμον
 	//	into:
 	//		([πΠ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][τΤ][αἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάᾈᾉᾊᾋᾌᾍᾎᾏἈἉἊἋἌἍἎἏΑ][μΜ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][νΝ])
 
 	const (
-		MSG = "searchtermfinder() could not compile the following: %s"
+		MSG = "SearchTermFinder() could not compile the following: %s"
 	)
 
-	stre := universalpatternmaker(term)
+	stre := UniversalPatternMaker(term)
 	pattern, e := regexp.Compile(stre)
 	if e != nil {
 		msg(fmt.Sprintf(MSG, stre), MSGWARN)
@@ -517,7 +517,7 @@ func SafeSearchMapRead(id string) SearchStruct {
 	defer SearchLocker.RUnlock()
 	s, e := SearchMap[id]
 	if e != true {
-		s = buildhollowsearch()
+		s = BuildHollowSearch()
 		s.ID = id
 		s.IsActive = false
 	}

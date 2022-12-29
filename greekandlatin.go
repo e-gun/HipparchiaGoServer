@@ -20,6 +20,10 @@ var (
 	UvRed   = uvσςϲreducer()
 )
 
+//
+// THE EXPORTABLE FUNCTIONS
+//
+
 // StripaccentsSTR - ὀκνεῖϲ --> οκνειϲ, etc.
 func StripaccentsSTR(u string) string {
 	// reducer := getrunereducer()
@@ -41,6 +45,129 @@ func StripaccentsRUNE(u []rune) []rune {
 	}
 	return stripped
 }
+
+func SwapAcuteForGrave(thetext string) string {
+	swap := strings.NewReplacer("ὰ", "ά", "ὲ", "έ", "ὶ", "ί", "ὸ", "ό", "ὺ", "ύ", "ὴ", "ή", "ὼ", "ώ",
+		"ἂ", "ἄ", "ἃ", "ἅ", "ᾲ", "ᾴ", "ᾂ", "ᾄ", "ᾃ", "ᾅ", "ἒ", "ἔ", "ἲ", "ἴ", "ὂ", "ὄ", "ὃ", "ὅ", "ὒ", "ὔ", "ὓ", "ὕ",
+		"ἢ", "ἤ", "ἣ", "ἥ", "ᾓ", "ᾕ", "ᾒ", "ᾔ", "ὢ", "ὤ", "ὣ", "ὥ", "ᾣ", "ᾥ", "ᾢ", "ᾤ", "á", "a", "é", "e",
+		"í", "i", "ó", "o", "ú", "u")
+	return swap.Replace(thetext)
+}
+
+func SwapGraveForAcute(thetext string) string {
+	swap := strings.NewReplacer("ά", "ὰ", "έ", "ὲ", "ί", "ὶ", "ό", "ὸ", "ύ", "ὺ", "ή", "ὴ", "ώ", "ὼ",
+		"ἄ", "ἂ", "ἅ", "ἃ", "ᾴ", "ᾲ", "ᾄ", "ᾂ", "ᾅ", "ᾃ", "ἔ", "ἒ", "ἴ", "ἲ", "ὄ", "ὂ", "ὅ", "ὃ", "ὔ", "ὒ", "ὕ", "ὓ",
+		"ἤ", "ἢ", "ἥ", "ἣ", "ᾕ", "ᾓ", "ᾔ", "ᾒ", "ὤ", "ὢ", "ὥ", "ὣ", "ᾥ", "ᾣ", "ᾤ", "ᾢ", "a", "á", "e", "é",
+		"i", "í", "o", "ó", "u", "ú")
+	return swap.Replace(thetext)
+}
+
+// CapsVariants - build regex compilation template for a word and its capitalized variant: [aA][bB][cC]
+func CapsVariants(word string) string {
+	cv := ""
+	rr := []rune(word)
+	for _, r := range rr {
+		rs := string(r)
+		c := strings.ToUpper(rs)
+		cv += fmt.Sprintf("[%s%s]", rs, c)
+	}
+	return cv
+}
+
+// UVσςϲ - v to u, etc
+func UVσςϲ(u string) string {
+	ru := []rune(u)
+	stripped := make([]rune, len(ru))
+	for i, x := range ru {
+		if _, ok := UvRed[x]; ok {
+			stripped[i] = UvRed[x]
+		} else {
+			stripped[i] = x
+		}
+	}
+	s := string(stripped)
+	return s
+
+}
+
+// FindAcuteOrGrave - prepare regex equiv: ά -> [άὰ]
+func FindAcuteOrGrave(s string) string {
+	feeder := make(map[rune][]rune)
+	feeder['ά'] = []rune("ὰά")
+	feeder['έ'] = []rune("ὲέ")
+	feeder['ή'] = []rune("ὴή")
+	feeder['ί'] = []rune("ὶί")
+	feeder['ό'] = []rune("όὸ")
+	feeder['ύ'] = []rune("ύὺ")
+	feeder['ώ'] = []rune("ώὼ")
+	feeder['ἂ'] = []rune("ἂἄ")
+	feeder['ἒ'] = []rune("ἒἔ")
+	feeder['ἢ'] = []rune("ἢἤ")
+	feeder['ἲ'] = []rune("ἲἴ")
+	feeder['ὂ'] = []rune("ὂὄ")
+	feeder['ὒ'] = []rune("ὒὔ")
+	feeder['ὓ'] = []rune("ὓὕ")
+	feeder['ὢ'] = []rune("ὢὤ")
+	feeder['ὣ'] = []rune("ὣὥ")
+	feeder['ἃ'] = []rune("ἅἃ")
+	feeder['ᾲ'] = []rune("ᾲᾴ")
+	feeder['ᾂ'] = []rune("ᾂᾄ")
+	feeder['ἣ'] = []rune("ἣἥ")
+	feeder['ᾒ'] = []rune("ᾒᾔ")
+	feeder['ᾓ'] = []rune("ᾓᾕ")
+	feeder['ὃ'] = []rune("ὃὅ")
+	feeder['ὂ'] = []rune("ὂὄ")
+	feeder['ὒ'] = []rune("ὒὔ")
+	feeder['ᾂ'] = []rune("ᾂᾄ")
+	feeder['ᾃ'] = []rune("ᾃᾅ")
+	feeder['ᾢ'] = []rune("ᾢᾤ")
+	feeder['ᾣ'] = []rune("ᾣᾥ")
+
+	rr := []rune(s)
+	var mod []rune
+	for _, r := range rr {
+		if _, ok := feeder[r]; ok {
+			st := fmt.Sprintf("[%s]", string(feeder[r]))
+			mod = append(mod, []rune(st)...)
+		} else {
+			mod = append(mod, r)
+		}
+	}
+	return string(mod)
+}
+
+// DeLunate - Τὴν οὖν τῶν ϲωμάτων ϲύνταξιν ϲκεψαμένουϲ πρὸϲ --> Τὴν οὖν τῶν σωμάτων σύνταξιν σκεψαμένους πρὸς
+func DeLunate(txt string) string {
+	// be careful not to loop regexp.MustCompile; this function should be called on text blocks not single lines
+	swap := regexp.MustCompile("σ" + TERMINATIONS)
+	txt = strings.Replace(txt, "ϲ", "σ", -1)
+	txt = strings.Replace(txt, "Ϲ", "Σ", -1)
+	txt = swap.ReplaceAllString(txt, "ς$1")
+	return txt
+}
+
+// FormatBCEDate - turn "-300" into "300 B.C.E."
+func FormatBCEDate(d string) string {
+	s, e := strconv.Atoi(d)
+	if e != nil {
+		s = 9999
+	}
+	if s > 0 {
+		d += " C.E."
+	} else {
+		d = strings.Replace(d, "-", "", -1) + " B.C.E."
+	}
+	return d
+}
+
+// IntToBCE - turn an int into something like "300 B.C.E."
+func IntToBCE(i int) string {
+	return FormatBCEDate(fmt.Sprintf("%d", i))
+}
+
+//
+// THE HELPERS/FEEDERS
+//
 
 func getrunereducer() map[rune]rune {
 	// because we don't have access to python's transtable function
@@ -146,96 +273,6 @@ func extendedrunefeeder() map[rune][]rune {
 	return feeder
 }
 
-func findacuteorgrave(s string) string {
-	// prepare regex equiv: ά -> [άὰ]
-	feeder := make(map[rune][]rune)
-	feeder['ά'] = []rune("ὰά")
-	feeder['έ'] = []rune("ὲέ")
-	feeder['ή'] = []rune("ὴή")
-	feeder['ί'] = []rune("ὶί")
-	feeder['ό'] = []rune("όὸ")
-	feeder['ύ'] = []rune("ύὺ")
-	feeder['ώ'] = []rune("ώὼ")
-	feeder['ἂ'] = []rune("ἂἄ")
-	feeder['ἒ'] = []rune("ἒἔ")
-	feeder['ἢ'] = []rune("ἢἤ")
-	feeder['ἲ'] = []rune("ἲἴ")
-	feeder['ὂ'] = []rune("ὂὄ")
-	feeder['ὒ'] = []rune("ὒὔ")
-	feeder['ὓ'] = []rune("ὓὕ")
-	feeder['ὢ'] = []rune("ὢὤ")
-	feeder['ὣ'] = []rune("ὣὥ")
-	feeder['ἃ'] = []rune("ἅἃ")
-	feeder['ᾲ'] = []rune("ᾲᾴ")
-	feeder['ᾂ'] = []rune("ᾂᾄ")
-	feeder['ἣ'] = []rune("ἣἥ")
-	feeder['ᾒ'] = []rune("ᾒᾔ")
-	feeder['ᾓ'] = []rune("ᾓᾕ")
-	feeder['ὃ'] = []rune("ὃὅ")
-	feeder['ὂ'] = []rune("ὂὄ")
-	feeder['ὒ'] = []rune("ὒὔ")
-	feeder['ᾂ'] = []rune("ᾂᾄ")
-	feeder['ᾃ'] = []rune("ᾃᾅ")
-	feeder['ᾢ'] = []rune("ᾢᾤ")
-	feeder['ᾣ'] = []rune("ᾣᾥ")
-
-	rr := []rune(s)
-	var mod []rune
-	for _, r := range rr {
-		if _, ok := feeder[r]; ok {
-			st := fmt.Sprintf("[%s]", string(feeder[r]))
-			mod = append(mod, []rune(st)...)
-		} else {
-			mod = append(mod, r)
-		}
-	}
-	return string(mod)
-}
-
-func SwapAcuteForGrave(thetext string) string {
-	swap := strings.NewReplacer("ὰ", "ά", "ὲ", "έ", "ὶ", "ί", "ὸ", "ό", "ὺ", "ύ", "ὴ", "ή", "ὼ", "ώ",
-		"ἂ", "ἄ", "ἃ", "ἅ", "ᾲ", "ᾴ", "ᾂ", "ᾄ", "ᾃ", "ᾅ", "ἒ", "ἔ", "ἲ", "ἴ", "ὂ", "ὄ", "ὃ", "ὅ", "ὒ", "ὔ", "ὓ", "ὕ",
-		"ἢ", "ἤ", "ἣ", "ἥ", "ᾓ", "ᾕ", "ᾒ", "ᾔ", "ὢ", "ὤ", "ὣ", "ὥ", "ᾣ", "ᾥ", "ᾢ", "ᾤ", "á", "a", "é", "e",
-		"í", "i", "ó", "o", "ú", "u")
-	return swap.Replace(thetext)
-}
-
-func SwapGraveForAcute(thetext string) string {
-	swap := strings.NewReplacer("ά", "ὰ", "έ", "ὲ", "ί", "ὶ", "ό", "ὸ", "ύ", "ὺ", "ή", "ὴ", "ώ", "ὼ",
-		"ἄ", "ἂ", "ἅ", "ἃ", "ᾴ", "ᾲ", "ᾄ", "ᾂ", "ᾅ", "ᾃ", "ἔ", "ἒ", "ἴ", "ἲ", "ὄ", "ὂ", "ὅ", "ὃ", "ὔ", "ὒ", "ὕ", "ὓ",
-		"ἤ", "ἢ", "ἥ", "ἣ", "ᾕ", "ᾓ", "ᾔ", "ᾒ", "ὤ", "ὢ", "ὥ", "ὣ", "ᾥ", "ᾣ", "ᾤ", "ᾢ", "a", "á", "e", "é",
-		"i", "í", "o", "ó", "u", "ú")
-	return swap.Replace(thetext)
-}
-
-// CapsVariants - build regex compilation template for a word and its capitalized variant: [aA][bB][cC]
-func CapsVariants(word string) string {
-	cv := ""
-	rr := []rune(word)
-	for _, r := range rr {
-		rs := string(r)
-		c := strings.ToUpper(rs)
-		cv += fmt.Sprintf("[%s%s]", rs, c)
-	}
-	return cv
-}
-
-// UVσςϲ - v to u, etc
-func UVσςϲ(u string) string {
-	ru := []rune(u)
-	stripped := make([]rune, len(ru))
-	for i, x := range ru {
-		if _, ok := UvRed[x]; ok {
-			stripped[i] = UvRed[x]
-		} else {
-			stripped[i] = x
-		}
-	}
-	s := string(stripped)
-	return s
-
-}
-
 // uvσςϲreducer - provide map to UVσςϲ
 func uvσςϲreducer() map[rune]rune {
 	// map[73:105 74:105 85:117 86:117 105:105 106:105 ...]
@@ -252,33 +289,4 @@ func uvσςϲreducer() map[rune]rune {
 		}
 	}
 	return reducer
-}
-
-// DeLunate - Τὴν οὖν τῶν ϲωμάτων ϲύνταξιν ϲκεψαμένουϲ πρὸϲ --> Τὴν οὖν τῶν σωμάτων σύνταξιν σκεψαμένους πρὸς
-func DeLunate(txt string) string {
-	// be careful not to loop regexp.MustCompile; this function should be called on text blocks not single lines
-	swap := regexp.MustCompile("σ" + TERMINATIONS)
-	txt = strings.Replace(txt, "ϲ", "σ", -1)
-	txt = strings.Replace(txt, "Ϲ", "Σ", -1)
-	txt = swap.ReplaceAllString(txt, "ς$1")
-	return txt
-}
-
-// FormatBCEDate - turn "-300" into "300 B.C.E."
-func FormatBCEDate(d string) string {
-	s, e := strconv.Atoi(d)
-	if e != nil {
-		s = 9999
-	}
-	if s > 0 {
-		d += " C.E."
-	} else {
-		d = strings.Replace(d, "-", "", -1) + " B.C.E."
-	}
-	return d
-}
-
-// IntToBCE - turn an int into something like "300 B.C.E."
-func IntToBCE(i int) string {
-	return FormatBCEDate(fmt.Sprintf("%d", i))
 }

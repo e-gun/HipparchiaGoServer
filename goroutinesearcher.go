@@ -99,7 +99,7 @@ func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWo
 			case <-ctx.Done():
 				return
 			default:
-				emitfinds <- worklinequery(q, dbconn)
+				emitfinds <- WorklineQuery(q, dbconn)
 			}
 		}
 	}()

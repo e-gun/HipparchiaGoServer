@@ -289,7 +289,7 @@ func RtGetJSSampCit(c echo.Context) error {
 
 	w := AllWorks[wkid]
 	// because "t" is going to be the first line's citation you have to hunt for the real place where the text starts
-	ff := simplecontextgrabber(w.AuID(), w.FirstLine, 2)
+	ff := SimpleContextGrabber(w.AuID(), w.FirstLine, 2)
 	var actualfirst DbWorkline
 	for i := len(ff) - 1; i > 0; i-- {
 		loc := strings.Join(ff[i].FindLocus(), ".")
@@ -297,7 +297,7 @@ func RtGetJSSampCit(c echo.Context) error {
 			actualfirst = ff[i]
 		}
 	}
-	l := graboneline(w.AuID(), w.LastLine)
+	l := GrabOneLine(w.AuID(), w.LastLine)
 
 	cf := strings.Join(actualfirst.FindLocus(), ".")
 	cl := strings.Join(l.FindLocus(), ".")
@@ -384,9 +384,9 @@ func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
 	au := subs[pattern.SubexpIndex("auth")]
 	st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
 	sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
-	f := graboneline(au, st)
-	l := graboneline(au, sp)
-	s := buildhollowsearch()
+	f := GrabOneLine(au, st)
+	l := GrabOneLine(au, sp)
+	s := BuildHollowSearch()
 	s.SearchIn.Passages = []string{p}
 	SSBuildQueries(&s)
 	lines := HGoSrch(s)

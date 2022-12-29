@@ -225,7 +225,7 @@ func RtVocabMaker(c echo.Context) error {
 	id = Purgechars(Config.BadChars, id)
 
 	// "si" is a blank search struct used for progress reporting
-	si := builddefaultsearch(c)
+	si := BuildDefaultSearch(c)
 	si.ID = id
 	si.InitSum = MSG1
 	si.IsActive = true
@@ -469,7 +469,7 @@ func RtIndexMaker(c echo.Context) error {
 	id = Purgechars(Config.BadChars, id)
 
 	// "si" is a blank search struct used for progress reporting
-	si := builddefaultsearch(c)
+	si := BuildDefaultSearch(c)
 	si.ID = id
 	si.InitSum = MSG1
 	si.IsActive = true
@@ -715,7 +715,7 @@ func sessionintobulksearch(c echo.Context, lim int) SearchStruct {
 	user := readUUIDCookie(c)
 	sess := SafeSessionRead(user)
 
-	srch := builddefaultsearch(c)
+	srch := BuildDefaultSearch(c)
 	srch.Seeking = ""
 	srch.CurrentLimit = lim
 	srch.InitSum = "(gathering and formatting lines of text)"

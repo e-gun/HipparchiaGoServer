@@ -19,14 +19,7 @@ type PrerolledQuery struct {
 	PsqlQuery string
 }
 
-type QueryBuilder struct {
-	SelFrom   string
-	WhrTrm    string
-	WhrIdxInc string
-	WhrIdxExc string
-}
-
-type Boundaries struct {
+type QueryBounds struct {
 	Start int
 	Stop  int
 }
@@ -107,19 +100,19 @@ func SSBuildQueries(s *SearchStruct) {
 
 	// [au] figure out all bounded selections
 
-	boundedincl := make(map[string][]Boundaries)
-	boundedexcl := make(map[string][]Boundaries)
+	boundedincl := make(map[string][]QueryBounds)
+	boundedexcl := make(map[string][]QueryBounds)
 
 	// [a1] individual works included/excluded
 	for _, w := range inc.Works {
 		wk := AllWorks[w]
-		b := Boundaries{wk.FirstLine, wk.LastLine}
+		b := QueryBounds{wk.FirstLine, wk.LastLine}
 		boundedincl[wk.AuID()] = append(boundedincl[wk.AuID()], b)
 	}
 
 	for _, w := range exc.Works {
 		wk := AllWorks[w]
-		b := Boundaries{wk.FirstLine, wk.LastLine}
+		b := QueryBounds{wk.FirstLine, wk.LastLine}
 		boundedexcl[wk.AuID()] = append(boundedexcl[wk.AuID()], b)
 	}
 	// fmt.Println(boundedincl) --> map[gr0545:[{13717 19042}]]
@@ -134,7 +127,7 @@ func SSBuildQueries(s *SearchStruct) {
 		au := subs[pattern.SubexpIndex("auth")]
 		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
 		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
-		b := Boundaries{st, sp}
+		b := QueryBounds{st, sp}
 		boundedincl[au] = append(boundedincl[au], b)
 		// fmt.Printf("%s: %d - %d\n", au, st, sp)
 	}
@@ -144,7 +137,7 @@ func SSBuildQueries(s *SearchStruct) {
 		au := subs[pattern.SubexpIndex("auth")]
 		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
 		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
-		b := Boundaries{st, sp}
+		b := QueryBounds{st, sp}
 		boundedexcl[au] = append(boundedexcl[au], b)
 	}
 
@@ -162,6 +155,13 @@ func SSBuildQueries(s *SearchStruct) {
 
 	prqq := make([]PrerolledQuery, len(alltables)*len(s.SkgSlice))
 	count := 0
+
+	type QueryBuilder struct {
+		SelFrom   string
+		WhrTrm    string
+		WhrIdxInc string
+		WhrIdxExc string
+	}
 
 	for _, au := range alltables {
 		var qb QueryBuilder
@@ -408,9 +408,9 @@ func windowandttprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	return prq
 }
 
-func requiresindextemptable(au string, bb []Boundaries, ss *SearchStruct) string {
+func requiresindextemptable(au string, bb []QueryBounds, ss *SearchStruct) string {
 	const (
-		MSG = "%s requiresindextemptable(): %d []Boundaries"
+		MSG = "%s requiresindextemptable(): %d []QueryBounds"
 		CTT = `
 		CREATE TEMPORARY TABLE %s_includelist_%s AS 
 			SELECT values AS includeindex FROM 
@@ -436,7 +436,7 @@ func requiresindextemptable(au string, bb []Boundaries, ss *SearchStruct) string
 	return ttsq
 }
 
-func andorwhereclause(bounds []Boundaries, templ string, negation string, syntax string) string {
+func andorwhereclause(bounds []QueryBounds, templ string, negation string, syntax string) string {
 	// idxtmpl := `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
 	var in []string
 	for _, v := range bounds {

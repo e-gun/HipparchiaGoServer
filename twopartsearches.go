@@ -50,7 +50,7 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	msg(fmt.Sprintf(MSG1, d, len(first.Results)), MSGPEEK)
 	previous = time.Now()
 
-	second := clonesearch(first, 2)
+	second := CloneSearch(first, 2)
 	second.Seeking = second.Proximate
 	second.LemmaOne = second.LemmaTwo
 	second.Proximate = first.Seeking
@@ -157,7 +157,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	// so the second search is "anything nearby"
 
 	// [a] build the second search
-	second := clonesearch(first, 2)
+	second := CloneSearch(first, 2)
 	sskg := second.Proximate
 	slem := second.LemmaTwo
 	second.Seeking = ""
@@ -223,7 +223,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	for idx, lines := range bundlemapper {
 		var bundle []string
 		for i := 0; i < len(lines); i++ {
-			bundle = append(bundle, columnpicker(first.SrchColumn, lines[i]))
+			bundle = append(bundle, ColumnPicker(first.SrchColumn, lines[i]))
 		}
 		kvp[count] = KVPair{K: idx, V: strings.Join(bundle, " ")}
 		count += 1
