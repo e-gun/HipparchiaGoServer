@@ -201,6 +201,23 @@ func RtVocabMaker(c echo.Context) error {
 			<td class="trans">%s</td>
 		</tr>`
 
+		THHS = `
+		<table>
+		<tr>
+				<th class="vocabtable">word</th>
+				<th class="vocabtable">scansion</th>
+				<th class="vocabtable">count</th>
+				<th class="vocabtable">definitions</th>
+		</tr>`
+
+		TRRS = `
+		<tr>
+			<td class="word"><vocabobserved id="%s">%s</vocabobserved></td>
+			<td class="scansion">%s</td>
+			<td class="count">%d</td>
+			<td class="trans">%s</td>
+		</tr>`
+
 		TCL    = `</table>`
 		MSG1   = "Grabbing the lines... (part 1 of 4)"
 		MSG2   = "Parsing the vocabulary...(part 2 of 4)"
@@ -311,6 +328,8 @@ func RtVocabMaker(c echo.Context) error {
 		vit[parsedwords[i].HW] = parsedwords[i].Trans
 	}
 
+	scansion := arraytogetscansion(StringMapKeysIntoSlice(vit))
+
 	// [f] consolidate the information
 
 	type VocInf struct {
@@ -318,6 +337,7 @@ func RtVocabMaker(c echo.Context) error {
 		C     int
 		TR    string
 		Strip string
+		Metr  string
 	}
 
 	pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
@@ -329,6 +349,7 @@ func RtVocabMaker(c echo.Context) error {
 			C:     v,
 			TR:    polishtrans(vit[k], pat),
 			Strip: strings.Replace(StripaccentsSTR(k), "ϲ", "σ", -1),
+			Metr:  scansion[k],
 		}
 	}
 
@@ -349,10 +370,20 @@ func RtVocabMaker(c echo.Context) error {
 
 	// [g] format
 
+	headtempl := THH
+	if Config.VocabScans {
+		headtempl = THHS
+	}
+
 	trr := make([]string, len(vis)+2)
-	trr[0] = THH
+	trr[0] = headtempl
 	for i, v := range vis {
-		nt := fmt.Sprintf(TRR, v.Wd, v.Wd, v.C, v.TR)
+		var nt string
+		if Config.VocabScans {
+			nt = fmt.Sprintf(TRRS, v.Wd, v.Wd, v.Metr, v.C, v.TR)
+		} else {
+			nt = fmt.Sprintf(TRR, v.Wd, v.Wd, v.C, v.TR)
+		}
 		trr[i+1] = nt
 	}
 	trr[len(trr)-1] = TCL
@@ -732,6 +763,59 @@ func sessionintobulksearch(c echo.Context, lim int) SearchStruct {
 	srch.TableSize = len(srch.Queries)
 	srch = HGoSrch(srch)
 	return srch
+}
+
+// arraytogetscansion - grab all scansions for a slice of words and return as a map
+func arraytogetscansion(wordlist []string) map[string]string {
+	const (
+		TT = `CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words`
+		QT = `SELECT entry_name, metrical_entry FROM %s_dictionary WHERE EXISTS 
+				(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = %s_dictionary.entry_name)`
+	)
+
+	type entryandmeter struct {
+		Entry string
+		Meter string
+	}
+
+	// look for the upper case matches too: Ϲωκράτηϲ and not just ϲωκρατέω (!)
+	uppers := make([]string, len(wordlist))
+	for i := 0; i < len(wordlist); i++ {
+		uppers[i] = strings.Title(wordlist[i])
+	}
+
+	wordlist = append(wordlist, uppers...)
+
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
+
+	foundmetrics := make(map[string]string)
+	var thehit entryandmeter
+
+	foreach := []any{&thehit.Entry, &thehit.Meter}
+
+	rwfnc := func() error {
+		foundmetrics[thehit.Entry] = thehit.Meter
+		return nil
+	}
+
+	// a waste of time to check the language on every word; just flail/fail once
+	for _, uselang := range TheLanguages {
+		u := strings.Replace(uuid.New().String(), "-", "", -1)
+		id := fmt.Sprintf("%s_%s_mw", u, uselang)
+		a := fmt.Sprintf("'%s'", strings.Join(wordlist, "', '"))
+		t := fmt.Sprintf(TT, id, a)
+
+		_, err := dbconn.Exec(context.Background(), t)
+		chke(err)
+
+		foundrows, e := dbconn.Query(context.Background(), fmt.Sprintf(QT, uselang, id, uselang))
+		chke(e)
+
+		_, ee := pgx.ForEachRow(foundrows, foreach, rwfnc)
+		chke(ee)
+	}
+	return foundmetrics
 }
 
 // arraytogetrequiredmorphobjects - map a slice of words to the corresponding DbMorphology

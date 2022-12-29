@@ -109,6 +109,7 @@ type CurrentConfiguration struct {
 	MaxText      int
 	PGLogin      PostgresLogin
 	QuietStart   bool
+	VocabScans   bool
 	WorkerCount  int
 	ZapLunates   bool
 }
@@ -135,6 +136,7 @@ func configatlaunch() {
 	Config.ManualGC = true
 	Config.MaxText = MAXTEXTLINEGENERATION
 	Config.QuietStart = false
+	Config.VocabScans = VOCABSCANSION
 	Config.WorkerCount = runtime.NumCPU()
 	Config.ZapLunates = false
 
@@ -234,6 +236,8 @@ func configatlaunch() {
 			wc, err := strconv.Atoi(args[i+1])
 			chke(err)
 			Config.WorkerCount = wc
+		case "-vs":
+			Config.VocabScans = true
 		case "-zl":
 			Config.ZapLunates = true
 		default:
