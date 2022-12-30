@@ -246,6 +246,7 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	start := time.Now()
+	se := SafeSessionRead(user)
 
 	id := c.Param("id")
 	id = Purgechars(Config.BadChars, id)
@@ -337,7 +338,10 @@ func RtVocabMaker(c echo.Context) error {
 		vit[parsedwords[i].HW] = parsedwords[i].Trans
 	}
 
-	scansion := arraytogetscansion(StringMapKeysIntoSlice(vit))
+	scansion := make(map[string]string)
+	if se.VocScansion {
+		scansion = arraytogetscansion(StringMapKeysIntoSlice(vit))
+	}
 
 	// [f1] consolidate the information
 
@@ -372,7 +376,7 @@ func RtVocabMaker(c echo.Context) error {
 	SafeSearchMapInsert(si)
 
 	// [f2] sort the results
-	if Config.VocabByCt {
+	if se.VocByCount {
 		countDecreasing := func(one, two *VocInf) bool {
 			return one.C > two.C
 		}
@@ -390,7 +394,7 @@ func RtVocabMaker(c echo.Context) error {
 	// [g] format the output
 
 	headtempl := THH
-	if Config.VocabScans {
+	if se.VocScansion {
 		headtempl = THHS
 	}
 
@@ -398,7 +402,7 @@ func RtVocabMaker(c echo.Context) error {
 	trr[0] = headtempl
 	for i, v := range vis {
 		var nt string
-		if Config.VocabScans {
+		if se.VocScansion {
 			nt = fmt.Sprintf(TRRS, v.Wd, v.Wd, v.Metr, v.C, v.TR)
 		} else {
 			nt = fmt.Sprintf(TRR, v.Wd, v.Wd, v.C, v.TR)
@@ -791,10 +795,6 @@ func arraytogetscansion(wordlist []string) map[string]string {
 		QT = `SELECT entry_name, metrical_entry FROM %s_dictionary WHERE EXISTS 
 				(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = %s_dictionary.entry_name)`
 	)
-
-	if !Config.VocabScans {
-		return make(map[string]string)
-	}
 
 	type entryandmeter struct {
 		Entry string

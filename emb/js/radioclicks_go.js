@@ -90,3 +90,15 @@ $('#christiancorpus').change(function() {
     refreshselections();
     loadoptions();
     });
+
+$('#vocbycount').change(function() {
+    if(this.checked) { setoptions('vocbycount', 'yes'); } else { setoptions('vocbycount', 'no'); }
+    refreshselections();
+    loadoptions();
+});
+
+$('#vocscansion').change(function() {
+    if(this.checked) { setoptions('vocscansion', 'yes'); } else { setoptions('vocscansion', 'no'); }
+    refreshselections();
+    loadoptions();
+});

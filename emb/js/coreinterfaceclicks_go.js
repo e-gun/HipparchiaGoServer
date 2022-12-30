@@ -55,6 +55,8 @@ function loadoptions() {
             'tensorflowgraph': $('#tensorflowgraph'),
             'topicmodel': $('#topicmodel'),
             'varia': $('#includevaria'),
+            'vocbycount': $('#vocbycount'),
+            'vocscansion': $('#vocscansion'),
             'zaplunates': $('#zaplunates'),
             'zapvees': $('#zapvees'),
         };

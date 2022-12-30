@@ -30,6 +30,8 @@ type ServerSession struct {
 	OneHit      bool   `json:"onehit"`
 	HeadwordIdx bool   `json:"headwordindexing"`
 	FrqIdx      bool   `json:"indexbyfrequency"`
+	VocByCount  bool   `json:"vocbycount"`
+	VocScansion bool   `json:"vocscansion"`
 	NearOrNot   string `json:"nearornot"`
 	SearchScope string `json:"searchscope"`
 	SortHitsBy  string `json:"sortorder"`
@@ -90,6 +92,8 @@ func MakeDefaultSession(id string) ServerSession {
 	s.SearchScope = DEFAULTPROXIMITYSCOPE
 	s.Proximity = DEFAULTPROXIMITY
 	s.LoginName = "Anonymous"
+	s.VocScansion = Config.VocabScans
+	s.VocByCount = Config.VocabByCt
 
 	// readUUIDCookie() called this function, and it already holds a lock
 	if Config.Authenticate {

@@ -32,7 +32,8 @@ func RtSetOption(c echo.Context) error {
 	val := parsed[1]
 
 	ynoptionlist := []string{"greekcorpus", "latincorpus", "papyruscorpus", "inscriptioncorpus", "christiancorpus",
-		"rawinputstyle", "onehit", "headwordindexing", "indexbyfrequency", "spuria", "incerta", "varia"}
+		"rawinputstyle", "onehit", "headwordindexing", "indexbyfrequency", "spuria", "incerta", "varia", "vocbycount",
+		"vocscansion"}
 
 	s := SafeSessionRead(user)
 
@@ -70,6 +71,10 @@ func RtSetOption(c echo.Context) error {
 				s.IncertaOK = b
 			case "varia":
 				s.VariaOK = b
+			case "vocbycount":
+				s.VocByCount = b
+			case "vocscansion":
+				s.VocScansion = b
 			default:
 				msg(FAIL2, MSGWARN)
 			}

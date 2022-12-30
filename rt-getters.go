@@ -54,6 +54,8 @@ func RtGetJSSession(c echo.Context) error {
 		Sortorder         string `json:"sortorder"`
 		Spuria            string `json:"spuria"`
 		Varia             string `json:"varia"`
+		VocByCount        string `json:"vocbycount"`
+		VocScansion       string `json:"vocscansion"`
 	}
 
 	t2y := func(b bool) string {
@@ -87,6 +89,8 @@ func RtGetJSSession(c echo.Context) error {
 	jso.Sortorder = s.SortHitsBy
 	jso.Spuria = t2y(s.SpuriaOK)
 	jso.Varia = t2y(s.VariaOK)
+	jso.VocByCount = t2y(s.VocByCount)
+	jso.VocScansion = t2y(s.VocScansion)
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
