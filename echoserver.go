@@ -17,7 +17,8 @@ func StartEchoServer() {
 	// cf https://medium.com/cuddle-ai/building-microservice-using-golang-echo-framework-ff10ba06d508
 
 	const (
-		LOGFMT = "r: ${status}\tt: ${latency_human}\tu: ${uri}\n"
+		LLOGFMT = "r: ${status}\tt: ${latency_human}\tu: ${uri}\n"
+		RLOGFMT = "i: ${remote_ip}\t r: ${status}\tt: ${latency_human}\tu: ${uri}\n"
 	)
 
 	//
@@ -32,10 +33,12 @@ func StartEchoServer() {
 		e.Server.WriteTimeout = TIMEOUTWR
 	}
 
-	if Config.EchoLog == 2 {
+	if Config.EchoLog == 3 {
 		e.Use(middleware.Logger())
+	} else if Config.EchoLog == 2 {
+		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: RLOGFMT}))
 	} else if Config.EchoLog == 1 {
-		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: LOGFMT}))
+		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: LLOGFMT}))
 	}
 
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(MAXECHOREQPERSECONDPERIP)))
