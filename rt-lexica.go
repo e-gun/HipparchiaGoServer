@@ -22,9 +22,10 @@ import (
 )
 
 var (
-	// regex compiled here instead of inside of various loops
-	isGreek       = regexp.MustCompile("[α-ωϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ]")
-	quantityfixer = strings.NewReplacer("ă_", "ā̆", "ā^", "ā̆", "ē^", "ē̆", "ĭ_", "ī̆", "ō^", "ō̆", "A_^", "Ā̆", "A^", "Ă", "A_", "Ā", "E_", "Ē", "E^", "Ĕ", "I_^", "Ī̆", "I_", "Ī", "I^", "Ĭ", "O_", "Ō", "O^", "Ŏ", "U^", "Ŭ", "U_", "Ū")
+	// isGreek regex compiled here instead of inside of various loops
+	isGreek = regexp.MustCompile("[α-ωϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ]")
+	// quantityfixer = strings.NewReplacer("ă_", "ā̆", "ā^", "ā̆", "ē^", "ē̆", "ĭ_", "ī̆", "ō^", "ō̆", "A_^", "Ā̆", "A^", "Ă", "A_", "Ā", "E_", "Ē", "E^", "Ĕ", "I_^", "Ī̆", "I_", "Ī", "I^", "Ĭ", "O_", "Ō", "O^", "Ŏ", "U^", "Ŭ", "U_", "Ū", "_^", "̆̄", "_", "̄", "^", "̆")
+	quantityfixer = strings.NewReplacer("_^", "̄̆", "_", "̄", "^", "̆")
 )
 
 // hipparchiaDB-# \d latin_morphology
@@ -848,7 +849,7 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	var met string
 	if w.Metrical != "" {
-		met = fmt.Sprintf("[%s]", w.Metrical)
+		met = fmt.Sprintf("[%s]", quantityfixer.Replace(w.Metrical))
 	}
 
 	elem = append(elem, fmt.Sprintf(HEADTEMPL, w.Word, w.ID, w.Word, w.ID, w.Word, met))
