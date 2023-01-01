@@ -124,8 +124,6 @@ const (
    -ti {num}    maximum # of lines that text/index/vocab maker will ingest [default: %d]
    -ui {string} unacceptable input characters [default: %s]
    -v           print version and exit
-   -vc          new session will default to sorting vocabulary lists in descending order by headword count
-   -vs          new session will default to add scansion info to vocabulary lists: "abstĭnĕo", etc.
    -wc {int}    number of workers [default: cpu_count (%d)]
    -zl          zap lunate sigmas and replace them with σ/ς
 

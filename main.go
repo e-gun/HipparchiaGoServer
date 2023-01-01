@@ -238,10 +238,6 @@ func configatlaunch() {
 			wc, err := strconv.Atoi(args[i+1])
 			chke(err)
 			Config.WorkerCount = wc
-		case "-vc":
-			Config.VocabByCt = true
-		case "-vs":
-			Config.VocabScans = true
 		case "-zl":
 			Config.ZapLunates = true
 		default:
