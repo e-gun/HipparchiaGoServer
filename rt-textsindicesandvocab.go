@@ -361,7 +361,7 @@ func RtVocabMaker(c echo.Context) error {
 			C:     v,
 			TR:    polishtrans(vit[k], pat),
 			Strip: strings.Replace(StripaccentsSTR(k), "ϲ", "σ", -1),
-			Metr:  m,
+			Metr:  quantityfixer.Replace(m),
 		}
 	}
 
