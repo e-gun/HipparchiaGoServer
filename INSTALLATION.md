@@ -6,11 +6,11 @@
 
 ## Installing HipparchiaGoServer
 
-- first install and configure `PostgreSQL`
-- next load `hipparchiaDB` into `PostgreSQL`
-- next acquire a binary for `HipparchiaGoServer`
+1. first install and configure `PostgreSQL`
+1. next load `hipparchiaDB` into `PostgreSQL`
+1. next acquire a binary for `HipparchiaGoServer`
 
-## Installing and configuring PostgreSQL 
+### 1. Installing and configuring PostgreSQL 
 
 - various platforms have various installation options
   - mac: look **below** for one of the two chief options; come back here when done
@@ -28,7 +28,7 @@
 
 ![psql](gitimg/postreslogin.png)
 
-## loading hipparchiaDB into PostgreSQL
+### 2. loading hipparchiaDB into PostgreSQL
 
 find the folder with the archive
 open a terminal at that location (you can drag the folder onto `Terminal.app` or `cd` to it)
@@ -55,7 +55,7 @@ an uncompressed archive is c. `3.6GB`. A compressed archive is c. `1.9GB`.
 
 Dumping and restoring are both **slow**. 
 
-## Acquiring and running HipparchiaGoServer
+### 3. Acquiring and running HipparchiaGoServer
 
 - a binary can either be downloaded or built
   - builders will need to clone the source code in this archive and then compile it
@@ -78,8 +78,9 @@ Dumping and restoring are both **slow**.
 - the little `gear icon` at the top right corner will let you adjust settings
 
 ---
+## additional notes
 
-### mac PostgreSQL installation via homebrew (best option)
+### [a1] mac PostgreSQL installation via homebrew (best option)
 
 - on a mac `homebrew`: [https://docs.brew.sh/Installation](https://docs.brew.sh/Installation)
 - you will be installing `Xcode` from apple first; then you can get `homebrew`; then you can ask for `postgresql`
@@ -92,7 +93,7 @@ Dumping and restoring are both **slow**.
 - you might have to `reboot` to get `postgresql` to in fact load: you might as well do it now...
 - return to the instructions above
 
-### mac PostgreSQL installation via postgressapp (slightly easier at first; after that noticeably worse)
+### [a2] mac PostgreSQL installation via postgressapp (slightly easier at first; after that noticeably worse)
 
 - on a mac [https://postgresapp.com/](https://postgresapp.com/) is another possibility: download and install
 - make sure to do **step 3**: `sudo mkdir -p /etc/paths.d &&
@@ -102,7 +103,7 @@ Dumping and restoring are both **slow**.
   - it does not look like `postgress.app` will give you PSQL with trigram indices. Searching will be slower.
   - `postgress.app` will need to be started/stopped manually vs homebrew which will always launch the database on system start
 
-### mac PostgreSQL installation via EDB (not recommended)
+### [a3] mac PostgreSQL installation via EDB (not recommended)
 
 - this definitely works, but you will have problems executing the simple steps above
 - basically, if you do this you need to be ready to figure out how to get your shell to find `pg_restore`: it will be available, but where...?
@@ -110,7 +111,7 @@ Dumping and restoring are both **slow**.
 
 ---
 
-### windows advice
+### [b] windows advice
 
 you should alias `psql` and `pg_restore` in your shell:
 
@@ -122,7 +123,7 @@ After this you can execute the command to load...
 
 ---
 
-### troubleshooting: mac postgresql fails to launch
+### [c] troubleshooting: mac postgresql fails to launch
 
 An empty file created when postgresql launches. It says, effectively, "I am running". 
 It is deleted when postgresql stops. 
