@@ -203,12 +203,9 @@ func SetSubtraction[T comparable](aa []T, bb []T) []T {
 	}
 
 	result := make([]T, 0, len(remain))
-	count := 0
 	for r := range remain {
-		result[count] = r
-		count += 1
+		result = append(result, r)
 	}
-
 	return result
 }
 
