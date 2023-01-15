@@ -1,6 +1,6 @@
 # HipparchiaGoServer
 
-### STATUS (`v1.0.11`):
+### STATUS (`v1.0.13`):
 
 * 25%-700% faster than HipparchiaServer depending on the function. Uses c. 60% as much RAM.
 * monolithic binary: no need for extra files/folders beyond setting a password in `hgs-conf.json`
@@ -19,11 +19,7 @@
 * vocabulary list generation
 * morphology tables
 
-### TODO (in vague order of priority)
-
-* room to improve result highlighting
-
-### DISTANT FANTASIES
+### SOME DAY
 
 * vectors
 
@@ -44,13 +40,13 @@
       30 unique files.                              
        0 files ignored.
 
-github.com/AlDanial/cloc v 1.96  T=0.03 s (960.4 files/s, 387851.6 lines/s)
+github.com/AlDanial/cloc v 1.96  T=0.03 s (1003.9 files/s, 405299.1 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                              30           1824           1698           8593
+Go                              30           1823           1698           8591
 -------------------------------------------------------------------------------
-SUM:                            30           1824           1698           8593
+SUM:                            30           1823           1698           8591
 -------------------------------------------------------------------------------
 
 ```

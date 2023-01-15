@@ -13,6 +13,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -209,7 +210,8 @@ func configatlaunch() {
 			Config.Gzip = true
 		case "-h":
 			printversion()
-			fmt.Println(fmt.Sprintf(HELPTEXT, pwf, DEFAULTBROWSERCTX, CONFIGLOCATION, CONFIGBASIC, h, CONFIGBASIC,
+			ht := coloroutput(HELPTEXT)
+			fmt.Println(fmt.Sprintf(ht, pwf, DEFAULTBROWSERCTX, CONFIGLOCATION, CONFIGBASIC, h, CONFIGBASIC,
 				DEFAULTECHOLOGLEVEL, DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT, MAXTEXTLINEGENERATION,
 				UNACCEPTABLEINPUT, runtime.NumCPU(), CONFIGPROLIX, h, PROJURL))
 			os.Exit(1)
@@ -358,6 +360,23 @@ func BuildUserPassPairs() {
 		msg(FAIL2, MSGCRIT)
 		os.Exit(1)
 	}
+}
+
+func coloroutput(s string) string {
+	if runtime.GOOS != "windows" {
+		s = strings.ReplaceAll(s, "C1", YELLOW1)
+		s = strings.ReplaceAll(s, "C2", CYAN2)
+		s = strings.ReplaceAll(s, "C3", BLUE1)
+		s = strings.ReplaceAll(s, "C4", GREEN)
+		s = strings.ReplaceAll(s, "C0", RESET)
+	} else {
+		s = strings.ReplaceAll(s, "C1", "")
+		s = strings.ReplaceAll(s, "C2", "")
+		s = strings.ReplaceAll(s, "C3", "")
+		s = strings.ReplaceAll(s, "C4", "")
+		s = strings.ReplaceAll(s, "C0", "")
+	}
+	return s
 }
 
 func printversion() {
