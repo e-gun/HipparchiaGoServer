@@ -335,7 +335,25 @@ $('#moretools').click(function(){ $('#lexica').toggle(); });
 $('#alt_moretools').click(function(){ $('#lexica').toggle(); });
 $('#vectoralt_moretools').click(function(){ $('#lexica').toggle(); });
 
+//
+// LEXICAL SEARCHES
+//
+
+// if you press "enter" when the cursor is in one of these boxes, execute a lookup
+document.getElementById('lexicon').addEventListener('keydown', lookupifenterkeypressed);
+document.getElementById('reverselexicon').addEventListener('keydown', lookupifenterkeypressed);
+
+function lookupifenterkeypressed(e) {
+    if (e.code === "Enter") {
+        lexsrch();
+    }
+}
+
 $('#lexicalsearch').click(function(){
+    lexsrch();
+});
+
+function lexsrch() {
     // note that modifications to this script should be kept in sync with dictionaryentryjs() in jsformatting.py
     let dictterm = $('#lexicon').val();
     let restoreme = dictterm;
@@ -391,13 +409,13 @@ $('#lexicalsearch').click(function(){
             draggable: true,
             icons: { primary: 'ui-icon-close' },
             click: function() { $( this ).dialog( 'close' ); }
-            });
-            ldt.dialog( 'open' );
-            ldt.html(definitionreturned['newhtml']);
-            jshld.html(definitionreturned['newjs']);
-            $(mydictfield).val(restoreme);
         });
+        ldt.dialog( 'open' );
+        ldt.html(definitionreturned['newhtml']);
+        jshld.html(definitionreturned['newjs']);
+        $(mydictfield).val(restoreme);
     });
+}
 
 ///
 /// selectmenu
