@@ -48,8 +48,23 @@ $(document).ready( function () {
 //
 // SEARCHING
 //
+    // if you press "enter" when the cursor is in one of these boxes, execute a search
+    document.getElementById('wordsearchform').addEventListener('keydown', searchifenterkeypressed);
+    document.getElementById('proximatesearchform').addEventListener('keydown', searchifenterkeypressed);
+    document.getElementById('lemmatasearchform').addEventListener('keydown', searchifenterkeypressed);
+    document.getElementById('proximatelemmatasearchform').addEventListener('keydown', searchifenterkeypressed);
 
-    $('#executesearch').click( function(){
+    function searchifenterkeypressed(e) {
+        if (e.code === "Enter") {
+            srch();
+        }
+    }
+
+    $('#executesearch').click( function() {
+        srch();
+    });
+
+    function srch() {
         $('#imagearea').empty();
         $('#searchsummary').html('');
         $('#displayresults').html('');
@@ -94,7 +109,7 @@ $(document).ready( function () {
 
         checkactivityviawebsocket(searchid);
         $.getJSON(url, function (returnedresults) { loadsearchresultsintodisplayresults(returnedresults); });
-    });
+    }
 
     function loadsearchresultsintodisplayresults(output) {
         document.title = output['title'];
@@ -247,7 +262,7 @@ function checkactivityviawebsocket(searchid) {
 //
 
 
-$.getJSON('/authentication/checkuser', function(data){
+$.getJSON('/auth/check', function(data){
     var u = data['userid'];
     var a = Boolean(data['authorized']);
     $('#userid').html(u);
@@ -267,7 +282,7 @@ $('#executelogin').click( function() {
 });
 
 $('#executelogout').click( function() {
-    $.getJSON('/authentication/logout', function(data){
+    $.getJSON('/auth/logout', function(data){
         $('#userid').html(data);
     });
     $('#executelogout').hide();

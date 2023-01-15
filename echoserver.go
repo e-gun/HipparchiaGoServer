@@ -57,9 +57,9 @@ func StartEchoServer() {
 	// [a] authentication ("rt-authentication.go")
 	//
 
-	e.POST("/authentication/attemptlogin", RtAuthLogin)
-	e.GET("/authentication/logout", RtAuthLogout)
-	e.GET("/authentication/checkuser", RtAuthChkuser)
+	e.POST("/auth/login", RtAuthLogin)
+	e.GET("/auth/logout", RtAuthLogout)
+	e.GET("/auth/check", RtAuthChkuser)
 
 	//
 	// [b] browser ("rt-browsing.go")

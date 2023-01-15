@@ -10,7 +10,7 @@ import "time"
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.0.12"
+	VERSION                  = "1.0.13b"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	CONFIGLOCATION           = "."
 	CONFIGALTAPTH            = "%s/.config/" // %s = os.UserHomeDir()
@@ -327,7 +327,7 @@ const (
         <span id="alertarea"></span>
     </div>
     <div id="validateusers" class="center unobtrusive ui-dialog-content ui-widget-content" title="Please log in...">
-        <form id="hipparchiauserlogin" method="POST" action="/authentication/attemptlogin">
+        <form id="hipparchiauserlogin" method="POST" action="/auth/login">
             <input id="user" name="user" placeholder="[username]" required="" size="12" type="text" value="">
             <input id="pw" name="pw" placeholder="[password]" required="" size="12" type="password" value="">
             <p class="center"><input type="submit" name="login" value="Login"></p>
