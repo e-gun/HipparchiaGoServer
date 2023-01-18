@@ -10,8 +10,9 @@ import "time"
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.0.13"
+	VERSION                  = "1.0.14"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
+	BLACKANDWHITE            = false
 	CONFIGLOCATION           = "."
 	CONFIGALTAPTH            = "%s/.config/" // %s = os.UserHomeDir()
 	CONFIGAUTH               = "hgs-users.json"
@@ -105,26 +106,28 @@ const (
 	PROJURL  = "https://github.com/e-gun/HipparchiaGoServer"
 
 	HELPTEXT = `command line options:
-   C1-acC0 C2{string}C0 set corpora active on startup and reset (*)
+   C1-acC0 C2{string}C0 set corpora active on startup and reset C4(*)C0
    C1-auC0          require authentication 
-                   also implies "C3%sC0" exists and has been properly configured (**)
+                   also implies "C3%sC0" exists and has been properly configured C4(**)C0
    C1-bcC0 C2{num}C0    default lines of browser context to display [current: C3%dC0]
+   C1-bwC0          disable color output in the console
    C1-cfC0 C2{file}C0   read PSQL password from file [default: looks for "C3%s/%sC0" and "C3%s%sC0"]
    C1-dbC0          debug database: show internal references in browsed passages
-   C1-elC0 C2{num}C0    set echo server log level (0-3) [default: C3%dC0]
-   C1-ftC0 C2{string}C0 force a client-side font instead of serving Noto fonts
-                   names with spaces need quotes: "Gentium Plus Compact"
-   C1-glC0 C2{num}C0    set golang log level (0-5) [default: C3%dC0]
+   C1-elC0 C2{num}C0    set echo server log level (C10-3C0) [default: C3%dC0]
+   C1-ftC0 C2{string}C0 force a client-side font instead of serving a font [default: C3NotoSansC0]
+                   names with spaces need quotes around them: "C4Gentium Plus CompactC0"
+   C1-glC0 C2{num}C0    set golang log level (C10-5C0) [default: C3%dC0]
    C1-gzC0          enable gzip compression of the server's output
    C1-hC0           print this help information
-   C1-pgC0 C2{string}C0 supply full PostgreSQL credentials (†)
+   C1-pgC0 C2{string}C0 supply full PostgreSQL credentials C4(†)C0
    C1-qC0           quiet startup: suppress copyright notice
    C1-saC0 C2{string}C0 server IP address [default: "C3%sC0"]
    C1-spC0 C2{num}C0    server port [default: C3%dC0]
    C1-tiC0 C2{num}C0    maximum # of lines that text/index/vocab maker will ingest [default: C3%dC0]
    C1-uiC0 C2{string}C0 unacceptable input characters [default: C3%sC0]
-   C1-vC0           print version and exit
-   C1-wcC0 C2{int}C0    number of workers [default: cpu_count (C3%dC0)]
+   C1-vC0           print full version info and exit
+   C1-vvC0          print short version info and exit
+   C1-wcC0 C2{int}C0    number of workers [default: C1cpu_countC0 (C3%dC0)]
    C1-zlC0          zap lunate sigmas and replace them with σ/ς
 
      (*) example: 
@@ -138,7 +141,7 @@ const (
      
      NB: place a properly formatted version of 'C3%sC0' in 'C3%sC0' 
          if you want to avoid constantly setting multiple options. 
-         See 'sample_hgs-prolix-conf.json' as well as other sample configuration files at
+         See 'C3sample_hgs-prolix-conf.jsonC0' as well as other sample configuration files at
              %s
 `
 	LEXFINDJS = `

@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"runtime"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -78,14 +79,25 @@ func msg(message string, threshold int) {
 		color = WHITE
 	}
 
-	switch runtime.GOOS {
-	case "windows":
+	if runtime.GOOS != "windows" && !Config.BlackAndWhite {
+		fmt.Printf("[%s%s%s] %s%s%s\n", YELLOW1, SHORTNAME, RESET, color, message, RESET)
+	} else {
 		// terminal color codes not w's friend
 		fmt.Printf("[%s] %s\n", SHORTNAME, message)
-	default:
-		fmt.Printf("[%s%s%s] %s%s%s\n", YELLOW1, SHORTNAME, RESET, color, message, RESET)
 	}
+}
 
+// coloroutput - colorize output via a collection of escape substitutions; quick and dirty; not especially robust
+func coloroutput(tagged string) string {
+	// "[git: C4%sC0]" ==> green text for the %s
+	swap := strings.NewReplacer("C1", "", "C2", "", "C3", "", "C4", "", "C5", "", "C6", "", "C0", "")
+
+	if runtime.GOOS != "windows" && !Config.BlackAndWhite {
+		swap = strings.NewReplacer("C1", YELLOW1, "C2", CYAN2, "C3", BLUE1, "C4", GREEN, "C5", RED2,
+			"C6", GREY3, "C0", RESET)
+	}
+	tagged = swap.Replace(tagged)
+	return tagged
 }
 
 // TimeTracker - report time elapsed since last checkpoint

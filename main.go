@@ -13,7 +13,6 @@ import (
 	"os"
 	"runtime"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -37,6 +36,7 @@ func main() {
 	)
 	launch := time.Now()
 	configatlaunch()
+
 	printversion()
 
 	if !Config.QuietStart {
@@ -95,25 +95,26 @@ func main() {
 }
 
 type CurrentConfiguration struct {
-	Authenticate bool
-	BadChars     string
-	BrowserCtx   int
-	DbDebug      bool
-	DefCorp      map[string]bool
-	EchoLog      int // "none", "terse", "verbose"
-	Font         string
-	Gzip         bool
-	HostIP       string
-	HostPort     int
-	LogLevel     int
-	ManualGC     bool // see GCStats()
-	MaxText      int
-	PGLogin      PostgresLogin
-	QuietStart   bool
-	VocabByCt    bool
-	VocabScans   bool
-	WorkerCount  int
-	ZapLunates   bool
+	Authenticate  bool
+	BadChars      string
+	BlackAndWhite bool
+	BrowserCtx    int
+	DbDebug       bool
+	DefCorp       map[string]bool
+	EchoLog       int // "none", "terse", "verbose"
+	Font          string
+	Gzip          bool
+	HostIP        string
+	HostPort      int
+	LogLevel      int
+	ManualGC      bool // see GCStats()
+	MaxText       int
+	PGLogin       PostgresLogin
+	QuietStart    bool
+	VocabByCt     bool
+	VocabScans    bool
+	WorkerCount   int
+	ZapLunates    bool
 }
 
 // configatlaunch - read the configuration values from JSON and/or command line
@@ -129,6 +130,7 @@ func configatlaunch() {
 
 	Config.Authenticate = false
 	Config.BadChars = UNACCEPTABLEINPUT
+	Config.BlackAndWhite = BLACKANDWHITE
 	Config.BrowserCtx = DEFAULTBROWSERCTX
 	Config.DbDebug = false
 	Config.Font = FONTSETTING
@@ -142,7 +144,6 @@ func configatlaunch() {
 	Config.VocabScans = VOCABSCANSION
 	Config.WorkerCount = runtime.NumCPU()
 	Config.ZapLunates = false
-
 	e := json.Unmarshal([]byte(DEFAULTCORPORA), &Config.DefCorp)
 	chke(e)
 
@@ -181,6 +182,9 @@ func configatlaunch() {
 		case "-v":
 			printversion()
 			os.Exit(1)
+		case "-vv":
+			fmt.Println(VERSION)
+			os.Exit(1)
 		case "-ac":
 			err := json.Unmarshal([]byte(args[i+1]), &Config.DefCorp)
 			if err != nil {
@@ -192,6 +196,8 @@ func configatlaunch() {
 			bc, err := strconv.Atoi(args[i+1])
 			chke(err)
 			Config.BrowserCtx = bc
+		case "-bw":
+			Config.BlackAndWhite = false
 		case "-cf":
 			cf = args[i+1]
 		case "-db":
@@ -362,26 +368,18 @@ func BuildUserPassPairs() {
 	}
 }
 
-func coloroutput(s string) string {
-	if runtime.GOOS != "windows" {
-		s = strings.ReplaceAll(s, "C1", YELLOW1)
-		s = strings.ReplaceAll(s, "C2", CYAN2)
-		s = strings.ReplaceAll(s, "C3", BLUE1)
-		s = strings.ReplaceAll(s, "C4", GREEN)
-		s = strings.ReplaceAll(s, "C0", RESET)
-	} else {
-		s = strings.ReplaceAll(s, "C1", "")
-		s = strings.ReplaceAll(s, "C2", "")
-		s = strings.ReplaceAll(s, "C3", "")
-		s = strings.ReplaceAll(s, "C4", "")
-		s = strings.ReplaceAll(s, "C0", "")
-	}
-	return s
-}
+// GitCommit should be injected at build time: 'go build -ldflags "-X main.GitCommit=$GIT_COMMIT"'
+var GitCommit string
 
 func printversion() {
-	ll := fmt.Sprintf(" [gl=%d; el=%d]", Config.LogLevel, Config.EchoLog)
-	versioninfo := fmt.Sprintf("%s (v%s)", MYNAME, VERSION)
-	versioninfo = versioninfo + ll
-	msg(versioninfo, MSGCRIT)
+	sn := fmt.Sprintf("[C1%sC0] ", SHORTNAME)
+	gc := ""
+	if GitCommit != "" {
+		gc = fmt.Sprintf(" [C4git: %sC0]", GitCommit)
+	}
+	ll := fmt.Sprintf(" [C6gl=%d; el=%dC0]", Config.LogLevel, Config.EchoLog)
+	versioninfo := fmt.Sprintf("C5%sC0 (C2v%sC0)", MYNAME, VERSION)
+	versioninfo = sn + versioninfo + gc + ll
+	versioninfo = coloroutput(versioninfo)
+	fmt.Println(versioninfo)
 }

@@ -1,9 +1,10 @@
 #!/bin/sh
 
-go build -ldflags "-s -w"
+GC=$(git rev-list -1 HEAD | cut -c-8)
+go build -ldflags "-s -w -X main.GitCommit=$GC"
 P="HipparchiaGoServer"
 
-V=$(./${P} -v | cut -d" " -f 5 | cut -d "(" -f 2 | cut -d ")" -f 1)
+V=$(./${P} -vv)
 U=$(uname)
 A=$(uname -p)
 U="${U}-${A}"
