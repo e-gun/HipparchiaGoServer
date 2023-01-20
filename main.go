@@ -181,6 +181,7 @@ func configatlaunch() {
 		switch a {
 		case "-v":
 			printversion()
+			printbuidldate()
 			os.Exit(1)
 		case "-vv":
 			fmt.Println(VERSION)
@@ -197,7 +198,7 @@ func configatlaunch() {
 			chke(err)
 			Config.BrowserCtx = bc
 		case "-bw":
-			Config.BlackAndWhite = false
+			Config.BlackAndWhite = true
 		case "-cf":
 			cf = args[i+1]
 		case "-db":
@@ -382,4 +383,14 @@ func printversion() {
 	versioninfo = sn + versioninfo + gc + ll
 	versioninfo = coloroutput(versioninfo)
 	fmt.Println(versioninfo)
+}
+
+// BuildDate should be injected at build time
+var BuildDate string
+
+func printbuidldate() {
+	if BuildDate != "" {
+		bd := coloroutput(fmt.Sprintf("Built: C4%sC0", BuildDate))
+		fmt.Println(bd)
+	}
 }

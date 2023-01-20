@@ -35,6 +35,7 @@ func RtFrontpage(c echo.Context) error {
 
 	subs := map[string]interface{}{
 		"version":       VERSION,
+		"longver":       fmt.Sprintf("Version: %s [git: %s]", VERSION, GitCommit),
 		"authhtm":       ahtm,
 		"env":           env,
 		"user":          "Anonymous",

@@ -58,28 +58,27 @@ func msg(message string, threshold int) {
 		return
 	}
 
-	var color string
-
-	switch threshold {
-	case MSGMAND:
-		color = GREEN
-	case MSGCRIT:
-		color = RED2
-	case MSGWARN:
-		color = YELLOW1
-	case MSGNOTE:
-		color = YELLOW2
-	case MSGFYI:
-		color = CYAN2
-	case MSGPEEK:
-		color = BLUE2
-	case MSGTMI:
-		color = GREY3
-	default:
-		color = WHITE
-	}
-
 	if runtime.GOOS != "windows" && !Config.BlackAndWhite {
+		var color string
+
+		switch threshold {
+		case MSGMAND:
+			color = GREEN
+		case MSGCRIT:
+			color = RED2
+		case MSGWARN:
+			color = YELLOW1
+		case MSGNOTE:
+			color = YELLOW2
+		case MSGFYI:
+			color = CYAN2
+		case MSGPEEK:
+			color = BLUE2
+		case MSGTMI:
+			color = GREY3
+		default:
+			color = WHITE
+		}
 		fmt.Printf("[%s%s%s] %s%s%s\n", YELLOW1, SHORTNAME, RESET, color, message, RESET)
 	} else {
 		// terminal color codes not w's friend

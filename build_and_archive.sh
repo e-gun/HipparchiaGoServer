@@ -1,7 +1,8 @@
 #!/bin/sh
 
+DT=$(date "+%Y-%m-%d@%H:%M:%S")
 GC=$(git rev-list -1 HEAD | cut -c-8)
-go build -ldflags "-s -w -X main.GitCommit=$GC"
+go build -ldflags "-s -w -X main.GitCommit=${GC} -X main.BuildDate=${DT}"
 P="HipparchiaGoServer"
 
 V=$(./${P} -vv)
