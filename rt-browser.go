@@ -91,7 +91,8 @@ func RtBrowseline(c echo.Context) error {
 func Browse(c echo.Context, sep string) BrowsedPassage {
 	// sample input: http://localhost:8000//browse/perseus/lt0550/001/2:717
 	const (
-		FAIL = "Browse() could not parse %s"
+		FAIL  = "Browse() could not parse %s"
+		FIRST = "_firstwork"
 	)
 
 	user := readUUIDCookie(c)
@@ -106,11 +107,16 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 	if len(elem) == 3 {
 		au := elem[0]
 		wk := elem[1]
+
+		if wk == FIRST {
+			wk = AllWorks[AllAuthors[au].WorkList[0]].WkID()
+		}
 		uid := au + "w" + wk
 
 		// findendpointsfromlocus() lives in rt-selection.go
 		ln := findendpointsfromlocus(uid, elem[2], sep)
 		ctx := s.BrowseCtx
+
 		return generatebrowsedpassage(au, wk, ln[0], ctx)
 	} else {
 		msg(fmt.Sprintf(FAIL, locus), MSGFYI)
