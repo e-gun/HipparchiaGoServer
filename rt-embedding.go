@@ -37,6 +37,10 @@ func RtEmbJQuery(c echo.Context) error {
 	return pathembedder(c, EJQ)
 }
 
+func RtEmbJQueryImg(c echo.Context) error {
+	return pathembedder(c, EJQI)
+}
+
 func RtEmbJS(c echo.Context) error {
 	return pathembedder(c, EJS)
 }
@@ -66,10 +70,6 @@ func RtEmbHCSS(c echo.Context) error {
 
 	c.Response().Header().Add("Content-Type", "text/css")
 	return c.String(http.StatusOK, b.String())
-}
-
-func RtEmbJQueryImg(c echo.Context) error {
-	return pathembedder(c, EJQI)
 }
 
 func RtEmbTTF(c echo.Context) error {

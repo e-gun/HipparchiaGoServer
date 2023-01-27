@@ -115,6 +115,49 @@
 	src: url('/emb/ttf/NotoSans-BoldItalic.ttf') format('truetype');
 	}
 
+@font-face {
+	font-family: 'Material Icons';
+	font-style: normal;
+	font-weight: 400;
+	src: local('Material Icons'),
+	local('MaterialIcons-Regular'),
+	url(/emb/ttf/MaterialIcons-Regular.ttf) format('truetype');
+}
+
+.material-icons {
+	font-family: 'Material Icons';
+	font-weight: normal;
+	font-style: normal;
+	font-size: 100%;
+	display: inline-block;
+	line-height: 1;
+	text-transform: none;
+	letter-spacing: normal;
+	word-wrap: normal;
+	white-space: nowrap;
+	direction: ltr;
+	/* Support for all WebKit browsers. */
+	-webkit-font-smoothing: antialiased;
+	/* Support for Safari and Chrome. */
+	text-rendering: optimizeLegibility;
+	/* Support for Firefox. */
+	-moz-osx-font-smoothing: grayscale;
+	/* Support for IE. */
+	font-feature-settings: 'liga';
+}
+
+.material-icons.md-mid { color: rgba(0, 0, 0, 0.54); }
+.material-icons.md-mid:hover{
+	color: var(--brtblue);
+	text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
+.material-icons.md-mid.ui { font-size: 80%; }
+.material-icons.md-mid.ui:hover{
+	color: var(--brtblue);
+	text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
 body {
 	background-color: var(--main-body-color);
 	margin: 10px 10px 10px 10px;
@@ -1233,6 +1276,17 @@ browser {
 	font-size: 110%;
 	color: var(--brtblue);
 	}
+
+button {
+	box-shadow: 2px 2px 2px var(--transparentgrey);
+	padding: 4px 4px;
+	text-align: center;
+}
+
+button:hover {
+	color: var(--brtblue);
+	text-shadow: 1px 1px 3px var(--transparentgrey);
+}
 
 caption {
 	font-size: 120%;

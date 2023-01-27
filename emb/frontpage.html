@@ -23,12 +23,11 @@
     Environment: {{index . "env"}}
 
 -->
-
-    <div id="setoptionsnavigator" class="sidenavigation">
+<div id="setoptionsnavigator" class="sidenavigation">
     <div id="alt_upperleftbuttons">
-        <span id="closeoptionsbutton" class="ui-icon ui-icon-gear" title="Configuration options"></span>
-        <span id="alt_moretools" title="Lexical tools" class="ui-icon ui-icon-wrench"></span>
-        <span id="alt_clear_button" class="ui-icon ui-icon-close" title="Reset session/Clear search"></span>
+        <span id="closeoptionsbutton" title="Configuration options"><span class="material-icons md-mid">settings</span></span>
+        <span id="alt_moretools" title="Lexical tools"><span class="material-icons md-mid">handyman</span></span>
+        <span id="alt_clear_button" title="Reset session/Clear search"><span class="material-icons md-mid">cancel</span></span>
     </div>
     <br />
     <p class="optionlabel">Corpora to search</p>
@@ -43,9 +42,9 @@
     <p class="optionlabel">Input style for passages to search</p>
     <p class="optionitem">
         <label for="autofillinput">autofill
-        <input name="rawinputstyle" id="autofillinput" value="no" type="radio"></label>
+            <input name="rawinputstyle" id="autofillinput" value="no" type="radio"></label>
         <label for="manualinput">manual
-        <input name="rawinputstyle" id="manualinput" value="yes" type="radio"></label>
+            <input name="rawinputstyle" id="manualinput" value="yes" type="radio"></label>
     </p>
 
     <p class="optionlabel">Maximum number of search results to return</p>
@@ -56,9 +55,9 @@
     <p class="optionlabel">Limit to one hit per author</p>
     <p class="optionitem">
         <label for="onehit_y">yes
-        <input name="onehit" id="onehit_y" value="yes" type="radio"></label>
+            <input name="onehit" id="onehit_y" value="yes" type="radio"></label>
         <label for="onehit_n">no
-        <input name="onehit" id="onehit_n" value="no" type="radio"></label>
+            <input name="onehit" id="onehit_n" value="no" type="radio"></label>
     </p>
 
     <p class="optionlabel">Lines of context to accompany search results</p>
@@ -68,7 +67,7 @@
 
     <p class="optionlabel">Sort results by</p>
     <p class="optionitem">
-         <select name="sortresults" id="sortresults">
+        <select name="sortresults" id="sortresults">
             <option value="shortname">Name</option>
             <option value="converted_date">Date</option>
             <option value="provenance">Work Provenance</option>
@@ -105,47 +104,47 @@
         <input type="text" name="level02" class="worklevel" id="level02" placeholder="[level02]">
         <input type="text" name="level01" class="worklevel" id="level01" placeholder="[level01]">
         <input type="text" name="level00" class="worklevel" id="level00" placeholder="[level00]">
-        
-	<!-- frontpagehtmlformatting.py getsearchfieldbuttonshtml() output begins -->
-			<button id="addauthortosearchlist" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Include this author/work"><span class="ui-icon ui-icon-plus"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
-		<button id="excludeauthorfromsearchlist" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Exclude this author/work"><span class="ui-icon ui-icon-minus"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
-		<button id="morechoicesbutton" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="More search choices"><span class="ui-icon ui-icon-arrowreturnthick-1-s"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
-		<button id="fewerchoicesbutton" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Fewer search choices"><span class="ui-icon ui-icon-arrowreturnthick-1-n"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
-		<button id="browseto" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Browse this location"><span class="ui-icon ui-icon-note"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
-		<button id="authinfobutton" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Show/Hide local info about the works of this author"><span class="ui-icon ui-icon-person"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
-	<!-- frontpagehtmlformatting.py getsearchfieldbuttonshtml() output ends -->
-	
-    <div id="authorholdings"></div>
-        
-	<!-- frontpagehtmlformatting.py getauthorholdingfieldhtml() output begins -->
-			<input type="text" name="geres" id="genresautocomplete" placeholder="Author Categories">
-		<input type="text" name="workgenres" id="workgenresautocomplete" placeholder="Work Genres">
-		<input type="text" name="locations" id="locationsautocomplete" placeholder="Author Locations">
-		<input type="text" name="provenances" id="provenanceautocomplete" placeholder="Work Provenances">
-		<button id="pickgenrebutton" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Include this category and/or genre"><span class="ui-icon ui-icon-plus"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
-		<button id="excludegenrebutton" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Exclude this category and/or genre"><span class="ui-icon ui-icon-minus"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
-		<button id="genreinfobutton" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Show/Hide list of available categories"><span class="ui-icon ui-icon-clipboard"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
-	<!-- frontpagehtmlformatting.py getauthorholdingfieldhtml() output ends -->
-	
+
+        <!-- frontpagehtmlformatting.py getsearchfieldbuttonshtml() output begins -->
+        <button id="addauthortosearchlist" title="Include this author/work"><span class="material-icons">add</span></button>
+        <button id="excludeauthorfromsearchlist" title="Exclude this author/work"><span class="material-icons">close</span></button>
+        <button id="morechoicesbutton" title="More search choices"><span class="material-icons">more_horiz</span></button>
+        <button id="fewerchoicesbutton" title="Fewer search choices"><span class="material-icons">expand_less</span></button>
+        <button id="browseto" title="Browse this location"><span class="material-icons md-mid">book</span></button>
+        <button id="authinfobutton" title="Show/Hide local info about the works of this author"><span class="material-icons md-mid">person</span></button>
+        <!-- frontpagehtmlformatting.py getsearchfieldbuttonshtml() output ends -->
+
+        <div id="authorholdings"></div>
+
+        <!-- frontpagehtmlformatting.py getauthorholdingfieldhtml() output begins -->
+        <input type="text" name="geres" id="genresautocomplete" placeholder="Author Categories">
+        <input type="text" name="workgenres" id="workgenresautocomplete" placeholder="Work Genres">
+        <input type="text" name="locations" id="locationsautocomplete" placeholder="Author Locations">
+        <input type="text" name="provenances" id="provenanceautocomplete" placeholder="Work Provenances">
+        <button id="pickgenrebutton" title="Include this category and/or genre"><span class="material-icons">add</span></button>
+        <button id="excludegenrebutton" title="Exclude this category and/or genre"><span class="material-icons">close</span></button>
+        <button id="genreinfobutton" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Show/Hide list of available categories"><span class="ui-icon ui-icon-clipboard"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
+        <!-- frontpagehtmlformatting.py getauthorholdingfieldhtml() output ends -->
+
         <div id="genrelistcontents">&nbsp;</div>
-        
-	<!-- frontpagehtmlformatting.py getdaterangefieldhtml() output begins -->
-	
-		<br />
-		<fieldset id="edts">
-			<legend>Starting year</legend>
-			<input id="earliestdate" type="text" value="-850" width="20px;">
-		</fieldset>
-		<fieldset id="ldts">
-			<legend>Ending year</legend>
-			<input id="latestdate" type="text" value="1500" width="20px;">
-		</fieldset>
-		<fieldset id="spuriacheckboxes">
-			<legend>Include works that are...</legend>
-			spurious <input type="checkbox" id="includespuria" value="no">&nbsp;&middot;&nbsp;
-			of uncertain date<input type="checkbox" id="includeincerta" value="no">&nbsp;&middot;&nbsp;
-			of varied date (e.g., scholia)<input type="checkbox" id="includevaria" value="no"><br />
-		</fieldset>
+
+        <!-- frontpagehtmlformatting.py getdaterangefieldhtml() output begins -->
+
+        <br />
+        <fieldset id="edts">
+            <legend>Starting year</legend>
+            <input id="earliestdate" type="text" value="-850" width="20px;">
+        </fieldset>
+        <fieldset id="ldts">
+            <legend>Ending year</legend>
+            <input id="latestdate" type="text" value="1500" width="20px;">
+        </fieldset>
+        <fieldset id="spuriacheckboxes">
+            <legend>Include works that are...</legend>
+            spurious <input type="checkbox" id="includespuria" value="no">&nbsp;&middot;&nbsp;
+            of uncertain date<input type="checkbox" id="includeincerta" value="no">&nbsp;&middot;&nbsp;
+            of varied date (e.g., scholia)<input type="checkbox" id="includevaria" value="no"><br />
+        </fieldset>
 
     </div>
 
@@ -165,25 +164,25 @@
     <div id="outputbox">
         <table id="selectionstable">
             <tbody>
-                <tr>
-                    <th colspan="5" id="timerestrictions"></th>
-                </tr>
-                <tr>
-                    <td class="infocells" id="selectioninfocell" width="44%" title="Selection list">
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    </td>
-                    <td style="text-align: center;" id="jscriptwigetcell" width="6%">
-                        <p id="searchinfo"><span class="ui-button-icon ui-icon ui-icon-info" title="Show/hide details of the current search list">&nbsp;</span></p>
-                    </td>
-                    <td class="infocellx" id="exclusioninfocell" width="44%" title="Exclusion list">
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    </td>
-                    <td style="text-align: center;" width="6%">
-                        <p id="textofthis"><span class="ui-button-icon ui-icon ui-icon-bookmark" title="Generate a simple text of this selection">&nbsp;</span></p>
-                        <p id="makeanindex"><span class="ui-button-icon ui-icon ui-icon-calculator" title="Build an index to this selection">&nbsp;</span></p>
-                        <p id="makevocablist"><span class="ui-button-icon ui-icon ui-icon-lightbulb" title="Build a vocabulary list for this selection">&nbsp;</span></p>
-                    </td>
-                </tr>
+            <tr>
+                <th colspan="5" id="timerestrictions"></th>
+            </tr>
+            <tr>
+                <td class="infocells" id="selectioninfocell" width="44%" title="Selection list">
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                </td>
+                <td style="text-align: center;" id="jscriptwigetcell" width="6%">
+                    <p id="searchinfo"><span class="material-icons md-mid" title="Show/hide details of the current search list">info</span></p>
+                </td>
+                <td class="infocellx" id="exclusioninfocell" width="44%" title="Exclusion list">
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                </td>
+                <td style="text-align: center;" width="6%">
+                    <p id="textofthis"><span class="material-icons md-mid" title="Generate a simple text of this selection">font_download</span></p>
+                    <p id="makeanindex"><span class="material-icons md-mid" title="Build an index to this selection">subject</span></p>
+                    <p id="makevocablist"><span class="material-icons md-mid" title="Build a vocabulary list for this selection">format_list_numbered</span></p>
+                </td>
+            </tr>
             </tbody>
         </table>
         <p id="authoroutputcontent"></p>
@@ -191,7 +190,7 @@
     </div>
 
     <div id="savedprofiles">
-        <span id="togglesaveslots" class="ui-icon ui-icon-disk" title="Pick a save slot into which to save your current session"></span><br />
+        <span id="togglesaveslots" title="Pick a save slot into which to save your current session"><span class="material-icons md-mid ui">save</span></span><br />
         <div id="saveslots">
             <span class="saveoptions" title="Save to slot 1" id="save01">➊</span><br />
             <span class="saveoptions" title="Save to slot 2" id="save02">➋</span><br />
@@ -199,7 +198,7 @@
             <span class="saveoptions" title="Save to slot 4" id="save04">➍</span><br />
             <span class="saveoptions" title="Save to slot 5" id="save05">➎</span><br />
         </div>
-        <span id="toggleloadslots" class="ui-icon ui-icon-folder-open" title="Pick a save slot from which to load stored session"></span><br />
+        <span id="toggleloadslots" title="Pick a save slot from which to load stored session"><span class="material-icons md-mid ui">folder_open</span></span><br />
         <div id="loadslots">
             <span class="loadoptions" title="Load from slot 1" id="load01">➀</span><br />
             <span class="loadoptions" title="Load from slot 2" id="load02">➁</span><br />
@@ -264,17 +263,17 @@
 
     <div id="helptabs">
         <ul>
-        <li><a href="#Interface"><span>Interface</span></a></li>
-        <li><a href="#Browsing"><span>Browsing</span></a></li>
-        <li><a href="#Dictionaries"><span>Dictionaries and word counts</span></a></li>
-        <li><a href="#MakingSearchLists"><span>Searching: Building search lists</span></a></li>
-        <li><a href="#BasicSyntax"><span>Searching: Basic search syntax</span></a></li>
-        <li><a href="#RegexSearching"><span>Searching: REGEX</span></a></li>
-        <li><a href="#LemmaSearching"><span>Searching: Lemmata</span></a></li>
-        <li><a href="#Oddities"><span>Peculiarities and Gotchas</span></a></li>
-        <li><a href="#Extending"><span>Adding to the database</span></a></li>
-        <li><a href="#IncludedMaterials"><span>Included Materials</span></a></li>
-    </ul>
+            <li><a href="#Interface"><span>Interface</span></a></li>
+            <li><a href="#Browsing"><span>Browsing</span></a></li>
+            <li><a href="#Dictionaries"><span>Dictionaries and word counts</span></a></li>
+            <li><a href="#MakingSearchLists"><span>Searching: Building search lists</span></a></li>
+            <li><a href="#BasicSyntax"><span>Searching: Basic search syntax</span></a></li>
+            <li><a href="#RegexSearching"><span>Searching: REGEX</span></a></li>
+            <li><a href="#LemmaSearching"><span>Searching: Lemmata</span></a></li>
+            <li><a href="#Oddities"><span>Peculiarities and Gotchas</span></a></li>
+            <li><a href="#Extending"><span>Adding to the database</span></a></li>
+            <li><a href="#IncludedMaterials"><span>Included Materials</span></a></li>
+        </ul>
         <div id="Interface"><!-- placeholder --></div>
         <div id="Browsing"><!-- placeholder --></div>
         <div id="Dictionaries"><!-- placeholder --></div>
@@ -288,22 +287,22 @@
     </div>
 
     <div id="wordsearchfields" class="center">
-        <button id="executesearch" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Execute the search"><span class="ui-button-icon ui-icon ui-icon-search"></span><span class="ui-button-icon-space"> </span>&nbsp;</button>
-            <input id="wordsearchform" type="text" name="seeking" placeholder="(looking for...)" size=25>
-            <input id="lemmatasearchform" type="text" name="lemmata" placeholder="(all forms of...)" size=25>
-            <span id="termonecheckbox">
+        <button id="executesearch" title="Execute the search"><span class="material-icons">search</span></button>
+        <input id="wordsearchform" type="text" name="seeking" placeholder="(looking for...)" size=25>
+        <input id="lemmatasearchform" type="text" name="lemmata" placeholder="(all forms of...)" size=25>
+        <span id="termonecheckbox">
                 <span class="small">λ</span><input type="checkbox" id="termoneisalemma" value="yes">
             </span>
-        <button id="extendsearchbutton-ispresentlyopen" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Complicate the search"><span class="ui-button-icon ui-icon ui-icon-arrow-1-e"></span><span class="ui-button-icon-space"> </span>&nbsp;</button>
-        <button id="extendsearchbutton-ispresentlyclosed" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Complicate the search"><span class="ui-button-icon ui-icon ui-icon-arrow-1-e"></span><span class="ui-button-icon-space"> </span>&nbsp;</button>
+        <button id="extendsearchbutton-ispresentlyopen" title="Complicate the search"><span class="material-icons">expand_less</span></button>
+        <button id="extendsearchbutton-ispresentlyclosed" title="Complicate the search"><span class="material-icons">expand_more</span></button>
         <br />
 
         <div id="complexsearching">
             <div id="nearornot">
                 <label for="wordisnear">near
-                <input type="radio" name="near" id="wordisnear" value="T"></label>
+                    <input type="radio" name="near" id="wordisnear" value="T"></label>
                 <label for="wordisnotnear">not near
-                <input type="radio" name="near" id="wordisnotnear" value="F"></label>
+                    <input type="radio" name="near" id="wordisnotnear" value="F"></label>
             </div>
 
             <input id="proximatesearchform" type="text" name="proximate" placeholder="(near... and within...)" size=25>
@@ -314,9 +313,9 @@
 
             <input id="proximityspinner" type="text" value="{{index . "proxval"}}" width="25px;">
             <label for="searchlines">lines
-            <input type="radio" name="searchfor" id="searchlines" value="L"></label>
+                <input type="radio" name="searchfor" id="searchlines" value="L"></label>
             <label for="searchwords">words
-            <input type="radio" name="searchfor" id="searchwords" value="W"></label>
+                <input type="radio" name="searchfor" id="searchwords" value="W"></label>
         </div>
     </div>
 
@@ -325,21 +324,18 @@
     <div id="browserdialog">
         <div id="browserdialogtext"></div>
         <div id="browsernavigationbuttons">
-            <button id="browseback" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Browse backwards (click or press the &#8592; key)">
-                <span class="ui-icon ui-icon-arrowthick-1-w">&nbsp;</span><span class="ui-button-icon-space"> </span>&nbsp;</button>&nbsp;&nbsp;&nbsp;&nbsp;
-            <button id="browserclose" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Close the browser">
-                <span class="ui-icon ui-icon-close">&nbsp;</span><span class="ui-button-icon-space"> </span>&nbsp;</button>&nbsp;&nbsp;&nbsp;&nbsp;
-            <button id="browseforward" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Browse forwards (click or press the &#8594; key)">
-                <span class="ui-icon ui-icon-arrowthick-1-e">&nbsp;</span><span class="ui-button-icon-space"> </span>&nbsp;</button>&nbsp;&nbsp;&nbsp;&nbsp;
+            <button id="browseback" title="Browse backwards (click or press the &#8592; key)"><span class="material-icons">arrow_back</span></button>&nbsp;&nbsp;&nbsp;&nbsp;
+            <button id="browserclose" title="Close the browser (click or press the 'escape' key)"><span class="material-icons">close</span></button>&nbsp;&nbsp;&nbsp;&nbsp;
+            <button id="browseforward" title="Browse forwards (click or press the &#8594; key)"><span class="material-icons">arrow_forward</span></button>&nbsp;&nbsp;&nbsp;&nbsp;
         </div>
     </div>
 
-	<div id="lexica">
-		<br />
-		<input type="text" name="lexicon" class="lexica" id="lexicon" placeholder="(Dictionary Search)">
+    <div id="lexica">
+        <br />
+        <input type="text" name="lexicon" class="lexica" id="lexicon" placeholder="(Dictionary Search)">
         <input type="text" name="lexicon" class="lexica" id="reverselexicon" placeholder="(English to Greek or Latin)">
-		<button id="lexicalsearch" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Search dictionary or parser"><span class="ui-button-icon ui-icon ui-icon-search"></span><span class="ui-button-icon-space"> </span>&nbsp;</button>
-	</div>
+        <button id="lexicalsearch" title="Search dictionary or parser"><span class="material-icons">search</span></button>
+    </div>
 
     <div id="lexicadialog">
         <div id="lexicadialogtext"></div>
@@ -355,30 +351,24 @@
     -->
 
     <!-- the div where just the results get inserted... -->
-    <div id="displayresults">
-
-    </div>
+    <div id="displayresults"></div>
 
     <!-- blank divs just to hold scripts for injection later -->
     <div id="browserclickscriptholder"> </div>
-
     <div id="indexclickscriptholder"> </div>
-
     <div id="vectorspinnerscriptholder"> </div>
-
     <div id="selectionscriptholder"> </div>
-
     <div id="lexicaljsscriptholder"> </div>
 
     <!-- misc ui elements -->
     <div id="clickforhelp">
-         <span id="helpbutton" title="Help" class="ui-icon ui-icon-help"></span>
+        <span id="helpbutton" title="Help"><span class="material-icons md-mid ui">help</span></span>
     </div>
 
     <div id="upperleftbuttons">
-        <span id="openoptionsbutton" class="ui-icon ui-icon-gear" title="Configuration options"></span>
-        <span id="moretools" title="Lexical tools" class="ui-icon ui-icon-wrench"></span>
-        <span id="clear_button" class="ui-icon ui-icon-close" title="Reset session/Clear search"></span>
+        <span id="openoptionsbutton" title="Configuration options"><span class="material-icons md-mid">settings</span></span>
+        <span id="moretools" title="Lexical tools"><span class="material-icons md-mid">handyman</span></span>
+        <span id="clear_button" title="Reset session/Clear search"><span class="material-icons md-mid">cancel</span></span>
     </div>
 
     <div id="bottommessage">
