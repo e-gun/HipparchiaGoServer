@@ -1280,14 +1280,20 @@ browser {
 	}
 
 button {
-	box-shadow: 2px 2px 2px var(--transparentgrey);
-	padding: 4px 4px;
+	background: hsla(0, 0%, 94%, 1);
+	box-shadow: 1px 1px 1px var(--transparentgrey);
+	border: solid #000000 0;
+	-webkit-border-radius: 1px;
+	-moz-border-radius: 1px;
+	border-radius: 1px;
+	padding: 6px 6px;
 	text-align: center;
 }
 
 button:hover {
 	color: var(--brtblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
+	background: hsla(0, 0%, 90%, 1);
 }
 
 caption {

@@ -322,10 +322,10 @@ const (
 `
 	AUTHHTML = `    
 	<div id="currentuser" class="unobtrusive">
-        <span class="ui-icon ui-icon-person"></span>
+        <span class="material-icons">account_circle</span>
         <span id="userid" class="user">{{index . "user" }}</span>
-        <span id="executelogout" class="ui-icon ui-icon-squaresmall-close"></span>
-        <span id="executelogin" class="ui-icon ui-icon-key"></span>
+        <span id="executelogout" class="material-icons">logout</span>
+        <span id="executelogin" class="material-icons">login</span>
         <br>
         <span id="alertarea"></span>
     </div>
