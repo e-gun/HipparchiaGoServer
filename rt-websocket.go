@@ -175,12 +175,10 @@ func (c *WSClient) WSWriteJSON() {
 	quit := time.Now().Add(time.Second * 1)
 
 	for {
-		SearchLocker.Lock()
-		ls := len(SearchMap)
-		_, exists := SearchMap[c.ID]
-		SearchLocker.Unlock()
+		exists := SearchesExists(c.ID)
+		quant := SearchesCount()
 
-		if ls != 0 && exists {
+		if quant != 0 && exists {
 			break
 		}
 
@@ -190,7 +188,7 @@ func (c *WSClient) WSWriteJSON() {
 		}
 	}
 
-	srch := SafeSearchMapRead(c.ID)
+	srch := SearchesFetch(c.ID)
 
 	var pd PollData
 	pd.TwoBox = srch.Twobox
@@ -198,17 +196,12 @@ func (c *WSClient) WSWriteJSON() {
 
 	// loop until search finishes
 	for {
-		SearchLocker.Lock()
-		// don't set a variable: you will copy the whole struct and so the (waxing) results
-		_, exists := SearchMap[c.ID]
+		exists := SearchesExists(c.ID)
 		if exists {
-			pd.Remain = SearchMap[c.ID].Remain.Get()
-			pd.Hits = SearchMap[c.ID].Hits.Get()
-			pd.Msg = strings.Replace(SearchMap[c.ID].InitSum, "Sought", "Seeking", -1)
-		}
-		SearchLocker.Unlock()
-
-		if !exists {
+			pd.Remain = SearchesRemaining(c.ID)
+			pd.Hits = SearchesHits(c.ID)
+			pd.Msg = strings.Replace(SearchesInitSum(c.ID), "Sought", "Seeking", -1)
+		} else {
 			break
 		}
 

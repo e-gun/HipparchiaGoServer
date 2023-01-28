@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -85,17 +86,17 @@ func RtSearch(c echo.Context) error {
 
 	srch.TableSize = len(srch.Queries)
 	srch.IsActive = true
-	SafeSearchMapInsert(srch)
+	SearchesInsert(srch)
 
 	var completed SearchStruct
-	if SearchMap[id].Twobox {
-		if SearchMap[id].ProxScope == "words" {
-			completed = WithinXWordsSearch(SearchMap[id])
+	if srch.Twobox {
+		if srch.ProxScope == "words" {
+			completed = WithinXWordsSearch(SearchesFetch(id))
 		} else {
-			completed = WithinXLinesSearch(SearchMap[id])
+			completed = WithinXLinesSearch(SearchesFetch(id))
 		}
 	} else {
-		completed = HGoSrch(SearchMap[id])
+		completed = HGoSrch(SearchesFetch(id))
 		if completed.HasPhrase {
 			findphrasesacrosslines(&completed)
 		}
@@ -114,7 +115,7 @@ func RtSearch(c echo.Context) error {
 		soj = FormatWithContextResults(&completed)
 	}
 
-	SafeSearchMapDelete(id)
+	SearchesDelete(id)
 
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
@@ -504,18 +505,26 @@ func SearchTermFinder(term string) *regexp.Regexp {
 	return pattern
 }
 
-// SafeSearchMapInsert - use a lock to safely swap a SearchStruct into the SearchMap
-func SafeSearchMapInsert(ns SearchStruct) {
-	SearchLocker.Lock()
-	defer SearchLocker.Unlock()
-	SearchMap[ns.ID] = ns
+//
+// THREAD SAFE INFRASTRUCTURE
+//
+
+// SearchVault - there should be only one of these; and it contains all the searches
+type SearchVault struct {
+	SearchMap    map[string]SearchStruct
+	SearchLocker sync.RWMutex
 }
 
-// SafeSearchMapRead - use a lock to safely read a SearchStruct from the SearchMap
-func SafeSearchMapRead(id string) SearchStruct {
-	SearchLocker.RLock()
-	defer SearchLocker.RUnlock()
-	s, e := SearchMap[id]
+func (sv *SearchVault) Insert(s SearchStruct) {
+	sv.SearchLocker.Lock()
+	defer sv.SearchLocker.Unlock()
+	sv.SearchMap[s.ID] = s
+}
+
+func (sv *SearchVault) Read(id string) SearchStruct {
+	sv.SearchLocker.Lock()
+	defer sv.SearchLocker.Unlock()
+	s, e := sv.SearchMap[id]
 	if e != true {
 		s = BuildHollowSearch()
 		s.ID = id
@@ -524,8 +533,91 @@ func SafeSearchMapRead(id string) SearchStruct {
 	return s
 }
 
-func SafeSearchMapDelete(id string) {
-	SearchLocker.RLock()
-	defer SearchLocker.RUnlock()
-	delete(SearchMap, id)
+func (sv *SearchVault) Delete(id string) {
+	sv.SearchLocker.Lock()
+	defer sv.SearchLocker.Unlock()
+	delete(sv.SearchMap, id)
+}
+
+func (sv *SearchVault) Exists(id string) bool {
+	sv.SearchLocker.Lock()
+	defer sv.SearchLocker.Unlock()
+	_, exists := SearchMap[id]
+	return exists
+}
+
+func (sv *SearchVault) Count() int {
+	sv.SearchLocker.Lock()
+	defer sv.SearchLocker.Unlock()
+	return len(SearchMap)
+}
+
+func (sv *SearchVault) GetRemain(id string) int {
+	sv.SearchLocker.Lock()
+	defer sv.SearchLocker.Unlock()
+	return sv.SearchMap[id].Remain.Get()
+}
+
+func (sv *SearchVault) SetRemain(id string, r int) {
+	sv.SearchLocker.Lock()
+	defer sv.SearchLocker.Unlock()
+	sv.SearchMap[id].Remain.Set(r)
+}
+
+func (sv *SearchVault) GetHits(id string) int {
+	sv.SearchLocker.Lock()
+	defer sv.SearchLocker.Unlock()
+	return sv.SearchMap[id].Hits.Get()
+}
+
+func (sv *SearchVault) InitSum(id string) string {
+	sv.SearchLocker.Lock()
+	defer sv.SearchLocker.Unlock()
+	return sv.SearchMap[id].InitSum
+}
+
+//
+// inefficient collection of mini-functions because have the option of doing this with
+// channels instead of mutexes: unified interface
+//
+
+// SearchesInsert - safely swap a SearchStruct into the SearchMap
+func SearchesInsert(ns SearchStruct) {
+	AllSearches.Insert(ns)
+}
+
+// SearchesFetch - safely read a SearchStruct from the SearchMap
+func SearchesFetch(id string) SearchStruct {
+	return AllSearches.Read(id)
+}
+
+// SearchesExists - is SearchStruct in the SearchMap?
+func SearchesExists(id string) bool {
+	return AllSearches.Exists(id)
+}
+
+func SearchesRemaining(id string) int {
+	return AllSearches.GetRemain(id)
+}
+
+func SearchesSetRemaining(id string, r int) {
+	AllSearches.SetRemain(id, r)
+}
+
+func SearchesHits(id string) int {
+	return AllSearches.GetHits(id)
+}
+
+func SearchesInitSum(id string) string {
+	return AllSearches.InitSum(id)
+}
+
+// SearchesCount - how many SearchStructs in the SearchMap?
+func SearchesCount() int {
+	return AllSearches.Count()
+}
+
+// SearchesDelete - safely delete a SearchStruct from the SearchMap
+func SearchesDelete(id string) {
+	AllSearches.Delete(id)
 }

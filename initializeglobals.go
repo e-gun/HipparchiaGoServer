@@ -58,6 +58,7 @@ var (
 	SessionLocker  sync.RWMutex
 	AuthorizLocker sync.RWMutex
 	WebsocketPool  = WSFillNewPool()
+	AllSearches    = SearchVault{SearchMap, SearchLocker}
 )
 
 type DbAuthor struct {
