@@ -256,8 +256,8 @@ func RtVocabMaker(c echo.Context) error {
 	si.ID = id
 	si.InitSum = MSG1
 	si.IsActive = true
-	SearchesInsert(si)
-	SearchesSetRemaining(si.ID, 1)
+	AllSearches.Insert(si)
+	AllSearches.SetRemain(si.ID, 1)
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
 	max := Config.MaxText * MAXVOCABLINEGENERATION
@@ -301,7 +301,7 @@ func RtVocabMaker(c echo.Context) error {
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
 	si.InitSum = MSG2
-	SearchesInsert(si)
+	AllSearches.Insert(si)
 
 	// [c2] map observed words to possibilities
 	poss := make(map[string][]MorphPossib)
@@ -373,7 +373,7 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	si.InitSum = MSG3
-	SearchesInsert(si)
+	AllSearches.Insert(si)
 
 	// [f2] sort the results
 	if se.VocByCount {
@@ -389,7 +389,7 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	si.InitSum = MSG4
-	SearchesInsert(si)
+	AllSearches.Insert(si)
 
 	// [g] format the output
 
@@ -458,7 +458,7 @@ func RtVocabMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "vocabobserved") + fmt.Sprintf(BROWSERJS, "vocabobserved")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	SearchesDelete(si.ID)
+	AllSearches.Delete(si.ID)
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }
@@ -527,8 +527,8 @@ func RtIndexMaker(c echo.Context) error {
 	si.ID = id
 	si.InitSum = MSG1
 	si.IsActive = true
-	SearchesInsert(si)
-	SearchesSetRemaining(si.ID, 1)
+	AllSearches.Insert(si)
+	AllSearches.SetRemain(si.ID, 1)
 
 	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 
@@ -571,7 +571,7 @@ func RtIndexMaker(c echo.Context) error {
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
 	si.InitSum = MSG2
-	SearchesInsert(si)
+	AllSearches.Insert(si)
 
 	var slicedlookups []WordInfo
 	for _, w := range slicedwords {
@@ -660,7 +660,7 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	si.InitSum = MSG3
-	SearchesInsert(si)
+	AllSearches.Insert(si)
 
 	indexmap := make(map[SorterStruct][]WordInfo, len(trimslices))
 	for _, w := range trimslices {
@@ -704,7 +704,7 @@ func RtIndexMaker(c echo.Context) error {
 	indexmap = make(map[SorterStruct][]WordInfo, 1) // drop after use
 
 	si.InitSum = MSG4
-	SearchesInsert(si)
+	AllSearches.Insert(si)
 
 	trr := make([]string, len(plainkeys))
 	for i, k := range plainkeys {
@@ -755,7 +755,7 @@ func RtIndexMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "indexobserved") + fmt.Sprintf(BROWSERJS, "indexedlocation")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	SearchesDelete(si.ID)
+	AllSearches.Delete(si.ID)
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }

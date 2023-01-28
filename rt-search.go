@@ -86,17 +86,17 @@ func RtSearch(c echo.Context) error {
 
 	srch.TableSize = len(srch.Queries)
 	srch.IsActive = true
-	SearchesInsert(srch)
+	AllSearches.Insert(srch)
 
 	var completed SearchStruct
 	if srch.Twobox {
 		if srch.ProxScope == "words" {
-			completed = WithinXWordsSearch(SearchesFetch(id))
+			completed = WithinXWordsSearch(AllSearches.Get(id))
 		} else {
-			completed = WithinXLinesSearch(SearchesFetch(id))
+			completed = WithinXLinesSearch(AllSearches.Get(id))
 		}
 	} else {
-		completed = HGoSrch(SearchesFetch(id))
+		completed = HGoSrch(AllSearches.Get(id))
 		if completed.HasPhrase {
 			findphrasesacrosslines(&completed)
 		}
@@ -115,7 +115,7 @@ func RtSearch(c echo.Context) error {
 		soj = FormatWithContextResults(&completed)
 	}
 
-	SearchesDelete(id)
+	AllSearches.Delete(id)
 
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
@@ -506,7 +506,8 @@ func SearchTermFinder(term string) *regexp.Regexp {
 }
 
 //
-// THREAD SAFE INFRASTRUCTURE
+// THREAD SAFE INFRASTRUCTURE: MUTEX
+// (and not channel: https://github.com/golang/go/wiki/MutexOrChannel)
 //
 
 // SearchVault - there should be only one of these; and it contains all the searches
@@ -515,13 +516,22 @@ type SearchVault struct {
 	SearchLocker sync.RWMutex
 }
 
+type SrchInfo struct {
+	ID        string
+	Exists    bool
+	Hits      int
+	Remain    int
+	Summary   string
+	SrchCount int
+}
+
 func (sv *SearchVault) Insert(s SearchStruct) {
 	sv.SearchLocker.Lock()
 	defer sv.SearchLocker.Unlock()
 	sv.SearchMap[s.ID] = s
 }
 
-func (sv *SearchVault) Read(id string) SearchStruct {
+func (sv *SearchVault) Get(id string) SearchStruct {
 	sv.SearchLocker.Lock()
 	defer sv.SearchLocker.Unlock()
 	s, e := sv.SearchMap[id]
@@ -537,6 +547,20 @@ func (sv *SearchVault) Delete(id string) {
 	sv.SearchLocker.Lock()
 	defer sv.SearchLocker.Unlock()
 	delete(sv.SearchMap, id)
+}
+
+func (sv *SearchVault) GetInfo(id string) SrchInfo {
+	sv.SearchLocker.Lock()
+	defer sv.SearchLocker.Unlock()
+	var m SrchInfo
+	_, m.Exists = sv.SearchMap[id]
+	if m.Exists {
+		m.Remain = sv.SearchMap[id].Remain.Get()
+		m.Hits = sv.SearchMap[id].Hits.Get()
+		m.Summary = sv.SearchMap[id].InitSum
+	}
+	m.SrchCount = len(sv.SearchMap)
+	return m
 }
 
 func (sv *SearchVault) Exists(id string) bool {
@@ -574,50 +598,4 @@ func (sv *SearchVault) InitSum(id string) string {
 	sv.SearchLocker.Lock()
 	defer sv.SearchLocker.Unlock()
 	return sv.SearchMap[id].InitSum
-}
-
-//
-// inefficient collection of mini-functions because have the option of doing this with
-// channels instead of mutexes: unified interface
-//
-
-// SearchesInsert - safely swap a SearchStruct into the SearchMap
-func SearchesInsert(ns SearchStruct) {
-	AllSearches.Insert(ns)
-}
-
-// SearchesFetch - safely read a SearchStruct from the SearchMap
-func SearchesFetch(id string) SearchStruct {
-	return AllSearches.Read(id)
-}
-
-// SearchesExists - is SearchStruct in the SearchMap?
-func SearchesExists(id string) bool {
-	return AllSearches.Exists(id)
-}
-
-func SearchesRemaining(id string) int {
-	return AllSearches.GetRemain(id)
-}
-
-func SearchesSetRemaining(id string, r int) {
-	AllSearches.SetRemain(id, r)
-}
-
-func SearchesHits(id string) int {
-	return AllSearches.GetHits(id)
-}
-
-func SearchesInitSum(id string) string {
-	return AllSearches.InitSum(id)
-}
-
-// SearchesCount - how many SearchStructs in the SearchMap?
-func SearchesCount() int {
-	return AllSearches.Count()
-}
-
-// SearchesDelete - safely delete a SearchStruct from the SearchMap
-func SearchesDelete(id string) {
-	AllSearches.Delete(id)
 }

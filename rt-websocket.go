@@ -175,10 +175,8 @@ func (c *WSClient) WSWriteJSON() {
 	quit := time.Now().Add(time.Second * 1)
 
 	for {
-		exists := SearchesExists(c.ID)
-		quant := SearchesCount()
-
-		if quant != 0 && exists {
+		srchinfo := AllSearches.GetInfo(c.ID)
+		if srchinfo.SrchCount != 0 && srchinfo.Exists {
 			break
 		}
 
@@ -188,7 +186,7 @@ func (c *WSClient) WSWriteJSON() {
 		}
 	}
 
-	srch := SearchesFetch(c.ID)
+	srch := AllSearches.Get(c.ID)
 
 	var pd PollData
 	pd.TwoBox = srch.Twobox
@@ -196,11 +194,11 @@ func (c *WSClient) WSWriteJSON() {
 
 	// loop until search finishes
 	for {
-		exists := SearchesExists(c.ID)
-		if exists {
-			pd.Remain = SearchesRemaining(c.ID)
-			pd.Hits = SearchesHits(c.ID)
-			pd.Msg = strings.Replace(SearchesInitSum(c.ID), "Sought", "Seeking", -1)
+		srchinfo := AllSearches.GetInfo(c.ID)
+		if srchinfo.Exists {
+			pd.Remain = srchinfo.Remain
+			pd.Hits = srchinfo.Hits
+			pd.Msg = strings.Replace(srchinfo.Summary, "Sought", "Seeking", -1)
 		} else {
 			break
 		}
