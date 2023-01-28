@@ -864,6 +864,10 @@ body {
 	color: var(--red);
 	}
 
+.reduced {
+	font-size: 90%;
+}
+
 .rust {
 	color: var(--rustedorange);
 }
@@ -1386,6 +1390,11 @@ input {
 	padding: 5px;
 	display: inline;
 	}
+
+input[type="text"] {
+	font-size: 80%;
+	font-family: inherit;
+}
 
 latinfont {
 	font-family: 'hipparchiasansstatic', sans-serif;

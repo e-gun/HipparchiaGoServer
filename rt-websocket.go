@@ -175,10 +175,10 @@ func (c *WSClient) WSWriteJSON() {
 	quit := time.Now().Add(time.Second * 1)
 
 	for {
-		SearchLocker.RLock()
+		SearchLocker.Lock()
 		ls := len(SearchMap)
 		_, exists := SearchMap[c.ID]
-		SearchLocker.RUnlock()
+		SearchLocker.Unlock()
 
 		if ls != 0 && exists {
 			break

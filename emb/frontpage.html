@@ -92,8 +92,8 @@
 <div id="mainbody">
     <!-- "mainbody" allows the option sidebar to push the page contents right -->
     <div id="searchfield">
-        <span id="endpointbutton-isclosed" class="ui-icon ui-icon-caret-1-e" title="Open endpoint selection options"></span>
-        <span id="endpointbutton-isopen" class="ui-icon ui-icon-caret-1-s" title="Close endpoint selection options"></span>
+        <span id="endpointbutton-isclosed" class="material-icons md-mid ui" title="Open endpoint selection options">chevron_right</span>
+        <span id="endpointbutton-isopen" class="material-icons md-mid ui" title="Close endpoint selection options">expand_more</span>
         <span id="fromnotice" class="unobtrusive">[span start]</span>
         <input type="text" name="authors" class="authorinput" id="authorsautocomplete" placeholder="Authors (&uarr;/&darr;)">
         <input type="text" name="works" class="workinput" id="worksautocomplete" placeholder="Works [inactive]">
@@ -105,18 +105,15 @@
         <input type="text" name="level01" class="worklevel" id="level01" placeholder="[level01]">
         <input type="text" name="level00" class="worklevel" id="level00" placeholder="[level00]">
 
-        <!-- frontpagehtmlformatting.py getsearchfieldbuttonshtml() output begins -->
         <button id="addauthortosearchlist" title="Include this author/work"><span class="material-icons">add</span></button>
         <button id="excludeauthorfromsearchlist" title="Exclude this author/work"><span class="material-icons">close</span></button>
         <button id="morechoicesbutton" title="More search choices"><span class="material-icons">more_horiz</span></button>
         <button id="fewerchoicesbutton" title="Fewer search choices"><span class="material-icons">expand_less</span></button>
-        <button id="browseto" title="Browse this location"><span class="material-icons md-mid">open_in_new</span></button>
-        <button id="authinfobutton" title="Show/Hide local info about the works of this author"><span class="material-icons md-mid">person</span></button>
-        <!-- frontpagehtmlformatting.py getsearchfieldbuttonshtml() output ends -->
+        <button id="browseto" title="Browse this location"><span class="material-icons">open_in_new</span></button>
+        <button id="authinfobutton" title="Show/Hide local info about the works of this author"><span class="material-icons">person</span></button>
 
         <div id="authorholdings"></div>
 
-        <!-- frontpagehtmlformatting.py getauthorholdingfieldhtml() output begins -->
         <input type="text" name="geres" id="genresautocomplete" placeholder="Author Categories">
         <input type="text" name="workgenres" id="workgenresautocomplete" placeholder="Work Genres">
         <input type="text" name="locations" id="locationsautocomplete" placeholder="Author Locations">
@@ -124,20 +121,17 @@
         <button id="pickgenrebutton" title="Include this category and/or genre"><span class="material-icons">add</span></button>
         <button id="excludegenrebutton" title="Exclude this category and/or genre"><span class="material-icons">close</span></button>
         <button id="genreinfobutton" class="ui-button ui-corner-all ui-widget ui-button-icon-only" title="Show/Hide list of available categories"><span class="ui-icon ui-icon-clipboard"></span><span class="ui-button-icon-space"></span>&nbsp;</button>
-        <!-- frontpagehtmlformatting.py getauthorholdingfieldhtml() output ends -->
 
         <div id="genrelistcontents">&nbsp;</div>
-
-        <!-- frontpagehtmlformatting.py getdaterangefieldhtml() output begins -->
 
         <br />
         <fieldset id="edts">
             <legend>Starting year</legend>
-            <input id="earliestdate" type="text" value="-850" width="20px;">
+            <input id="earliestdate" type="text" value="-850">
         </fieldset>
         <fieldset id="ldts">
             <legend>Ending year</legend>
-            <input id="latestdate" type="text" value="1500" width="20px;">
+            <input id="latestdate" type="text" value="1500">
         </fieldset>
         <fieldset id="spuriacheckboxes">
             <legend>Include works that are...</legend>
@@ -298,11 +292,14 @@
         <br />
 
         <div id="complexsearching">
+
             <div id="nearornot">
+                <span class="reduced">
                 <label for="wordisnear">near
                     <input type="radio" name="near" id="wordisnear" value="T"></label>
                 <label for="wordisnotnear">not near
                     <input type="radio" name="near" id="wordisnotnear" value="F"></label>
+                </span>
             </div>
 
             <input id="proximatesearchform" type="text" name="proximate" placeholder="(near... and within...)" size=25>
@@ -311,11 +308,13 @@
                 <span class="small">λ</span><input type="checkbox" id="termtwoisalemma" value="yes">
             </span>
 
-            <input id="proximityspinner" type="text" value="{{index . "proxval"}}" width="25px;">
+            <input id="proximityspinner" type="text" size="2" value="{{index . "proxval"}}">
+            <span class="reduced">
             <label for="searchlines">lines
                 <input type="radio" name="searchfor" id="searchlines" value="L"></label>
             <label for="searchwords">words
                 <input type="radio" name="searchfor" id="searchwords" value="W"></label>
+            </span>
         </div>
     </div>
 
