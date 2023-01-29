@@ -121,7 +121,7 @@
 	font-weight: 400;
 	src: local('Material Icons'),
 	local('MaterialIcons-Regular'),
-	url(/emb/ttf/MaterialIcons-Regular.ttf) format('truetype');
+	url('/emb/otf/MaterialIconsSharp-Regular.otf') format('opentype');
 }
 
 .material-icons {

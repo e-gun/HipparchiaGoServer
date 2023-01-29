@@ -29,6 +29,7 @@ const (
 	ECSS = "emb/css/servedfont.css"
 	ECSL = "emb/css/localfont.css"
 	ETT  = "emb/ttf/"
+	EOT  = "emb/otf/"
 	EICO = "emb/images/hipparchia_favicon.ico"
 	EITC = "emb/images/hipparchia_apple-touch-icon-precomposed.png"
 )
@@ -74,6 +75,10 @@ func RtEmbHCSS(c echo.Context) error {
 
 func RtEmbTTF(c echo.Context) error {
 	return pathembedder(c, ETT)
+}
+
+func RtEmbOTF(c echo.Context) error {
+	return pathembedder(c, EOT)
 }
 
 func RtEbmFavicon(c echo.Context) error {
@@ -145,6 +150,10 @@ func addresponsehead(f string) string {
 
 	if strings.Contains(f, ".ttf") {
 		add = "font/ttf"
+	}
+
+	if strings.Contains(f, ".otf") {
+		add = "font/opentype"
 	}
 
 	return add
