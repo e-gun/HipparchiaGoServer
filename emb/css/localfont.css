@@ -892,6 +892,10 @@ body {
 	text-shadow: 1px 1px var(--midgrey);
 	*/ }
 
+.select {
+	font-family: var(--systemdefaultfont), 'hipparchiaboldstatic', sans-serif;
+}
+
 .selection:hover{
 	color: var(--brtblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
@@ -992,15 +996,15 @@ body {
 	clip: rect(1px, 1px, 1px, 1px);
 	}
 
-.ui-icon ui-icon-arrowthick-1-e:hover{
-	color: var(--brtblue);
-	text-shadow: 1px 1px 3px var(--transparentgrey);
-	 }
+.ui-autocomplete, .ui-autocomplete-input, .ui-autocomplete-loading, .ui-menu, .ui-menu-item {
+	font-family: var(--systemdefaultfont), 'hipparchiasansstatic', sans-serif;
+	font-size: 80%;
+}
 
-.ui-icon ui-icon-arrowthick-1-w:hover{
-	color: var(--brtblue);
-	text-shadow: 1px 1px 3px var(--transparentgrey);
-	}
+.ui-spinner-input[type="text"] {
+	font-size: 80%;
+	font-family: var(--systemdefaultfont), 'hipparchiasansstatic', sans-serif;
+}
 
 .undocumentedfontshift{
     text-decoration: underline;
