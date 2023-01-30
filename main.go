@@ -261,7 +261,7 @@ func configatlaunch() {
 	msg(fmt.Sprintf("'%s%s'%s loaded", h, CONFIGPROLIX, y), MSGTMI)
 
 	type ConfigFile struct {
-		PosgreSQLPassword string
+		PostgreSQLPassword string
 	}
 
 	Config.PGLogin = PostgresLogin{}
@@ -315,7 +315,7 @@ func configatlaunch() {
 			Port:   DEFAULTPSQLPORT,
 			User:   DEFAULTPSQLUSER,
 			DBName: DEFAULTPSQLDB,
-			Pass:   conf.PosgreSQLPassword,
+			Pass:   conf.PostgreSQLPassword,
 		}
 	}
 

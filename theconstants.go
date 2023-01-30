@@ -89,7 +89,7 @@ const (
 	USELESSINPUT      = `’“”̣`      // these can't be found and so should be dropped; note the subscript dot at the end
 
 	MINCONFIG = `
-{"PosgreSQLPassword": "YOURPASSWORDHERE"}
+{"PostgreSQLPassword": "YOURPASSWORDHERE"}
 `
 	TERMINALTEXT = `Copyright (C) %s / %s
       %s
