@@ -38,8 +38,8 @@ const (
 var (
 	Config         CurrentConfiguration
 	SQLPool        *pgxpool.Pool
+	AllSearches    = MakeSearchVault()
 	SessionMap     = make(map[string]ServerSession)
-	SearchMap      = make(map[string]SearchStruct)
 	AuthorizedMap  = make(map[string]bool)
 	UserPassPairs  = make(map[string]string)
 	AllWorks       = make(map[string]DbWork)
@@ -54,11 +54,9 @@ var (
 	WkLocs         = make(map[string]bool)
 	TheCorpora     = [5]string{"gr", "lt", "in", "ch", "dp"}
 	TheLanguages   = [2]string{"greek", "latin"}
-	SearchLocker   sync.RWMutex
 	SessionLocker  sync.RWMutex
 	AuthorizLocker sync.RWMutex
 	WebsocketPool  = WSFillNewPool()
-	AllSearches    = SearchVault{SearchMap, SearchLocker}
 )
 
 type DbAuthor struct {

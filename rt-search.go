@@ -85,17 +85,17 @@ func RtSearch(c echo.Context) error {
 
 	srch.TableSize = len(srch.Queries)
 	srch.IsActive = true
-	AllSearches.Insert(srch)
+	AllSearches.InsertSS(srch)
 
 	var completed SearchStruct
 	if srch.Twobox {
 		if srch.ProxScope == "words" {
-			completed = WithinXWordsSearch(AllSearches.Get(id))
+			completed = WithinXWordsSearch(AllSearches.GetSS(id))
 		} else {
-			completed = WithinXLinesSearch(AllSearches.Get(id))
+			completed = WithinXLinesSearch(AllSearches.GetSS(id))
 		}
 	} else {
-		completed = HGoSrch(AllSearches.Get(id))
+		completed = HGoSrch(AllSearches.GetSS(id))
 		if completed.HasPhrase {
 			findphrasesacrosslines(&completed)
 		}

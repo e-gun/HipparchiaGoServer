@@ -234,6 +234,8 @@ func (s *SearchStruct) AcqRemainCounter() {
 
 type SrchCounter struct {
 	// atomic package could do this more simply, but this architecture is more flexible in the long term
+	// can also do a counter via channels (Count int; Reply chan int; Fetch chan bool; Mod chan int)...
+	// but that version is slightly slower: c. 5%
 	count int
 	lock  sync.RWMutex
 }
@@ -269,19 +271,19 @@ type SrchInfo struct {
 
 // SearchVault - there should be only one of these; and it contains all the searches
 type SearchVault struct {
-	SearchMap    map[string]SearchStruct
-	SearchLocker sync.RWMutex
+	SearchMap map[string]SearchStruct
+	mutex     sync.RWMutex
 }
 
-func (sv *SearchVault) Insert(s SearchStruct) {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
+func (sv *SearchVault) InsertSS(s SearchStruct) {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
 	sv.SearchMap[s.ID] = s
 }
 
-func (sv *SearchVault) Get(id string) SearchStruct {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
+func (sv *SearchVault) GetSS(id string) SearchStruct {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
 	s, e := sv.SearchMap[id]
 	if e != true {
 		s = BuildHollowSearch()
@@ -292,14 +294,14 @@ func (sv *SearchVault) Get(id string) SearchStruct {
 }
 
 func (sv *SearchVault) Delete(id string) {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
 	delete(sv.SearchMap, id)
 }
 
 func (sv *SearchVault) GetInfo(id string) SrchInfo {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
 	var m SrchInfo
 	_, m.Exists = sv.SearchMap[id]
 	if m.Exists {
@@ -311,39 +313,15 @@ func (sv *SearchVault) GetInfo(id string) SrchInfo {
 	return m
 }
 
-func (sv *SearchVault) Exists(id string) bool {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
-	_, exists := SearchMap[id]
-	return exists
-}
-
-func (sv *SearchVault) Count() int {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
-	return len(SearchMap)
-}
-
-func (sv *SearchVault) GetRemain(id string) int {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
-	return sv.SearchMap[id].Remain.Get()
-}
-
 func (sv *SearchVault) SetRemain(id string, r int) {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
 	sv.SearchMap[id].Remain.Set(r)
 }
 
-func (sv *SearchVault) GetHits(id string) int {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
-	return sv.SearchMap[id].Hits.Get()
-}
-
-func (sv *SearchVault) InitSum(id string) string {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
-	return sv.SearchMap[id].InitSum
+func MakeSearchVault() SearchVault {
+	return SearchVault{
+		SearchMap: make(map[string]SearchStruct),
+		mutex:     sync.RWMutex{},
+	}
 }

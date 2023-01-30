@@ -186,7 +186,7 @@ func (c *WSClient) WSMessageLoop() {
 		}
 	}
 
-	srch := AllSearches.Get(c.ID)
+	srch := AllSearches.GetSS(c.ID)
 
 	var pd PollData
 	pd.TwoBox = srch.Twobox
