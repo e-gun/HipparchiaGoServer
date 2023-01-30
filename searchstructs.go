@@ -259,7 +259,7 @@ func (s *SearchStruct) Finished() {
 }
 
 //
-// POOLED SEARCHCOUNTERS
+// POOLED SEARCHCOUNTERS (note that the maps inside the pool will race...)
 //
 
 type CounterPool struct {
@@ -341,9 +341,9 @@ type SrchStructPool struct {
 	Update        chan *SearchStruct
 	FetchSS       chan string
 	ReturnSS      chan *SearchStruct
-	RequestExist  chan string
+	RequestExist  chan SrchReply
 	Exists        chan SrchMsg
-	RequestUpdate chan string
+	RequestUpdate chan SrchReply
 	SendUpdate    chan SrchMsg
 }
 
@@ -354,6 +354,11 @@ type SrchMsg struct {
 	Rem  int
 }
 
+type SrchReply struct {
+	query string
+	reply chan SrchMsg
+}
+
 func SStructFillNewPool() *SrchStructPool {
 	return &SrchStructPool{
 		ClientMap:     make(map[string]*SearchStruct),
@@ -362,9 +367,9 @@ func SStructFillNewPool() *SrchStructPool {
 		Update:        make(chan *SearchStruct),
 		FetchSS:       make(chan string),
 		ReturnSS:      make(chan *SearchStruct),
-		RequestExist:  make(chan string),
+		RequestExist:  make(chan SrchReply),
 		Exists:        make(chan SrchMsg),
-		RequestUpdate: make(chan string),
+		RequestUpdate: make(chan SrchReply),
 		SendUpdate:    make(chan SrchMsg),
 	}
 }
@@ -390,17 +395,17 @@ func (p *SrchStructPool) SStructPoolStartListening() {
 			break
 		case exists := <-p.RequestExist:
 			found := false
-			if _, ok := p.ClientMap[exists]; ok {
+			if _, ok := p.ClientMap[exists.query]; ok {
 				found = true
 			}
-			p.Exists <- SrchMsg{ID: exists, Yes: found}
+			exists.reply <- SrchMsg{ID: exists.query, Yes: found}
 			break
 		case updatepoll := <-p.RequestUpdate:
 			var m SrchMsg
-			if s, ok := p.ClientMap[updatepoll]; ok {
-				m = SrchMsg{ID: updatepoll, Hits: s.Hits.Get(), Rem: s.Remain.Get()}
+			if s, ok := p.ClientMap[updatepoll.query]; ok {
+				m = SrchMsg{ID: updatepoll.query, Hits: s.Hits.Get(), Rem: s.Remain.Get()}
 			}
-			p.SendUpdate <- m
+			updatepoll.reply <- m
 		}
 
 	}

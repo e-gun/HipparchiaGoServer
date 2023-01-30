@@ -8,10 +8,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
-	"github.com/labstack/echo/v4"
 	"strings"
 	"time"
+
+	"github.com/gorilla/websocket"
+	"github.com/labstack/echo/v4"
 )
 
 var (
@@ -174,9 +175,10 @@ func (c *WSClient) WSWriteJSON() {
 	// wait for the search to exist
 	quit := time.Now().Add(time.Second * 1)
 
+	sm := SrchReply{c.ID, make(chan SrchMsg)}
 	for {
-		SearchPool.RequestExist <- c.ID
-		exists := <-SearchPool.Exists
+		SearchPool.RequestExist <- sm
+		exists := <-sm.reply
 
 		if exists.Yes && exists.ID == c.ID {
 			break
@@ -196,9 +198,11 @@ func (c *WSClient) WSWriteJSON() {
 	r.TotalWrk = srch.TableSize
 
 	// loop until search finishes
+	sm = SrchReply{c.ID, make(chan SrchMsg)}
+	udr := SrchReply{c.ID, make(chan SrchMsg)}
 	for {
-		SearchPool.RequestExist <- c.ID
-		exists := <-SearchPool.Exists
+		SearchPool.RequestExist <- sm
+		exists := <-sm.reply
 
 		if !exists.Yes && exists.ID == c.ID {
 			break
@@ -206,8 +210,8 @@ func (c *WSClient) WSWriteJSON() {
 
 		// note that if multiple searches are running, there is no guarantee that the right data is on the channel unless you
 		// also look at the ID; but if each search polls every .1s, competition on the channel will not happen in practice
-		SearchPool.RequestUpdate <- c.ID
-		u := <-SearchPool.SendUpdate
+		SearchPool.RequestUpdate <- udr
+		u := <-udr.reply
 		if u.ID == c.ID {
 			r.Remain = u.Rem
 			r.Hits = u.Rem
