@@ -29,7 +29,7 @@ func RtGetJSSession(c echo.Context) error {
 	// see hipparchiajs/coreinterfaceclicks_go.js
 
 	user := readUUIDCookie(c)
-	s := SafeSessionRead(user)
+	s := AllSessions.GetSess(user)
 
 	type JSO struct {
 		// what the JS is looking for; note that vector stuff, etc is being skipped vs the python session dump
@@ -326,7 +326,7 @@ func RtGetJSSearchlist(c echo.Context) error {
 	)
 
 	user := readUUIDCookie(c)
-	sess := SafeSessionRead(user)
+	sess := AllSessions.GetSess(user)
 
 	m := message.NewPrinter(language.English)
 	sl := SessionIntoSearchlist(sess)

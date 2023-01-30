@@ -11,6 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -47,29 +48,44 @@ type ServerSession struct {
 	LoginName   string
 }
 
-// SafeSessionRead - use a lock to safely read a ServerSession from the SessionMap
-func SafeSessionRead(u string) ServerSession {
-	SessionLocker.RLock()
-	defer SessionLocker.RUnlock()
-	s, e := SessionMap[u]
+//
+// THREAD SAFE INFRASTRUCTURE: MUTEX
+//
+
+// SessionVault - there should be only one of these; and it contains all the searches
+type SessionVault struct {
+	SessionMap map[string]ServerSession
+	mutex      sync.RWMutex
+}
+
+func (sv *SessionVault) InsertSess(s ServerSession) {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
+	sv.SessionMap[s.ID] = s
+}
+
+func (sv *SessionVault) Delete(id string) {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
+	delete(sv.SessionMap, id)
+}
+
+func (sv *SessionVault) GetSess(id string) ServerSession {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
+	s, e := sv.SessionMap[id]
 	if e != true {
-		s = MakeDefaultSession(u)
+		s = MakeDefaultSession(id)
+		msg(fmt.Sprintf("%s not found; building a new session", id), MSGFYI)
 	}
 	return s
 }
 
-// SafeSessionMapInsert - use a lock to safely swap a ServerSession into the SessionMap
-func SafeSessionMapInsert(ns ServerSession) {
-	SessionLocker.Lock()
-	defer SessionLocker.Unlock()
-	SessionMap[ns.ID] = ns
-}
-
-// SafeSessionMapDelete - use a lock to safely delete a ServerSession from the SessionMap
-func SafeSessionMapDelete(u string) {
-	SessionLocker.Lock()
-	defer SessionLocker.Unlock()
-	delete(SessionMap, u)
+func MakeSessionVault() SessionVault {
+	return SessionVault{
+		SessionMap: make(map[string]ServerSession),
+		mutex:      sync.RWMutex{},
+	}
 }
 
 // MakeDefaultSession - fill in the blanks when setting up a new session
@@ -130,7 +146,7 @@ func RtSessionSetsCookie(c echo.Context) error {
 	)
 	num := c.Param("num")
 	user := readUUIDCookie(c)
-	s := SafeSessionRead(user)
+	s := AllSessions.GetSess(user)
 
 	v, e := json.Marshal(s)
 	if e != nil {
@@ -181,7 +197,7 @@ func RtSessionGetCookie(c echo.Context) error {
 		return c.String(http.StatusOK, "")
 	}
 
-	SafeSessionMapInsert(s)
+	AllSessions.InsertSess(s)
 
 	e := c.Redirect(http.StatusFound, "/")
 	chke(e)
@@ -191,7 +207,7 @@ func RtSessionGetCookie(c echo.Context) error {
 // RtResetSession - delete and then reset the session
 func RtResetSession(c echo.Context) error {
 	user := readUUIDCookie(c)
-	SafeSessionMapDelete(user)
+	AllSessions.Delete(user)
 
 	// then reset it
 	readUUIDCookie(c)

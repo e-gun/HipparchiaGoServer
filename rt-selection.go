@@ -108,7 +108,7 @@ func RtSelectionMake(c echo.Context) error {
 	}
 
 	ns := registerselection(user, sel)
-	SafeSessionMapInsert(ns)
+	AllSessions.InsertSess(ns)
 
 	cs := reportcurrentselections(c)
 
@@ -142,7 +142,7 @@ func RtSelectionClear(c echo.Context) error {
 		return emptyjsreturn(c)
 	}
 
-	newsess := SafeSessionRead(user)
+	newsess := AllSessions.GetSess(user)
 	newincl := newsess.Inclusions
 	newexcl := newsess.Exclusions
 
@@ -211,7 +211,7 @@ func RtSelectionClear(c echo.Context) error {
 	newsess.Inclusions = newincl
 	newsess.Exclusions = newexcl
 
-	SafeSessionMapInsert(newsess)
+	AllSessions.InsertSess(newsess)
 	r := RtSelectionFetch(c)
 
 	//sliceprinter("newincl.Passages", newincl.Passages)
@@ -242,7 +242,7 @@ func registerselection(user string, sv SelectionValues) ServerSession {
 		PSGT = `%s_FROM_%d_TO_%d`
 	)
 
-	s := SafeSessionRead(user)
+	s := AllSessions.GetSess(user)
 
 	sep := "|"
 	if s.RawInput {
@@ -778,7 +778,7 @@ func reportcurrentselections(c echo.Context) SelectionData {
 	)
 
 	user := readUUIDCookie(c)
-	s := SafeSessionRead(user)
+	s := AllSessions.GetSess(user)
 	s.Inclusions.BuildAuByName()
 	s.Exclusions.BuildAuByName()
 	s.Inclusions.BuildWkByName()

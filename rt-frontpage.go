@@ -24,7 +24,7 @@ import (
 func RtFrontpage(c echo.Context) error {
 	// will set if missing
 	user := readUUIDCookie(c)
-	s := SafeSessionRead(user)
+	s := AllSessions.GetSess(user)
 
 	env := fmt.Sprintf("%s: %s - %s (%d workers)", runtime.Version(), runtime.GOOS, runtime.GOARCH, Config.WorkerCount)
 
@@ -65,11 +65,8 @@ func readUUIDCookie(c echo.Context) string {
 	}
 	id := cookie.Value
 
-	SessionLocker.Lock()
-	if _, t := SessionMap[id]; !t {
-		SessionMap[id] = MakeDefaultSession(id)
-	}
-	SessionLocker.Unlock()
+	// .GetSess() will make a new session if id is not found
+	_ = AllSessions.GetSess(id)
 
 	return id
 }

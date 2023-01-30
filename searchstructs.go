@@ -197,7 +197,7 @@ func (s *SearchStruct) SortResults() {
 		return one.MyWk().Prov < two.MyWk().Prov
 	}
 
-	sess := SafeSessionRead(s.User)
+	sess := AllSessions.GetSess(s.User)
 	crit := sess.SortHitsBy
 
 	switch {

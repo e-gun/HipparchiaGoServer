@@ -155,7 +155,7 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 		HIGHLIGHTER = `<span class="highlight">%s</span>`
 		SNIP        = `✃✃✃`
 	)
-	thesession := SafeSessionRead(thesearch.User)
+	thesession := AllSessions.GetSess(thesearch.User)
 
 	type PsgFormattingTemplate struct {
 		Findnumber  int
@@ -352,7 +352,7 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 	)
 
 	m := message.NewPrinter(language.English)
-	sess := SafeSessionRead(s.User)
+	sess := AllSessions.GetSess(s.User)
 	var dr string
 	if sess.Earliest != MINDATESTR || sess.Latest != MAXDATESTR {
 		a := FormatBCEDate(sess.Earliest)

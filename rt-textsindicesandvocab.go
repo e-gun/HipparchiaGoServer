@@ -81,7 +81,7 @@ func RtTextMaker(c echo.Context) error {
 		return c.JSONPretty(http.StatusOK, JSFeeder{JS: JSVALIDATION}, JSONINDENT)
 	}
 
-	sess := SafeSessionRead(user)
+	sess := AllSessions.GetSess(user)
 	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 
 	if len(srch.Results) == 0 {
@@ -246,7 +246,7 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	start := time.Now()
-	se := SafeSessionRead(user)
+	se := AllSessions.GetSess(user)
 
 	id := c.Param("id")
 	id = Purgechars(Config.BadChars, id)
@@ -767,7 +767,7 @@ func RtIndexMaker(c echo.Context) error {
 // sessionintobulksearch - grab every line of text in the currently registerselection set of authors, works, and passages
 func sessionintobulksearch(c echo.Context, lim int) SearchStruct {
 	user := readUUIDCookie(c)
-	sess := SafeSessionRead(user)
+	sess := AllSessions.GetSess(user)
 
 	srch := BuildDefaultSearch(c)
 	srch.Seeking = ""

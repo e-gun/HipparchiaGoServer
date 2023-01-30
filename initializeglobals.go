@@ -39,6 +39,7 @@ var (
 	Config         CurrentConfiguration
 	SQLPool        *pgxpool.Pool
 	AllSearches    = MakeSearchVault()
+	AllSessions    = MakeSessionVault()
 	SessionMap     = make(map[string]ServerSession)
 	AuthorizedMap  = make(map[string]bool)
 	UserPassPairs  = make(map[string]string)
@@ -54,7 +55,6 @@ var (
 	WkLocs         = make(map[string]bool)
 	TheCorpora     = [5]string{"gr", "lt", "in", "ch", "dp"}
 	TheLanguages   = [2]string{"greek", "latin"}
-	SessionLocker  sync.RWMutex
 	AuthorizLocker sync.RWMutex
 	WebsocketPool  = WSFillNewPool()
 )

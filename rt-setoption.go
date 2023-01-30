@@ -35,7 +35,7 @@ func RtSetOption(c echo.Context) error {
 		"rawinputstyle", "onehit", "headwordindexing", "indexbyfrequency", "spuria", "incerta", "varia", "vocbycount",
 		"vocscansion"}
 
-	s := SafeSessionRead(user)
+	s := AllSessions.GetSess(user)
 
 	if IsInSlice(ynoptionlist, opt) {
 		valid := []string{"yes", "no"}
@@ -180,6 +180,6 @@ func RtSetOption(c echo.Context) error {
 		}
 	}
 
-	SafeSessionMapInsert(s)
+	AllSessions.InsertSess(s)
 	return c.String(http.StatusOK, "")
 }

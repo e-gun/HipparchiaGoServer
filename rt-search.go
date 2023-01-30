@@ -71,7 +71,7 @@ func RtSearch(c echo.Context) error {
 	srch.Seeking = whitespacer(srch.Seeking, &srch)
 	srch.Proximate = whitespacer(srch.Proximate, &srch)
 
-	se := SafeSessionRead(user)
+	se := AllSessions.GetSess(user)
 	sl := SessionIntoSearchlist(se)
 
 	srch.SearchIn = sl.Inc
@@ -126,7 +126,7 @@ func RtSearch(c echo.Context) error {
 // BuildDefaultSearch - fill out the basic values for a new search
 func BuildDefaultSearch(c echo.Context) SearchStruct {
 	user := readUUIDCookie(c)
-	sess := SafeSessionRead(user)
+	sess := AllSessions.GetSess(user)
 
 	var srch SearchStruct
 	srch.User = user
