@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -503,99 +502,4 @@ func SearchTermFinder(term string) *regexp.Regexp {
 		pattern = regexp.MustCompile("FAILED_FIND_NOTHING")
 	}
 	return pattern
-}
-
-//
-// THREAD SAFE INFRASTRUCTURE: MUTEX
-// (and not channel: https://github.com/golang/go/wiki/MutexOrChannel)
-//
-
-// SearchVault - there should be only one of these; and it contains all the searches
-type SearchVault struct {
-	SearchMap    map[string]SearchStruct
-	SearchLocker sync.RWMutex
-}
-
-type SrchInfo struct {
-	ID        string
-	Exists    bool
-	Hits      int
-	Remain    int
-	Summary   string
-	SrchCount int
-}
-
-func (sv *SearchVault) Insert(s SearchStruct) {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
-	sv.SearchMap[s.ID] = s
-}
-
-func (sv *SearchVault) Get(id string) SearchStruct {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
-	s, e := sv.SearchMap[id]
-	if e != true {
-		s = BuildHollowSearch()
-		s.ID = id
-		s.IsActive = false
-	}
-	return s
-}
-
-func (sv *SearchVault) Delete(id string) {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
-	delete(sv.SearchMap, id)
-}
-
-func (sv *SearchVault) GetInfo(id string) SrchInfo {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
-	var m SrchInfo
-	_, m.Exists = sv.SearchMap[id]
-	if m.Exists {
-		m.Remain = sv.SearchMap[id].Remain.Get()
-		m.Hits = sv.SearchMap[id].Hits.Get()
-		m.Summary = sv.SearchMap[id].InitSum
-	}
-	m.SrchCount = len(sv.SearchMap)
-	return m
-}
-
-func (sv *SearchVault) Exists(id string) bool {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
-	_, exists := SearchMap[id]
-	return exists
-}
-
-func (sv *SearchVault) Count() int {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
-	return len(SearchMap)
-}
-
-func (sv *SearchVault) GetRemain(id string) int {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
-	return sv.SearchMap[id].Remain.Get()
-}
-
-func (sv *SearchVault) SetRemain(id string, r int) {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
-	sv.SearchMap[id].Remain.Set(r)
-}
-
-func (sv *SearchVault) GetHits(id string) int {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
-	return sv.SearchMap[id].Hits.Get()
-}
-
-func (sv *SearchVault) InitSum(id string) string {
-	sv.SearchLocker.Lock()
-	defer sv.SearchLocker.Unlock()
-	return sv.SearchMap[id].InitSum
 }

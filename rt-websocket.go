@@ -40,8 +40,8 @@ func RtWebsocket(c echo.Context) error {
 	}
 
 	WebsocketPool.Add <- progresspoll
-	progresspoll.ReadID()
-	progresspoll.WSWriteJSON()
+	progresspoll.ReceiveID()
+	progresspoll.WSMessageLoop()
 	WebsocketPool.Remove <- progresspoll
 	return nil
 }
@@ -134,11 +134,11 @@ type WSJSOut struct {
 	Close string `json:"close"`
 }
 
-// ReadID - get the searchID from the client; record it; then exit
-func (c *WSClient) ReadID() {
+// ReceiveID - get the searchID from the client; record it; then exit
+func (c *WSClient) ReceiveID() {
 	const (
-		FAIL1 = `WSClient.ReadID() failed`
-		FAIL2 = `WSClient.ReadID() never received the search id`
+		FAIL1 = `WSClient.ReceiveID() failed`
+		FAIL2 = `WSClient.ReceiveID() never received the search id`
 	)
 
 	quit := time.Now().Add(time.Second * 1)
@@ -165,10 +165,10 @@ func (c *WSClient) ReadID() {
 	}
 }
 
-// WSWriteJSON - output the constantly updated search progress to the websocket; then exit
-func (c *WSClient) WSWriteJSON() {
+// WSMessageLoop - output the constantly updated search progress to the websocket; then exit
+func (c *WSClient) WSMessageLoop() {
 	const (
-		FAIL = `WSClient.WSWriteJSON() never found '%s' in the SearchMap`
+		FAIL = `WSClient.WSMessageLoop() never found '%s' in the SearchMap`
 	)
 
 	// wait for the search to exist
