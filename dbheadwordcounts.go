@@ -54,7 +54,7 @@ import (
 
 var (
 	CORPUSWEIGTING = map[string]float32{"Ⓖ": 1.0, "Ⓛ": 12.7, "Ⓘ": 15.19, "Ⓓ": 18.14, "Ⓒ": 85.78}
-	ERAWEIGHTING   = map[string]float32{"ⓔ": 6.93, "ⓜ": 1.87, "ⓛ": 1}
+	ERAWEIGHTING   = map[string]float32{"ℯ": 6.93, "𝓂": 1.87, "ℓ": 1}
 	GKGENREWEIGHT  = map[string]float32{"Acta": 85.38, "Alchem": 72.13, "Anthol": 17.68, "Apocal": 117.69, "Apocr": 89.77,
 		"Apol": 7.0, "Astrol": 20.68, "Astron": 44.72, "Biogr": 6.39, "Bucol": 416.66, "Caten": 5.21,
 		"Chron": 4.55, "Comic": 29.61, "Comm": 1.0, "Concil": 16.75, "Coq": 532.74, "Dial": 7.1,
@@ -215,11 +215,11 @@ func (hw *DbHeadwordCount) LoadCorpVals() {
 }
 
 func (hw *DbHeadwordCount) LoadTimeVals() {
-	// Weighted chronological distribution: ⓔ 100 / ⓛ 84 / ⓜ 62
+	// Weighted chronological distribution: ℯ 100 / ℓ 84 / 𝓂 62
 	var vv []HWData
-	vv = append(vv, HWData{"ⓔ", hw.Chron.Early})
-	vv = append(vv, HWData{"ⓛ", hw.Chron.Late})
-	vv = append(vv, HWData{"ⓜ", hw.Chron.Middle})
+	vv = append(vv, HWData{"ℯ", hw.Chron.Early})
+	vv = append(vv, HWData{"ℓ", hw.Chron.Late})
+	vv = append(vv, HWData{"𝓂", hw.Chron.Middle})
 	hw.TimeVal = vv
 }
 
@@ -329,7 +329,7 @@ func headwordlookup(word string) DbHeadwordCount {
 func headwordprevalence(wc DbHeadwordCount) string {
 	// Prevalence (all forms): Ⓖ 95,843 / Ⓛ 10 / Ⓘ 151 / Ⓓ 751 / Ⓒ 64 / Ⓣ 96,819
 	const (
-		PREVSPAN = `<span class="prevalence">%s</span>&nbsp;%d`
+		PREVSPAN = `<span class="prevalence rarechars">%s</span>&nbsp;%d`
 		PREVSUM  = `<br>Prevalence (all forms): `
 	)
 
@@ -344,7 +344,7 @@ func headwordprevalence(wc DbHeadwordCount) string {
 			pd = append(pd, m.Sprintf(PREVSPAN, c.name, c.count))
 		}
 	}
-	pd = append(pd, m.Sprintf("%s %d", "Ⓣ", wc.Total))
+	pd = append(pd, m.Sprintf(PREVSPAN, "Ⓣ", wc.Total))
 
 	p := PREVSUM + strings.Join(pd, " / ")
 
@@ -368,7 +368,7 @@ func headworddistrib(wc DbHeadwordCount) string {
 
 	p := ""
 	if max != 0 {
-		pd := weightedpdslice(cv)
+		pd := weightedpdslice(cv, true)
 		p = DIST + strings.Join(pd, "; ")
 	}
 
@@ -376,7 +376,7 @@ func headworddistrib(wc DbHeadwordCount) string {
 }
 
 func headwordchronology(wc DbHeadwordCount) string {
-	// Weighted chronological distribution: ⓔ 100 / ⓛ 84 / ⓜ 62
+	// Weighted chronological distribution: ℯ 100 / ℓ 84 / 𝓂 62
 	const (
 		DIST = `<br>Distribution by time: `
 	)
@@ -392,7 +392,7 @@ func headwordchronology(wc DbHeadwordCount) string {
 
 	p := ""
 	if max != 0 {
-		pd := weightedpdslice(cv)
+		pd := weightedpdslice(cv, true)
 		p = DIST + strings.Join(pd, "; ")
 
 	}
@@ -429,7 +429,7 @@ func headwordgenres(wc DbHeadwordCount) string {
 
 	p := ""
 	if max != 0 {
-		pd := weightedpdslice(cv)
+		pd := weightedpdslice(cv, false)
 		lim := math.Min(GENRESTOCOUNT, float64(len(pd)))
 		pd = pd[0:int(lim)]
 		p = DIST + strings.Join(pd, "; ")
@@ -439,17 +439,24 @@ func headwordgenres(wc DbHeadwordCount) string {
 }
 
 // weightedpdslice - convert count values into a formatted string slice
-func weightedpdslice(cv []HWData) []string {
+func weightedpdslice(cv []HWData, rare bool) []string {
 	const (
-		PREVSPAN = `<span class="prevalence">%s</span>&nbsp;%d`
+		PREVSPANA = `<span class="prevalence rarechars">%s</span>&nbsp;%d`
+		PREVSPANB = `<span class="prevalence">%s</span>&nbsp;%d`
 	)
+
+	ps := PREVSPANA
+	if !rare {
+		// headwordgenres()
+		ps = PREVSPANB
+	}
 
 	max := cv[0].count
 	var pd []string
 	for _, c := range cv {
 		cpt := (float32(c.count) / float32(max)) * 100
 		if int(cpt) > 0 {
-			pd = append(pd, fmt.Sprintf(PREVSPAN, c.name, int(cpt)))
+			pd = append(pd, fmt.Sprintf(ps, c.name, int(cpt)))
 		}
 	}
 	return pd
