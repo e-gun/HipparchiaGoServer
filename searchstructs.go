@@ -259,6 +259,14 @@ func (h *SrchCounter) Set(c int) {
 // (and not channel: https://github.com/golang/go/wiki/MutexOrChannel)
 //
 
+// MakeSearchVault - called only once; yields the AllSearches vault
+func MakeSearchVault() SearchVault {
+	return SearchVault{
+		SearchMap: make(map[string]SearchStruct),
+		mutex:     sync.RWMutex{},
+	}
+}
+
 // SrchInfo - struct used to deliver info about searches in progress
 type SrchInfo struct {
 	ID        string
@@ -317,11 +325,4 @@ func (sv *SearchVault) SetRemain(id string, r int) {
 	sv.mutex.Lock()
 	defer sv.mutex.Unlock()
 	sv.SearchMap[id].Remain.Set(r)
-}
-
-func MakeSearchVault() SearchVault {
-	return SearchVault{
-		SearchMap: make(map[string]SearchStruct),
-		mutex:     sync.RWMutex{},
-	}
 }

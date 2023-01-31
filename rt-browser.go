@@ -61,7 +61,7 @@ func RtBrowseline(c echo.Context) error {
 	)
 
 	user := readUUIDCookie(c)
-	if !SafeAuthenticationCheck(user) {
+	if !AllAuthorized.Check(user) {
 		bp := BrowsedPassage{Browserhtml: AUTHWARN}
 		return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
 	}
@@ -98,7 +98,7 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 	user := readUUIDCookie(c)
 	s := AllSessions.GetSess(user)
 
-	if !SafeAuthenticationCheck(user) {
+	if !AllAuthorized.Check(user) {
 		return BrowsedPassage{Browserhtml: AUTHWARN}
 	}
 

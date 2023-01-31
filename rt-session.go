@@ -52,7 +52,15 @@ type ServerSession struct {
 // THREAD SAFE INFRASTRUCTURE: MUTEX
 //
 
-// SessionVault - there should be only one of these; and it contains all the searches
+// MakeSessionVault - called only once; yields the AllSessions vault
+func MakeSessionVault() SessionVault {
+	return SessionVault{
+		SessionMap: make(map[string]ServerSession),
+		mutex:      sync.RWMutex{},
+	}
+}
+
+// SessionVault - there should be only one of these; and it contains all the sessions
 type SessionVault struct {
 	SessionMap map[string]ServerSession
 	mutex      sync.RWMutex
@@ -76,16 +84,8 @@ func (sv *SessionVault) GetSess(id string) ServerSession {
 	s, e := sv.SessionMap[id]
 	if e != true {
 		s = MakeDefaultSession(id)
-		msg(fmt.Sprintf("%s not found; building a new session", id), MSGFYI)
 	}
 	return s
-}
-
-func MakeSessionVault() SessionVault {
-	return SessionVault{
-		SessionMap: make(map[string]ServerSession),
-		mutex:      sync.RWMutex{},
-	}
 }
 
 // MakeDefaultSession - fill in the blanks when setting up a new session
@@ -111,11 +111,10 @@ func MakeDefaultSession(id string) ServerSession {
 	s.VocScansion = Config.VocabScans
 	s.VocByCount = Config.VocabByCt
 
-	// readUUIDCookie() called this function, and it already holds a lock
 	if Config.Authenticate {
-		AuthorizedMap[id] = false
+		AllAuthorized.Register(id, false)
 	} else {
-		AuthorizedMap[id] = true
+		AllAuthorized.Register(id, true)
 	}
 
 	//msg("MakeDefaultSession() in non-default state for testing; this is not a release build of HGS", 0)

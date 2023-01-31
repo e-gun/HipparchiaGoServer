@@ -77,7 +77,7 @@ func RtTextMaker(c echo.Context) error {
 	}
 
 	user := readUUIDCookie(c)
-	if !SafeAuthenticationCheck(user) {
+	if !AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, JSFeeder{JS: JSVALIDATION}, JSONINDENT)
 	}
 
@@ -241,7 +241,7 @@ func RtVocabMaker(c echo.Context) error {
 		NJ string `json:"newjs"`
 	}
 	user := readUUIDCookie(c)
-	if !SafeAuthenticationCheck(user) {
+	if !AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, JSFeeder{NJ: JSVALIDATION}, JSONINDENT)
 	}
 
@@ -513,7 +513,7 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	user := readUUIDCookie(c)
-	if !SafeAuthenticationCheck(user) {
+	if !AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, JSFeeder{NJ: JSVALIDATION}, JSONINDENT)
 	}
 

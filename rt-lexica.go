@@ -112,7 +112,7 @@ type JSB struct {
 // RtLexLookup - search the dictionary for a headword substring
 func RtLexLookup(c echo.Context) error {
 	user := readUUIDCookie(c)
-	if !SafeAuthenticationCheck(user) {
+	if !AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, JSB{JS: JSVALIDATION}, JSONINDENT)
 	}
 
@@ -154,7 +154,7 @@ func RtLexLookup(c echo.Context) error {
 func RtLexFindByForm(c echo.Context) error {
 	// be able to respond to "GET /lexica/findbyform/ἀμιϲθὶ/gr0062 HTTP/1.1"
 	user := readUUIDCookie(c)
-	if !SafeAuthenticationCheck(user) {
+	if !AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, JSB{JS: JSVALIDATION}, JSONINDENT)
 	}
 
@@ -199,7 +199,7 @@ func RtLexId(c echo.Context) error {
 	)
 
 	user := readUUIDCookie(c)
-	if !SafeAuthenticationCheck(user) {
+	if !AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, JSB{JS: JSVALIDATION}, JSONINDENT)
 	}
 
@@ -233,7 +233,7 @@ func RtLexReverse(c echo.Context) error {
 	// be able to respond to "/lexica/reverselookup/0ae94619/sorrow"
 
 	user := readUUIDCookie(c)
-	if !SafeAuthenticationCheck(user) {
+	if !AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, JSB{JS: JSVALIDATION}, JSONINDENT)
 	}
 

@@ -8,6 +8,7 @@ package main
 import (
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"sync"
 )
 
 // RtAuthLogin - accept and validate login info sent from <form id="hipparchiauserlogin"...>
@@ -18,10 +19,10 @@ func RtAuthLogin(c echo.Context) error {
 	p := c.FormValue("pw")
 
 	if UserPassPairs[u] == p {
-		SafeAuthenticationWrite(cid, true)
+		AllAuthorized.Register(cid, true)
 		s.LoginName = u
 	} else {
-		SafeAuthenticationWrite(cid, false)
+		AllAuthorized.Register(cid, false)
 		s.LoginName = "Anonymous"
 	}
 
@@ -37,7 +38,7 @@ func RtAuthLogout(c echo.Context) error {
 	s := AllSessions.GetSess(u)
 	s.LoginName = "Anonymous"
 	AllSessions.InsertSess(s)
-	SafeAuthenticationWrite(u, false)
+	AllAuthorized.Register(u, false)
 	return c.JSONPretty(http.StatusOK, "Anonymous", JSONINDENT)
 }
 
@@ -45,7 +46,7 @@ func RtAuthLogout(c echo.Context) error {
 func RtAuthChkuser(c echo.Context) error {
 	user := readUUIDCookie(c)
 	s := AllSessions.GetSess(user)
-	a := SafeAuthenticationCheck(s.ID)
+	a := AllAuthorized.Check(s.ID)
 
 	type JSO struct {
 		ID   string `json:"userid"`
@@ -60,26 +61,41 @@ func RtAuthChkuser(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, o, JSONINDENT)
 }
 
-// SafeAuthenticationCheck - use a lock to safely read from AuthorizedMap; "true" if you have access
-func SafeAuthenticationCheck(u string) bool {
+//
+// THREAD SAFE INFRASTRUCTURE: MUTEX
+//
+
+// MakeAuthorizedVault - called only once; yields the AllAuthorized vault
+func MakeAuthorizedVault() AuthVault {
+	return AuthVault{
+		UserMap: make(map[string]bool),
+		mutex:   sync.RWMutex{},
+	}
+}
+
+// AuthVault - there should be only one of these; and it contains all the authorization info
+type AuthVault struct {
+	UserMap map[string]bool
+	mutex   sync.RWMutex
+}
+
+func (av *AuthVault) Check(u string) bool {
 	if !Config.Authenticate {
 		return true
 	}
-
-	AuthorizLocker.RLock()
-	defer AuthorizLocker.RUnlock()
-	s, e := AuthorizedMap[u]
+	av.mutex.Lock()
+	defer av.mutex.Unlock()
+	s, e := av.UserMap[u]
 	if e != true {
-		AuthorizedMap[u] = false
+		av.UserMap[u] = false
 		s = false
 	}
 	return s
 }
 
-// SafeAuthenticationWrite - use a lock to safely write to AuthorizedMap
-func SafeAuthenticationWrite(u string, b bool) {
-	AuthorizLocker.RLock()
-	defer AuthorizLocker.RUnlock()
-	AuthorizedMap[u] = b
+func (av *AuthVault) Register(u string, b bool) {
+	av.mutex.Lock()
+	defer av.mutex.Unlock()
+	av.UserMap[u] = b
 	return
 }
