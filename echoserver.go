@@ -176,6 +176,7 @@ func StartEchoServer() {
 	e.GET("/emb/js/:file", RtEmbJS)
 	e.GET("/emb/otf/:file", RtEmbOTF)
 	e.GET("/emb/ttf/:file", RtEmbTTF)
+	e.GET("/emb/wof/:file", RtEmbWOF)
 	e.GET("/favicon.ico", RtEbmFavicon)
 	e.GET("/apple-touch-icon-precomposed.png", RtEbmTouchIcon)
 

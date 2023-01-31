@@ -26,10 +26,11 @@ const (
 	EJQ  = "emb/jq/"
 	EJQI = "emb/jq/images/"
 	EJS  = "emb/js/"
-	ECSS = "emb/css/servedfont.css"
-	ECSL = "emb/css/localfont.css"
+	ECSS = "emb/css/serversendsfont.css"
+	ECSL = "emb/css/fontislocaltouser.css"
 	ETT  = "emb/ttf/"
 	EOT  = "emb/otf/"
+	EWF  = "emb/wof/"
 	EICO = "emb/images/hipparchia_favicon.ico"
 	EITC = "emb/images/hipparchia_apple-touch-icon-precomposed.png"
 )
@@ -79,6 +80,10 @@ func RtEmbTTF(c echo.Context) error {
 
 func RtEmbOTF(c echo.Context) error {
 	return pathembedder(c, EOT)
+}
+
+func RtEmbWOF(c echo.Context) error {
+	return pathembedder(c, EWF)
 }
 
 func RtEbmFavicon(c echo.Context) error {
@@ -156,6 +161,10 @@ func addresponsehead(f string) string {
 		add = "font/opentype"
 	}
 
+	if strings.Contains(f, ".woff2") {
+		add = "font/woff2"
+	}
+
 	return add
 }
 
@@ -163,8 +172,8 @@ func addresponsehead(f string) string {
 HipparchiaGoServer/emb/ % tree
 .
 ├── css
-│   ├── localfont.css
-│   └── servedfont.css
+│   ├── fontislocaltouser.css
+│   └── serversendsfont.css
 ├── frontpage.html
 ├── h
 │   ├── helpbasicsyntax.html

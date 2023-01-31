@@ -51,7 +51,6 @@ type SearchStruct struct {
 	ExtraMsg      string
 	Hits          *SrchCounter
 	Remain        *SrchCounter
-	lock          *sync.RWMutex
 }
 
 // CleanInput - remove bad chars, etc. from the submitted data

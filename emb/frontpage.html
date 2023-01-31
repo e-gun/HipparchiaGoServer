@@ -31,7 +31,7 @@
     </div>
     <br />
     <p class="optionlabel">Corpora to search</p>
-    <p class="optionitem">
+    <p class="optionitem rarechars">
         Ⓖ <input type="checkbox" id="greekcorpus" value="no" title="Greek authors ">
         &middot;&nbsp;Ⓛ&nbsp;<input type="checkbox" id="latincorpus" value="no" title="Latin authors">
         &middot;&nbsp;Ⓓ&nbsp;<input type="checkbox" id="papyruscorpus" value="no" title="Documentary papyri">
@@ -186,61 +186,65 @@
     <div id="savedprofiles">
         <span id="togglesaveslots" title="Pick a save slot into which to save your current session"><span class="material-icons md-mid ui">save</span></span><br />
         <div id="saveslots">
-            <span class="saveoptions" title="Save to slot 1" id="save01">➊</span><br />
-            <span class="saveoptions" title="Save to slot 2" id="save02">➋</span><br />
-            <span class="saveoptions" title="Save to slot 3" id="save03">➌</span><br />
-            <span class="saveoptions" title="Save to slot 4" id="save04">➍</span><br />
-            <span class="saveoptions" title="Save to slot 5" id="save05">➎</span><br />
+            <span class="rarechars">
+                <span class="saveoptions" title="Save to slot 1" id="save01">➊</span><br />
+                <span class="saveoptions" title="Save to slot 2" id="save02">➋</span><br />
+                <span class="saveoptions" title="Save to slot 3" id="save03">➌</span><br />
+                <span class="saveoptions" title="Save to slot 4" id="save04">➍</span><br />
+                <span class="saveoptions" title="Save to slot 5" id="save05">➎</span><br />
+            </span>
         </div>
         <span id="toggleloadslots" title="Pick a save slot from which to load stored session"><span class="material-icons md-mid ui">folder_open</span></span><br />
         <div id="loadslots">
-            <span class="loadoptions" title="Load from slot 1" id="load01">➀</span><br />
-            <span class="loadoptions" title="Load from slot 2" id="load02">➁</span><br />
-            <span class="loadoptions" title="Load from slot 3" id="load03">➂</span><br />
-            <span class="loadoptions" title="Load from slot 4" id="load04">➃</span><br />
-            <span class="loadoptions" title="Load from slot 5" id="load05">➄</span>
+            <span class="rarechars">
+                <span class="loadoptions" title="Load from slot 1" id="load01">➀</span><br />
+                <span class="loadoptions" title="Load from slot 2" id="load02">➁</span><br />
+                <span class="loadoptions" title="Load from slot 3" id="load03">➂</span><br />
+                <span class="loadoptions" title="Load from slot 4" id="load04">➃</span><br />
+                <span class="loadoptions" title="Load from slot 5" id="load05">➄</span>
+            </span>
         </div>
     </div>
 
     <div id="activeoptions">
-        <div id="grkisactive" title="Greek corpus is active"><span class="activeoption">Ⓖ</span></div>
-        <div id="grkisnotactive"></div>
-        <div id="latisactive" title="Latin corpus is active"><span class="activeoption">Ⓛ</span></div>
-        <div id="latisnotactive"></div>
-        <div id="ddpisactive" title="Documentary papyri corpus is active"><span class="activeoption">Ⓓ</span></div>
-        <div id="ddpnotisactive"></div>
-        <div id="insisactive" title="Inscriptions corpus I is active"><span class="activeoption">Ⓘ</span></div>
-        <div id="insnotisactive"></div>
-        <div id="chrisactive" title="Inscriptions corpus II is active"><span class="activeoption">Ⓒ</span></div>
-        <div id="chrnotisactive"></div>
-        <br>
+            <div id="grkisactive" title="Greek corpus is active"><span class="activeoption rarechars">Ⓖ</span></div>
+            <div id="grkisnotactive"></div>
+            <div id="latisactive" title="Latin corpus is active"><span class="activeoption rarechars">Ⓛ</span></div>
+            <div id="latisnotactive"></div>
+            <div id="ddpisactive" title="Documentary papyri corpus is active"><span class="activeoption rarechars">Ⓓ</span></div>
+            <div id="ddpnotisactive"></div>
+            <div id="insisactive" title="Inscriptions corpus I is active"><span class="activeoption rarechars">Ⓘ</span></div>
+            <div id="insnotisactive"></div>
+            <div id="chrisactive" title="Inscriptions corpus II is active"><span class="activeoption rarechars">Ⓒ</span></div>
+            <div id="chrnotisactive"></div>
+            <br>
 
-        <div id="usingrawinput" title="Passage locations manually entered"><span class="activeoption">⒭</span></div>
-        <div id="usingautoinput" title="Passage locations via autofill boxes"><span class="activeoption">⒜</span></div>
-        <div id="onehitistrue" title="Matches limited to one per work"><span class="activeoption">⑴</span></div>
-        <div id="onehitisfalse" title="Unlimited matches per work"></div>
-        <div id="spuriaistrue" title="Search inside spuria"><span class="activeoption"></span></div>
-        <div id="spuriaisfalse" title="Do not search inside spuria"><span class="activeoption linethrough small">sp</span></div>
-        <div id="undatedistrue" title="Search works that have no assigned date"><span class="activeoption"></span></div>
-        <div id="undatedisfalse" title="Do not search works without an assigned date"><span class="activeoption linethrough small">inc</span></div>
-        <div id="variaistrue" title="Search works that have various authors and dates"><span class="activeoption"></span></div>
-        <div id="variaisfalse" title="Do not search works that have various authors and dates"><span class="activeoption linethrough small">var</span></div>
-        <div id="headwordindexingactive" title="Index by headword"><span class="activeoption">⢱</span></div>
-        <div id="headwordindexinginactive" title="Do not index by headword"><span class="activeoption"></span></div>
-        <div id="frequencyindexingactive" title="Index by frequency"><span class="activeoption">﹟</span></div>
-        <div id="frequencyindexinginactive" title="Do not index by frequency"><span class="activeoption"></span></div>
-        <br>
+            <div id="usingrawinput" title="Passage locations manually entered"><span class="activeoption rarechars">⒭</span></div>
+            <div id="usingautoinput" title="Passage locations via autofill boxes"><span class="activeoption rarechars">⒜</span></div>
+            <div id="onehitistrue" title="Matches limited to one per work"><span class="activeoption rarechars">⑴</span></div>
+            <div id="onehitisfalse" title="Unlimited matches per work"></div>
+            <div id="spuriaistrue" title="Search inside spuria"><span class="activeoption"></span></div>
+            <div id="spuriaisfalse" title="Do not search inside spuria"><span class="activeoption linethrough small">sp</span></div>
+            <div id="undatedistrue" title="Search works that have no assigned date"><span class="activeoption"></span></div>
+            <div id="undatedisfalse" title="Do not search works without an assigned date"><span class="activeoption linethrough small">inc</span></div>
+            <div id="variaistrue" title="Search works that have various authors and dates"><span class="activeoption"></span></div>
+            <div id="variaisfalse" title="Do not search works that have various authors and dates"><span class="activeoption linethrough small">var</span></div>
+            <div id="headwordindexingactive" title="Index by headword"><span class="activeoption rarechars">⢱</span></div>
+            <div id="headwordindexinginactive" title="Do not index by headword"><span class="activeoption"></span></div>
+            <div id="frequencyindexingactive" title="Index by frequency"><span class="activeoption">﹟</span></div>
+            <div id="frequencyindexinginactive" title="Do not index by frequency"><span class="activeoption"></span></div>
+            <br>
 
-        <div id="lemmatizing-ison"><span class="activeoption">λ</span></div>
-        <div id="lemmatizing-isoff"><span class="activeoption"></span></div>
-        <div id="vectorizing-ison"><span class="activeoption">ṽ</span></div>
-        <div id="vectorizing-isoff"><span class="activeoption"></span></div>
-        <br>
+            <div id="lemmatizing-ison"><span class="activeoption rarechars">λ</span></div>
+            <div id="lemmatizing-isoff"><span class="activeoption"></span></div>
+            <div id="vectorizing-ison"><span class="activeoption rarechars">ṽ</span></div>
+            <div id="vectorizing-isoff"><span class="activeoption"></span></div>
+            <br>
 
-        <div id="alternates-ison"><span class="activeoption">🄰</span></div>
-        <div id="flatlemma-ison"><span class="activeoption">🄵</span></div>
-        <div id="unlemmatized-ison"><span class="activeoption">🅄</span></div>
-        <div id="winnertakesall-ison"><span class="activeoption">🅆</span></div>
+            <div id="alternates-ison"><span class="activeoption rarechars">🄰</span></div>
+            <div id="flatlemma-ison"><span class="activeoption rarechars">🄵</span></div>
+            <div id="unlemmatized-ison"><span class="activeoption rarechars">🅄</span></div>
+            <div id="winnertakesall-ison"><span class="activeoption rarechars">🅆</span></div>
     </div>
 
     <script>
