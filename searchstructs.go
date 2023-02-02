@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -232,25 +233,20 @@ func (s *SearchStruct) AcqRemainCounter() {
 //
 
 type SrchCounter struct {
-	// atomic package could do this more simply, but this architecture is more flexible in the long term
-	// can also do a counter via channels (Count int; Reply chan int; Fetch chan bool; Mod chan int)...
-	// but that version is slightly slower: c. 5%
-	count int
-	lock  sync.RWMutex
+	// atomic package is faster and mutext architecture is more robust/flexible in the long term
+	// OR can do a counter via channels (Count int; Reply chan int; Fetch chan bool; Mod chan int)...
+	// but that version is slightly slower than mutex: c. 5%
+	count atomic.Int64
 }
 
 // Get - concurrency aware way to read a SrchCounter
-func (h *SrchCounter) Get() int {
-	h.lock.RLock()
-	defer h.lock.RUnlock()
-	return h.count
+func (c *SrchCounter) Get() int {
+	return int(c.count.Load())
 }
 
 // Set - concurrency aware way to write to a SrchCounter
-func (h *SrchCounter) Set(c int) {
-	h.lock.Lock()
-	defer h.lock.Unlock()
-	h.count = c
+func (c *SrchCounter) Set(v int) {
+	c.count.Store(int64(v))
 }
 
 //
@@ -272,7 +268,6 @@ type SrchInfo struct {
 	Exists    bool
 	Hits      int
 	Remain    int
-	Summary   string
 	SrchCount int
 }
 
@@ -296,6 +291,7 @@ func (sv *SearchVault) GetSS(id string) SearchStruct {
 		s = BuildHollowSearch()
 		s.ID = id
 		s.IsActive = false
+		sv.SearchMap[id] = s
 	}
 	return s
 }
@@ -307,14 +303,13 @@ func (sv *SearchVault) Delete(id string) {
 }
 
 func (sv *SearchVault) GetInfo(id string) SrchInfo {
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
+	sv.mutex.RLock()
+	defer sv.mutex.RUnlock()
 	var m SrchInfo
 	_, m.Exists = sv.SearchMap[id]
 	if m.Exists {
 		m.Remain = sv.SearchMap[id].Remain.Get()
 		m.Hits = sv.SearchMap[id].Hits.Get()
-		m.Summary = sv.SearchMap[id].InitSum
 	}
 	m.SrchCount = len(sv.SearchMap)
 	return m

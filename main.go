@@ -122,7 +122,7 @@ func configatlaunch() {
 	const (
 		FAIL1 = "Could not parse your information as a valid collection of credentials. Use the following template:"
 		FAIL2 = `"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"`
-		FAIL3 = "FAILED to load the configuration from either '%s' or '%s'"
+		FAIL3 = "FAILED to load database credentials from any of '%s', '%s' or '%s'"
 		FAIL4 = "Make sure that the file exists and that it has the following format:"
 		FAIL5 = "Improperly formatted corpus list. Using:\n\t%s"
 		FAIL6 = "Could not open '%s'"
@@ -296,9 +296,8 @@ func configatlaunch() {
 		decoderb := json.NewDecoder(cfb)
 		confb := ConfigFile{}
 		errb := decoderb.Decode(&confb)
-
-		if erra != nil && errb != nil {
-			msg(fmt.Sprintf(FAIL3, cf, acf), MSGCRIT)
+		if erra != nil && errb != nil && confc.PGLogin.DBName == "" {
+			msg(fmt.Sprintf(FAIL3, cf, acf, pcf), MSGCRIT)
 			msg(fmt.Sprintf(FAIL4), MSGCRIT)
 			fmt.Printf(MINCONFIG)
 			os.Exit(0)
@@ -368,6 +367,10 @@ func BuildUserPassPairs() {
 		os.Exit(1)
 	}
 }
+
+//
+// VERSION INFO BUILD TIME INJECTION
+//
 
 // GitCommit should be injected at build time: 'go build -ldflags "-X main.GitCommit=$GIT_COMMIT"'
 var GitCommit string

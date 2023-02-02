@@ -191,6 +191,7 @@ func (c *WSClient) WSMessageLoop() {
 	var pd PollData
 	pd.TwoBox = srch.Twobox
 	pd.TotalWrk = srch.TableSize
+	pd.Msg = strings.Replace(srch.InitSum, "Sought", "Seeking", -1)
 
 	// loop until search finishes
 	for {
@@ -198,7 +199,6 @@ func (c *WSClient) WSMessageLoop() {
 		if srchinfo.Exists {
 			pd.Remain = srchinfo.Remain
 			pd.Hits = srchinfo.Hits
-			pd.Msg = strings.Replace(srchinfo.Summary, "Sought", "Seeking", -1)
 		} else {
 			break
 		}

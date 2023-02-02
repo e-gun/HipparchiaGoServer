@@ -82,7 +82,7 @@ const (
 	VARIADATE                = 2000
 	VOCABSCANSION            = false
 	VOCABBYCOUNT             = false
-	WSPOLLINGPAUSE           = 10000000 * 10 // 100000000 * 10 = every .1s
+	WSPOLLINGPAUSE           = 10000000 * 10 // 10000000 * 10 = every .1s
 
 	// UNACCEPTABLEINPUT       = `|"'!@:,=+_\/`
 	UNACCEPTABLEINPUT = `"'!@:,=_/` // we want to be able to do regex...; echo+net/url means some can't even make it into a parser: #%&;
