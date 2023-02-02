@@ -60,7 +60,8 @@ func RtEmbHCSS(c echo.Context) error {
 	}
 
 	subs := map[string]interface{}{
-		"fontname": Config.Font,
+		"fontname":   Config.Font,
+		"servedfont": cssfontsubstitutions(),
 	}
 
 	tmpl, e := template.New("fp").Parse(string(j))
@@ -166,6 +167,108 @@ func addresponsehead(f string) string {
 	}
 
 	return add
+}
+
+func cssfontsubstitutions() string {
+	const (
+		FF = `
+
+	@font-face {
+		font-family: 'hipparchiasansstatic';
+		src: url('/emb/{{.ShrtType}}/{{.Regular}}') format('{{.Type}}');
+		}
+	
+	@font-face {
+		font-family: 'hipparchiamonostatic';
+		src: url('/emb/{{.ShrtType}}/{{.Mono}}') format('{{.Type}}');
+		}
+	
+	@font-face {
+		font-family: 'hipparchiaobliquestatic';
+		src: url('/emb/{{.ShrtType}}/{{.Italic}}') format('{{.Type}}');
+		}
+	
+	@font-face {
+		font-family: 'hipparchiacondensedstatic';
+		src: url('/emb/{{.ShrtType}}/{{.CondensedRegular}}') format('{{.Type}}');
+		}
+	
+	@font-face {
+		font-family: 'hipparchiacondensedboldstatic';
+		src: url('/emb/{{.ShrtType}}/{{.CondensedBold}}') format('{{.Type}}');
+		}
+	
+	@font-face {
+		font-family: 'hipparchiacondenseditalicstatic';
+		src: url('/emb/{{.ShrtType}}/{{.CondensedItalic}}') format('{{.Type}}');
+		}
+	
+	@font-face {
+		font-family: 'hipparchiaboldstatic';
+		src: url('/emb/{{.ShrtType}}/{{.Bold}}') format('{{.Type}}');
+		}
+	
+	@font-face {
+		font-family: 'hipparchiasemiboldstatic';
+		src: url('/emb/{{.ShrtType}}/{{.SemiBold}}') format('{{.Type}}');
+		}
+	
+	@font-face {
+		font-family: 'hipparchiathinstatic';
+		src: url('/emb/{{.ShrtType}}/{{.Thin}}') format('{{.Type}}');
+		}
+	
+	@font-face {
+		font-family: 'hipparchialightstatic';
+		src: url('/emb/{{.ShrtType}}/{{.Light}}') format('{{.Type}}');
+		}
+	
+	@font-face {
+		font-family: 'hipparchiabolditalicstatic';
+		src: url('/emb/{{.ShrtType}}/{{.BoldItalic}}') format('{{.Type}}');
+		}
+	`
+	)
+
+	type FontTempl struct {
+		Type             string
+		ShrtType         string
+		Regular          string
+		Mono             string
+		Italic           string
+		CondensedRegular string
+		CondensedBold    string
+		CondensedItalic  string
+		Bold             string
+		SemiBold         string
+		Thin             string
+		Light            string
+		BoldItalic       string
+	}
+
+	Noto := FontTempl{
+		Type:             "truetype",
+		ShrtType:         "ttf",
+		Bold:             "NotoSans-Bold.ttf",
+		BoldItalic:       "NotoSans-BoldItalic.ttf",
+		CondensedBold:    "NotoSans-CondensedSemiBold.ttf",
+		CondensedItalic:  "NotoSans-CondensedItalic.ttf",
+		CondensedRegular: "NotoSans-CondensedMedium.ttf",
+		Italic:           "NotoSans-Italic.ttf",
+		Light:            "NotoSans-ExtraLight.ttf",
+		Mono:             "NotoSansMono-Regular.ttf",
+		Regular:          "NotoSans-Regular.ttf",
+		SemiBold:         "NotoSans-SemiBold.ttf",
+		Thin:             "NotoSans-Thin.ttf",
+	}
+
+	fft, e := template.New("mt").Parse(FF)
+	chke(e)
+	var b bytes.Buffer
+	err := fft.Execute(&b, Noto)
+	chke(err)
+
+	return b.String()
 }
 
 /*

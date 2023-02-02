@@ -225,25 +225,20 @@ func (c *WSClient) WSMessageLoop() {
 // WSPoolStartListening - the WSPool will listen for activity on its various channels (only called once at app launch)
 func (pool *WSPool) WSPoolStartListening() {
 	const (
-		MGS1 = "WSPool add: size of connection pool is %d"
-		MSG2 = "WSPool remove: size of connection pool is %d"
-		MSG3 = "Starting polling loop for %s"
-		MSG4 = "WSPool client failed on WriteMessage()"
-		MVAL = MSGTMI
+		MSG1 = "Starting polling loop for %s"
+		MSG2 = "WSPool client failed on WriteMessage()"
 	)
 
 	for {
 		select {
 		case id := <-pool.Add:
 			pool.ClientMap[id] = true
-			msg(fmt.Sprintf(MGS1, len(pool.ClientMap)), MVAL)
 			break
 		case id := <-pool.Remove:
 			delete(pool.ClientMap, id)
-			msg(fmt.Sprintf(MSG2, len(pool.ClientMap)), MVAL)
 			break
 		case m := <-pool.ReadID:
-			msg(fmt.Sprintf(MSG3, m), MSGPEEK)
+			msg(fmt.Sprintf(MSG1, m), MSGPEEK)
 		case jso := <-pool.JSO:
 			for cl := range pool.ClientMap {
 				if cl.ID == jso.ID {
@@ -251,7 +246,7 @@ func (pool *WSPool) WSPoolStartListening() {
 					chke(y)
 					e := cl.Conn.WriteMessage(websocket.TextMessage, js)
 					if e != nil {
-						msg(MSG4, MSGWARN)
+						msg(MSG2, MSGWARN)
 						delete(pool.ClientMap, cl)
 						break
 					}

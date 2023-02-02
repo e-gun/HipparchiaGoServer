@@ -120,12 +120,13 @@ type CurrentConfiguration struct {
 // configatlaunch - read the configuration values from JSON and/or command line
 func configatlaunch() {
 	const (
-		FAIL1 = "Could not parse your information as a valid collection of credentials. Use the following template:"
-		FAIL2 = `"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"`
-		FAIL3 = "FAILED to load database credentials from any of '%s', '%s' or '%s'"
-		FAIL4 = "Make sure that the file exists and that it has the following format:"
-		FAIL5 = "Improperly formatted corpus list. Using:\n\t%s"
-		FAIL6 = "Could not open '%s'"
+		FAIL1     = "Could not parse your information as a valid collection of credentials. Use the following template:"
+		FAIL2     = `"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"`
+		FAIL3     = "FAILED to load database credentials from any of '%s', '%s' or '%s'"
+		FAIL4     = "Make sure that the file exists and that it has the following format:"
+		FAIL5     = "Improperly formatted corpus list. Using:\n\t%s"
+		FAIL6     = "Could not open '%s'"
+		BLANKPASS = "PostgreSQLPassword is blank. Check your 'hgs-conf.json' file. NB: 'PostgreSQLPassword ≠ 'PosgreSQLPassword'.\n"
 	)
 
 	Config.Authenticate = false
@@ -179,11 +180,11 @@ func configatlaunch() {
 
 	for i, a := range args {
 		switch a {
-		case "-v":
+		case "-vv":
 			printversion()
 			printbuidldate()
 			os.Exit(1)
-		case "-vv":
+		case "-v":
 			fmt.Println(VERSION)
 			os.Exit(1)
 		case "-ac":
@@ -219,7 +220,7 @@ func configatlaunch() {
 			printversion()
 			ht := coloroutput(HELPTEXT)
 			fmt.Println(fmt.Sprintf(ht, pwf, DEFAULTBROWSERCTX, CONFIGLOCATION, CONFIGBASIC, h, CONFIGBASIC,
-				DEFAULTECHOLOGLEVEL, DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT, MAXTEXTLINEGENERATION,
+				DEFAULTECHOLOGLEVEL, DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT,
 				UNACCEPTABLEINPUT, runtime.NumCPU(), CONFIGPROLIX, h, PROJURL))
 			os.Exit(1)
 		case "-pg":
@@ -237,10 +238,6 @@ func configatlaunch() {
 			p, err := strconv.Atoi(args[i+1])
 			chke(err)
 			Config.HostPort = p
-		case "-ti":
-			tt, err := strconv.Atoi(args[i+1])
-			chke(err)
-			Config.MaxText = tt
 		case "-ui":
 			Config.BadChars = args[i+1]
 		case "-wc":
@@ -264,11 +261,8 @@ func configatlaunch() {
 		PostgreSQLPassword string
 	}
 
-	Config.PGLogin = PostgresLogin{}
-
-	if pl.Pass != "" {
-		Config.PGLogin = pl
-	} else {
+	if Config.PGLogin.Pass == "" {
+		Config.PGLogin = PostgresLogin{}
 		cfa, ee := os.Open(cf)
 		if ee != nil {
 			msg(fmt.Sprintf(FAIL6, cf), MSGTMI)
@@ -307,6 +301,10 @@ func configatlaunch() {
 			conf = confa
 		} else {
 			conf = confb
+		}
+
+		if conf.PostgreSQLPassword == "" {
+			msg(BLANKPASS, 0)
 		}
 
 		Config.PGLogin = PostgresLogin{

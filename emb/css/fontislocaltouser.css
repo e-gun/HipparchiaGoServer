@@ -33,7 +33,7 @@
 	--brown: hsla(22, 22%, 26%, 1);
 	--brtblue: hsla(236, 44%, 40%, 1);
 	--brtgreen: hsla(120, 43%, 77%, 1);
-    --copper: hsla(11, 53%, 30%);
+	--copper: hsla(11, 53%, 30%);
 	--deepblue: hsla(233, 77%, 26%, 1);
 	--dkbabyblue: hsla(237, 43%, 57%, 1);
 	--dkgreen: hsla(120, 80%, 20%, 1);
@@ -51,7 +51,7 @@
 	--offwhite: hsla(0, 0%, 99%, 1);
 	--orange: hsla(47, 100%, 30%, 1);
 	--pink: hsla(0, 33%, 96%, 1);
-    --plum: hsla(291, 15%, 38%);
+	--plum: hsla(291, 15%, 38%);
 	--red: hsla(346, 77%, 26%, 1);
 	--rustedorange: hsla(23, 37%, 39%, 1);
 	--sicklyyellow: hsl(45, 16%, 53%);
@@ -62,60 +62,9 @@
 	--vdkgrey: hsla(0, 0%, 20%, 1);
 }
 
-@font-face {
-	font-family: 'hipparchiasansstatic';
-	src: url('/emb/ttf/NotoSans-Regular.ttf') format('truetype');
-	}
+/* core interface font; inserted by cssfontsubstitutions() in rt-embedding.go */
 
-@font-face {
-	font-family: 'hipparchiamonostatic';
-	src: url('/emb/ttf/NotoSansMono-Regular.ttf') format('truetype');
-	}
-
-@font-face {
-	font-family: 'hipparchiaobliquestatic';
-	src: url('/emb/ttf/NotoSans-Italic.ttf') format('truetype');
-	}
-
-@font-face {
-	font-family: 'hipparchiacondensedstatic';
-	src: url('/emb/ttf/NotoSans-CondensedMedium.ttf') format('truetype');
-	}
-
-@font-face {
-	font-family: 'hipparchiacondensedboldstatic';
-	src: url('/emb/ttf/NotoSans-CondensedSemiBold.ttf') format('truetype');
-	}
-
-@font-face {
-	font-family: 'hipparchiacondenseditalicstatic';
-	src: url('/emb/ttf/NotoSans-CondensedItalic.ttf') format('truetype');
-	}
-
-@font-face {
-	font-family: 'hipparchiaboldstatic';
-	src: url('/emb/ttf/NotoSans-Bold.ttf') format('truetype');
-	}
-
-@font-face {
-	font-family: 'hipparchiasemiboldstatic';
-	src: url('/emb/ttf/NotoSans-SemiBold.ttf') format('truetype');
-	}
-
-@font-face {
-	font-family: 'hipparchiathinstatic';
-	src: url('/emb/ttf/NotoSans-Thin.ttf') format('truetype');
-	}
-
-@font-face {
-	font-family: 'hipparchialightstatic';
-	src: url('/emb/ttf/NotoSans-ExtraLight.ttf') format('truetype');
-	}
-
-@font-face {
-	font-family: 'hipparchiabolditalicstatic';
-	src: url('/emb/ttf/NotoSans-BoldItalic.ttf') format('truetype');
-	}
+{{index . "servedfont"}}
 
 @font-face {
 	font-family: 'Material Icons';

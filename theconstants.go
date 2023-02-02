@@ -51,8 +51,8 @@ const (
 	MAXLEMMACHUNKSIZE        = 20
 	MAXLINESHITCONTEXT       = 30
 	MAXSEARCHINFOLISTLEN     = 100
-	MAXTEXTLINEGENERATION    = 25000 // euripides is 33517 lines, sophocles is 15729, cicero is 149570, e.g.; jQuery slows exponentially as lines increase
-	MAXVOCABLINEGENERATION   = 3     // this is a multiplier for Config.MaxText; the browser does not get overwhelmed by these lists
+	MAXTEXTLINEGENERATION    = 35000 // euripides is 33517 lines, sophocles is 15729, cicero is 149570, e.g.; jQuery slows exponentially as lines increase
+	MAXVOCABLINEGENERATION   = 1     // this is a multiplier for Config.MaxText; the browser does not get overwhelmed by these lists
 	MAXTITLELENGTH           = 110
 	MINBROWSERWIDTH          = 90
 	MINDATE                  = -850
@@ -114,7 +114,7 @@ const (
    C1-cfC0 C2{file}C0   read PSQL password from file [default: looks for "C3%s/%sC0" and "C3%s%sC0"]
    C1-dbC0          debug database: show internal references in browsed passages
    C1-elC0 C2{num}C0    set echo server log level (C10-3C0) [default: C3%dC0]
-   C1-ftC0 C2{string}C0 force a client-side font instead of serving a font [default: C3NotoSansC0]
+   C1-ftC0 C2{string}C0 force a client-side font instead of serving a font [served font: C3NotoSansC0]
                    names with spaces need quotes around them: "C4Gentium Plus CompactC0"
    C1-glC0 C2{num}C0    set golang log level (C10-5C0) [default: C3%dC0]
    C1-gzC0          enable gzip compression of the server's output
@@ -123,10 +123,9 @@ const (
    C1-qC0           quiet startup: suppress copyright notice
    C1-saC0 C2{string}C0 server IP address [default: "C3%sC0"]
    C1-spC0 C2{num}C0    server port [default: C3%dC0]
-   C1-tiC0 C2{num}C0    maximum # of lines that text/index/vocab maker will ingest [default: C3%dC0]
    C1-uiC0 C2{string}C0 unacceptable input characters [default: C3%sC0]
-   C1-vC0           print full version info and exit
-   C1-vvC0          print short version info and exit
+   C1-vC0           print version info and exit
+   C1-vvC0          print full version info and exit
    C1-wcC0 C2{int}C0    number of workers [default: C1cpu_countC0 (C3%dC0)]
    C1-zlC0          zap lunate sigmas and replace them with σ/ς
 
@@ -142,7 +141,7 @@ const (
      NB: place a properly formatted version of 'C3%sC0' in 'C3%sC0' 
          if you want to avoid constantly setting multiple options. 
          See 'C3sample_hgs-prolix-conf.jsonC0' as well as other sample configuration files at
-             %s
+             C3%sC0
 `
 	LEXFINDJS = `
 		$('%s').click( function(e) {
