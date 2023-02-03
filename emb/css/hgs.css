@@ -1,24 +1,8 @@
 :root {
-	/* define the default FONTS that will have precedence over the served-if-necessary fonts
-	that are delivered via @font-face below. NB: only Arial is likely to be pre-installed.
-	The others can be downloaded from various locations. Arial is available on >95% of MacOS and PC systems? */
+	--systemdefaultfont: "{{index . "fontname"}}";
 
-	/* --systemdefaultfont: ArialUnicodeMS; */
-	/* --systemdefaultfont: Alexander; */
-	/* --systemdefaultfont: Arimo; */
-	/* --systemdefaultfont: Asea; */
-	/* --systemdefaultfont: Brill; */
-	/* --systemdefaultfont: Cardo; */
-	/* --systemdefaultfont: Cousine; */
-	/* --systemdefaultfont: GentiumPlusCompact; */
-	/* --systemdefaultfont: GFSOrpheusSans; [but the lunate sigma is ugly] */
- 	/* --systemdefaultfont: GFSPorson-Regular; [but the lunate sigma is ugly] */
-	/* --systemdefaultfont: IFAO-Grec-Unicode; */
-	/* --systemdefaultfont: Interface; */
-	/* --systemdefaultfont: Junicode; [but the lunate sigma is ugly] */
-	/* --systemdefaultfont: KerkisSans; [but the lunate sigma is ugly] */
-	/* --systemdefaultfont: SourceSansPro; [but the lunate sigma is ugly] */
-	/* --systemdefaultfont: Ubuntu; */
+	/* define the default FONTS that will have precedence over the served-if-necessary fonts
+	that are delivered via @font-face below. */
 
 	/* define COLORS by variable so you can change them all right here */
 	/* formula to invert HEX: amount*(255-value)+(1-amount)*value */
@@ -60,9 +44,9 @@
 	--vdkgrey: hsla(0, 0%, 20%, 1);
 }
 
-/* core interface font; inserted by cssfontsubstitutions() in rt-embedding.go */
-
-{{index . "servedfont"}}
+/* core interface font info begins; inserted by cssfontsubstitutions() in rt-embedding.go */
+{{index . "fontfaceinfo"}}
+/* core interface font info ends; inserted by cssfontsubstitutions() in rt-embedding.go */
 
 @font-face {
 	font-family: 'Material Icons';
@@ -136,30 +120,30 @@ body {
 	text-rendering: optimizeLegibility;
 	-moz-osx-font-smoothing: grayscale;
 	font-feature-settings: 'liga';
-	}
+}
 
 .activeoption {
-    color: var(--dkteal);
-    }
+	color: var(--dkteal);
+}
 
 .assigneddate {
 	font-size: 85%;
-	}
+}
 
 .authorsum, .quotesum, .sensesum, .phrasesum {
-    padding-left: 5px;
-    }
+	padding-left: 5px;
+}
 
 .baseform {
 	color: var(--vdkgrey);
 	font-family: 'hipparchiabolditalicstatic', sans-serif;
-	}
+}
 
 .baseformtranslation {
 	color: var(--black);
 	font-style: normal;
 	font-weight: normal;
-	}
+}
 
 .blue{
 	color: var(--skyblue);
@@ -168,78 +152,78 @@ body {
 .browsercite {
 	color: var(--huedgrey);
 	font-weight: normal;
-	}
+}
 
 .bold {
-    font-family: 'hipparchiaboldstatic', sans-serif;
-    }
+	font-family: 'hipparchiaboldstatic', sans-serif;
+}
 
 .breakintext {
-    font-size: 75%;
-    font-family: 'hipparchiaobliquestatic', sans-serif;
-    }
+	font-size: 75%;
+	font-family: 'hipparchiaobliquestatic', sans-serif;
+}
 
 .center {
 	display: block;
 	text-align: center;
-	}
+}
 
 .citation {
 	font-size: 90%;
-	}
+}
 
 .cityinfo, .provenance, .pubinfo, .regioninfo, .textdate {
 	font-size: 85%;
 	color: var(--rustedorange);
 	text-align: center;
-	}
+}
 
 .colorhighlight {
 	color: var(--red);
-	}
+}
 
 .coptic {
-    color: var(--skyblue);
-    }
+	color: var(--skyblue);
+}
 
 .counter {
 	color: var(--rustedorange);
-	}
+}
 
 .crossreference {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 	color: var(--rustedorange);
 	text-align: center;
-	}
+}
 
 .currentlyviewing {
 	text-align: left;
 	color: var(--brtblue);
 	padding-bottom: 0;
-	}
+}
 
 .currentlyviewingauthor {
 	font-family: 'hipparchiaboldstatic', sans-serif;
-	}
+}
 
 .currentlyviewingwork {
 	font-family: 'hipparchiabolditalicstatic', sans-serif;
-	}
+}
 
 .currentlyviewingcitation {
 	font-family: 'hipparchiaboldstatic', sans-serif;
-	}
+}
 
 
 .date{
-    color: var(--red);
-    }
+	color: var(--red);
+}
 
 .denominator{
 	position: relative;
 	bottom: -0.5em;
 	font-size: 80%;
-    }
+}
 
 
 /*
@@ -263,7 +247,7 @@ body {
 .dictauthor {
 	/* color: var(--dkbabyblue); */
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	}
+}
 
 .dictbiblscope {
 	color: var(--dkbabyblue);
@@ -272,162 +256,162 @@ body {
 
 .dictbibtitle {
 	color: var(--dkbabyblue);
-
+	font-family: 'hipparchiabolditalicstatic', sans-serif;
 }
 
 .dictcase{
-    font-family: 'hipparchiaboldstatic', sans-serif;
-    }
+	font-family: 'hipparchiaboldstatic', sans-serif;
+}
 
 .dictcit{
-    }
+}
 
 .dictetym{
-    }
+}
 
 .dictforeign {
-    font-family: 'hipparchiaobliquestatic', sans-serif;
-    }
+	font-family: 'hipparchiaobliquestatic', sans-serif;
+}
 
 .dictforeign.dictlang_greek {
-	}
+}
 
 .dictgram.dicttype_dialect{
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	color: var(--deepblue);
-	}
+}
 
 .dictitype{
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-    color: var(--vdkgrey);
-	}
+	color: var(--vdkgrey);
+}
 
 .dicthi {
 	/* definitions in the latin dictionary */
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-    color: var(--vdkgrey);
-	}
+	color: var(--vdkgrey);
+}
 
 .dicthi.dictrend_ital{
 	/* definitions in the latin dictionary */
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-    color: var(--vdkgrey);
-	}
+	color: var(--vdkgrey);
+}
 
 .dictmood{
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	color: var(--deepblue);
-	}
+}
 
 .dictnumber{
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	color: var(--deepblue);
-	}
+}
 
 .dictorth {
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-    color: var(--dkteal);
-	}
+	color: var(--dkteal);
+}
 
 .dictorth.dictlang_la {
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-    color: var(--dkteal);
-	}
+	color: var(--dkteal);
+}
 
 .dictorth.dicttype_alt.dictlang_la {
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-    color: var(--teal);
-	}
+	color: var(--teal);
+}
 
 .dictorth.dictlang_greek {
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-    color: var(--dkteal);
-	}
+	color: var(--dkteal);
+}
 
 .dictper{
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	color: var(--deepblue);
- 	}
+}
 
 .dictquote {
 	color: var(--black);
-    font-family: 'hipparchiaobliquestatic', sans-serif;
-	}
+	font-family: 'hipparchiaobliquestatic', sans-serif;
+}
 
 .dictquote.dictlang_greek {
-	}
+}
 
 .dictquote.dictlang_la {
-	}
+}
 
 .dictsense {
 	padding: 10px;
 	margin-top: 20px;
-	}
+}
 
 .dicttns{
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	color: var(--deepblue);
-	}
+}
 
 .dicttr{
-    font-family: 'hipparchiaboldstatic', sans-serif;
-    color: var(--vdkgrey);
-    }
+	font-family: 'hipparchiaboldstatic', sans-serif;
+	color: var(--vdkgrey);
+}
 
 .dicttrans{
-    font-family: 'hipparchiaboldstatic', sans-serif;
-    color: var(--vdkgrey);
-    }
+	font-family: 'hipparchiaboldstatic', sans-serif;
+	color: var(--vdkgrey);
+}
 
 .dictusg{
-    }
+}
 
 .dictusg.dicttype_style{
 	font-family: 'hipparchiaboldstatic', sans-serif;
-    color: var(--red);
-    }
+	color: var(--red);
+}
 
 .dictionaryform {
 	color: var(--dkteal);
 	font-family: 'hipparchiabolditalicstatic', sans-serif;
-	}
+}
 
 .dictionaryheading {
 	color: var(--rustedorange);
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	font-size: 120%;
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	}
+}
 
 .dictrewritten_phrase {
 	color: var(--plum);
 }
 
 .documentmetadatalabel {
-    font-size: 85%;
+	font-size: 85%;
 	color: var(--rustedorange);
 	font-family: 'hipparchiaboldstatic', sans-serif;
-    }
+}
 
 .editorialmarker_angledbrackets {
-    font-weight: normal;
-    color: var(--limegreen);
-    }
+	font-weight: normal;
+	color: var(--limegreen);
+}
 
 .editorialmarker_curlybrackets {
-    font-weight: normal;
-    color: var(--dkbabyblue);
-    }
+	font-weight: normal;
+	color: var(--dkbabyblue);
+}
 
 .editorialmarker_roundbrackets {
-    color: var(--brown);
-    font-weight: normal;
-    }
+	color: var(--brown);
+	font-weight: normal;
+}
 
 .editorialmarker_squarebrackets {
-    color: var(--huedgrey);
-    }
+	color: var(--huedgrey);
+}
 
 .embeddedannotations {
 	font-family: 'hipparchiacondensedstatic', sans-serif;
@@ -440,81 +424,81 @@ body {
 .emph {
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	color: var(--deepblue);
-	}
+}
 
 .emphatic {
 	font-family: 'hipparchiaboldstatic', sans-serif;
 	padding: 20px;
-	}
+}
 
 .epigraphical_text_after_correction {
 	color: var(--red);
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	}
+}
 
 .epigraphical_text_inserted_after_erasure {
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	text-decoration: underline;
 	color: var(--red);
-	}
+}
 
 .erasedepigraphicaltext {
 	text-decoration: line-through;
-	}
+}
 
 .expanded_text {
 	letter-spacing: 0.11em;
-    font-family: 'hipparchiasemiboldstatic', sans-serif;
-	}
+	font-family: 'hipparchiasemiboldstatic', sans-serif;
+}
 
 .explanation {
 	padding-left: 75px;
-	}
+}
 
 .extrasmall {
-    font-size: 45%
-    }
+	font-size: 45%
+}
 
 .findnumber {
 	font-weight: normal;
 	color: var(--vdkteal);
-	}
+}
 
 .flagged {
 	border-bottom: 1px dotted darkred;
-	}
+}
 
 .focusline {
 	text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
-	}
+}
 
 .foundauthor {
-	}
+}
 
 .foundlocus {
-	}
+}
 
 .foundlocus:hover{
-    border-bottom: 1px dotted black;
+	border-bottom: 1px dotted black;
 	border-top: 1px dotted black;
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	 }
+}
 
 .foundtext {
 	color: var(--dkteal);
-	}
+}
 
 .foundwork {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
-	}
+}
 
 .greek {
-	}
+}
 
 .highlight {
-    text-shadow: 1px 1px 3px var(--transparentgrey);
-	}
+	text-shadow: 1px 1px 3px var(--transparentgrey);
+}
 
 /*
 	HMU FORMS
@@ -525,45 +509,45 @@ body {
  */
 
 .hmu_alternative_reading {
-    color: var(--orange);
-    font-family: 'hipparchiaobliquestatic', sans-serif;
+	color: var(--orange);
+	font-family: 'hipparchiaobliquestatic', sans-serif;
 	text-decoration-style: wavy;
-    }
+}
 
 .hmu_blank_quarter_spaces {
 	margin-left: 0;
-	}
+}
 
 .hmu_date_or_numeric_equivalent_of_date {
 	/* Sought »hmu_date_or_numeric_equivalent_of_date«
 	Searched 229,374 texts and found 0 passages (2.72s) */
-	}
+}
 
 .hmu_discarded_form {
-    text-decoration: line-through;
+	text-decoration: line-through;
 	color: var(--dkteal);
-    }
+}
 
 .hmu_emendation_by_editor_of_text_not_obviously_incorrect {
 	/* Sought »hmu_emendation_by_editor_of_text_not_obviously_incorrect«
 	Searched 229,374 texts and found 0 passages (2.81s) */
 	text-decoration-style: wavy;
-	}
+}
 
 .hmu_form_altered_by_scribe {
-    color: var(--red);
-    font-family: 'hipparchiacondenseditalicstatic', sans-serif;
-    }
+	color: var(--red);
+	font-family: 'hipparchiacondenseditalicstatic', sans-serif;
+}
 
 .hmu_impression_of_stamp_on_papyrus {
 	font-size: 125%;
 	font-family: 'hipparchiaboldstatic', sans-serif;
-	}
+}
 
 .hmu_latin_expanded_text {
 	letter-spacing: 0.11em;
-    font-family: 'hipparchiasemiboldstatic', sans-serif;
-	}
+	font-family: 'hipparchiasemiboldstatic', sans-serif;
+}
 
 .hmu_marginaltext{
 	color: var(--dkgreen);
@@ -571,11 +555,11 @@ body {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 	text-indent: -5px;
 	padding-right: 0px;
-	}
+}
 
 .hmu_mid_line_citation_boundary {
 	padding: 50px;
-	}
+}
 
 .hmu_papyrological_fraction{
 	color: var(--red);
@@ -583,147 +567,147 @@ body {
 }
 
 .hmu_parenthesis_deletion_marker {
-    text-decoration: line-through;
-    }
+	text-decoration: line-through;
+}
 
 .preferred_epigraphical_text_used {
 	/* Sought »hmu_preferred_epigraphical_text_used«
 	Searched 229,374 texts and found 0 passages (3.14s) */
-	}
+}
 
 .hmu_rectified_form {
 	text-decoration: underline;
-	}
+}
 
 .hmu_scholium {
 	/* Sought »hmu_scholium«
 	Searched 229,374 texts and found 0 passages (2.26s) */
 	font-family: 'hipparchiaobliquestatic', sans-serif;
-	}
+}
 
 .hmu_seal_attached_to_papyrus {
 	font-size: 125%;
 	font-family: 'hipparchiaboldstatic', sans-serif;
-	}
+}
 
 .stacked_text_lower {
 	font-size: 80%;
-    vertical-align: sub;
-	}
+	vertical-align: sub;
+}
 
 .stacked_text_upper {
-    vertical-align: super;
+	vertical-align: super;
 	font-size: 80%;
-	}
+}
 
 .textual_lemma {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 	color: var(--blue);
-	}
+}
 
 .hmu_title {
 	font-family: 'hipparchiabolditalicstatic', sans-serif;
-	}
+}
 
 .hmu_unconventional_form_written_by_scribe {
-    color: var(--sicklyyellow);
-    font-family: 'hipparchiacondenseditalicstatic', sans-serif;
-    }
+	color: var(--sicklyyellow);
+	font-family: 'hipparchiacondenseditalicstatic', sans-serif;
+}
 
 .homonym {
-    color: var(--dkgrey);
-    font-family: 'hipparchiaobliquestatic', sans-serif;
-	}
+	color: var(--dkgrey);
+	font-family: 'hipparchiaobliquestatic', sans-serif;
+}
 
 .indented {
 	padding-left: 10px;
-	}
+}
 
 .infocell {
 	vertical-align: top;
-	}
+}
 
 .instructionmanual {
 	padding: 20px;
-	}
+}
 
 .italic {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
-	}
+}
 
 .label {
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	color: var(--vdkteal);
 	padding-left: 25px;
 	padding-right: 10px;
-	}
+}
 
 .labelcell {
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	color: var(--vdkteal);
 	vertical-align: top;
 	text-align: center;
-	}
+}
 
 .largerthannormal {
 	font-size: 115%;
-	}
+}
 
 .latin {
 	font-size: 90%;
 	/* font-family: var(--latinfont), 'hipparchiacondensedstatic', sans-serif; */
 	font-family: 'hipparchiacondensedstatic', sans-serif;
 	color: var(--blue);
-	}
+}
 
 .letterbox {
 	border-style: solid;
 	border-width: 1px;
-	}
+}
 
 .levellabel1 {
 	font-family: 'hipparchiaboldstatic', sans-serif;
 	font-size: 120%;
 	color: var(--red);
-	}
+}
 
 .levellabel2 {
 	font-family: 'hipparchiaboldstatic', sans-serif;
 	font-size: 100%;
 	color: var(--red);
-	}
+}
 
 .levellabel3 {
 	font-family: 'hipparchiaboldstatic', sans-serif;
 	color: var(--red);
-	}
+}
 
 .levellabel4 {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 	color: var(--red);
-	}
+}
 
 .levellabel5 {
 	font-size: 85%;
 	color: var(--red);
-	}
+}
 
 .lexiconhighlight {
-    color: var(--red);
-    font-family: 'hipparchiaboldstatic', sans-serif;
-    }
+	color: var(--red);
+	font-family: 'hipparchiaboldstatic', sans-serif;
+}
 
 .lineover {
 	text-decoration: overline;
-	}
+}
 
 .linethrough {
-    text-decoration: line-through;
-    }
+	text-decoration: line-through;
+}
 
 .loadoptions:hover {
 	color: var(--midgrey);
-	}
+}
 
 .locus {
 	font-family: 'hipparchiacondensedstatic', sans-serif;
@@ -731,14 +715,14 @@ body {
 	padding-right: 20px;
 	font-size: 85%;
 	color: var(--huedgrey);
-	}
+}
 
 .match, .proximate {
 	color: var(--red);
 	font-weight: normal;
 	border: 1px dotted black;
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	}
+}
 
 .metrics{
 	color: var(--black);
@@ -746,16 +730,16 @@ body {
 	font-size: 90%;
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 	padding-left: 10px;
-	}
+}
 
 .observed {
 	color: var(--red);
 	padding-right: 10px;
-	}
+}
 
 .obsv {
 	text-indent: -10px;
-	}
+}
 
 .optionlabel {
 	border-top: 1px dotted var(--dkgrey);
@@ -775,64 +759,64 @@ body {
 
 .outline {
 	border: 1px dotted black;
-	}
+}
 
 .overline {
 	border-top: 1px var(--black);
-	}
+}
 
 .overline_and_underline {
 	/* Sought »hmu_overline_and_underline«
 	Searched 235,999 texts and found 0 passages (21.62s)*/
 	border-bottom: 1px var(--black);
 	border-top: 1px var(--black);
-	}
+}
 
 .pickedgenre {
-	}
+}
 
 .pickedwork {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
-	}
+}
 
 .picklabel {
 	font-family: 'hipparchiabolditalicstatic', sans-serif;
-	}
+}
 
 .poetictext {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
-	}
+}
 
 .possibility {
 	font-size: 85%;
 	margin-left: 30px;
-    }
+}
 
 .prevalence {
-    color: var(--deepblue);
-    }
+	color: var(--deepblue);
+}
 
 .progress {
 	font-family: 'hipparchiaboldstatic', sans-serif;
-	}
+}
 
 .pubeditor, .pubpress, .pubcity, .pubyear, .pubseries, .pubpages, .pubwork, .pubyearreprinted {
 	font-weight: normal;
 	font-size: 70%;
-	}
+}
 
 .pubvolumename {
 	font-size: 70%;
 	font-family: 'hipparchiaobliquestatic', sans-serif;
-	}
+}
 
 .quotedtext {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
-	}
+}
 
 .red {
 	color: var(--red);
-	}
+}
 
 .reduced {
 	font-size: 90%;
@@ -845,16 +829,16 @@ body {
 .romannumerals {
 	font-variant: small-caps;
 	color: var(--red);
-	}
+}
 
 .sampleoutput {
 	color: var(--dkteal);
 	font-family: 'hipparchiaobliquestatic', sans-serif;
-	}
+}
 
 .saveoptions:hover {
 	color: var(--midgrey);
-	}
+}
 
 .searchsel:hover {
 	/* inactive color: #993354;
@@ -868,89 +852,89 @@ body {
 .selection:hover{
 	color: var(--brtblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	 }
+}
 
 .serviusformatting {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 	color: var(--copper);
-	}
+}
 
 .sidenavigation {
-    height: 100%;
-    width: 0;
-    position: fixed;
-    z-index: 1;
-    top: 0;
-    left: 0;
-    background-color: var(--ltgrey);
-    overflow-x: hidden;
-    transition: 0.05s;
+	height: 100%;
+	width: 0;
+	position: fixed;
+	z-index: 1;
+	top: 0;
+	left: 0;
+	background-color: var(--ltgrey);
+	overflow-x: hidden;
+	transition: 0.05s;
 }
 
 .sidenavigation .closebutton {
-    position: absolute;
-    top: 0;
-    right: 25px;
-    font-size: 18px;
-    margin-left: 50px;
+	position: absolute;
+	top: 0;
+	right: 25px;
+	font-size: 18px;
+	margin-left: 50px;
 }
 
 .small {
 	font-size: 60%;
-	}
+}
 
 .smallcapitals, .uncial {
 	font-variant: small-caps;
 	font-weight: normal;
 	font-size: 110%;
-    color: var(--deepblue);
-	}
+	color: var(--deepblue);
+}
 
 .smallerthannormal {
 	font-size: 85%;
-	}
+}
 
 .smlatcaps {
 	font-variant: small-caps;
 	font-size: 110%;
-	}
+}
 
 .sought {
 	color: var(--deepblue);
 	font-family: 'hipparchiamonostatic', monospace;
-    }
+}
 
 .speakers, .speaker {
 	font-family: 'hipparchiaboldstatic', sans-serif;
-	}
+}
 
 .strikethrough {
 	text-decoration: line-through;
-	}
+}
 
 .subscript {
-    font-size: 80%;
-    vertical-align: sub;
-    }
+	font-size: 80%;
+	vertical-align: sub;
+}
 
 .superscript {
-    vertical-align: super;
+	vertical-align: super;
 	font-size: 80%;
-	}
+}
 
 .textuallemma, .interlineartext, .interlinearmarginalia, .marginaltext {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 	color: var(--blue);
-	}
+}
 
 .title {
 	font-family: 'hipparchiabolditalicstatic', sans-serif;
-	}
+}
 
 .translation {
-    font-size: 85%;
-    font-family: 'hipparchiaobliquestatic', sans-serif;
-    }
+	font-size: 85%;
+	font-family: 'hipparchiaobliquestatic', sans-serif;
+}
 
 .transtree {
 	color: var(--skyblue);
@@ -958,12 +942,12 @@ body {
 
 .ui-button {
 	margin-bottom: 3px;
-	}
+}
 
 .ui-helper-hidden-accessible {
 	position: absolute !important;
 	clip: rect(1px, 1px, 1px, 1px);
-	}
+}
 
 .ui-autocomplete, .ui-autocomplete-input, .ui-autocomplete-loading, .ui-menu, .ui-menu-item {
 	font-family: 'hipparchiasansstatic', sans-serif;
@@ -976,21 +960,21 @@ body {
 }
 
 .undocumentedfontshift{
-    text-decoration: underline;
-    color: var(--huedgrey);
-    }
+	text-decoration: underline;
+	color: var(--huedgrey);
+}
 
 .unhandledpercent{
 	top: -0.5em;
 	font-size: 80%;
 	color: var(--huedgrey);
-    }
+}
 
 .unhandledpound{
 	top: -0.5em;
 	font-size: 80%;
 	color: var(--huedgrey);
-    }
+}
 
 .unobtrusive{
 	font-size: 60%;
@@ -1003,35 +987,35 @@ body {
 
 .verylarge {
 	font-size: 140%;
-	}
+}
 
 .wordcounts{
-    font-size: 85%;
-    }
+	font-size: 85%;
+}
 
 .work {
 	font-family: 'hipparchiabolditalicstatic', sans-serif;
-	}
+}
 
 #accentsactive, #accentsnotactive {
 	padding-left: 0px;
 	font-size: 120%;
 	font-family: 'hipparchiaboldstatic', sans-serif;
-	}
+}
 
 #activeoptions {
 	position: fixed;
 	top: 45px;
 	right: 10px;
 	font-size: 80%;
-	}
+}
 
 #authorholdings {
 	background-color: var(--offwhite);
 	border: 1px dotted black;
 	width: 50%;
 	margin: auto;
-	}
+}
 
 #bottommessage {
 	position: fixed;
@@ -1060,19 +1044,19 @@ body {
 	background-color: var(--lessoffwhite);
 	font-size: 105%;
 	line-height: 1.1;
-	}
+}
 
 #browsernavigationbuttons {
-    margin: auto;
-    text-align: center;
-    padding-bottom: 5px;
-    }
+	margin: auto;
+	text-align: center;
+	padding-bottom: 5px;
+}
 
 #clickforhelp {
 	position: fixed;
 	bottom: 10px;
 	right: 10px;
-	}
+}
 
 #currentuser {
 	position: fixed;
@@ -1097,24 +1081,24 @@ body {
 	text-align: center;
 	margin: auto;
 	display: block;
-	}
+}
 
 #lexica {
 	position: fixed;
 	bottom: 10px;
 	left: 50%;
 	transform: translateX(-50%);
-	}
+}
 
 #lexicadialogtext{
 	font-family: 'hipparchiasansstatic', sans-serif;
 	font-size: 90%;
-	}
+}
 
 #loadslots, #saveslots {
 	padding-left: 3px;
 	padding-bottom: 3px;
-	}
+}
 
 #helptabs {
 	position: fixed;
@@ -1126,13 +1110,13 @@ body {
 	padding: 10px;
 	background-color: var(--lessoffwhite);
 	overflow: auto;
-	}
+}
 
 #outputbox {
 	text-align: center;
 	font-size: 90%;
 	color: var(--dkteal);
-	}
+}
 
 #parserdialog {
 	/* off because jquery is doing the work position: float;
@@ -1145,20 +1129,20 @@ body {
 	padding: 10px;
 	text-align: left;
 	color: var(--rustedorange);
-	}
+}
 
 #savedprofiles {
 	position: fixed;
 	bottom: 50px;
 	right: 10px;
 	font-size: 100%;
-	}
+}
 
 #searchfield, #uiclickfield, #selectionendpoint {
 	text-align: center;
 	padding-right: 20px;
 	padding-left: 20px;
-	}
+}
 
 #searchlistcontents, #genrelistcontents {
 	text-align: left;
@@ -1170,35 +1154,35 @@ body {
 	border: 1px dotted black;
 	width: 50%;
 	margin: auto;
-	}
+}
 
 #searchsummary {
 	padding: 10px;
 	text-align: left;
 	color: var(--rustedorange);
-	}
+}
 
 #selectionsandexclusions {
 	width: 50%;
 	margin: auto;
 	text-align: center;
-	}
+}
 
 #selectionstable {
 	width: 50%;
 	margin: auto;
-	}
+}
 
 #selectionstable tbody td {
 	font-size: 85%;
-	}
+}
 
 #upperleftbuttons, #alt_upperleftbuttons {
 	position: fixed;
 	top: 5px;
 	left: 5px;
 	font-size: 75%;
-	}
+}
 
 #sortresults-menu li{
 	font-size: 70%;
@@ -1209,7 +1193,7 @@ body {
 	position: fixed;
 	bottom: 10px;
 	left: 10px;
-	}
+}
 
 #vectortable {
 	padding: 10px;
@@ -1221,39 +1205,39 @@ body {
 	bottom: 10px;
 	left: 10px;
 	font-size: 75%;
-	}
+}
 
 #wordsearchform {
 	/* position: float; */
 	position: relative;
-	}
+}
 
 a.nounderline {
 	text-decoration: none;
-	}
+}
 
 a.nounderline:hover{
 	border-bottom: 1px dotted black;
 	border-top: 1px dotted black;
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	 }
+}
 
 bibl {
 	color: var(--dkbabyblue);
 	border: 1px dotted var(--invisible);
-	}
+}
 
 bibl:hover{
 	border-bottom: 1px dotted black;
 	border-top: 1px dotted black;
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	}
+}
 
 browser {
 	font-size: 110%;
 	color: var(--brtblue);
-	}
+}
 
 button {
 	background: hsla(0, 0%, 94%, 1);
@@ -1276,18 +1260,18 @@ caption {
 	font-size: 120%;
 	font-family: 'hipparchiaboldstatic', sans-serif;
 	padding-bottom: 20px;
-	}
+}
 
 code {
 	font-size: 100%;
 	color: var(--skyblue);
 	font-family: 'hipparchiamonostatic', monospace;
-	}
+}
 
 dictionaryentry{
-    color: var(--rustedorange);
+	color: var(--rustedorange);
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-    }
+}
 
 dictionaryentry:hover{
 	border-bottom: 1px dotted black;
@@ -1295,33 +1279,33 @@ dictionaryentry:hover{
 	color: var(--dkbabyblue);
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	}
+}
 
 div.fourcolumn {
 	column-count: 4;
-	}
+}
 
 div.threecolumn {
 	column-count: 3;
-	}
+}
 
 fieldset {
 	display: inline-block;
 	border-width: 1px;
 	font-size: 75%;
-    color: var(--dkteal);
+	color: var(--dkteal);
 	background-color: hsla(0, 0%, 98%, 1);
-	}
+}
 
 form {
 	display: inline;
-	}
+}
 
 formsummary{
-    color: var(--rustedorange);
+	color: var(--rustedorange);
 	font-size: 90%;
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-    }
+}
 
 formsummary:hover{
 	border-bottom: 1px dotted black;
@@ -1329,16 +1313,16 @@ formsummary:hover{
 	color: var(--dkbabyblue);
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	}
+}
 
 hmutitle {
 	font-family: 'hipparchiabolditalicstatic', sans-serif;
-	}
+}
 
 hmu_serviusformatting {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 	color: var(--dkgreen);
-	}
+}
 
 hr.styled {
 	border-top: 1px solid #8c8b8b;
@@ -1350,20 +1334,20 @@ indexedlocation:hover{
 	border-top: 1px dotted black;
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	}
+}
 
 indexobserved:hover{
 	border-bottom: 1px dotted black;
 	border-top: 1px dotted black;
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	}
+}
 
 input {
 	text-align: center;
 	padding: 5px;
 	display: inline;
-	}
+}
 
 input[type="text"] {
 	font-size: 80%;
@@ -1376,173 +1360,173 @@ latinfont {
 
 legend {
 	text-align: center;
-	}
+}
 
 lemmaheadword:hover{
 	border-bottom: 1px dotted black;
 	border-top: 1px dotted black;
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	 }
+}
 
 li {
 	padding-top: 1px;
-	}
+}
 
 locus {
 	display: block;
 	padding-top: 20px;
 	padding-bottom: 5px;
-	}
+}
 
 observed:hover{
 	border-bottom: 1px dotted black;
 	border-top: 1px dotted black;
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	}
+}
 
 p {
 	font-family: 'hipparchiasansstatic', sans-serif;
-	}
+}
 
 p.browsedline {
 	line-height: 70%;
-	}
+}
 
 p.lineoftext {
 	line-height: 70%;
-	}
+}
 
 p.level1 {}
 
 p.level2 {
 	padding-left: 15px;
-	}
+}
 
 p.level3 {
 	padding-left: 30px;
-	}
+}
 
 p.level4 {
 	padding-left: 45px;
-	}
+}
 
 p.level5 {
 	padding-left: 60px;
-	}
+}
 
 pre {
-    font-family: 'hipparchiamonostatic', monospace;
+	font-family: 'hipparchiamonostatic', monospace;
 	color: var(--skyblue);
-    }
+}
 
 sense {
 	padding: 10px;
 	margin-top: 20px;
-	}
+}
 
 smallcode {
 	font-size: 85%;
 	color: var(--skyblue);
 	font-family: 'hipparchiamonostatic', monospace;
-	}
+}
 
 span.lat {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 	color: var(--vdkteal);
-	}
+}
 
 speaker {
 	font-family: 'hipparchiaboldstatic', sans-serif;
-	}
+}
 
 table {
 	text-align: left;
 	font-weight: normal;
-	}
+}
 
 table.morphtable {
 	padding-top: 1px;
 	padding-bottom: 1px;
 	margin: 0 auto;
-    display: block;
-    font-size: 75%;
-	}
+	display: block;
+	font-size: 75%;
+}
 
 table.navtable {
-    padding-top: 10px;
-    margin: auto;
-    display: block;
-    font-size: 75%;
-    }
+	padding-top: 10px;
+	margin: auto;
+	display: block;
+	font-size: 75%;
+}
 
 table.verbanalysis {
-    padding-top: 15px;
-    font-size: 75%;
+	padding-top: 15px;
+	font-size: 75%;
 	margin: 0 auto;
-    }
+}
 
 table.showborders, td.showborders {
-    border: 1px solid black;
-    font-family: 'hipparchiamonostatic', monospace;
-    }
+	border: 1px solid black;
+	font-family: 'hipparchiamonostatic', monospace;
+}
 
 td.alihnleft {
-    text-align: left;
-    }
+	text-align: left;
+}
 
 td.alignright {
-    text-align: right;
-    }
+	text-align: right;
+}
 
 td.browsedline {
 	padding-right: 10px;
 	padding-left: 10px;
 	padding-bottom: 8px;
-	}
+}
 
 td.browserembeddedannotations {
 	font-family: 'hipparchiacondensedstatic', sans-serif;
 	padding-right: 10px;
 	padding-left: 15px;
 	padding-bottom: 8px;
-    color: var(--teal);
-    font-size: 80%;
-    vertical-align: middle;
-    }
+	color: var(--teal);
+	font-size: 80%;
+	vertical-align: middle;
+}
 
 td.dialectlabel {
 	color: var(--red);
 	font-family: 'hipparchiaboldstatic', sans-serif;
 	font-size: 120%;
 	text-transform: uppercase;
-	}
+}
 
 td.voicelabel {
 	font-family: 'hipparchiaboldstatic', sans-serif;
 	font-size: 110%;
 	text-align: center;
-	}
+}
 
 td.moodlabel {
 	font-weight: normal;
 	font-size: 110%;
 	text-align: center;
-	}
+}
 
 td.morphcell {
 	padding-left: 5px;
 	padding-right: 5px;
-	}
+}
 
 td.morphcell.labelcell {
 	font-weight: normal;
-	}
+}
 
 td.morphcell.invisible {
 	color: var(--invisible);
-	}
+}
 
 td.morphrow.emph.center {
 	color: var(--blue);
@@ -1553,16 +1537,16 @@ td.morphrow.emph.center {
 td.tensecell {
 	color: var(--huedgrey);
 	font-family: 'hipparchiaboldstatic', sans-serif;
-	}
+}
 
 td.textmakerembeddedannotations {
 	font-family: 'hipparchiacondensedstatic', sans-serif;
 	padding-right: 10px;
 	padding-left: 15px;
-    color: var(--huedgrey);
-    font-size: 80%;
-    vertical-align: middle;
-    }
+	color: var(--huedgrey);
+	font-size: 80%;
+	vertical-align: middle;
+}
 
 td.browsercite {
 	font-family: 'hipparchiacondensedstatic', sans-serif;
@@ -1570,41 +1554,41 @@ td.browsercite {
 	padding-left: 10px;
 	font-size: 80%;
 	color: var(--huedgrey);
-	}
+}
 
 td.count {
 	color: var(--orange);
 	text-align: center;
-	}
+}
 
 td.crossreference {
 	padding-right: 10px;
 	padding-left: 10px;
 	padding-bottom: 16px;
-	}
+}
 
 td.headword {
-    font-family: 'hipparchiaboldstatic', sans-serif;
-    color: var(--red);
-    }
+	font-family: 'hipparchiaboldstatic', sans-serif;
+	color: var(--red);
+}
 
 td.infocells {
 	background-color: var(--ltbabyblue);
-    text-align: center;
-	}
+	text-align: center;
+}
 
 td.infocellx {
 	background-color: var(--pink);
-    text-align: center;
-	}
+	text-align: center;
+}
 
 td.leftpad {
-    padding-left: 10px;
-    }
+	padding-left: 10px;
+}
 
 td.passages {
 	font-weight: normal;
-	}
+}
 
 td.textcrossreference {
 	padding-right: 10px;
@@ -1612,57 +1596,57 @@ td.textcrossreference {
 	padding-top: 16px;
 	padding-bottom: 16px;
 	text-align: left;
-	}
+}
 
 td.textdate, td.regioninfo, td.cityinfo, td.pubinfo, td.provenance {
 	padding-right: 10px;
 	padding-left: 10px;
 	text-align: left;
-	}
+}
 
 td.word {
 	font-family: 'hipparchiaboldstatic', sans-serif;
-	}
+}
 
 th {
 	padding: 5px;
 	text-align: center;
-	}
+}
 
 th.indextable {
-    text-align: left;
-    }
+	text-align: left;
+}
 
 tr.nthrow{
-    background-color: var(--ltgrey);
-    }
+	background-color: var(--ltgrey);
+}
 
 transl {
 	padding-right: 20px;
-	}
+}
 
 ul {
 	list-style-type: none;
-	}
+}
 
 ul.forexample {
 	list-style-type: lower-latin;
 	padding-left: 100px;
 	padding-bottom: 5px;
-	}
+}
 
 ul.numbered {
 	list-style-type: decimal;
 	padding-left: 25px;
 	padding-bottom: 5px;
 	padding-top: 5px;
-	}
+}
 
 ul.roman {
 	list-style-type: lower-roman;
 	padding-left: 25px;
 	padding-bottom: 5px;
-	}
+}
 
 .vectortable{
 	width: 50%;
@@ -1671,52 +1655,52 @@ ul.roman {
 }
 
 unclickablebibl {
-    color: var(--black);
-    }
+	color: var(--black);
+}
 
 verbform:hover{
 	border-bottom: 1px dotted black;
 	border-top: 1px dotted black;
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	}
+}
 
 vocabobserved:hover{
 	border-bottom: 1px dotted black;
 	border-top: 1px dotted black;
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	}
+}
 
 lemmatizable {
 	color: var(--red);
-	}
+}
 
 lemmatizable:hover{
 	border-bottom: 1px dotted black;
 	border-top: 1px dotted black;
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	}
+}
 
 dictionaryidsearch {
 	color: var(--red);
-	}
+}
 
 dictionaryidsearch:hover{
 	border-bottom: 1px dotted black;
 	border-top: 1px dotted black;
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	}
+}
 
 a.parsing {
 	text-decoration: none;
-	}
+}
 
 a.parsing:hover{
 	border-bottom: 1px dotted black;
 	border-top: 1px dotted black;
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	}
+}

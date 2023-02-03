@@ -704,7 +704,7 @@ func formatprevalencedata(w DbWordCount, s string) string {
 	// <p class="wordcounts">Prevalence (all forms): <span class="prevalence">Ⓣ</span> 1482 / <span class="prevalence">Ⓖ</span> 1415 / <span class="prevalence">Ⓓ</span> 54 / <span class="prevalence">Ⓘ</span> 11 / <span class="prevalence">Ⓒ</span> 2</p>
 	const (
 		PDPAR = `<p class="wordcounts">Prevalence of <span class="emph">%s</span>: %s</p>`
-		PDSPA = `<span class="prevalence rarechars">%s</span> %d`
+		PDSPA = `<span class="rarechars prevalence">%s</span> %d`
 	)
 
 	m := message.NewPrinter(language.English)

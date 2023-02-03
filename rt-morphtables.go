@@ -292,7 +292,7 @@ func RtMorphchart(c echo.Context) error {
 				parts := strings.Split(k, "(")
 				diall := strings.Split(parts[1], JOINER)
 				for _, d := range diall {
-					if IsInSlice(GKDIALECT, d) {
+					if IsInSlice(d, GKDIALECT) {
 						newkey := parts[0] + JOINER + d
 						newkey = strings.Replace(newkey, JOINER+JOINER, JOINER, 1)
 						newpdm[newkey] = v

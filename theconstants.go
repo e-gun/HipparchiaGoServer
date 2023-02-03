@@ -35,8 +35,8 @@ const (
 	DEFAULTPSQLPORT          = 5432
 	DEFAULTPSQLDB            = "hipparchiaDB"
 	DEFAULTSYNTAX            = "~"
-	FIRSTSEARCHLIM           = 750000          // 149570 lines in Cicero (lt0474); all 485 forms of »δείκνυμι« will pass 50k
-	FONTSETTING              = "SERVEALLFONTS" // will send Noto when this "font" is not found
+	FIRSTSEARCHLIM           = 750000 // 149570 lines in Cicero (lt0474); all 485 forms of »δείκνυμι« will pass 50k
+	FONTSETTING              = "Noto"
 	GENRESTOCOUNT            = 5
 	INCERTADATE              = 2500
 	JSONINDENT               = "  "

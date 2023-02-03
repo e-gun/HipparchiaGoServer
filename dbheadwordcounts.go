@@ -441,8 +441,8 @@ func headwordgenres(wc DbHeadwordCount) string {
 // weightedpdslice - convert count values into a formatted string slice
 func weightedpdslice(cv []HWData, rare bool) []string {
 	const (
-		PREVSPANA = `<span class="prevalence rarechars">%s</span>&nbsp;%d`
-		PREVSPANB = `<span class="prevalence">%s</span>&nbsp;%d`
+		PREVSPANA = `<span class="rarechars prevalence">%s</span>&nbsp;%d`
+		PREVSPANB = `<span class="rarechars prevalence">%s</span>&nbsp;%d`
 	)
 
 	ps := PREVSPANA

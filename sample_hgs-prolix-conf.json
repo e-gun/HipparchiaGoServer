@@ -7,7 +7,7 @@
   "DefCorp":
     {"gr": true, "lt": true, "in": false, "ch": false, "dp": false},
   "EchoLog": 0,
-  "Font": "SERVEALLFONTS",
+  "Font": "Noto",
   "Gzip": false,
   "HostIP": "localhost",
   "HostPort": 8000,

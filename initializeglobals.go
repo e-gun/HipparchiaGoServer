@@ -53,6 +53,7 @@ var (
 	WkLocs        = make(map[string]bool)
 	TheCorpora    = [5]string{"gr", "lt", "in", "ch", "dp"}
 	TheLanguages  = [2]string{"greek", "latin"}
+	ServableFonts = map[string]FontTempl{"Noto": NotoFont}
 	WebsocketPool = WSFillNewPool()
 )
 
