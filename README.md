@@ -29,6 +29,10 @@
 * add about 125MB of RAM per postgres client connection in the pool
 * a very heavy search like "all forms of Πόλιϲ near..." can kick you up into 660MB
 
+### MINIMUM VERSION OF GOLANG REQUIRED TO BUILD
+* go 1.19
+* `searchstructs.go` uses `atomic.Int64` from `sync/atomic`. `atomic.Int64` was added in go 1.19.
+
 ![options](gitimg/hgscli.png)
 
 ![workflow](gitimg/hipparchia_workflow.svg)
@@ -36,17 +40,17 @@
 ```
 % cloc *go
 
-      30 text files.
-      30 unique files.                              
+      31 text files.
+      31 unique files.                              
        0 files ignored.
 
-github.com/AlDanial/cloc v 1.96  T=0.03 s (1067.5 files/s, 434008.9 lines/s)
+github.com/AlDanial/cloc v 1.96  T=0.03 s (1078.6 files/s, 432137.0 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                              30           1832           1702           8663
+Go                              31           1864           1746           8810
 -------------------------------------------------------------------------------
-SUM:                            30           1832           1702           8663
+SUM:                            31           1864           1746           8810
 -------------------------------------------------------------------------------
 
 ```

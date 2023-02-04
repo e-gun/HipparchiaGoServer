@@ -9,28 +9,6 @@ import (
 	"text/template"
 )
 
-//const (
-//	TEST = `
-//dictionaryentry{
-//	color: var(--rustedorange);
-//	font-family: 'hipparchiasemiboldstatic', sans-serif;
-//}
-//
-//dictionaryentry:hover{
-//	border-bottom: 1px dotted black;
-//	border-top: 1px dotted black;
-//	color: var(--dkbabyblue);
-//	font-family: 'hipparchiasemiboldstatic', sans-serif;
-//	text-shadow: 1px 1px 3px var(--transparentgrey);
-//}
-//`
-//)
-
-//func main() {
-//	fmt.Println(TEST)
-//	fmt.Println(cssmanualfontstyling(TEST))
-//}
-
 // RtEmbHCSS - send "hipparchiastyles.css" after building it as per the configured font settings
 func RtEmbHCSS(c echo.Context) error {
 	const (
@@ -41,7 +19,7 @@ func RtEmbHCSS(c echo.Context) error {
 	fsub := Config.Font
 	sdf := "var(--systemdefaultfont), "
 
-	// if the font is local, then blank out "--systemdefaultfont" and get ready to map the font files into the CSS
+	// if the font is being served, then blank out "--systemdefaultfont" and get ready to map the font files into the CSS
 	if IsInSlice(Config.Font, StringMapKeysIntoSlice(ServableFonts)) {
 		fsub = ""
 		sdf = ""
@@ -67,6 +45,8 @@ func RtEmbHCSS(c echo.Context) error {
 	chke(err)
 
 	css := b.String()
+
+	// if the font is not being served, then replace font names with explicit style directives
 	if !IsInSlice(Config.Font, StringMapKeysIntoSlice(ServableFonts)) {
 		css = cssmanualfontstyling(css)
 	}
@@ -96,7 +76,7 @@ type FontTempl struct {
 }
 
 // the fonts we know how to serve: only one installed ATM
-// NB: Fira, Inter, and Ubuntu have all been toyed with: none are really as good as NotoSans...
+// NB: Fira, Inter, and Ubuntu have all been toyed with: none are really as good as NotoSans
 
 var (
 	NotoFont = FontTempl{

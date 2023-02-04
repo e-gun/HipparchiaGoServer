@@ -26,16 +26,22 @@ func RtFrontpage(c echo.Context) error {
 	user := readUUIDCookie(c)
 	s := AllSessions.GetSess(user)
 
-	env := fmt.Sprintf("%s: %s - %s (%d workers)", runtime.Version(), runtime.GOOS, runtime.GOARCH, Config.WorkerCount)
-
 	ahtm := AUTHHTML
 	if !Config.Authenticate {
 		ahtm = ""
 	}
 
+	gc := GitCommit
+	if gc == "" {
+		gc = "UNKNOWN"
+	}
+	ver := fmt.Sprintf("Version: %s [git: %s]", VERSION, gc)
+
+	env := fmt.Sprintf("%s: %s - %s (%d workers)", runtime.Version(), runtime.GOOS, runtime.GOARCH, Config.WorkerCount)
+
 	subs := map[string]interface{}{
 		"version":       VERSION,
-		"longver":       fmt.Sprintf("Version: %s [git: %s]", VERSION, GitCommit),
+		"longver":       ver,
 		"authhtm":       ahtm,
 		"env":           env,
 		"user":          "Anonymous",
