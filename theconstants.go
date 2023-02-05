@@ -10,7 +10,7 @@ import "time"
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.0.16"
+	VERSION                  = "1.0.17b"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	BLACKANDWHITE            = false
 	CONFIGLOCATION           = "."
@@ -45,7 +45,7 @@ const (
 	MAXDATESTR               = "1500"
 	MAXDICTLOOKUP            = 125
 	MAXDISTANCE              = 10
-	MAXECHOREQPERSECONDPERIP = 40 // it takes c. 20 to load the front page for the first time; 40 lets you double-load
+	MAXECHOREQPERSECONDPERIP = 60 // it takes c. 20 to load the front page for the first time; 40 lets you double-load; selftest needs 60
 	MAXHITLIMIT              = 2500
 	MAXINPUTLEN              = 50
 	MAXLEMMACHUNKSIZE        = 20
@@ -123,6 +123,7 @@ const (
    C1-qC0           quiet startup: suppress copyright notice
    C1-saC0 C2{string}C0 server IP address [default: "C3%sC0"]
    C1-spC0 C2{num}C0    server port [default: C3%dC0]
+   C1-stC0          run the self-test suite at launch
    C1-uiC0 C2{string}C0 unacceptable input characters [default: C3%sC0]
    C1-vC0           print version info and exit
    C1-vvC0          print full version info and exit

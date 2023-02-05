@@ -111,6 +111,7 @@ type CurrentConfiguration struct {
 	MaxText       int
 	PGLogin       PostgresLogin
 	QuietStart    bool
+	SelfTest      bool
 	VocabByCt     bool
 	VocabScans    bool
 	WorkerCount   int
@@ -123,7 +124,7 @@ func configatlaunch() {
 		FAIL1     = "Could not parse your information as a valid collection of credentials. Use the following template:"
 		FAIL2     = `"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"`
 		FAIL3     = "FAILED to load database credentials from any of '%s', '%s' or '%s'"
-		FAIL4     = "Make sure that the file exists and that it has the following format:"
+		FAIL4     = "Ata a minimum sure that a 'hgs-conf.json' file exists and that it has the following format:"
 		FAIL5     = "Improperly formatted corpus list. Using:\n\t%s"
 		FAIL6     = "Could not open '%s'"
 		BLANKPASS = "PostgreSQLPassword is blank. Check your 'hgs-conf.json' file. NB: 'PostgreSQLPassword ≠ 'PosgreSQLPassword'.\n"
@@ -141,6 +142,7 @@ func configatlaunch() {
 	Config.ManualGC = true
 	Config.MaxText = MAXTEXTLINEGENERATION
 	Config.QuietStart = false
+	Config.SelfTest = false
 	Config.VocabByCt = VOCABBYCOUNT
 	Config.VocabScans = VOCABSCANSION
 	Config.WorkerCount = runtime.NumCPU()
@@ -238,6 +240,8 @@ func configatlaunch() {
 			p, err := strconv.Atoi(args[i+1])
 			chke(err)
 			Config.HostPort = p
+		case "-st":
+			Config.SelfTest = true
 		case "-ui":
 			Config.BadChars = args[i+1]
 		case "-wc":

@@ -185,6 +185,10 @@ func StartEchoServer() {
 	e.GET("/sc/set/:num", RtSessionSetsCookie)
 	e.GET("/sc/get/:num", RtSessionGetCookie)
 
+	if Config.SelfTest {
+		go selftest()
+	}
+
 	e.HideBanner = true
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", Config.HostIP, Config.HostPort)))
 }
