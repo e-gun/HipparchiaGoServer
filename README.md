@@ -33,11 +33,19 @@
 * go 1.19
 * `searchstructs.go` uses `atomic.Int64` from `sync/atomic`. `atomic.Int64` was added in go 1.19.
 
+### FYI
+
 ![options](gitimg/hgscli.png)
 
 ![selftest](gitimg/selftest.png)
+#### some selftest times
+* 64s on a mac studio
+* 113s on 6 cores of an intel 9900k running a virtualized ubuntu
+* 483s on 6 cores of apple silicon virtualizing windows 11 arm
+* 1144s (ouch) on a 2017 MacBook w/ 1.3GHz Core i5
 
 ![workflow](gitimg/hipparchia_workflow.svg)
+
 
 ```
 % cloc *go

@@ -23,7 +23,7 @@ func (t *SrchTest) U() string {
 }
 
 func (t *SrchTest) M() string {
-	return fmt.Sprintf(t.m, t.t1, t.t2)
+	return fmt.Sprintf(t.m, strings.ReplaceAll(t.t1, "%20", " "), strings.ReplaceAll(t.t2, "%20", " "))
 }
 
 func selftest() {
