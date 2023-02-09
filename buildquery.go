@@ -98,6 +98,11 @@ func SSBuildQueries(s *SearchStruct) {
 
 	// au query looks like: SELECTFROM + WHERETERM + WHEREINDEX + ORDERBY&LIMIT
 
+	// note that you can't use prepared statements: "SELECT ... FROM $1 WHERE stripped_line ~ $2" yields a syntax error.
+	// that is, PREPARE prepares on a table and so cannot have a table name as a variable; accordingly the following
+	// is valid, but not useful for our purposes outside lemmata searches (which are scattered across clients anyway):
+	// "SELECT ... FROM gr0432 WHERE stripped_line ~ $1"
+
 	// [au] figure out all bounded selections
 
 	boundedincl := make(map[string][]QueryBounds)

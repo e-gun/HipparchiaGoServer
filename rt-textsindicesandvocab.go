@@ -884,12 +884,10 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 
 	foundmorph := make(map[string]DbMorphology)
 	var thehit DbMorphology
-	count := 0
 
 	foreach := []any{&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW}
 
 	rwfnc := func() error {
-		count += 1
 		foundmorph[thehit.Observed] = thehit
 		return nil
 	}

@@ -1,6 +1,7 @@
 #!/bin/sh
 
-#!/usr/bin/bash
+# go get -u ./...
+
 oss=(linux windows darwin)
 archs=(amd64 arm64)
 

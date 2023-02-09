@@ -265,8 +265,9 @@ func WorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
 // GrabOneLine - return a single DbWorkline from a table
 func GrabOneLine(table string, line int) DbWorkline {
 	const (
-		QTMPL = "SELECT %s FROM %s WHERE index = %d ORDER by index"
+		QTMPL = "SELECT %s FROM %s WHERE index = %d"
 	)
+
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 

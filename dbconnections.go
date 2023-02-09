@@ -13,6 +13,12 @@ import (
 	"strings"
 )
 
+//
+// Note that SQLite will not really work. It is 10% as fast on a single word search, does not like concat(),
+// cannot readily do regex, etc. This makes SQLite way too costly even if the vision of a serverless solution with only
+// a "hgs_sqlite.db" file is enticing.
+//
+
 type PostgresLogin struct {
 	Host   string
 	Port   int
