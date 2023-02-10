@@ -7,6 +7,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -34,6 +35,7 @@ func main() {
 		SUMM = "initialization took %.3fs before reaching StartEchoServer()"
 	)
 	launch := time.Now()
+	checkforconfiguration()
 	configatlaunch()
 
 	printversion()
@@ -366,6 +368,55 @@ func BuildUserPassPairs() {
 	if Config.Authenticate && len(UserPassPairs) == 0 {
 		msg(FAIL2, MSGCRIT)
 		os.Exit(1)
+	}
+}
+
+//
+// CONFIGURATION NOT FOUND?
+//
+
+func checkforconfiguration() {
+	const (
+		WRN = "Warning: unable to launch: Cannot find a configuration file."
+		FYI = "\tC1Creating configuration directory: 'C3%sC1'C0"
+		FNF = "\tC1Generating a simple 'C3%sC1'C0"
+		FWR = "\tC1Wrote a configuration file to 'C3%sC1'C0"
+	)
+	_, a := os.Stat(CONFIGBASIC)
+	_, b := os.Stat(CONFIGPROLIX)
+	var c error
+	h, e := os.UserHomeDir()
+	if e == nil {
+		c = errors.New("cannot find UserHomeDir")
+	} else {
+		_, c = os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGBASIC)
+	}
+
+	if a != nil || b != nil || c != nil {
+		msg(WRN, MSGCRIT)
+
+		_, e = os.Stat(CONFIGALTAPTH)
+		if e != nil {
+			fmt.Println(coloroutput(fmt.Sprintf(FYI, fmt.Sprintf(CONFIGALTAPTH, h))))
+			ee := os.MkdirAll(fmt.Sprintf(CONFIGALTAPTH, h), os.FileMode(0700))
+			chke(ee)
+		}
+
+		fmt.Println(coloroutput(fmt.Sprintf(FNF, CONFIGBASIC)))
+		fmt.Printf("\tenter the database password -> ")
+		var pw string
+		_, err := fmt.Scan(&pw)
+		chke(err)
+		type ConfOut struct {
+			PostgreSQLPassword string
+		}
+		o := ConfOut{pw}
+		content, err := json.Marshal(o)
+		chke(err)
+
+		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGBASIC, content, 0644)
+		chke(err)
+		fmt.Println(coloroutput(fmt.Sprintf(FWR, fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGBASIC)))
 	}
 }
 

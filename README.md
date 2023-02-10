@@ -1,6 +1,6 @@
 # HipparchiaGoServer
 
-### STATUS (`v1.0.17`):
+### STATUS (`v1.0.18`):
 
 * 25%-700% faster than HipparchiaServer depending on the function. Uses c. 60% as much RAM.
 * monolithic binary: no need for extra files/folders beyond setting a password in `hgs-conf.json`
@@ -41,6 +41,7 @@
 #### some selftest times
 * 64s on a mac studio
 * 113s on 6 cores of an intel 9900k running a virtualized ubuntu
+* 349s on a mac mini 2018
 * 483s on 6 cores of apple silicon virtualizing windows 11 arm
 * 1144s (ouch) on a 2017 MacBook w/ 1.3GHz Core i5
 
