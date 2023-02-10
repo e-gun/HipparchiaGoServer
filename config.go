@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022-23
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//
+
 package main
 
 import (

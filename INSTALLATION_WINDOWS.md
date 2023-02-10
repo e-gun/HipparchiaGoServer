@@ -4,7 +4,7 @@
 1. next load `hipparchiaDB` into `PostgreSQL`
 1. next acquire a binary for `HipparchiaGoServer`
 
-### install and configure `PostgreSQL`
+### [A] install and configure `PostgreSQL`
 1. download from http://postgresql.org/downloads (which will send you to enterprisedb.com...)
 ![dl](gitimg/windows/01_getpsql.png)
 
@@ -36,7 +36,7 @@
 ![inst9](gitimg/windows/11_psqlinstallationends.png)
 
 
-### load `hipparchiaDB` into `PostgreSQL`
+### [B] load `hipparchiaDB` into `PostgreSQL`
 1. Launch `SQL Shell` which lives inside the `PostgreSQL 15` folder
 
 ![inst10](gitimg/windows/12_find_sqlshell.png)
@@ -56,12 +56,12 @@ matters (a lot): quotation marks, semicolons, ...
 data you will be loading. There is no need to `cd` if the data is in your home directory already. 
 * Then set an alias to the `pg_restore.exe` application. You might need to change `15` in the example below to some
 other number.
-* The send execute `pg_restore`. The sample image has a typo. Make sure you enter `--username=hippa_wr`. 
+* Then execute `pg_restore`. The sample image has a typo. Make sure you enter `--username=hippa_wr`. 
 You also need to set the name of the folder where the data lives properly. It might not be `hDB`.
 
 ![inst12](gitimg/windows/15_loaddata.png)
 
-### acquire `HipparchiaGoServer.exe` and launch it
+### [C] acquire `HipparchiaGoServer.exe` and launch it
 1. You can build `HipparchiaGoServer.exe` yourself with the files in this repository. Or you can grab a pre-built binary.
 
 ![inst13](gitimg/windows/16_getbinary.png)

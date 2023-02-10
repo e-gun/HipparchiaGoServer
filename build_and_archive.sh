@@ -19,6 +19,8 @@ if [ ! -d "${OUT}" ]; then
   mkdir ${OUT}
 fi
 
+rm ${OUT}/*.zip
+
 for arch in ${archs[@]}
 do
   for os in ${oss[@]}
