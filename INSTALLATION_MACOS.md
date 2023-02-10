@@ -11,26 +11,33 @@
    ![inst01](gitimg/macos/01_terminal.png)
 
 2. You will install `Homebrew` which will then install `PostgreSQL`. So go to https://brew.sh.
+
    ![inst02](gitimg/macos/02_brew.png)
 
 3. Copy the installation command on that page and paste it into the terminal.
+
    ![inst03](gitimg/macos/03_install_brew.png)
 
 4. Installation will take a while. You will need to hit `RETURN/ENTER` when prompted.
+   
    ![inst04](gitimg/macos/04_install_confirm.png)
 
-5. Installation will end, and you should do what it tells you as it ends: `Run these two commands...` Cut and paste them into the terminal.
+5. Installation will end, and you should do what it tells you as it ends and says: `Run these two commands...` Cut and paste them into the terminal.
+ 
    ![inst05](gitimg/macos/05_install_ends.png)
    ![inst06](gitimg/macos/06_add_to_path.png)
 
-6. `Homebrew` is now ready to go. Use it to install `PostgreSQL` by entering `brew search postgres`. Then ask to install the latest version, e.g., `brew install posgresql@15`
+6. `Homebrew` is now ready to go. Use it to install `PostgreSQL` by entering `brew search postgres`. Then ask to install the latest version, e.g., `brew install posgresql@15
+
    ![inst07](gitimg/macos/07_install_psql.png)
 
 7. After installation, you will again be told to enter some set-up commands. Put `psql` in your `PATH` by cutting and pasting the command you will be provided: `echo 'export PATH="/opt/..."`
 You also want to start the server: `brew services restart postgresql@15`
+
    ![inst08](gitimg/macos/08_psqlpath_and_start.png)
 
 8. Now CLOSE the terminal window and open a NEW terminal window. Now enter `psql postgres`. This will log you into the database. And now you will enter a series of commands to set it up.
+
    - `CREATE USER hippa_wr WITH PASSWORD 'some_random_password';`
    - `CREATE DATABASE "hipparchiaDB";`
    - `ALTER DATABASE "hipparchiaDB" OWNER TO hippa_wr;`
@@ -45,6 +52,7 @@ You also want to start the server: `brew services restart postgresql@15`
    data you will be loading. There is no need to `cd` if the data is in your home directory already. 
 
 2. Enter `pg_restore -v --format=directory --username=hippa_wr --dbname=hipparchiaDB ./hDB` and watch as the data is loaded.
+
    ![inst10](gitimg/macos/10_loading.png)
    ![inst11](gitimg/macos/11_load_ends.png)
 
@@ -57,16 +65,20 @@ You also want to start the server: `brew services restart postgresql@15`
 2. If you download a file like `HipparchiaGoServer-darwin-arm64-1.0.18.zip`, it needs to be UNZIPPED. Double-clicking will do that. You will then see something like `HipparchiaGoServer-darwin-arm64-1.0.18` in the same folder.
 
 3. This file needs to be RENAMED: `HipparchiaGoServer-darwin-arm64-1.0.18` --> `HipparchiaGoServer`
+
    ![inst12](gitimg/macos/12_renamea.png)
    ![inst13](gitimg/macos/13_renameb.png)
 
 4. Double-click to launch. It is possible that you will get a complaint about an UNIDENTIFIED DEVELOPER. In that case you need to go to `System Settings` -> `Gatekeeper` -> `Security` and then allow this application to run.
+
    ![inst14](gitimg/macos/14_gatekeeper.png)
 
 5. On the first run you will be asked for the password for `hippa_wr`.
+
    ![inst15](gitimg/macos/15_firstrun.png)
 
 6. Then you are running. You can point a browser at http://127.0.0.1:8000
+
    ![inst16](gitimg/macos/16_running.png)
 
 7. Congratulations. All of this is one time only. From here on out you can just double-click the application like any other program.
