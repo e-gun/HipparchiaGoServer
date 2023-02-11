@@ -6,4 +6,4 @@ config*
 hgs-conf*
 hgs_sqlite.db
 z_*
-/HipparchiaGoServer*
+bin/HipparchiaGoServer*

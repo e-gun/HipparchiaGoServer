@@ -25,6 +25,7 @@
 5. Installation will end, and you should do what it tells you as it ends and says: `Run these two commands...` Cut and paste them into the terminal.
  
    ![inst05](gitimg/macos/05_install_ends.png)
+
    ![inst06](gitimg/macos/06_add_to_path.png)
 
 6. `Homebrew` is now ready to go. Use it to install `PostgreSQL` by entering `brew search postgres`. Then ask to install the latest version, e.g., `brew install posgresql@15
@@ -54,11 +55,12 @@ You also want to start the server: `brew services restart postgresql@15`
 2. Enter `pg_restore -v --format=directory --username=hippa_wr --dbname=hipparchiaDB ./hDB` and watch as the data is loaded.
 
    ![inst10](gitimg/macos/10_loading.png)
+
    ![inst11](gitimg/macos/11_load_ends.png)
 
 ### [C] acquire `HipparchiaGoServer` and launch it
 
-1. You can build `HipparchiaGoServer` yourself with the files in this repository. Or you can grab a pre-built binary. Download the correct binary. Intel Macs: `-darwin-amd64-` Applie Silicon: `-darwin-arm64-`
+1. You can build `HipparchiaGoServer` yourself with the files in this repository. Or you can grab a pre-built binary. Download the correct binary. Intel Macs: `-darwin-amd64-` Apple Silicon: `-darwin-arm64-`
 
 ![inst12](gitimg/windows/16_getbinary.png)
 
@@ -67,6 +69,7 @@ You also want to start the server: `brew services restart postgresql@15`
 3. This file needs to be RENAMED: `HipparchiaGoServer-darwin-arm64-1.0.18` --> `HipparchiaGoServer`
 
    ![inst12](gitimg/macos/12_renamea.png)
+
    ![inst13](gitimg/macos/13_renameb.png)
 
 4. Double-click to launch. It is possible that you will get a complaint about an UNIDENTIFIED DEVELOPER. In that case you need to go to `System Settings` -> `Gatekeeper` -> `Security` and then allow this application to run.
