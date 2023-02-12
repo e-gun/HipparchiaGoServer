@@ -42,7 +42,7 @@
 
 ### [C] the first launch of `HipparchiaGoServer`: loading `hipparchiaDB` into `PostgreSQL`
 
-1. The database load happens the first time you run `HipparchiaGoServer`. It will take *several minutes*.
+1. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
 
 2. On the first run you will be asked for the password for `hippa_wr`.
 
@@ -67,8 +67,11 @@
 - `rm ~/.config/hgs-conf.json`
 - `/Applications/Postgres.app/Contents/Versions/15/bin/psql postgres` [note that `15` might change at some date]
 - - inside of `psql` enter the following
-- - `DROP DATABASE "hipparchiaDB"`
-- - `DROP USER hippa_wr`
+- - `DROP DATABASE "hipparchiaDB";`
+- - `DROP USER hippa_wr;`
 - - `\q`
 
-3. The next time you run `HipparchiaGoServer` will be like a first launch.
+![inst01](../gitimg/macos_posgresapp/07_reset.png)
+
+
+3. The next time you run `HipparchiaGoServer` will be like a first launch as above.
