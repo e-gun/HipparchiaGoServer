@@ -28,7 +28,7 @@
 
    ![inst06](gitimg/macos/06_add_to_path.png)
 
-6. `Homebrew` is now ready to go. Use it to install `PostgreSQL` by entering `brew search postgres`. Then ask to install the latest version, e.g., `brew install posgresql@15
+6. `Homebrew` is now ready to go. Use it to install `PostgreSQL` by entering `brew search postgres`. Then ask to install the latest version, e.g., `brew install posgresql@15`
 
    ![inst07](gitimg/macos/07_install_psql.png)
 
@@ -104,13 +104,10 @@ The location varies:
 
 Intel:
 
-`rm /usr/local/var/postgresql@14/postmaster.pid`
+`rm /usr/local/var/postgresql@15/postmaster.pid`
 
 M1:
 
-`rm /opt/homebrew/var/postgresql@14/postmaster.pid`
+`rm /opt/homebrew/var/postgresql@15/postmaster.pid`
 
-NB: if you are running `postgresqlNN` and `NN` is not `14`, then substitute `NN` for `14` above.  
-
-
-
+NB: if you are running `postgresqlNN` and `NN` is not `15`, then substitute `NN` for `15` above.

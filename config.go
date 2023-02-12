@@ -348,5 +348,12 @@ func checkforconfiguration() {
 		chke(err)
 
 		fmt.Println(coloroutput(fmt.Sprintf(FWR, fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGBASIC)))
+
+		if hipparchiaDBexists(findpsql()) {
+			msg("hipparchiaDB exists: skipping initializeHDB()", 0)
+		} else {
+			msg("hipparchiaDB does: executing initializeHDB()", 0)
+			initializeHDB()
+		}
 	}
 }
