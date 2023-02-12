@@ -82,8 +82,9 @@ func findpsql() string {
 func hipparchiaDBexists(bindir string) bool {
 	if runtime.GOOS == "windows" {
 		msg("Self-initialization has not (yet?) been implemented for windows.", MSGCRIT)
-		msg("You need to follow the directions in the INSTALLATION file on github", MSGCRIT)
+		msg("If the database needs loading follow the directions in the INSTALLATION file on github", MSGCRIT)
 		msg("See https://github.com/e-gun/HipparchiaGoServer", MSGCRIT)
+		msg("Otherwise quit and relaunch", MSGCRIT)
 		// hang; do not exit because that will close the window and kill the message
 		for {
 		}
