@@ -353,7 +353,14 @@ func checkforconfiguration() {
 			msg("hipparchiaDB exists: skipping initializeHDB()", 0)
 		} else {
 			msg("hipparchiaDB does: executing initializeHDB()", 0)
-			initializeHDB()
+			initializeHDB(pw)
+		}
+
+		if hipparchiaDBhasdata(findpsql()) {
+			msg("'authors' table present in hipparchiaDB: skipping database loading", 0)
+		} else {
+			msg("'authors' table not present in hipparchiaDB: the database needs to be loaded", 0)
+			loadhDB()
 		}
 	}
 }

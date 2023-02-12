@@ -31,10 +31,11 @@ do
     else
       SUFF=""
     fi
-	  env GOOS=${os} GOARCH=${arch} go build -ldflags "-s -w -X main.GitCommit=${GC} -X main.BuildDate=${DT}" -o ${P}-${os}-${arch}-${V}${SUFF}
-	  zip -q ${P}-${os}-${arch}-${V}${SUFF}.zip ${P}-${os}-${arch}-${V}${SUFF}
-	  mv ${P}-${os}-${arch}-${V}${SUFF}.zip ${OUT}/
-	  rm ${P}-${os}-${arch}-${V}${SUFF}
+    EXE=${P}-${V}-${os}-${arch}${SUFF}
+	  env GOOS=${os} GOARCH=${arch} go build -ldflags "-s -w -X main.GitCommit=${GC} -X main.BuildDate=${DT}" -o ${EXE}
+	  zip -q ${EXE}.zip ${EXE}
+	  mv ${EXE}.zip ${OUT}/
+	  rm ${EXE}
 	done
 done
 
