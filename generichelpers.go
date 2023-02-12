@@ -41,6 +41,7 @@ const (
 	GREY2   = "\033[38;5;247m" // Grey62
 	GREY3   = "\033[38;5;242m" // Grey42
 	WHITE   = "\033[38;5;255m" // Grey93
+	BLINK   = "\033[30;0;5m"
 	PANIC   = "[%s%s v.%s%s] %sUNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE%s\n"
 )
 
@@ -89,11 +90,11 @@ func msg(message string, threshold int) {
 // coloroutput - colorize output via a collection of escape substitutions; quick and dirty; not especially robust
 func coloroutput(tagged string) string {
 	// "[git: C4%sC0]" ==> green text for the %s
-	swap := strings.NewReplacer("C1", "", "C2", "", "C3", "", "C4", "", "C5", "", "C6", "", "C0", "")
+	swap := strings.NewReplacer("C1", "", "C2", "", "C3", "", "C4", "", "C5", "", "C6", "", "C7", "", "C0", "")
 
 	if runtime.GOOS != "windows" && !Config.BlackAndWhite {
 		swap = strings.NewReplacer("C1", YELLOW1, "C2", CYAN2, "C3", BLUE1, "C4", GREEN, "C5", RED2,
-			"C6", GREY3, "C0", RESET)
+			"C6", GREY3, "C7", BLINK, "C0", RESET)
 	}
 	tagged = swap.Replace(tagged)
 	return tagged

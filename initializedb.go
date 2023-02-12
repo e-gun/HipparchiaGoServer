@@ -24,6 +24,7 @@ const (
 	WINPGEXE  = `C:\Program Files\PostgreSQL\%d\bin\`
 	DBRESTORE = "pg_restore -v --format=directory --username=hippa_wr --dbname=hipparchiaDB %s"
 	HDBFOLDER = "hDB"
+	DONE      = "Initialized the database framework"
 
 	NEWDB = `<<EOF
 	CREATE USER %s WITH PASSWORD '%s';
@@ -37,26 +38,28 @@ func initializeHDB(pw string) {
 	bindir := findpsql()
 	eof := fmt.Sprintf(NEWDB, DEFAULTPSQLUSER, pw, DEFAULTPSQLDB, DEFAULTPSQLDB, DEFAULTPSQLDB, DEFAULTPSQLUSER)
 
-	msg(bindir+"psql --dbname=postgres "+eof, MSGCRIT)
 	cmd := exec.Command("bash", "-c", bindir+"psql --dbname=postgres "+eof)
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
 	chke(err)
 
-	msg("initialized the database framework", MSGCRIT)
-
+	msg(DONE, MSGCRIT)
 }
 
 func findpsql() string {
 	bindir := ""
+	suffix := ""
 	if runtime.GOOS == "darwin" {
 		bindir = MACPGAPP
+	} else if runtime.GOOS == "windows" {
+		bindir = WINPGEXE
+		suffix = ".exe"
 	}
 
 	vers := 0
 
-	for i := 14; i < 20; i++ {
-		_, y := os.Stat(fmt.Sprintf(bindir, i) + "psql")
+	for i := 21; i > 12; i-- {
+		_, y := os.Stat(fmt.Sprintf(bindir, i) + "psql" + suffix)
 		if y == nil {
 			vers = i
 			break
@@ -73,10 +76,20 @@ func findpsql() string {
 }
 
 func hipparchiaDBexists(bindir string) bool {
+	if runtime.GOOS == "windows" {
+		msg("Self-initialization has not (yet?) been implemented for windows.", MSGCRIT)
+		msg("You need to follow the directions in the INSTALLATION file on github", MSGCRIT)
+		msg("See https://github.com/e-gun/HipparchiaGoServer", MSGCRIT)
+		// hang; do not exit because that will close the window and kill the message
+		for {
+		}
+	}
+
 	query := `<<EOF
 SELECT datname FROM pg_database WHERE datname='%s';
 EOF
 `
+
 	exists := false
 
 	eof := fmt.Sprintf(query, DEFAULTPSQLDB)
@@ -120,9 +133,9 @@ func loadhDB() {
 		FAIL = `Aborting Could not find database data. Make sure it is named 'C3%sC0' and resides 
 in either the same directory as the application or at 'C3%sC0'`
 		RESTORE = `pg_restore -v --format=directory --username=%s --dbname=%s %s`
-		WARN    = "the database will start loading in %d seconds; this will take a while"
-		DELAY   = 3
-		ERR     = "there were errors when reloading the data; they are usually safe to ignore, especially if they involve 'hippa_rd'"
+		WARN    = "The database will start loading in %d seconds. C7This will take several minutesC0"
+		DELAY   = 8
+		ERR     = "There were errors when reloading the data. It is safe to ignore errors that involve 'hippa_rd'"
 		OK      = "The data was loaded into the database. %s has finished setting itself up and can henceforth run normally."
 	)
 	var a error
@@ -152,7 +165,7 @@ in either the same directory as the application or at 'C3%sC0'`
 		}
 	}
 
-	msg(fmt.Sprintf(WARN, DELAY), MSGCRIT)
+	fmt.Println(coloroutput(fmt.Sprintf(WARN, DELAY)))
 	time.Sleep(DELAY * time.Second)
 
 	bindir := findpsql()
@@ -167,4 +180,5 @@ in either the same directory as the application or at 'C3%sC0'`
 	}
 
 	msg(fmt.Sprintf(OK, MYNAME), MSGCRIT)
+	fmt.Println()
 }

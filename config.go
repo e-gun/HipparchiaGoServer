@@ -297,11 +297,14 @@ func BuildUserPassPairs() {
 
 func checkforconfiguration() {
 	const (
-		WRN = "Warning: unable to launch: Cannot find a configuration file."
-		FYI = "\tC1Creating configuration directory: 'C3%sC1'C0"
-		FNF = "\tC1Generating a simple 'C3%sC1'C0"
-		FWR = "\tC1Wrote a configuration file to 'C3%sC1'C0\n"
-		PWD = "\tC2enter the database password ->C0 "
+		WRN      = "Warning: unable to launch: Cannot find a configuration file."
+		FYI      = "\tC1Creating configuration directory: 'C3%sC1'C0"
+		FNF      = "\tC1Generating a simple 'C3%sC1'C0"
+		FWR      = "\tC1Wrote a configuration file to 'C3%sC1'C0\n"
+		PWD      = "\tC2enter the password you wish to use ->C0 "
+		NODB     = "hipparchiaDB does not exist: executing initializeHDB()"
+		FOUND    = "Found 'authors': skipping database loading"
+		NOTFOUND = "Could not find 'authors' table. Need to reload the data."
 	)
 	_, a := os.Stat(CONFIGBASIC)
 
@@ -350,16 +353,16 @@ func checkforconfiguration() {
 		fmt.Println(coloroutput(fmt.Sprintf(FWR, fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGBASIC)))
 
 		if hipparchiaDBexists(findpsql()) {
-			msg("hipparchiaDB exists: skipping initializeHDB()", 0)
+			msg("hipparchiaDB exists: skipping initializeHDB()", MSGCRIT)
 		} else {
-			msg("hipparchiaDB does: executing initializeHDB()", 0)
+			msg(NODB, MSGCRIT)
 			initializeHDB(pw)
 		}
 
 		if hipparchiaDBhasdata(findpsql()) {
-			msg("'authors' table present in hipparchiaDB: skipping database loading", 0)
+			msg(FOUND, MSGCRIT)
 		} else {
-			msg("'authors' table not present in hipparchiaDB: the database needs to be loaded", 0)
+			msg(NOTFOUND, MSGCRIT)
 			loadhDB()
 		}
 	}

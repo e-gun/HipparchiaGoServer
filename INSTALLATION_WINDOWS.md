@@ -59,6 +59,11 @@ at the fifth stop you will need to enter the ADMIN password you set earlier.
 permission to access the database, enabling fast indexing, and then quitting. You need to enter each line EXACTLY as
 seen below but for the part where you enter a real password instead of `random_password`. All punctuation 
 matters (a lot): quotation marks, semicolons, ...
+    - `CREATE USER hippa_wr WITH PASSWORD 'some_random_password';`
+    - `CREATE DATABASE "hipparchiaDB";`
+    - `ALTER DATABASE "hipparchiaDB" OWNER TO hippa_wr;`
+    - `CREATE EXTENSION pg_trgm;`
+    - `\q`
 
 ![inst11](gitimg/windows/14_furtherinsidesqlshell.png)
 
@@ -67,9 +72,10 @@ matters (a lot): quotation marks, semicolons, ...
 * Then `cd` to the directory that contains the 
 data you will be loading. There is no need to `cd` if the data is in your home directory already. 
 * Then set an alias to the `pg_restore.exe` application. You might need to change `15` in the example below to some
-other number.
+other number: `Set-Alias pg_restore 'C:\Program Files\PostgreSQL\15\bin\pg_restore.exe'`
 * Then execute `pg_restore`. The sample image has a typo. Make sure you enter `--username=hippa_wr`. 
-You also need to set the name of the folder where the data lives properly. It might not be `hDB`.
+You also need to set the name of the folder where the data lives properly. It might not be `hDB`. Example: 
+`pg_restore -v --format=directory --username=hippa_wr --dbname=hipparchiaDB .\hDb`
 
 ![inst12](gitimg/windows/15_loaddata.png)
 
