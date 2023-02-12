@@ -47,6 +47,10 @@ func initializeHDB(pw string) {
 }
 
 func findpsql() string {
+	const (
+		FAIL = "Cannot find PostgreSQL binaries: aborting"
+	)
+
 	bindir := ""
 	suffix := ""
 	if runtime.GOOS == "darwin" {
@@ -67,7 +71,7 @@ func findpsql() string {
 	}
 
 	if vers == 0 {
-		msg("Cannot find PostgreSQL binaries: aborting", MSGCRIT)
+		msg(FAIL, MSGCRIT)
 		os.Exit(0)
 	}
 
@@ -128,10 +132,14 @@ EOF`
 
 }
 
-func loadhDB() {
+func loadhDB(pw string) {
 	const (
-		FAIL = `Aborting Could not find database data. Make sure it is named 'C3%sC0' and resides 
-in either the same directory as the application or at 'C3%sC0'`
+		FAIL = `ABORTING initialization: C7Could not find the folder with the database dataC0. 
+Make sure that data folder is named 'C3%sC0' and resides 
+EITHER in the same directory as %s 
+OR at 'C3%sC0'`
+		FAIL2 = `Deleting 'C3%sC0'
+[You will need to reset your password when asked. Currently: 'C3%sC0']`
 		RESTORE = `pg_restore -v --format=directory --username=%s --dbname=%s %s`
 		WARN    = "The database will start loading in %d seconds. C7This will take several minutesC0"
 		DELAY   = 8
@@ -155,7 +163,13 @@ in either the same directory as the application or at 'C3%sC0'`
 
 	notfound := (a != nil) && (b != nil)
 	if notfound {
-		fmt.Println(coloroutput(fmt.Sprintf(FAIL, HDBFOLDER, h+"/"+HDBFOLDER)))
+		fmt.Println(coloroutput(fmt.Sprintf(FAIL, HDBFOLDER, MYNAME, h+"/"+HDBFOLDER)))
+		hd, err := os.UserHomeDir()
+		chke(err)
+		fp := fmt.Sprintf(CONFIGALTAPTH, hd) + CONFIGBASIC
+		_ = os.Remove(fp)
+		fmt.Println()
+		fmt.Println(coloroutput(fmt.Sprintf(FAIL2, fp, pw)))
 		os.Exit(0)
 	} else {
 		if a != nil {

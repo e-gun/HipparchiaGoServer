@@ -26,7 +26,7 @@
        - `CREATE EXTENSION pg_trgm;`
    - exit postgresql by telling it `\q`
 
-![psql](gitimg/postreslogin.png)
+![psql](../gitimg/postreslogin.png)
 
 ### 2. loading hipparchiaDB into PostgreSQL
 
@@ -63,7 +63,7 @@ Dumping and restoring are both **slow**.
 - on first run it will complain that you do not have a `configuration` file: `hgs-conf.json`; 
 you will be given prompts to build one. Enter the password for `hippa_wr` when told to do so.
   
-![launch](gitimg/launch.png)
+![launch](../gitimg/launch.png)
 
 
 ## Interacting with HipparchiaGoServer
@@ -140,7 +140,7 @@ Intel:
 
 M1:
 
-`rm /opt/homebrew/var/postgresql@14/postmaster.pid`
+`rm /opt/homebrew/var/postgresql@15/postmaster.pid`
 
-NB: if you are running `postgresqlNN` and `NN` is not `14`, then substitute `NN` for `14` above.  
+NB: if you are running `postgresqlNN` and `NN` is not `15`, then substitute `NN` for `15` above.  
 
