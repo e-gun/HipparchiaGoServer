@@ -344,6 +344,7 @@ func checkforconfiguration() {
 		var pgpw string
 		if runtime.GOOS != "darwin" {
 			// macos users have admin access already (on their primary account...) and do not need a pg admin password
+			fmt.Printf(coloroutput(PWD2))
 			_, ee := fmt.Scan(&pgpw)
 			chke(ee)
 		}
@@ -364,7 +365,7 @@ func checkforconfiguration() {
 
 		if !hipparchiaDBexists(pgpw) {
 			msg(NODB, MSGCRIT)
-			initializeHDB(hwrpw)
+			initializeHDB(pgpw, hwrpw)
 		}
 
 		if HipparchiaDBHasData(hwrpw) {

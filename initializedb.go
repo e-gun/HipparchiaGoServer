@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/user"
 	"runtime"
 	"strings"
 	"time"
@@ -26,74 +25,12 @@ const (
 	DONE      = "Initialized the database framework"
 )
 
-// initializeHDB - insert the hipparchiaDB table and its user into postgres
-func initializeHDB(pw string) {
-	const (
-		C1 = `CREATE USER %s WITH PASSWORD '%s';`
-		C2 = `CREATE DATABASE "%s";`
-		C3 = `ALTER DATABASE "%s" OWNER TO %s;`
-		C4 = `CREATE EXTENSION pg_trgm;`
-	)
-
-	queries := []string{
-		fmt.Sprintf(C1, DEFAULTPSQLUSER, pw),
-		fmt.Sprintf(C2, DEFAULTPSQLDB),
-		fmt.Sprintf(C3, DEFAULTPSQLDB, DEFAULTPSQLUSER),
-		fmt.Sprintf(C4),
-	}
-
-	for q := range queries {
-		// this has to be looped because "CREATE DATABASE cannot run inisde a transaction block"
-		cmd := exec.Command(FindpPSQL()+"psql", "-d", "postgres", "-c", queries[q])
-		// cmd := exec.Command("bash", "-c", bindir+"psql --dbname=postgres "+eof)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err := cmd.Run()
-		chke(err)
-	}
-
-	msg(DONE, MSGCRIT)
-}
-
-// FindpPSQL - return the path of the psql executable
-func FindpPSQL() string {
-	const (
-		FAIL = "Cannot find PostgreSQL binaries: aborting"
-	)
-
-	bindir := ""
-	suffix := ""
-	if runtime.GOOS == "darwin" {
-		bindir = MACPGAPP
-	} else if runtime.GOOS == "windows" {
-		bindir = WINPGEXE
-		suffix = ".exe"
-	}
-
-	vers := 0
-
-	for i := 21; i > 12; i-- {
-		_, y := os.Stat(fmt.Sprintf(bindir, i) + "psql" + suffix)
-		if y == nil {
-			vers = i
-			break
-		}
-	}
-
-	if vers == 0 {
-		msg(FAIL, MSGCRIT)
-		os.Exit(0)
-	}
-
-	bindir = fmt.Sprintf(bindir, vers)
-	return bindir
-}
-
+// hipparchiaDBexists - does psql have hipparchiaDB in it yet?
 func hipparchiaDBexists(pgpw string) bool {
 	const (
 		Q    = `SELECT datname FROM pg_database WHERE datname='%s';`
 		UPWD = `postgresql://%s:%s@%s:%d/%s`
-		UBLK = `postgresql://%s@%s:%d/%s`
+		UBLK = `postgresql://%s:%d/%s`
 	)
 
 	// WARNING: passwords will be visible to `ps`, etc.
@@ -101,12 +38,10 @@ func hipparchiaDBexists(pgpw string) bool {
 	binary := GetBinaryPath("psql")
 
 	var url string
-	if runtime.GOOS != "darwin" {
+	if runtime.GOOS == "darwin" {
 		// macos users have admin access already (on their primary account...) and do not need a pg admin password
-		// postgresql://myuser@localhost:5432/postgres
-		user, err := user.Current()
-		chke(err)
-		url = fmt.Sprintf(UBLK, user, DEFAULTPSQLHOST, DEFAULTPSQLPORT, "postgres")
+		// postgresql://localhost:5432/postgres
+		url = fmt.Sprintf(UBLK, DEFAULTPSQLHOST, DEFAULTPSQLPORT, "postgres")
 	} else {
 		// postgresql://postgres:password@localhost:5432/postgres
 		url = fmt.Sprintf(UPWD, "postgres", pgpw, DEFAULTPSQLHOST, DEFAULTPSQLPORT, "postgres")
@@ -114,7 +49,9 @@ func hipparchiaDBexists(pgpw string) bool {
 
 	exists := false
 
-	cmd := exec.Command(binary, url, "-c", fmt.Sprintf(Q, DEFAULTPSQLDB))
+	// windows wants "-c, url"; not "url, -c"
+	cmd := exec.Command(binary, "-c", fmt.Sprintf(Q, DEFAULTPSQLDB), url)
+	cmd.Stderr = os.Stderr
 	out, err := cmd.Output()
 	chke(err)
 	if strings.Contains(string(out), DEFAULTPSQLDB) {
@@ -138,7 +75,7 @@ func HipparchiaDBHasData(userpw string) bool {
 	binary := GetBinaryPath("psql")
 	url := fmt.Sprintf(U, DEFAULTPSQLUSER, userpw, DEFAULTPSQLHOST, DEFAULTPSQLPORT, DEFAULTPSQLDB)
 
-	cmd := exec.Command(binary, url, "-c", Q)
+	cmd := exec.Command(binary, "-c", Q, url)
 	cmd.Stderr = stderr
 	err := cmd.Run()
 	if err != nil {
@@ -155,6 +92,48 @@ func HipparchiaDBHasData(userpw string) bool {
 	}
 	return found
 
+}
+
+// initializeHDB - insert the hipparchiaDB table and its user into postgres
+func initializeHDB(pgpw string, hdbpw string) {
+	const (
+		C1   = `CREATE USER %s WITH PASSWORD '%s';`
+		C2   = `CREATE DATABASE "%s";`
+		C3   = `ALTER DATABASE "%s" OWNER TO %s;`
+		C4   = `CREATE EXTENSION pg_trgm;`
+		UPWD = `postgresql://%s:%s@%s:%d/%s`
+		UBLK = `postgresql://%s:%d/%s`
+	)
+
+	queries := []string{
+		fmt.Sprintf(C1, DEFAULTPSQLUSER, hdbpw),
+		fmt.Sprintf(C2, DEFAULTPSQLDB),
+		fmt.Sprintf(C3, DEFAULTPSQLDB, DEFAULTPSQLUSER),
+		fmt.Sprintf(C4),
+	}
+
+	binary := GetBinaryPath("psql")
+
+	var url string
+	if runtime.GOOS == "darwin" {
+		// macos users have admin access already (on their primary account...) and do not need a pg admin password
+		// postgresql://localhost:5432/postgres
+		url = fmt.Sprintf(UBLK, DEFAULTPSQLHOST, DEFAULTPSQLPORT, "postgres")
+	} else {
+		// postgresql://postgres:password@localhost:5432/postgres
+		url = fmt.Sprintf(UPWD, "postgres", pgpw, DEFAULTPSQLHOST, DEFAULTPSQLPORT, "postgres")
+	}
+
+	for q := range queries {
+		// this has to be looped because "CREATE DATABASE cannot run inside a transaction block"
+		cmd := exec.Command(binary, "-c", queries[q], url)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		chke(err)
+	}
+
+	msg(DONE, MSGCRIT)
 }
 
 // LoadhDBfolder - take a psql dump and `pg_restore` it by exec-ing the binary
@@ -227,9 +206,34 @@ OR at 'C3%sC0'`
 }
 
 func GetBinaryPath(command string) string {
+	const (
+		FAIL = "Cannot find PostgreSQL binaries: aborting"
+	)
+
+	bindir := ""
 	suffix := ""
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == "darwin" {
+		bindir = MACPGAPP
+	} else if runtime.GOOS == "windows" {
+		bindir = WINPGEXE
 		suffix = ".exe"
 	}
-	return FindpPSQL() + command + suffix
+
+	vers := 0
+
+	for i := 21; i > 12; i-- {
+		_, y := os.Stat(fmt.Sprintf(bindir, i) + "psql" + suffix)
+		if y == nil {
+			vers = i
+			break
+		}
+	}
+
+	if vers == 0 {
+		msg(FAIL, MSGCRIT)
+		os.Exit(0)
+	}
+
+	bindir = fmt.Sprintf(bindir, vers)
+	return bindir + command + suffix
 }
