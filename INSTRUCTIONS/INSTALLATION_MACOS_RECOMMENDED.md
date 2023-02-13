@@ -63,12 +63,13 @@
 
    ![inst01](../gitimg/macos_homebrew/01_terminal.png)
 
-2. If you want to zap everything and start over:
+2. If you want to zap everything and start over, then open `Terminal.app` and enter the following:
 - `rm ~/.config/hgs-conf.json`
 - `/Applications/Postgres.app/Contents/Versions/15/bin/psql postgres` [note that `15` might change at some date]
 - - inside of `psql` enter the following
 - - `DROP DATABASE "hipparchiaDB";`
 - - `DROP USER hippa_wr;`
+- - `DROP EXTENSION pg_trgm;`
 - - `\q`
 
 ![inst01](../gitimg/macos_posgresapp/07_reset.png)

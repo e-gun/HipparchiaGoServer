@@ -301,7 +301,8 @@ func checkforconfiguration() {
 		FYI      = "\tC1Creating configuration directory: 'C3%sC1'C0"
 		FNF      = "\tC1Generating a simple 'C3%sC1'C0"
 		FWR      = "\tC1Wrote a configuration file to 'C3%sC1'C0\n"
-		PWD      = "\tC2enter the password you wish to use ->C0 "
+		PWD1     = "\tchoose a password for the database user 'hippa_wr' ->C0 "
+		PWD2     = "\tC2I also need the database password for the postgres administrator ->C0 "
 		NODB     = "hipparchiaDB does not exist: executing initializeHDB()"
 		FOUND    = "Found 'authors': skipping database loading"
 		NOTFOUND = "The database exists but seems to be empty. Need to reload the data."
@@ -334,17 +335,24 @@ func checkforconfiguration() {
 		}
 
 		fmt.Println(coloroutput(fmt.Sprintf(FNF, CONFIGBASIC)))
-		fmt.Printf(coloroutput(PWD))
+		fmt.Printf(coloroutput(PWD1))
 
-		var pw string
-		_, err := fmt.Scan(&pw)
+		var hwrpw string
+		_, err := fmt.Scan(&hwrpw)
 		chke(err)
+
+		var pgpw string
+		if runtime.GOOS != "darwin" {
+			// macos users have admin access already (on their primary account...) and do not need a pg admin password
+			_, ee := fmt.Scan(&pgpw)
+			chke(ee)
+		}
 
 		type ConfOut struct {
 			PostgreSQLPassword string
 		}
 
-		content, err := json.Marshal(ConfOut{pw})
+		content, err := json.Marshal(ConfOut{hwrpw})
 		chke(err)
 
 		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGBASIC, content, 0644)
@@ -354,18 +362,16 @@ func checkforconfiguration() {
 
 		// do we need to use inidializedb.go and to initialize the database?
 
-		if hipparchiaDBexists() {
-			// msg("hipparchiaDB exists: skipping initializeHDB()", MSGCRIT)
-		} else {
+		if !hipparchiaDBexists(pgpw) {
 			msg(NODB, MSGCRIT)
-			initializeHDB(pw)
+			initializeHDB(hwrpw)
 		}
 
-		if HipparchiaDBHasData() {
+		if HipparchiaDBHasData(hwrpw) {
 			msg(FOUND, MSGCRIT)
 		} else {
 			msg(NOTFOUND, MSGCRIT)
-			LoadhDBfolder(pw)
+			LoadhDBfolder(hwrpw)
 		}
 	}
 }

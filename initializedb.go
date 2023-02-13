@@ -6,10 +6,12 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
+	"os/user"
 	"runtime"
 	"strings"
 	"time"
@@ -87,51 +89,71 @@ func FindpPSQL() string {
 	return bindir
 }
 
-func hipparchiaDBexists() bool {
+func hipparchiaDBexists(pgpw string) bool {
 	const (
-		Q = `SELECT datname FROM pg_database WHERE datname='%s';`
+		Q    = `SELECT datname FROM pg_database WHERE datname='%s';`
+		UPWD = `postgresql://%s:%s@%s:%d/%s`
+		UBLK = `postgresql://%s@%s:%d/%s`
 	)
+
+	// WARNING: passwords will be visible to `ps`, etc.
 
 	binary := GetBinaryPath("psql")
 
+	var url string
+	if runtime.GOOS != "darwin" {
+		// macos users have admin access already (on their primary account...) and do not need a pg admin password
+		// postgresql://myuser@localhost:5432/postgres
+		user, err := user.Current()
+		chke(err)
+		url = fmt.Sprintf(UBLK, user, DEFAULTPSQLHOST, DEFAULTPSQLPORT, "postgres")
+	} else {
+		// postgresql://postgres:password@localhost:5432/postgres
+		url = fmt.Sprintf(UPWD, "postgres", pgpw, DEFAULTPSQLHOST, DEFAULTPSQLPORT, "postgres")
+	}
+
 	exists := false
 
-	cmd := exec.Command(binary, "-d", "postgres", "-c", fmt.Sprintf(Q, DEFAULTPSQLDB))
+	cmd := exec.Command(binary, url, "-c", fmt.Sprintf(Q, DEFAULTPSQLDB))
 	out, err := cmd.Output()
 	chke(err)
 	if strings.Contains(string(out), DEFAULTPSQLDB) {
 		exists = true
 	}
 
-	// fmt.Printf("hipparchiaDBexists(): %t\n", exists)
 	return exists
 }
 
 // HipparchiaDBHasData - true if an exec of `psql` finds `authors` in `pg_tables`
-func HipparchiaDBHasData() bool {
+func HipparchiaDBHasData(userpw string) bool {
 	const (
-		Q = `SELECT EXISTS ( SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename  = 'authors');`
+		Q = `SELECT COUNT(universalid) FROM authors;`
+		U = `postgresql://%s:%s@%s:%d/%s`
 	)
 
-	exists := false
+	// WARNING: passwords will be visible to `ps`, etc.
+
+	stderr := new(bytes.Buffer)
 
 	binary := GetBinaryPath("psql")
+	url := fmt.Sprintf(U, DEFAULTPSQLUSER, userpw, DEFAULTPSQLHOST, DEFAULTPSQLPORT, DEFAULTPSQLDB)
 
-	cmd := exec.Command(binary, "-d", DEFAULTPSQLDB, "-c", Q)
-	cmd.Stderr = os.Stderr
-	out, err := cmd.Output()
+	cmd := exec.Command(binary, url, "-c", Q)
+	cmd.Stderr = stderr
+	err := cmd.Run()
 	if err != nil {
-		fmt.Println(out)
+		// we actually expect the error "exit status 1" when the query looks for a table that is not there
 	}
 
-	if strings.Contains(string(out), "f") {
-		// val is already false
+	check := stderr.String()
+	var found bool
+
+	if strings.Contains(check, "does not exist") {
+		found = false
 	} else {
-		exists = true
+		found = true
 	}
-
-	// fmt.Printf("HipparchiaDBHasData(): %t\n", exists)
-	return exists
+	return found
 
 }
 
@@ -144,11 +166,11 @@ EITHER in the same directory as %s
 OR at 'C3%sC0'`
 		FAIL2 = `Deleting 'C3%sC0'
 [You will need to reset your password when asked. Currently: 'C3%sC0']`
-		RESTORE = `pg_restore -v --format=directory --username=%s --dbname=%s %s`
-		WARN    = "The database will start loading in %d seconds. C7This will take several minutesC0"
-		DELAY   = 8
-		ERR     = "There were errors when reloading the data. It is safe to ignore errors that involve 'hippa_rd'"
-		OK      = "The data was loaded into the database. %s has finished setting itself up and can henceforth run normally."
+		WARN  = "The database will start loading in %d seconds. C7This will take several minutesC0"
+		DELAY = 8
+		ERR   = "There were errors when reloading the data. It is safe to ignore errors that involve 'hippa_rd'"
+		OK    = "The data was loaded into the database. %s has finished setting itself up and can henceforth run normally."
+		U     = `postgresql://%s:%s@%s:%d/%s`
 	)
 	var a error
 	var b error
@@ -187,12 +209,10 @@ OR at 'C3%sC0'`
 	time.Sleep(DELAY * time.Second)
 
 	binary := GetBinaryPath("pg_restore")
+	url := fmt.Sprintf(U, DEFAULTPSQLUSER, pw, DEFAULTPSQLHOST, DEFAULTPSQLPORT, DEFAULTPSQLDB)
 
-	// rest := fmt.Sprintf(RESTORE, DEFAULTPSQLUSER, DEFAULTPSQLDB, fn)
-	// cmd := exec.Command("bash", "-c", bindir+rest)
-
-	// RESTORE = `pg_restore -v --format=directory --username=%s --dbname=%s %s`
-	cmd := exec.Command(binary, "-v", "-F", "directory", "-U", DEFAULTPSQLUSER, "-d", DEFAULTPSQLDB, fn)
+	// https://stackoverflow.com/questions/28324711/in-pg-restore-how-can-you-use-a-postgres-connection-string-to-specify-the-host
+	cmd := exec.Command(binary, "-d", url, "-v", "-F", "directory", fn)
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
