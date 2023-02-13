@@ -304,7 +304,7 @@ func checkforconfiguration() {
 		PWD      = "\tC2enter the password you wish to use ->C0 "
 		NODB     = "hipparchiaDB does not exist: executing initializeHDB()"
 		FOUND    = "Found 'authors': skipping database loading"
-		NOTFOUND = "Could not find 'authors' table. Need to reload the data."
+		NOTFOUND = "The database exists but seems to be empty. Need to reload the data."
 	)
 	_, a := os.Stat(CONFIGBASIC)
 
@@ -352,18 +352,20 @@ func checkforconfiguration() {
 
 		fmt.Println(coloroutput(fmt.Sprintf(FWR, fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGBASIC)))
 
-		if hipparchiaDBexists(findpsql()) {
+		// do we need to use inidializedb.go and to initialize the database?
+
+		if hipparchiaDBexists() {
 			// msg("hipparchiaDB exists: skipping initializeHDB()", MSGCRIT)
 		} else {
 			msg(NODB, MSGCRIT)
 			initializeHDB(pw)
 		}
 
-		if hipparchiaDBhasdata(findpsql()) {
+		if HipparchiaDBHasData() {
 			msg(FOUND, MSGCRIT)
 		} else {
 			msg(NOTFOUND, MSGCRIT)
-			loadhDB(pw)
+			LoadhDBfolder(pw)
 		}
 	}
 }

@@ -19,34 +19,42 @@ import (
 
 const (
 	MACPGAPP  = "/Applications/Postgres.app/Contents/Versions/%d/bin/"
-	MACBREWA  = "/opt/homebrew/opt/postgresql@%d/bin/"
-	MACBREWB  = "/usr/local/bin/"
 	WINPGEXE  = `C:\Program Files\PostgreSQL\%d\bin\`
-	DBRESTORE = "pg_restore -v --format=directory --username=hippa_wr --dbname=hipparchiaDB %s"
 	HDBFOLDER = "hDB"
 	DONE      = "Initialized the database framework"
-
-	NEWDB = `<<EOF
-	CREATE USER %s WITH PASSWORD '%s';
-	SELECT 'CREATE DATABASE "%s"' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname='"%s"')\gexec
-	ALTER DATABASE "%s" OWNER TO %s;
-	CREATE EXTENSION pg_trgm;
-EOF`
 )
 
+// initializeHDB - insert the hipparchiaDB table and its user into postgres
 func initializeHDB(pw string) {
-	bindir := findpsql()
-	eof := fmt.Sprintf(NEWDB, DEFAULTPSQLUSER, pw, DEFAULTPSQLDB, DEFAULTPSQLDB, DEFAULTPSQLDB, DEFAULTPSQLUSER)
+	const (
+		C1 = `CREATE USER %s WITH PASSWORD '%s';`
+		C2 = `CREATE DATABASE "%s";`
+		C3 = `ALTER DATABASE "%s" OWNER TO %s;`
+		C4 = `CREATE EXTENSION pg_trgm;`
+	)
 
-	cmd := exec.Command("bash", "-c", bindir+"psql --dbname=postgres "+eof)
-	cmd.Stdout = os.Stdout
-	err := cmd.Run()
-	chke(err)
+	queries := []string{
+		fmt.Sprintf(C1, DEFAULTPSQLUSER, pw),
+		fmt.Sprintf(C2, DEFAULTPSQLDB),
+		fmt.Sprintf(C3, DEFAULTPSQLDB, DEFAULTPSQLUSER),
+		fmt.Sprintf(C4),
+	}
+
+	for q := range queries {
+		// this has to be looped because "CREATE DATABASE cannot run inisde a transaction block"
+		cmd := exec.Command(FindpPSQL()+"psql", "-d", "postgres", "-c", queries[q])
+		// cmd := exec.Command("bash", "-c", bindir+"psql --dbname=postgres "+eof)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		chke(err)
+	}
 
 	msg(DONE, MSGCRIT)
 }
 
-func findpsql() string {
+// FindpPSQL - return the path of the psql executable
+func FindpPSQL() string {
 	const (
 		FAIL = "Cannot find PostgreSQL binaries: aborting"
 	)
@@ -79,61 +87,56 @@ func findpsql() string {
 	return bindir
 }
 
-func hipparchiaDBexists(bindir string) bool {
-	if runtime.GOOS == "windows" {
-		msg("Self-initialization has not (yet?) been implemented for windows.", MSGCRIT)
-		msg("If the database needs loading follow the directions in the INSTALLATION file on github", MSGCRIT)
-		msg("See https://github.com/e-gun/HipparchiaGoServer", MSGCRIT)
-		msg("Otherwise quit and relaunch", MSGCRIT)
-		// hang; do not exit because that will close the window and kill the message
-		for {
-		}
-	}
+func hipparchiaDBexists() bool {
+	const (
+		Q = `SELECT datname FROM pg_database WHERE datname='%s';`
+	)
 
-	query := `<<EOF
-SELECT datname FROM pg_database WHERE datname='%s';
-EOF
-`
+	binary := GetBinaryPath("psql")
 
 	exists := false
 
-	eof := fmt.Sprintf(query, DEFAULTPSQLDB)
-
-	cmd := exec.Command("bash", "-c", bindir+"psql --dbname=postgres "+eof)
+	cmd := exec.Command(binary, "-d", "postgres", "-c", fmt.Sprintf(Q, DEFAULTPSQLDB))
 	out, err := cmd.Output()
 	chke(err)
 	if strings.Contains(string(out), DEFAULTPSQLDB) {
 		exists = true
 	}
+
+	// fmt.Printf("hipparchiaDBexists(): %t\n", exists)
 	return exists
 }
 
-func hipparchiaDBhasdata(bindir string) bool {
-	query := `<<EOF
-SELECT EXISTS (
-    SELECT FROM 
-        pg_tables
-    WHERE 
-        schemaname = 'public' AND 
-        tablename  = 'authors'
-    );
-EOF`
+// HipparchiaDBHasData - true if an exec of `psql` finds `authors` in `pg_tables`
+func HipparchiaDBHasData() bool {
+	const (
+		Q = `SELECT EXISTS ( SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename  = 'authors');`
+	)
+
 	exists := false
 
-	cmd := exec.Command("bash", "-c", bindir+"psql --dbname="+DEFAULTPSQLDB+" "+query)
+	binary := GetBinaryPath("psql")
+
+	cmd := exec.Command(binary, "-d", DEFAULTPSQLDB, "-c", Q)
+	cmd.Stderr = os.Stderr
 	out, err := cmd.Output()
-	chke(err)
+	if err != nil {
+		fmt.Println(out)
+	}
 
 	if strings.Contains(string(out), "f") {
 		// val is already false
 	} else {
 		exists = true
 	}
+
+	// fmt.Printf("HipparchiaDBHasData(): %t\n", exists)
 	return exists
 
 }
 
-func loadhDB(pw string) {
+// LoadhDBfolder - take a psql dump and `pg_restore` it by exec-ing the binary
+func LoadhDBfolder(pw string) {
 	const (
 		FAIL = `ABORTING initialization: C7Could not find the folder with the database dataC0. 
 Make sure that data folder is named 'C3%sC0' and resides 
@@ -183,9 +186,14 @@ OR at 'C3%sC0'`
 	fmt.Println(coloroutput(fmt.Sprintf(WARN, DELAY)))
 	time.Sleep(DELAY * time.Second)
 
-	bindir := findpsql()
-	rest := fmt.Sprintf(RESTORE, DEFAULTPSQLUSER, DEFAULTPSQLDB, fn)
-	cmd := exec.Command("bash", "-c", bindir+rest)
+	binary := GetBinaryPath("pg_restore")
+
+	// rest := fmt.Sprintf(RESTORE, DEFAULTPSQLUSER, DEFAULTPSQLDB, fn)
+	// cmd := exec.Command("bash", "-c", bindir+rest)
+
+	// RESTORE = `pg_restore -v --format=directory --username=%s --dbname=%s %s`
+	cmd := exec.Command(binary, "-v", "-F", "directory", "-U", DEFAULTPSQLUSER, "-d", DEFAULTPSQLDB, fn)
+
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -196,4 +204,12 @@ OR at 'C3%sC0'`
 
 	msg(fmt.Sprintf(OK, MYNAME), MSGCRIT)
 	fmt.Println()
+}
+
+func GetBinaryPath(command string) string {
+	suffix := ""
+	if runtime.GOOS == "windows" {
+		suffix = ".exe"
+	}
+	return FindpPSQL() + command + suffix
 }
