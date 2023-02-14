@@ -88,7 +88,7 @@ PSQL administrator password you entered at `A.4` above.
 
 ![inst13](../gitimg/windows/21_configfile.png)
 
-2. Launch `SQL Shell` (which can be found inside the `PostgreSQL 15`.
+2. Launch `SQL Shell` (which can be found inside the `PostgreSQL 15` folder).
 
 3. Gain access to the `postgres` database by hitting `RETURN` 4x: you are accepting the default supplied values;
       at the fifth stop you will need to enter the ADMIN password you set earlier in `A.4`.
