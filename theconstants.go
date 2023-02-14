@@ -10,7 +10,7 @@ import "time"
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.1.1"
+	VERSION                  = "1.1.2"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	BLACKANDWHITE            = false
 	CONFIGLOCATION           = "."
@@ -114,6 +114,7 @@ const (
    C1-cfC0 C2{file}C0   read PSQL password from file [default: looks for "C3%s/%sC0" and "C3%s%sC0"]
    C1-dbC0          debug database: show internal references in browsed passages
    C1-elC0 C2{num}C0    set echo server log level (C10-3C0) [default: C3%dC0]
+   C1-exC0          extract the data to an archive folder in the same directory as the application: "C3%sC0"
    C1-ftC0 C2{string}C0 force a client-side font instead of serving a font [served font: C3NotoSansC0]
                    names with spaces need quotes around them: "C4Gentium Plus CompactC0"
    C1-glC0 C2{num}C0    set golang log level (C10-5C0) [default: C3%dC0]
@@ -129,7 +130,9 @@ const (
    C1-vvC0          print full version info and exit
    C1-wcC0 C2{int}C0    number of workers [default: C1cpu_countC0 (C3%dC0)]
    C1-zlC0          zap lunate sigmas and replace them with σ/ς
-
+   C1-00C0          completely erase the database and reset the tables
+                   the application cannot run again until you restore its data from an archive 
+                   you probably want to run with the "C3-exC0" flag before you try this. 
      (*) example: 
          C4"{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"C0
 

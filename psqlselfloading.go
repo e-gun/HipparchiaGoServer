@@ -26,30 +26,18 @@ const (
 	MACPGAPP  = "/Applications/Postgres.app/Contents/Versions/%d/bin/"
 	WINPGEXE  = `C:\Program Files\PostgreSQL\%d\bin\`
 	HDBFOLDER = "hDB"
-	DONE      = "Initialized the database framework"
 )
 
 // hipparchiaDBexists - does psql have hipparchiaDB in it yet?
 func hipparchiaDBexists(pgpw string) bool {
 	const (
-		Q    = `SELECT datname FROM pg_database WHERE datname='%s';`
-		UPWD = `postgresql://%s:%s@%s:%d/%s`
-		UBLK = `postgresql://%s:%d/%s`
+		Q = `SELECT datname FROM pg_database WHERE datname='%s';`
 	)
 
-	// WARNING: passwords will be visible to `ps`, etc.
+	// WARNING: passwords will be visible to `ps`, etc.; there are very few scenarios in which this might matter
 
 	binary := GetBinaryPath("psql")
-
-	var url string
-	if runtime.GOOS == "darwin" {
-		// macos users have admin access already (on their primary account...) and do not need a pg admin password
-		// postgresql://localhost:5432/postgres
-		url = fmt.Sprintf(UBLK, DEFAULTPSQLHOST, DEFAULTPSQLPORT, "postgres")
-	} else {
-		// postgresql://postgres:password@localhost:5432/postgres
-		url = fmt.Sprintf(UPWD, "postgres", pgpw, DEFAULTPSQLHOST, DEFAULTPSQLPORT, "postgres")
-	}
+	url := GetPostgresURI(pgpw)
 
 	exists := false
 
@@ -69,7 +57,6 @@ func hipparchiaDBexists(pgpw string) bool {
 func HipparchiaDBHasData(userpw string) bool {
 	const (
 		Q = `SELECT COUNT(universalid) FROM authors;`
-		U = `postgresql://%s:%s@%s:%d/%s`
 	)
 
 	// WARNING: passwords will be visible to `ps`, etc.
@@ -77,8 +64,7 @@ func HipparchiaDBHasData(userpw string) bool {
 	stderr := new(bytes.Buffer)
 
 	binary := GetBinaryPath("psql")
-	url := fmt.Sprintf(U, DEFAULTPSQLUSER, userpw, DEFAULTPSQLHOST, DEFAULTPSQLPORT, DEFAULTPSQLDB)
-
+	url := GetHippaWRURI(userpw)
 	cmd := exec.Command(binary, "-c", Q, url)
 	cmd.Stderr = stderr
 	err := cmd.Run()
@@ -105,8 +91,7 @@ func initializeHDB(pgpw string, hdbpw string) {
 		C2   = `CREATE DATABASE "%s";`
 		C3   = `ALTER DATABASE "%s" OWNER TO %s;`
 		C4   = `CREATE EXTENSION pg_trgm;`
-		UPWD = `postgresql://%s:%s@%s:%d/%s`
-		UBLK = `postgresql://%s:%d/%s`
+		DONE = "Initialized the database framework"
 	)
 
 	queries := []string{
@@ -117,16 +102,7 @@ func initializeHDB(pgpw string, hdbpw string) {
 	}
 
 	binary := GetBinaryPath("psql")
-
-	var url string
-	if runtime.GOOS == "darwin" {
-		// macos users have admin access already (on their primary account...) and do not need a pg admin password
-		// postgresql://localhost:5432/postgres
-		url = fmt.Sprintf(UBLK, DEFAULTPSQLHOST, DEFAULTPSQLPORT, "postgres")
-	} else {
-		// postgresql://postgres:password@localhost:5432/postgres
-		url = fmt.Sprintf(UPWD, "postgres", pgpw, DEFAULTPSQLHOST, DEFAULTPSQLPORT, "postgres")
-	}
+	url := GetPostgresURI(pgpw)
 
 	for q := range queries {
 		// this has to be looped because "CREATE DATABASE cannot run inside a transaction block"
@@ -153,7 +129,6 @@ OR at 'C3%sC0'`
 		DELAY = 8
 		ERR   = "There were errors when reloading the data. It is safe to ignore errors that involve 'hippa_rd'"
 		OK    = "The data was loaded into the database. %s has finished setting itself up and can henceforth run normally."
-		U     = `postgresql://%s:%s@%s:%d/%s`
 	)
 	var a error
 	var b error
@@ -192,7 +167,7 @@ OR at 'C3%sC0'`
 	time.Sleep(DELAY * time.Second)
 
 	binary := GetBinaryPath("pg_restore")
-	url := fmt.Sprintf(U, DEFAULTPSQLUSER, pw, DEFAULTPSQLHOST, DEFAULTPSQLPORT, DEFAULTPSQLDB)
+	url := GetHippaWRURI(pw)
 
 	// https://stackoverflow.com/questions/28324711/in-pg-restore-how-can-you-use-a-postgres-connection-string-to-specify-the-host
 	// this shows you the non-parallel syntax for calling pg_restore
@@ -208,6 +183,102 @@ OR at 'C3%sC0'`
 
 	msg(fmt.Sprintf(OK, MYNAME), MSGCRIT)
 	fmt.Println()
+}
+
+// SetPostgresAdminPW - ask for the password for the postgres admin user
+func SetPostgresAdminPW() string {
+	const (
+		PWD2 = "\tC2I also need the database password for the postgres administrator ->C0 "
+	)
+	var pgpw string
+	if runtime.GOOS != "darwin" {
+		// macos users have admin access already (on their primary account...) and do not need a pg admin password
+		fmt.Printf(coloroutput(PWD2))
+		_, ee := fmt.Scan(&pgpw)
+		chke(ee)
+	}
+	return pgpw
+}
+
+// ArchiveDB - dump the database to the filesystem
+func ArchiveDB() {
+	const (
+		MSG   = "Extracting the database.."
+		ERR   = "ArchiveDB(): pg_dump failed. You should NOT trust this archive. Deleting it..."
+		WRK   = 1 // problems on virtualized machine: "server closed the connection unexpectedly" if WRK > 1
+		WARN  = "The database will start archiving in %d seconds. C7This will take several minutesC0"
+		DELAY = 5
+	)
+
+	fmt.Println(coloroutput(fmt.Sprintf(WARN, DELAY)))
+	time.Sleep(DELAY * time.Second)
+
+	// pg_dump --clean "hipparchiaDB" --user hippa_wr | split -b 100m - out/hipparchiaDB-
+	// pg_dump -U postgres -F d -j 5 db1 -f db1_backup
+
+	binary := GetBinaryPath("pg_dump")
+	url := GetHippaWRURI(Config.PGLogin.Pass)
+
+	workers := fmt.Sprintf("%d", WRK)
+
+	cmd := exec.Command(binary, url, "-v", "-F", "d", "-j", workers, "-f", HDBFOLDER)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	msg(MSG, MSGCRIT)
+	err := cmd.Run()
+	if err != nil {
+		msg(ERR, MSGCRIT)
+		e := os.RemoveAll(HDBFOLDER)
+		chke(e)
+	}
+
+}
+
+// DBSelfDestruct - purge all data and undo everything initializeHDB and LoadhDBfolder did
+func DBSelfDestruct() {
+	const (
+		CONF = `You are about to RESET the database this program uses. The application will be NON-FUNCTIONAL 
+after this unless/until you reload this data. 
+
+In short, this very dangerous. Type C6YESC0 to confirm that you want to proceed.
+
+--> `
+		NOPE = "Did not receive confirmation. Aborting..."
+		C1   = `DROP DATABASE "%s";`
+		C2   = `DROP USER %s;`
+		C3   = `DROP EXTENSION pg_trgm;`
+		DONE = "Deleted the database framework"
+	)
+
+	var ok string
+	fmt.Printf(coloroutput(CONF))
+	_, ee := fmt.Scan(&ok)
+	chke(ee)
+	if ok != "YES" {
+		fmt.Println(NOPE)
+		return
+	}
+
+	queries := []string{
+		fmt.Sprintf(C1, DEFAULTPSQLDB),
+		fmt.Sprintf(C2, DEFAULTPSQLUSER),
+		C3,
+	}
+
+	pgpw := SetPostgresAdminPW()
+	binary := GetBinaryPath("psql")
+	url := GetPostgresURI(pgpw)
+
+	for q := range queries {
+		cmd := exec.Command(binary, "-c", queries[q], url)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		chke(err)
+	}
+
+	msg(DONE, MSGCRIT)
 }
 
 // GetBinaryPath - return the path of a psql or pg_restore binary
@@ -242,4 +313,30 @@ func GetBinaryPath(command string) string {
 
 	bindir = fmt.Sprintf(bindir, vers)
 	return bindir + command + suffix
+}
+
+// GetPostgresURI - return a URI to connect to postgres as an administrator; different URI for macOS vs others
+func GetPostgresURI(pgpw string) string {
+	const (
+		UPWD = `postgresql://%s:%s@%s:%d/%s`
+		UBLK = `postgresql://%s:%d/%s`
+	)
+	var url string
+	if runtime.GOOS == "darwin" {
+		// macos users have admin access already (on their primary account...) and do not need a pg admin password
+		// postgresql://localhost:5432/postgres
+		url = fmt.Sprintf(UBLK, DEFAULTPSQLHOST, DEFAULTPSQLPORT, "postgres")
+	} else {
+		// postgresql://postgres:password@localhost:5432/postgres
+		url = fmt.Sprintf(UPWD, "postgres", pgpw, DEFAULTPSQLHOST, DEFAULTPSQLPORT, "postgres")
+	}
+	return url
+}
+
+// GetHippaWRURI - return a URI to connect to postgres as hippa_wr
+func GetHippaWRURI(pw string) string {
+	const (
+		U = `postgresql://%s:%s@%s:%d/%s`
+	)
+	return fmt.Sprintf(U, DEFAULTPSQLUSER, pw, DEFAULTPSQLHOST, DEFAULTPSQLPORT, DEFAULTPSQLDB)
 }

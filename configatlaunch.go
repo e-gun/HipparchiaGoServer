@@ -47,7 +47,6 @@ func CheckForConfiguration() {
 		FNF      = "\tC1Generating a simple 'C3%sC1'C0"
 		FWR      = "\tC1Wrote a configuration file to 'C3%sC1'C0\n"
 		PWD1     = "\tchoose a password for the database user 'hippa_wr' ->C0 "
-		PWD2     = "\tC2I also need the database password for the postgres administrator ->C0 "
 		NODB     = "hipparchiaDB does not exist: executing initializeHDB()"
 		FOUND    = "Found 'authors': skipping database loading"
 		NOTFOUND = "The database exists but seems to be empty. Need to reload the data."
@@ -86,13 +85,7 @@ func CheckForConfiguration() {
 		_, err := fmt.Scan(&hwrpw)
 		chke(err)
 
-		var pgpw string
-		if runtime.GOOS != "darwin" {
-			// macos users have admin access already (on their primary account...) and do not need a pg admin password
-			fmt.Printf(coloroutput(PWD2))
-			_, ee := fmt.Scan(&pgpw)
-			chke(ee)
-		}
+		pgpw := SetPostgresAdminPW()
 
 		type ConfOut struct {
 			PostgreSQLPassword string
@@ -210,12 +203,15 @@ func ConfigAtLaunch() {
 			cf = args[i+1]
 		case "-db":
 			Config.DbDebug = true
-		case "-ft":
-			Config.Font = args[i+1]
+		case "-ex":
+			ArchiveDB()
+			os.Exit(0)
 		case "-el":
 			ll, err := strconv.Atoi(args[i+1])
 			chke(err)
 			Config.EchoLog = ll
+		case "-ft":
+			Config.Font = args[i+1]
 		case "-gl":
 			ll, err := strconv.Atoi(args[i+1])
 			chke(err)
@@ -226,9 +222,9 @@ func ConfigAtLaunch() {
 			printversion()
 			ht := coloroutput(HELPTEXT)
 			fmt.Println(fmt.Sprintf(ht, pwf, DEFAULTBROWSERCTX, CONFIGLOCATION, CONFIGBASIC, h, CONFIGBASIC,
-				DEFAULTECHOLOGLEVEL, DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT,
+				DEFAULTECHOLOGLEVEL, HDBFOLDER, DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT,
 				UNACCEPTABLEINPUT, runtime.NumCPU(), CONFIGPROLIX, h, PROJURL))
-			os.Exit(1)
+			os.Exit(0)
 		case "-pg":
 			js := args[i+1]
 			err := json.Unmarshal([]byte(js), &pl)
@@ -254,6 +250,9 @@ func ConfigAtLaunch() {
 			Config.WorkerCount = wc
 		case "-zl":
 			Config.ZapLunates = true
+		case "-00":
+			DBSelfDestruct()
+			os.Exit(0)
 		default:
 			// do nothing
 		}
@@ -302,7 +301,7 @@ func ConfigAtLaunch() {
 			msg(fmt.Sprintf(FAIL3, cf, acf, pcf), MSGCRIT)
 			msg(fmt.Sprintf(FAIL4), MSGCRIT)
 			fmt.Printf(MINCONFIG)
-			os.Exit(0)
+			exitorhang(0)
 		}
 		conf := ConfigFile{}
 		if erra == nil {

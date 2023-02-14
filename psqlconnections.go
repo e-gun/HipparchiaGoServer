@@ -81,12 +81,23 @@ func GetPSQLconnection() *pgxpool.Conn {
 	const (
 		FAIL1   = "GetPSQLconnection() could not Acquire() from SQLPool."
 		FAIL2   = `Your password in '%s' is incorrect?`
+		FAIL3   = `The database is empty. Deleting any 'C3%sC0' so you can reset the server.`
 		ERRRUN  = `dial error`
 		FAILRUN = `'%s': the PostgreSQL server cannot be found; check that it is running and serving on port %d`
 	)
 
 	dbc, e := SQLPool.Acquire(context.Background())
 	if e != nil {
+		if !HipparchiaDBHasData(Config.PGLogin.Pass) {
+			// you need to reset the whole application...
+			msg(coloroutput(fmt.Sprintf(FAIL3, CONFIGBASIC)), MSGMAND)
+			h, err := os.UserHomeDir()
+			chke(err)
+			err = os.Remove(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGBASIC)
+			chke(err)
+			exitorhang(0)
+		}
+
 		msg(fmt.Sprintf(FAIL1), MSGMAND)
 		if strings.Contains(e.Error(), ERRRUN) {
 			msg(fmt.Sprintf(FAILRUN, ERRRUN, Config.PGLogin.Port), MSGCRIT)
