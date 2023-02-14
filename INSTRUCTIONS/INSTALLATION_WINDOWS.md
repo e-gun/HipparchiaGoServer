@@ -125,4 +125,4 @@ PSQL administrator password you entered at `A.4` above.
 
 3. Type `.\HipparchiaGoServer.exe -ex`. The data will be put into a new `hDB` folder in the current directory.
 
-4. That folder take up a lot of room on your machine. You could consider compressing it.
+4. That folder will take up a lot of room on your machine. You could consider compressing it.
