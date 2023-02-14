@@ -147,11 +147,11 @@ func ConfigAtLaunch() {
 	e := json.Unmarshal([]byte(DEFAULTCORPORA), &Config.DefCorp)
 	chke(e)
 
-	cf := fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGBASIC)
+	// cf := fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGBASIC)
 
 	uh, _ := os.UserHomeDir()
 	h := fmt.Sprintf(CONFIGALTAPTH, uh)
-	acf := fmt.Sprintf("%s/%s", h, CONFIGBASIC)
+	// acf := fmt.Sprintf("%s/%s", h, CONFIGBASIC)
 	pcf := fmt.Sprintf("%s/%s", h, CONFIGPROLIX)
 	pwf := fmt.Sprintf("%s%s", h, CONFIGAUTH)
 
@@ -174,6 +174,7 @@ func ConfigAtLaunch() {
 	}
 
 	var pl PostgresLogin
+	var cf string
 
 	args := os.Args[1:len(os.Args)]
 
@@ -264,9 +265,33 @@ func ConfigAtLaunch() {
 	}
 	msg(fmt.Sprintf("'%s%s'%s loaded", h, CONFIGPROLIX, y), MSGTMI)
 
+	SetConfigPass(confc, cf)
+
+	if Config.Authenticate {
+		BuildUserPassPairs()
+	}
+}
+
+// SetConfigPass - make sure that Config.PGLogin.Pass != ""
+func SetConfigPass(cfg CurrentConfiguration, cf string) {
+	const (
+		FAIL3     = "FAILED to load database credentials from any of '%s', '%s' or '%s'"
+		FAIL4     = "Ata a minimum sure that a 'hgs-conf.json' file exists and that it has the following format:"
+		FAIL6     = "Could not open '%s'"
+		BLANKPASS = "PostgreSQLPassword is blank. Check your 'hgs-conf.json' file. NB: 'PostgreSQLPassword ≠ 'PosgreSQLPassword'.\n"
+	)
 	type ConfigFile struct {
 		PostgreSQLPassword string
 	}
+
+	uh, _ := os.UserHomeDir()
+	h := fmt.Sprintf(CONFIGALTAPTH, uh)
+
+	if cf == "" {
+		cf = fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGBASIC)
+	}
+
+	acf := fmt.Sprintf("%s/%s", h, CONFIGBASIC)
 
 	if Config.PGLogin.Pass == "" {
 		Config.PGLogin = PostgresLogin{}
@@ -297,8 +322,8 @@ func ConfigAtLaunch() {
 		decoderb := json.NewDecoder(cfb)
 		confb := ConfigFile{}
 		errb := decoderb.Decode(&confb)
-		if erra != nil && errb != nil && confc.PGLogin.DBName == "" {
-			msg(fmt.Sprintf(FAIL3, cf, acf, pcf), MSGCRIT)
+		if erra != nil && errb != nil && cfg.PGLogin.DBName == "" {
+			msg(fmt.Sprintf(FAIL3, cf, acf, fmt.Sprintf("%s/%s", h, CONFIGPROLIX)), MSGCRIT)
 			msg(fmt.Sprintf(FAIL4), MSGCRIT)
 			fmt.Printf(MINCONFIG)
 			exitorhang(0)
@@ -321,10 +346,6 @@ func ConfigAtLaunch() {
 			DBName: DEFAULTPSQLDB,
 			Pass:   conf.PostgreSQLPassword,
 		}
-	}
-
-	if Config.Authenticate {
-		BuildUserPassPairs()
 	}
 }
 

@@ -56,7 +56,8 @@ func hipparchiaDBexists(pgpw string) bool {
 // HipparchiaDBHasData - true if an exec of `psql` finds `authors` in `pg_tables`
 func HipparchiaDBHasData(userpw string) bool {
 	const (
-		Q = `SELECT COUNT(universalid) FROM authors;`
+		Q    = `SELECT COUNT(universalid) FROM authors;`
+		AUTH = `Authentication failed: this likely means that neither the user nor the database exists. Consider deleting any configuration file inside '%s'`
 	)
 
 	// WARNING: passwords will be visible to `ps`, etc.
@@ -73,6 +74,7 @@ func HipparchiaDBHasData(userpw string) bool {
 	}
 
 	check := stderr.String()
+
 	var found bool
 
 	if strings.Contains(check, "does not exist") {
@@ -80,6 +82,13 @@ func HipparchiaDBHasData(userpw string) bool {
 	} else {
 		found = true
 	}
+
+	if strings.Contains(check, "authentication failed") {
+		hd, e := os.UserHomeDir()
+		chke(e)
+		msg(fmt.Sprintf(AUTH, fmt.Sprintf(CONFIGALTAPTH, hd)), MSGCRIT)
+	}
+
 	return found
 
 }
@@ -205,7 +214,7 @@ func ArchiveDB() {
 	const (
 		MSG   = "Extracting the database.."
 		ERR   = "ArchiveDB(): pg_dump failed. You should NOT trust this archive. Deleting it..."
-		WRK   = 1 // problems on virtualized machine: "server closed the connection unexpectedly" if WRK > 1
+		WRK   = 1 // problem (on virtualized machine): "server closed the connection unexpectedly" if WRK > 1
 		WARN  = "The database will start archiving in %d seconds. C7This will take several minutesC0"
 		DELAY = 5
 	)
@@ -216,12 +225,15 @@ func ArchiveDB() {
 	// pg_dump --clean "hipparchiaDB" --user hippa_wr | split -b 100m - out/hipparchiaDB-
 	// pg_dump -U postgres -F d -j 5 db1 -f db1_backup
 
+	// highly likely that you do not have a value for Config.PGLogin.Pass yet, but you need one...
+	SetConfigPass(Config, "")
+
 	binary := GetBinaryPath("pg_dump")
 	url := GetHippaWRURI(Config.PGLogin.Pass)
 
 	workers := fmt.Sprintf("%d", WRK)
 
-	cmd := exec.Command(binary, url, "-v", "-F", "d", "-j", workers, "-f", HDBFOLDER)
+	cmd := exec.Command(binary, "-v", "-F", "d", "-j", workers, "-f", HDBFOLDER, url)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -232,7 +244,6 @@ func ArchiveDB() {
 		e := os.RemoveAll(HDBFOLDER)
 		chke(e)
 	}
-
 }
 
 // DBSelfDestruct - purge all data and undo everything initializeHDB and LoadhDBfolder did
@@ -243,12 +254,13 @@ after this unless/until you reload this data.
 
 In short, this very dangerous. Type C6YESC0 to confirm that you want to proceed.
 
---> `
-		NOPE = "Did not receive confirmation. Aborting..."
-		C1   = `DROP DATABASE "%s";`
-		C2   = `DROP USER %s;`
-		C3   = `DROP EXTENSION pg_trgm;`
-		DONE = "Deleted the database framework"
+        --> `
+		NOPE  = "Did not receive confirmation. Aborting..."
+		C1    = `DROP DATABASE "%s";`
+		C2    = `DROP USER %s;`
+		C3    = `DROP EXTENSION pg_trgm;`
+		DONE1 = "Deleted the database framework"
+		DONE2 = "Deleted configuration files inside '%s'"
 	)
 
 	var ok string
@@ -275,10 +287,19 @@ In short, this very dangerous. Type C6YESC0 to confirm that you want to proceed.
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		err := cmd.Run()
-		chke(err)
+		if err != nil {
+			// do nothing: "does not exist" error in all likelihood
+		}
 	}
 
-	msg(DONE, MSGCRIT)
+	msg(DONE1, MSGCRIT)
+
+	hd, e := os.UserHomeDir()
+	chke(e)
+	cp := fmt.Sprintf(CONFIGALTAPTH, hd)
+	_ = os.Remove(cp + CONFIGBASIC)
+	_ = os.Remove(cp + CONFIGPROLIX)
+	msg(fmt.Sprintf(DONE2, cp), MSGCRIT)
 }
 
 // GetBinaryPath - return the path of a psql or pg_restore binary
