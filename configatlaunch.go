@@ -39,8 +39,91 @@ type CurrentConfiguration struct {
 	ZapLunates    bool
 }
 
-// configatlaunch - read the configuration values from JSON and/or command line
-func configatlaunch() {
+// CheckForConfiguration - test to see if we can find a config file; if not build one and check to see if the DB needs loading
+func CheckForConfiguration() {
+	const (
+		WRN      = "Warning: unable to launch: Cannot find a configuration file."
+		FYI      = "\tC1Creating configuration directory: 'C3%sC1'C0"
+		FNF      = "\tC1Generating a simple 'C3%sC1'C0"
+		FWR      = "\tC1Wrote a configuration file to 'C3%sC1'C0\n"
+		PWD1     = "\tchoose a password for the database user 'hippa_wr' ->C0 "
+		PWD2     = "\tC2I also need the database password for the postgres administrator ->C0 "
+		NODB     = "hipparchiaDB does not exist: executing initializeHDB()"
+		FOUND    = "Found 'authors': skipping database loading"
+		NOTFOUND = "The database exists but seems to be empty. Need to reload the data."
+	)
+	_, a := os.Stat(CONFIGBASIC)
+
+	var b error
+	var c error
+
+	h, e := os.UserHomeDir()
+	if e != nil {
+		// how likely is this...?
+		b = errors.New("cannot find UserHomeDir")
+		c = errors.New("cannot find UserHomeDir")
+	} else {
+		_, b = os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGBASIC)
+		_, c = os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGPROLIX)
+	}
+
+	notfound := (a != nil) && (b != nil) && (c != nil)
+
+	if notfound {
+		msg(WRN, MSGCRIT)
+
+		_, e = os.Stat(fmt.Sprintf(CONFIGALTAPTH, h))
+		if e != nil {
+			fmt.Println(coloroutput(fmt.Sprintf(FYI, fmt.Sprintf(CONFIGALTAPTH, h))))
+			ee := os.MkdirAll(fmt.Sprintf(CONFIGALTAPTH, h), os.FileMode(0700))
+			chke(ee)
+		}
+
+		fmt.Println(coloroutput(fmt.Sprintf(FNF, CONFIGBASIC)))
+		fmt.Printf(coloroutput(PWD1))
+
+		var hwrpw string
+		_, err := fmt.Scan(&hwrpw)
+		chke(err)
+
+		var pgpw string
+		if runtime.GOOS != "darwin" {
+			// macos users have admin access already (on their primary account...) and do not need a pg admin password
+			fmt.Printf(coloroutput(PWD2))
+			_, ee := fmt.Scan(&pgpw)
+			chke(ee)
+		}
+
+		type ConfOut struct {
+			PostgreSQLPassword string
+		}
+
+		content, err := json.Marshal(ConfOut{hwrpw})
+		chke(err)
+
+		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGBASIC, content, 0644)
+		chke(err)
+
+		fmt.Println(coloroutput(fmt.Sprintf(FWR, fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGBASIC)))
+
+		// do we need to use inidializedb.go and to initialize the database?
+
+		if !hipparchiaDBexists(pgpw) {
+			msg(NODB, MSGCRIT)
+			initializeHDB(pgpw, hwrpw)
+		}
+
+		if HipparchiaDBHasData(hwrpw) {
+			msg(FOUND, MSGCRIT)
+		} else {
+			msg(NOTFOUND, MSGCRIT)
+			LoadhDBfolder(hwrpw)
+		}
+	}
+}
+
+// ConfigAtLaunch - read the configuration values from JSON and/or command line
+func ConfigAtLaunch() {
 	const (
 		FAIL1     = "Could not parse your information as a valid collection of credentials. Use the following template:"
 		FAIL2     = `"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"`
@@ -288,91 +371,5 @@ func BuildUserPassPairs() {
 	if Config.Authenticate && len(UserPassPairs) == 0 {
 		msg(FAIL2, MSGCRIT)
 		os.Exit(1)
-	}
-}
-
-//
-// CONFIGURATION NOT FOUND?
-//
-
-func checkforconfiguration() {
-	const (
-		WRN      = "Warning: unable to launch: Cannot find a configuration file."
-		FYI      = "\tC1Creating configuration directory: 'C3%sC1'C0"
-		FNF      = "\tC1Generating a simple 'C3%sC1'C0"
-		FWR      = "\tC1Wrote a configuration file to 'C3%sC1'C0\n"
-		PWD1     = "\tchoose a password for the database user 'hippa_wr' ->C0 "
-		PWD2     = "\tC2I also need the database password for the postgres administrator ->C0 "
-		NODB     = "hipparchiaDB does not exist: executing initializeHDB()"
-		FOUND    = "Found 'authors': skipping database loading"
-		NOTFOUND = "The database exists but seems to be empty. Need to reload the data."
-	)
-	_, a := os.Stat(CONFIGBASIC)
-
-	var b error
-	var c error
-
-	h, e := os.UserHomeDir()
-	if e != nil {
-		// how likely is this...?
-		b = errors.New("cannot find UserHomeDir")
-		c = errors.New("cannot find UserHomeDir")
-	} else {
-		_, b = os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGBASIC)
-		_, c = os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGPROLIX)
-	}
-
-	notfound := (a != nil) && (b != nil) && (c != nil)
-
-	if notfound {
-		msg(WRN, MSGCRIT)
-
-		_, e = os.Stat(fmt.Sprintf(CONFIGALTAPTH, h))
-		if e != nil {
-			fmt.Println(coloroutput(fmt.Sprintf(FYI, fmt.Sprintf(CONFIGALTAPTH, h))))
-			ee := os.MkdirAll(fmt.Sprintf(CONFIGALTAPTH, h), os.FileMode(0700))
-			chke(ee)
-		}
-
-		fmt.Println(coloroutput(fmt.Sprintf(FNF, CONFIGBASIC)))
-		fmt.Printf(coloroutput(PWD1))
-
-		var hwrpw string
-		_, err := fmt.Scan(&hwrpw)
-		chke(err)
-
-		var pgpw string
-		if runtime.GOOS != "darwin" {
-			// macos users have admin access already (on their primary account...) and do not need a pg admin password
-			fmt.Printf(coloroutput(PWD2))
-			_, ee := fmt.Scan(&pgpw)
-			chke(ee)
-		}
-
-		type ConfOut struct {
-			PostgreSQLPassword string
-		}
-
-		content, err := json.Marshal(ConfOut{hwrpw})
-		chke(err)
-
-		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGBASIC, content, 0644)
-		chke(err)
-
-		fmt.Println(coloroutput(fmt.Sprintf(FWR, fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGBASIC)))
-
-		// do we need to use inidializedb.go and to initialize the database?
-
-		if !hipparchiaDBexists(pgpw) {
-			msg(NODB, MSGCRIT)
-			initializeHDB(pgpw, hwrpw)
-		}
-
-		if HipparchiaDBHasData(hwrpw) {
-			msg(FOUND, MSGCRIT)
-		} else {
-			msg(NOTFOUND, MSGCRIT)
-			LoadhDBfolder(hwrpw)
-		}
 	}
 }

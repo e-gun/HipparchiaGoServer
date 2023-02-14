@@ -2,7 +2,6 @@
 go.mod
 go.sum
 .DS_Store
-config*
 hgs-conf*
 hgs_sqlite.db
 z_*

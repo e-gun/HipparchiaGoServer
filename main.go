@@ -29,8 +29,8 @@ func main() {
 		SUMM = "initialization took %.3fs before reaching StartEchoServer()"
 	)
 	launch := time.Now()
-	checkforconfiguration()
-	configatlaunch()
+	CheckForConfiguration()
+	ConfigAtLaunch()
 
 	printversion()
 

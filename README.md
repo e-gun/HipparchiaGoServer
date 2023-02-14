@@ -19,7 +19,7 @@
 * vocabulary list generation
 * morphology tables
 * self-configuration first run
-* self-installation on first run [macOS only]
+* self-installation on first run 
 
 ### SOME DAY
 
@@ -44,6 +44,7 @@
 * 64s on a mac studio
 * 113s on 6 cores of an intel 9900k running a virtualized ubuntu
 * 154s on 6 cores of apple silicon (m1) virtualizing macos
+* 232s on 6 cores of an intel 9900k running a virtualized windows 10
 * 349s on a mac mini 2018
 * 483s on 6 cores of apple silicon (m1) virtualizing windows 11 arm
 * 1144s (ouch) on a 2017 MacBook w/ 1.3GHz Core i5
@@ -58,13 +59,13 @@
       34 unique files.                              
        0 files ignored.
 
-github.com/AlDanial/cloc v 1.96  T=0.03 s (1163.9 files/s, 440449.8 lines/s)
+github.com/AlDanial/cloc v 1.96  T=0.03 s (1038.5 files/s, 395145.0 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                              34           1940           1755           9171
+Go                              34           1952           1776           9209
 -------------------------------------------------------------------------------
-SUM:                            34           1940           1755           9171
+SUM:                            34           1952           1776           9209
 -------------------------------------------------------------------------------
 
 ```

@@ -21,7 +21,9 @@
 
 ![inst3](../gitimg/windows/05_psqldata.png)
 
-4. stop mindlessly clicking 'Next >' and pick an ADMIN password; write it down somewhere; you will need to pick a different password later as a USER password
+4. stop mindlessly clicking 'Next >' and pick an ADMIN password. Write it down somewhere. Do not lose it. 
+You will need to pick a different password later as a USER password. You will need the ADMIN
+password at `C.2` below. 
 
 ![inst4](../gitimg/windows/06_db_adminpass.png)
 
@@ -45,51 +47,60 @@
 
 ![inst9](../gitimg/windows/11_psqlinstallationends.png)
 
-### [B] load `hipparchiaDB` into `PostgreSQL`
-1. Launch `SQL Shell` which lives inside the `PostgreSQL 15` folder
 
-![inst10](../gitimg/windows/12_find_sqlshell.png)
-
-2. Gain access to the `postgres` database by hitting `RETURN` 4x: you are accepting the default supplied values; 
-at the fifth stop you will need to enter the ADMIN password you set earlier.
-
-![inst11](../gitimg/windows/13_insidesqlshell.png)
-
-3. Now you will be creating a user (`hippa_wr`), creating a database (`hipparchiaDB`), giving the user 
-permission to access the database, enabling fast indexing, and then quitting. You need to enter each line EXACTLY as
-seen below but for the part where you enter a real password instead of `random_password`. All punctuation 
-matters (a lot): quotation marks, semicolons, ...
-    - `CREATE USER hippa_wr WITH PASSWORD 'some_random_password';`
-    - `CREATE DATABASE "hipparchiaDB";`
-    - `ALTER DATABASE "hipparchiaDB" OWNER TO hippa_wr;`
-    - `CREATE EXTENSION pg_trgm;`
-    - `\q`
-
-![inst11](../gitimg/windows/14_furtherinsidesqlshell.png)
-
-4. Now you load the data into `PostgreSQL`. 
-* First launch `PowerShell`. 
-* Then `cd` to the directory that contains the 
-data you will be loading. There is no need to `cd` if the data is in your home directory already. 
-* Then set an alias to the `pg_restore.exe` application. You might need to change `15` in the example below to some
-other number: `Set-Alias pg_restore 'C:\Program Files\PostgreSQL\15\bin\pg_restore.exe'`
-* Then execute `pg_restore`. The sample image has a typo. Make sure you enter `--username=hippa_wr`. 
-You also need to set the name of the folder where the data lives properly. It might not be `hDB`. Example: 
-`pg_restore -v --format=directory --username=hippa_wr --dbname=hipparchiaDB .\hDB`
-
-![inst12](../gitimg/windows/15_loaddata.png)
-
-### [C] acquire `HipparchiaGoServer.exe` and launch it
+### [B] acquire `HipparchiaGoServer.exe` and launch it
 1. You can build `HipparchiaGoServer.exe` yourself with the files in this repository. Or you can grab a pre-built binary.
 
 ![inst13](../gitimg/windows/16_getbinary.png)
 
-2. Double-click on the binary to launch. On the first launch you will be asked to enter the password for `hippa_wr`.
+2. Double-click on the binary to launch. 
+
+### [C] the first launch of `HipparchiaGoServer`: loading `hipparchiaDB` into `PostgreSQL`
+0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation.]
+The data needs to be in a folder named `hDB`. This folder should be in the same folder as `HipparchiaGoServer`.
+See the image and note that both are present in the same directory. You can (re)move the data folder after you
+have successfully installed the data into the database.
+  
+![inst13](../gitimg/windows/16b_have_binary.png)
+
+1. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
+
+2. On the first run you will be asked for a fresh password for `hippa_wr` you will also need the 
+PSQL administrator password you entered at `A.4` above.
 
 ![inst13](../gitimg/windows/17_firstlaunch.png)
 
-3. A configuration file will be generated and now you are running.
+3. A configuration file will be generated and now `HipparchiaGoServer` will attempt to build and load its database.
 
-![inst13](../gitimg/windows/18_launch.png)
+![inst13](../gitimg/windows/18_preparing_to_load.png)
+
+4. When loading you will see thousands of messages in the console.
+
+![inst13](../gitimg/windows/19_loading.png)
 
 4. Now you can point a browser at http://127.0.0.1:8000
+
+![inst13](../gitimg/windows/20_running.png)
+
+### [D] Troubleshooting / Resetting
+
+1. Delete `hgs-conf.json` in the `.config` folder of your home folder.
+
+![inst13](../gitimg/windows/21_configfile.png)
+
+2. Launch `SQL Shell` (which can be found inside the `PostgreSQL 15`.
+
+3. Gain access to the `postgres` database by hitting `RETURN` 4x: you are accepting the default supplied values;
+      at the fifth stop you will need to enter the ADMIN password you set earlier in `A.4`.
+
+![inst11](../gitimg/windows/13_insidesqlshell.png)
+
+4. Now enter the following:
+- `DROP DATABASE "hipparchiaDB";`
+- `DROP USER hippa_wr;`
+- `DROP EXTENSION pg_trgm;`
+- `\q`
+
+![inst11](../gitimg/windows/22_reset.png)
+
+5. The next time you run `HipparchiaGoServer` will be like a first launch as per the above.

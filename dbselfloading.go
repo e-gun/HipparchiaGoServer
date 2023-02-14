@@ -16,7 +16,11 @@ import (
 	"time"
 )
 
-// attempt to initialize hipparchiaDB on first launch
+//
+// if CheckForConfiguration() does not find a hgs-config.json or hgs-prolix-conf.json,
+// it will generate a basic hgs-config.json and then call the functions below:
+// is there a database? does it have data in it? are we able to load data into an empty database?
+//
 
 const (
 	MACPGAPP  = "/Applications/Postgres.app/Contents/Versions/%d/bin/"
@@ -191,6 +195,7 @@ OR at 'C3%sC0'`
 	url := fmt.Sprintf(U, DEFAULTPSQLUSER, pw, DEFAULTPSQLHOST, DEFAULTPSQLPORT, DEFAULTPSQLDB)
 
 	// https://stackoverflow.com/questions/28324711/in-pg-restore-how-can-you-use-a-postgres-connection-string-to-specify-the-host
+	// this shows you the non-parallel syntax for calling pg_restore
 	cmd := exec.Command(binary, "-d", url, "-v", "-F", "directory", fn)
 
 	cmd.Stdout = os.Stdout
@@ -205,6 +210,7 @@ OR at 'C3%sC0'`
 	fmt.Println()
 }
 
+// GetBinaryPath - return the path of a psql or pg_restore binary
 func GetBinaryPath(command string) string {
 	const (
 		FAIL = "Cannot find PostgreSQL binaries: aborting"

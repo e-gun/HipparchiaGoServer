@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"os"
+	"runtime"
 	"strings"
 )
 
@@ -70,7 +71,7 @@ func FillPSQLPoool() *pgxpool.Pool {
 			parts := strings.Split(e.Error(), ERRSRV)
 			msg(parts[1], MSGCRIT)
 		}
-		os.Exit(0)
+		exitorhang(0)
 	}
 	return thepool
 }
@@ -78,7 +79,8 @@ func FillPSQLPoool() *pgxpool.Pool {
 // GetPSQLconnection - Acquire() a connection from the main pgxpool
 func GetPSQLconnection() *pgxpool.Conn {
 	const (
-		FAIL1   = "GetPSQLconnection() could not Acquire() from SQLPool"
+		FAIL1   = "GetPSQLconnection() could not Acquire() from SQLPool."
+		FAIL2   = `Your password in '%s' is incorrect?`
 		ERRRUN  = `dial error`
 		FAILRUN = `'%s': the PostgreSQL server cannot be found; check that it is running and serving on port %d`
 	)
@@ -88,8 +90,25 @@ func GetPSQLconnection() *pgxpool.Conn {
 		msg(fmt.Sprintf(FAIL1), MSGMAND)
 		if strings.Contains(e.Error(), ERRRUN) {
 			msg(fmt.Sprintf(FAILRUN, ERRRUN, Config.PGLogin.Port), MSGCRIT)
+		} else {
+			msg(fmt.Sprintf(FAIL2, CONFIGBASIC), MSGMAND)
 		}
-		os.Exit(0)
+		exitorhang(0)
 	}
 	return dbc
+}
+
+// exitorhang - windows need to hang to keep the error window open
+func exitorhang(e int) {
+	const (
+		HANG = `Execution suspended. %s is now frozen. Read any errors above. Then close this window.`
+	)
+	if runtime.GOOS != "windows" {
+		os.Exit(e)
+	} else {
+		msg(fmt.Sprintf(HANG, MYNAME), -1)
+		for {
+			// you are now hung
+		}
+	}
 }

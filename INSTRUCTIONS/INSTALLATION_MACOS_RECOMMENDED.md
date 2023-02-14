@@ -42,6 +42,10 @@
 
 ### [C] the first launch of `HipparchiaGoServer`: loading `hipparchiaDB` into `PostgreSQL`
 
+0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation.]
+   The data needs to be in a folder named `hDB`. This folder should be in the same folder as `HipparchiaGoServer`.
+   You can (re)move the data folder after you have successfully installed the data into the database.
+
 1. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
 
 2. On the first run you will be asked for the password for `hippa_wr`.
@@ -75,4 +79,4 @@
 ![inst01](../gitimg/macos_posgresapp/07_reset.png)
 
 
-3. The next time you run `HipparchiaGoServer` will be like a first launch as above.
+3. The next time you run `HipparchiaGoServer` will be like a first launch as per the above.
