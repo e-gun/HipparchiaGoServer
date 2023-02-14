@@ -84,6 +84,17 @@ PSQL administrator password you entered at `A.4` above.
 
 ### [D] Troubleshooting / Resetting
 
+#### [D1] easier
+
+1. Move `HipparchiaGoServer` into your home directory. Launch `PowerShell`
+
+2. Type `.\HipparchiaGoServer.exe -00`. If you say `YES` and give the ADMIN password to `PostgreSQL`, the database will reset itself.
+
+![inst13](../gitimg/windows/22_selfreset.png)
+
+
+#### [D2] less easy
+
 1. Delete `hgs-conf.json` in the `.config` folder of your home folder.
 
 ![inst13](../gitimg/windows/21_configfile.png)
@@ -104,3 +115,14 @@ PSQL administrator password you entered at `A.4` above.
 ![inst11](../gitimg/windows/22_reset.png)
 
 5. The next time you run `HipparchiaGoServer` will be like a first launch as per the above.
+
+
+### [E] Archiving
+
+1. If you lose/destroy the `hDB` folder with the original data and want it back, the data can be extracted and archived.
+
+2. Move `HipparchiaGoServer` into your home directory. Launch `PowerShell`
+
+3. Type `.\HipparchiaGoServer.exe -ex`. The data will be put into a new `hDB` folder in the current directory.
+
+4. That folder take up a lot of room on your machine. You could consider compressing it.

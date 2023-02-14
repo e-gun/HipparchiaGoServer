@@ -63,6 +63,17 @@
 
 ### [D] Troubleshooting / Resetting
 
+#### [D1] easier
+
+1. Move `HipparchiaGoServer` into your home directory. Launch `Terminal.App`
+
+2. Type `./HipparchiaGoServer -00`. If you say `YES`, the database will reset itself.
+
+![inst13](../gitimg/windows/22_selfreset.png)
+
+
+#### [D2] less easy
+
 1. You will be working with `Terminal.app`. Launch it.
 
    ![inst01](../gitimg/macos_homebrew/01_terminal.png)
@@ -80,3 +91,14 @@
 
 
 3. The next time you run `HipparchiaGoServer` will be like a first launch as per the above.
+
+
+### [E] Archiving
+
+1. If you lose/destroy the `hDB` folder with the original data and want it back, the data can be extracted and archived.
+
+2. Move `HipparchiaGoServer` into your home directory. Launch `Terminal.App`
+
+3. Type `./HipparchiaGoServer -ex`. The data will be put into a new `hDB` folder in the current directory.
+
+4. That folder take up a lot of room on your machine. You could consider compressing it.
