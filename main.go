@@ -7,6 +7,7 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -112,9 +113,12 @@ func printversion() {
 // BuildDate should be injected at build time
 var BuildDate string
 
-func printbuidldate() {
+func printbuildinfo() {
+	bi := ""
 	if BuildDate != "" {
-		bd := coloroutput(fmt.Sprintf("Built: C4%sC0", BuildDate))
-		fmt.Println(bd)
+		bi = coloroutput(fmt.Sprintf("\tBuilt:\tC3%sC0\n", BuildDate))
+
 	}
+	bi += coloroutput(fmt.Sprintf("\tGo:\tC3%sC0", runtime.Version()))
+	fmt.Println(bi)
 }

@@ -182,7 +182,7 @@ func ConfigAtLaunch() {
 		switch a {
 		case "-vv":
 			printversion()
-			printbuidldate()
+			printbuildinfo()
 			os.Exit(1)
 		case "-v":
 			fmt.Println(VERSION)

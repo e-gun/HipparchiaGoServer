@@ -3,6 +3,8 @@
 1. first install and configure `PostgreSQL`
 1. next acquire a binary for `HipparchiaGoServer`
 1. load `hipparchiaDB` into `PostgreSQL` on the first launch of `HipparchiaGoServer`
+1. [fyi] how to archive and/or migrate the data
+1. [fyi] how to reset the database and start over
 
 ### [A] install and configure `Postgres.app`
 
@@ -61,9 +63,19 @@
    ![inst02](../gitimg/macos_posgresapp/06_selfload_done.png)
 
 
-### [D] Troubleshooting / Resetting
+### [D] Archiving / Migrating
 
-#### [D1] easier
+1. If you lose/destroy the `hDB` folder with the original data and want it back, the data can be extracted and archived.
+
+2. Move `HipparchiaGoServer` into your home directory. Launch `Terminal.App`
+
+3. Type `./HipparchiaGoServer -ex`. The data will be put into a new `hDB` folder in the current directory.
+
+4. That folder will take up a lot of room on your machine. You could consider compressing it.
+
+### [E] Troubleshooting / Resetting
+
+#### [E1] easier
 
 1. Move `HipparchiaGoServer` into your home directory. Launch `Terminal.App`
 
@@ -72,7 +84,7 @@
 ![inst13](../gitimg/windows/22_selfreset.png)
 
 
-#### [D2] less easy
+#### [E2] less easy
 
 1. You will be working with `Terminal.app`. Launch it.
 
@@ -91,14 +103,3 @@
 
 
 3. The next time you run `HipparchiaGoServer` will be like a first launch as per the above.
-
-
-### [E] Archiving
-
-1. If you lose/destroy the `hDB` folder with the original data and want it back, the data can be extracted and archived.
-
-2. Move `HipparchiaGoServer` into your home directory. Launch `Terminal.App`
-
-3. Type `./HipparchiaGoServer -ex`. The data will be put into a new `hDB` folder in the current directory.
-
-4. That folder will take up a lot of room on your machine. You could consider compressing it.
