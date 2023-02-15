@@ -23,8 +23,6 @@ import (
 //
 
 const (
-	MACPGAPP  = "/Applications/Postgres.app/Contents/Versions/%d/bin/"
-	WINPGEXE  = `C:\Program Files\PostgreSQL\%d\bin\`
 	HDBFOLDER = "hDB"
 )
 
@@ -305,11 +303,31 @@ In short, this very dangerous. Type C6YESC0 to confirm that you want to proceed.
 // GetBinaryPath - return the path of a psql or pg_restore binary
 func GetBinaryPath(command string) string {
 	const (
-		FAIL = "Cannot find PostgreSQL binaries: aborting"
+		MACPGAPP = "/Applications/Postgres.app/Contents/Versions/%d/bin/"
+		WINPGEXE = `C:\Program Files\PostgreSQL\%d\bin\`
+		LNXBIN   = `/usr/bin/`
+		LNXLBIN  = `/usr/local/bin/`
+		FAIL     = "Cannot find PostgreSQL binaries: aborting"
 	)
 
 	bindir := ""
 	suffix := ""
+
+	// linux needs fewer checks
+	if runtime.GOOS == "linux" {
+		_, y := os.Stat(LNXBIN + command)
+		if y == nil {
+			// != nil will trigger a fail later
+			return LNXBIN + command
+		}
+		_, y = os.Stat(LNXLBIN + command)
+		if y == nil {
+			// != nil will trigger a fail later
+			return LNXLBIN + command
+		}
+	}
+
+	// mac and windows are entangled with versioning issues
 	if runtime.GOOS == "darwin" {
 		bindir = MACPGAPP
 	} else if runtime.GOOS == "windows" {
@@ -320,7 +338,7 @@ func GetBinaryPath(command string) string {
 	vers := 0
 
 	for i := 21; i > 12; i-- {
-		_, y := os.Stat(fmt.Sprintf(bindir, i) + "psql" + suffix)
+		_, y := os.Stat(fmt.Sprintf(bindir, i) + command + suffix)
 		if y == nil {
 			vers = i
 			break

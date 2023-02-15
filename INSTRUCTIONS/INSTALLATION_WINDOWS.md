@@ -63,22 +63,28 @@ have successfully installed the data into the database.
   
 ![inst13](../gitimg/windows/16b_have_binary.png)
 
-1. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
+1. The first launch might cause `Microsoft Defender` to complain that the app is `unrecognized`. Click `More Info` and then `Run anyway`.
 
-2. On the first run you will be asked for a fresh password for `hippa_wr` you will also need the 
+![inst13](../gitimg/windows/16c_smartscreen_01.png)
+
+![inst13](../gitimg/windows/16c_smartscreen_02.png)
+
+2. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
+
+3. On the first run you will be asked for a fresh password for `hippa_wr` you will also need the 
 PSQL administrator password you entered at `A.4` above.
 
 ![inst13](../gitimg/windows/17_firstlaunch.png)
 
-3. A configuration file will be generated and now `HipparchiaGoServer` will attempt to build and load its database.
+4. A configuration file will be generated and now `HipparchiaGoServer` will attempt to build and load its database.
 
 ![inst13](../gitimg/windows/18_preparing_to_load.png)
 
-4. When loading you will see thousands of messages in the console.
+5. When loading you will see thousands of messages in the console.
 
 ![inst13](../gitimg/windows/19_loading.png)
 
-4. Now you can point a browser at http://127.0.0.1:8000
+6. Now you can point a browser at http://127.0.0.1:8000
 
 ![inst13](../gitimg/windows/20_running.png)
 
