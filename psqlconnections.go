@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"os"
-	"runtime"
 	"strings"
 )
 
@@ -107,19 +106,4 @@ func GetPSQLconnection() *pgxpool.Conn {
 		exitorhang(0)
 	}
 	return dbc
-}
-
-// exitorhang - windows need to hang to keep the error window open
-func exitorhang(e int) {
-	const (
-		HANG = `Execution suspended. %s is now frozen. Read any errors above. Then close this window.`
-	)
-	if runtime.GOOS != "windows" {
-		os.Exit(e)
-	} else {
-		msg(fmt.Sprintf(HANG, MYNAME), -1)
-		for {
-			// you are now hung
-		}
-	}
 }

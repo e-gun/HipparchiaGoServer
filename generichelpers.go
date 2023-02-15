@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"os"
 	"runtime"
 	"sort"
 	"strings"
@@ -49,7 +50,23 @@ const (
 func chke(err error) {
 	if err != nil {
 		fmt.Printf(PANIC, YELLOW2, MYNAME, VERSION, RESET, RED2, RESET)
-		panic(err)
+		fmt.Println(err)
+		exitorhang(1)
+	}
+}
+
+// exitorhang - Windows should hang to keep the error visible before the window closes and hides it
+func exitorhang(e int) {
+	const (
+		HANG = `Execution suspended. %s is now frozen. Note any errors above. Execution will halt after %d seconds.`
+		SUSP = 60
+	)
+	if runtime.GOOS != "windows" {
+		os.Exit(e)
+	} else {
+		msg(fmt.Sprintf(HANG, MYNAME, SUSP), -1)
+		time.Sleep(SUSP * time.Second)
+		os.Exit(e)
 	}
 }
 

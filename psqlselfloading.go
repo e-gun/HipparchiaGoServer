@@ -17,7 +17,7 @@ import (
 )
 
 //
-// if CheckForConfiguration() does not find a hgs-config.json or hgs-prolix-conf.json,
+// if LookForConfigFile() does not find a hgs-config.json or hgs-prolix-conf.json,
 // it will generate a basic hgs-config.json and then call the functions below:
 // is there a database? does it have data in it? are we able to load data into an empty database?
 //
@@ -28,8 +28,8 @@ const (
 	HDBFOLDER = "hDB"
 )
 
-// hipparchiaDBexists - does psql have hipparchiaDB in it yet?
-func hipparchiaDBexists(pgpw string) bool {
+// HipparchiaDBexists - does psql have hipparchiaDB in it yet?
+func HipparchiaDBexists(pgpw string) bool {
 	const (
 		Q = `SELECT datname FROM pg_database WHERE datname='%s';`
 	)
@@ -93,8 +93,8 @@ func HipparchiaDBHasData(userpw string) bool {
 
 }
 
-// initializeHDB - insert the hipparchiaDB table and its user into postgres
-func initializeHDB(pgpw string, hdbpw string) {
+// InitializeHDB - insert the hipparchiaDB table and its user into postgres
+func InitializeHDB(pgpw string, hdbpw string) {
 	const (
 		C1   = `CREATE USER %s WITH PASSWORD '%s';`
 		C2   = `CREATE DATABASE "%s";`
@@ -246,7 +246,7 @@ func ArchiveDB() {
 	}
 }
 
-// DBSelfDestruct - purge all data and undo everything initializeHDB and LoadhDBfolder did
+// DBSelfDestruct - purge all data and undo everything InitializeHDB and LoadhDBfolder did
 func DBSelfDestruct() {
 	const (
 		CONF = `You are about to RESET the database this program uses. The application will be NON-FUNCTIONAL 

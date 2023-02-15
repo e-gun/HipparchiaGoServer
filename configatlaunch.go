@@ -39,15 +39,15 @@ type CurrentConfiguration struct {
 	ZapLunates    bool
 }
 
-// CheckForConfiguration - test to see if we can find a config file; if not build one and check to see if the DB needs loading
-func CheckForConfiguration() {
+// LookForConfigFile - test to see if we can find a config file; if not build one and check to see if the DB needs loading
+func LookForConfigFile() {
 	const (
 		WRN      = "Warning: unable to launch: Cannot find a configuration file."
 		FYI      = "\tC1Creating configuration directory: 'C3%sC1'C0"
 		FNF      = "\tC1Generating a simple 'C3%sC1'C0"
 		FWR      = "\tC1Wrote a configuration file to 'C3%sC1'C0\n"
 		PWD1     = "\tchoose a password for the database user 'hippa_wr' ->C0 "
-		NODB     = "hipparchiaDB does not exist: executing initializeHDB()"
+		NODB     = "hipparchiaDB does not exist: executing InitializeHDB()"
 		FOUND    = "Found 'authors': skipping database loading"
 		NOTFOUND = "The database exists but seems to be empty. Need to reload the data."
 	)
@@ -99,11 +99,11 @@ func CheckForConfiguration() {
 
 		fmt.Println(coloroutput(fmt.Sprintf(FWR, fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGBASIC)))
 
-		// do we need to use inidializedb.go and to initialize the database?
+		// do we need to head over to psqlselfloading.go and to initialize the database?
 
-		if !hipparchiaDBexists(pgpw) {
+		if !HipparchiaDBexists(pgpw) {
 			msg(NODB, MSGCRIT)
-			initializeHDB(pgpw, hwrpw)
+			InitializeHDB(pgpw, hwrpw)
 		}
 
 		if HipparchiaDBHasData(hwrpw) {

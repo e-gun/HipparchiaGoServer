@@ -32,10 +32,10 @@ do
       SUFF=""
     fi
     EXE=${P}-${V}-${os}-${arch}${SUFF}
-	  env GOOS=${os} GOARCH=${arch} go build -ldflags "-s -w -X main.GitCommit=${GC} -X main.BuildDate=${DT}" -o ${EXE}
-	  zip -q ${EXE}.zip ${EXE}
+	  env GOOS=${os} GOARCH=${arch} go build -ldflags "-s -w -X main.GitCommit=${GC} -X main.BuildDate=${DT}" -o ${P}${SUFF}
+	  zip -q ${EXE}.zip ${P}${SUFF}
 	  mv ${EXE}.zip ${OUT}/
-	  rm ${EXE}
+	  rm ${P}${SUFF}
 	done
 done
 
