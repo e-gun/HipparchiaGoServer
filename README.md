@@ -25,6 +25,12 @@
 
 * vectors
 
+### INSTRUCTIONS
+* for installation, see the `INSTRUCTIONS` folder
+* for UI items, hover to get quick tips
+* click on `?` at bottom corner for detailed help
+* see `antisigma` for video demos
+
 ### NOTES
 
 * c. 325MB resident RAM on launch (note that a simple application like iTerm2 uses 354MB and Firefox uses 855MB)
