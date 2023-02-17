@@ -185,8 +185,13 @@ func StartEchoServer() {
 	e.GET("/sc/set/:num", RtSessionSetsCookie)
 	e.GET("/sc/get/:num", RtSessionGetCookie)
 
-	if Config.SelfTest {
-		go selftest()
+	if Config.SelfTest > 0 {
+		go func() {
+			for i := 0; i < Config.SelfTest; i++ {
+				msg(fmt.Sprintf("Running Selftest %d of %d", i+1, Config.SelfTest), 0)
+				selftest()
+			}
+		}()
 	}
 
 	e.HideBanner = true

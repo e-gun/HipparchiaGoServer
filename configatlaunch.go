@@ -32,7 +32,7 @@ type CurrentConfiguration struct {
 	MaxText       int
 	PGLogin       PostgresLogin
 	QuietStart    bool
-	SelfTest      bool
+	SelfTest      int
 	VocabByCt     bool
 	VocabScans    bool
 	WorkerCount   int
@@ -136,7 +136,7 @@ func ConfigAtLaunch() {
 	Config.ManualGC = true
 	Config.MaxText = MAXTEXTLINEGENERATION
 	Config.QuietStart = false
-	Config.SelfTest = false
+	Config.SelfTest = 0
 	Config.VocabByCt = VOCABBYCOUNT
 	Config.VocabScans = VOCABSCANSION
 	Config.WorkerCount = runtime.NumCPU()
@@ -236,7 +236,7 @@ func ConfigAtLaunch() {
 			chke(err)
 			Config.HostPort = p
 		case "-st":
-			Config.SelfTest = true
+			Config.SelfTest += 1
 		case "-ui":
 			Config.BadChars = args[i+1]
 		case "-wc":
