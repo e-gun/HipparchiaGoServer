@@ -1,5 +1,5 @@
 
-# FYI
+# HipparchiaGoServer FYI
 
 ## CLI
 
@@ -19,6 +19,13 @@
 ### self-test: cpu-constrained vs  i/o constrained
 
 ![workers vs time](../gitimg/workers_vs_time.png)
+
+## profiling
+
+`HipparchiaGoServer -st -st -st` called to generate
+* `default.pgo`
+* `MEMProfile.pdf`
+* `CPUProfile.pdf` 
 
 ## workflow
 
