@@ -81,7 +81,7 @@
 
 2. Type `./HipparchiaGoServer -00`. If you say `YES`, the database will reset itself.
 
-![inst13](../gitimg/windows/22_selfreset.png)
+![inst13](../gitimg/macos_posgresapp/07a_selfreset.png)
 
 
 #### [E2] less easy

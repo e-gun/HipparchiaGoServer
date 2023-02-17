@@ -22,7 +22,7 @@ type CurrentConfiguration struct {
 	BrowserCtx    int
 	DbDebug       bool
 	DefCorp       map[string]bool
-	EchoLog       int // "none", "terse", "verbose"
+	EchoLog       int // 0: "none", 1: "terse", 2: "prolix", 3: "prolix+remoteip"
 	Font          string
 	Gzip          bool
 	HostIP        string
@@ -118,13 +118,10 @@ func LookForConfigFile() {
 // ConfigAtLaunch - read the configuration values from JSON and/or command line
 func ConfigAtLaunch() {
 	const (
-		FAIL1     = "Could not parse your information as a valid collection of credentials. Use the following template:"
-		FAIL2     = `"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"`
-		FAIL3     = "FAILED to load database credentials from any of '%s', '%s' or '%s'"
-		FAIL4     = "Ata a minimum sure that a 'hgs-conf.json' file exists and that it has the following format:"
-		FAIL5     = "Improperly formatted corpus list. Using:\n\t%s"
-		FAIL6     = "Could not open '%s'"
-		BLANKPASS = "PostgreSQLPassword is blank. Check your 'hgs-conf.json' file. NB: 'PostgreSQLPassword ≠ 'PosgreSQLPassword'.\n"
+		FAIL1 = "Could not parse your information as a valid collection of credentials. Use the following template:"
+		FAIL2 = `"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"`
+		FAIL5 = "Improperly formatted corpus list. Using:\n\t%s"
+		FAIL6 = "Could not open '%s'"
 	)
 
 	Config.Authenticate = false
@@ -147,11 +144,8 @@ func ConfigAtLaunch() {
 	e := json.Unmarshal([]byte(DEFAULTCORPORA), &Config.DefCorp)
 	chke(e)
 
-	// cf := fmt.Sprintf("%s/%s", CONFIGLOCATION, CONFIGBASIC)
-
 	uh, _ := os.UserHomeDir()
 	h := fmt.Sprintf(CONFIGALTAPTH, uh)
-	// acf := fmt.Sprintf("%s/%s", h, CONFIGBASIC)
 	pcf := fmt.Sprintf("%s/%s", h, CONFIGPROLIX)
 	pwf := fmt.Sprintf("%s%s", h, CONFIGAUTH)
 
