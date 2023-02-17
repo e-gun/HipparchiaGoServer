@@ -1,10 +1,13 @@
 
-### FYI
+# FYI
 
-![options](gitimg/hgscli.png)
+## CLI
 
-![selftest](gitimg/selftest.png)
-#### some selftest times
+![options](../gitimg/hgscli.png)
+
+## self-test
+![selftest](../gitimg/selftest.png)
+### some selftest times
 
 * 113s on 6 cores of an intel 9900k running a virtualized ubuntu
 * 154s on 6 cores of apple silicon (m1) virtualizing macos
@@ -13,10 +16,15 @@
 * 483s on 6 cores of apple silicon (m1) virtualizing windows 11 arm
 * 1144s (ouch) on a 2017 MacBook w/ 1.3GHz Core i5
 
-![workers vs time](gitimg/workers_vs_time.png)
+### self-test: cpu-constrained vs  i/o constrained
 
-![workflow](gitimg/hipparchia_workflow.svg)
+![workers vs time](../gitimg/workers_vs_time.png)
 
+## workflow
+
+![workflow](../gitimg/hipparchia_workflow.svg)
+
+## code stats
 
 ```
 % cloc *go
