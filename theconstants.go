@@ -124,15 +124,15 @@ const (
    C1-qC0           quiet startup: suppress copyright notice
    C1-saC0 C2{string}C0 server IP address [default: "C3%sC0"]
    C1-spC0 C2{num}C0    server port [default: C3%dC0]
-   C1-stC0          run the self-test suite at launch
+   C1-stC0          run the self-test suite at launch; repeat the flag to iterate: e.g., "C1-st -stC0" will run twice
    C1-uiC0 C2{string}C0 unacceptable input characters [default: C3%sC0]
    C1-vC0           print version info and exit
    C1-vvC0          print full version info and exit
    C1-wcC0 C2{int}C0    number of workers [default: C1cpu_countC0 (C3%dC0)]
-   C1-zlC0          zap lunate sigmas and replace them with σ/ς
+   C1-zlC0          zap lunate sigmas and replace them with C1σ/ςC0
    C1-00C0          completely erase the database and reset the tables
                    the application cannot run again until you restore its data from an archive 
-                   you probably want to run with the "C3-exC0" flag before you try this. 
+                   you probably want to run with the "C1-exC0" flag before you try this. 
      (*) example: 
          C4"{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"C0
 

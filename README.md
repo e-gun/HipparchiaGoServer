@@ -41,13 +41,15 @@
 
 ![selftest](gitimg/selftest.png)
 #### some selftest times
-* 64s on a mac studio
+
 * 113s on 6 cores of an intel 9900k running a virtualized ubuntu
 * 154s on 6 cores of apple silicon (m1) virtualizing macos
 * 232s on 6 cores of an intel 9900k running a virtualized windows 10
 * 349s on a mac mini 2018
 * 483s on 6 cores of apple silicon (m1) virtualizing windows 11 arm
 * 1144s (ouch) on a 2017 MacBook w/ 1.3GHz Core i5
+
+![workers vs time](gitimg/workers_vs_time.png)
 
 ![workflow](gitimg/hipparchia_workflow.svg)
 

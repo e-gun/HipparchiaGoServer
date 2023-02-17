@@ -7,7 +7,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/pkg/profile"
 	"runtime"
 	"sync"
 	"time"
@@ -15,7 +14,7 @@ import (
 
 func main() {
 	// cpu profile via import of "github.com/pkg/profile":
-	defer profile.Start().Stop()
+	// defer profile.Start().Stop()
 
 	// mem profile:
 	// defer profile.Start(profile.MemProfile).Stop()
