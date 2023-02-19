@@ -73,7 +73,7 @@ have successfully installed the data into the database.
 
 2. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
 
-3. On the first run you will be asked for a fresh password for `hippa_wr` you will also need the 
+3. On the first run instruction files will be dropped into your current working directory. You will be asked for a fresh password for `hippa_wr` you will also need the 
 PSQL administrator password you entered at `A.4` above.
 
 ![inst13](../gitimg/windows/17_firstlaunch.png)

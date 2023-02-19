@@ -48,7 +48,7 @@ func LookForConfigFile() {
 		FWR      = "\tC1Wrote a configuration file to 'C3%sC1'C0\n"
 		PWD1     = "\tchoose a password for the database user 'hippa_wr' ->C0 "
 		NODB     = "hipparchiaDB does not exist: executing InitializeHDB()"
-		FOUND    = "Found 'authors': skipping database loading"
+		FOUND    = "Found 'authors': skipping database loading. If there are problems going forward you might need to reset the database: '-00'"
 		NOTFOUND = "The database exists but seems to be empty. Need to reload the data."
 	)
 	_, a := os.Stat(CONFIGBASIC)
@@ -70,7 +70,7 @@ func LookForConfigFile() {
 
 	if notfound {
 		msg(WRN, MSGCRIT)
-
+		CopyInstructions()
 		_, e = os.Stat(fmt.Sprintf(CONFIGALTAPTH, h))
 		if e != nil {
 			fmt.Println(coloroutput(fmt.Sprintf(FYI, fmt.Sprintf(CONFIGALTAPTH, h))))
@@ -123,7 +123,6 @@ func ConfigAtLaunch() {
 		FAIL5 = "Improperly formatted corpus list. Using:\n\t%s"
 		FAIL6 = "Could not open '%s'"
 	)
-
 	Config.Authenticate = false
 	Config.BadChars = UNACCEPTABLEINPUT
 	Config.BlackAndWhite = BLACKANDWHITE
@@ -340,6 +339,61 @@ func SetConfigPass(cfg CurrentConfiguration, cf string) {
 			DBName: DEFAULTPSQLDB,
 			Pass:   conf.PostgreSQLPassword,
 		}
+	}
+}
+
+// CopyInstructions - write the embedded PDF to the filesystem
+func CopyInstructions() {
+	const (
+		FYI  = "Assuming this is a first run...\n\tWriting instruction files to the current working directory."
+		MACI = "HipparchiaGoServer_INSTALLATION_MacOS.pdf"
+		WINI = "HipparchiaGoServer_INSTALLATION_Windows.pdf"
+		CUST = "HipparchiaGoServer_Customization.pdf"
+		FYIF = "HipparchiaGoServer_FYI.pdf"
+		FNF  = "CopyInstructions(): Embedded PDF not found. This function will now return."
+		PERM = 0644
+	)
+
+	var f string
+
+	goos := runtime.GOOS
+	switch goos {
+	case "darwin":
+		f = MACI
+	case "windows":
+		f = WINI
+	default:
+		f = ""
+	}
+
+	if f != "" {
+		data, err := efs.ReadFile("emb/pdf/" + f)
+		if err != nil {
+			msg(FNF, MSGWARN)
+			return
+		}
+
+		msg(FYI, MSGCRIT)
+
+		err = os.WriteFile(f, data, PERM)
+		if err != nil {
+			msg(FNF, MSGWARN)
+			return
+		}
+		msg(fmt.Sprintf("\t\tWrote:\t'%s'", f), MSGCRIT)
+	}
+
+	for _, info := range []string{CUST, FYIF} {
+		data, err := efs.ReadFile("emb/pdf/" + info)
+		if err != nil {
+			return
+		}
+		err = os.WriteFile(info, data, PERM)
+		if err != nil {
+			msg(FNF, MSGWARN)
+			return
+		}
+		msg(fmt.Sprintf("\t\tWrote:\t'%s'", info), MSGCRIT)
 	}
 }
 

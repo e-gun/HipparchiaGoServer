@@ -20,7 +20,7 @@
 
     ![inst02](../gitimg/macos_posgresapp/02_initialize.png)
 
-4. After you have initizlized the server you might want to check that `PostgreSQL` is set to be constantly running. See `Server Settings...` and look for `Automatically start server`.
+4. After you have initialized the server you might want to check that `PostgreSQL` is set to be constantly running. See `Server Settings...` and look for `Automatically start server`.
 
     ![inst02](../gitimg/macos_posgresapp/03_autostart.png)
 
@@ -32,11 +32,7 @@
 
 2. If you download a file like `HipparchiaGoServer-1.1.0-darwin-amd64.zip`, it needs to be UNZIPPED. Double-clicking will do that. You will then see something like `HipparchiaGoServer-1.1.0-darwin-amd64` in the same folder.
 
-3. This file needs to be RENAMED: `HipparchiaGoServer-1.1.0-darwin-amd64` --> `HipparchiaGoServer`
-
-   ![inst12](../gitimg/macos_homebrew/12_renamea.png)
-
-   ![inst13](../gitimg/macos_homebrew/13_renameb.png)
+3. This file *might* need to be RENAMED: `HipparchiaGoServer-1.1.0-darwin-amd64` --> `HipparchiaGoServer`
 
 4. Double-click to launch. It is possible that you will get a complaint about an UNIDENTIFIED DEVELOPER. In that case you need to go to `System Settings` -> `Gatekeeper` -> `Security` and then allow this application to run.
 
@@ -50,7 +46,7 @@
 
 1. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
 
-2. On the first run you will be asked for the password for `hippa_wr`.
+2. On the first run instruction files will be dropped into your current working directory. You will be asked for the password for `hippa_wr`.
 
    ![inst15](../gitimg/macos_homebrew/15_firstrun.png)
 
@@ -60,10 +56,13 @@
 
 4. After several minutes the server will launch. The self-load process only has to happen once.
 
+
    ![inst02](../gitimg/macos_posgresapp/06_selfload_done.png)
 
+5. When you see `http server started on 127.0.0.1:8000` you are up and running. From here on out you can just double-click
+to launch the program. You can also leave it running indefinitely: it does not consume many resources if not active. 
 
-### [D] Archiving / Migrating
+### [D] [FYI] Archiving / Migrating
 
 1. If you lose/destroy the `hDB` folder with the original data and want it back, the data can be extracted and archived.
 
@@ -73,7 +72,7 @@
 
 4. That folder will take up a lot of room on your machine. You could consider compressing it.
 
-### [E] Troubleshooting / Resetting
+### [E] [FYI] Troubleshooting / Resetting
 
 #### [E1] easier
 

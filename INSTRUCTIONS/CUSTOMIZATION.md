@@ -1,9 +1,7 @@
-If you put a file named `hgs-prolix-conf.json` into `.config` in your home folder, 
-you can override a number of built-in defaults. 
+If you put a file named `hgs-prolix-conf.json` into `.config` in your home folder, you can override a number of built-in defaults. 
 You can also delete the very basic `hgo-conf.json` if you do this, but you will want to get `PGLogin` right.
 
-One-time overrides are available by setting flags when launching `HipparchiaGoServer`. 
-Try running `HipparchiaGoServer -h` to see them.
+One-time overrides are available by setting flags when launching `HipparchiaGoServer`. Try running `HipparchiaGoServer -h` to see them.
 
 You can skip any of the items below and they will have defaults inserted instead. 
 
@@ -35,7 +33,7 @@ Items of most interest:
   "ManualGC": true,
   "MaxText": 25000,
   "PGLogin":
-    {"Pass": "YOURPASSWORDHERE" ,"Host": "127.0.0.1", "Port": 5432, "DBName": "hipparchiaDB" ,"User": "hippa_wr"},
+    {"Pass": "" ,"Host": "127.0.0.1", "Port": 5432, "DBName": "hipparchiaDB" ,"User": "hippa_wr"},
   "QuietStart": true,
   "VocabByCt": false,
   "VocabScans": false,
