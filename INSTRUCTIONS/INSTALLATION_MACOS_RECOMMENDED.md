@@ -24,6 +24,10 @@
 
     ![inst02](../gitimg/macos_posgresapp/03_autostart.png)
 
+5. `Postgres.app` will add an item to your menu bar.
+
+   ![inst02](../gitimg/macos_posgresapp/03b_menu_item.png)
+
 ### [B] acquire `HipparchiaGoServer` and launch it
 
 1. You can build `HipparchiaGoServer` yourself with the files in this repository. Or you can grab a pre-built binary. Download the correct binary. Intel Macs: `darwin-amd64` Apple Silicon: `darwin-arm64`
@@ -34,9 +38,15 @@
 
 3. This file *might* need to be RENAMED: `HipparchiaGoServer-1.1.0-darwin-amd64` --> `HipparchiaGoServer`
 
-4. Double-click to launch. It is possible that you will get a complaint about an UNIDENTIFIED DEVELOPER. In that case you need to go to `System Settings` -> `Gatekeeper` -> `Security` and then allow this application to run.
+4. Double-click to launch. It is possible that you will get a complaint about an UNIDENTIFIED DEVELOPER. 
+In that case you need to go to `System Settings` -> `Gatekeeper` -> `Security` and then allow this application to run 
+by clicking OPEN ANYWAY and then entering a password to confirm this.
 
-   ![inst14](../gitimg/macos_homebrew/14_gatekeeper.png)
+![inst02](../gitimg/macos_posgresapp/04a_firstrun_unidentified.png)
+
+![inst02](../gitimg/macos_posgresapp/04b_firstrun_gatekeeper.png)
+
+![inst02](../gitimg/macos_posgresapp/04c_firstrun_permission.png)
 
 ### [C] the first launch of `HipparchiaGoServer`: loading `hipparchiaDB` into `PostgreSQL`
 

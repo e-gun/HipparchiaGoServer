@@ -157,8 +157,12 @@ OR at 'C3%sC0'`
 		fmt.Println(coloroutput(fmt.Sprintf(FAIL, HDBFOLDER, MYNAME, h+"/"+HDBFOLDER)))
 		hd, err := os.UserHomeDir()
 		chke(err)
-		fp := fmt.Sprintf(CONFIGALTAPTH, hd) + CONFIGBASIC
+
+		fp := fmt.Sprintf(CONFIGALTAPTH, hd) + CONFIGPROLIX
 		_ = os.Remove(fp)
+		fp = fmt.Sprintf(CONFIGALTAPTH, hd) + CONFIGBASIC
+		_ = os.Remove(fp)
+
 		fmt.Println()
 		fmt.Println(coloroutput(fmt.Sprintf(FAIL2, fp, pw)))
 		os.Exit(0)
@@ -304,6 +308,7 @@ In short, this very dangerous. Type C6YESC0 to confirm that you want to proceed.
 func GetBinaryPath(command string) string {
 	const (
 		MACPGAPP = "/Applications/Postgres.app/Contents/Versions/%d/bin/"
+		MACBREW  = "/opt/homebrew/opt/postgresql@%d/bin/"
 		WINPGEXE = `C:\Program Files\PostgreSQL\%d\bin\`
 		LNXBIN   = `/usr/bin/`
 		LNXLBIN  = `/usr/local/bin/`
@@ -329,7 +334,12 @@ func GetBinaryPath(command string) string {
 
 	// mac and windows are entangled with versioning issues
 	if runtime.GOOS == "darwin" {
-		bindir = MACPGAPP
+		_, y := os.Stat(MACPGAPP)
+		if y == nil {
+			bindir = MACPGAPP
+		} else {
+			bindir = MACBREW
+		}
 	} else if runtime.GOOS == "windows" {
 		bindir = WINPGEXE
 		suffix = ".exe"

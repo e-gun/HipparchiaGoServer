@@ -48,7 +48,7 @@ func LookForConfigFile() {
 		FWR      = "\tC1Wrote a configuration file to 'C3%sC1'C0\n"
 		PWD1     = "\tchoose a password for the database user 'hippa_wr' ->C0 "
 		NODB     = "hipparchiaDB does not exist: executing InitializeHDB()"
-		FOUND    = "Found 'authors': skipping database loading. If there are problems going forward you might need to reset the database: '-00'"
+		FOUND    = "Found 'authors': skipping database loading.\n\tIf there are problems going forward you might need to reset the database: '-00'\n\n"
 		NOTFOUND = "The database exists but seems to be empty. Need to reload the data."
 	)
 	_, a := os.Stat(CONFIGBASIC)
@@ -78,7 +78,7 @@ func LookForConfigFile() {
 			chke(ee)
 		}
 
-		fmt.Println(coloroutput(fmt.Sprintf(FNF, CONFIGBASIC)))
+		fmt.Println(coloroutput(fmt.Sprintf(FNF, CONFIGPROLIX)))
 		fmt.Printf(coloroutput(PWD1))
 
 		var hwrpw string
@@ -87,17 +87,16 @@ func LookForConfigFile() {
 
 		pgpw := SetPostgresAdminPW()
 
-		type ConfOut struct {
-			PostgreSQLPassword string
-		}
+		cfg := BuildDefaultConfig()
+		cfg.PGLogin.Pass = hwrpw
 
-		content, err := json.Marshal(ConfOut{hwrpw})
+		content, err := json.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
 		chke(err)
 
-		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGBASIC, content, 0644)
+		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGPROLIX, content, 0644)
 		chke(err)
 
-		fmt.Println(coloroutput(fmt.Sprintf(FWR, fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGBASIC)))
+		fmt.Println(coloroutput(fmt.Sprintf(FWR, fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGPROLIX)))
 
 		// do we need to head over to psqlselfloading.go and to initialize the database?
 
@@ -123,42 +122,25 @@ func ConfigAtLaunch() {
 		FAIL5 = "Improperly formatted corpus list. Using:\n\t%s"
 		FAIL6 = "Could not open '%s'"
 	)
-	Config.Authenticate = false
-	Config.BadChars = UNACCEPTABLEINPUT
-	Config.BlackAndWhite = BLACKANDWHITE
-	Config.BrowserCtx = DEFAULTBROWSERCTX
-	Config.DbDebug = false
-	Config.Font = FONTSETTING
-	Config.Gzip = USEGZIP
-	Config.HostIP = SERVEDFROMHOST
-	Config.HostPort = SERVEDFROMPORT
-	Config.ManualGC = true
-	Config.MaxText = MAXTEXTLINEGENERATION
-	Config.QuietStart = false
-	Config.SelfTest = 0
-	Config.VocabByCt = VOCABBYCOUNT
-	Config.VocabScans = VOCABSCANSION
-	Config.WorkerCount = runtime.NumCPU()
-	Config.ZapLunates = false
-	e := json.Unmarshal([]byte(DEFAULTCORPORA), &Config.DefCorp)
-	chke(e)
+
+	Config = BuildDefaultConfig()
 
 	uh, _ := os.UserHomeDir()
 	h := fmt.Sprintf(CONFIGALTAPTH, uh)
-	pcf := fmt.Sprintf("%s/%s", h, CONFIGPROLIX)
+	prolixcfg := fmt.Sprintf("%s/%s", h, CONFIGPROLIX)
 	pwf := fmt.Sprintf("%s%s", h, CONFIGAUTH)
 
-	cfc, e := os.Open(pcf)
+	loadedcfg, e := os.Open(prolixcfg)
 	if e != nil {
-		msg(fmt.Sprintf(FAIL6, pcf), MSGPEEK)
+		msg(fmt.Sprintf(FAIL6, prolixcfg), MSGPEEK)
 	}
 	defer func(cfc *os.File) {
 		err := cfc.Close()
 		if err != nil {
 		} // the file was almost certainly not found in the first place...
-	}(cfc)
+	}(loadedcfg)
 
-	decoderc := json.NewDecoder(cfc)
+	decoderc := json.NewDecoder(loadedcfg)
 	confc := CurrentConfiguration{}
 	errc := decoderc.Decode(&confc)
 
@@ -166,7 +148,6 @@ func ConfigAtLaunch() {
 		Config = confc
 	}
 
-	var pl PostgresLogin
 	var cf string
 
 	args := os.Args[1:len(os.Args)]
@@ -221,11 +202,13 @@ func ConfigAtLaunch() {
 			os.Exit(0)
 		case "-pg":
 			js := args[i+1]
+			var pl PostgresLogin
 			err := json.Unmarshal([]byte(js), &pl)
 			if err != nil {
 				msg(FAIL1, MSGMAND)
 				msg(FAIL2, MSGCRIT)
 			}
+			Config.PGLogin = pl
 		case "-q":
 			Config.QuietStart = true
 		case "-sa":
@@ -265,11 +248,47 @@ func ConfigAtLaunch() {
 	}
 }
 
+// BuildDefaultConfig - return a CurrentConfiguration filled out with various default values
+func BuildDefaultConfig() CurrentConfiguration {
+	var c CurrentConfiguration
+	c.Authenticate = false
+	c.BadChars = UNACCEPTABLEINPUT
+	c.BlackAndWhite = BLACKANDWHITE
+	c.BrowserCtx = DEFAULTBROWSERCTX
+	c.DbDebug = false
+	c.Font = FONTSETTING
+	c.Gzip = USEGZIP
+	c.HostIP = SERVEDFROMHOST
+	c.HostPort = SERVEDFROMPORT
+	c.ManualGC = true
+	c.MaxText = MAXTEXTLINEGENERATION
+	c.QuietStart = false
+	c.SelfTest = 0
+	c.VocabByCt = VOCABBYCOUNT
+	c.VocabScans = VOCABSCANSION
+	c.WorkerCount = runtime.NumCPU()
+	c.ZapLunates = false
+	e := json.Unmarshal([]byte(DEFAULTCORPORA), &c.DefCorp)
+	chke(e)
+
+	pl := PostgresLogin{
+		Host:   DEFAULTPSQLHOST,
+		Port:   DEFAULTPSQLPORT,
+		User:   DEFAULTPSQLUSER,
+		Pass:   "",
+		DBName: DEFAULTPSQLDB,
+	}
+
+	c.PGLogin = pl
+
+	return c
+}
+
 // SetConfigPass - make sure that Config.PGLogin.Pass != ""
 func SetConfigPass(cfg CurrentConfiguration, cf string) {
 	const (
 		FAIL3     = "FAILED to load database credentials from any of '%s', '%s' or '%s'"
-		FAIL4     = "Ata a minimum sure that a 'hgs-conf.json' file exists and that it has the following format:"
+		FAIL4     = "At a minimum be sure that a 'hgs-conf.json' file exists and that it has the following format:"
 		FAIL6     = "Could not open '%s'"
 		BLANKPASS = "PostgreSQLPassword is blank. Check your 'hgs-conf.json' file. NB: 'PostgreSQLPassword ≠ 'PosgreSQLPassword'.\n"
 	)

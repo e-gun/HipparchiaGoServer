@@ -1,6 +1,6 @@
 # HipparchiaGoServer
 
-### STATUS (v1.1.3):
+### STATUS (v1.1.4):
 
 * 25%-700% faster than HipparchiaServer depending on the function. Uses c. 60% as much RAM.
 * monolithic binary: no need for extra files/folders beyond setting a password in `hgs-conf.json`
@@ -27,9 +27,9 @@
 
 ### INSTRUCTIONS
 * for installation, see the `INSTRUCTIONS` folder
-* for UI items, hover to get quick tips
-* click on `?` at bottom corner for detailed help
-* see `antisigma` for video demos
+* when running: hover over UI elements to get quick tips
+* when running: click on `?` at bottom corner for detailed help
+* see also `antisigma` for video demos
 
 ### NOTES
 

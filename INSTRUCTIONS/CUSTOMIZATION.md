@@ -1,9 +1,7 @@
-If you put a file named `hgs-prolix-conf.json` into `.config` in your home folder, you can override a number of built-in defaults. 
-You can also delete the very basic `hgo-conf.json` if you do this, but you will want to get `PGLogin` right.
+If you edit the file named `hgs-prolix-conf.json` in the folder `.config` within your home folder, you can override a number of built-in defaults. 
+You need to get `PGLogin` right. The password is the most important part. The other values should be correct at their defaults.
 
 One-time overrides are available by setting flags when launching `HipparchiaGoServer`. Try running `HipparchiaGoServer -h` to see them.
-
-You can skip any of the items below and they will have defaults inserted instead. 
 
 Items of most interest:
 
@@ -17,29 +15,40 @@ Items of most interest:
 
 ```
 {
-  "Authenticate": false,
-  "BadChars": "\"'!@:,=_/",
-  "BlackAndWhite": false,
-  "BrowserCtx": 20,
-  "DbDebug": false,
-  "DefCorp":
-    {"gr": true, "lt": true, "in": false, "ch": false, "dp": false},
-  "EchoLog": 0,
-  "Font": "Noto",
-  "Gzip": false,
-  "HostIP": "localhost",
-  "HostPort": 8000,
-  "LogLevel": 3,
-  "ManualGC": true,
-  "MaxText": 25000,
-  "PGLogin":
-    {"Pass": "" ,"Host": "127.0.0.1", "Port": 5432, "DBName": "hipparchiaDB" ,"User": "hippa_wr"},
-  "QuietStart": true,
-  "VocabByCt": false,
-  "VocabScans": false,
-  "WorkerCount": 6,
-  "ZapLunates": false
-}
+    "Authenticate": false,
+    "BadChars": "\"'!@:,=_/",
+    "BlackAndWhite": false,
+    "BrowserCtx": 12,
+    "DbDebug": false,
+    "DefCorp": {
+      "ch": false,
+      "dp": false,
+      "gr": true,
+      "in": false,
+      "lt": true
+    },
+    "EchoLog": 0,
+    "Font": "Noto",
+    "Gzip": false,
+    "HostIP": "127.0.0.1",
+    "HostPort": 8000,
+    "LogLevel": 0,
+    "ManualGC": true,
+    "MaxText": 35000,
+    "PGLogin": {
+      "Host": "127.0.0.1",
+      "Port": 5432,
+      "User": "hippa_wr",
+      "Pass": "mypass",
+      "DBName": "hipparchiaDB"
+    },
+    "QuietStart": false,
+    "SelfTest": 0,
+    "VocabByCt": false,
+    "VocabScans": false,
+    "WorkerCount": 6,
+    "ZapLunates": false
+  }
 ```
 
 Maniacs can edit `./emb/css/hgs.css` and/or `theconstants.go` and then build a custom binary: `go build`. That would really change things up. 
