@@ -37,6 +37,8 @@ func FillPSQLPoool() *pgxpool.Pool {
 	// max should cap a networked server's resource allocation to the equivalent of N simultaneous users
 	// after that point there should be a steep drop-off in responsiveness
 
+	// nb: macos users can send ANYTHING as a password for hippa_wr: admin access already (on their primary account...)
+
 	const (
 		UTPL    = "postgres://%s:%s@%s:%d/%s?pool_min_conns=%d&pool_max_conns=%d"
 		FAIL1   = "Configuration error. Could not execute ParseConfig(url) via '%s'"

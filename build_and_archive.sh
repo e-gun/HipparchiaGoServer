@@ -3,10 +3,10 @@
 # CopyInstructions() wants these PDFs, but it can survive without them
 if hash mdpdf &> /dev/null
   then
-    mdpdf INSTRUCTIONS/INSTALLATION_MACOS_RECOMMENDED.md emb/pdf/HipparchiaGoServer_INSTALLATION_MacOS.pdf
-    mdpdf INSTRUCTIONS/INSTALLATION_WINDOWS.md emb/pdf/HipparchiaGoServer_INSTALLATION_Windows.pdf
-    mdpdf INSTRUCTIONS/CUSTOMIZATION.md emb/pdf/HipparchiaGoServer_Customization.pdf
-    mdpdf fyi/README.md emb/pdf/HipparchiaGoServer_FYI.pdf
+    mdpdf INSTRUCTIONS/INSTALLATION_MACOS_RECOMMENDED.md emb/pdf/HGS_INSTALLATION_MacOS.pdf
+    mdpdf INSTRUCTIONS/INSTALLATION_WINDOWS.md emb/pdf/HGS_INSTALLATION_Windows.pdf
+    mdpdf INSTRUCTIONS/CUSTOMIZATION.md emb/pdf/HGS_Customization.pdf
+    mdpdf fyi/README.md emb/pdf/HGS_FYI.pdf
 fi
 
 # go get -u ./...

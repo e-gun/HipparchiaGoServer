@@ -27,6 +27,7 @@ const (
 	ETT  = "emb/ttf/"
 	EOT  = "emb/otf/"
 	EWF  = "emb/wof/"
+	EPD  = "emb/pdf/"
 	EICO = "emb/images/hipparchia_favicon.ico"
 	EITC = "emb/images/hipparchia_apple-touch-icon-precomposed.png"
 )

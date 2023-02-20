@@ -77,7 +77,7 @@ const (
 	TERMINATIONS             = `(\s|\.|\]|\<|⟩|’|”|\!|,|:|;|\?|·|$)`
 	TIMEOUTRD                = 15 * time.Second  // only set if Config.Authenticate is true (and so in a "serve the net" situation)
 	TIMEOUTWR                = 120 * time.Second // this is *very* generous, but some searches are slow/long
-	TIMETRACKERMSGTHRESH     = 3
+	TIMETRACKERMSGTHRESH     = MSGNOTE
 	USEGZIP                  = false
 	VARIADATE                = 2000
 	VOCABSCANSION            = false

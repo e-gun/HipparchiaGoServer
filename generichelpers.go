@@ -32,12 +32,12 @@ const (
 	BLUE1   = "\033[38;5;38m"  // DeepSkyBlue2
 	BLUE2   = "\033[38;5;68m"  // SteelBlue3
 	CYAN1   = "\033[38;5;109m" // LightSkyBlue3
-	CYAN2   = "\033[38;5;152m" // LightCyan3
-	GREEN   = "\033[38;5;108m" // DarkSeaGreen
+	CYAN2   = "\033[38;5;117m" // SkyBlue1
+	GREEN   = "\033[38;5;70m"  // Chartreuse3
 	RED1    = "\033[38;5;160m" // Red3
 	RED2    = "\033[38;5;168m" // HotPink3
-	YELLOW1 = "\033[38;5;187m" // LightYellow3
-	YELLOW2 = "\033[38;5;229m" // Wheat1
+	YELLOW1 = "\033[38;5;178m" // Gold3
+	YELLOW2 = "\033[38;5;143m" // DarkKhaki
 	GREY1   = "\033[38;5;254m" // Grey89
 	GREY2   = "\033[38;5;247m" // Grey62
 	GREY3   = "\033[38;5;242m" // Grey42
@@ -49,7 +49,7 @@ const (
 // chke - send a generic message and panic on error
 func chke(err error) {
 	if err != nil {
-		fmt.Printf(PANIC, YELLOW2, MYNAME, VERSION, RESET, RED2, RESET)
+		fmt.Printf(PANIC, YELLOW2, MYNAME, VERSION, RESET, RED1, RESET)
 		fmt.Println(err)
 		exitorhang(1)
 	}
@@ -83,11 +83,11 @@ func msg(message string, threshold int) {
 		case MSGMAND:
 			color = GREEN
 		case MSGCRIT:
-			color = RED2
+			color = RED1
 		case MSGWARN:
-			color = YELLOW1
-		case MSGNOTE:
 			color = YELLOW2
+		case MSGNOTE:
+			color = YELLOW1
 		case MSGFYI:
 			color = CYAN2
 		case MSGPEEK:
@@ -110,7 +110,7 @@ func coloroutput(tagged string) string {
 	swap := strings.NewReplacer("C1", "", "C2", "", "C3", "", "C4", "", "C5", "", "C6", "", "C7", "", "C0", "")
 
 	if runtime.GOOS != "windows" && !Config.BlackAndWhite {
-		swap = strings.NewReplacer("C1", YELLOW1, "C2", CYAN2, "C3", BLUE1, "C4", GREEN, "C5", RED2,
+		swap = strings.NewReplacer("C1", YELLOW1, "C2", CYAN2, "C3", BLUE1, "C4", GREEN, "C5", RED1,
 			"C6", GREY3, "C7", BLINK, "C0", RESET)
 	}
 	tagged = swap.Replace(tagged)

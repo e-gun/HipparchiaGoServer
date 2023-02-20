@@ -119,6 +119,7 @@ func ConfigAtLaunch() {
 	const (
 		FAIL1 = "Could not parse your information as a valid collection of credentials. Use the following template:"
 		FAIL2 = `"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"`
+		FAIL3 = `Could not parse the information in '%s'. Skipping and attempting to use built-in defaults instead.`
 		FAIL5 = "Improperly formatted corpus list. Using:\n\t%s"
 		FAIL6 = "Could not open '%s'"
 	)
@@ -146,6 +147,8 @@ func ConfigAtLaunch() {
 
 	if errc == nil {
 		Config = confc
+	} else {
+		msg(fmt.Sprintf(FAIL3, prolixcfg), MSGCRIT)
 	}
 
 	var cf string
@@ -365,10 +368,10 @@ func SetConfigPass(cfg CurrentConfiguration, cf string) {
 func CopyInstructions() {
 	const (
 		FYI  = "Assuming this is a first run...\n\tWriting instruction files to the current working directory."
-		MACI = "HipparchiaGoServer_INSTALLATION_MacOS.pdf"
-		WINI = "HipparchiaGoServer_INSTALLATION_Windows.pdf"
-		CUST = "HipparchiaGoServer_Customization.pdf"
-		FYIF = "HipparchiaGoServer_FYI.pdf"
+		MACI = "HGS_INSTALLATION_MacOS.pdf"
+		WINI = "HGS_INSTALLATION_Windows.pdf"
+		CUST = "HGS_Customization.pdf"
+		FYIF = "HGS_FYI.pdf"
 		FNF  = "CopyInstructions(): Embedded PDF not found. This function will now return."
 		PERM = 0644
 	)
@@ -386,7 +389,7 @@ func CopyInstructions() {
 	}
 
 	if f != "" {
-		data, err := efs.ReadFile("emb/pdf/" + f)
+		data, err := efs.ReadFile(EPD + f)
 		if err != nil {
 			msg(FNF, MSGWARN)
 			return
@@ -403,7 +406,7 @@ func CopyInstructions() {
 	}
 
 	for _, info := range []string{CUST, FYIF} {
-		data, err := efs.ReadFile("emb/pdf/" + info)
+		data, err := efs.ReadFile(EPD + info)
 		if err != nil {
 			return
 		}

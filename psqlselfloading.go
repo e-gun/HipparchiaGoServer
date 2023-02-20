@@ -33,6 +33,7 @@ func HipparchiaDBexists(pgpw string) bool {
 	)
 
 	// WARNING: passwords will be visible to `ps`, etc.; there are very few scenarios in which this might matter
+	// people in a multi-user server setting are not really supposed to be using this mechanism to do admin
 
 	binary := GetBinaryPath("psql")
 	url := GetPostgresURI(pgpw)
@@ -54,8 +55,10 @@ func HipparchiaDBexists(pgpw string) bool {
 // HipparchiaDBHasData - true if an exec of `psql` finds `authors` in `pg_tables`
 func HipparchiaDBHasData(userpw string) bool {
 	const (
-		Q    = `SELECT COUNT(universalid) FROM authors;`
-		AUTH = `Authentication failed: this likely means that neither the user nor the database exists. Consider deleting any configuration file inside '%s'`
+		Q        = `SELECT COUNT(universalid) FROM authors;`
+		AUTH     = `Authentication failed: this likely means that neither the user nor the database exists. Consider deleting any configuration file inside '%s'`
+		CHKFAIL  = "authentication failed"
+		CHKEXIST = "does not exist"
 	)
 
 	// WARNING: passwords will be visible to `ps`, etc.
@@ -75,13 +78,13 @@ func HipparchiaDBHasData(userpw string) bool {
 
 	var found bool
 
-	if strings.Contains(check, "does not exist") {
+	if strings.Contains(check, CHKEXIST) {
 		found = false
 	} else {
 		found = true
 	}
 
-	if strings.Contains(check, "authentication failed") {
+	if strings.Contains(check, CHKFAIL) {
 		hd, e := os.UserHomeDir()
 		chke(e)
 		msg(fmt.Sprintf(AUTH, fmt.Sprintf(CONFIGALTAPTH, hd)), MSGCRIT)
@@ -308,6 +311,7 @@ In short, this very dangerous. Type C6YESC0 to confirm that you want to proceed.
 func GetBinaryPath(command string) string {
 	const (
 		MACPGAPP = "/Applications/Postgres.app/Contents/Versions/%d/bin/"
+		MACPGFD  = "/Applications/Postgres.app"
 		MACBREW  = "/opt/homebrew/opt/postgresql@%d/bin/"
 		WINPGEXE = `C:\Program Files\PostgreSQL\%d\bin\`
 		LNXBIN   = `/usr/bin/`
@@ -334,7 +338,7 @@ func GetBinaryPath(command string) string {
 
 	// mac and windows are entangled with versioning issues
 	if runtime.GOOS == "darwin" {
-		_, y := os.Stat(MACPGAPP)
+		_, y := os.Stat(MACPGFD)
 		if y == nil {
 			bindir = MACPGAPP
 		} else {
