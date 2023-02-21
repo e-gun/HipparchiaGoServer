@@ -137,8 +137,8 @@ OR at 'C3%sC0'`
 [You will need to reset your password when asked. Currently: 'C3%sC0']`
 		WARN  = "The database will start loading in %d seconds. C7This will take several minutesC0"
 		DELAY = 8
-		ERR   = "There were errors when reloading the data. It is safe to ignore errors that involve 'hippa_rd'"
-		OK    = "The data was loaded into the database. %s has finished setting itself up and can henceforth run normally."
+		ERR   = "There were errors when reloading the data.\n\tIt is safe to ignore errors that involve 'hippa_rd'"
+		OK    = "The data was loaded into the database.\n\t%s has finished setting itself up\n\tand can henceforth run normally."
 	)
 	var a error
 	var b error
@@ -202,7 +202,7 @@ OR at 'C3%sC0'`
 // SetPostgresAdminPW - ask for the password for the postgres admin user
 func SetPostgresAdminPW() string {
 	const (
-		PWD2 = "\tC2I also need the database password for the postgres administrator ->C0 "
+		PWD2 = "C2I also need the database password for the postgres administrator ->C0 "
 	)
 	var pgpw string
 	if runtime.GOOS != "darwin" {
@@ -254,12 +254,13 @@ func ArchiveDB() {
 // DBSelfDestruct - purge all data and undo everything InitializeHDB and LoadhDBfolder did
 func DBSelfDestruct() {
 	const (
-		CONF = `You are about to RESET the database this program uses. The application will be NON-FUNCTIONAL 
-after this unless/until you reload this data. 
+		CONF = `You are about to C5RESETC0 the database this program uses.
+The application will be C7NON-FUNCTIONALC0 after this unless/until you reload 
+this data. 
 
-In short, this very dangerous. Type C6YESC0 to confirm that you want to proceed.
+In short, this very dangerous. 
 
-        --> `
+Type C6YESC0 to confirm that you want to proceed. --> `
 		NOPE  = "Did not receive confirmation. Aborting..."
 		C1    = `DROP DATABASE "%s";`
 		C2    = `DROP USER %s;`

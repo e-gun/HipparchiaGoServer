@@ -45,7 +45,7 @@ func LookForConfigFile() {
 		WRN      = "Warning: unable to launch: Cannot find a configuration file."
 		FYI      = "\tC1Creating configuration directory: 'C3%sC1'C0"
 		FNF      = "\tC1Generating a simple 'C3%sC1'C0"
-		FWR      = "\tC1Wrote a configuration file to 'C3%sC1'C0\n"
+		FWR      = "\tC1Wrote configuration to 'C3%sC1'C0\n"
 		PWD1     = "\tchoose a password for the database user 'hippa_wr' ->C0 "
 		NODB     = "hipparchiaDB does not exist: executing InitializeHDB()"
 		FOUND    = "Found 'authors': skipping database loading.\n\tIf there are problems going forward you might need to reset the database: '-00'\n\n"
@@ -135,15 +135,11 @@ func ConfigAtLaunch() {
 	if e != nil {
 		msg(fmt.Sprintf(FAIL6, prolixcfg), MSGPEEK)
 	}
-	defer func(cfc *os.File) {
-		err := cfc.Close()
-		if err != nil {
-		} // the file was almost certainly not found in the first place...
-	}(loadedcfg)
 
 	decoderc := json.NewDecoder(loadedcfg)
 	confc := CurrentConfiguration{}
 	errc := decoderc.Decode(&confc)
+	_ = loadedcfg.Close()
 
 	if errc == nil {
 		Config = confc
@@ -198,6 +194,7 @@ func ConfigAtLaunch() {
 			Config.Gzip = true
 		case "-h":
 			printversion()
+			printbuildinfo()
 			ht := coloroutput(HELPTEXT)
 			fmt.Println(fmt.Sprintf(ht, pwf, DEFAULTBROWSERCTX, CONFIGLOCATION, CONFIGBASIC, h, CONFIGBASIC,
 				DEFAULTECHOLOGLEVEL, HDBFOLDER, DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT,

@@ -139,7 +139,7 @@ func addresponsehead(f string) string {
 }
 
 /*
-HipparchiaGoServer/emb/ % tree
+ HipparchiaGoServer/emb/ % tree
 .
 ├── css
 │   └── hgs.css
@@ -188,11 +188,16 @@ HipparchiaGoServer/emb/ % tree
 ├── otf
 │   ├── MaterialIconsSharp-Regular.otf
 │   └── license_for_materialicons.txt
+├── pdf
+│   ├── HGS_Customization.pdf
+│   ├── HGS_FYI.pdf
+│   ├── HGS_INSTALLATION_MacOS.pdf
+│   └── HGS_INSTALLATION_Windows.pdf
 ├── ttf
 │   ├── NotoSans-Bold.ttf
 │   ├── NotoSans-BoldItalic.ttf
+│   ├── NotoSans-Condensed.ttf
 │   ├── NotoSans-CondensedItalic.ttf
-│   ├── NotoSans-CondensedMedium.ttf
 │   ├── NotoSans-CondensedSemiBold.ttf
 │   ├── NotoSans-ExtraLight.ttf
 │   ├── NotoSans-Italic.ttf
@@ -205,5 +210,5 @@ HipparchiaGoServer/emb/ % tree
     ├── iosevka-regular.woff2
     └── iosevka_license.md
 
-10 directories, 54 files
+11 directories, 58 files
 */

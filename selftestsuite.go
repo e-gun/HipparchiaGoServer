@@ -57,6 +57,8 @@ func selftest() {
 		MSG13 = "reverse lookup for %d word substrings"
 	)
 
+	printbuildinfo()
+
 	st := []SrchTest{
 		{
 			id: "A1",
@@ -111,7 +113,7 @@ func selftest() {
 	start := time.Now()
 	previous := time.Now()
 
-	msg("[I] 6 search tests", MSGNOTE)
+	msg("[I] 6 search tests", MSGWARN)
 	for i := 0; i < len(st); i++ {
 		_, err := http.Get(st[i].U())
 		chke(err)
@@ -119,7 +121,7 @@ func selftest() {
 		previous = time.Now()
 	}
 
-	msg("[II] 3 text, index, and vocab maker tests", MSGNOTE)
+	msg("[II] 3 text, index, and vocab maker tests", MSGWARN)
 	u := fmt.Sprintf("http://%s:%d/", Config.HostIP, Config.HostPort)
 	_, err := http.Get(u + TXT)
 	chke(err)
@@ -136,7 +138,7 @@ func selftest() {
 	TimeTracker("C3", fmt.Sprintf(MSG9, Config.MaxText), start, previous)
 	previous = time.Now()
 
-	msg("[III] 4 browsing and lexical tests", MSGNOTE)
+	msg("[III] 4 browsing and lexical tests", MSGWARN)
 
 	br := "browse/index/gr00%d/001/%d"
 	for i := 0; i < 50; i++ {

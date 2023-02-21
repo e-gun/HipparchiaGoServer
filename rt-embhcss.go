@@ -67,6 +67,7 @@ type FontTempl struct {
 	CondensedBold    string
 	CondensedItalic  string
 	CondensedRegular string
+	SemiCondRegular  string
 	Italic           string
 	Light            string
 	Mono             string
@@ -86,7 +87,8 @@ var (
 		BoldItalic:       "NotoSans-BoldItalic.ttf",
 		CondensedBold:    "NotoSans-CondensedSemiBold.ttf",
 		CondensedItalic:  "NotoSans-CondensedItalic.ttf",
-		CondensedRegular: "NotoSans-CondensedMedium.ttf",
+		CondensedRegular: "NotoSans-Condensed.ttf",
+		SemiCondRegular:  "NotoSans-SemiCondensed.ttf",
 		Italic:           "NotoSans-Italic.ttf",
 		Light:            "NotoSans-ExtraLight.ttf",
 		Mono:             "NotoSansMono-Regular.ttf",
@@ -128,6 +130,11 @@ func cssfontfacedirectives(f string) string {
 	@font-face {
 		font-family: 'hipparchiabolditalicstatic';
 		src: url('/emb/{{.ShrtType}}/{{.BoldItalic}}') format('{{.Type}}');
+		}
+
+	@font-face {
+		font-family: 'hipparchiasemicondensedstatic';
+		src: url('/emb/{{.ShrtType}}/{{.SemiCondRegular}}') format('{{.Type}}');
 		}
 
 	@font-face {

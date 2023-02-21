@@ -44,9 +44,9 @@
 	--vdkgrey: hsla(0, 0%, 20%, 1);
 }
 
-/* core interface font info begins; inserted by cssfontsubstitutions() in rt-embedding.go */
+/* core interface font info begins; inserted by rt-embhcss.go */
 {{index . "fontfaceinfo"}}
-/* core interface font info ends; inserted by cssfontsubstitutions() in rt-embedding.go */
+/* core interface font info ends; inserted by rt-embhcss.go */
 
 @font-face {
 	font-family: 'Material Icons';
@@ -654,9 +654,10 @@ body {
 }
 
 .latin {
-	font-size: 90%;
+	/* This is Latin inside of a Greek author: so it is usually notes or testimonia: "Blue" is sufficient? */
+	/* font-size: 100%; */
 	/* font-family: var(--latinfont), 'hipparchiacondensedstatic', sans-serif; */
-	font-family: 'hipparchiacondensedstatic', sans-serif;
+	/* font-family: 'hipparchiasemicondensedstatic', sans-serif; */
 	color: var(--blue);
 }
 

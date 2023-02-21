@@ -88,7 +88,7 @@ PSQL administrator password you entered at `A.4` above.
 
 6. Now you can point a browser at http://127.0.0.1:8000
 
-![inst13](../gitimg/windows/20_running.png)
+![inst13](../gitimg/windows/19b_loaded.png)
 
 ### [D] Archiving / Migrating
 

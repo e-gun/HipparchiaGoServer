@@ -38,9 +38,17 @@
 
 3. This file *might* need to be RENAMED: `HipparchiaGoServer-1.1.0-darwin-amd64` --> `HipparchiaGoServer`
 
-4. Double-click to launch. It is possible that you will get a complaint about an UNIDENTIFIED DEVELOPER. 
-In that case you need to go to `System Settings` -> `Gatekeeper` -> `Security` and then allow this application to run 
-by clicking OPEN ANYWAY and then entering a password to confirm this.
+### [C] the first launch of `HipparchiaGoServer`: loading `hipparchiaDB` into `PostgreSQL`
+
+0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation. If a working installation executes `HipparchiaGoServer -ex`, it will generate a valid `hDB` folder.]
+   The data needs to be in a folder named `hDB`. This folder should be in the same folder as `HipparchiaGoServer`.
+   You can (re)move the data folder after you have successfully installed the data into the database.
+
+![inst02](../gitimg/macos_posgresapp/04_data_is_ready.png)
+
+1. Double-click to launch. It is possible that you will get a complaint about an UNIDENTIFIED DEVELOPER.
+   In that case you need to go to `System Settings` -> `Gatekeeper` -> `Security` and then allow this application to run
+   by clicking OPEN ANYWAY and then entering a password to confirm this.
 
 ![inst02](../gitimg/macos_posgresapp/04a_firstrun_unidentified.png)
 
@@ -48,28 +56,29 @@ by clicking OPEN ANYWAY and then entering a password to confirm this.
 
 ![inst02](../gitimg/macos_posgresapp/04c_firstrun_permission.png)
 
-### [C] the first launch of `HipparchiaGoServer`: loading `hipparchiaDB` into `PostgreSQL`
+2. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
 
-0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation.]
-   The data needs to be in a folder named `hDB`. This folder should be in the same folder as `HipparchiaGoServer`.
-   You can (re)move the data folder after you have successfully installed the data into the database.
-
-1. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
-
-2. On the first run instruction files will be dropped into your current working directory. You will be asked for the password for `hippa_wr`.
+3. On the first run instruction files will be dropped into your current working directory. You will be asked for the password for `hippa_wr`.
 
    ![inst15](../gitimg/macos_homebrew/15_firstrun.png)
 
-3. Then you will be told that the self-load is about to begin.
+4. Then you will be told that the self-load is about to begin.
 
    ![inst02](../gitimg/macos_posgresapp/05_selfload.png)
 
-4. After several minutes the server will launch. The self-load process only has to happen once.
+5. Thousands of messages will fly across the screen.
 
+   ![inst02](../gitimg/macos_posgresapp/05b_loading_in_progress.png)
+
+6. Eventually the server will launch. The self-load process only has to happen once.
 
    ![inst02](../gitimg/macos_posgresapp/06_selfload_done.png)
 
-5. When you see `http server started on 127.0.0.1:8000` you are up and running. From here on out you can just double-click
+NB: `hippa_rd` errors are safe to ignore.
+
+![inst02](../gitimg/macos_posgresapp/06b_selfload_done.png)
+
+7. When you see `http server started on 127.0.0.1:8000` you are up and running. From here on out you can just double-click
 to launch the program. You can also leave it running indefinitely: it does not consume many resources if not active. 
 
 ### [D] [FYI] Archiving / Migrating
@@ -92,6 +101,7 @@ to launch the program. You can also leave it running indefinitely: it does not c
 
 ![inst13](../gitimg/macos_posgresapp/07a_selfreset.png)
 
+![inst13](../gitimg/macos_posgresapp/07b_selfreset_done.png)
 
 #### [E2] less easy
 
