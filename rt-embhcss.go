@@ -81,20 +81,20 @@ type FontTempl struct {
 
 var (
 	NotoFont = FontTempl{
-		Type:             "truetype",
-		ShrtType:         "ttf",
-		Bold:             "NotoSans-Bold.ttf",
-		BoldItalic:       "NotoSans-BoldItalic.ttf",
-		CondensedBold:    "NotoSans-CondensedSemiBold.ttf",
-		CondensedItalic:  "NotoSans-CondensedItalic.ttf",
-		CondensedRegular: "NotoSans-Condensed.ttf",
-		SemiCondRegular:  "NotoSans-SemiCondensed.ttf",
-		Italic:           "NotoSans-Italic.ttf",
-		Light:            "NotoSans-ExtraLight.ttf",
-		Mono:             "NotoSansMono-Regular.ttf",
-		Regular:          "NotoSans-Regular.ttf",
-		SemiBold:         "NotoSans-SemiBold.ttf",
-		Thin:             "NotoSans-Thin.ttf",
+		Type:             "opentype",
+		ShrtType:         "otf",
+		Bold:             "NotoSans-Bold.otf",
+		BoldItalic:       "NotoSans-BoldItalic.otf",
+		CondensedBold:    "NotoSans-CondensedSemiBold.otf",
+		CondensedItalic:  "NotoSans-CondensedItalic.otf",
+		CondensedRegular: "NotoSans-Condensed.otf",
+		SemiCondRegular:  "NotoSans-SemiCondensed.otf",
+		Italic:           "NotoSans-Italic.otf",
+		Light:            "NotoSans-ExtraLight.otf",
+		Mono:             "NotoSansMono-SemiCondensed.otf",
+		Regular:          "NotoSans-Regular.otf",
+		SemiBold:         "NotoSans-SemiBold.otf",
+		Thin:             "NotoSans-Thin.otf",
 	}
 )
 

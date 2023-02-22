@@ -951,13 +951,14 @@ body {
 }
 
 .ui-autocomplete, .ui-autocomplete-input, .ui-autocomplete-loading, .ui-menu, .ui-menu-item {
-	font-family: 'hipparchiasansstatic', sans-serif;
+	font-family: 'hipparchiasemicondensedstatic', sans-serif;
 	font-size: 80%;
 }
 
 .ui-spinner-input[type="text"] {
 	font-size: 80%;
-	font-family: 'hipparchiasansstatic', sans-serif;
+	font-family: 'hipparchiasemicondensedstatic', sans-serif;
+	padding: 3px;
 }
 
 .undocumentedfontshift{
@@ -1241,14 +1242,15 @@ browser {
 }
 
 button {
-	background: hsla(0, 0%, 94%, 1);
+	background: hsla(0, 0%, 93%, 1);
 	box-shadow: 1px 1px 1px var(--transparentgrey);
 	border: solid #000000 0;
 	-webkit-border-radius: 1px;
 	-moz-border-radius: 1px;
 	border-radius: 1px;
-	padding: 6px 6px;
 	text-align: center;
+	padding: 5px 4px 4px 5px; /* the box shadow creates the illusion of mis-centering for button icons */
+	margin-bottom: 1px; /* line height for the buttons needs to match the input boxes; box shadow tweak... */
 }
 
 button:hover {
@@ -1346,13 +1348,14 @@ indexobserved:hover{
 
 input {
 	text-align: center;
-	padding: 5px;
+	padding: 3px;
 	display: inline;
 }
 
 input[type="text"] {
 	font-size: 80%;
-	font-family: inherit;
+	/* font-family: inherit; */
+	font-family: 'hipparchiasemicondensedstatic', sans-serif;
 }
 
 latinfont {

@@ -85,6 +85,6 @@ func writeUUIDCookie(c echo.Context) string {
 	cookie.Value = uuid.New().String()
 	cookie.Expires = time.Now().Add(4800 * time.Hour)
 	c.SetCookie(cookie)
-	msg(fmt.Sprintf("writeUUIDCookie() - new ID set: %s", cookie.Value), MSGPEEK)
+	msg(fmt.Sprintf("writeUUIDCookie() - new ID set: %s", cookie.Value), MSGTMI)
 	return cookie.Value
 }

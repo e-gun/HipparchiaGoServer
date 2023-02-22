@@ -6,6 +6,8 @@
 1. [fyi] how to archive and/or migrate the data
 1. [fyi] how to reset the database and start over
 
+---
+
 ### [A] install and configure `PostgreSQL`
 1. download from http://postgresql.org/downloads (which will send you to enterprisedb.com...)
 
@@ -49,6 +51,7 @@ password at `C.2` below.
 
 ![inst9](../gitimg/windows/11_psqlinstallationends.png)
 
+---
 
 ### [B] acquire `HipparchiaGoServer.exe` and launch it
 1. You can build `HipparchiaGoServer.exe` yourself with the files in this repository. Or you can grab a pre-built binary.
@@ -56,6 +59,8 @@ password at `C.2` below.
 ![inst13](../gitimg/windows/16_getbinary.png)
 
 2. Double-click on the binary to launch. 
+
+---
 
 ### [C] the first launch of `HipparchiaGoServer`: loading `hipparchiaDB` into `PostgreSQL`
 0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation.]
@@ -90,6 +95,8 @@ PSQL administrator password you entered at `A.4` above.
 
 ![inst13](../gitimg/windows/19b_loaded.png)
 
+---
+
 ### [D] Archiving / Migrating
 
 1. If you lose/destroy the `hDB` folder with the original data and want it back, the data can be extracted and archived.
@@ -100,6 +107,7 @@ PSQL administrator password you entered at `A.4` above.
 
 4. That folder will take up a lot of room on your machine. You could consider compressing it.
 
+---
 
 ### [E] Troubleshooting / Resetting
 

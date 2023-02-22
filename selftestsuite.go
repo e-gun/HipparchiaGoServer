@@ -104,8 +104,10 @@ func selftest() {
 		},
 	}
 
-	ll := Config.LogLevel
-	Config.LogLevel = MSGFYI
+	oldloglevel := Config.LogLevel
+	if Config.LogLevel < MSGFYI {
+		Config.LogLevel = MSGFYI
+	}
 
 	time.Sleep(WSPOLLINGPAUSE * 3)
 	msg("entering selftest mode (3 segments)", MSGMAND)
@@ -179,5 +181,5 @@ func selftest() {
 	previous = time.Now()
 
 	msg("exiting selftest mode", MSGMAND)
-	Config.LogLevel = ll
+	Config.LogLevel = oldloglevel
 }

@@ -6,6 +6,8 @@
 1. [fyi] how to archive and/or migrate the data
 1. [fyi] how to reset the database and start over
 
+---
+
 ### [A] install and configure `Postgres.app`
 
 1. You will install `Postgres.app` which will then manage `PostgreSQL` for you. So go to https://postgresapp.com.
@@ -28,6 +30,8 @@
 
    ![inst02](../gitimg/macos_posgresapp/03b_menu_item.png)
 
+---
+
 ### [B] acquire `HipparchiaGoServer` and launch it
 
 1. You can build `HipparchiaGoServer` yourself with the files in this repository. Or you can grab a pre-built binary. Download the correct binary. Intel Macs: `darwin-amd64` Apple Silicon: `darwin-arm64`
@@ -37,6 +41,8 @@
 2. If you download a file like `HipparchiaGoServer-1.1.0-darwin-amd64.zip`, it needs to be UNZIPPED. Double-clicking will do that. You will then see something like `HipparchiaGoServer-1.1.0-darwin-amd64` in the same folder.
 
 3. This file *might* need to be RENAMED: `HipparchiaGoServer-1.1.0-darwin-amd64` --> `HipparchiaGoServer`
+
+---
 
 ### [C] the first launch of `HipparchiaGoServer`: loading `hipparchiaDB` into `PostgreSQL`
 
@@ -60,7 +66,7 @@
 
 3. On the first run instruction files will be dropped into your current working directory. You will be asked for the password for `hippa_wr`.
 
-   ![inst15](../gitimg/macos_homebrew/15_firstrun.png)
+   ![inst15](../gitimg/macos_posgresapp/04_firstrun.png)
 
 4. Then you will be told that the self-load is about to begin.
 
@@ -81,6 +87,8 @@ NB: `hippa_rd` errors are safe to ignore.
 7. When you see `http server started on 127.0.0.1:8000` you are up and running. From here on out you can just double-click
 to launch the program. You can also leave it running indefinitely: it does not consume many resources if not active. 
 
+---
+
 ### [D] [FYI] Archiving / Migrating
 
 1. If you lose/destroy the `hDB` folder with the original data and want it back, the data can be extracted and archived.
@@ -90,6 +98,8 @@ to launch the program. You can also leave it running indefinitely: it does not c
 3. Type `./HipparchiaGoServer -ex`. The data will be put into a new `hDB` folder in the current directory.
 
 4. That folder will take up a lot of room on your machine. You could consider compressing it.
+
+---
 
 ### [E] [FYI] Troubleshooting / Resetting
 

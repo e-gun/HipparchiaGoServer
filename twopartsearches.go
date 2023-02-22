@@ -108,7 +108,7 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	}
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg(fmt.Sprintf(MSG3, d, len(first.Results)), MSGPEEK)
+	msg(fmt.Sprintf(MSG3, d, len(second.Results)), MSGPEEK)
 
 	return second
 }

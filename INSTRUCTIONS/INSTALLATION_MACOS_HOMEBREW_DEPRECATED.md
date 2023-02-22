@@ -37,57 +37,85 @@ You also want to start the server: `brew services restart postgresql@15`
 
    ![inst08](../gitimg/macos_homebrew/08_psqlpath_and_start.png)
 
-8. Now CLOSE the terminal window and open a NEW terminal window. Now enter `psql postgres`. This will log you into the database. And now you will enter a series of commands to set it up.
+--- 
 
-   - `CREATE USER hippa_wr WITH PASSWORD 'some_random_password';`
-   - `CREATE DATABASE "hipparchiaDB";`
-   - `ALTER DATABASE "hipparchiaDB" OWNER TO hippa_wr;`
-   - `CREATE EXTENSION pg_trgm;`
-   - `\q`
-   
-     ![inst09](../gitimg/macos_homebrew/09_inside_psql.png)
-   
-### [B] load `hipparchiaDB` into `PostgreSQL`
 
-1. Open a new terminal window if you wish. Then `cd` to the directory that contains the
-   data you will be loading. There is no need to `cd` if the data is in your home directory already. 
+### [B] acquire `HipparchiaGoServer` and launch it
 
-2. Enter `pg_restore -v --format=directory --username=hippa_wr --dbname=hipparchiaDB ./hDB` and watch as the data is loaded.
-
-   ![inst10](../gitimg/macos_homebrew/10_loading.png)
-
-   ![inst11](../gitimg/macos_homebrew/11_load_ends.png)
-
-### [C] acquire `HipparchiaGoServer` and launch it
-
-1. You can build `HipparchiaGoServer` yourself with the files in this repository. Or you can grab a pre-built binary. Download the correct binary. Intel Macs: `-darwin-amd64-` Apple Silicon: `-darwin-arm64-`
+1. You can build `HipparchiaGoServer` yourself with the files in this repository. Or you can grab a pre-built binary. Download the correct binary. Intel Macs: `darwin-amd64` Apple Silicon: `darwin-arm64`
 
 ![inst12](../gitimg/windows/16_getbinary.png)
 
-2. If you download a file like `HipparchiaGoServer-1.1.0-darwin-amd64.zip`, it needs to be UNZIPPED. Double-clicking will do that. You will then see something like `HipparchiaGoServer-darwin-arm64-1.0.18` in the same folder.
+2. If you download a file like `HipparchiaGoServer-1.1.0-darwin-amd64.zip`, it needs to be UNZIPPED. Double-clicking will do that. You will then see something like `HipparchiaGoServer-1.1.0-darwin-amd64` in the same folder.
 
-3. This file needs to be RENAMED: `HipparchiaGoServer-1.1.0-darwin-amd64` --> `HipparchiaGoServer`
+3. This file *might* need to be RENAMED: `HipparchiaGoServer-1.1.0-darwin-amd64` --> `HipparchiaGoServer`
 
-   ![inst12](../gitimg/macos_homebrew/12_renamea.png)
+### [C] the first launch of `HipparchiaGoServer`: loading `hipparchiaDB` into `PostgreSQL`
 
-   ![inst13](../gitimg/macos_homebrew/13_renameb.png)
+0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation. If a working installation executes `HipparchiaGoServer -ex`, it will generate a valid `hDB` folder.]
+   The data needs to be in a folder named `hDB`. This folder should be in the same folder as `HipparchiaGoServer`.
+   You can (re)move the data folder after you have successfully installed the data into the database.
 
-4. Double-click to launch. It is possible that you will get a complaint about an UNIDENTIFIED DEVELOPER. In that case you need to go to `System Settings` -> `Gatekeeper` -> `Security` and then allow this application to run.
+![inst02](../gitimg/macos_posgresapp/04_data_is_ready.png)
 
-   ![inst14](../gitimg/macos_homebrew/14_gatekeeper.png)
+1. Double-click to launch. It is possible that you will get a complaint about an UNIDENTIFIED DEVELOPER.
+   In that case you need to go to `System Settings` -> `Gatekeeper` -> `Security` and then allow this application to run
+   by clicking OPEN ANYWAY and then entering a password to confirm this.
 
-5. On the first run you will be asked for the password for `hippa_wr`.
+![inst02](../gitimg/macos_posgresapp/04a_firstrun_unidentified.png)
 
-   ![inst15](../gitimg/macos_homebrew/15_firstrun.png)
+![inst02](../gitimg/macos_posgresapp/04b_firstrun_gatekeeper.png)
 
-6. Then you are running. You can point a browser at http://127.0.0.1:8000
+![inst02](../gitimg/macos_posgresapp/04c_firstrun_permission.png)
 
-   ![inst16](../gitimg/macos_homebrew/16_running.png)
+2. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
 
-7. Congratulations. All of this is one time only. From here on out you can just double-click the application like any other program.
+3. On the first run instruction files will be dropped into your current working directory. You will be asked for the password for `hippa_wr`.
 
+   ![inst15](../gitimg/macos_posgresapp/04_firstrun.png)
 
---- 
+4. Then you will be told that the self-load is about to begin.
+
+   ![inst02](../gitimg/macos_posgresapp/05_selfload.png)
+
+5. Thousands of messages will fly across the screen.
+
+   ![inst02](../gitimg/macos_posgresapp/05b_loading_in_progress.png)
+
+6. Eventually the server will launch. The self-load process only has to happen once.
+
+   ![inst02](../gitimg/macos_posgresapp/06_selfload_done.png)
+
+NB: `hippa_rd` errors are safe to ignore.
+
+![inst02](../gitimg/macos_posgresapp/06b_selfload_done.png)
+
+7. When you see `http server started on 127.0.0.1:8000` you are up and running. From here on out you can just double-click
+   to launch the program. You can also leave it running indefinitely: it does not consume many resources if not active.
+
+### [D] [FYI] Archiving / Migrating
+
+1. If you lose/destroy the `hDB` folder with the original data and want it back, the data can be extracted and archived.
+
+2. Move `HipparchiaGoServer` into your home directory. Launch `Terminal.App`
+
+3. Type `./HipparchiaGoServer -ex`. The data will be put into a new `hDB` folder in the current directory.
+
+4. That folder will take up a lot of room on your machine. You could consider compressing it.
+
+### [E] [FYI] Troubleshooting / Resetting
+
+#### [E1] easier
+
+1. Move `HipparchiaGoServer` into your home directory. Launch `Terminal.App`
+
+2. Type `./HipparchiaGoServer -00`. If you say `YES`, the database will reset itself.
+
+![inst13](../gitimg/macos_posgresapp/07a_selfreset.png)
+
+![inst13](../gitimg/macos_posgresapp/07b_selfreset_done.png)
+
+---
 
 ### troubleshooting: if mac postgresql suddenly fails to launch
 
