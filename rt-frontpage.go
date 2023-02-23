@@ -40,7 +40,7 @@ func RtFrontpage(c echo.Context) error {
 	env := fmt.Sprintf("%s: %s - %s (%d workers)", runtime.Version(), runtime.GOOS, runtime.GOARCH, Config.WorkerCount)
 
 	subs := map[string]interface{}{
-		"version":       VERSION,
+		"version":       VERSION + VersSuppl,
 		"longver":       ver,
 		"authhtm":       ahtm,
 		"env":           env,

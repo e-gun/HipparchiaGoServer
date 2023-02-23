@@ -158,7 +158,7 @@ func ConfigAtLaunch() {
 			printbuildinfo()
 			os.Exit(1)
 		case "-v":
-			fmt.Println(VERSION)
+			fmt.Println(VERSION + VersSuppl)
 			os.Exit(1)
 		case "-ac":
 			err := json.Unmarshal([]byte(args[i+1]), &Config.DefCorp)

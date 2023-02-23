@@ -192,6 +192,7 @@ func cssmanualfontstyling(css string) string {
 		"hipparchiaboldstatic":            FontSwap{"var(--systemdefaultfont), sans-serif", "bold", "normal", "normal"},
 		"hipparchiaobliquestatic":         FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "oblique", "normal"},
 		"hipparchiabolditalicstatic":      FontSwap{"var(--systemdefaultfont), sans-serif", "bold", "oblique", "normal"},
+		"hipparchiasemicondensedstatic":   FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "normal", "condensed"},
 		"hipparchiacondensedstatic":       FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "normal", "condensed"},
 		"hipparchiacondensedboldstatic":   FontSwap{"var(--systemdefaultfont), sans-serif", "bold", "normal", "condensed"},
 		"hipparchiacondenseditalicstatic": FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "oblique", "condensed"},

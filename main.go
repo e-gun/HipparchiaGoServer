@@ -94,8 +94,11 @@ func main() {
 // VERSION INFO BUILD TIME INJECTION
 //
 
-// GitCommit should be injected at build time: 'go build -ldflags "-X main.GitCommit=$GIT_COMMIT"'
+// these next variables should be injected at build time: 'go build -ldflags "-X main.GitCommit=$GIT_COMMIT"', etc
+
 var GitCommit string
+var VersSuppl string
+var BuildDate string
 
 func printversion() {
 	sn := fmt.Sprintf("[C1%sC0] ", SHORTNAME)
@@ -104,14 +107,11 @@ func printversion() {
 		gc = fmt.Sprintf(" [C4git: %sC0]", GitCommit)
 	}
 	ll := fmt.Sprintf(" [C6gl=%d; el=%dC0]", Config.LogLevel, Config.EchoLog)
-	versioninfo := fmt.Sprintf("C5%sC0 (C2v%sC0)", MYNAME, VERSION)
+	versioninfo := fmt.Sprintf("C5%sC0 (C2v%sC0)", MYNAME, VERSION+VersSuppl)
 	versioninfo = sn + versioninfo + gc + ll
 	versioninfo = coloroutput(versioninfo)
 	fmt.Println(versioninfo)
 }
-
-// BuildDate should be injected at build time
-var BuildDate string
 
 func printbuildinfo() {
 	bi := ""

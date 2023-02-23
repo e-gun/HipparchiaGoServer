@@ -1,5 +1,8 @@
 #!/bin/sh
 
+go get -u ./...
+go mod tidy
+
 # CopyInstructions() wants these PDFs, but it can survive without them
 if hash mdpdf &> /dev/null
   then
@@ -9,8 +12,6 @@ if hash mdpdf &> /dev/null
     mdpdf fyi/README.md emb/pdf/HGS_FYI.pdf
 fi
 
-# go get -u ./...
-
 oss=(linux windows darwin)
 archs=(amd64 arm64)
 
@@ -18,10 +19,15 @@ P="HipparchiaGoServer"
 SUFF=""
 OUT="./bin"
 
+VS=""
+if [ `git branch --show-current` != "stable" ]; then
+  VS="-pre"
+fi
+
 DT=$(date "+%Y-%m-%d@%H:%M:%S")
 GC=$(git rev-list -1 HEAD | cut -c-8)
 
-go build -pgo=default.pgo -ldflags "-s -w -X main.GitCommit=${GC} -X main.BuildDate=${DT}"
+go build -pgo=default.pgo -ldflags "-s -w -X main.GitCommit=${GC} -X main.BuildDate=${DT} -X main.VersSuppl=${VS}"
 V=$(./${P} -v)
 
 if [ ! -d "${OUT}" ]; then

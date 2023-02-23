@@ -1,32 +1,31 @@
 :root {
 	--systemdefaultfont: "{{index . "fontname"}}";
 
-	/* define the default FONTS that will have precedence over the served-if-necessary fonts
-	that are delivered via @font-face below. */
-
 	/* define COLORS by variable so you can change them all right here */
 	/* formula to invert HEX: amount*(255-value)+(1-amount)*value */
 	/* colorsys.hls_to_rgb(h, l, s) */
 
 	--main-body-color: hsla(0, 0%, 97%, 1);
 	--main-font-color: hsla(0, 0%, 6%, 1);
+
+	--button-hover: hsla(0, 0%, 90%, 1);
+	--fieldset-background: hsla(0, 0%, 98%, 1);
+	--focus-shadow: rgba(0, 0, 0, 0.5);
+	--icons-color: rgba(0, 0, 0, 0.54);
+
 	--black: hsla(0, 0%, 0%, 1);
 	--blue: hsla(240, 100%, 27%, 1);
 	--brown: hsla(22, 22%, 26%, 1);
 	--brtblue: hsla(236, 44%, 40%, 1);
-	--brtgreen: hsla(120, 43%, 77%, 1);
 	--copper: hsla(11, 53%, 30%);
 	--deepblue: hsla(233, 77%, 26%, 1);
 	--dkbabyblue: hsla(237, 43%, 57%, 1);
 	--dkgreen: hsla(120, 80%, 20%, 1);
 	--dkgrey: hsla(0, 0%, 33%, 1);
-	--dkred: hsla(0, 34%, 23%);
 	--dkteal: hsla(203, 22%, 26%, 1);
-	--green: hsla(120, 100%, 27%, 1);
 	--huedgrey: hsl(240, 10%, 61%);
 	--invisible: hsla(0, 100%, 100%, 0);
 	--lessoffwhite: hsla(0, 0%, 98%, 1);
-	--limegreen: hsla(71, 92%, 26%, 1);
 	--ltbabyblue: hsla(200, 33%, 95%, 1);
 	--ltgrey: hsla(0, 0%, 90%, 1);
 	--midgrey: hsla(0, 0%, 67%, 1);
@@ -34,6 +33,7 @@
 	--orange: hsla(47, 100%, 30%, 1);
 	--pink: hsla(0, 33%, 96%, 1);
 	--plum: hsla(291, 15%, 38%);
+	--pukegreen: hsl(71, 95%, 22%);
 	--red: hsla(346, 77%, 26%, 1);
 	--rustedorange: hsla(23, 37%, 39%, 1);
 	--sicklyyellow: hsl(45, 16%, 53%);
@@ -97,7 +97,7 @@
 	font-feature-settings: 'liga';
 }
 
-.material-icons.md-mid { color: rgba(0, 0, 0, 0.54); }
+.material-icons.md-mid { color: var(--icons-color); }
 .material-icons.md-mid:hover{
 	color: var(--brtblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
@@ -111,11 +111,15 @@
 
 body {
 	background-color: var(--main-body-color);
-	margin: 10px 10px 10px 10px;
-	font-family: 'hipparchiasansstatic', sans-serif;
 	color: var(--main-font-color);
-	font-size: 100%;
+	margin: 10px 10px 10px 10px;
 	line-height: 1.4;
+	font-family: 'hipparchiasansstatic', sans-serif;
+	font-size: 100%;
+	font-weight: normal;
+	text-transform: none;
+	letter-spacing: normal;
+	word-wrap: normal;
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
 	-moz-osx-font-smoothing: grayscale;
@@ -227,7 +231,7 @@ body {
 
 
 /*
-    stles coughed out by dictionary entries
+    styles coughed out by dictionary entries
 		πρόϲ:
 		{'dicthi rend_ital', 'levellabel3', 'dictref lang_greek targorder_U', 'level1', 'level_1', 'dictquote
 		lang_greek', 'dictgram type_comp', 'dictdate', 'dictabbr', 'dictplacename', 'dicttr', 'dictpb',
@@ -396,7 +400,9 @@ body {
 
 .editorialmarker_angledbrackets {
 	font-weight: normal;
-	color: var(--limegreen);
+	/* next is tempting, but too heavey-handed? esp. if squarebrackets is not treated in parallel... */
+	/* font-family: 'hipparchiaobliquestatic', sans-serif; */
+	color: var(--pukegreen);
 }
 
 .editorialmarker_curlybrackets {
@@ -410,6 +416,9 @@ body {
 }
 
 .editorialmarker_squarebrackets {
+	/* next two are great until it they aren't: fragmentary papyrus, etc will get warped: "[ca. 6 litt.]" */
+	/* text-decoration: line-through;
+	text-decoration-style: dotted; */
 	color: var(--huedgrey);
 }
 
@@ -469,7 +478,7 @@ body {
 }
 
 .focusline {
-	text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+	text-shadow: 1px 1px 4px var(--focus-shadow);
 }
 
 .foundauthor {
@@ -745,7 +754,7 @@ body {
 .optionlabel {
 	border-top: 1px dotted var(--dkgrey);
 	font-size: 70%;
-	font-family: 'hipparchiaboldstatic', sans-serif;
+	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	padding-left: 5px;
 	padding-right: 10px;
 	margin: 3px;
@@ -1256,7 +1265,7 @@ button {
 button:hover {
 	color: var(--brtblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
-	background: hsla(0, 0%, 90%, 1);
+	background: var(--button-hover);
 }
 
 caption {
@@ -1297,7 +1306,7 @@ fieldset {
 	border-width: 1px;
 	font-size: 75%;
 	color: var(--dkteal);
-	background-color: hsla(0, 0%, 98%, 1);
+	background-color: var(--fieldset-background);
 }
 
 form {
@@ -1327,11 +1336,6 @@ hmu_serviusformatting {
 	color: var(--dkgreen);
 }
 
-hr.styled {
-	border-top: 1px solid #8c8b8b;
-	border-bottom: 1px solid #fff;
-}
-
 indexedlocation:hover{
 	border-bottom: 1px dotted black;
 	border-top: 1px dotted black;
@@ -1353,7 +1357,7 @@ input {
 }
 
 input[type="text"] {
-	font-size: 80%;
+	font-size: 85%;
 	/* font-family: inherit; */
 	font-family: 'hipparchiasemicondensedstatic', sans-serif;
 }
@@ -1402,7 +1406,9 @@ p.lineoftext {
 	line-height: 70%;
 }
 
-p.level1 {}
+p.level1 {
+
+}
 
 p.level2 {
 	padding-left: 15px;
