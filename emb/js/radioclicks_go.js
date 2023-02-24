@@ -102,3 +102,11 @@ $('#vocscansion').change(function() {
     refreshselections();
     loadoptions();
 });
+
+// vectors
+
+$('#isvectorsearch').change(function() {
+    if(this.checked) { setoptions('isvectorsearch', 'yes'); } else { setoptions('isvectorsearch', 'no'); }
+    refreshselections();
+    loadoptions();
+});

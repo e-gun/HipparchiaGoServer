@@ -56,6 +56,7 @@ func RtGetJSSession(c echo.Context) error {
 		Varia             string `json:"varia"`
 		VocByCount        string `json:"vocbycount"`
 		VocScansion       string `json:"vocscansion"`
+		VecSearch         string `json:"isvectorsearch"`
 	}
 
 	t2y := func(b bool) string {
@@ -91,6 +92,7 @@ func RtGetJSSession(c echo.Context) error {
 	jso.Varia = t2y(s.VariaOK)
 	jso.VocByCount = t2y(s.VocByCount)
 	jso.VocScansion = t2y(s.VocScansion)
+	jso.VecSearch = t2y(s.VecSearch)
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }

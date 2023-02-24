@@ -46,6 +46,7 @@ type ServerSession struct {
 	TmpInt      int
 	TmpStr      string
 	LoginName   string
+	VecSearch   bool
 }
 
 //
@@ -110,6 +111,7 @@ func MakeDefaultSession(id string) ServerSession {
 	s.LoginName = "Anonymous"
 	s.VocScansion = Config.VocabScans
 	s.VocByCount = Config.VocabByCt
+	s.VecSearch = false
 
 	if Config.Authenticate {
 		AllAuthorized.Register(id, false)
@@ -117,20 +119,20 @@ func MakeDefaultSession(id string) ServerSession {
 		AllAuthorized.Register(id, true)
 	}
 
-	msg("MakeDefaultSession() in non-default state for testing; this is not a release build of HGS", 0)
-	m := make(map[string]string)
-	m["lt0917_FROM_1431_TO_2193"] = "Lucanus, Marcus Annaeus, Bellum Civile, 3"
-	m["lt0917_FROM_2_TO_692"] = "Lucanus, Marcus Annaeus, Bellum Civile, 1"
-	m["lt0917_FROM_5539_TO_6410"] = "Lucanus, Marcus Annaeus, Bellum Civile, 8"
-	m["lt0917_FROM_6411_TO_7520"] = "Lucanus, Marcus Annaeus, Bellum Civile, 9"
-	m["lt0917_FROM_4666_TO_5538"] = "Lucanus, Marcus Annaeus, Bellum Civile, 7"
-	m["lt0917_FROM_3019_TO_3835"] = "Lucanus, Marcus Annaeus, Bellum Civile, 5"
-	s.Inclusions.Passages = []string{"lt0917_FROM_6411_TO_7520", "lt0917_FROM_4666_TO_5538", "lt0917_FROM_3019_TO_3835",
-		"lt0917_FROM_1431_TO_2193", "lt0917_FROM_2_TO_692", "lt0917_FROM_5539_TO_6410"}
-	s.Inclusions.MappedPsgByName = m
-	s.Proximity = 4
-	s.SearchScope = "words"
-	s.Inclusions.BuildPsgByName()
+	//msg("MakeDefaultSession() in non-default state for testing; this is not a release build of HGS", 0)
+	//m := make(map[string]string)
+	//m["lt0917_FROM_1431_TO_2193"] = "Lucanus, Marcus Annaeus, Bellum Civile, 3"
+	//m["lt0917_FROM_2_TO_692"] = "Lucanus, Marcus Annaeus, Bellum Civile, 1"
+	//m["lt0917_FROM_5539_TO_6410"] = "Lucanus, Marcus Annaeus, Bellum Civile, 8"
+	//m["lt0917_FROM_6411_TO_7520"] = "Lucanus, Marcus Annaeus, Bellum Civile, 9"
+	//m["lt0917_FROM_4666_TO_5538"] = "Lucanus, Marcus Annaeus, Bellum Civile, 7"
+	//m["lt0917_FROM_3019_TO_3835"] = "Lucanus, Marcus Annaeus, Bellum Civile, 5"
+	//s.Inclusions.Passages = []string{"lt0917_FROM_6411_TO_7520", "lt0917_FROM_4666_TO_5538", "lt0917_FROM_3019_TO_3835",
+	//	"lt0917_FROM_1431_TO_2193", "lt0917_FROM_2_TO_692", "lt0917_FROM_5539_TO_6410"}
+	//s.Inclusions.MappedPsgByName = m
+	//s.Proximity = 4
+	//s.SearchScope = "words"
+	//s.Inclusions.BuildPsgByName()
 
 	return s
 }

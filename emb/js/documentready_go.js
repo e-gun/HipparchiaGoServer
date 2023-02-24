@@ -231,6 +231,9 @@ if ($('#termoneisalemma').is(":checked")) {
     $('#termonecheckbox').show();
 }
 
+if ($('#vectorsearch').is(":checked")) {
+    $('#termonecheckbox').show();
+}
 
 //
 // PROGRESS INDICATOR

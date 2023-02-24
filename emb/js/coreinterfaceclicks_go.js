@@ -10,7 +10,7 @@ function refreshselections() {
 
 function loadoptions() {
     $.getJSON('/get/json/sessionvariables', function (data) {
-        // console.log(data);
+        console.log(data);
         const simpletoggles = {
             'authorssummary': $('#authorssummary'),
             'authorflagging': $('#authorflagging'),
@@ -30,6 +30,7 @@ function loadoptions() {
             'incerta': $('#includeincerta'),
             'indexskipsknownwords': $('#indexskipsknownwords'),
             'inscriptioncorpus': $('#inscriptioncorpus'),
+            'isvectorsearch': $('#isvectorsearch'),
             'latincorpus': $('#latincorpus'),
             'morphdialects': $('#morphdialects'),
             'morphduals': $('#morphduals'),
@@ -531,13 +532,16 @@ function closeextendedsearcharea() {
     let lsf = $('#lemmatasearchform');
     let wsf = $('#wordsearchform');
     let tcb = $('#termonecheckbox');
+    let vct = $('#vectorsearch');
     if ($('#termoneisalemma').is(":checked")) {
         tcb.show();
+        vct.show();
         lsf.show();
         lsf.attr('placeholder', '(all forms of...)');
         wsf.hide();
     } else {
         tcb.hide();
+        vct.hide();
         lsf.hide();
         wsf.show();
     }

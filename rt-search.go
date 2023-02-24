@@ -59,7 +59,7 @@ func RtSearch(c echo.Context) error {
 	srch.LemmaOne = c.QueryParam("lem")
 	srch.LemmaTwo = c.QueryParam("plm")
 	srch.ID = c.Param("id")
-	srch.IsVector = false
+
 	// HasPhrase makes us use a fake limit temporarily
 	reallimit := srch.CurrentLimit
 
@@ -72,6 +72,12 @@ func RtSearch(c echo.Context) error {
 	srch.Proximate = whitespacer(srch.Proximate, &srch)
 
 	se := AllSessions.GetSess(user)
+
+	if se.VecSearch {
+		// not a normal search: we grab all lines; build a model; query against the model
+		return VectorSearch(c, &srch)
+	}
+
 	sl := SessionIntoSearchlist(se)
 
 	srch.SearchIn = sl.Inc
@@ -81,6 +87,7 @@ func RtSearch(c echo.Context) error {
 	if srch.Twobox {
 		srch.CurrentLimit = FIRSTSEARCHLIM
 	}
+
 	SSBuildQueries(&srch)
 
 	srch.TableSize = len(srch.Queries)

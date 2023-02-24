@@ -33,7 +33,7 @@ func RtSetOption(c echo.Context) error {
 
 	ynoptionlist := []string{"greekcorpus", "latincorpus", "papyruscorpus", "inscriptioncorpus", "christiancorpus",
 		"rawinputstyle", "onehit", "headwordindexing", "indexbyfrequency", "spuria", "incerta", "varia", "vocbycount",
-		"vocscansion"}
+		"vocscansion", "isvectorsearch"}
 
 	s := AllSessions.GetSess(user)
 
@@ -75,6 +75,8 @@ func RtSetOption(c echo.Context) error {
 				s.VocByCount = b
 			case "vocscansion":
 				s.VocScansion = b
+			case "isvectorsearch":
+				s.VecSearch = b
 			default:
 				msg(FAIL2, MSGWARN)
 			}

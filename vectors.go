@@ -47,7 +47,10 @@ import (
 //	Window             int
 //}
 
-func RtVectors(c echo.Context) error {
+func VectorSearch(c echo.Context, srch *SearchStruct) error {
+	vs := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
+	srch.Results = vs.Results
+	vs.Results = []DbWorkline{}
 
 	// test via:
 	// curl 127.0.0.1:8000/vect/exec/1
@@ -64,8 +67,6 @@ func RtVectors(c echo.Context) error {
 	// figure out all the headwords
 	// swap headwords in...
 	// merge code later
-
-	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 
 	// turn results into unified text block
 
@@ -121,8 +122,8 @@ func RtVectors(c echo.Context) error {
 	// write word vector.
 
 	vfile := "/Users/erik/tmp/vect.out"
-	rank := 10
-	word := "dextra"
+	rank := 10 // how many neighbors to output; min is 1
+	word := srch.Seeking
 
 	f, err := os.Create(vfile)
 	if err != nil {
@@ -151,8 +152,13 @@ func RtVectors(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+
+	msg(word, 1)
 	neighbors.Describe()
 
+	// "dextra" in big chunks of Lucan...
+
+	//
 	//   RANK |    WORD    | SIMILARITY
 	//-------+------------+-------------
 	//     1 | serpentum  |   0.962808
@@ -165,6 +171,14 @@ func RtVectors(c echo.Context) error {
 	//     8 | animae     |   0.936332
 	//     9 | uiros      |   0.928818
 	//    10 | etiam      |   0.927048
+
+	// want some day to build a graph as per matplotgraphmatches() in vectorgraphing.py
+
+	// ? https://github.com/yourbasic/graph
+
+	// ? https://github.com/go-echarts/go-echarts
+
+	// look at what is possible and links: https://blog.gopheracademy.com/advent-2018/go-webgl/
 
 	return emptyjsreturn(c)
 }
