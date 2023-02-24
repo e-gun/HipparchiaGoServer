@@ -811,13 +811,13 @@ body {
 }
 
 .pubeditor, .pubpress, .pubcity, .pubyear, .pubseries, .pubpages, .pubwork, .pubyearreprinted {
-	font-weight: normal;
+	font-family: 'hipparchiasemicondensedstatic', sans-serif;
 	font-size: 70%;
 }
 
 .pubvolumename {
 	font-size: 70%;
-	font-family: 'hipparchiaobliquestatic', sans-serif;
+	font-family: 'hipparchiasemicondenseditalicstatic', sans-serif;
 }
 
 .quotedtext {
@@ -989,6 +989,7 @@ body {
 
 .unobtrusive{
 	font-size: 60%;
+	font-family: 'hipparchiacondensedstatic', sans-serif;
 	color: var(--huedgrey);
 }
 

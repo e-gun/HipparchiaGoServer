@@ -68,6 +68,7 @@ type FontTempl struct {
 	CondensedItalic  string
 	CondensedRegular string
 	SemiCondRegular  string
+	SemiCondItalic   string
 	Italic           string
 	Light            string
 	Mono             string
@@ -89,6 +90,7 @@ var (
 		CondensedItalic:  "NotoSans-CondensedItalic.otf",
 		CondensedRegular: "NotoSans-Condensed.otf",
 		SemiCondRegular:  "NotoSans-SemiCondensed.otf",
+		SemiCondItalic:   "NotoSans-SemiCondensedItalic.otf",
 		Italic:           "NotoSans-Italic.otf",
 		Light:            "NotoSans-ExtraLight.otf",
 		Mono:             "NotoSansMono-SemiCondensed.otf",
@@ -135,6 +137,11 @@ func cssfontfacedirectives(f string) string {
 	@font-face {
 		font-family: 'hipparchiasemicondensedstatic';
 		src: url('/emb/{{.ShrtType}}/{{.SemiCondRegular}}') format('{{.Type}}');
+		}
+
+	@font-face {
+		font-family: 'hipparchiasemicondenseditalicstatic';
+		src: url('/emb/{{.ShrtType}}/{{.SemiCondItalic}}') format('{{.Type}}');
 		}
 
 	@font-face {
@@ -186,18 +193,19 @@ func cssmanualfontstyling(css string) string {
 	}
 
 	swaps := map[string]FontSwap{
-		"hipparchiasansstatic":            FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "normal", "normal"},
-		"hipparchiamonostatic":            FontSwap{"monospace", "normal", "normal", "normal"},
-		"hipparchialightstatic":           FontSwap{"var(--systemdefaultfont), sans-serif", "200", "normal", "normal"},
-		"hipparchiaboldstatic":            FontSwap{"var(--systemdefaultfont), sans-serif", "bold", "normal", "normal"},
-		"hipparchiaobliquestatic":         FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "oblique", "normal"},
-		"hipparchiabolditalicstatic":      FontSwap{"var(--systemdefaultfont), sans-serif", "bold", "oblique", "normal"},
-		"hipparchiasemicondensedstatic":   FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "normal", "condensed"},
-		"hipparchiacondensedstatic":       FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "normal", "condensed"},
-		"hipparchiacondensedboldstatic":   FontSwap{"var(--systemdefaultfont), sans-serif", "bold", "normal", "condensed"},
-		"hipparchiacondenseditalicstatic": FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "oblique", "condensed"},
-		"hipparchiasemiboldstatic":        FontSwap{"var(--systemdefaultfont), sans-serif", "600", "normal", "normal"},
-		"hipparchiathinstatic":            FontSwap{"var(--systemdefaultfont), sans-serif", "100", "normal", "normal"},
+		"hipparchiasansstatic":                FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "normal", "normal"},
+		"hipparchiamonostatic":                FontSwap{"monospace", "normal", "normal", "normal"},
+		"hipparchialightstatic":               FontSwap{"var(--systemdefaultfont), sans-serif", "200", "normal", "normal"},
+		"hipparchiaboldstatic":                FontSwap{"var(--systemdefaultfont), sans-serif", "bold", "normal", "normal"},
+		"hipparchiaobliquestatic":             FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "oblique", "normal"},
+		"hipparchiabolditalicstatic":          FontSwap{"var(--systemdefaultfont), sans-serif", "bold", "oblique", "normal"},
+		"hipparchiasemicondensedstatic":       FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "normal", "condensed"},
+		"hipparchiasemicondenseditalicstatic": FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "oblique", "condensed"},
+		"hipparchiacondensedstatic":           FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "normal", "condensed"},
+		"hipparchiacondensedboldstatic":       FontSwap{"var(--systemdefaultfont), sans-serif", "bold", "normal", "condensed"},
+		"hipparchiacondenseditalicstatic":     FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "oblique", "condensed"},
+		"hipparchiasemiboldstatic":            FontSwap{"var(--systemdefaultfont), sans-serif", "600", "normal", "normal"},
+		"hipparchiathinstatic":                FontSwap{"var(--systemdefaultfont), sans-serif", "100", "normal", "normal"},
 	}
 
 	// swap out: "font-family: 'hipparchiabolditalicstatic', sans-serif;" for explicit style directives

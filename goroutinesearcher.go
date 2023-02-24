@@ -147,6 +147,8 @@ func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, values 
 			done = true
 		case val, ok := <-values:
 			if ok {
+				// each bundle of []DbWorkline comes off of a single author table
+				// so OneHit searches will just grab the top of that bundle
 				if ss.OneHit && ss.PhaseNum == 1 && len(val) > 0 {
 					allhits = append(allhits, val[0])
 				} else {
