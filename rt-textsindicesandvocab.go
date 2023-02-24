@@ -298,7 +298,7 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	// [c1] get and map all the DbMorphology
-	morphmap := arraytogetrequiredmorphobjects(morphslice)
+	morphmap := ArrayToGetRequiredMorphobjects(morphslice)
 
 	si.InitSum = MSG2
 	AllSearches.InsertSS(si)
@@ -568,7 +568,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// [c1] map words to a dbMorphology
 
-	morphmap := arraytogetrequiredmorphobjects(morphslice)
+	morphmap := ArrayToGetRequiredMorphobjects(morphslice)
 
 	si.InitSum = MSG2
 	AllSearches.InsertSS(si)
@@ -841,8 +841,8 @@ func arraytogetscansion(wordlist []string) map[string]string {
 	return foundmetrics
 }
 
-// arraytogetrequiredmorphobjects - map a slice of words to the corresponding DbMorphology
-func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
+// ArrayToGetRequiredMorphobjects - map a slice of words to the corresponding DbMorphology
+func ArrayToGetRequiredMorphobjects(wordlist []string) map[string]DbMorphology {
 	// hipparchiaDB=# \d greek_morphology
 	//                           Table "public.greek_morphology"
 	//          Column           |          Type          | Collation | Nullable | Default

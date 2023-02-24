@@ -10,9 +10,10 @@ import "time"
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.1.5"
+	VERSION                  = "0.0.0"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	BLACKANDWHITE            = false
+	CHARSPERLINE             = 60 // used by vector to preallocate memory: set it closer to a max than a real average
 	CONFIGLOCATION           = "."
 	CONFIGALTAPTH            = "%s/.config/" // %s = os.UserHomeDir()
 	CONFIGAUTH               = "hgs-users.json"
