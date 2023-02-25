@@ -11,6 +11,7 @@ import (
 	"github.com/ynqa/wego/pkg/model/modelutil/vector"
 	"github.com/ynqa/wego/pkg/model/word2vec"
 	"github.com/ynqa/wego/pkg/search"
+	"net/http"
 	"os"
 	"sort"
 	"strings"
@@ -141,9 +142,12 @@ func VectorSearch(c echo.Context, srch *SearchStruct) error {
 
 	winnermap := buildwinnertakesallparsemap(morphmapstrslc)
 
+	// "winnermap" for Albinus , poet. [lt2002]
+	// map[abscondere:[abscondo] apte:[aptus] capitolia:[capitolium] celsa:[celsus¹] concludere:[concludo] cui:[qui¹] dactylum:[dactylus] de:[de] deum:[deus] fieri:[fio] freta:[fretus¹] i:[eo¹] ille:[ille] iungens:[jungo] liber:[liber⁴] metris:[metrum] moenibus:[moenia¹] non:[non] nulla:[nullus] patuere:[pateo] posse:[possum] repostos:[re-pono] rerum:[res] romanarum:[romanus] sed:[sed] sinus:[sinus¹] spondeum:[spondeus] sponte:[sponte] ternis:[terni] totum:[totus¹] triumphis:[triumphus] tutae:[tueor] uersum:[verro] urbes:[urbs] †uilem:[†uilem]]
+
 	// turn results into unified text block
 
-	// string addition will us a huge amount of time: 120s to concatinate Cicero: txt = txt + newtxt...
+	// string addition will use a huge amount of time: 120s to concatinate Cicero: txt = txt + newtxt...
 	// with strings.Builder we only need .1s to build the text...
 
 	var sb strings.Builder
@@ -153,6 +157,13 @@ func VectorSearch(c echo.Context, srch *SearchStruct) error {
 	for i := 0; i < len(slicedwords); i++ {
 		sb.WriteString(winnermap[slicedwords[i].Wd][0] + " ")
 	}
+
+	thetext := sb.String()
+
+	// "thetext" for Albinus , poet. [lt2002]
+	// res romanus liber⁴ eo¹ ille qui¹ terni capitolium celsus¹ triumphus sponte deus pateo qui¹ fretus¹ nullus re-pono abscondo sinus¹ non tueor moenia¹ urbs de metrum †uilem spondeus totus¹ concludo verro possum fio jungo sed dactylus aptus
+	// vs. "RERUM ROMANARUM LIBER I
+	//	Ille cui ternis Capitolia celsa triumphis..."
 
 	// fyi
 	opts := word2vec.Options{
@@ -185,7 +196,7 @@ func VectorSearch(c echo.Context, srch *SearchStruct) error {
 	}
 
 	// input for  word2vec.Train() is 'io.ReadSeeker'
-	b := bytes.NewReader([]byte(sb.String()))
+	b := bytes.NewReader([]byte(thetext))
 	if err = model.Train(b); err != nil {
 		// failed to train.
 	}
@@ -207,25 +218,29 @@ func VectorSearch(c echo.Context, srch *SearchStruct) error {
 
 	input, err := os.Open(vfile)
 	if err != nil {
+		msg("err: os.Open(vfile)", 1)
 		return err
 	}
 	defer input.Close()
 	embs, err := embedding.Load(input)
 	if err != nil {
+		msg("err: embedding.Load(input)", 1)
 		return err
 	}
 
 	searcher, err := search.New(embs...)
 	if err != nil {
-		return err
-	}
-	neighbors, err := searcher.SearchInternal(word, rank)
-	if err != nil {
+		msg("err: search.New(embs...)", 1)
 		return err
 	}
 
-	msg(word, 1)
-	neighbors.Describe()
+	neighbors, err := searcher.SearchInternal(word, rank)
+	if err != nil {
+		msg("err: searcher.SearchInternal(word, rank)", 1)
+		return err
+	}
+
+	// neighbors.Describe()
 
 	// "dextra" in big chunks of Lucan...
 
@@ -243,6 +258,21 @@ func VectorSearch(c echo.Context, srch *SearchStruct) error {
 	//     9 | uiros      |   0.928818
 	//    10 | etiam      |   0.927048
 
+	table := make([][]string, len(neighbors))
+	for i, n := range neighbors {
+		table[i] = []string{
+			fmt.Sprintf("%d", n.Rank),
+			n.Word,
+			fmt.Sprintf("%f", n.Similarity),
+		}
+	}
+
+	out := "<pre>"
+	for t := range table {
+		out += fmt.Sprintf("%s\t%s\t%s\n", table[t][0], table[t][1], table[t][2])
+	}
+	out += "</pre>"
+
 	// want some day to build a graph as per matplotgraphmatches() in vectorgraphing.py
 
 	// ? https://github.com/yourbasic/graph
@@ -251,7 +281,17 @@ func VectorSearch(c echo.Context, srch *SearchStruct) error {
 
 	// look at what is possible and links: https://blog.gopheracademy.com/advent-2018/go-webgl/
 
-	return emptyjsreturn(c)
+	soj := SearchOutputJSON{
+		Title:         "VECTORS",
+		Searchsummary: "[no summary]",
+		Found:         out,
+		Image:         "",
+		JS:            "",
+	}
+
+	AllSearches.Delete(srch.ID)
+
+	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
 
 func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string][]string {
