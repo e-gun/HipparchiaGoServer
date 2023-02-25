@@ -552,23 +552,7 @@ func RtIndexMaker(c echo.Context) error {
 		}
 	}
 
-	// [b] find the Unique values
-	distinct := make(map[string]bool, len(slicedwords))
-	for _, w := range slicedwords {
-		distinct[w.Wd] = true
-	}
-
-	// [c] find the headwords for all of these distinct words
-	morphslice := make([]string, len(distinct))
-	count := 0
-	for w := range distinct {
-		morphslice[count] = w
-		count += 1
-	}
-
-	// [c1] map words to a dbMorphology
-
-	morphmap := ArrayToGetRequiredMorphobjects(morphslice)
+	morphmap := ConstructMorphMap(slicedwords)
 
 	si.InitSum = MSG2
 	AllSearches.InsertSS(si)
@@ -763,6 +747,27 @@ func RtIndexMaker(c echo.Context) error {
 //
 // HELPERS
 //
+
+// ConstructMorphMap - RtIndexMaker() and VectorSearch() need to know all the parsing info in the lines returned
+func ConstructMorphMap(slicedwords []WordInfo) map[string]DbMorphology {
+	// find the unique words
+	distinct := make(map[string]bool, len(slicedwords))
+	for _, w := range slicedwords {
+		distinct[w.Wd] = true
+	}
+
+	// find the headwords for all of these distinct words
+	morphslice := make([]string, len(distinct))
+	count := 0
+	for w := range distinct {
+		morphslice[count] = w
+		count += 1
+	}
+
+	// map words to a dbMorphology
+
+	return ArrayToGetRequiredMorphobjects(morphslice)
+}
 
 // sessionintobulksearch - grab every line of text in the currently registerselection set of authors, works, and passages
 func sessionintobulksearch(c echo.Context, lim int) SearchStruct {
