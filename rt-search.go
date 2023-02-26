@@ -72,12 +72,6 @@ func RtSearch(c echo.Context) error {
 	srch.Proximate = whitespacer(srch.Proximate, &srch)
 
 	se := AllSessions.GetSess(user)
-
-	if se.VecSearch {
-		// not a normal search: we grab all lines; build a model; query against the model
-		return VectorSearch(c, &srch)
-	}
-
 	sl := SessionIntoSearchlist(se)
 
 	srch.SearchIn = sl.Inc
@@ -93,6 +87,11 @@ func RtSearch(c echo.Context) error {
 	srch.TableSize = len(srch.Queries)
 	srch.IsActive = true
 	AllSearches.InsertSS(srch)
+
+	if se.VecSearch {
+		// not a normal search: we grab all lines; build a model; query against the model
+		return VectorSearch(c, srch)
+	}
 
 	var completed SearchStruct
 	if srch.Twobox {

@@ -17,6 +17,39 @@ import (
 	"strings"
 )
 
+var (
+	// Latin100 - the 100 most common latin headwords
+	Latin100 = []string{"qui¹", "et", "in", "edo¹", "is", "sum¹", "hic", "non", "ab", "ut", "Cos²", "si", "ad", "cum", "ex", "a", "eo¹",
+		"ego", "quis¹", "tu", "Eos", "dico²", "ille", "sed", "de", "neque", "facio", "possum", "atque", "sui", "res",
+		"quam", "aut", "ipse", "huc", "habeo", "do", "omne", "video", "ito", "magnus", "b", "alius²", "for", "idem",
+		"suum", "etiam", "per", "enim", "omnes", "ita", "suus", "omnis", "autem", "vel", "vel", "Alius¹", "qui²", "quo",
+		"nam", "bonus", "neo¹", "meus", "volo¹", "ne³", "ne¹", "suo", "verus", "pars", "reor", "sua", "vaco", "verum",
+		"primus", "unus", "multus", "causa", "jam", "tamen", "Sue", "nos", "dies", "Ios", "modus", "tuus", "venio",
+		"pro¹", "pro²", "ago", "deus", "annus", "locus", "homo", "pater", "eo²", "tantus", "fero", "quidem", "noster",
+		"an", "locum"}
+	// Greek150 - the 150 most common greek headwords
+	Greek150 = []string{"ὁ", "καί", "τίϲ", "ἔδω", "δέ", "εἰμί", "δέω¹", "δεῖ", "δέομαι", "εἰϲ", "αὐτόϲ", "τιϲ", "οὗτοϲ", "ἐν",
+		"γάροϲ", "γάρον", "γάρ", "οὐ", "μένω", "μέν", "τῷ", "ἐγώ", "ἡμόϲ", "κατά", "Ζεύϲ", "ἐπί", "ὡϲ", "διά",
+		"πρόϲ", "προϲάμβ", "τε", "πᾶϲ", "ἐκ", "ἕ", "ϲύ", "Ἀλλά", "γίγνομαι", "ἁμόϲ", "ὅϲτιϲ", "ἤ¹", "ἤ²", "ἔχω",
+		"ὅϲ", "μή", "ὅτι¹", "λέγω¹", "ὅτι²", "τῇ", "Τήιοϲ", "ἀπό", "εἰ", "περί", "ἐάν", "θεόϲ", "φημί", "ἐκάϲ",
+		"ἄν¹", "ἄνω¹", "ἄλλοϲ", "qui¹", "πηρόϲ", "παρά", "ἀνά", "αὐτοῦ", "ποιέω", "ἄναξ", "ἄνα", "ἄν²", "πολύϲ",
+		"οὖν", "λόγοϲ", "οὕτωϲ", "μετά", "ἔτι", "ὑπό", "ἑαυτοῦ", "ἐκεῖνοϲ", "εἶπον", "πρότεροϲ", "edo¹", "μέγαϲ",
+		"ἵημι", "εἷϲ", "οὐδόϲ", "οὐδέ", "ἄνθρωποϲ", "ἠμί", "μόνοϲ", "κύριοϲ", "διό", "οὐδείϲ", "ἐπεί", "πόλιϲ",
+		"τοιοῦτοϲ", "χάω", "καθά", "θεάομαι", "γε", "ἕτεροϲ", "δοκέω", "λαμβάνω", "δή", "δίδωμι", "ἵνα",
+		"βαϲιλεύϲ", "φύϲιϲ", "ἔτοϲ", "πατήρ", "ϲῶμα", "καλέω", "ἐρῶ", "υἱόϲ", "ὅϲοϲ", "γαῖα", "οὔτε", "οἷοϲ",
+		"ἀνήρ", "ὁράω", "ψυχή", "Ἔχιϲ", "ὥϲπερ", "αὐτόϲε", "χέω", "ὑπέρ", "ϲόϲ", "θεάω", "νῦν", "ἐμόϲ", "δύναμαι",
+		"φύω", "πάλιν", "ὅλοξ", "ἀρχή", "καλόϲ", "δύναμιϲ", "πωϲ", "δύο", "ἀγαθόϲ", "οἶδα", "δείκνυμι", "χρόνοϲ",
+		"ὅμοιοϲ", "ἕκαϲτοϲ", "ὁμοῖοϲ", "ὥϲτε", "ἡμέρα", "γράφω", "δραχμή", "μέροϲ"}
+	// LatinKeep - members of Latin100 we will not toss
+	LatinKeep = []string{"facio", "possum", "habeo", "video", "magnus", "bonus", "volo¹", "primus", "venio", "ago",
+		"deus", "annus", "locus", "pater", "fero"}
+	// GreekKeep - members of Greek150 we will not toss
+	GreekKeep = []string{"ἔχω", "λέγω¹", "θεόϲ", "φημί", "ποιέω", "ἵημι", "μόνοϲ", "κύριοϲ", "πόλιϲ", "θεάομαι", "δοκέω", "λαμβάνω",
+		"δίδωμι", "βαϲιλεύϲ", "φύϲιϲ", "ἔτοϲ", "πατήρ", "ϲῶμα", "καλέω", "ἐρῶ", "υἱόϲ", "γαῖα", "ἀνήρ", "ὁράω",
+		"ψυχή", "δύναμαι", "ἀρχή", "καλόϲ", "δύναμιϲ", "ἀγαθόϲ", "οἶδα", "δείκνυμι", "χρόνοϲ", "γράφω", "δραχμή",
+		"μέροϲ"}
+)
+
 //type ModelType = string
 //
 //const (
@@ -53,7 +86,7 @@ import (
 //	Window             int
 //}
 
-func VectorSearch(c echo.Context, srch *SearchStruct) error {
+func VectorSearch(c echo.Context, srch SearchStruct) error {
 	vs := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 	srch.Results = vs.Results
 	vs.Results = []DbWorkline{}
@@ -154,8 +187,18 @@ func VectorSearch(c echo.Context, srch *SearchStruct) error {
 	preallocate := CHARSPERLINE * len(srch.Results) // NB: a long line has 60 chars
 	sb.Grow(preallocate)
 
+	gs := getgreekstops()
+	ls := getlatinstops()
 	for i := 0; i < len(slicedwords); i++ {
-		sb.WriteString(winnermap[slicedwords[i].Wd][0] + " ")
+		// drop skipwords
+		w := winnermap[slicedwords[i].Wd][0]
+		_, s1 := gs[w]
+		_, s2 := ls[w]
+		if s1 || s2 {
+			continue
+		} else {
+			sb.WriteString(w + " ")
+		}
 	}
 
 	thetext := sb.String()
@@ -188,7 +231,64 @@ func VectorSearch(c echo.Context, srch *SearchStruct) error {
 		Window:             0,
 	}
 
+	//const (
+	//	NegativeSampling    OptimizerType = "ns"
+	//	HierarchicalSoftmax OptimizerType = "hs"
+	//)
+
+	//const (
+	//	Cbow     ModelType = "cbow"
+	//	SkipGram ModelType = "skipgram"
+	//)
+
+	// var (
+	//	defaultBatchSize          = 10000
+	//	defaultDim                = 10
+	//	defaultDocInMemory        = false
+	//	defaultGoroutines         = runtime.NumCPU()
+	//	defaultInitlr             = 0.025
+	//	defaultIter               = 15
+	//	defaultLogBatch           = 100000
+	//	defaultMaxCount           = -1
+	//	defaultMaxDepth           = 100
+	//	defaultMinCount           = 5
+	//	defaultMinLR              = defaultInitlr * 1.0e-4
+	//	defaultModelType          = Cbow
+	//	defaultNegativeSampleSize = 5
+	//	defaultOptimizerType      = NegativeSampling
+	//	defaultSubsampleThreshold = 1.0e-3
+	//	defaultToLower            = false
+	//	defaultUpdateLRBatch      = 100000
+	//	defaultVerbose            = false
+	//	defaultWindow             = 5
+	//)
+
+	// results do not repeat because word2vec.Train() in pkg/model/word2vec/word2vec.go has
+	// "vec[i] = (rand.Float64() - 0.5) / float64(dim)"
+
+	// modelbuilders.py
+	// 	negative (int, optional) – If > 0, negative sampling will be used, the int for negative specifies how many “noise words” should be drawn (usually between 5-20). If set to 0, no negative sampling is used.
+	//	seed (int, optional) – Seed for the random number generator. Initial vectors for each word are seeded with a hash of the concatenation of word + str(seed). Note that for a fully deterministically-reproducible run, you must also limit the model to a single worker thread (workers=1), to eliminate ordering jitter from OS thread scheduling. (In Python 3, reproducibility between interpreter launches also requires use of the PYTHONHASHSEED environment variable to control hash randomization).
+	// 	compute_loss (bool, optional) – If True, computes and stores loss value which can be retrieved using get_latest_training_loss()
+	//  window (int, optional) – Maximum distance between the current and predicted word within a sentence
+	//                gensimmodel = Word2Vec(bagsofwords,
+	//                                       min_count=vv.minimumpresence,
+	//                                       seed=1,
+	//                                       epochs=vv.trainingiterations,
+	//                                       vector_size=vv.dimensions,
+	//                                       sample=vv.downsample,
+	//                                       sg=1,  # the results seem terrible if you say sg=0
+	//                                       window=vv.window,
+	//                                       workers=workers,
+	//                                       compute_loss=computeloss)
+
 	opts = word2vec.DefaultOptions()
+	opts.Dim = 200
+	opts.DocInMemory = true
+	opts.MaxCount = 35
+	opts.MinCount = 10
+	opts.ModelType = "skipgram"
+	opts.Window = 5
 
 	model, err := word2vec.NewForOptions(opts)
 	if err != nil {
@@ -201,6 +301,18 @@ func VectorSearch(c echo.Context, srch *SearchStruct) error {
 		// failed to train.
 	}
 
+	fail := func(f string) error {
+		soj := SearchOutputJSON{
+			Title:         "VECTORS",
+			Searchsummary: f,
+			Found:         "[failed]",
+			Image:         "",
+			JS:            "",
+		}
+		AllSearches.Delete(srch.ID)
+		return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
+	}
+
 	// write word vector.
 
 	vfile := "/Users/erik/tmp/vect.out"
@@ -209,35 +321,31 @@ func VectorSearch(c echo.Context, srch *SearchStruct) error {
 
 	f, err := os.Create(vfile)
 	if err != nil {
-		msg("failed to create vect.out", 0)
+		return fail("failed to create vect.out")
 	}
 	err = model.Save(f, vector.Agg)
 	if err != nil {
-		msg("failed to save vect.out", 0)
+		return fail("failed to save vect.out")
 	}
 
 	input, err := os.Open(vfile)
 	if err != nil {
-		msg("err: os.Open(vfile)", 1)
-		return err
+		return fail("err: os.Open(vfile)")
 	}
 	defer input.Close()
 	embs, err := embedding.Load(input)
 	if err != nil {
-		msg("err: embedding.Load(input)", 1)
-		return err
+		return fail("err: embedding.Load(input)")
 	}
 
 	searcher, err := search.New(embs...)
 	if err != nil {
-		msg("err: search.New(embs...)", 1)
-		return err
+		return fail("err: search.New(embs...)")
 	}
 
 	neighbors, err := searcher.SearchInternal(word, rank)
 	if err != nil {
-		msg("err: searcher.SearchInternal(word, rank)", 1)
-		return err
+		return fail("err: searcher.SearchInternal(word, rank)")
 	}
 
 	// neighbors.Describe()
@@ -269,7 +377,7 @@ func VectorSearch(c echo.Context, srch *SearchStruct) error {
 
 	out := "<pre>"
 	for t := range table {
-		out += fmt.Sprintf("%s\t%s\t%s\n", table[t][0], table[t][1], table[t][2])
+		out += fmt.Sprintf("%s\t%s\t\t%s\n", table[t][0], table[t][1], table[t][2])
 	}
 	out += "</pre>"
 
@@ -419,4 +527,14 @@ func fetchheadwordcounts(headwordset map[string]bool) map[string]int {
 	// map[abscondo:213 apte:168 aptus:1423 capitolium:0 celsus¹:1050 concludo:353 dactylus:167 de:42695 deus:14899 eo¹:58129 fio:12305 fretum:746 fretus¹:761 ille:44214 jungo:2275 liber¹:7550 liber⁴:13403 libo¹:3996 metrum:383 moenia¹:1308 non:96475 nullus:11785 pateo:1828 patesco:46 possum:41631 quis²:0 quis¹:52619 qui²:19812 qui¹:251744 re-pono:47 res:38669 romanus:0 sed:44131 sinus¹:1223 spondeum:158 spondeus:205 sponte:841 terni:591 totus²:0 totus¹:9166 triumphus:1058 tueor:3734 urbs:8564 verro:3843 versum:435 versus³:3390 verto:1471 †uilem:0]
 
 	return returnmap
+}
+
+func getgreekstops() map[string]struct{} {
+	gs := SetSubtraction(Greek150, GreekKeep)
+	return ToSet(gs)
+}
+
+func getlatinstops() map[string]struct{} {
+	ls := SetSubtraction(Latin100, LatinKeep)
+	return ToSet(ls)
 }

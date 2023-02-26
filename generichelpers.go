@@ -208,6 +208,15 @@ func Unique[T comparable](s []T) []T {
 	return result
 }
 
+// ToSet - returns a map of a slice
+func ToSet[T comparable](sl []T) map[T]struct{} {
+	m := make(map[T]struct{})
+	for i := 0; i < len(sl); i++ {
+		m[sl[i]] = struct{}{}
+	}
+	return m
+}
+
 // SetSubtraction - returns [](set(aa) - set(bb))
 func SetSubtraction[T comparable](aa []T, bb []T) []T {
 	//  NB this is SLOW: be careful looping it 10k times
