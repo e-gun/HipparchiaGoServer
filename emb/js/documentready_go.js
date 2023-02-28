@@ -473,3 +473,11 @@ for (let i = 0; i < nonvectorspinners.length; i++) {
     const mywidth = 90;
     $(nonvectorspinners[i]).width(mywidth);
 }
+
+
+var lexmodal = document.getElementById("lexmodal");
+var leftmodalclose = document.getElementById("leftmodalclose");
+
+leftmodalclose.onclick = function() {
+    lexmodal.style.display = "none";
+}

@@ -168,6 +168,8 @@ const (
 			$.getJSON('/lex/findbyform/'+this.id, function (definitionreturned) {
 				$( '#lexicadialogtext' ).html(definitionreturned['newhtml']);
 				$( '#lexicaljsscriptholder' ).html(definitionreturned['newjs']);
+				document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml']
+				document.getElementById('lexmodal').style.display = "block";
 			});
 		return false;
 		});`
@@ -316,7 +318,7 @@ const (
 		
 		$.getJSON('/lex/chart/'+this.lang+'/'+lexid+'/'+parserxref+'/'+headword, function (definitionreturned) {
 			ldt.html(definitionreturned['newhtml']);
-			jshld.html(definitionreturned['newjs']);		
+			jshld.html(definitionreturned['newjs']);
 			});
 			
 		return false;
