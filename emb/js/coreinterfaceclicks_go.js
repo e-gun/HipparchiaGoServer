@@ -10,7 +10,7 @@ function refreshselections() {
 
 function loadoptions() {
     $.getJSON('/get/json/sessionvariables', function (data) {
-        console.log(data);
+        // console.log(data);
         const simpletoggles = {
             'authorssummary': $('#authorssummary'),
             'authorflagging': $('#authorflagging'),

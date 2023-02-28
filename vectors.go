@@ -48,6 +48,8 @@ var (
 		"δίδωμι", "βαϲιλεύϲ", "φύϲιϲ", "ἔτοϲ", "πατήρ", "ϲῶμα", "καλέω", "ἐρῶ", "υἱόϲ", "γαῖα", "ἀνήρ", "ὁράω",
 		"ψυχή", "δύναμαι", "ἀρχή", "καλόϲ", "δύναμιϲ", "ἀγαθόϲ", "οἶδα", "δείκνυμι", "χρόνοϲ", "γράφω", "δραχμή",
 		"μέροϲ"}
+	LatinStops = getlatinstops()
+	GreekStops = getgreekstops()
 )
 
 //type ModelType = string
@@ -187,21 +189,15 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	preallocate := CHARSPERLINE * len(srch.Results) // NB: a long line has 60 chars
 	sb.Grow(preallocate)
 
-	gs := getgreekstops()
-	ls := getlatinstops()
-	for i := 0; i < len(slicedwords); i++ {
-		// drop skipwords
-		w := winnermap[slicedwords[i].Wd][0]
-		_, s1 := gs[w]
-		_, s2 := ls[w]
-		if s1 || s2 {
-			continue
-		} else {
-			sb.WriteString(w + " ")
-		}
+	winner := true
+
+	if winner {
+		winnerstring(&sb, slicedwords, winnermap)
+	} else {
+		flatstring(&sb, slicedwords)
 	}
 
-	thetext := sb.String()
+	thetext := strings.TrimSpace(sb.String())
 
 	// "thetext" for Albinus , poet. [lt2002]
 	// res romanus liber⁴ eo¹ ille qui¹ terni capitolium celsus¹ triumphus sponte deus pateo qui¹ fretus¹ nullus re-pono abscondo sinus¹ non tueor moenia¹ urbs de metrum †uilem spondeus totus¹ concludo verro possum fio jungo sed dactylus aptus
@@ -283,12 +279,14 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	//                                       compute_loss=computeloss)
 
 	opts = word2vec.DefaultOptions()
+	opts.OptimizerType = "hs"
 	opts.Dim = 200
 	opts.DocInMemory = true
-	opts.MaxCount = 35
-	opts.MinCount = 10
-	opts.ModelType = "skipgram"
-	opts.Window = 5
+	opts.Iter = 50 // need to crank this up well past the default if you are going to get separation instead of .9998, .9997, .9997, ...
+	// opts.MaxCount = 35
+	opts.MinCount = 8
+	// opts.ModelType = "skipgram"
+	opts.Window = 8
 
 	model, err := word2vec.NewForOptions(opts)
 	if err != nil {
@@ -400,6 +398,26 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	AllSearches.Delete(srch.ID)
 
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
+}
+
+func flatstring(sb *strings.Builder, slicedwords []WordInfo) {
+	for i := 0; i < len(slicedwords); i++ {
+		sb.WriteString(slicedwords[i].Wd + " ")
+	}
+}
+
+func winnerstring(sb *strings.Builder, slicedwords []WordInfo, winnermap map[string][]string) {
+	for i := 0; i < len(slicedwords); i++ {
+		// drop skipwords
+		w := winnermap[slicedwords[i].Wd][0]
+		_, s1 := LatinStops[w]
+		_, s2 := GreekStops[w]
+		if s1 || s2 {
+			continue
+		} else {
+			sb.WriteString(w + " ")
+		}
+	}
 }
 
 func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string][]string {
