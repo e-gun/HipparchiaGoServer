@@ -671,12 +671,14 @@ body {
 }
 
 /* lexmodal css */
+
 .leftmodal {
 	display: none; /* Hidden by default */
 	position: fixed; /* Stay in place */
 	z-index: 1; /* Sit on top */
 	left: 0;
-	/*top: 10%;*/
+	margin-top: 20px;
+	margin-bottom: 20px;
 	width: 50%;
 	font-size: 100%;
 	background-color: var(--lessoffwhite);
@@ -688,11 +690,14 @@ body {
 
 .leftmodalcontent {
 	position: fixed;
-	width: 45%;
-	height:100%;
+	width: 50%;
+	/* leave room for input boxes */
+	top: 30px;
+	bottom: 40px;
+	margin-top: 10px;
 	border-style: solid;
 	border-width: 1px;
-	overflow-y: scroll !important;
+	overflow-y: initial !important;
 	-webkit-animation-name: slideIn;
 	-webkit-animation-duration: 0.4s;
 	background-color: var(--lessoffwhite);
@@ -703,9 +708,11 @@ body {
 }
 
 .leftmodalheader {
-	padding: 2px 16px;
+	padding: 10px;
+	overflow-y: clip;
 	background-color: var(--dkgrey);
-	color: white;
+	font-family: 'hipparchiaboldstatic', sans-serif;
+	color: var(--main-body-color);
 }
 
 .leftmodalbody {
@@ -715,14 +722,14 @@ body {
 }
 
 .leftmodalclose{
-	color: white;
+	background-color: var(--lessoffwhite);
 	float: right;
 	font-weight: bold;
 }
 
 .leftmodalclose:hover,
 .leftmodalclose:focus {
-	color: #000;
+	color: var(--sicklyyellow);
 	text-decoration: none;
 	cursor: pointer;
 }
@@ -1187,13 +1194,6 @@ body {
 	color: var(--dkteal);
 }
 
-#parserdialog {
-	/* off because jquery is doing the work position: float;
-	box-shadow: 5px 5px 2px #999;
-	padding: 10px;
-	background-color: #fafafa;
-	*/ }
-
 #pollingdata {
 	padding: 10px;
 	text-align: left;
@@ -1281,11 +1281,12 @@ body {
 	position: relative;
 }
 
-a.nounderline {
+a.lex, a.nounderline {
+	color: var(--brtblue);
 	text-decoration: none;
 }
 
-a.nounderline:hover{
+a.lex:hover, a.nounderline:hover {
 	border-bottom: 1px dotted black;
 	border-top: 1px dotted black;
 	color: var(--dkbabyblue);
@@ -1762,13 +1763,3 @@ dictionaryidsearch:hover{
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
-a.parsing {
-	text-decoration: none;
-}
-
-a.parsing:hover{
-	border-bottom: 1px dotted black;
-	border-top: 1px dotted black;
-	color: var(--dkbabyblue);
-	text-shadow: 1px 1px 3px var(--transparentgrey);
-}

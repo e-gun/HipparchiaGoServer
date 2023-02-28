@@ -398,20 +398,9 @@ function lexsrch() {
     $.getJSON(url + searchterm, function (definitionreturned) {
         let ldt = $('#lexicadialogtext');
         let jshld = $('#lexicaljsscriptholder');
-        ldt.dialog({
-            closeOnEscape: true,
-            autoOpen: false,
-            maxHeight: windowHeight*.9,
-            maxWidth: windowHeight*.9,
-            minWidth: windowHeight*.33,
-            position: { my: "left top", at: "left top", of: window },
-            title: dialogtitle,
-            draggable: true,
-            icons: { primary: 'ui-icon-close' },
-            click: function() { $( this ).dialog( 'close' ); }
-        });
-        ldt.dialog( 'open' );
-        ldt.html(definitionreturned['newhtml']);
+        document.getElementById('leftmodalheadertext').innerHTML = searchterm;
+        document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml'];
+        document.getElementById('lexmodal').style.display = "block";
         jshld.html(definitionreturned['newjs']);
         $(mydictfield).val(restoreme);
     });

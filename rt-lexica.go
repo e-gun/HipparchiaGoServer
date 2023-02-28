@@ -727,7 +727,7 @@ func formatprevalencedata(w DbWordCount, s string) string {
 // formatparsingdata - turn []MorphPossib into HTML
 func formatparsingdata(mpp []MorphPossib) string {
 	const (
-		OBSERVED = `<span class="obsv"><span class="obsv"> from <span class="baseform"><a class="parsing" href="#%s_%s">%s</a></span>
+		OBSERVED = `<span class="obsv"><span class="obsv"> from <span class="baseform"><a class="lex" href="#%s_%s">%s</a></span>
 	`
 		BFTRANS  = `<span class="baseformtranslation">&nbsp;(“%s”)</span></span></span>`
 		MORPHTAB = `

@@ -73,30 +73,9 @@ function parsepassagereturned(passagereturned) {
 
     $('observed').click( function(e) {
         e.preventDefault();
-        // let windowWidth = $(window).width();
-        // let windowHeight = $(window).height();
         let browsedauthorid = document.getElementById('browsertableuid').attributes.uid.value;
-        // ldt.dialog({
-        //         closeOnEscape: true,
-        //         autoOpen: false,
-        //         minWidth: windowWidth*.33,
-        //         maxHeight: windowHeight*.9,
-        //         // position: { my: "left top", at: "left top", of: window },
-        //         title: this.id,
-        //         draggable: true,
-        //         icons: { primary: 'ui-icon-close' },
-        //         click: function() { $( this ).dialog( 'close' ); }
-        //         });
-        // ldt.dialog( 'open' );
-       //  ldt.html('[searching...]');
-        // document.getElementById('lexmodalbody').remove();
-        // var lexmodal = document.getElementById('lexmodal')
         var htxt = this.id;
         $.getJSON('/lex/findbyform/' + this.id + '/' + browsedauthorid, function (definitionreturned) {
-            // ldt.html(definitionreturned['newhtml']);
-            // var newelem = document.createElement('div');
-            // newelem.setAttribute("id", "lexmodalbody");
-            // lexmodal.append(newelem);
             document.getElementById('leftmodalheadertext').innerHTML = htxt;
             document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml'];
             document.getElementById('lexmodal').style.display = "block";
