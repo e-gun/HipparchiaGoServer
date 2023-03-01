@@ -271,11 +271,11 @@ const (
 			let language = this.getAttribute("language");
 
 			let url = '/lex/idlookup/' + language + '/' + entryid;
-
+			document.getElementById('leftmodalheadertext').innerHTML = "[searching...]";
+			document.getElementById('lexmodal').style.display = "block";
 			$.getJSON(url, function (definitionreturned) {
 				document.getElementById('leftmodalheadertext').innerHTML = entryid;
 				document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml'];
-				document.getElementById('lexmodal').style.display = "block";
 				jshld.html(definitionreturned['newjs']);
 			});
 
@@ -290,25 +290,12 @@ const (
 		let headword = this.getAttribute("headword");
 		let parserxref = this.getAttribute("parserxref");
 		let lexid = this.getAttribute("lexicalid");
-		
-		ldt.dialog({
-			closeOnEscape: true,
-			autoOpen: false,
-			minWidth: windowWidth*.33,
-			maxHeight: windowHeight*.9,
-			// position: { my: "left top", at: "left top", of: window },
-			title: headword,
-			draggable: true,
-			icons: { primary: 'ui-icon-close' },
-			click: function() { $(this).dialog('close'); }
-			});
-		
-		ldt.dialog('open');
-		ldt.html('[searching...]');
-		
+		document.getElementById('morphmodal').style.display = "block";
+		document.getElementById('rightmodalheadertext').innerHTML = "[building chart...]";
 		$.getJSON('/lex/chart/'+this.lang+'/'+lexid+'/'+parserxref+'/'+headword, function (definitionreturned) {
-			ldt.html(definitionreturned['newhtml']);
-			jshld.html(definitionreturned['newjs']);
+				document.getElementById('rightmodalheadertext').innerHTML = lexid;
+				document.getElementById('morphmodalbody').innerHTML = definitionreturned['newhtml'];
+				jshld.html(definitionreturned['newjs']);
 			});
 			
 		return false;
