@@ -10,7 +10,7 @@ $(document).ready( function () {
         // 38 & 40 - up and down arrow
         // 37 & 39 - forward and back arrow; but the click does not exist until you open a passage browser
         switch(e.which) {
-            case 27: $('#lexmodal').hide(); break;
+            case 27: $('#lexmodal').hide(); $('#morphmodal').hide(); break;
             case 37: $('#browseback').click(); break;
             case 39: $('#browseforward').click(); break;
             }
@@ -475,9 +475,38 @@ for (let i = 0; i < nonvectorspinners.length; i++) {
 }
 
 
-var lexmodal = document.getElementById("lexmodal");
-var leftmodalclose = document.getElementById("leftmodalclose");
+let lexmodal = document.getElementById("lexmodal");
+let leftmodalclose = document.getElementById("leftmodalclose");
 
 leftmodalclose.onclick = function() {
+    document.getElementById('lexmodalbody').innerHTML = ""
     lexmodal.style.display = "none";
+}
+
+let morphmodal = document.getElementById("morphmodal");
+let rightmodalclose = document.getElementById("rightmodalclose");
+
+rightmodalclose.onclick = function() {
+    document.getElementById('morphmodalbody').innerHTML = ""
+    morphmodal.style.display = "none";
+}
+
+let leftmodalheader = document.getElementById("lexmodalheader");
+leftmodalheader.ondblclick = function() {
+    let lmb = document.getElementById("lexmodalcontent");
+    if (lmb.classList.contains("hide")) {
+        lmb.classList.remove("hide");
+    } else {
+        lmb.classList.add("hide");
+    }
+}
+
+let righttmodalheader = document.getElementById("morphmodalheader");
+righttmodalheader.ondblclick = function() {
+    let rmb = document.getElementById("morphmodalcontent");
+    if (rmb.classList.contains("hide")) {
+        rmb.classList.remove("hide");
+    } else {
+        rmb.classList.add("hide");
+    }
 }

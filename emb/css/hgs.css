@@ -1,6 +1,7 @@
 :root {
 	--systemdefaultfont: "{{index . "fontname"}}";
 	--leftpanelsize: 45%;
+	--rightpanelsize: 45%;
 
 	/* define COLORS by variable so you can change them all right here */
 	/* formula to invert HEX: amount*(255-value)+(1-amount)*value */
@@ -684,10 +685,10 @@ body {
 	margin-bottom: 20px;
 	font-size: 100%;
 	background-color: var(--lessoffwhite);
-	-webkit-animation-name: slideIn;
-	-webkit-animation-duration: 0.4s;
-	animation-name: slideIn;
-	animation-duration: 0.4s
+	/*-webkit-animation-name: slideIn;*/
+	/*-webkit-animation-duration: 0.4s;*/
+	/*animation-name: slideIn;*/
+	/*animation-duration: 0.4s*/
 }
 
 .leftmodalheader {
@@ -707,6 +708,14 @@ body {
 	color: var(--main-body-color);
 }
 
+.leftmodalbuttons{
+	float: right;
+	font-weight: bold;
+	padding-top: 5px;
+	padding-right: 5px;
+	color: var(--main-body-color);
+}
+
 .leftmodalclose{
 	float: right;
 	font-weight: bold;
@@ -716,7 +725,7 @@ body {
 
 .leftmodalclose:hover,
 .leftmodalclose:focus {
-	color: var(--pinker);
+	color: var(--midgrey);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 	text-decoration: none;
 	cursor: pointer;
@@ -728,7 +737,7 @@ body {
 	/* leave room for input boxes */
 	top: 30px;
 	bottom: 40px;
-	margin-top: 30px;
+	margin-top: 35px;
 	border-style: solid;
 	border-width: 1px;
 	overflow-y: scroll !important;
@@ -907,6 +916,89 @@ body {
 
 .reduced {
 	font-size: 90%;
+}
+
+/* morphmodal css */
+
+.rightmodal {
+	display: none; /* Hidden by default */
+	position: fixed; /* Stay in place */
+	z-index: 1; /* Sit on top */
+	width: var(--leftpanelsize);
+	right: 5px;
+	margin-top: 20px;
+	margin-bottom: 20px;
+	font-size: 100%;
+	background-color: var(--lessoffwhite);
+	/*-webkit-animation-name: slideIn;*/
+	/*-webkit-animation-duration: 0.4s;*/
+	/*animation-name: slideIn;*/
+	/*animation-duration: 0.4s*/
+}
+
+.rightmodalheader {
+	/* no overflow-y scroll bar here... */
+	position: fixed;
+	width: var(--rightpanelsize);
+	padding-top: 5px;
+	padding-bottom: 5px;
+	border-style: solid;
+	border-width: 1px;
+	border-color: var(--midgrey);
+	box-shadow: 2px 2px 1px var(--transparentgrey);
+	overflow-y: clip;
+	background-color: var(--dkgrey);
+	font-family: 'hipparchiaboldstatic', sans-serif;
+	font-size: 100%;
+	color: var(--main-body-color);
+}
+
+.rightmodalbuttons{
+	float: right;
+	font-weight: bold;
+	padding-top: 5px;
+	padding-right: 5px;
+	color: var(--main-body-color);
+}
+
+.rightmodalclose{
+	float: right;
+	font-weight: bold;
+	padding-right: 10px;
+	color: var(--main-body-color);
+}
+
+.rightmodalclose:hover,
+.rightmodalclose:focus {
+	color: var(--midgrey);
+	text-shadow: 1px 1px 3px var(--transparentgrey);
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.rightmodalcontent {
+	position: fixed;
+	width: var(--rightpanelsize);
+	/* leave room for input boxes */
+	top: 30px;
+	bottom: 40px;
+	margin-top: 35px;
+	border-style: solid;
+	border-width: 1px;
+	overflow-y: scroll !important;
+	-webkit-animation-name: slideIn;
+	-webkit-animation-duration: 0.4s;
+	background-color: var(--lessoffwhite);
+	border-color: var(--midgrey);
+	box-shadow: 2px 2px 1px var(--transparentgrey);
+	animation-name: slideIn;
+	animation-duration: 0.4s
+}
+
+.rightmodalbody {
+	padding: 15px;
+	overflow-y: auto;
+	background-color: var(--lessoffwhite);
 }
 
 .rust {
@@ -1184,9 +1276,35 @@ body {
 	font-size: 90%;
 }
 
+#lexmodal {
+	line-height: 1.5;
+}
+
+#lexmodalcontent {
+	opacity: 1;
+	transition: opacity .125s;
+}
+
+#lexmodalcontent.hide {
+	opacity: 0;
+}
+
 #loadslots, #saveslots {
 	padding-left: 3px;
 	padding-bottom: 3px;
+}
+
+#morphmodal {
+	line-height: 1.5;
+}
+
+#morphmodalcontent {
+	opacity: 1;
+	transition: opacity .125s;
+}
+
+#morphmodalcontent.hide {
+	opacity: 0;
 }
 
 #helptabs {
