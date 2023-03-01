@@ -1,5 +1,6 @@
 :root {
 	--systemdefaultfont: "{{index . "fontname"}}";
+	--leftpanelsize: 45%;
 
 	/* define COLORS by variable so you can change them all right here */
 	/* formula to invert HEX: amount*(255-value)+(1-amount)*value */
@@ -32,6 +33,7 @@
 	--offwhite: hsla(0, 0%, 99%, 1);
 	--orange: hsla(47, 100%, 30%, 1);
 	--pink: hsla(0, 33%, 96%, 1);
+	--pinker: hsl(0, 73%, 80%);
 	--plum: hsla(291, 15%, 38%);
 	--pukegreen: hsl(71, 95%, 22%);
 	--red: hsla(346, 77%, 26%, 1);
@@ -670,6 +672,81 @@ body {
 	color: var(--blue);
 }
 
+/* lexmodal css */
+
+.leftmodal {
+	display: none; /* Hidden by default */
+	position: fixed; /* Stay in place */
+	z-index: 1; /* Sit on top */
+	width: var(--leftpanelsize);
+	left: 5px;
+	margin-top: 20px;
+	margin-bottom: 20px;
+	font-size: 100%;
+	background-color: var(--lessoffwhite);
+	-webkit-animation-name: slideIn;
+	-webkit-animation-duration: 0.4s;
+	animation-name: slideIn;
+	animation-duration: 0.4s
+}
+
+.leftmodalheader {
+	/* no overflow-y scroll bar here... */
+	position: fixed;
+	width: var(--leftpanelsize);
+	padding-top: 5px;
+	padding-bottom: 5px;
+	border-style: solid;
+	border-width: 1px;
+	border-color: var(--midgrey);
+	box-shadow: 2px 2px 1px var(--transparentgrey);
+	overflow-y: clip;
+	background-color: var(--dkgrey);
+	font-family: 'hipparchiaboldstatic', sans-serif;
+	font-size: 100%;
+	color: var(--main-body-color);
+}
+
+.leftmodalclose{
+	float: right;
+	font-weight: bold;
+	padding-right: 10px;
+	color: var(--main-body-color);
+}
+
+.leftmodalclose:hover,
+.leftmodalclose:focus {
+	color: var(--pinker);
+	text-shadow: 1px 1px 3px var(--transparentgrey);
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.leftmodalcontent {
+	position: fixed;
+	width: var(--leftpanelsize);
+	/* leave room for input boxes */
+	top: 30px;
+	bottom: 40px;
+	margin-top: 30px;
+	border-style: solid;
+	border-width: 1px;
+	overflow-y: scroll !important;
+	-webkit-animation-name: slideIn;
+	-webkit-animation-duration: 0.4s;
+	background-color: var(--lessoffwhite);
+	border-color: var(--midgrey);
+	box-shadow: 2px 2px 1px var(--transparentgrey);
+	animation-name: slideIn;
+	animation-duration: 0.4s
+}
+
+.leftmodalbody {
+	padding: 15px;
+	overflow-y: auto;
+	background-color: var(--lessoffwhite);
+}
+
 .letterbox {
 	border-style: solid;
 	border-width: 1px;
@@ -1130,13 +1207,6 @@ body {
 	color: var(--dkteal);
 }
 
-#parserdialog {
-	/* off because jquery is doing the work position: float;
-	box-shadow: 5px 5px 2px #999;
-	padding: 10px;
-	background-color: #fafafa;
-	*/ }
-
 #pollingdata {
 	padding: 10px;
 	text-align: left;
@@ -1224,11 +1294,12 @@ body {
 	position: relative;
 }
 
-a.nounderline {
+a.lex, a.nounderline {
+	color: var(--brtblue);
 	text-decoration: none;
 }
 
-a.nounderline:hover{
+a.lex:hover, a.nounderline:hover {
 	border-bottom: 1px dotted black;
 	border-top: 1px dotted black;
 	color: var(--dkbabyblue);
@@ -1705,13 +1776,3 @@ dictionaryidsearch:hover{
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
-a.parsing {
-	text-decoration: none;
-}
-
-a.parsing:hover{
-	border-bottom: 1px dotted black;
-	border-top: 1px dotted black;
-	color: var(--dkbabyblue);
-	text-shadow: 1px 1px 3px var(--transparentgrey);
-}

@@ -81,7 +81,7 @@ func FillPSQLPoool() *pgxpool.Pool {
 func GetPSQLconnection() *pgxpool.Conn {
 	const (
 		FAIL1   = "GetPSQLconnection() could not Acquire() from SQLPool."
-		FAIL2   = `Your password in '%s' is incorrect?`
+		FAIL2   = `Your password in '%s' is incorrect? Too many connections to the server?`
 		FAIL3   = `The database is empty. Deleting any 'C3%sC0' so you can reset the server.`
 		ERRRUN  = `dial error`
 		FAILRUN = `'%s': the PostgreSQL server cannot be found; check that it is running and serving on port %d`

@@ -169,6 +169,8 @@ const (
 			$.getJSON('/lex/findbyform/'+this.id, function (definitionreturned) {
 				$( '#lexicadialogtext' ).html(definitionreturned['newhtml']);
 				$( '#lexicaljsscriptholder' ).html(definitionreturned['newjs']);
+				document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml']
+				document.getElementById('lexmodal').style.display = "block";
 			});
 		return false;
 		});`
@@ -235,9 +237,11 @@ const (
 	
 				let url = '/lex/idlookup/' + language + '/' + entryid;
 				
-				$.getJSON(url, function (definitionreturned) { 
-					ldt.html(definitionreturned['newhtml']);
-					jshld.html(definitionreturned['newjs']);	
+				$.getJSON(url, function (definitionreturned) {
+					document.getElementById('leftmodalheadertext').innerHTML = entryid;
+					document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml'];
+					document.getElementById('lexmodal').style.display = "block";
+					jshld.html(definitionreturned['newjs']);
 				});
 			});
 	</script>`
@@ -249,45 +253,32 @@ const (
 		var windowHeight = $(window).height();
 		let ldt = $('#lexicadialogtext');
 		let jshld = $('#lexicaljsscriptholder');
-		
-		ldt.dialog({
-			closeOnEscape: true,
-			autoOpen: false,
-			minWidth: windowWidth*.33,
-			maxHeight: windowHeight*.9,
-			// position: { my: "left top", at: "left top", of: window },
-			title: this.id,
-			draggable: true,
-			icons: { primary: 'ui-icon-close' },
-			click: function() { $(this).dialog('close'); }
-			});
-		
-		ldt.dialog('open');
-		ldt.html('[searching...]');
-		
+		var htxt = this.id;
+
 		$.getJSON('/lex/lookup/^'+this.id+'$', function (definitionreturned) {
-			ldt.html(definitionreturned['newhtml']);
-			jshld.html(definitionreturned['newjs']);		
+				document.getElementById('leftmodalheadertext').innerHTML = htxt;
+				document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml'];
+				document.getElementById('lexmodal').style.display = "block";
+				jshld.html(definitionreturned['newjs']);
 			});
-		return false;
-		
+		return false;	
 		});
 
 	$('dictionaryidsearch').click( function(){
 			$('#imagearea').empty();
-
-			let ldt = $('#lexicadialogtext');
 			let jshld = $('#lexicaljsscriptholder');
-	
 			let entryid = this.getAttribute("entryid");
 			let language = this.getAttribute("language");
 
 			let url = '/lex/idlookup/' + language + '/' + entryid;
-			
-			$.getJSON(url, function (definitionreturned) { 
-				ldt.html(definitionreturned['newhtml']);
-				jshld.html(definitionreturned['newjs']);	
+
+			$.getJSON(url, function (definitionreturned) {
+				document.getElementById('leftmodalheadertext').innerHTML = entryid;
+				document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml'];
+				document.getElementById('lexmodal').style.display = "block";
+				jshld.html(definitionreturned['newjs']);
 			});
+
 		});
 	
 	$('formsummary').click( function(e) {
@@ -317,7 +308,7 @@ const (
 		
 		$.getJSON('/lex/chart/'+this.lang+'/'+lexid+'/'+parserxref+'/'+headword, function (definitionreturned) {
 			ldt.html(definitionreturned['newhtml']);
-			jshld.html(definitionreturned['newjs']);		
+			jshld.html(definitionreturned['newjs']);
 			});
 			
 		return false;

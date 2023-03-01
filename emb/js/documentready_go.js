@@ -10,7 +10,7 @@ $(document).ready( function () {
         // 38 & 40 - up and down arrow
         // 37 & 39 - forward and back arrow; but the click does not exist until you open a passage browser
         switch(e.which) {
-            case 27: $('#browserdialog').hide(); break;
+            case 27: $('#lexmodal').hide(); break;
             case 37: $('#browseback').click(); break;
             case 39: $('#browseforward').click(); break;
             }
@@ -475,4 +475,12 @@ $( '#earliestdate' ).spinner({
 for (let i = 0; i < nonvectorspinners.length; i++) {
     const mywidth = 90;
     $(nonvectorspinners[i]).width(mywidth);
+}
+
+
+var lexmodal = document.getElementById("lexmodal");
+var leftmodalclose = document.getElementById("leftmodalclose");
+
+leftmodalclose.onclick = function() {
+    lexmodal.style.display = "none";
 }
