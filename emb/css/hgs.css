@@ -1282,6 +1282,7 @@ body {
 
 #lexmodalcontent {
 	opacity: 1;
+	font-size: 90%;
 	transition: opacity .125s;
 }
 
