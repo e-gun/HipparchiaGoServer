@@ -23,6 +23,8 @@
     Environment: {{index . "env"}}
 
 -->
+
+<!-- left side navigation panel -->
 <div id="setoptionsnavigator" class="sidenavigation">
     <div id="alt_upperleftbuttons">
         <span id="closeoptionsbutton" title="Configuration options"><span class="material-icons md-mid">settings</span></span>
@@ -89,6 +91,7 @@
 
 </div>
 
+<!-- left and right side modal boxes for lexica and morphology maps -->
 <div id="lexmodal" class="leftmodal">
     <div id="lexmodalheader" class="leftmodalheader" title="Double-click to hide entry">
         <span class="leftmodalbuttons">
@@ -107,18 +110,19 @@
         <span class="leftmodalbuttons">
             <span id="rightmodalclose" class="rightmodalclose material-icons" title="Click or Press ESC to close">cancel</span>
         </span>
-        &nbsp;<span id="rightmodalheadertext">&nbsp;rightmodalheadertext</span>
+        &nbsp;<span id="rightmodalheadertext">&nbsp;</span>
     </div>
     <div id="morphmodalcontent" class="rightmodalcontent">
-        <div id="morphmodalbody" class="rightmodalbody">rightmodalbody</div>
+        <div id="morphmodalbody" class="rightmodalbody">&nbsp;</div>
         <div id="morphmodalfoot" class="rightmodalfoot">&nbsp;</div>
     </div>
 </div>
+
 <!-- blank div to hold script for injection later -->
 <div id="lexicaljsscriptholder"> </div>
 
+<!-- "mainbody" allows the option sidebar to push the page contents right -->
 <div id="mainbody">
-    <!-- "mainbody" allows the option sidebar to push the page contents right -->
     <div id="searchfield">
         <span id="endpointbutton-isclosed" class="material-icons md-mid ui" title="Open endpoint selection options">chevron_right</span>
         <span id="endpointbutton-isopen" class="material-icons md-mid ui" title="Close endpoint selection options">expand_more</span>

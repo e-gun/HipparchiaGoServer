@@ -10,7 +10,7 @@ import "time"
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.1.5"
+	VERSION                  = "1.1.6"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	BLACKANDWHITE            = false
 	CONFIGLOCATION           = "."
@@ -34,7 +34,7 @@ const (
 	DEFAULTPSQLUSER          = "hippa_wr"
 	DEFAULTPSQLPORT          = 5432
 	DEFAULTPSQLDB            = "hipparchiaDB"
-	DEFAULTSYNTAX            = "~"
+	DEFAULTQUERYSYNTAX       = "~"
 	FIRSTSEARCHLIM           = 750000 // 149570 lines in Cicero (lt0474); all 485 forms of »δείκνυμι« will pass 50k
 	FONTSETTING              = "Noto"
 	GENRESTOCOUNT            = 5

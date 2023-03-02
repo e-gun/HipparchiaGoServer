@@ -8,6 +8,7 @@ if hash mdpdf &> /dev/null
   then
     mdpdf INSTRUCTIONS/INSTALLATION_MACOS_RECOMMENDED.md emb/pdf/HGS_INSTALLATION_MacOS.pdf
     mdpdf INSTRUCTIONS/INSTALLATION_WINDOWS.md emb/pdf/HGS_INSTALLATION_Windows.pdf
+    mdpdf INSTRUCTIONS/INSTALLATION_NIX.md emb/pdf/HGS_INSTALLATION_Nix.pdf
     mdpdf INSTRUCTIONS/CUSTOMIZATION.md emb/pdf/HGS_Customization.pdf
     mdpdf fyi/README.md emb/pdf/HGS_FYI.pdf
 fi

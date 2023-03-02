@@ -367,6 +367,7 @@ func CopyInstructions() {
 		FYI  = "Assuming this is a first run...\n\tWriting instruction files to the current working directory."
 		MACI = "HGS_INSTALLATION_MacOS.pdf"
 		WINI = "HGS_INSTALLATION_Windows.pdf"
+		NIXI = "HGS_INSTALLATION_Nix.pdf"
 		CUST = "HGS_Customization.pdf"
 		FYIF = "HGS_FYI.pdf"
 		FNF  = "CopyInstructions(): Embedded PDF not found. This function will now return."
@@ -381,6 +382,8 @@ func CopyInstructions() {
 		f = MACI
 	case "windows":
 		f = WINI
+	case "linux":
+		f = NIXI
 	default:
 		f = ""
 	}

@@ -9,6 +9,7 @@
 ![selftest](../gitimg/selftest.png)
 ### some selftest times
 
+* 111s on 6 cores of apple silicon (m1) virtualizing rocky linux
 * 113s on 6 cores of an intel 9900k running a virtualized ubuntu
 * 154s on 6 cores of apple silicon (m1) virtualizing macos
 * 232s on 6 cores of an intel 9900k running a virtualized windows 10
@@ -16,7 +17,7 @@
 * 483s on 6 cores of apple silicon (m1) virtualizing windows 11 arm
 * 1144s (ouch) on a 2017 MacBook w/ 1.3GHz Core i5
 
-### self-test: cpu-constrained vs  i/o constrained
+### self-test: cpu-constrained vs i/o constrained
 
 ![workers vs time](../gitimg/workers_vs_time.png)
 
