@@ -6,7 +6,7 @@
 
 ### [A] install and configure `PostgreSQL`
 
-1. your platform will determine how to do this. Check `postgresql.org` for instructions
+1. your platform will determine how to do this. Check http://postgresql.org/download for instructions
 
 ![launch](../gitimg/linux/01_linux_psql.png)
 
@@ -16,18 +16,18 @@
   - enable launch at system startup
   - start the database
 2. You should also install `postgresql-contrib` to get access to `pg_trgm`
-  - to achieve this you will need to do something like `sudo dnf install postgresql-contrib`
+  - to achieve this you will need to do something like `sudo dnf install postgresql15-contrib`
 3. Enter the `psql` shell: `sudo -u postgres psql`
    - execute the following; use good/strong passwords and write them down:
 ```
-ALTER USER postgres WITH PASSWORD 'somespqladminpass';`
-CREATE ROLE hippa_wr LOGIN ENCRYPTED PASSWORD 'somepassword' NOSUPERUSER INHERIT CREATEDB NOCREATEROLE NOREPLICATION;`
-CREATE DATABASE "hipparchiaDB" WITH OWNER = hippa_wr ENCODING = 'UTF8';`
-ALTER DATABASE "hipparchiaDB" OWNER TO hippa_wr;`
-CREATE EXTENSION pg_trgm;`
+ALTER USER postgres WITH PASSWORD 'somespqladminpass';
+CREATE ROLE hippa_wr LOGIN ENCRYPTED PASSWORD 'somepassword' NOSUPERUSER INHERIT CREATEDB NOCREATEROLE NOREPLICATION;
+CREATE DATABASE "hipparchiaDB" WITH OWNER = hippa_wr ENCODING = 'UTF8';
+ALTER DATABASE "hipparchiaDB" OWNER TO hippa_wr;
+CREATE EXTENSION pg_trgm;
 \q
 ```
-4. Find `pg_hba.conf`. It will be somewhere like `/var/lib/psql/15/data/pg_hba.conf`. 
+4. Find `pg_hba.conf`. It will be somewhere like `/var/lib/pgsql/15/data/pg_hba.conf`. [it can be found via executing `SHOW hba_file;` inside the `psql` shell]
    - Ensure that the `METHOD` in `pg_hba.conf` is `trust` and NOT `peer` for `local` connections. 
    - Look at the end of the file and confirm that you see a block that looks like this:
 
@@ -38,7 +38,7 @@ CREATE EXTENSION pg_trgm;`
 
 ```
 5. IF you do not see that block, edit `pg_hba.conf`. 
-   - After the edit, you need to and reload the server: `sudo systemctl enable postgresql-15`, vel sim.). 
+   - After the edit, you need to and reload the server: `sudo systemctl restart postgresql-15`, vel sim.). 
 
 ---
 
@@ -53,6 +53,9 @@ CREATE EXTENSION pg_trgm;`
 
 ### [C] launch `HipparchiaGoServer`
 
+0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation. If a working installation executes `HipparchiaGoServer -ex`, it will generate a valid `hDB` folder.]
+   The data needs to be in a folder named `hDB`. This folder should be in the same folder as `HipparchiaGoServer`.
+   You can (re)move the data folder after you have successfully installed the data into the database.
 1. Launch the binary: `./HipparchiaGoServer`. 
 2. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
 3. On the first run instruction files will be dropped into your current working directory. You will be asked for the passwords for `hippa_wr` and `postgres`.

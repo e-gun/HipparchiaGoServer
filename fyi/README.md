@@ -9,6 +9,7 @@
 ![selftest](../gitimg/selftest.png)
 ### some selftest times
 
+* 91s on 8 cores of apple silicon (m1) virtualizing rocky linux
 * 111s on 6 cores of apple silicon (m1) virtualizing rocky linux
 * 113s on 6 cores of an intel 9900k running a virtualized ubuntu
 * 154s on 6 cores of apple silicon (m1) virtualizing macos
