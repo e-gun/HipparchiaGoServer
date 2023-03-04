@@ -54,7 +54,7 @@ password at `C.2` below.
 ---
 
 ### [B] acquire `HipparchiaGoServer.exe` and launch it
-1. You can build `HipparchiaGoServer.exe` yourself with the files in this repository. Or you can grab a pre-built binary.
+1. You can build `HipparchiaGoServer.exe` yourself with the files in this repository (https://github.com/e-gun/HipparchiaGoServer). Or you can grab a pre-built binary from the site pictured below.
 
 ![inst13](../gitimg/windows/16_getbinary.png)
 
@@ -64,7 +64,7 @@ password at `C.2` below.
 
 ### [C] the first launch of `HipparchiaGoServer`: loading `hipparchiaDB` into `PostgreSQL`
 0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation.]
-The data needs to be in a folder named `hDB`. This folder should be in the same folder as `HipparchiaGoServer`.
+The data needs to be in a folder named `hDB`. This folder has to be in the same folder as `HipparchiaGoServer`.
 See the image and note that both are present in the same directory. You can (re)move the data folder after you
 have successfully installed the data into the database.
   

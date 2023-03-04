@@ -11,19 +11,19 @@
 ![launch](../gitimg/linux/01_linux_psql.png)
 
 * If you `Copy, paste and run` as per their instructions, you will do the four things required to move forward:
-  - install
+  - install the server software
   - initialize the database
-  - enable launch at system startup
-  - start the database
+  - enable server launch at system startup
+  - start the server
 2. You should also install `postgresql-contrib` to get access to `pg_trgm`
   - to achieve this you will need to do something like `sudo dnf install postgresql15-contrib`
 3. Enter the `psql` shell: `sudo -u postgres psql`
    - execute the following; use good/strong passwords and write them down:
 ```
 ALTER USER postgres WITH PASSWORD 'somespqladminpass';
-CREATE ROLE hippa_wr LOGIN ENCRYPTED PASSWORD 'somepassword' NOSUPERUSER INHERIT CREATEDB NOCREATEROLE NOREPLICATION;
+CREATE ROLE hippa_wr LOGIN ENCRYPTED PASSWORD 'somepassword' NOSUPERUSER INHERIT 
+    CREATEDB NOCREATEROLE NOREPLICATION;
 CREATE DATABASE "hipparchiaDB" WITH OWNER = hippa_wr ENCODING = 'UTF8';
-ALTER DATABASE "hipparchiaDB" OWNER TO hippa_wr;
 CREATE EXTENSION pg_trgm;
 \q
 ```
@@ -44,7 +44,7 @@ CREATE EXTENSION pg_trgm;
 
 ### [B] acquire `HipparchiaGoServer` and launch it
 
-1. You can build `HipparchiaGoServer` yourself with the files in this repository. Or you can grab a pre-built binary. Download the correct binary. 
+1. You can build `HipparchiaGoServer` yourself with the files in this repository (https://github.com/e-gun/HipparchiaGoServer). Or you can grab a pre-built binary from the site pictured below. Download the correct binary. 
 
 ![inst12](../gitimg/windows/16_getbinary.png)
 
@@ -54,7 +54,7 @@ CREATE EXTENSION pg_trgm;
 ### [C] launch `HipparchiaGoServer`
 
 0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation. If a working installation executes `HipparchiaGoServer -ex`, it will generate a valid `hDB` folder.]
-   The data needs to be in a folder named `hDB`. This folder should be in the same folder as `HipparchiaGoServer`.
+   The data needs to be in a folder named `hDB`. This folder has to be in the same folder as `HipparchiaGoServer`.
    You can (re)move the data folder after you have successfully installed the data into the database.
 1. Launch the binary: `./HipparchiaGoServer`. 
 2. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.

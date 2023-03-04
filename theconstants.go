@@ -304,8 +304,8 @@ const (
 	AUTHHTML = `    
 	<div id="currentuser" class="unobtrusive">
         <span id="userid" class="user">{{index . "user" }}</span>
-        <span id="executelogout" class="material-icons">person_remove</span>
-        <span id="executelogin" class="material-icons">login</span>
+        <span id="executelogout" class="material-icons material-icons-outline">verified_user</span>
+        <span id="executelogin" class="material-icons material-icons-outline">shield</span>
         <br>
         <span id="alertarea"></span>
     </div>
