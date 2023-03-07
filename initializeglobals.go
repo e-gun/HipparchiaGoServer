@@ -24,12 +24,6 @@ const (
 
 // The maps below are all race condition candidates, but most of them are write once, read many.
 
-// SessionMap and SearchMap receive infrequent additions and deletions. 20 goroutines reading the same L/U updated map
-// simultaneously as fast as they can are each able get to >100,000,000 on average if you update the map every .1 seconds.
-
-// You will seemingly never race if you L/U all writes and RL/RU all reads. This is astonishingly slow: good luck
-// getting to 100,000,000 reads this way to confirm that you can get to 100x that number...
-
 // But note that the races are in practice a "small" and "technical" complaint. HipparchiaGoServer is not supposed to
 // be exposed to everyone, everywhere all the time. Someone requesting 100 searches is a bigger worry than any race on
 // 10m requests condition. There needs to be a fairly high degree of user trust to begin with.

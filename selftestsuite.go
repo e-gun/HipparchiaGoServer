@@ -23,12 +23,12 @@ type SrchTest struct {
 	m  string
 }
 
-func (t *SrchTest) U() string {
+func (t *SrchTest) Url() string {
 	srch := fmt.Sprintf(t.s, "testing", t.t1, t.t2)
 	return fmt.Sprintf("http://%s:%d/%s", Config.HostIP, Config.HostPort, srch)
 }
 
-func (t *SrchTest) M() string {
+func (t *SrchTest) Msg() string {
 	return fmt.Sprintf(t.m, strings.ReplaceAll(t.t1, "%20", " "), strings.ReplaceAll(t.t2, "%20", " "))
 }
 
@@ -117,9 +117,9 @@ func selftest() {
 
 	msg("[I] 6 search tests", MSGWARN)
 	for i := 0; i < len(st); i++ {
-		_, err := http.Get(st[i].U())
+		_, err := http.Get(st[i].Url())
 		chke(err)
-		TimeTracker(st[i].id, st[i].M(), start, previous)
+		TimeTracker(st[i].id, st[i].Msg(), start, previous)
 		previous = time.Now()
 	}
 

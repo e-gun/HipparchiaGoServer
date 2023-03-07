@@ -476,7 +476,7 @@ func buildbrowsertable(focus int, lines []DbWorkline) string {
 	// that was the body, now do the head and tail
 	top := fmt.Sprintf(UIDDIV, lines[0].AuID())
 	top += `<table><tbody>`
-	top += `<tr class="spacing">` + strings.Repeat("&nbsp;", MINBROWSERWIDTH) + `</tr>`
+	// top += `<tr class="spacing">` + strings.Repeat("&nbsp;", MINBROWSERWIDTH) + `</tr>`
 
 	tab = top + tab + `</tbody></table>`
 

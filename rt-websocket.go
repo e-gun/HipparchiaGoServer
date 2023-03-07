@@ -28,6 +28,11 @@ func RtWebsocket(c echo.Context) error {
 		FAILCON = "RtWebsocket(): ws connection failed"
 	)
 
+	user := readUUIDCookie(c)
+	if !AllAuthorized.Check(user) {
+		return nil
+	}
+
 	ws, err := Upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		msg(FAILCON, MSGNOTE)

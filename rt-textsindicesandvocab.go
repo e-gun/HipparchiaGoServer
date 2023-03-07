@@ -46,13 +46,8 @@ type VocInf struct {
 // RtTextMaker - make a text of whatever collection of lines you would be searching
 func RtTextMaker(c echo.Context) error {
 	c.Response().After(func() { GCStats("RtTextMaker()") })
-	// diverging from the way the python works
-	// build not via the selection boxes but via the actual selection made and stored in the session
-
-	// this has the downside of allowing for insanely large text generation
-	// but, on the other hand, this now works like a simple search
-
-	// then it gets output as a big "browser table"...
+	// text generation works like a simple search for "anything" in each line of the selected texts
+	// the results then gett output as a big "browser table"...
 
 	const (
 		TBLRW = `
@@ -181,8 +176,7 @@ func RtTextMaker(c echo.Context) error {
 func RtVocabMaker(c echo.Context) error {
 	c.Response().After(func() { GCStats("RtVocabMaker()") })
 
-	// diverging from the way the python works
-	// build not via the selection boxes but via the actual selection made and stored in the session
+	// grab lines via a simple search for "anything" in each line of the selection made and stored in the session
 	// todo: worry about γ' for γε
 
 	const (

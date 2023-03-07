@@ -95,7 +95,7 @@
 <div id="lexmodal" class="leftmodal">
     <div id="lexmodalheader" class="leftmodalheader" title="Double-click to hide entry">
         <span class="leftmodalbuttons">
-            <span id="leftmodalclose" class="leftmodalclose material-icons" title="Click or Press ESC to close">cancel</span>
+            <span id="leftmodalclose" class="leftmodalclose material-icons material-icons-outline" title="Click or Press ESC to close">cancel</span>
         </span>
         &nbsp;<span id="leftmodalheadertext">&nbsp;</span>
     </div>
@@ -108,7 +108,7 @@
 <div id="morphmodal" class="rightmodal">
     <div id="morphmodalheader" class="rightmodalheader" title="Double-click to hide chart">
         <span class="leftmodalbuttons">
-            <span id="rightmodalclose" class="rightmodalclose material-icons" title="Click or Press ESC to close">cancel</span>
+            <span id="rightmodalclose" class="rightmodalclose material-icons material-icons-outline" title="Click or Press ESC to close">cancel</span>
         </span>
         &nbsp;<span id="rightmodalheadertext">&nbsp;</span>
     </div>
@@ -118,10 +118,16 @@
     </div>
 </div>
 
-<!-- blank div to hold script for injection later -->
-<div id="lexicaljsscriptholder"> </div>
+<div id="browserdialog">
+    <div id="browserdialogtext"></div>
+    <div id="browsernavigationbuttons">
+        <button id="browseback" title="Browse backwards (click or press the &#8592; key)"><span class="material-icons">arrow_back</span></button>&nbsp;&nbsp;&nbsp;&nbsp;
+        <button id="browserclose" title="Close the browser (click or press the 'escape' key)"><span class="material-icons">close</span></button>&nbsp;&nbsp;&nbsp;&nbsp;
+        <button id="browseforward" title="Browse forwards (click or press the &#8594; key)"><span class="material-icons">arrow_forward</span></button>&nbsp;&nbsp;&nbsp;&nbsp;
+    </div>
+</div>
 
-<!-- "mainbody" allows the option sidebar to push the page contents right -->
+<!-- "mainbody": the setoptionsnavigator sidebar will push anything in here to the right when it is opened -->
 <div id="mainbody">
     <div id="searchfield">
         <span id="endpointbutton-isclosed" class="material-icons md-mid ui" title="Open endpoint selection options">chevron_right</span>
@@ -214,107 +220,6 @@
         <div id="searchlistcontents">(this might take a second...)</div>
     </div>
 
-    <div id="savedprofiles">
-        <span id="togglesaveslots" title="Pick a save slot into which to save your current session"><span class="material-icons md-mid ui">save</span></span><br />
-        <div id="saveslots">
-            <span class="rarechars smallerthannormal">
-                <span class="saveoptions" title="Save to slot 1" id="save01">➊</span><br />
-                <span class="saveoptions" title="Save to slot 2" id="save02">➋</span><br />
-                <span class="saveoptions" title="Save to slot 3" id="save03">➌</span><br />
-                <span class="saveoptions" title="Save to slot 4" id="save04">➍</span><br />
-                <span class="saveoptions" title="Save to slot 5" id="save05">➎</span><br />
-            </span>
-        </div>
-        <span id="toggleloadslots" title="Pick a save slot from which to load stored session"><span class="material-icons md-mid ui">folder_open</span></span><br />
-        <div id="loadslots">
-            <span class="rarechars smallerthannormal">
-                <span class="loadoptions" title="Load from slot 1" id="load01">➀</span><br />
-                <span class="loadoptions" title="Load from slot 2" id="load02">➁</span><br />
-                <span class="loadoptions" title="Load from slot 3" id="load03">➂</span><br />
-                <span class="loadoptions" title="Load from slot 4" id="load04">➃</span><br />
-                <span class="loadoptions" title="Load from slot 5" id="load05">➄</span>
-            </span>
-        </div>
-    </div>
-
-    <div id="activeoptions">
-            <div id="grkisactive" title="Greek corpus is active"><span class="rarechars activeoption">Ⓖ</span></div>
-            <div id="grkisnotactive"></div>
-            <div id="latisactive" title="Latin corpus is active"><span class="rarechars activeoption">Ⓛ</span></div>
-            <div id="latisnotactive"></div>
-            <div id="ddpisactive" title="Documentary papyri corpus is active"><span class="rarechars activeoption">Ⓓ</span></div>
-            <div id="ddpnotisactive"></div>
-            <div id="insisactive" title="Inscriptions corpus I is active"><span class="rarechars activeoption">Ⓘ</span></div>
-            <div id="insnotisactive"></div>
-            <div id="chrisactive" title="Inscriptions corpus II is active"><span class="rarechars activeoption">Ⓒ</span></div>
-            <div id="chrnotisactive"></div>
-            <br>
-
-            <div id="usingrawinput" title="Passage locations manually entered"><span class="rarechars activeoption">⒭</span></div>
-            <div id="usingautoinput" title="Passage locations via autofill boxes"><span class="rarechars activeoption">⒜</span></div>
-            <div id="onehitistrue" title="Matches limited to one per work"><span class="rarechars activeoption">⑴</span></div>
-            <div id="onehitisfalse" title="Unlimited matches per work"></div>
-            <div id="spuriaistrue" title="Search inside spuria"><span class="activeoption"></span></div>
-            <div id="spuriaisfalse" title="Do not search inside spuria"><span class="activeoption linethrough small">sp</span></div>
-            <div id="undatedistrue" title="Search works that have no assigned date"><span class="activeoption"></span></div>
-            <div id="undatedisfalse" title="Do not search works without an assigned date"><span class="activeoption linethrough small">inc</span></div>
-            <div id="variaistrue" title="Search works that have various authors and dates"><span class="activeoption"></span></div>
-            <div id="variaisfalse" title="Do not search works that have various authors and dates"><span class="activeoption linethrough small">var</span></div>
-            <div id="headwordindexingactive" title="Index by headword"><span class="rarechars activeoption">⢱</span></div>
-            <div id="headwordindexinginactive" title="Do not index by headword"><span class="activeoption"></span></div>
-            <div id="frequencyindexingactive" title="Index by frequency"><span class="activeoption">﹟</span></div>
-            <div id="frequencyindexinginactive" title="Do not index by frequency"><span class="activeoption"></span></div>
-            <br>
-
-            <div id="lemmatizing-ison"><span class="rarechars activeoption">λ</span></div>
-            <div id="lemmatizing-isoff"><span class="activeoption"></span></div>
-            <div id="vectorizing-ison"><span class="rarechars activeoption">ṽ</span></div>
-            <div id="vectorizing-isoff"><span class="activeoption"></span></div>
-            <br>
-
-            <div id="alternates-ison"><span class="rarechars activeoption">🄰</span></div>
-            <div id="flatlemma-ison"><span class="rarechars activeoption">🄵</span></div>
-            <div id="unlemmatized-ison"><span class="rarechars activeoption">🅄</span></div>
-            <div id="winnertakesall-ison"><span class="rarechars activeoption">🅆</span></div>
-    </div>
-
-    <script>
-        // GENERIC
-        var optionids = Array('#onehitistrue', '#onehitisfalse', '#spuriaistrue',
-            '#spuriaisfalse', '#undatedistrue', '#undatedisfalse',
-            '#variaistrue', '#variaisfalse', '#headwordindexingactive',
-            '#headwordindexiningactive', '#frequencyindexingactive',
-            '#frequencyindexinginactive', '#grkisactive', '#latisactive',
-            '#ddpisactive', '#insisactive', '#chrisactive');
-
-        for (var i = 0; i < optionids.length; i++) { $(optionids[i]).hide(); }
-    </script>
-
-    <div id="helptabs">
-        <ul>
-            <li><a href="#Interface"><span>Interface</span></a></li>
-            <li><a href="#Browsing"><span>Browsing</span></a></li>
-            <li><a href="#Dictionaries"><span>Dictionaries and word counts</span></a></li>
-            <li><a href="#MakingSearchLists"><span>Searching: Building search lists</span></a></li>
-            <li><a href="#BasicSyntax"><span>Searching: Basic search syntax</span></a></li>
-            <li><a href="#RegexSearching"><span>Searching: REGEX</span></a></li>
-            <li><a href="#LemmaSearching"><span>Searching: Lemmata</span></a></li>
-            <li><a href="#Oddities"><span>Peculiarities and Gotchas</span></a></li>
-            <li><a href="#Extending"><span>Adding to the database</span></a></li>
-            <li><a href="#IncludedMaterials"><span>Included Materials</span></a></li>
-        </ul>
-        <div id="Interface"><!-- placeholder --></div>
-        <div id="Browsing"><!-- placeholder --></div>
-        <div id="Dictionaries"><!-- placeholder --></div>
-        <div id="MakingSearchLists"><!-- placeholder --></div>
-        <div id="BasicSyntax"><!-- placeholder --></div>
-        <div id="RegexSearching"><!-- placeholder --></div>
-        <div id="LemmaSearching"><!-- placeholder --></div>
-        <div id="Oddities"><!-- placeholder --></div>
-        <div id="Extending"><!-- placeholder --></div>
-        <div id="IncludedMaterials"><!-- placeholder --></div>
-    </div>
-
     <div id="wordsearchfields" class="center">
         <button id="executesearch" title="Execute the search"><span class="material-icons">search</span></button>
         <input id="wordsearchform" type="text" name="seeking" placeholder="(looking for...)" size=25>
@@ -355,15 +260,6 @@
 
     <br />
 
-    <div id="browserdialog">
-        <div id="browserdialogtext"></div>
-        <div id="browsernavigationbuttons">
-            <button id="browseback" title="Browse backwards (click or press the &#8592; key)"><span class="material-icons">arrow_back</span></button>&nbsp;&nbsp;&nbsp;&nbsp;
-            <button id="browserclose" title="Close the browser (click or press the 'escape' key)"><span class="material-icons">close</span></button>&nbsp;&nbsp;&nbsp;&nbsp;
-            <button id="browseforward" title="Browse forwards (click or press the &#8594; key)"><span class="material-icons">arrow_forward</span></button>&nbsp;&nbsp;&nbsp;&nbsp;
-        </div>
-    </div>
-
     <div id="lexica">
         <br />
         <input type="text" name="lexicon" class="lexica" id="lexicon" placeholder="(Dictionary Search)">
@@ -387,47 +283,148 @@
     <!-- the div where just the results get inserted... -->
     <div id="displayresults"></div>
 
-    <!-- blank divs just to hold scripts for injection later -->
-    <div id="browserclickscriptholder"> </div>
-    <div id="indexclickscriptholder"> </div>
-    <div id="vectorspinnerscriptholder"> </div>
-    <div id="selectionscriptholder"> </div>
-
-    <!-- misc ui elements -->
-    <div id="clickforhelp">
-        <span id="helpbutton" title="Help"><span class="material-icons md-mid ui">help</span></span>
-    </div>
-
-    <div id="upperleftbuttons">
-        <span id="openoptionsbutton" title="Configuration options"><span class="material-icons md-mid">settings</span></span>
-        <span id="moretools" title="Lexical tools"><span class="material-icons md-mid">handyman</span></span>
-        <span id="clear_button" title="Reset session/Clear search"><span class="material-icons md-mid">cancel</span></span>
-    </div>
-
-    <div id="bottommessage">
-        <span id="cookiemessage">Enable <span class="outline red">cookies</span> and/or <span class="outline red">javascript</span> in your browser and then reload this page.</span>
-    </div>
-
-    <!-- authentication html begins -->
-    {{index . "authhtm"}}
-    <!-- authentication html ends -->
-
-    <!-- load uielementlists first: others will use its values -->
-    <script src="/emb/js/uielementlists_go.js"></script>
-    <script src="/emb/js/autocomplete.js"></script>
-    <script src="/emb/js/browser.js"></script>
-    <script src="/emb/js/coreinterfaceclicks_go.js"></script>
-    <script src="/emb/js/radioclicks_go.js"></script>
-    <script src="/emb/js/vectorclicks.js"></script>
-
-    <!-- load documentready last: calls on too much that is above -->
-    <script src="/emb/js/documentready_go.js"></script>
-
-    <div id="versioning">
-        <span class="unobtrusive">HGS&nbsp;{{index . "version"}}</span>
-    </div>
-
 </div>
+
+<!-- misc ui elements -->
+<div id="upperleftbuttons">
+    <span id="openoptionsbutton" title="Configuration options"><span class="material-icons md-mid">settings</span></span>
+    <span id="moretools" title="Lexical tools"><span class="material-icons md-mid">handyman</span></span>
+    <span id="clear_button" title="Reset session/Clear search"><span class="material-icons md-mid">cancel</span></span>
+</div>
+
+<div id="clickforhelp">
+    <span id="helpbutton" title="Help"><span class="material-icons md-mid ui">help</span></span>
+</div>
+
+<div id="savedprofiles">
+    <span id="togglesaveslots" title="Pick a save slot into which to save your current session"><span class="material-icons md-mid ui">save</span></span><br />
+    <div id="saveslots">
+            <span class="rarechars smallerthannormal">
+                <span class="saveoptions" title="Save to slot 1" id="save01">➊</span><br />
+                <span class="saveoptions" title="Save to slot 2" id="save02">➋</span><br />
+                <span class="saveoptions" title="Save to slot 3" id="save03">➌</span><br />
+                <span class="saveoptions" title="Save to slot 4" id="save04">➍</span><br />
+                <span class="saveoptions" title="Save to slot 5" id="save05">➎</span><br />
+            </span>
+    </div>
+    <span id="toggleloadslots" title="Pick a save slot from which to load stored session"><span class="material-icons md-mid ui">folder_open</span></span><br />
+    <div id="loadslots">
+            <span class="rarechars smallerthannormal">
+                <span class="loadoptions" title="Load from slot 1" id="load01">➀</span><br />
+                <span class="loadoptions" title="Load from slot 2" id="load02">➁</span><br />
+                <span class="loadoptions" title="Load from slot 3" id="load03">➂</span><br />
+                <span class="loadoptions" title="Load from slot 4" id="load04">➃</span><br />
+                <span class="loadoptions" title="Load from slot 5" id="load05">➄</span>
+            </span>
+    </div>
+</div>
+
+<div id="activeoptions">
+    <div id="grkisactive" title="Greek corpus is active"><span class="rarechars activeoption">Ⓖ</span></div>
+    <div id="grkisnotactive"></div>
+    <div id="latisactive" title="Latin corpus is active"><span class="rarechars activeoption">Ⓛ</span></div>
+    <div id="latisnotactive"></div>
+    <div id="ddpisactive" title="Documentary papyri corpus is active"><span class="rarechars activeoption">Ⓓ</span></div>
+    <div id="ddpnotisactive"></div>
+    <div id="insisactive" title="Inscriptions corpus I is active"><span class="rarechars activeoption">Ⓘ</span></div>
+    <div id="insnotisactive"></div>
+    <div id="chrisactive" title="Inscriptions corpus II is active"><span class="rarechars activeoption">Ⓒ</span></div>
+    <div id="chrnotisactive"></div>
+    <br>
+
+    <div id="usingrawinput" title="Passage locations manually entered"><span class="rarechars activeoption">⒭</span></div>
+    <div id="usingautoinput" title="Passage locations via autofill boxes"><span class="rarechars activeoption">⒜</span></div>
+    <div id="onehitistrue" title="Matches limited to one per work"><span class="rarechars activeoption">⑴</span></div>
+    <div id="onehitisfalse" title="Unlimited matches per work"></div>
+    <div id="spuriaistrue" title="Search inside spuria"><span class="activeoption"></span></div>
+    <div id="spuriaisfalse" title="Do not search inside spuria"><span class="activeoption linethrough small">sp</span></div>
+    <div id="undatedistrue" title="Search works that have no assigned date"><span class="activeoption"></span></div>
+    <div id="undatedisfalse" title="Do not search works without an assigned date"><span class="activeoption linethrough small">inc</span></div>
+    <div id="variaistrue" title="Search works that have various authors and dates"><span class="activeoption"></span></div>
+    <div id="variaisfalse" title="Do not search works that have various authors and dates"><span class="activeoption linethrough small">var</span></div>
+    <div id="headwordindexingactive" title="Index by headword"><span class="rarechars activeoption">⢱</span></div>
+    <div id="headwordindexinginactive" title="Do not index by headword"><span class="activeoption"></span></div>
+    <div id="frequencyindexingactive" title="Index by frequency"><span class="activeoption">﹟</span></div>
+    <div id="frequencyindexinginactive" title="Do not index by frequency"><span class="activeoption"></span></div>
+    <br>
+
+    <div id="lemmatizing-ison"><span class="rarechars activeoption">λ</span></div>
+    <div id="lemmatizing-isoff"><span class="activeoption"></span></div>
+    <div id="vectorizing-ison"><span class="rarechars activeoption">ṽ</span></div>
+    <div id="vectorizing-isoff"><span class="activeoption"></span></div>
+    <br>
+
+    <div id="alternates-ison"><span class="rarechars activeoption">🄰</span></div>
+    <div id="flatlemma-ison"><span class="rarechars activeoption">🄵</span></div>
+    <div id="unlemmatized-ison"><span class="rarechars activeoption">🅄</span></div>
+    <div id="winnertakesall-ison"><span class="rarechars activeoption">🅆</span></div>
+</div>
+
+<script>
+    // GENERIC
+    var optionids = Array('#onehitistrue', '#onehitisfalse', '#spuriaistrue',
+        '#spuriaisfalse', '#undatedistrue', '#undatedisfalse',
+        '#variaistrue', '#variaisfalse', '#headwordindexingactive',
+        '#headwordindexiningactive', '#frequencyindexingactive',
+        '#frequencyindexinginactive', '#grkisactive', '#latisactive',
+        '#ddpisactive', '#insisactive', '#chrisactive');
+
+    for (var i = 0; i < optionids.length; i++) { $(optionids[i]).hide(); }
+</script>
+
+<div id="helptabs">
+    <ul>
+        <li><a href="#Interface"><span>Interface</span></a></li>
+        <li><a href="#Browsing"><span>Browsing</span></a></li>
+        <li><a href="#Dictionaries"><span>Dictionaries and word counts</span></a></li>
+        <li><a href="#MakingSearchLists"><span>Searching: Building search lists</span></a></li>
+        <li><a href="#BasicSyntax"><span>Searching: Basic search syntax</span></a></li>
+        <li><a href="#RegexSearching"><span>Searching: REGEX</span></a></li>
+        <li><a href="#LemmaSearching"><span>Searching: Lemmata</span></a></li>
+        <li><a href="#Oddities"><span>Peculiarities and Gotchas</span></a></li>
+        <li><a href="#Extending"><span>Adding to the database</span></a></li>
+        <li><a href="#IncludedMaterials"><span>Included Materials</span></a></li>
+    </ul>
+    <div id="Interface"><!-- placeholder --></div>
+    <div id="Browsing"><!-- placeholder --></div>
+    <div id="Dictionaries"><!-- placeholder --></div>
+    <div id="MakingSearchLists"><!-- placeholder --></div>
+    <div id="BasicSyntax"><!-- placeholder --></div>
+    <div id="RegexSearching"><!-- placeholder --></div>
+    <div id="LemmaSearching"><!-- placeholder --></div>
+    <div id="Oddities"><!-- placeholder --></div>
+    <div id="Extending"><!-- placeholder --></div>
+    <div id="IncludedMaterials"><!-- placeholder --></div>
+</div>
+
+<div id="bottommessage">
+    <span id="cookiemessage">Enable <span class="outline red">cookies</span> and/or <span class="outline red">javascript</span> in your browser and then reload this page.</span>
+</div>
+
+<div id="versioning">
+    <span class="unobtrusive">HGS&nbsp;{{index . "version"}}</span>
+</div>
+
+<!-- authentication html (if neccessary) -->
+{{index . "authhtm"}}
+
+<!-- load uielementlists first: others will use its values -->
+<script src="/emb/js/uielementlists_go.js"></script>
+<script src="/emb/js/autocomplete.js"></script>
+<script src="/emb/js/browser.js"></script>
+<script src="/emb/js/coreinterfaceclicks_go.js"></script>
+<script src="/emb/js/radioclicks_go.js"></script>
+<script src="/emb/js/vectorclicks.js"></script>
+
+<!-- blank divs just to hold scripts for injection later -->
+<div id="browserclickscriptholder"> </div>
+<div id="indexclickscriptholder"> </div>
+<div id="vectorspinnerscriptholder"> </div>
+<div id="selectionscriptholder"> </div>
+<div id="lexicaljsscriptholder"> </div>
+
+<!-- load documentready last: relies on the existence of much of the above -->
+<script src="/emb/js/documentready_go.js"></script>
 
 </body>
 </html>
