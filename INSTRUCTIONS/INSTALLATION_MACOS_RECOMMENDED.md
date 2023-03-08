@@ -97,8 +97,6 @@ to launch the program. You can also leave it running indefinitely: it does not c
 
 3. Type `./HipparchiaGoServer -ex`. The data will be put into a new `hDB` folder in the current directory.
 
-4. That folder will take up a lot of room on your machine. You could consider compressing it.
-
 ---
 
 ### [E] [FYI] Troubleshooting / Resetting

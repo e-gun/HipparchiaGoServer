@@ -950,7 +950,7 @@ body {
 .rightmodal {
 	display: none; /* Hidden by default */
 	position: fixed; /* Stay in place */
-	z-index: 1; /* Sit on top */
+	z-index: 2; /* Sit on top */
 	width: var(--leftpanelsize);
 	right: 17px; /* padding-left in header means we need 10px here too + 2px for the shadow */
 	margin-top: 20px;
@@ -1255,6 +1255,7 @@ body {
 	background-color: var(--lessoffwhite);
 	/*font-size: 105%;*/
 	line-height: 1.1;
+	z-index: 1; /* Sit on top of mainbody, but not of rightmodal */
 }
 
 #browsernavigationbuttons {

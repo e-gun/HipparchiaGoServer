@@ -111,6 +111,8 @@ type JSB struct {
 
 // RtLexLookup - search the dictionary for a headword substring
 func RtLexLookup(c echo.Context) error {
+	c.Response().After(func() { GCStats("RtLexLookup()") })
+
 	user := readUUIDCookie(c)
 	if !AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, JSB{JS: JSVALIDATION}, JSONINDENT)
@@ -231,6 +233,7 @@ func RtLexId(c echo.Context) error {
 // RtLexReverse - look for the headwords that have the sought word in their body
 func RtLexReverse(c echo.Context) error {
 	// be able to respond to "/lexica/reverselookup/0ae94619/sorrow"
+	c.Response().After(func() { GCStats("RtLexReverse()") })
 
 	user := readUUIDCookie(c)
 	if !AllAuthorized.Check(user) {

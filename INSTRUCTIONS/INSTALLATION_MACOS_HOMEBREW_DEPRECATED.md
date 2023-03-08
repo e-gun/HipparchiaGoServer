@@ -101,8 +101,6 @@ NB: `hippa_rd` errors are safe to ignore.
 
 3. Type `./HipparchiaGoServer -ex`. The data will be put into a new `hDB` folder in the current directory.
 
-4. That folder will take up a lot of room on your machine. You could consider compressing it.
-
 ### [E] [FYI] Troubleshooting / Resetting
 
 #### [E1] easier
