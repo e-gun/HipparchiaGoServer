@@ -477,6 +477,9 @@ for (let i = 0; i < nonvectorspinners.length; i++) {
     $(nonvectorspinners[i]).width(mywidth);
 }
 
+//
+// LEFT AND RIGHT MODAL BOXES: DICTIONARIES AND MORPHOLOGY CHARTS
+//
 
 let lexmodal = document.getElementById("lexmodal");
 let leftmodalclose = document.getElementById("leftmodalclose");

@@ -21,6 +21,7 @@
 * progress polling
 * self-configuration first run
 * self-installation on first run 
+* vectors
 
 ### INSTRUCTIONS
 * for installation, see the `INSTRUCTIONS` folder

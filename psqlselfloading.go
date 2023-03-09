@@ -97,18 +97,16 @@ func HipparchiaDBHasData(userpw string) bool {
 // InitializeHDB - insert the hipparchiaDB table and its user into postgres
 func InitializeHDB(pgpw string, hdbpw string) {
 	const (
-		C1   = `CREATE USER %s WITH PASSWORD '%s';`
-		C2   = `CREATE DATABASE "%s";`
-		C3   = `ALTER DATABASE "%s" OWNER TO %s;`
-		C4   = `CREATE EXTENSION pg_trgm;`
+		C1   = `CREATE ROLE %s LOGIN ENCRYPTED PASSWORD '%s' NOSUPERUSER INHERIT CREATEDB NOCREATEROLE NOREPLICATION;`
+		C2   = `CREATE DATABASE "%s" WITH OWNER = %s ENCODING = 'UTF8';`
+		C3   = `CREATE EXTENSION pg_trgm;`
 		DONE = "Initialized the database framework"
 	)
 
 	queries := []string{
 		fmt.Sprintf(C1, DEFAULTPSQLUSER, hdbpw),
-		fmt.Sprintf(C2, DEFAULTPSQLDB),
-		fmt.Sprintf(C3, DEFAULTPSQLDB, DEFAULTPSQLUSER),
-		fmt.Sprintf(C4),
+		fmt.Sprintf(C2, DEFAULTPSQLDB, DEFAULTPSQLUSER),
+		fmt.Sprintf(C3),
 	}
 
 	binary := GetBinaryPath("psql")
@@ -263,7 +261,7 @@ In short, this very dangerous.
 Type C6YESC0 to confirm that you want to proceed. --> `
 		NOPE  = "Did not receive confirmation. Aborting..."
 		C1    = `DROP DATABASE "%s";`
-		C2    = `DROP USER %s;`
+		C2    = `DROP ROLE %s;`
 		C3    = `DROP EXTENSION pg_trgm;`
 		DONE1 = "Deleted the database framework"
 		DONE2 = "Deleted configuration files inside '%s'"
@@ -323,8 +321,8 @@ func GetBinaryPath(command string) string {
 	bindir := ""
 	suffix := ""
 
-	// linux needs fewer checks
-	if runtime.GOOS == "linux" {
+	// linux and freebsd need fewer checks
+	if runtime.GOOS == "linux" || runtime.GOOS == "freebsd" {
 		_, y := os.Stat(LNXBIN + command)
 		if y == nil {
 			// != nil will trigger a fail later

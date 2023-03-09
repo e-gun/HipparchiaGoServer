@@ -52,3 +52,20 @@ Items of most interest:
 ```
 
 Maniacs can edit `./emb/css/hgs.css` and/or `theconstants.go` and then build a custom binary: `go build`. That would really change things up. 
+
+It is not such a good idea to expose `HipparchiaGoServer` to the internet as a whole. But you can. If you do, 
+you almost certainly want to set `Authentication` to `true`. If you do that, then you need a `hgs-users.json` file to be 
+placed in `~/.config/`. It is formatted as follows:
+
+```
+[
+  {
+    "User": "user1",
+    "Pass": "pass1"
+  },
+  {
+    "User":"user2",
+    "Pass":"pass2"
+  }
+]
+```

@@ -140,7 +140,7 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	srch.CurrentLimit = sess.HitLimit
 	srch.OriginalLimit = sess.HitLimit
 	srch.SrchColumn = DEFAULTCOLUMN
-	srch.SrchSyntax = DEFAULTSYNTAX
+	srch.SrchSyntax = DEFAULTQUERYSYNTAX
 	srch.OrderBy = ORDERBY
 	srch.SearchIn = sess.Inclusions
 	srch.SearchEx = sess.Exclusions
@@ -190,7 +190,7 @@ func BuildHollowSearch() SearchStruct {
 		SkgRewritten:  false,
 		PhaseNum:      0,
 		SrchColumn:    DEFAULTCOLUMN,
-		SrchSyntax:    DEFAULTSYNTAX,
+		SrchSyntax:    DEFAULTQUERYSYNTAX,
 		OrderBy:       ORDERBY,
 		CurrentLimit:  FIRSTSEARCHLIM,
 		OriginalLimit: FIRSTSEARCHLIM,

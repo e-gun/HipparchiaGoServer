@@ -35,7 +35,7 @@ func FormatNoContextResults(ss *SearchStruct) SearchOutputJSON {
 		TABLEROW = `
 		<tr class="{{.TRClass}}">
 			<td>
-				<span class="findnumber">[{{.FindNumber}}]</span>&nbsp;&nbsp;{{.FindDate}}{{.FindCity}}
+				<span class="findnumber">[{{.FindNumber}}]</span>&nbsp;{{.FindDate}}{{.FindCity}}
 				{{.FindLocus}}
 			</td>
 			<td class="leftpad">
@@ -141,7 +141,7 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 	const (
 		FINDTEMPL = `
 		<locus>
-			<span class="findnumber">[{{.Findnumber}}]</span>&nbsp;&nbsp;{{.FindDate}}{{.FindCity}}
+			<span class="findnumber">[{{.Findnumber}}]</span>&nbsp;{{.FindDate}}{{.FindCity}}
 			<span class="foundauthor">{{.Foundauthor}}</span>,&nbsp;<span class="foundwork">{{.Foundwork}}</span>
 			<browser id="{{.FindURL}}"><span class="foundlocus">{{.FindLocus}}</span></browser>
 		</locus>
