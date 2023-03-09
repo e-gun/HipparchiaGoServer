@@ -41,6 +41,7 @@
 * 91s on 8 cores of apple silicon (m1) virtualizing rocky linux
 * 111s on 6 cores of apple silicon (m1) virtualizing rocky linux
 * 113s on 6 cores of an intel 9900k running a virtualized ubuntu
+* 147s on 6 cores of apple silicon (m1) virtualizing freebsd13 w/ zfs
 * 154s on 6 cores of apple silicon (m1) virtualizing macos
 * 232s on 6 cores of an intel 9900k running a virtualized windows 10
 * 349s on a mac mini 2018

@@ -321,8 +321,8 @@ func GetBinaryPath(command string) string {
 	bindir := ""
 	suffix := ""
 
-	// linux needs fewer checks
-	if runtime.GOOS == "linux" {
+	// linux and freebsd need fewer checks
+	if runtime.GOOS == "linux" || runtime.GOOS == "freebsd" {
 		_, y := os.Stat(LNXBIN + command)
 		if y == nil {
 			// != nil will trigger a fail later

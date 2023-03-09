@@ -13,7 +13,7 @@ if hash mdpdf &> /dev/null
     mdpdf fyi/README.md emb/pdf/HGS_FYI.pdf
 fi
 
-oss=(linux windows darwin)
+oss=(linux windows darwin freebsd)
 archs=(amd64 arm64)
 
 P="HipparchiaGoServer"

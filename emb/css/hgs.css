@@ -696,7 +696,7 @@ body {
 .leftmodal {
 	display: none; /* Hidden by default */
 	position: fixed; /* Stay in place */
-	z-index: 1; /* Sit on top */
+	z-index: 2; /* Sit on top */
 	width: var(--leftpanelsize);
 	left: 5px;
 	margin-top: 20px;
@@ -950,7 +950,7 @@ body {
 .rightmodal {
 	display: none; /* Hidden by default */
 	position: fixed; /* Stay in place */
-	z-index: 2; /* Sit on top */
+	z-index: 3; /* Sit on top */
 	width: var(--leftpanelsize);
 	right: 17px; /* padding-left in header means we need 10px here too + 2px for the shadow */
 	margin-top: 20px;
