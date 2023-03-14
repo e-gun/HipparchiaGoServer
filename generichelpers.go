@@ -117,6 +117,22 @@ func coloroutput(tagged string) string {
 	return tagged
 }
 
+func styleoutput(tagged string) string {
+	const (
+		BOLD   = "\033[1m"
+		ITAL   = "\033[3m"
+		UNDER  = "\033[4m"
+		STRIKE = "\033[9m"
+	)
+	swap := strings.NewReplacer("S1", "", "S2", "", "S3", "", "S4", "", "S0", "")
+
+	if runtime.GOOS != "windows" && !Config.BlackAndWhite {
+		swap = strings.NewReplacer("S1", BOLD, "S2", ITAL, "S3", UNDER, "S4", STRIKE, "S0", RESET)
+	}
+	tagged = swap.Replace(tagged)
+	return tagged
+}
+
 // TimeTracker - report time elapsed since last checkpoint
 func TimeTracker(letter string, m string, start time.Time, previous time.Time) {
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
@@ -175,6 +191,48 @@ func sliceprinter[T any](n string, s []T) {
 		fmt.Printf("[%d]\t", i)
 		fmt.Println(v)
 	}
+}
+
+// Ticker - print how long we have been running
+func Ticker(wait time.Duration) {
+	const (
+		CLEAR    = "\033[2K"
+		HEAD     = "\r"
+		CURSHOME = "\033[1;1H"
+		CURSSAVE = "\033[s"
+		CURSREST = "\033[u"
+	)
+
+	t := func(up time.Duration) {
+		tick := fmt.Sprintf("[S1C6%vC0] C5S1HGS uptime: C1%v", time.Now().Format(time.TimeOnly), up.Truncate(time.Minute))
+		tick = styleoutput(coloroutput(tick))
+		fmt.Printf(CURSSAVE + CURSHOME + CLEAR + HEAD + tick + CURSREST)
+	}
+
+	// ANSI escape codes do not work in windows
+	if !Config.TickerActive || runtime.GOOS == "windows" {
+		return
+	}
+
+	start := time.Now()
+
+	for {
+		up := time.Since(start)
+		t(up)
+		time.Sleep(wait)
+	}
+}
+
+func ResetScreen() {
+	const (
+		ERASESCRN = "\033[2J"
+		CURSHOME  = "\033[1;1H"
+		DOWNONE   = "\033[1B"
+	)
+	if !Config.TickerActive || runtime.GOOS == "windows" {
+		return
+	}
+	fmt.Println(ERASESCRN + CURSHOME + DOWNONE)
 }
 
 //

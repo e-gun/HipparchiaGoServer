@@ -10,7 +10,7 @@ import "time"
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.1.6"
+	VERSION                  = "1.1.7"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	BLACKANDWHITE            = false
 	CONFIGLOCATION           = "."
@@ -21,7 +21,7 @@ const (
 	DBAUMAPSIZE              = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
 	DBLMMAPSIZE              = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
 	DBWKMAPSIZE              = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
-	DEFAULTBROWSERCTX        = 12
+	DEFAULTBROWSERCTX        = 14
 	DEFAULTCOLUMN            = "stripped_line"
 	DEFAULTCORPORA           = "{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"
 	DEFAULTECHOLOGLEVEL      = 0
@@ -75,6 +75,8 @@ const (
 	SORTBY                   = "shortname"
 	TEMPTABLETHRESHOLD       = 100 // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
 	TERMINATIONS             = `(\s|\.|\]|\<|⟩|’|”|\!|,|:|;|\?|·|$)`
+	TICKERISACTIVE           = false
+	TICKERDELAY              = 1 * time.Minute
 	TIMEOUTRD                = 15 * time.Second  // only set if Config.Authenticate is true (and so in a "serve the net" situation)
 	TIMEOUTWR                = 120 * time.Second // this is *very* generous, but some searches are slow/long
 	TIMETRACKERMSGTHRESH     = MSGFYI
@@ -105,7 +107,7 @@ const (
 	PROJMAIL = "Department of Classics, 125 Queen’s Park, Toronto, ON  M5S 2C7 Canada"
 	PROJURL  = "https://github.com/e-gun/HipparchiaGoServer"
 
-	HELPTEXT = `command line options:
+	HELPTEXT = `S3command line optionsS0:
    C1-acC0 C2{string}C0 set corpora active on startup and reset C4(*)C0
    C1-auC0          require authentication 
                    also implies "C3%sC0" exists and has been properly configured C4(**)C0
@@ -125,6 +127,7 @@ const (
    C1-saC0 C2{string}C0 server IP address [default: "C3%sC0"]
    C1-spC0 C2{num}C0    server port [default: C3%dC0]
    C1-stC0          run the self-test suite at launch; repeat the flag to iterate: e.g., "C1-st -stC0" will run twice
+   C1-tkC0          turn on the uptime Ticker [unavailable if OS is Windows]
    C1-uiC0 C2{string}C0 unacceptable input characters [default: C3%sC0]
    C1-vC0           print version info and exit
    C1-vvC0          print full version info and exit
@@ -133,16 +136,16 @@ const (
    C1-00C0          completely erase the database and reset the tables
                    the application cannot run again until you restore its data from an archive 
                    you probably want to run with the "C1-exC0" flag before you try this. 
-     (*) example: 
+     (*) S3exampleS0: 
          C4"{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"C0
 
-     (**) example:
+     (**) S3exampleS0:
          C4[{"User": "user1","Pass": "pass1"}, {"User":"user2","Pass":"pass2"}, ...]C0
 
-     (†) example: 
+     (†) S3exampleS0: 
          C4"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"C0
      
-     NB: place a properly formatted version of 'C3%sC0' in 'C3%sC0' 
+     S1NB:S0 place a properly formatted version of 'C3%sC0' in 'C3%sC0' 
          if you want to avoid constantly setting multiple options. 
          See 'C3sample_hgs-prolix-conf.jsonC0' as well as other sample configuration files at
              C3%sC0

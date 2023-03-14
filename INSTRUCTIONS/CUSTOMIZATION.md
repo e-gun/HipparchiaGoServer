@@ -44,6 +44,7 @@ Items of most interest:
     },
     "QuietStart": false,
     "SelfTest": 0,
+    "TickerActive": false,
     "VocabByCt": false,
     "VocabScans": false,
     "WorkerCount": 6,

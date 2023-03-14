@@ -30,8 +30,10 @@ func main() {
 		SUMM = "initialization took %.3fs before reaching StartEchoServer()"
 	)
 	launch := time.Now()
+
 	LookForConfigFile()
 	ConfigAtLaunch()
+	ResetScreen()
 
 	printversion()
 
@@ -41,6 +43,7 @@ func main() {
 
 	SQLPool = FillPSQLPoool()
 	go WebsocketPool.WSPoolStartListening()
+	go Ticker(TICKERDELAY)
 
 	// concurrent launching
 	var awaiting sync.WaitGroup
@@ -104,21 +107,21 @@ func printversion() {
 	sn := fmt.Sprintf("[C1%sC0] ", SHORTNAME)
 	gc := ""
 	if GitCommit != "" {
-		gc = fmt.Sprintf(" [C4git: %sC0]", GitCommit)
+		gc = fmt.Sprintf(" [C4git: C4%sC0]", GitCommit)
 	}
 	ll := fmt.Sprintf(" [C6gl=%d; el=%dC0]", Config.LogLevel, Config.EchoLog)
 	versioninfo := fmt.Sprintf("C5%sC0 (C2v%sC0)", MYNAME, VERSION+VersSuppl)
 	versioninfo = sn + versioninfo + gc + ll
-	versioninfo = coloroutput(versioninfo)
+	versioninfo = styleoutput(coloroutput(versioninfo))
 	fmt.Println(versioninfo)
 }
 
 func printbuildinfo() {
 	bi := ""
 	if BuildDate != "" {
-		bi = coloroutput(fmt.Sprintf("\tBuilt:\tC3%sC0\n", BuildDate))
+		bi = styleoutput(coloroutput(fmt.Sprintf("\tS1Built:S0\tC3%sC0\n", BuildDate)))
 
 	}
-	bi += coloroutput(fmt.Sprintf("\tGo:\tC3%sC0", runtime.Version()))
+	bi += styleoutput(coloroutput(fmt.Sprintf("\tS1Go:S0\tC3%sC0", runtime.Version())))
 	fmt.Println(bi)
 }

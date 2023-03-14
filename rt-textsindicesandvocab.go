@@ -22,8 +22,10 @@ import (
 )
 
 type WordInfo struct {
-	HW         string
-	Wd         string
+	HeadWd     string
+	HWdCount   int
+	Word       string
+	WdCount    int
 	Loc        string
 	Cit        string
 	IsHomonymn bool
@@ -32,11 +34,13 @@ type WordInfo struct {
 }
 
 type VocInf struct {
-	Wd    string
-	C     int
-	TR    string
-	Strip string
-	Metr  string
+	Word         string
+	C            int
+	TR           string
+	Strip        string
+	Metr         string
+	HWIsOnlyHere bool
+	WdIsOnlyHere bool
 }
 
 //
@@ -266,8 +270,8 @@ func RtVocabMaker(c echo.Context) error {
 		wds := vocabsrch.Results[i].AccentedSlice()
 		for _, w := range wds {
 			this := WordInfo{
-				HW:         "",
-				Wd:         UVσςϲ(SwapAcuteForGrave(w)),
+				HeadWd:     "",
+				Word:       UVσςϲ(SwapAcuteForGrave(w)),
 				Loc:        vocabsrch.Results[i].BuildHyperlink(),
 				Cit:        vocabsrch.Results[i].Citation(),
 				IsHomonymn: false,
@@ -280,7 +284,7 @@ func RtVocabMaker(c echo.Context) error {
 	// [b] find the Unique values we are working with
 	distinct := make(map[string]bool, len(slicedwords))
 	for _, w := range slicedwords {
-		distinct[w.Wd] = true
+		distinct[w.Word] = true
 	}
 
 	// [c] prepare to find the headwords for all of these distinct words
@@ -290,6 +294,9 @@ func RtVocabMaker(c echo.Context) error {
 		morphslice[count] = w
 		count += 1
 	}
+
+	// for flagging words that appear only in this selection
+	hwct := arraytogetheadwordcounts(morphslice)
 
 	// [c1] get and map all the DbMorphology
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
@@ -306,11 +313,12 @@ func RtVocabMaker(c echo.Context) error {
 	// [c3] build a new slice of seen words with headwords attached
 	var parsedwords []WordInfo
 	for _, s := range slicedwords {
-		hww := poss[s.Wd]
+		hww := poss[s.Word]
 		for _, h := range hww {
 			newwd := s
-			newwd.HW = h.Headwd
+			newwd.HeadWd = h.Headwd
 			newwd.Trans = h.Transl
+			newwd.HWdCount = hwct[h.Headwd]
 			parsedwords = append(parsedwords, newwd)
 		}
 	}
@@ -323,13 +331,13 @@ func RtVocabMaker(c echo.Context) error {
 	// [d] get the counts
 	vic := make(map[string]int)
 	for _, p := range parsedwords {
-		vic[p.HW]++
+		vic[p.HeadWd]++
 	}
 
 	// [e] get the translations
 	vit := make(map[string]string)
 	for i := 0; i < len(parsedwords); i++ {
-		vit[parsedwords[i].HW] = parsedwords[i].Trans
+		vit[parsedwords[i].HeadWd] = parsedwords[i].Trans
 	}
 
 	scansion := make(map[string]string)
@@ -351,13 +359,23 @@ func RtVocabMaker(c echo.Context) error {
 		}
 
 		vim[k] = VocInf{
-			Wd:    k,
+			Word:  k,
 			C:     v,
 			TR:    polishtrans(vit[k], pat),
 			Strip: strings.Replace(StripaccentsSTR(k), "ϲ", "σ", -1),
 			Metr:  quantityfixer.Replace(m),
 		}
 	}
+
+	// flag words that appear only in this selection
+	//for i := 0; i < len(parsedwords); i++ {
+	//	if parsedwords[i].HWdCount == vim[parsedwords[i].Word].C {
+	//		newwd := vim[parsedwords[i].Word]
+	//		newwd.HWIsOnlyHere = true
+	//		vim[parsedwords[i].Word] = newwd
+	//		fmt.Println(vim[parsedwords[i].Word].Word)
+	//	}
+	//}
 
 	vis := make([]VocInf, len(vim))
 	ct := 0
@@ -397,9 +415,9 @@ func RtVocabMaker(c echo.Context) error {
 	for i, v := range vis {
 		var nt string
 		if se.VocScansion {
-			nt = fmt.Sprintf(TRRS, v.Wd, v.Wd, v.Metr, v.C, v.TR)
+			nt = fmt.Sprintf(TRRS, v.Word, v.Word, v.Metr, v.C, v.TR)
 		} else {
-			nt = fmt.Sprintf(TRR, v.Wd, v.Wd, v.C, v.TR)
+			nt = fmt.Sprintf(TRR, v.Word, v.Word, v.C, v.TR)
 		}
 		trr[i+1] = nt
 	}
@@ -535,8 +553,8 @@ func RtIndexMaker(c echo.Context) error {
 		wds := srch.Results[i].AccentedSlice()
 		for _, w := range wds {
 			this := WordInfo{
-				HW:         "",
-				Wd:         UVσςϲ(SwapAcuteForGrave(w)),
+				HeadWd:     "",
+				Word:       UVσςϲ(SwapAcuteForGrave(w)),
 				Loc:        srch.Results[i].BuildHyperlink(),
 				Cit:        srch.Results[i].Citation(),
 				IsHomonymn: false,
@@ -549,7 +567,7 @@ func RtIndexMaker(c echo.Context) error {
 	// [b] find the Unique values
 	distinct := make(map[string]bool, len(slicedwords))
 	for _, w := range slicedwords {
-		distinct[w.Wd] = true
+		distinct[w.Word] = true
 	}
 
 	// [c] find the headwords for all of these distinct words
@@ -570,16 +588,16 @@ func RtIndexMaker(c echo.Context) error {
 	var slicedlookups []WordInfo
 	for _, w := range slicedwords {
 		emm := false
-		mme := w.Wd
-		if _, ok := morphmap[w.Wd]; !ok {
+		mme := w.Word
+		if _, ok := morphmap[w.Word]; !ok {
 			// here is where you check to see if the word + an apostrophe can be found: γ is really γ' (i.e. γε)
 			// this also means that you had to grab all of those extra forms in the first place
-			if _, y := morphmap[w.Wd+"'"]; y {
+			if _, y := morphmap[w.Word+"'"]; y {
 				emm = true
-				w.Wd = w.Wd + "'"
-				mme = w.Wd
+				w.Word = w.Word + "'"
+				mme = w.Word
 			} else {
-				w.HW = UPW
+				w.HeadWd = UPW
 				slicedlookups = append(slicedlookups, w)
 			}
 		} else {
@@ -592,7 +610,7 @@ func RtIndexMaker(c echo.Context) error {
 				for i := 0; i < len(mps); i++ {
 					var additionalword WordInfo
 					additionalword = w
-					additionalword.HW = mps[i].Headwd
+					additionalword.HeadWd = mps[i].Headwd
 					slicedlookups = append(slicedlookups, additionalword)
 				}
 			}
@@ -603,7 +621,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	var trimslices []WordInfo
 	for _, w := range slicedlookups {
-		if len(w.HW) != 0 {
+		if len(w.HeadWd) != 0 {
 			trimslices = append(trimslices, w)
 		}
 	}
@@ -623,17 +641,17 @@ func RtIndexMaker(c echo.Context) error {
 	ishom := make(map[string]bool)
 	htest := make(map[string]string)
 	for _, t := range trimslices {
-		if _, ok := htest[t.Wd]; !ok {
-			htest[t.Wd] = t.HW
+		if _, ok := htest[t.Word]; !ok {
+			htest[t.Word] = t.HeadWd
 		} else {
-			if htest[t.Wd] != t.HW {
-				ishom[t.Wd] = true
+			if htest[t.Word] != t.HeadWd {
+				ishom[t.Word] = true
 			}
 		}
 	}
 
 	for i, t := range trimslices {
-		if ishom[t.Wd] {
+		if ishom[t.Word] {
 			trimslices[i].IsHomonymn = true
 		}
 	}
@@ -659,10 +677,10 @@ func RtIndexMaker(c echo.Context) error {
 	indexmap := make(map[SorterStruct][]WordInfo, len(trimslices))
 	for _, w := range trimslices {
 		// lunate sigma sorts after omega
-		sigma := strings.Replace(StripaccentsSTR(w.HW), "ϲ", "σ", -1)
+		sigma := strings.Replace(StripaccentsSTR(w.HeadWd), "ϲ", "σ", -1)
 		ss := SorterStruct{
-			sorter: sigma + w.HW,
-			value:  w.HW,
+			sorter: sigma + w.HeadWd,
+			value:  w.HeadWd,
 		}
 		indexmap[ss] = append(indexmap[ss], w)
 	}
@@ -905,6 +923,48 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 	return foundmorph
 }
 
+func arraytogetheadwordcounts(wordlist []string) map[string]int {
+	const (
+		TT = `CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words`
+		QT = `SELECT entry_name , total_count FROM dictionary_headword_wordcounts WHERE EXISTS 
+				(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = dictionary_headword_wordcounts.entry_name)`
+	)
+
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
+
+	countmap := make(map[string]int)
+
+	type tempstruct struct {
+		w string
+		c int
+	}
+
+	var thehit tempstruct
+
+	foreach := []any{&thehit.w, &thehit.c}
+
+	rwfnc := func() error {
+		countmap[thehit.w] = thehit.c
+		return nil
+	}
+
+	u := strings.Replace(uuid.New().String(), "-", "", -1)
+	a := fmt.Sprintf("'%s'", strings.Join(wordlist, "', '"))
+
+	t := fmt.Sprintf(TT, u, a)
+	_, err := dbconn.Exec(context.Background(), t)
+	chke(err)
+
+	foundrows, e := dbconn.Query(context.Background(), fmt.Sprintf(QT, u))
+	chke(e)
+
+	_, ee := pgx.ForEachRow(foundrows, foreach, rwfnc)
+	chke(ee)
+
+	return countmap
+}
+
 //
 // FORMATTING
 //
@@ -995,7 +1055,7 @@ func convertwordinfototablerow(ww []WordInfo) string {
 	// build it
 	indexmap := make(map[string][]WordInfo, len(ww))
 	for _, w := range ww {
-		indexmap[w.Wd] = append(indexmap[w.Wd], w)
+		indexmap[w.Word] = append(indexmap[w.Word], w)
 	}
 
 	// sort the keys
@@ -1013,10 +1073,10 @@ func convertwordinfototablerow(ww []WordInfo) string {
 	for i, k := range keys {
 		wii := indexmap[k]
 		hw := ""
-		if used[wii[0].HW] {
+		if used[wii[0].HeadWd] {
 			// skip
 		} else {
-			hw = wii[0].HW
+			hw = wii[0].HeadWd
 		}
 
 		sort.Slice(wii, func(i, j int) bool { return wii[i].Loc < wii[j].Loc })
@@ -1037,9 +1097,9 @@ func convertwordinfototablerow(ww []WordInfo) string {
 			templ = HMNTBLRW
 		}
 
-		t := fmt.Sprintf(templ, hw, hw, wii[0].Wd, wii[0].Wd, len(pp), p)
+		t := fmt.Sprintf(templ, hw, hw, wii[0].Word, wii[0].Word, len(pp), p)
 		trr[i] = t
-		used[wii[0].HW] = true
+		used[wii[0].HeadWd] = true
 	}
 
 	out := strings.Join(trr, "")
