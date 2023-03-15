@@ -51,13 +51,14 @@ func RtBrowseRaw(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
 }
 
-// RtBrowseline - open a browser if sent '/browse/index/lt0550/001/1855'
-func RtBrowseline(c echo.Context) error {
+// RtBrowseLine - open a browser if sent '/browse/index/lt0550/001/1855'
+func RtBrowseLine(c echo.Context) error {
 	// sample input: '/browse/index/lt0550/001/1855'
 	// the one route that calls generatebrowsedpassage() directly
+	c.Response().After(func() { SelfStats("RtBrowseLine()") })
 
 	const (
-		FAIL = "RtBrowseline() could not parse %s"
+		FAIL = "RtBrowseLine() could not parse %s"
 	)
 
 	user := readUUIDCookie(c)

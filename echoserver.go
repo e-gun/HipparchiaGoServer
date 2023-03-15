@@ -65,7 +65,7 @@ func StartEchoServer() {
 	// [b] browser ("rt-browsing.go")
 	//
 
-	e.GET("/browse/index/:locus", RtBrowseline)      // '/browse/index/lt0550/001/1855'
+	e.GET("/browse/index/:locus", RtBrowseLine)      // '/browse/index/lt0550/001/1855'
 	e.GET("/browse/locus/:locus", RtBrowseLocus)     // '/browse/locus/lt0550/001/3|100'
 	e.GET("/browse/perseus/:locus", RtBrowsePerseus) // '/browse/perseus/lt0550/001/2:717'
 	e.GET("/browse/rawlocus/:locus", RtBrowseRaw)    // '/browse/rawlocus/lt0474/037/2.10.4'

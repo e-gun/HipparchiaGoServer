@@ -76,7 +76,7 @@ const (
 	TEMPTABLETHRESHOLD       = 100 // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
 	TERMINATIONS             = `(\s|\.|\]|\<|⟩|’|”|\!|,|:|;|\?|·|$)`
 	TICKERISACTIVE           = false
-	TICKERDELAY              = 1 * time.Minute
+	TICKERDELAY              = 1 * time.Second
 	TIMEOUTRD                = 15 * time.Second  // only set if Config.Authenticate is true (and so in a "serve the net" situation)
 	TIMEOUTWR                = 120 * time.Second // this is *very* generous, but some searches are slow/long
 	TIMETRACKERMSGTHRESH     = MSGFYI

@@ -27,7 +27,7 @@ CREATE DATABASE "hipparchiaDB" WITH OWNER = hippa_wr ENCODING = 'UTF8';
 CREATE EXTENSION pg_trgm;
 \q
 ```
-4. Find `pg_hba.conf`. It will be somewhere like `/var/lib/pgsql/15/data/pg_hba.conf`. [it can be found via executing `SHOW hba_file;` inside the `psql` shell]
+4. Depending on your platform, you **might** need to tinker with your postgres configuration. Find `pg_hba.conf`. It will be somewhere like `/var/lib/pgsql/15/data/pg_hba.conf`. [it can be found via executing `SHOW hba_file;` inside the `psql` shell]
    - Ensure that the `METHOD` in `pg_hba.conf` is `trust` and NOT `peer` for `local` connections. 
    - Look at the end of the file and confirm that you see a block that looks like this:
 

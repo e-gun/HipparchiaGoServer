@@ -28,7 +28,7 @@ type CurrentConfiguration struct {
 	HostIP        string
 	HostPort      int
 	LogLevel      int
-	ManualGC      bool // see GCStats()
+	ManualGC      bool // see SelfStats()
 	MaxText       int
 	PGLogin       PostgresLogin
 	QuietStart    bool

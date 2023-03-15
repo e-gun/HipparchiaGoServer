@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -70,6 +71,10 @@ func exitorhang(e int) {
 	}
 }
 
+//
+// TERMINAL OUTPUT/MESSAGES
+//
+
 // msg - send a color-coded message; will not be seen unless threshold <= go log level
 func msg(message string, threshold int) {
 	if Config.LogLevel < threshold {
@@ -119,15 +124,17 @@ func coloroutput(tagged string) string {
 
 func styleoutput(tagged string) string {
 	const (
-		BOLD   = "\033[1m"
-		ITAL   = "\033[3m"
-		UNDER  = "\033[4m"
-		STRIKE = "\033[9m"
+		BOLD    = "\033[1m"
+		ITAL    = "\033[3m"
+		UNDER   = "\033[4m"
+		REVERSE = "\033[7m"
+		STRIKE  = "\033[9m"
 	)
-	swap := strings.NewReplacer("S1", "", "S2", "", "S3", "", "S4", "", "S0", "")
+	swap := strings.NewReplacer("S1", "", "S2", "", "S3", "", "S4", "", "S5", "", "S0", "")
 
 	if runtime.GOOS != "windows" && !Config.BlackAndWhite {
-		swap = strings.NewReplacer("S1", BOLD, "S2", ITAL, "S3", UNDER, "S4", STRIKE, "S0", RESET)
+		swap = strings.NewReplacer("S1", BOLD, "S2", ITAL, "S3", UNDER, "S4", STRIKE, "S5", REVERSE,
+			"S0", RESET)
 	}
 	tagged = swap.Replace(tagged)
 	return tagged
@@ -138,6 +145,22 @@ func TimeTracker(letter string, m string, start time.Time, previous time.Time) {
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	m = fmt.Sprintf("[%s: %.3fs]", letter, time.Now().Sub(start).Seconds()) + d + m
 	msg(m, TIMETRACKERMSGTHRESH)
+}
+
+// SelfStats - c.Response().After data collection
+func SelfStats(fn string) {
+	//rt-lexica.go:   c.Response().After(func() { SelfStats("RtLexLookup()") })
+	//rt-lexica.go:   c.Response().After(func() { SelfStats("RtLexReverse()") })
+	//rt-search.go:   c.Response().After(func() { SelfStats("RtSearch()") })
+	//rt-textsindicesandvocab.go:     c.Response().After(func() { SelfStats("RtTextMaker()") })
+	//rt-textsindicesandvocab.go:     c.Response().After(func() { SelfStats("RtVocabMaker()") })
+	//rt-textsindicesandvocab.go:     c.Response().After(func() { SelfStats("RtIndexMaker()") })
+	GCStats(fn)
+	_, ok := StatCounter[fn]
+	if !ok {
+		StatCounter[fn] = &atomic.Int32{}
+	}
+	_ = StatCounter[fn].Add(1)
 }
 
 // GCStats - force garbage collection and report on the results
@@ -161,6 +184,70 @@ func GCStats(fn string) {
 	runtime.ReadMemStats(&m)
 	a := fmt.Sprintf("%dM", m.HeapAlloc/1024/1024)
 	msg(fmt.Sprintf(MSG, fn, b, a), MPR)
+}
+
+// Ticker - print how long we have been running
+func Ticker(wait time.Duration) {
+	const (
+		CLEAR     = "\033[2K"
+		CLEARRT   = "\033[0K"
+		HEAD      = "\r"
+		CURSHOME  = "\033[1;1H"
+		FIRSTLINE = "\033[2;1H"
+		CURSSAVE  = "\033[s"
+		CURSREST  = "\033[u"
+		PADDING   = " ----------------- "
+	)
+	// ANSI escape codes do not work in windows
+	if !Config.TickerActive || runtime.GOOS == "windows" {
+		return
+	}
+
+	t := func(up time.Duration) {
+		tick := fmt.Sprintf("[S1C6%vC0] C5S1HGS uptime: C1%vC0", time.Now().Format(time.TimeOnly), up.Truncate(time.Minute))
+		tick = styleoutput(coloroutput(PADDING + tick + PADDING))
+		fmt.Printf(CURSSAVE + CURSHOME + CLEAR + HEAD + tick + CURSREST)
+	}
+
+	s := func() {
+		exclude := []string{"main() post-initialization"}
+		keys := StringMapKeysIntoSlice(StatCounter)
+		keys = SetSubtraction(keys, exclude)
+		sort.Strings(keys)
+
+		fmt.Printf(CURSSAVE + FIRSTLINE)
+		var pairs []string
+		for k := range keys {
+			this := strings.TrimPrefix(keys[k], "Rt")
+			this = strings.TrimSuffix(this, "()")
+			pairs = append(pairs, fmt.Sprintf("%s: C2%dC0", this, StatCounter[keys[k]].Load()))
+		}
+		out := coloroutput(strings.Join(pairs, " C6*C0 "))
+		fmt.Printf(out + CLEARRT)
+		fmt.Println()
+		fmt.Printf(CLEAR + CURSREST)
+	}
+
+	start := time.Now()
+
+	for {
+		up := time.Since(start)
+		t(up)
+		s()
+		time.Sleep(wait)
+	}
+}
+
+func ResetScreen() {
+	const (
+		ERASESCRN = "\033[2J"
+		CURSHOME  = "\033[1;1H"
+		DOWNONE   = "\033[1B"
+	)
+	if !Config.TickerActive || runtime.GOOS == "windows" {
+		return
+	}
+	fmt.Println(ERASESCRN + CURSHOME + DOWNONE + DOWNONE)
 }
 
 // stringmapprinter - print out the k/v pairs of a map
@@ -191,48 +278,6 @@ func sliceprinter[T any](n string, s []T) {
 		fmt.Printf("[%d]\t", i)
 		fmt.Println(v)
 	}
-}
-
-// Ticker - print how long we have been running
-func Ticker(wait time.Duration) {
-	const (
-		CLEAR    = "\033[2K"
-		HEAD     = "\r"
-		CURSHOME = "\033[1;1H"
-		CURSSAVE = "\033[s"
-		CURSREST = "\033[u"
-	)
-
-	t := func(up time.Duration) {
-		tick := fmt.Sprintf("[S1C6%vC0] C5S1HGS uptime: C1%v", time.Now().Format(time.TimeOnly), up.Truncate(time.Minute))
-		tick = styleoutput(coloroutput(tick))
-		fmt.Printf(CURSSAVE + CURSHOME + CLEAR + HEAD + tick + CURSREST)
-	}
-
-	// ANSI escape codes do not work in windows
-	if !Config.TickerActive || runtime.GOOS == "windows" {
-		return
-	}
-
-	start := time.Now()
-
-	for {
-		up := time.Since(start)
-		t(up)
-		time.Sleep(wait)
-	}
-}
-
-func ResetScreen() {
-	const (
-		ERASESCRN = "\033[2J"
-		CURSHOME  = "\033[1;1H"
-		DOWNONE   = "\033[1B"
-	)
-	if !Config.TickerActive || runtime.GOOS == "windows" {
-		return
-	}
-	fmt.Println(ERASESCRN + CURSHOME + DOWNONE)
 }
 
 //

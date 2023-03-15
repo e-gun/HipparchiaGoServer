@@ -18,8 +18,8 @@
 * indexing
 * vocabulary list generation
 * morphology tables
+* self-installation on first run
 * self-configuration first run
-* self-installation on first run 
 
 ### SOME DAY
 

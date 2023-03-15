@@ -43,7 +43,7 @@ func RtSearch(c echo.Context) error {
 	// [8] phrase + lemma
 	// [9] phrase + phrase
 
-	c.Response().After(func() { GCStats("RtSearch()") })
+	c.Response().After(func() { SelfStats("RtSearch()") })
 
 	user := readUUIDCookie(c)
 	if !AllAuthorized.Check(user) {

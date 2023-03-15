@@ -88,7 +88,7 @@ func main() {
 
 	awaiting.Wait()
 
-	GCStats("main() post-initialization")
+	SelfStats("main() post-initialization")
 	msg(fmt.Sprintf(SUMM, time.Now().Sub(launch).Seconds()), MSGWARN)
 	StartEchoServer()
 }
