@@ -188,7 +188,7 @@ func RtVocabMaker(c echo.Context) error {
 		<div id="searchsummary">Vocabulary for %s,&nbsp;<span class="foundwork">%s</span><br>
 			citation format:&nbsp;%s<br>
 			%s words found<br>
-			Headwords found only here: %d%s<br>
+			Headwords that can be found exclusively in this selection: %d%s<br>
 			<span class="small">(%ss)</span><br>
 			%s
 			%s
@@ -369,15 +369,15 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	// flag words that appear only in this selection
-	var uniqueHW []string
+	var onlyhere []string
 	for i := 0; i < len(parsedwords); i++ {
 		if parsedwords[i].HWdCount > 0 && parsedwords[i].HWdCount == vim[parsedwords[i].Word].C {
-			uniqueHW = append(uniqueHW, parsedwords[i].HeadWd)
+			onlyhere = append(onlyhere, parsedwords[i].HeadWd)
 		}
 	}
-	uniqueHW = Unique(uniqueHW)
-	sort.Slice(uniqueHW, func(i, j int) bool {
-		return strings.Replace(StripaccentsSTR(uniqueHW[i]), "ϲ", "σ", -1) < strings.Replace(StripaccentsSTR(uniqueHW[j]), "ϲ", "σ", -1)
+	onlyhere = Unique(onlyhere)
+	sort.Slice(onlyhere, func(i, j int) bool {
+		return strings.Replace(StripaccentsSTR(onlyhere[i]), "ϲ", "σ", -1) < strings.Replace(StripaccentsSTR(onlyhere[j]), "ϲ", "σ", -1)
 	})
 
 	vis := make([]VocInf, len(vim))
@@ -460,8 +460,8 @@ func RtVocabMaker(c echo.Context) error {
 		cp = m.Sprintf(HITCAP, max)
 	}
 
-	u := len(uniqueHW)
-	uw := `<p class="indented smallerthannormal">` + strings.Join(uniqueHW, ", ") + `</p>`
+	u := len(onlyhere)
+	uw := `<p class="indented smallerthannormal">` + strings.Join(onlyhere, ", ") + `</p>`
 
 	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, u, uw, el, cp, ky)
 
@@ -509,6 +509,7 @@ func RtIndexMaker(c echo.Context) error {
 		<div id="searchsummary">Index to %s,&nbsp;<span class="foundwork">%s</span><br>
 			citation format:&nbsp;%s<br>
 			%s words found<br>
+			Forms that can be found exclusively in this selection: %d%s<br>
 			<span class="small">(%ss)</span><br>
 			%s
 			%s
@@ -622,6 +623,25 @@ func RtIndexMaker(c echo.Context) error {
 			}
 		}
 	}
+
+	// keep track of unique values
+	globalwordcounts := getwordcounts(StringMapKeysIntoSlice(distinct))
+	localwordcounts := make(map[string]int)
+	for _, k := range slicedwords {
+		localwordcounts[k.Word] += 1
+	}
+
+	// flag words that appear only in this selection
+	var onlyhere []string
+	for w, lc := range localwordcounts {
+		if globalwordcounts[w].Total == lc {
+			onlyhere = append(onlyhere, w)
+		}
+	}
+	onlyhere = Unique(onlyhere)
+	sort.Slice(onlyhere, func(i, j int) bool {
+		return strings.Replace(StripaccentsSTR(onlyhere[i]), "ϲ", "σ", -1) < strings.Replace(StripaccentsSTR(onlyhere[j]), "ϲ", "σ", -1)
+	})
 
 	slicedwords = []WordInfo{} // drop after use
 
@@ -760,7 +780,17 @@ func RtIndexMaker(c echo.Context) error {
 		cp = m.Sprintf(HITCAP, MAXTEXTLINEGENERATION)
 	}
 
-	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, el, cp, ky)
+	u := len(onlyhere)
+	uw := ""
+	if u > 0 {
+		uw = `&nbsp; <span class="smallerthannormal">(a list these words appears after the index to the whole)</span>`
+	}
+
+	oh := `<p class="emph">Words that appear only here in the whole database:</p><p class="indented smallerthannormal">` + strings.Join(onlyhere, ", ") + `</p>`
+
+	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, u, uw, el, cp, ky)
+
+	htm += oh
 
 	if Config.ZapLunates {
 		htm = DeLunate(htm)
