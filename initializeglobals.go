@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"strings"
 	"sync/atomic"
+	"time"
 )
 
 const (
@@ -50,6 +51,7 @@ var (
 	TheCorpora    = [5]string{"gr", "lt", "in", "ch", "dp"}
 	TheLanguages  = [2]string{"greek", "latin"}
 	ServableFonts = map[string]FontTempl{"Noto": NotoFont}
+	LaunchTime    = time.Now()
 	WebsocketPool = WSFillNewPool()
 )
 

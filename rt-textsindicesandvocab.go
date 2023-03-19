@@ -523,6 +523,8 @@ func RtIndexMaker(c echo.Context) error {
 		MSG3   = "Sifting the index...&nbsp;(part 3 of 4)"
 		MSG4   = "Building the HTML...&nbsp;(part 4 of 4)"
 		HITCAP = `<span class="small"><span class="red emph">indexing incomplete:</span>: hit the cap of %d on allowed lines</span>`
+		WLMSG  = `&nbsp; <span class="smallerthannormal">(a list these words appears after the index to the whole)</span>`
+		WLHTM  = `<p class="emph">Words that appear only here in the whole database:</p><p class="indented smallerthannormal">`
 	)
 
 	type JSFeeder struct {
@@ -783,10 +785,10 @@ func RtIndexMaker(c echo.Context) error {
 	u := len(onlyhere)
 	uw := ""
 	if u > 0 {
-		uw = `&nbsp; <span class="smallerthannormal">(a list these words appears after the index to the whole)</span>`
+		uw = WLMSG
 	}
 
-	oh := `<p class="emph">Words that appear only here in the whole database:</p><p class="indented smallerthannormal">` + strings.Join(onlyhere, ", ") + `</p>`
+	oh := WLHTM + strings.Join(onlyhere, ", ") + `</p>`
 
 	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, u, uw, el, cp, ky)
 

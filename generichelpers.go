@@ -229,10 +229,8 @@ func UptimeTicker(wait time.Duration) {
 		fmt.Printf(CLEAR + CURSREST)
 	}
 
-	start := time.Now()
-
 	for {
-		up := time.Since(start)
+		up := time.Since(LaunchTime)
 		t(up)
 		s()
 		time.Sleep(wait)

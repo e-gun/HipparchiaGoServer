@@ -29,7 +29,7 @@ func main() {
 		MSG5 = "nested lemma map built"
 		SUMM = "initialization took %.3fs before reaching StartEchoServer()"
 	)
-	launch := time.Now()
+	LaunchTime = time.Now()
 
 	LookForConfigFile()
 	ConfigAtLaunch()
@@ -89,7 +89,7 @@ func main() {
 	awaiting.Wait()
 
 	SelfStats("main() post-initialization")
-	msg(fmt.Sprintf(SUMM, time.Now().Sub(launch).Seconds()), MSGWARN)
+	msg(fmt.Sprintf(SUMM, time.Now().Sub(LaunchTime).Seconds()), MSGWARN)
 	StartEchoServer()
 }
 

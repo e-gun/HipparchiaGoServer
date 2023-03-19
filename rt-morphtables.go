@@ -931,7 +931,6 @@ func getwordcounts(ww []string) map[string]DbWordCount {
 		(SELECT 1 FROM ttw_%s temptable WHERE temptable.wordforms = wordcounts_%s.entry_name)`
 		CHARR = `abcdefghijklmnopqrstuvwxyzαβψδεφγηιξκλμνοπρτυωχθζϲ`
 	)
-	msg("getwordcounts()", 1)
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
@@ -945,6 +944,9 @@ func getwordcounts(ww []string) map[string]DbWordCount {
 
 	for _, w := range ww {
 		init := StripaccentsRUNE([]rune(w))
+		if len(init) == 0 {
+			continue
+		}
 		i := string(init[0])
 		if strings.Contains(CHARR, i) {
 			byfirstlett[i] = append(byfirstlett[i], strings.Replace(w, "'", "", -1))
