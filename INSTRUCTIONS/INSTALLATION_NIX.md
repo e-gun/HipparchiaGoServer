@@ -16,7 +16,7 @@
   - enable server launch at system startup
   - start the server
 2. You should also install `postgresql-contrib` to get access to `pg_trgm`
-  - to achieve this you will need to do something like `sudo dnf install postgresql15-contrib`
+  - to achieve this you will need to do something like `sudo dnf install postgresql15-contrib` or `sudo apt install postgresql-contrib`
 3. Enter the `psql` shell: `sudo -u postgres psql`
    - execute the following; use good/strong passwords and write them down:
 ```
@@ -27,7 +27,7 @@ CREATE DATABASE "hipparchiaDB" WITH OWNER = hippa_wr ENCODING = 'UTF8';
 CREATE EXTENSION pg_trgm;
 \q
 ```
-4. Depending on your platform, you **might** need to tinker with your postgres configuration. Find `pg_hba.conf`. It will be somewhere like `/var/lib/pgsql/15/data/pg_hba.conf`. [it can be found via executing `SHOW hba_file;` inside the `psql` shell]
+4. Depending on your platform, you **might** need to tinker with your postgres configuration. Find `pg_hba.conf`. It will be somewhere like `/var/lib/pgsql/15/data/pg_hba.conf` or `/etc/postgresql/14/main/pg_hba.conf`. [it can be found via executing `SHOW hba_file;` inside the `psql` shell]
    - Ensure that the `METHOD` in `pg_hba.conf` is `trust` and NOT `peer` for `local` connections. 
    - Look at the end of the file and confirm that you see a block that looks like this:
 
@@ -66,6 +66,6 @@ CREATE EXTENSION pg_trgm;
 6. Eventually the server will launch. The self-load process only has to happen once.
 NB: `hippa_rd` errors are safe to ignore.
 7. When you see `http server started on 127.0.0.1:8000` you are up and running. From here on out you can just double-click
-   to launch the program. You can also leave it running indefinitely: it does not consume many resources if not active. 
+   to launch the program. You can also leave it running indefinitely. It does not consume many resources if not active: 0% CPU, <1% RAM.
 
 ![launch](../gitimg/linux/03_linux_loaded.png)

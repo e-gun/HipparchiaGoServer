@@ -43,7 +43,7 @@ func main() {
 
 	SQLPool = FillPSQLPoool()
 	go WebsocketPool.WSPoolStartListening()
-	go Ticker(TICKERDELAY)
+	go UptimeTicker(TICKERDELAY)
 
 	// concurrent launching
 	var awaiting sync.WaitGroup

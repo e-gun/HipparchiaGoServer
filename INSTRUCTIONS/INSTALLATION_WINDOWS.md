@@ -91,7 +91,8 @@ PSQL administrator password you entered at `A.4` above.
 
 ![inst13](../gitimg/windows/19_loading.png)
 
-6. Now you can point a browser at http://127.0.0.1:8000
+6. Now you can point a browser at http://127.0.0.1:8000. You can also leave the server running indefinitely. It does not consume many resources if not active: 0% CPU, <1% RAM.
+
 
 ![inst13](../gitimg/windows/19b_loaded.png)
 

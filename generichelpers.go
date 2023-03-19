@@ -186,8 +186,8 @@ func GCStats(fn string) {
 	msg(fmt.Sprintf(MSG, fn, b, a), MPR)
 }
 
-// Ticker - print how long we have been running
-func Ticker(wait time.Duration) {
+// UptimeTicker - print how long we have been running
+func UptimeTicker(wait time.Duration) {
 	const (
 		CLEAR     = "\033[2K"
 		CLEARRT   = "\033[0K"
@@ -197,6 +197,7 @@ func Ticker(wait time.Duration) {
 		CURSSAVE  = "\033[s"
 		CURSREST  = "\033[u"
 		PADDING   = " ----------------- "
+		STATTMPL  = "%s: C2%dC0"
 	)
 	// ANSI escape codes do not work in windows
 	if !Config.TickerActive || runtime.GOOS == "windows" {
@@ -215,13 +216,13 @@ func Ticker(wait time.Duration) {
 		keys = SetSubtraction(keys, exclude)
 		sort.Strings(keys)
 
-		fmt.Printf(CURSSAVE + FIRSTLINE)
 		var pairs []string
 		for k := range keys {
 			this := strings.TrimPrefix(keys[k], "Rt")
 			this = strings.TrimSuffix(this, "()")
-			pairs = append(pairs, fmt.Sprintf("%s: C2%dC0", this, StatCounter[keys[k]].Load()))
+			pairs = append(pairs, fmt.Sprintf(STATTMPL, this, StatCounter[keys[k]].Load()))
 		}
+		fmt.Printf(CURSSAVE + FIRSTLINE)
 		out := coloroutput(strings.Join(pairs, " C6*C0 "))
 		fmt.Printf(out + CLEARRT)
 		fmt.Println()

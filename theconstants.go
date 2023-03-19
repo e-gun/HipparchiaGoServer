@@ -76,7 +76,7 @@ const (
 	TEMPTABLETHRESHOLD       = 100 // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
 	TERMINATIONS             = `(\s|\.|\]|\<|⟩|’|”|\!|,|:|;|\?|·|$)`
 	TICKERISACTIVE           = false
-	TICKERDELAY              = 1 * time.Second
+	TICKERDELAY              = 60 * time.Second
 	TIMEOUTRD                = 15 * time.Second  // only set if Config.Authenticate is true (and so in a "serve the net" situation)
 	TIMEOUTWR                = 120 * time.Second // this is *very* generous, but some searches are slow/long
 	TIMETRACKERMSGTHRESH     = MSGFYI
@@ -127,7 +127,7 @@ const (
    C1-saC0 C2{string}C0 server IP address [default: "C3%sC0"]
    C1-spC0 C2{num}C0    server port [default: C3%dC0]
    C1-stC0          run the self-test suite at launch; repeat the flag to iterate: e.g., "C1-st -stC0" will run twice
-   C1-tkC0          turn on the uptime Ticker [unavailable if OS is Windows]
+   C1-tkC0          turn on the uptime UptimeTicker [unavailable if OS is Windows]
    C1-uiC0 C2{string}C0 unacceptable input characters [default: C3%sC0]
    C1-vC0           print version info and exit
    C1-vvC0          print full version info and exit

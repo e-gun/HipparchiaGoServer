@@ -188,6 +188,7 @@ func RtVocabMaker(c echo.Context) error {
 		<div id="searchsummary">Vocabulary for %s,&nbsp;<span class="foundwork">%s</span><br>
 			citation format:&nbsp;%s<br>
 			%s words found<br>
+			Headwords found only here: %d%s<br>
 			<span class="small">(%ss)</span><br>
 			%s
 			%s
@@ -368,14 +369,16 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	// flag words that appear only in this selection
-	//for i := 0; i < len(parsedwords); i++ {
-	//	if parsedwords[i].HWdCount == vim[parsedwords[i].Word].C {
-	//		newwd := vim[parsedwords[i].Word]
-	//		newwd.HWIsOnlyHere = true
-	//		vim[parsedwords[i].Word] = newwd
-	//		fmt.Println(vim[parsedwords[i].Word].Word)
-	//	}
-	//}
+	var uniqueHW []string
+	for i := 0; i < len(parsedwords); i++ {
+		if parsedwords[i].HWdCount > 0 && parsedwords[i].HWdCount == vim[parsedwords[i].Word].C {
+			uniqueHW = append(uniqueHW, parsedwords[i].HeadWd)
+		}
+	}
+	uniqueHW = Unique(uniqueHW)
+	sort.Slice(uniqueHW, func(i, j int) bool {
+		return strings.Replace(StripaccentsSTR(uniqueHW[i]), "ϲ", "σ", -1) < strings.Replace(StripaccentsSTR(uniqueHW[j]), "ϲ", "σ", -1)
+	})
 
 	vis := make([]VocInf, len(vim))
 	ct := 0
@@ -457,7 +460,10 @@ func RtVocabMaker(c echo.Context) error {
 		cp = m.Sprintf(HITCAP, max)
 	}
 
-	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, el, cp, ky)
+	u := len(uniqueHW)
+	uw := `<p class="indented smallerthannormal">` + strings.Join(uniqueHW, ", ") + `</p>`
+
+	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, u, uw, el, cp, ky)
 
 	if Config.ZapLunates {
 		htm = DeLunate(htm)
