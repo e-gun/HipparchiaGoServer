@@ -12,6 +12,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"runtime"
+	"sort"
+	"strings"
 	"text/template"
 	"time"
 )
@@ -22,6 +24,12 @@ import (
 
 // RtFrontpage - send the html for "/"
 func RtFrontpage(c echo.Context) error {
+	const (
+		UPSTR    = "[%v] HGS uptime: %v"
+		PADDING  = " ----------------- "
+		STATTMPL = "%s: %d"
+		SPACER   = "    "
+	)
 	// will set if missing
 	user := readUUIDCookie(c)
 	s := AllSessions.GetSess(user)
@@ -39,11 +47,32 @@ func RtFrontpage(c echo.Context) error {
 
 	env := fmt.Sprintf("%s: %s - %s (%d workers)", runtime.Version(), runtime.GOOS, runtime.GOARCH, Config.WorkerCount)
 
+	t := func(up time.Duration) string {
+		tick := fmt.Sprintf(UPSTR, time.Now().Format(time.TimeOnly), up.Truncate(time.Minute))
+		return PADDING + tick + PADDING
+	}
+
+	svd := func() string {
+		exclude := []string{"main() post-initialization"}
+		keys := StringMapKeysIntoSlice(StatCounter)
+		keys = SetSubtraction(keys, exclude)
+		sort.Strings(keys)
+
+		var pairs []string
+		for k := range keys {
+			this := strings.TrimPrefix(keys[k], "Rt")
+			this = strings.TrimSuffix(this, "()")
+			pairs = append(pairs, fmt.Sprintf(SPACER+STATTMPL, this, StatCounter[keys[k]].Load()))
+		}
+		return strings.Join(pairs, "\n")
+	}
+
 	subs := map[string]interface{}{
 		"version":       VERSION + VersSuppl,
 		"longver":       ver,
 		"authhtm":       ahtm,
 		"env":           env,
+		"ticker":        t(time.Since(LaunchTime)) + "\n\n" + svd(),
 		"user":          "Anonymous",
 		"resultcontext": s.HitContext,
 		"browsecontext": s.BrowseCtx,

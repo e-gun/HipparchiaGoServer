@@ -15,13 +15,18 @@
 * semantic vectors 
 * dictionaries
 * text maker
-* indexing
-* vocabulary list generation
+* indexing (+ flag unique forms)
+* vocabulary list generation (+ flag unique headwords)
 * morphology tables
+<<<<<<< HEAD
 * progress polling
 * self-configuration first run
 * self-installation on first run 
 * vectors
+=======
+* self-installation on first run
+* self-configuration first run
+* vectors (but early tests of ML golang libraries are not promising)
 
 ### INSTRUCTIONS
 * for installation, see the `INSTRUCTIONS` folder
@@ -36,5 +41,4 @@
 * a very heavy search like "all forms of Πόλιϲ near..." can kick you up into 660MB
 
 ### MINIMUM VERSION OF GOLANG REQUIRED TO BUILD
-* go 1.19
-* `searchstructs.go` uses `atomic.Int64` from `sync/atomic`. `atomic.Int64` was added in go 1.19.
+* go 1.19 because `atomic.Int32` and `atomic.Int64` are called

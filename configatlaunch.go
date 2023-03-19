@@ -28,11 +28,12 @@ type CurrentConfiguration struct {
 	HostIP        string
 	HostPort      int
 	LogLevel      int
-	ManualGC      bool // see GCStats()
+	ManualGC      bool // see SelfStats()
 	MaxText       int
 	PGLogin       PostgresLogin
 	QuietStart    bool
 	SelfTest      int
+	TickerActive  bool
 	VocabByCt     bool
 	VocabScans    bool
 	WorkerCount   int
@@ -195,7 +196,7 @@ func ConfigAtLaunch() {
 		case "-h":
 			printversion()
 			printbuildinfo()
-			ht := coloroutput(HELPTEXT)
+			ht := styleoutput(coloroutput(HELPTEXT))
 			fmt.Println(fmt.Sprintf(ht, pwf, DEFAULTBROWSERCTX, CONFIGLOCATION, CONFIGBASIC, h, CONFIGBASIC,
 				DEFAULTECHOLOGLEVEL, HDBFOLDER, DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT,
 				UNACCEPTABLEINPUT, runtime.NumCPU(), CONFIGPROLIX, h, PROJURL))
@@ -219,6 +220,8 @@ func ConfigAtLaunch() {
 			Config.HostPort = p
 		case "-st":
 			Config.SelfTest += 1
+		case "-tk":
+			Config.TickerActive = true
 		case "-ui":
 			Config.BadChars = args[i+1]
 		case "-wc":
@@ -264,6 +267,7 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.MaxText = MAXTEXTLINEGENERATION
 	c.QuietStart = false
 	c.SelfTest = 0
+	c.TickerActive = TICKERISACTIVE
 	c.VocabByCt = VOCABBYCOUNT
 	c.VocabScans = VOCABSCANSION
 	c.WorkerCount = runtime.NumCPU()
