@@ -18,14 +18,9 @@
 * indexing (+ flag unique forms)
 * vocabulary list generation (+ flag unique headwords)
 * morphology tables
-<<<<<<< HEAD
 * progress polling
 * self-configuration first run
-* self-installation on first run 
-* vectors
-=======
 * self-installation on first run
-* self-configuration first run
 * vectors (but early tests of ML golang libraries are not promising)
 
 ### INSTRUCTIONS

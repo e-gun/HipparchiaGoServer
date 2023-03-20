@@ -93,34 +93,15 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	srch.Results = vs.Results
 	vs.Results = []DbWorkline{}
 
-	// test via:
-	// curl 127.0.0.1:8000/vect/exec/1
-
-	// "testing one two three" will yield:
-	// testing 0.011758 0.035748 0.022445 -0.048132 0.070287 -0.007568 0.089921 -0.003403 -0.002596 -0.036771
-	//one -0.023640 0.004734 -0.022185 -0.035968 0.049385 -0.038856 -0.049740 0.065040 -0.025132 0.035743
-	//two 0.022721 0.016821 -0.066850 -0.092613 0.001636 -0.009990 0.039538 0.011934 0.051826 -0.008637
-	//three -0.040263 -0.056876 -0.010872 -0.032923 0.038590 0.065175 -0.041002 -0.009709 -0.037445 -0.025513
-	//0.0.0
-
-	var slicedwords []WordInfo
+	var slicedwords []string
 	for i := 0; i < len(srch.Results); i++ {
 		wds := srch.Results[i].AccentedSlice()
 		for _, w := range wds {
-			// unlike RtIndexMaker() we do not need a lot of info in a WordInfo
-			this := WordInfo{
-				HW:         "",
-				Wd:         UVσςϲ(SwapAcuteForGrave(w)),
-				Loc:        "",
-				Cit:        "",
-				IsHomonymn: false,
-				Wk:         "",
-			}
-			slicedwords = append(slicedwords, this)
+			slicedwords = append(slicedwords, UVσςϲ(SwapAcuteForGrave(w)))
 		}
 	}
 
-	morphmapdbm := ConstructMorphMap(slicedwords) // map[string]DbMorphology
+	morphmapdbm := arraytogetrequiredmorphobjects(slicedwords) // map[string]DbMorphology
 
 	// figure out which headwords to associate with the collection of words
 	// this information is inside DbMorphology.RawPossib
@@ -163,11 +144,11 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 
 	// if you just iterate over morphmapstrslc, you drop unparsed terms: the next will retain them
 	for _, w := range slicedwords {
-		if _, t := morphmapstrslc[w.Wd]; t {
+		if _, t := morphmapstrslc[w]; t {
 			continue
 		} else {
-			morphmapstrslc[w.Wd] = make(map[string]bool)
-			morphmapstrslc[w.Wd][w.Wd] = true
+			morphmapstrslc[w] = make(map[string]bool)
+			morphmapstrslc[w][w] = true
 		}
 	}
 
@@ -205,27 +186,27 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	//	Ille cui ternis Capitolia celsa triumphis..."
 
 	// fyi
-	opts := word2vec.Options{
-		BatchSize:          0,
-		Dim:                0,
-		DocInMemory:        false,
-		Goroutines:         0,
-		Initlr:             0,
-		Iter:               0,
-		LogBatch:           0,
-		MaxCount:           0,
-		MaxDepth:           0,
-		MinCount:           0,
-		MinLR:              0,
-		ModelType:          "cbow",
-		NegativeSampleSize: 0,
-		OptimizerType:      "ns",
-		SubsampleThreshold: 0,
-		ToLower:            false,
-		UpdateLRBatch:      0,
-		Verbose:            false,
-		Window:             0,
-	}
+	//opts := word2vec.Options{
+	//	BatchSize:          0,
+	//	Dim:                0,
+	//	DocInMemory:        false,
+	//	Goroutines:         0,
+	//	Initlr:             0,
+	//	Iter:               0,
+	//	LogBatch:           0,
+	//	MaxCount:           0,
+	//	MaxDepth:           0,
+	//	MinCount:           0,
+	//	MinLR:              0,
+	//	ModelType:          "cbow",
+	//	NegativeSampleSize: 0,
+	//	OptimizerType:      "ns",
+	//	SubsampleThreshold: 0,
+	//	ToLower:            false,
+	//	UpdateLRBatch:      0,
+	//	Verbose:            false,
+	//	Window:             0,
+	//}
 
 	//const (
 	//	NegativeSampling    OptimizerType = "ns"
@@ -278,24 +259,29 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	//                                       workers=workers,
 	//                                       compute_loss=computeloss)
 
-	opts = word2vec.DefaultOptions()
-	opts.OptimizerType = "hs"
-	opts.Dim = 200
-	opts.DocInMemory = true
-	opts.Iter = 50 // need to crank this up well past the default if you are going to get separation instead of .9998, .9997, .9997, ...
-	// opts.MaxCount = 35
-	opts.MinCount = 8
-	// opts.ModelType = "skipgram"
-	opts.Window = 8
+	//opts = word2vec.DefaultOptions()
+	//opts.OptimizerType = "hs"
+	//opts.Dim = 200
+	//opts.DocInMemory = true
+	//opts.Iter = 50 // need to crank this up well past the default if you are going to get separation instead of .9998, .9997, .9997, ...
+	//// opts.MaxCount = 35
+	//opts.MinCount = 8
+	//// opts.ModelType = "skipgram"
+	//opts.Window = 8
 
-	model, err := word2vec.NewForOptions(opts)
+	opts := vectorconfig()
+
+	// TODO
+	// PROBLEM: 10 dimensional output no matter how many dimensions requested
+
+	vmodel, err := word2vec.NewForOptions(opts)
 	if err != nil {
 		// problem
 	}
 
 	// input for  word2vec.Train() is 'io.ReadSeeker'
 	b := bytes.NewReader([]byte(thetext))
-	if err = model.Train(b); err != nil {
+	if err = vmodel.Train(b); err != nil {
 		// failed to train.
 	}
 
@@ -321,7 +307,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	if err != nil {
 		return fail("failed to create vect.out")
 	}
-	err = model.Save(f, vector.Agg)
+	err = vmodel.Save(f, vector.Agg)
 	if err != nil {
 		return fail("failed to save vect.out")
 	}
@@ -400,16 +386,16 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
 
-func flatstring(sb *strings.Builder, slicedwords []WordInfo) {
+func flatstring(sb *strings.Builder, slicedwords []string) {
 	for i := 0; i < len(slicedwords); i++ {
-		sb.WriteString(slicedwords[i].Wd + " ")
+		sb.WriteString(slicedwords[i] + " ")
 	}
 }
 
-func winnerstring(sb *strings.Builder, slicedwords []WordInfo, winnermap map[string][]string) {
+func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[string][]string) {
 	for i := 0; i < len(slicedwords); i++ {
 		// drop skipwords
-		w := winnermap[slicedwords[i].Wd][0]
+		w := winnermap[slicedwords[i]][0]
 		_, s1 := LatinStops[w]
 		_, s2 := GreekStops[w]
 		if s1 || s2 {
@@ -555,4 +541,42 @@ func getgreekstops() map[string]struct{} {
 func getlatinstops() map[string]struct{} {
 	ls := SetSubtraction(Latin100, LatinKeep)
 	return ToSet(ls)
+}
+
+func vectorconfig() word2vec.Options {
+	const (
+		ERR1 = "vectorconfig() cannot find UserHomeDir"
+		ERR2 = "vectorconfig() failed to parse "
+		MSG1 = "wrote default vector configuration file "
+		MSG2 = "read vector configuration from "
+	)
+	h, e := os.UserHomeDir()
+	cfg := word2vec.DefaultOptions()
+	if e != nil {
+		msg(ERR1, 0)
+		return cfg
+	}
+	_, yes := os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTOR)
+
+	if yes != nil {
+		content, err := json.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
+		chke(err)
+
+		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTOR, content, 0644)
+		chke(err)
+		msg(MSG1+CONFIGVECTOR, 1)
+	} else {
+		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTOR)
+		decoderc := json.NewDecoder(loadedcfg)
+		confc := word2vec.Options{}
+		errc := decoderc.Decode(&confc)
+		_ = loadedcfg.Close()
+		if errc != nil {
+			msg(ERR2+CONFIGVECTOR, 0)
+			cfg = word2vec.DefaultOptions()
+		}
+		msg(MSG2+CONFIGVECTOR, 2)
+	}
+
+	return cfg
 }
