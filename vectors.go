@@ -27,6 +27,8 @@ var (
 		"primus", "unus", "multus", "causa", "jam", "tamen", "Sue", "nos", "dies", "Ios", "modus", "tuus", "venio",
 		"pro¹", "pro²", "ago", "deus", "annus", "locus", "homo", "pater", "eo²", "tantus", "fero", "quidem", "noster",
 		"an", "locum"}
+	LatExtra = []string{"at", "o", "tum", "tunc", "dum", "illic", "quia", "sive", "num"}
+	LatStop  = append(Latin100, LatExtra...)
 	// Greek150 - the 150 most common greek headwords
 	Greek150 = []string{"ὁ", "καί", "τίϲ", "ἔδω", "δέ", "εἰμί", "δέω¹", "δεῖ", "δέομαι", "εἰϲ", "αὐτόϲ", "τιϲ", "οὗτοϲ", "ἐν",
 		"γάροϲ", "γάρον", "γάρ", "οὐ", "μένω", "μέν", "τῷ", "ἐγώ", "ἡμόϲ", "κατά", "Ζεύϲ", "ἐπί", "ὡϲ", "διά",
@@ -40,6 +42,8 @@ var (
 		"ἀνήρ", "ὁράω", "ψυχή", "Ἔχιϲ", "ὥϲπερ", "αὐτόϲε", "χέω", "ὑπέρ", "ϲόϲ", "θεάω", "νῦν", "ἐμόϲ", "δύναμαι",
 		"φύω", "πάλιν", "ὅλοξ", "ἀρχή", "καλόϲ", "δύναμιϲ", "πωϲ", "δύο", "ἀγαθόϲ", "οἶδα", "δείκνυμι", "χρόνοϲ",
 		"ὅμοιοϲ", "ἕκαϲτοϲ", "ὁμοῖοϲ", "ὥϲτε", "ἡμέρα", "γράφω", "δραχμή", "μέροϲ"}
+	GreekExtra = []string{}
+	GreekStop  = append(Greek150, GreekExtra...)
 	// LatinKeep - members of Latin100 we will not toss
 	LatinKeep = []string{"facio", "possum", "habeo", "video", "magnus", "bonus", "volo¹", "primus", "venio", "ago",
 		"deus", "annus", "locus", "pater", "fero"}
@@ -48,51 +52,37 @@ var (
 		"δίδωμι", "βαϲιλεύϲ", "φύϲιϲ", "ἔτοϲ", "πατήρ", "ϲῶμα", "καλέω", "ἐρῶ", "υἱόϲ", "γαῖα", "ἀνήρ", "ὁράω",
 		"ψυχή", "δύναμαι", "ἀρχή", "καλόϲ", "δύναμιϲ", "ἀγαθόϲ", "οἶδα", "δείκνυμι", "χρόνοϲ", "γράφω", "δραχμή",
 		"μέροϲ"}
-	LatinStops = getlatinstops()
-	GreekStops = getgreekstops()
+	LatinStops  = getlatinstops()
+	GreekStops  = getgreekstops()
+	DefVectSett = word2vec.Options{
+		BatchSize:          2000,
+		Dim:                125,
+		DocInMemory:        true,
+		Goroutines:         20,
+		Initlr:             0.025,
+		Iter:               12,
+		LogBatch:           100000,
+		MaxCount:           -1,
+		MaxDepth:           150,
+		MinCount:           10,
+		MinLR:              0.0000025,
+		ModelType:          "skipgram",
+		NegativeSampleSize: 5,
+		OptimizerType:      "hs",
+		SubsampleThreshold: 0.001,
+		ToLower:            false,
+		UpdateLRBatch:      100000,
+		Verbose:            true,
+		Window:             8,
+	}
 )
-
-//type ModelType = string
-//
-//const (
-//	Cbow     ModelType = "cbow"
-//	SkipGram ModelType = "skipgram"
-//)
-
-//type OptimizerType = string
-//
-//const (
-//	NegativeSampling    OptimizerType = "ns"
-//	HierarchicalSoftmax OptimizerType = "hs"
-//)
-//
-//type Options struct {
-//	BatchSize          int
-//	Dim                int
-//	DocInMemory        bool
-//	Goroutines         int
-//	Initlr             float64
-//	Iter               int
-//	LogBatch           int
-//	MaxCount           int
-//	MaxDepth           int
-//	MinCount           int
-//	MinLR              float64
-//	ModelType          ModelType
-//	NegativeSampleSize int
-//	OptimizerType      OptimizerType
-//	SubsampleThreshold float64
-//	ToLower            bool
-//	UpdateLRBatch      int
-//	Verbose            bool
-//	Window             int
-//}
 
 func VectorSearch(c echo.Context, srch SearchStruct) error {
 	vs := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 	srch.Results = vs.Results
 	vs.Results = []DbWorkline{}
 
+	// [a] get all the words we need
 	var slicedwords []string
 	for i := 0; i < len(srch.Results); i++ {
 		wds := srch.Results[i].AccentedSlice()
@@ -101,9 +91,11 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		}
 	}
 
+	// [b] get basic morphology info for those words
 	morphmapdbm := arraytogetrequiredmorphobjects(slicedwords) // map[string]DbMorphology
 
-	// figure out which headwords to associate with the collection of words
+	// [c] figure out which headwords to associate with the collection of words
+
 	// this information is inside DbMorphology.RawPossib
 	// but it needs to be parsed
 	// example: `{"1": {"transl": "A. nom. plur; II. a guardian god", "analysis": "masc gen pl", "headword": "deus", "scansion": "deūm", "xref_kind": "9", "xref_value": "22568216"}, "2": {"transl": "A. nom. plur; II. a guardian god", "analysis": "masc acc sg", "headword": "deus", "scansion": "", "xref_kind": "9", "xref_value": "22568216"}}`
@@ -156,12 +148,13 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	// map[abscondere:map[abscondo:true] apte:map[apte:true aptus:true] capitolia:map[capitolium:true] celsa:map[celsus¹:true] concludere:map[concludo:true] cui:map[quis²:true quis¹:true qui²:true qui¹:true] dactylum:map[dactylus:true] de:map[de:true] deum:map[deus:true] fieri:map[fio:true] freta:map[fretum:true fretus¹:true] i:map[eo¹:true] ille:map[ille:true] iungens:map[jungo:true] liber:map[liber¹:true liber⁴:true libo¹:true] metris:map[metrum:true] moenibus:map[moenia¹:true] non:map[non:true] nulla:map[nullus:true] patuere:map[pateo:true patesco:true] posse:map[possum:true] repostos:map[re-pono:true] rerum:map[res:true] romanarum:map[romanus:true] sed:map[sed:true] sinus:map[sinus¹:true] spondeum:map[spondeum:true spondeus:true] sponte:map[sponte:true] ternis:map[terni:true] totum:map[totus²:true totus¹:true] triumphis:map[triumphus:true] tutae:map[tueor:true] uersum:map[verro:true versum:true versus³:true verto:true] urbes:map[urbs:true] †uilem:map[†uilem:true]]
 	//
 
+	// [d] swap out words for headwords
 	winnermap := buildwinnertakesallparsemap(morphmapstrslc)
 
 	// "winnermap" for Albinus , poet. [lt2002]
 	// map[abscondere:[abscondo] apte:[aptus] capitolia:[capitolium] celsa:[celsus¹] concludere:[concludo] cui:[qui¹] dactylum:[dactylus] de:[de] deum:[deus] fieri:[fio] freta:[fretus¹] i:[eo¹] ille:[ille] iungens:[jungo] liber:[liber⁴] metris:[metrum] moenibus:[moenia¹] non:[non] nulla:[nullus] patuere:[pateo] posse:[possum] repostos:[re-pono] rerum:[res] romanarum:[romanus] sed:[sed] sinus:[sinus¹] spondeum:[spondeus] sponte:[sponte] ternis:[terni] totum:[totus¹] triumphis:[triumphus] tutae:[tueor] uersum:[verro] urbes:[urbs] †uilem:[†uilem]]
 
-	// turn results into unified text block
+	// [e] turn results into unified text block
 
 	// string addition will use a huge amount of time: 120s to concatinate Cicero: txt = txt + newtxt...
 	// with strings.Builder we only need .1s to build the text...
@@ -185,98 +178,13 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	// vs. "RERUM ROMANARUM LIBER I
 	//	Ille cui ternis Capitolia celsa triumphis..."
 
-	// fyi
-	//opts := word2vec.Options{
-	//	BatchSize:          0,
-	//	Dim:                0,
-	//	DocInMemory:        false,
-	//	Goroutines:         0,
-	//	Initlr:             0,
-	//	Iter:               0,
-	//	LogBatch:           0,
-	//	MaxCount:           0,
-	//	MaxDepth:           0,
-	//	MinCount:           0,
-	//	MinLR:              0,
-	//	ModelType:          "cbow",
-	//	NegativeSampleSize: 0,
-	//	OptimizerType:      "ns",
-	//	SubsampleThreshold: 0,
-	//	ToLower:            false,
-	//	UpdateLRBatch:      0,
-	//	Verbose:            false,
-	//	Window:             0,
-	//}
-
-	//const (
-	//	NegativeSampling    OptimizerType = "ns"
-	//	HierarchicalSoftmax OptimizerType = "hs"
-	//)
-
-	//const (
-	//	Cbow     ModelType = "cbow"
-	//	SkipGram ModelType = "skipgram"
-	//)
-
-	// var (
-	//	defaultBatchSize          = 10000
-	//	defaultDim                = 10
-	//	defaultDocInMemory        = false
-	//	defaultGoroutines         = runtime.NumCPU()
-	//	defaultInitlr             = 0.025
-	//	defaultIter               = 15
-	//	defaultLogBatch           = 100000
-	//	defaultMaxCount           = -1
-	//	defaultMaxDepth           = 100
-	//	defaultMinCount           = 5
-	//	defaultMinLR              = defaultInitlr * 1.0e-4
-	//	defaultModelType          = Cbow
-	//	defaultNegativeSampleSize = 5
-	//	defaultOptimizerType      = NegativeSampling
-	//	defaultSubsampleThreshold = 1.0e-3
-	//	defaultToLower            = false
-	//	defaultUpdateLRBatch      = 100000
-	//	defaultVerbose            = false
-	//	defaultWindow             = 5
-	//)
-
-	// results do not repeat because word2vec.Train() in pkg/model/word2vec/word2vec.go has
-	// "vec[i] = (rand.Float64() - 0.5) / float64(dim)"
-
-	// modelbuilders.py
-	// 	negative (int, optional) – If > 0, negative sampling will be used, the int for negative specifies how many “noise words” should be drawn (usually between 5-20). If set to 0, no negative sampling is used.
-	//	seed (int, optional) – Seed for the random number generator. Initial vectors for each word are seeded with a hash of the concatenation of word + str(seed). Note that for a fully deterministically-reproducible run, you must also limit the model to a single worker thread (workers=1), to eliminate ordering jitter from OS thread scheduling. (In Python 3, reproducibility between interpreter launches also requires use of the PYTHONHASHSEED environment variable to control hash randomization).
-	// 	compute_loss (bool, optional) – If True, computes and stores loss value which can be retrieved using get_latest_training_loss()
-	//  window (int, optional) – Maximum distance between the current and predicted word within a sentence
-	//                gensimmodel = Word2Vec(bagsofwords,
-	//                                       min_count=vv.minimumpresence,
-	//                                       seed=1,
-	//                                       epochs=vv.trainingiterations,
-	//                                       vector_size=vv.dimensions,
-	//                                       sample=vv.downsample,
-	//                                       sg=1,  # the results seem terrible if you say sg=0
-	//                                       window=vv.window,
-	//                                       workers=workers,
-	//                                       compute_loss=computeloss)
-
-	//opts = word2vec.DefaultOptions()
-	//opts.OptimizerType = "hs"
-	//opts.Dim = 200
-	//opts.DocInMemory = true
-	//opts.Iter = 50 // need to crank this up well past the default if you are going to get separation instead of .9998, .9997, .9997, ...
-	//// opts.MaxCount = 35
-	//opts.MinCount = 8
-	//// opts.ModelType = "skipgram"
-	//opts.Window = 8
+	// [f] vectorize the text block
 
 	opts := vectorconfig()
 
-	// TODO
-	// PROBLEM: 10 dimensional output no matter how many dimensions requested
-
 	vmodel, err := word2vec.NewForOptions(opts)
 	if err != nil {
-		// problem
+		msg("word2vec model initialization failed", 1)
 	}
 
 	// input for  word2vec.Train() is 'io.ReadSeeker'
@@ -297,10 +205,10 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 	}
 
-	// write word vector.
+	// write word vector to disk [later: to postgres]
 
 	vfile := "/Users/erik/tmp/vect.out"
-	rank := 10 // how many neighbors to output; min is 1
+	rank := 20 // how many neighbors to output; min is 1
 	word := srch.Seeking
 
 	f, err := os.Create(vfile)
@@ -312,6 +220,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		return fail("failed to save vect.out")
 	}
 
+	// read word vector from disk [later: from postgres]
 	input, err := os.Open(vfile)
 	if err != nil {
 		return fail("err: os.Open(vfile)")
@@ -322,6 +231,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		return fail("err: embedding.Load(input)")
 	}
 
+	// [g] make a query against the model
 	searcher, err := search.New(embs...)
 	if err != nil {
 		return fail("err: search.New(embs...)")
@@ -350,6 +260,8 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	//     9 | uiros      |   0.928818
 	//    10 | etiam      |   0.927048
 
+	// [h] prepare output
+
 	table := make([][]string, len(neighbors))
 	for i, n := range neighbors {
 		table[i] = []string{
@@ -361,7 +273,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 
 	out := "<pre>"
 	for t := range table {
-		out += fmt.Sprintf("%s\t%s\t\t%s\n", table[t][0], table[t][1], table[t][2])
+		out += fmt.Sprintf("%s\t%s\t\t\t%s\n", table[t][0], table[t][1], table[t][2])
 	}
 	out += "</pre>"
 
@@ -534,12 +446,12 @@ func fetchheadwordcounts(headwordset map[string]bool) map[string]int {
 }
 
 func getgreekstops() map[string]struct{} {
-	gs := SetSubtraction(Greek150, GreekKeep)
+	gs := SetSubtraction(GreekStop, GreekKeep)
 	return ToSet(gs)
 }
 
 func getlatinstops() map[string]struct{} {
-	ls := SetSubtraction(Latin100, LatinKeep)
+	ls := SetSubtraction(LatStop, LatinKeep)
 	return ToSet(ls)
 }
 
@@ -550,12 +462,15 @@ func vectorconfig() word2vec.Options {
 		MSG1 = "wrote default vector configuration file "
 		MSG2 = "read vector configuration from "
 	)
+	// cfg := word2vec.DefaultOptions()
+	cfg := DefVectSett
+
 	h, e := os.UserHomeDir()
-	cfg := word2vec.DefaultOptions()
 	if e != nil {
 		msg(ERR1, 0)
 		return cfg
 	}
+
 	_, yes := os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTOR)
 
 	if yes != nil {
@@ -568,15 +483,75 @@ func vectorconfig() word2vec.Options {
 	} else {
 		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTOR)
 		decoderc := json.NewDecoder(loadedcfg)
-		confc := word2vec.Options{}
-		errc := decoderc.Decode(&confc)
+		vc := word2vec.Options{}
+		errc := decoderc.Decode(&vc)
 		_ = loadedcfg.Close()
 		if errc != nil {
 			msg(ERR2+CONFIGVECTOR, 0)
-			cfg = word2vec.DefaultOptions()
+			cfg = DefVectSett
 		}
 		msg(MSG2+CONFIGVECTOR, 2)
+		cfg = vc
 	}
 
 	return cfg
 }
+
+//
+// WEGO NOTES AND DEFAULTS
+//
+
+//const (
+//	NegativeSampling    OptimizerType = "ns"
+//	HierarchicalSoftmax OptimizerType = "hs"
+//)
+
+//const (
+//	Cbow     ModelType = "cbow"
+//	SkipGram ModelType = "skipgram"
+//)
+
+// var (
+//	defaultBatchSize          = 10000
+//	defaultDim                = 10
+//	defaultDocInMemory        = false
+//	defaultGoroutines         = runtime.NumCPU()
+//	defaultInitlr             = 0.025
+//	defaultIter               = 15
+//	defaultLogBatch           = 100000
+//	defaultMaxCount           = -1
+//	defaultMaxDepth           = 100
+//	defaultMinCount           = 5
+//	defaultMinLR              = defaultInitlr * 1.0e-4
+//	defaultModelType          = Cbow
+//	defaultNegativeSampleSize = 5
+//	defaultOptimizerType      = NegativeSampling
+//	defaultSubsampleThreshold = 1.0e-3
+//	defaultToLower            = false
+//	defaultUpdateLRBatch      = 100000
+//	defaultVerbose            = false
+//	defaultWindow             = 5
+//)
+
+// results do not repeat because word2vec.Train() in pkg/model/word2vec/word2vec.go has
+// "vec[i] = (rand.Float64() - 0.5) / float64(dim)"
+
+//
+// GENSIM NOTES
+//
+
+// modelbuilders.py
+// 	negative (int, optional) – If > 0, negative sampling will be used, the int for negative specifies how many “noise words” should be drawn (usually between 5-20). If set to 0, no negative sampling is used.
+//	seed (int, optional) – Seed for the random number generator. Initial vectors for each word are seeded with a hash of the concatenation of word + str(seed). Note that for a fully deterministically-reproducible run, you must also limit the model to a single worker thread (workers=1), to eliminate ordering jitter from OS thread scheduling. (In Python 3, reproducibility between interpreter launches also requires use of the PYTHONHASHSEED environment variable to control hash randomization).
+// 	compute_loss (bool, optional) – If True, computes and stores loss value which can be retrieved using get_latest_training_loss()
+//  window (int, optional) – Maximum distance between the current and predicted word within a sentence
+//                gensimmodel = Word2Vec(bagsofwords,
+//                                       min_count=vv.minimumpresence,
+//                                       seed=1,
+//                                       epochs=vv.trainingiterations,
+//                                       vector_size=vv.dimensions,
+//                                       sample=vv.downsample,
+//                                       sg=1,  # the results seem terrible if you say sg=0
+//                                       window=vv.window,
+//                                       workers=workers,
+//                                       compute_loss=computeloss)
