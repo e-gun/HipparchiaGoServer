@@ -5,12 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/go-echarts/go-echarts/v2/charts"
+	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/ynqa/wego/pkg/embedding"
 	"github.com/ynqa/wego/pkg/model/modelutil/vector"
 	"github.com/ynqa/wego/pkg/model/word2vec"
 	"github.com/ynqa/wego/pkg/search"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"sort"
@@ -52,9 +55,9 @@ var (
 		"δίδωμι", "βαϲιλεύϲ", "φύϲιϲ", "ἔτοϲ", "πατήρ", "ϲῶμα", "καλέω", "ἐρῶ", "υἱόϲ", "γαῖα", "ἀνήρ", "ὁράω",
 		"ψυχή", "δύναμαι", "ἀρχή", "καλόϲ", "δύναμιϲ", "ἀγαθόϲ", "οἶδα", "δείκνυμι", "χρόνοϲ", "γράφω", "δραχμή",
 		"μέροϲ"}
-	LatinStops  = getlatinstops()
-	GreekStops  = getgreekstops()
-	DefVectSett = word2vec.Options{
+	LatinStops     = getlatinstops()
+	GreekStops     = getgreekstops()
+	DefaultVectors = word2vec.Options{
 		BatchSize:          2000,
 		Dim:                125,
 		DocInMemory:        true,
@@ -77,15 +80,172 @@ var (
 	}
 )
 
+// VectorSearch - a special case for RtSearch() where you requested vectorization of the results
 func VectorSearch(c echo.Context, srch SearchStruct) error {
 	vs := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 	srch.Results = vs.Results
 	vs.Results = []DbWorkline{}
 
+	// should insert a check to see if we already have a stored vector for this search
+
+	thetext := buildtextblock(srch.Results)
+
+	// "thetext" for Albinus , poet. [lt2002]
+	// res romanus liber⁴ eo¹ ille qui¹ terni capitolium celsus¹ triumphus sponte deus pateo qui¹ fretus¹ nullus re-pono abscondo sinus¹ non tueor moenia¹ urbs de metrum †uilem spondeus totus¹ concludo verro possum fio jungo sed dactylus aptus
+	// vs. "RERUM ROMANARUM LIBER I
+	//	Ille cui ternis Capitolia celsa triumphis..."
+
+	// [a] vectorize the text block
+
+	opts := vectorconfig()
+
+	vmodel, err := word2vec.NewForOptions(opts)
+	if err != nil {
+		msg("word2vec model initialization failed", 1)
+	}
+
+	// input for  word2vec.Train() is 'io.ReadSeeker'
+	b := bytes.NewReader([]byte(thetext))
+	if err = vmodel.Train(b); err != nil {
+		// failed to train.
+	}
+
+	fail := func(f string) error {
+		soj := SearchOutputJSON{
+			Title:         "VECTORS",
+			Searchsummary: f,
+			Found:         "[failed]",
+			Image:         "",
+			JS:            "",
+		}
+		AllSearches.Delete(srch.ID)
+		return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
+	}
+
+	// write word vector to disk [later: to postgres]
+
+	vfile := "/Users/erik/tmp/vect.out"
+	rank := 20 // how many neighbors to output; min is 1
+	word := srch.Seeking
+
+	f, err := os.Create(vfile)
+	if err != nil {
+		return fail("failed to create vect.out")
+	}
+	err = vmodel.Save(f, vector.Agg)
+	if err != nil {
+		return fail("failed to save vect.out")
+	}
+
+	// read word vector from disk [later: from postgres]
+	input, err := os.Open(vfile)
+	if err != nil {
+		return fail("err: os.Open(vfile)")
+	}
+	defer input.Close()
+	embs, err := embedding.Load(input)
+	if err != nil {
+		return fail("err: embedding.Load(input)")
+	}
+
+	// [b] make a query against the model
+	searcher, err := search.New(embs...)
+	if err != nil {
+		return fail("err: search.New(embs...)")
+	}
+
+	neighbors, err := searcher.SearchInternal(word, rank)
+	if err != nil {
+		return fail("err: searcher.SearchInternal(word, rank)")
+	}
+
+	// neighbors.Describe()
+
+	// "dextra" in big chunks of Lucan...
+
+	//
+	//   RANK |    WORD    | SIMILARITY
+	//-------+------------+-------------
+	//     1 | serpentum  |   0.962808
+	//     2 | putat      |   0.954310
+	//     3 | praecipiti |   0.947326
+	//     4 | mors       |   0.942508
+	//     5 | lux        |   0.940325
+	//     6 | modum      |   0.938747
+	//     7 | quisquis   |   0.938089
+	//     8 | animae     |   0.936332
+	//     9 | uiros      |   0.928818
+	//    10 | etiam      |   0.927048
+
+	// [c] prepare output
+
+	table := make([][]string, len(neighbors))
+	for i, n := range neighbors {
+		table[i] = []string{
+			fmt.Sprintf("%d", n.Rank),
+			n.Word,
+			fmt.Sprintf("%f", n.Similarity),
+		}
+	}
+
+	out := "<pre>"
+	for t := range table {
+		out += fmt.Sprintf("%s\t%s\t\t\t%s\n", table[t][0], table[t][1], table[t][2])
+	}
+	out += "</pre>"
+
+	// PYTHON GRAPHING TO MIMIC
+
+	// want some day to build a graph as per matplotgraphmatches() in vectorgraphing.py
+
+	//  FROM generatenearestneighbordata() in gensimnearestneighbors.py
+	//  mostsimilar = findapproximatenearestneighbors(termone, vectorspace, vv)
+	//  [('εὕρηϲιϲ', 1.0), ('εὑρίϲκω', 0.6673248708248138), ('φυϲιάω', 0.5833806097507477), ('νόμοϲ', 0.5505017340183258), ...]
+
+	// FROM findapproximatenearestneighbors() in gensimnearestneighbors.py
+	// 	explore = max(2500, vectorvalues.neighborscap)
+	//
+	//	try:
+	//		mostsimilar = mymodel.wv.most_similar(query, topn=explore)
+	//		mostsimilar = [s for s in mostsimilar if s[1] > vectorvalues.nearestneighborcutoffdistance]
+
+	//  FROM matplotgraphmatches() in vectorgraphing.py:
+	// 	edgelist = list()
+	//	for t in mostsimilartuples:
+	//		edgelist.append((searchterm, t[0], round(t[1]*10, 2)))
+	//
+	//	for r in relevantconnections:
+	//		for c in relevantconnections[r]:
+	//			edgelist.append((r, c[0], round(c[1]*10, 2)))
+	//
+	//	graph.add_weighted_edges_from(edgelist)
+	//	edgelabels = {(u, v): d['weight'] for u, v, d in graph.edges(data=True)}
+
+	// ? https://github.com/yourbasic/graph
+
+	// ? https://github.com/go-echarts/go-echarts
+
+	// look at what is possible and links: https://blog.gopheracademy.com/advent-2018/go-webgl/
+
+	soj := SearchOutputJSON{
+		Title:         "VECTORS",
+		Searchsummary: "[no summary]",
+		Found:         out,
+		Image:         "",
+		JS:            "",
+	}
+
+	AllSearches.Delete(srch.ID)
+
+	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
+}
+
+// buildtextblock - turn []DbWorkline into a single long string
+func buildtextblock(lines []DbWorkline) string {
 	// [a] get all the words we need
 	var slicedwords []string
-	for i := 0; i < len(srch.Results); i++ {
-		wds := srch.Results[i].AccentedSlice()
+	for i := 0; i < len(lines); i++ {
+		wds := lines[i].AccentedSlice()
 		for _, w := range wds {
 			slicedwords = append(slicedwords, UVσςϲ(SwapAcuteForGrave(w)))
 		}
@@ -160,7 +320,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	// with strings.Builder we only need .1s to build the text...
 
 	var sb strings.Builder
-	preallocate := CHARSPERLINE * len(srch.Results) // NB: a long line has 60 chars
+	preallocate := CHARSPERLINE * len(lines) // NB: a long line has 60 chars
 	sb.Grow(preallocate)
 
 	winner := true
@@ -171,139 +331,17 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		flatstring(&sb, slicedwords)
 	}
 
-	thetext := strings.TrimSpace(sb.String())
-
-	// "thetext" for Albinus , poet. [lt2002]
-	// res romanus liber⁴ eo¹ ille qui¹ terni capitolium celsus¹ triumphus sponte deus pateo qui¹ fretus¹ nullus re-pono abscondo sinus¹ non tueor moenia¹ urbs de metrum †uilem spondeus totus¹ concludo verro possum fio jungo sed dactylus aptus
-	// vs. "RERUM ROMANARUM LIBER I
-	//	Ille cui ternis Capitolia celsa triumphis..."
-
-	// [f] vectorize the text block
-
-	opts := vectorconfig()
-
-	vmodel, err := word2vec.NewForOptions(opts)
-	if err != nil {
-		msg("word2vec model initialization failed", 1)
-	}
-
-	// input for  word2vec.Train() is 'io.ReadSeeker'
-	b := bytes.NewReader([]byte(thetext))
-	if err = vmodel.Train(b); err != nil {
-		// failed to train.
-	}
-
-	fail := func(f string) error {
-		soj := SearchOutputJSON{
-			Title:         "VECTORS",
-			Searchsummary: f,
-			Found:         "[failed]",
-			Image:         "",
-			JS:            "",
-		}
-		AllSearches.Delete(srch.ID)
-		return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
-	}
-
-	// write word vector to disk [later: to postgres]
-
-	vfile := "/Users/erik/tmp/vect.out"
-	rank := 20 // how many neighbors to output; min is 1
-	word := srch.Seeking
-
-	f, err := os.Create(vfile)
-	if err != nil {
-		return fail("failed to create vect.out")
-	}
-	err = vmodel.Save(f, vector.Agg)
-	if err != nil {
-		return fail("failed to save vect.out")
-	}
-
-	// read word vector from disk [later: from postgres]
-	input, err := os.Open(vfile)
-	if err != nil {
-		return fail("err: os.Open(vfile)")
-	}
-	defer input.Close()
-	embs, err := embedding.Load(input)
-	if err != nil {
-		return fail("err: embedding.Load(input)")
-	}
-
-	// [g] make a query against the model
-	searcher, err := search.New(embs...)
-	if err != nil {
-		return fail("err: search.New(embs...)")
-	}
-
-	neighbors, err := searcher.SearchInternal(word, rank)
-	if err != nil {
-		return fail("err: searcher.SearchInternal(word, rank)")
-	}
-
-	// neighbors.Describe()
-
-	// "dextra" in big chunks of Lucan...
-
-	//
-	//   RANK |    WORD    | SIMILARITY
-	//-------+------------+-------------
-	//     1 | serpentum  |   0.962808
-	//     2 | putat      |   0.954310
-	//     3 | praecipiti |   0.947326
-	//     4 | mors       |   0.942508
-	//     5 | lux        |   0.940325
-	//     6 | modum      |   0.938747
-	//     7 | quisquis   |   0.938089
-	//     8 | animae     |   0.936332
-	//     9 | uiros      |   0.928818
-	//    10 | etiam      |   0.927048
-
-	// [h] prepare output
-
-	table := make([][]string, len(neighbors))
-	for i, n := range neighbors {
-		table[i] = []string{
-			fmt.Sprintf("%d", n.Rank),
-			n.Word,
-			fmt.Sprintf("%f", n.Similarity),
-		}
-	}
-
-	out := "<pre>"
-	for t := range table {
-		out += fmt.Sprintf("%s\t%s\t\t\t%s\n", table[t][0], table[t][1], table[t][2])
-	}
-	out += "</pre>"
-
-	// want some day to build a graph as per matplotgraphmatches() in vectorgraphing.py
-
-	// ? https://github.com/yourbasic/graph
-
-	// ? https://github.com/go-echarts/go-echarts
-
-	// look at what is possible and links: https://blog.gopheracademy.com/advent-2018/go-webgl/
-
-	soj := SearchOutputJSON{
-		Title:         "VECTORS",
-		Searchsummary: "[no summary]",
-		Found:         out,
-		Image:         "",
-		JS:            "",
-	}
-
-	AllSearches.Delete(srch.ID)
-
-	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
+	return strings.TrimSpace(sb.String())
 }
 
+// flatstring - helper for buildtextblock() to generate unmodified text
 func flatstring(sb *strings.Builder, slicedwords []string) {
 	for i := 0; i < len(slicedwords); i++ {
 		sb.WriteString(slicedwords[i] + " ")
 	}
 }
 
+// winnerstring - helper for buildtextblock() to generate winner takes all substitutions
 func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[string][]string) {
 	for i := 0; i < len(slicedwords); i++ {
 		// drop skipwords
@@ -318,6 +356,7 @@ func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[strin
 	}
 }
 
+// buildwinnertakesallparsemap - figure out which is the most common of the possible headwords for any given word
 func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string][]string {
 	// turn a list of sentences into a list of list of headwords; here we figure out which headword is the dominant homonym
 	// then we just use that term; "esse" always comes from "sum" and never "edo", etc.
@@ -462,8 +501,9 @@ func vectorconfig() word2vec.Options {
 		MSG1 = "wrote default vector configuration file "
 		MSG2 = "read vector configuration from "
 	)
+
 	// cfg := word2vec.DefaultOptions()
-	cfg := DefVectSett
+	cfg := DefaultVectors
 
 	h, e := os.UserHomeDir()
 	if e != nil {
@@ -488,13 +528,56 @@ func vectorconfig() word2vec.Options {
 		_ = loadedcfg.Close()
 		if errc != nil {
 			msg(ERR2+CONFIGVECTOR, 0)
-			cfg = DefVectSett
+			cfg = DefaultVectors
 		}
 		msg(MSG2+CONFIGVECTOR, 2)
 		cfg = vc
 	}
 
 	return cfg
+}
+
+func graphNpmDep() *charts.Graph {
+	graph := charts.NewGraph()
+	graph.SetGlobalOptions(
+		charts.WithTitleOpts(opts.Title{
+			Title: "npm dependencies demo",
+		}))
+
+	f, err := ioutil.ReadFile("npmdepgraph.json")
+	if err != nil {
+		panic(err)
+	}
+
+	type Data struct {
+		Nodes []opts.GraphNode
+		Links []opts.GraphLink
+	}
+
+	var data Data
+	if err := json.Unmarshal(f, &data); err != nil {
+		fmt.Println(err)
+	}
+
+	graph.AddSeries("graph", data.Nodes, data.Links).
+		SetSeriesOptions(
+			charts.WithGraphChartOpts(opts.GraphChart{
+				Layout:             "none",
+				Roam:               true,
+				FocusNodeAdjacency: true,
+			}),
+			charts.WithEmphasisOpts(opts.Emphasis{
+				Label: &opts.Label{
+					Show:     true,
+					Color:    "black",
+					Position: "left",
+				},
+			}),
+			charts.WithLineStyleOpts(opts.LineStyle{
+				Curveness: 0.3,
+			}),
+		)
+	return graph
 }
 
 //
