@@ -168,10 +168,7 @@ const (
 				icons: { primary: 'ui-icon-close' },
 				click: function() { $( this ).dialog( 'close' ); }
 				});
-			$( '#lexicadialogtext' ).dialog( 'open' );
-			$( '#lexicadialogtext' ).html('[searching...]');
 			$.getJSON('/lex/findbyform/'+this.id, function (definitionreturned) {
-				$( '#lexicadialogtext' ).html(definitionreturned['newhtml']);
 				$( '#lexicaljsscriptholder' ).html(definitionreturned['newjs']);
 				document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml']
 				document.getElementById('lexmodal').style.display = "block";
