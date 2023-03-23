@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-echarts/go-echarts/v2/charts"
+	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -13,9 +14,11 @@ import (
 	"github.com/ynqa/wego/pkg/model/modelutil/vector"
 	"github.com/ynqa/wego/pkg/model/word2vec"
 	"github.com/ynqa/wego/pkg/search"
+	"html/template"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
 	"sort"
 	"strings"
 )
@@ -30,8 +33,11 @@ var (
 		"primus", "unus", "multus", "causa", "jam", "tamen", "Sue", "nos", "dies", "Ios", "modus", "tuus", "venio",
 		"pro¹", "pro²", "ago", "deus", "annus", "locus", "homo", "pater", "eo²", "tantus", "fero", "quidem", "noster",
 		"an", "locum"}
-	LatExtra = []string{"at", "o", "tum", "tunc", "dum", "illic", "quia", "sive", "num"}
+	LatExtra = []string{"at", "o", "tum", "tunc", "dum", "illic", "quia", "sive", "num", "adhuc"}
 	LatStop  = append(Latin100, LatExtra...)
+	// LatinKeep - members of LatStop we will not toss
+	LatinKeep = []string{"facio", "possum", "habeo", "video", "magnus", "bonus", "volo¹", "primus", "venio", "ago",
+		"deus", "annus", "locus", "pater", "fero"}
 	// Greek150 - the 150 most common greek headwords
 	Greek150 = []string{"ὁ", "καί", "τίϲ", "ἔδω", "δέ", "εἰμί", "δέω¹", "δεῖ", "δέομαι", "εἰϲ", "αὐτόϲ", "τιϲ", "οὗτοϲ", "ἐν",
 		"γάροϲ", "γάρον", "γάρ", "οὐ", "μένω", "μέν", "τῷ", "ἐγώ", "ἡμόϲ", "κατά", "Ζεύϲ", "ἐπί", "ὡϲ", "διά",
@@ -47,10 +53,7 @@ var (
 		"ὅμοιοϲ", "ἕκαϲτοϲ", "ὁμοῖοϲ", "ὥϲτε", "ἡμέρα", "γράφω", "δραχμή", "μέροϲ"}
 	GreekExtra = []string{}
 	GreekStop  = append(Greek150, GreekExtra...)
-	// LatinKeep - members of Latin100 we will not toss
-	LatinKeep = []string{"facio", "possum", "habeo", "video", "magnus", "bonus", "volo¹", "primus", "venio", "ago",
-		"deus", "annus", "locus", "pater", "fero"}
-	// GreekKeep - members of Greek150 we will not toss
+	// GreekKeep - members of GreekStop we will not toss
 	GreekKeep = []string{"ἔχω", "λέγω¹", "θεόϲ", "φημί", "ποιέω", "ἵημι", "μόνοϲ", "κύριοϲ", "πόλιϲ", "θεάομαι", "δοκέω", "λαμβάνω",
 		"δίδωμι", "βαϲιλεύϲ", "φύϲιϲ", "ἔτοϲ", "πατήρ", "ϲῶμα", "καλέω", "ἐρῶ", "υἱόϲ", "γαῖα", "ἀνήρ", "ὁράω",
 		"ψυχή", "δύναμαι", "ἀρχή", "καλόϲ", "δύναμιϲ", "ἀγαθόϲ", "οἶδα", "δείκνυμι", "χρόνοϲ", "γράφω", "δραχμή",
@@ -58,12 +61,12 @@ var (
 	LatinStops     = getlatinstops()
 	GreekStops     = getgreekstops()
 	DefaultVectors = word2vec.Options{
-		BatchSize:          2000,
+		BatchSize:          1024,
 		Dim:                125,
 		DocInMemory:        true,
 		Goroutines:         20,
 		Initlr:             0.025,
-		Iter:               12,
+		Iter:               15,
 		LogBatch:           100000,
 		MaxCount:           -1,
 		MaxDepth:           150,
@@ -97,9 +100,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 
 	// [a] vectorize the text block
 
-	opts := vectorconfig()
-
-	vmodel, err := word2vec.NewForOptions(opts)
+	vmodel, err := word2vec.NewForOptions(vectorconfig())
 	if err != nil {
 		msg("word2vec model initialization failed", 1)
 	}
@@ -238,6 +239,160 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	AllSearches.Delete(srch.ID)
 
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
+}
+
+func buildgraph() error {
+	// TESTING
+
+	// https://github.com/go-echarts/examples/blob/master/examples/graph.go
+	// [start] page.Render(io.MultiWriter(f))
+
+	// see: https://github.com/go-echarts/go-echarts/blob/master/components/page.go
+	// a page is a struct that contains a render.Renderer
+
+	// see: https://github.com/go-echarts/go-echarts/blob/master/render/engine.go
+	// a render.Renderer is an interface that calls Render(w io.Writer)
+
+	// [rendering]
+	// [a] call func (r *pageRender) Render(w io.Writer) error
+	// [b] run any "before" functions
+	// [c] build a slice of templates
+	// [d] call "MustTemplatE" on these
+	// [e] call tpl.ExecuteTemplate and fill a buffer
+
+	// [templating]
+	// [a] tpl.ExecuteTemplate will use "r.c", that is pageRender.c where c is "interface{}"
+	// [b] in order to have someting populating "c" you need to have called NewPageRender(c interface{}, before ...func())
+	// [c] NewPage() in https://github.com/go-echarts/go-echarts/blob/master/components/page.go calls NewPageRender(page, page.Validate)
+
+	// [page validation]
+	// NewPage() calls page.Assets.InitAssets(); this is an opts.Assets: see https://github.com/go-echarts/go-echarts/blob/master/opts/global.go
+
+	// [assets]
+	// these are JSAssets, CSSAssets, CustomizedJSAssets, CustomizedCSSAssets
+	// they belong to types.orderedset: see "github.com/go-echarts/go-echarts/v2/types"
+
+	// JSAssets.Init("echarts.min.js"): // Init creates a new OrderedSet instance, and adds any given items into this set.
+
+	g := graphNpmDep()
+
+	// we are building a page with only one chart and doing it by hand
+	page := components.NewPage()
+
+	assets := g.GetAssets()
+	for _, v := range assets.JSAssets.Values {
+		page.JSAssets.Add(v)
+	}
+
+	for _, v := range assets.CSSAssets.Values {
+		page.CSSAssets.Add(v)
+	}
+
+	g.Validate()
+
+	page.Charts = append(page.Charts, g)
+
+	//fmt.Println(page.Initialization)
+	//fmt.Println(page.Assets.JSAssets)
+	//fmt.Println(page.Assets.CSSAssets)
+	//fmt.Println(page.Layout)
+	//fmt.Println(page.Charts[0])
+
+	var ctpl = `
+	{{- define "chart" }}
+	<!DOCTYPE html>
+	<html>
+		{{- template "header" . }}
+	<body>
+		{{- template "base" . }}
+	<style>
+		.container {margin-top:30px; display: flex;justify-content: center;align-items: center;}
+		.item {margin: auto;}
+	</style>
+	</body>
+	</html>
+	{{ end }}
+	`
+
+	t := func(name string, contents []string) *template.Template {
+		tpl := template.Must(template.New(name).Parse(contents[0])).Funcs(template.FuncMap{
+			"safeJS": func(s interface{}) template.JS {
+				return template.JS(fmt.Sprint(s))
+			},
+		})
+
+		for _, cont := range contents[1:] {
+			tpl = template.Must(tpl.Parse(cont))
+		}
+		return tpl
+	}
+
+	tpl := t("chart", []string{ctpl})
+	msg("x", 1)
+	var buf bytes.Buffer
+	if err := tpl.ExecuteTemplate(&buf, "chart", ctpl); err != nil {
+		return err
+	}
+
+	msg("y", 1)
+	pat := regexp.MustCompile(`(__f__")|("__f__)|(__f__)`)
+	content := pat.ReplaceAll(buf.Bytes(), []byte(""))
+	msg("z", 1)
+	fmt.Println(string(content))
+
+	// {      }
+	//{map[echarts.min.js:true] [echarts.min.js]}
+	//{map[] []}
+	//center
+	// &{{{false      <nil>   map[]  <nil> 0 0      <nil>} {false   false  <nil>} {false      <nil>} {dependencies demo <nil>   <nil>      } {<nil>} { 0 0 [ ] [ ] {false   false  <nil>}} {{ 0 0  false 0 0 false 0 0 0 0 0 false false} false} {{ 0 0  false 0 0 false 0 0 0 0 0 false false}   {  0  <nil> <nil>} 0 0 false} {<nil> <nil> <nil>} <nil> 0x140043fae70 {Awesome go-echarts 900px 500px  fHptAJfNusSt https://go-echarts.github.io/go-echarts-assets/assets/ white} {{map[echarts.min.js:true] [https://go-echarts.github.io/go-echarts-assets/assets/echarts.min.js]} {map[] []} {map[] []} {map[] []}} {[]  0 <nil> <nil> <nil>} { <nil> false} {   } {[]} {<nil> <nil>     } [{graph graph  0 0   false false  [{jquery jsdom 0 <nil>} {jquery xmlhttprequest 0 <nil>} {jquery htmlparser 0 <nil>} {jquery contextify 0 <nil>} {backbone underscore 0 <nil>} {faye faye-websocket 0 <nil>} {faye cookiejar 0 <nil>} {socket.io redis 0 <nil>} {socket.io socket.io-client 0 <nil>} {mongoose mongodb 0 <nil>} {mongoose hooks 0 <nil>} {mongoose ms 0 <nil>} {cheerio underscore 0 <nil>} {cheerio htmlparser2 0 <nil>} {cheerio entities 0 <nil>} {express mkdirp 0 <nil>} {express connect 0 <nil>} {express commander 0 <nil>} {express debug 0 <nil>} {express cookie 0 <nil>} {express send 0 <nil>} {express methods 0 <nil>}] none <nil> [] true <nil> <nil> <nil> false true <nil> false false false false false   <nil> <nil> <nil> 0  false 0 <nil>     0 <nil> <nil>  [] []   false false false 0 0  0 0  0 [{jquery -739.36383 -404.26147 0 false <nil>  4.7252817 0x140009c56d0} {backbone -134.2215 -862.7517 0 false <nil>  6.1554675 0x140009c5720} {underscore -75.53079 -734.4221 0 false <nil>  100 0x140009c5770} {faye -818.97516 624.50604 0 false <nil>  0.67816025 0x140009c57c0} {socket.io -710.59204 120.37976 0 false <nil>  19.818306 0x140009c5810} {requirejs 71.52897 -612.5541 0 false <nil>  4.0862627 0x140009c5860} {amdefine 1202.1166 -556.3107 0 false <nil>  2.3822114 0x140009c58b0} {mongoose -1150.2018 378.15536 0 false <nil>  10.81118 0x140009c5900} {underscore.deferred -127.03764 477.03778 0 false <nil>  0.40429485 0x140009c5950}] <nil> <nil> <nil> <nil> 0x140084c1170 <nil> <nil> <nil> <nil> 0x140043fb560 <nil> <nil> <nil>}] {[{  false <nil> 0 false <nil> <nil> 0 0 0 <nil> <nil> <nil> <nil>}] [{  false <nil> 0 false <nil> <nil> 0 <nil> <nil> <nil> <nil>}]} {false  0  <nil> <nil> <nil>} {false  0  <nil> <nil> <nil>} {false  0  <nil> <nil> <nil>} {false 0 0 0 <nil>} {     false } [] [#5470c6 #91cc75 #fac858 #ee6666 #73c0de #3ba272 #fc8452 #9a60b4 #ea7ccc] [] [] [] [] false false false false false false false false []} { { [] <nil>}}}
+
+	// type Page struct {
+	//	render.Renderer  // "github.com/go-echarts/go-echarts/v2/render"
+	//	opts.Initialization
+	//	opts.Assets
+	//
+	//	Charts []interface{}
+	//	Layout Layout
+	//}
+
+	// func (r *chartRender) Render(w io.Writer) error {
+	//	for _, fn := range r.before {
+	//		fn()
+	//	}
+	//
+	//	contents := []string{tpls.HeaderTpl, tpls.BaseTpl, tpls.ChartTpl}
+	//	tpl := MustTemplate(ModChart, contents)
+	//
+	//	var buf bytes.Buffer
+	//	if err := tpl.ExecuteTemplate(&buf, ModChart, r.c); err != nil {
+	//		return err
+	//	}
+	//
+	//	content := pat.ReplaceAll(buf.Bytes(), []byte(""))
+	//
+	//	_, err := w.Write(content)
+	//	return err
+	//}
+
+	// AddCharts adds new charts to the page.
+	//func (page *Page) AddCharts(charts ...Charter) *Page {
+	//	for i := 0; i < len(charts); i++ {
+	//	assets := charts[i].GetAssets()
+	//	for _, v := range assets.JSAssets.Values {
+	//	page.JSAssets.Add(v)
+	//}
+	//
+	//	for _, v := range assets.CSSAssets.Values {
+	//	page.CSSAssets.Add(v)
+	//}
+	//	charts[i].Validate()
+	//	page.Charts = append(page.Charts, charts[i])
+	//}
+	//	return page
+	//}
+
+	// TESTING
+	return nil
 }
 
 // buildtextblock - turn []DbWorkline into a single long string
@@ -541,7 +696,7 @@ func graphNpmDep() *charts.Graph {
 	graph := charts.NewGraph()
 	graph.SetGlobalOptions(
 		charts.WithTitleOpts(opts.Title{
-			Title: "npm dependencies demo",
+			Title: "dependencies demo",
 		}))
 
 	f, err := ioutil.ReadFile("npmdepgraph.json")
@@ -619,6 +774,8 @@ func graphNpmDep() *charts.Graph {
 // results do not repeat because word2vec.Train() in pkg/model/word2vec/word2vec.go has
 // "vec[i] = (rand.Float64() - 0.5) / float64(dim)"
 
+// see also: https://link.springer.com/article/10.1007/s41019-019-0096-6
+
 //
 // GENSIM NOTES
 //
@@ -638,3 +795,48 @@ func graphNpmDep() *charts.Graph {
 //                                       window=vv.window,
 //                                       workers=workers,
 //                                       compute_loss=computeloss)
+
+// https://github.com/go-echarts/go-echarts/blob/master/opts/charts.go
+// // GraphChart is the option set for graph chart.
+//// https://echarts.apache.org/en/option.html#series-graph
+//type GraphChart struct {
+//	// Graph layout.
+//	// * 'none' No layout, use x, y provided in node as the position of node.
+//	// * 'circular' Adopt circular layout, see the example Les Miserables.
+//	// * 'force' Adopt force-directed layout, see the example Force, the
+//	// detail about layout configurations are in graph.force
+//	Layout string
+//
+//	// Force is the option set for graph force layout.
+//	Force *GraphForce
+//
+//	// Whether to enable mouse zooming and translating. false by default.
+//	// If either zooming or translating is wanted, it can be set to 'scale' or 'move'.
+//	// Otherwise, set it to be true to enable both.
+//	Roam bool
+//
+//	// EdgeSymbol is the symbols of two ends of edge line.
+//	// * 'circle'
+//	// * 'arrow'
+//	// * 'none'
+//	// example: ["circle", "arrow"] or "circle"
+//	EdgeSymbol interface{}
+//
+//	// EdgeSymbolSize is size of symbol of two ends of edge line. Can be an array or a single number
+//	// example: [5,10] or 5
+//	EdgeSymbolSize interface{}
+//
+//	// Draggable allows you to move the nodes with the mouse if they are not fixed.
+//	Draggable bool
+//
+//	// Whether to focus/highlight the hover node and it's adjacencies.
+//	FocusNodeAdjacency bool
+//
+//	// The categories of node, which is optional. If there is a classification of nodes,
+//	// the category of each node can be assigned through data[i].category.
+//	// And the style of category will also be applied to the style of nodes. categories can also be used in legend.
+//	Categories []*GraphCategory
+//
+//	// EdgeLabel is the properties of an label of edge.
+//	EdgeLabel *EdgeLabel `json:"edgeLabel"`
+//}
