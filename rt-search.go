@@ -50,58 +50,27 @@ func RtSearch(c echo.Context) error {
 		return c.JSONPretty(http.StatusOK, SearchOutputJSON{JS: VALIDATIONBOX}, JSONINDENT)
 	}
 
-	id := c.Param("id")
-	srch := BuildDefaultSearch(c)
-	srch.User = user
-
-	srch.Seeking = c.QueryParam("skg")
-	srch.Proximate = c.QueryParam("prx")
-	srch.LemmaOne = c.QueryParam("lem")
-	srch.LemmaTwo = c.QueryParam("plm")
-	srch.ID = c.Param("id")
-
-	// HasPhrase makes us use a fake limit temporarily
-	reallimit := srch.CurrentLimit
-
-	srch.CleanInput()
-	srch.SetType() // must happen before SSBuildQueries()
-	srch.FormatInitialSummary()
-
-	// now safe to rewrite skg oj that "^|\s", etc. can be added
-	srch.Seeking = whitespacer(srch.Seeking, &srch)
-	srch.Proximate = whitespacer(srch.Proximate, &srch)
+	srch := InitializeSearch(c, user)
+	AllSearches.InsertSS(srch)
 
 	se := AllSessions.GetSess(user)
-	sl := SessionIntoSearchlist(se)
-
-	srch.SearchIn = sl.Inc
-	srch.SearchEx = sl.Excl
-	srch.SearchSize = sl.Size
-
-	if srch.Twobox {
-		srch.CurrentLimit = FIRSTSEARCHLIM
-	}
-
-	SSBuildQueries(&srch)
-
-	srch.TableSize = len(srch.Queries)
-	srch.IsActive = true
-	AllSearches.InsertSS(srch)
 
 	if se.VecSearch {
 		// not a normal search: we grab all lines; build a model; query against the model
 		return VectorSearch(c, srch)
 	}
+	// HasPhrase makes us use a fake limit temporarily
+	reallimit := srch.CurrentLimit
 
 	var completed SearchStruct
 	if srch.Twobox {
 		if srch.ProxScope == "words" {
-			completed = WithinXWordsSearch(AllSearches.GetSS(id))
+			completed = WithinXWordsSearch(AllSearches.GetSS(srch.ID))
 		} else {
-			completed = WithinXLinesSearch(AllSearches.GetSS(id))
+			completed = WithinXLinesSearch(AllSearches.GetSS(srch.ID))
 		}
 	} else {
-		completed = HGoSrch(AllSearches.GetSS(id))
+		completed = HGoSrch(AllSearches.GetSS(srch.ID))
 		if completed.HasPhrase {
 			findphrasesacrosslines(&completed)
 		}
@@ -120,7 +89,7 @@ func RtSearch(c echo.Context) error {
 		soj = FormatWithContextResults(&completed)
 	}
 
-	AllSearches.Delete(id)
+	AllSearches.Delete(srch.ID)
 
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
@@ -128,6 +97,42 @@ func RtSearch(c echo.Context) error {
 //
 // INITIAL SETUP
 //
+
+// InitializeSearch - set up a search; this is DRY code needed by both plain searches and vector searches
+func InitializeSearch(c echo.Context, user string) SearchStruct {
+	srch := BuildDefaultSearch(c)
+	srch.User = user
+
+	srch.Seeking = c.QueryParam("skg")
+	srch.Proximate = c.QueryParam("prx")
+	srch.LemmaOne = c.QueryParam("lem")
+	srch.LemmaTwo = c.QueryParam("plm")
+	srch.ID = c.Param("id")
+
+	srch.CleanInput()
+	srch.SetType() // must happen before SSBuildQueries()
+	srch.FormatInitialSummary()
+
+	// now safe to rewrite skg oj that "^|\s", etc. can be added
+	srch.Seeking = whitespacer(srch.Seeking, &srch)
+	srch.Proximate = whitespacer(srch.Proximate, &srch)
+
+	sl := SessionIntoSearchlist(AllSessions.GetSess(user))
+
+	srch.SearchIn = sl.Inc
+	srch.SearchEx = sl.Excl
+	srch.SearchSize = sl.Size
+
+	if srch.Twobox {
+		srch.CurrentLimit = FIRSTSEARCHLIM
+	}
+
+	SSBuildQueries(&srch)
+
+	srch.TableSize = len(srch.Queries)
+	srch.IsActive = true
+	return srch
+}
 
 // BuildDefaultSearch - fill out the basic values for a new search
 func BuildDefaultSearch(c echo.Context) SearchStruct {

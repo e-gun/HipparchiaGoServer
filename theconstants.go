@@ -84,6 +84,8 @@ const (
 	TIMETRACKERMSGTHRESH     = MSGFYI
 	USEGZIP                  = false
 	VARIADATE                = 2000
+	VECTORNEIGHBORS          = 20
+	VECTORTABLENAME          = "vectors"
 	VOCABSCANSION            = false
 	VOCABBYCOUNT             = false
 	WSPOLLINGPAUSE           = 10000000 * 10 // 10000000 * 10 = every .1s

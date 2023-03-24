@@ -185,7 +185,7 @@ func StartEchoServer() {
 	e.GET("/sc/set/:num", RtSessionSetsCookie)
 	e.GET("/sc/get/:num", RtSessionGetCookie)
 
-	// [r] vectors ("vectors.go")
+	// [r] vectors ("rt-vectors.go")
 	// e.GET("/vect/exec/:id", VectorSearch) // "GET /vect/exec/1f8f1d22?skg=dolor HTTP/1.1"
 
 	if Config.SelfTest > 0 {

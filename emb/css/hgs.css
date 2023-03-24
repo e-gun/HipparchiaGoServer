@@ -1481,7 +1481,7 @@ button {
 	border: solid #000000 0;
 	-webkit-border-radius: 1px;
 	-moz-border-radius: 1px;
-	border-radius: 1px;
+	border-radius: 2px;
 	text-align: center;
 	padding: 5px 4px 4px 5px; /* the box shadow creates the illusion of mis-centering for button icons */
 	margin-bottom: 1px; /* line height for the buttons needs to match the input boxes; box shadow tweak... */
@@ -1559,6 +1559,10 @@ hmutitle {
 hmu_serviusformatting {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 	color: var(--dkgreen);
+}
+
+hr {
+	box-shadow: 2px 2px 1px var(--transparentgrey);
 }
 
 indexedlocation:hover{
