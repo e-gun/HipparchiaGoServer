@@ -210,7 +210,8 @@ func vectordbcheck(fp string) bool {
 
 func vectordbadd(fp string, embs embedding.Embeddings) {
 	const (
-		INS = `
+		MSG1 = "vectordbadd(): "
+		INS  = `
 			INSERT INTO %s
 				(fingerprint, vectordata)
 			VALUES ('%s', $1)`
@@ -238,13 +239,15 @@ func vectordbadd(fp string, embs embedding.Embeddings) {
 	defer dbconn.Release()
 	_, err = dbconn.Exec(context.Background(), ex, eb)
 	chke(err)
-	msg("vectordbadd(): success", 3)
+	msg(MSG1+fp, MSGFYI)
+	// the savings is real: compressed is c. 27% of original
 	// msg(fmt.Sprintf("vector compression: %d -> %d (%.1f percent)", l1, l2, (float32(l2)/float32(l1))*100), 3)
 }
 
 func vectordbfetch(fp string) embedding.Embeddings {
 	const (
-		Q = `SELECT vectordata FROM %s WHERE fingerprint = '%s' LIMIT 1`
+		MSG1 = "vectordbfetch(): "
+		Q    = `SELECT vectordata FROM %s WHERE fingerprint = '%s' LIMIT 1`
 	)
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
@@ -260,19 +263,16 @@ func vectordbfetch(fp string) embedding.Embeddings {
 		chke(err)
 	}
 
-	msg("vectordbfetch(): got vector results", 3)
-
 	// hipparchiaDB=# SELECT vectordata FROM vectors WHERE fingerprint = 'adb0ad4fe86ab27032cec006d0f68e6a' LIMIT 1;
 	// it looks like:  \x3166386230383030303030303030303030306666....
 	// or: 1f8b08000000000000ff849...
-
-	// unzip
 
 	var buf bytes.Buffer
 	buf.Write(vect)
 
 	// fmt.Println(string(buf.Bytes()))
 
+	// unzip
 	//zr, err := gzip.NewReader(&buf)
 	//chke(err)
 	//msg("vectordbfetch(): a", 3)
@@ -287,7 +287,8 @@ func vectordbfetch(fp string) embedding.Embeddings {
 	err = json.Unmarshal(buf.Bytes(), &emb)
 	chke(err)
 
-	msg("vectordbfetch(): success", 3)
+	msg(MSG1+fp, MSGFYI)
+
 	return emb
 }
 

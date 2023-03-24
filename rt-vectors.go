@@ -15,6 +15,7 @@ import (
 	"github.com/ynqa/wego/pkg/model/modelutil/vector"
 	"github.com/ynqa/wego/pkg/model/word2vec"
 	"github.com/ynqa/wego/pkg/search"
+	"io"
 	"net/http"
 	"os"
 	"sort"
@@ -23,13 +24,20 @@ import (
 
 // VectorSearch - a special case for RtSearch() where you requested vectorization of the results
 func VectorSearch(c echo.Context, srch SearchStruct) error {
-	// [HGS] VectorSearch() fingerprint: 521e3de90a91cc2c5b2d90803a17a705
+	const (
+		MSG1  = "VectorSearch() fingerprint: "
+		FAIL1 = `err: search.New(embs...)`
+		FAIL2 = `err: searcher.SearchInternal(word, rank)`
+	)
+
 	fp := fingerprintvectorsearch(srch)
-	msg("VectorSearch() fingerprint: "+fp, 1)
+	// [HGS] VectorSearch() fingerprint: 521e3de90a91cc2c5b2d90803a17a705
+	msg(MSG1+fp, 1)
 
 	isstored := vectordbcheck(fp)
 
 	var embs embedding.Embeddings
+
 	if isstored {
 		embs = vectordbfetch(fp)
 	} else {
@@ -52,7 +60,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	// [b] make a query against the model
 	searcher, err := search.New(embs...)
 	if err != nil {
-		return fail("err: search.New(embs...)")
+		return fail(FAIL1)
 	}
 
 	rank := VECTORNEIGHBORS // how many neighbors to output; min is 1
@@ -60,7 +68,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 
 	neighbors, err := searcher.SearchInternal(word, rank)
 	if err != nil {
-		return fail("err: searcher.SearchInternal(word, rank)")
+		return fail(FAIL2)
 	}
 
 	// neighbors.Describe()
@@ -88,7 +96,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		table[i] = []string{
 			fmt.Sprintf("%d", n.Rank),
 			n.Word,
-			fmt.Sprintf("%f", n.Similarity),
+			fmt.Sprintf("%.4f", n.Similarity),
 		}
 	}
 
@@ -146,13 +154,17 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 
 // fingerprintvectorsearch - derive a unique md5 for any given mix of search items & vector settings
 func fingerprintvectorsearch(srch SearchStruct) string {
+	const (
+		FAIL = "fingerprintvectorsearch() failed to Marshal"
+	)
 	// md5 on srch.Incl & srch.Excl
 	// md5 on vector settings
+
 	f1, e1 := json.Marshal(srch.SearchIn)
 	f2, e2 := json.Marshal(srch.SearchEx)
 	f3, e3 := json.Marshal(vectorconfig())
 	if e1 != nil || e2 != nil || e3 != nil {
-		msg("fingerprintvectorsearch() failed to Marshal", 0)
+		msg(FAIL, 0)
 		os.Exit(1)
 	}
 	f1 = append(f1, f2...)
@@ -163,6 +175,10 @@ func fingerprintvectorsearch(srch SearchStruct) string {
 
 // buildtextblock - turn []DbWorkline into a single long string
 func buildtextblock(lines []DbWorkline) string {
+	const (
+		FAIL1 = "failed to unmarshal %s into objmap\n"
+		FAIL2 = "failed second pass unmarshal of %s into newmap\n"
+	)
 	// [a] get all the words we need
 	var slicedwords []string
 	for i := 0; i < len(lines); i++ {
@@ -197,7 +213,7 @@ func buildtextblock(lines []DbWorkline) string {
 		var objmap map[string]json.RawMessage
 		err := json.Unmarshal([]byte(morphmapdbm[m].RawPossib), &objmap)
 		if err != nil {
-			fmt.Printf("failed to unmarshal %s into objmap\n", morphmapdbm[m].Observed)
+			fmt.Printf(FAIL1, morphmapdbm[m].Observed)
 		}
 		// second pass: : {"1": possib1, "2": possib2, ...}
 		newmap := make(map[string]possib)
@@ -205,7 +221,7 @@ func buildtextblock(lines []DbWorkline) string {
 			var pp possib
 			e := json.Unmarshal(v, &pp)
 			if e != nil {
-				fmt.Printf("failed second pass unmrashal of %s into newmap\n", morphmapdbm[m].Observed)
+				fmt.Printf(FAIL2, morphmapdbm[m].Observed)
 			}
 			newmap[key] = pp
 		}
@@ -257,6 +273,10 @@ func buildtextblock(lines []DbWorkline) string {
 
 // generateembeddings
 func generateembeddings(c echo.Context, srch SearchStruct) embedding.Embeddings {
+	const (
+		FAIL1 = "word2vec model initialization failed"
+		FAIL2 = "generateembeddings() failed to train vector embeddings"
+	)
 	vs := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 	srch.Results = vs.Results
 	vs.Results = []DbWorkline{}
@@ -274,31 +294,34 @@ func generateembeddings(c echo.Context, srch SearchStruct) embedding.Embeddings 
 
 	vmodel, err := word2vec.NewForOptions(vectorconfig())
 	if err != nil {
-		msg("word2vec model initialization failed", 1)
+		msg(FAIL1, 1)
 	}
 
 	// input for  word2vec.Train() is 'io.ReadSeeker'
 	b := bytes.NewReader([]byte(thetext))
 	if err = vmodel.Train(b); err != nil {
-		msg("generateembeddings() failed to train vector embeddings", 1)
+		msg(FAIL2, 1)
 	}
 
-	// write word vector to disk [later: to postgres]
+	// write word vector to disk & then read it off the disk
+	//vfile := "/Users/erik/tmp/vect.out"
+	//f, err := os.Create(vfile)
+	//chke(err)
+	//err = vmodel.Save(f, vector.Agg)
+	//chke(err)
+	//input, err := os.Open(vfile)
+	//chke(err)
+	//defer input.Close()
+	//embs, err := embedding.Load(input)
+	//chke(err)
 
-	vfile := "/Users/erik/tmp/vect.out"
+	// use buffers; skip the disk; psql used for storage: vectordbadd() & vectordbfetch()
+	var buf bytes.Buffer
+	w := io.Writer(&buf)
+	err = vmodel.Save(w, vector.Agg)
 
-	f, err := os.Create(vfile)
-	chke(err)
-
-	err = vmodel.Save(f, vector.Agg)
-	chke(err)
-
-	// read word vector from disk [later: from postgres]
-	input, err := os.Open(vfile)
-	chke(err)
-
-	defer input.Close()
-	embs, err := embedding.Load(input)
+	r := io.Reader(&buf)
+	embs, err := embedding.Load(r)
 	chke(err)
 
 	return embs
@@ -328,7 +351,7 @@ func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[strin
 
 // buildwinnertakesallparsemap - figure out which is the most common of the possible headwords for any given word
 func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string][]string {
-	// turn a list of sentences into a list of list of headwords; here we figure out which headword is the dominant homonym
+	// turn a list of sentences into a list of headwords; here we figure out which headword is the dominant homonym
 	// then we just use that term; "esse" always comes from "sum" and never "edo", etc.
 
 	// [a] figure out all headwords in use

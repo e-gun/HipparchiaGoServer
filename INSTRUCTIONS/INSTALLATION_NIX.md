@@ -17,7 +17,7 @@
   - start the server
 2. You should also install `postgresql-contrib` to get access to `pg_trgm`
   - to achieve this you will need to do something like `sudo dnf install postgresql15-contrib` or `sudo apt install postgresql-contrib`
-3. Enter the `psql` shell: `sudo -u postgres psql`
+3. Enter the `psql` shell: `sudo -u postgres psql` [alternate: `sudo su postgres` then `psql postgres`]
    - execute the following; use good/strong passwords and write them down:
 ```
 ALTER USER postgres WITH PASSWORD 'somespqladminpass';
@@ -28,13 +28,13 @@ CREATE EXTENSION pg_trgm;
 \q
 ```
 4. Depending on your platform, you **might** need to tinker with your postgres configuration. Find `pg_hba.conf`. It will be somewhere like `/var/lib/pgsql/15/data/pg_hba.conf` or `/etc/postgresql/14/main/pg_hba.conf`. [it can be found via executing `SHOW hba_file;` inside the `psql` shell]
-   - Ensure that the `METHOD` in `pg_hba.conf` is `trust` and NOT `peer` for `local` connections. 
+   - Ensure that the `METHOD` in `pg_hba.conf` is `password` and NOT `peer` for `local` connections. 
    - Look at the end of the file and confirm that you see a block that looks like this:
 
 ```
  # TYPE  DATABASE        USER            ADDRESS                 METHOD  
  # "local" is for Unix domain socket connections only
- local   all             all                                     trust
+ local   all             all                                     password
 
 ```
 5. IF you do not see that block, edit `pg_hba.conf`. 
