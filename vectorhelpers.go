@@ -7,7 +7,6 @@ package main
 
 import (
 	"bytes"
-	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -191,10 +190,13 @@ func vectordbinit(dbconn *pgxpool.Conn) {
 	msg("vectordbinit(): success", 3)
 }
 
-func vectordbcheck(dbconn *pgxpool.Conn, fp string) bool {
+func vectordbcheck(fp string) bool {
 	const (
 		Q = `SELECT fingerprint FROM %s WHERE fingerprint = '%s' LIMIT 1`
 	)
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
+
 	q := fmt.Sprintf(Q, VECTORTABLENAME, fp)
 	foundrow, err := dbconn.Query(context.Background(), q)
 	if err != nil {
@@ -206,54 +208,83 @@ func vectordbcheck(dbconn *pgxpool.Conn, fp string) bool {
 	return foundrow.Next()
 }
 
-func vectordbadd(dbconn *pgxpool.Conn, fp string, embs embedding.Embeddings) {
+func vectordbadd(fp string, embs embedding.Embeddings) {
 	const (
 		INS = `
 			INSERT INTO %s
 				(fingerprint, vectordata)
-			VALUES ('%s', '%x')`
+			VALUES ('%s', $1)`
 	)
 
 	eb, err := json.Marshal(embs)
 	chke(err)
 
-	l1 := len(eb)
+	// l1 := len(eb)
 
-	var buf bytes.Buffer
-	zw := gzip.NewWriter(&buf)
-	_, err = zw.Write(eb)
-	chke(err)
-	err = zw.Close()
-	chke(err)
+	// https://stackoverflow.com/questions/61077668/how-to-gzip-string-and-return-byte-array-in-golang
+	//var buf bytes.Buffer
+	//zw := gzip.NewWriter(&buf)
+	//_, err = zw.Write(eb)
+	//chke(err)
+	//err = zw.Close()
+	//chke(err)
+	//
+	//b := buf.Bytes()
+	//l2 := len(b)
 
-	b := buf.Bytes()
-	l2 := len(b)
-	ex := fmt.Sprintf(INS, VECTORTABLENAME, fp, b)
+	ex := fmt.Sprintf(INS, VECTORTABLENAME, fp)
 
-	_, err = dbconn.Exec(context.Background(), ex)
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
+	_, err = dbconn.Exec(context.Background(), ex, eb)
 	chke(err)
 	msg("vectordbadd(): success", 3)
-	msg(fmt.Sprintf("vector compression: %d -> %d (%.1f percent)", l1, l2, (float32(l2)/float32(l1))*100), 3)
+	// msg(fmt.Sprintf("vector compression: %d -> %d (%.1f percent)", l1, l2, (float32(l2)/float32(l1))*100), 3)
 }
 
-func vectordbfetch(dbconn *pgxpool.Conn, fp string) embedding.Embeddings {
+func vectordbfetch(fp string) embedding.Embeddings {
 	const (
 		Q = `SELECT vectordata FROM %s WHERE fingerprint = '%s' LIMIT 1`
 	)
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
+
 	q := fmt.Sprintf(Q, VECTORTABLENAME, fp)
 	var vect []byte
 	foundrow, err := dbconn.Query(context.Background(), q)
+	chke(err)
+
 	defer foundrow.Close()
 	for foundrow.Next() {
 		err = foundrow.Scan(&vect)
 		chke(err)
 	}
 
-	msg("vectordbfetch(): attempt", 3)
-	chke(err)
+	msg("vectordbfetch(): got vector results", 3)
+
+	// hipparchiaDB=# SELECT vectordata FROM vectors WHERE fingerprint = 'adb0ad4fe86ab27032cec006d0f68e6a' LIMIT 1;
+	// it looks like:  \x3166386230383030303030303030303030306666....
+	// or: 1f8b08000000000000ff849...
+
+	// unzip
+
+	var buf bytes.Buffer
+	buf.Write(vect)
+
+	// fmt.Println(string(buf.Bytes()))
+
+	//zr, err := gzip.NewReader(&buf)
+	//chke(err)
+	//msg("vectordbfetch(): a", 3)
+	//_, err = zr.Read(vect)
+	//chke(err)
+	//msg("vectordbfetch(): b", 3)
+	//err = zr.Close()
+	//chke(err)
+	//msg("vectordbfetch(): c", 3)
 
 	var emb embedding.Embeddings
-	err = json.Unmarshal(vect, &emb)
+	err = json.Unmarshal(buf.Bytes(), &emb)
 	chke(err)
 
 	msg("vectordbfetch(): success", 3)

@@ -26,16 +26,15 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	// [HGS] VectorSearch() fingerprint: 521e3de90a91cc2c5b2d90803a17a705
 	fp := fingerprintvectorsearch(srch)
 	msg("VectorSearch() fingerprint: "+fp, 1)
-	dbconn := GetPSQLconnection()
-	defer dbconn.Release()
-	isstored := vectordbcheck(dbconn, fp)
+
+	isstored := vectordbcheck(fp)
 
 	var embs embedding.Embeddings
 	if isstored {
-		embs = vectordbfetch(dbconn, fp)
+		embs = vectordbfetch(fp)
 	} else {
 		embs = generateembeddings(c, srch)
-		vectordbadd(dbconn, fp, embs)
+		vectordbadd(fp, embs)
 	}
 
 	fail := func(f string) error {
