@@ -10,7 +10,7 @@ import "time"
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.2.0"
+	VERSION                  = "1.2.0a"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	BLACKANDWHITE            = false
 	CHARSPERLINE             = 60 // used by vector to preallocate memory: set it closer to a max than a real average
@@ -85,9 +85,11 @@ const (
 	USEGZIP                  = false
 	VARIADATE                = 2000
 	VECTORNEIGHBORS          = 20
-	VECTORTABLENAME          = "vectors"
+	VECTORTABLENAME          = "semantic_vectors"
+	VECTORMAXLINES           = 200000 // 200k lines gets you how far?
 	VOCABSCANSION            = false
 	VOCABBYCOUNT             = false
+	WRITEPERMS               = 0644
 	WSPOLLINGPAUSE           = 10000000 * 10 // 10000000 * 10 = every .1s
 
 	// UNACCEPTABLEINPUT       = `|"'!@:,=+_\/`
@@ -128,6 +130,7 @@ const (
    C1-hC0           print this help information
    C1-pgC0 C2{string}C0 supply full PostgreSQL credentials C4(†)C0
    C1-qC0           quiet startup: suppress copyright notice
+   C1-rvC0          reset the stored semantic vector table
    C1-saC0 C2{string}C0 server IP address [default: "C3%sC0"]
    C1-spC0 C2{num}C0    server port [default: C3%dC0]
    C1-stC0          run the self-test suite at launch; repeat the flag to iterate: e.g., "C1-st -stC0" will run twice

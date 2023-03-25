@@ -25,14 +25,11 @@ import (
 // VectorSearch - a special case for RtSearch() where you requested vectorization of the results
 func VectorSearch(c echo.Context, srch SearchStruct) error {
 	const (
-		MSG1  = "VectorSearch() fingerprint: "
 		FAIL1 = `err: search.New(embs...)`
 		FAIL2 = `err: searcher.SearchInternal(word, rank)`
 	)
 
 	fp := fingerprintvectorsearch(srch)
-	// [HGS] VectorSearch() fingerprint: 521e3de90a91cc2c5b2d90803a17a705
-	msg(MSG1+fp, 1)
 
 	isstored := vectordbcheck(fp)
 
@@ -155,13 +152,44 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 // fingerprintvectorsearch - derive a unique md5 for any given mix of search items & vector settings
 func fingerprintvectorsearch(srch SearchStruct) string {
 	const (
+		MSG1 = "VectorSearch() fingerprint: "
 		FAIL = "fingerprintvectorsearch() failed to Marshal"
 	)
-	// md5 on srch.Incl & srch.Excl
-	// md5 on vector settings
+	// unless you sort, you do not get repeatable results with a md5sum of srch.SearchIn if you look at "all latin"
+	var inc []string
+	sort.Strings(srch.SearchIn.AuGenres)
+	sort.Strings(srch.SearchIn.WkGenres)
+	sort.Strings(srch.SearchIn.AuLocations)
+	sort.Strings(srch.SearchIn.WkLocations)
+	sort.Strings(srch.SearchIn.Authors)
+	sort.Strings(srch.SearchIn.Works)
+	sort.Strings(srch.SearchIn.Passages)
+	inc = append(inc, srch.SearchIn.AuGenres...)
+	inc = append(inc, srch.SearchIn.WkGenres...)
+	inc = append(inc, srch.SearchIn.AuLocations...)
+	inc = append(inc, srch.SearchIn.WkLocations...)
+	inc = append(inc, srch.SearchIn.Authors...)
+	inc = append(inc, srch.SearchIn.Works...)
+	inc = append(inc, srch.SearchIn.Passages...)
 
-	f1, e1 := json.Marshal(srch.SearchIn)
-	f2, e2 := json.Marshal(srch.SearchEx)
+	var exc []string
+	sort.Strings(srch.SearchEx.AuGenres)
+	sort.Strings(srch.SearchEx.WkGenres)
+	sort.Strings(srch.SearchEx.AuLocations)
+	sort.Strings(srch.SearchEx.WkLocations)
+	sort.Strings(srch.SearchEx.Authors)
+	sort.Strings(srch.SearchEx.Works)
+	sort.Strings(srch.SearchEx.Passages)
+	exc = append(exc, srch.SearchEx.AuGenres...)
+	exc = append(exc, srch.SearchEx.WkGenres...)
+	exc = append(exc, srch.SearchEx.AuLocations...)
+	exc = append(exc, srch.SearchEx.WkLocations...)
+	exc = append(exc, srch.SearchEx.Authors...)
+	exc = append(exc, srch.SearchEx.Works...)
+	exc = append(exc, srch.SearchEx.Passages...)
+
+	f1, e1 := json.Marshal(inc)
+	f2, e2 := json.Marshal(exc)
 	f3, e3 := json.Marshal(vectorconfig())
 	if e1 != nil || e2 != nil || e3 != nil {
 		msg(FAIL, 0)
@@ -170,6 +198,8 @@ func fingerprintvectorsearch(srch SearchStruct) string {
 	f1 = append(f1, f2...)
 	f1 = append(f1, f3...)
 	m := fmt.Sprintf("%x", md5.Sum(f1))
+	msg(MSG1+m, MSGTMI)
+
 	return m
 }
 
@@ -271,22 +301,23 @@ func buildtextblock(lines []DbWorkline) string {
 	return strings.TrimSpace(sb.String())
 }
 
-// generateembeddings
+// generateembeddings - turn a search into a collection of semantic vector embeddings
 func generateembeddings(c echo.Context, srch SearchStruct) embedding.Embeddings {
 	const (
 		FAIL1 = "word2vec model initialization failed"
 		FAIL2 = "generateembeddings() failed to train vector embeddings"
 	)
-	vs := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
+
+	// note that MAXTEXTLINEGENERATION will prevent a vectorization of the full corpus
+	vs := sessionintobulksearch(c, VECTORMAXLINES)
 	srch.Results = vs.Results
 	vs.Results = []DbWorkline{}
-
-	// should insert a check to see if we already have a stored vector for this search
 
 	thetext := buildtextblock(srch.Results)
 
 	// "thetext" for Albinus , poet. [lt2002]
 	// res romanus liber⁴ eo¹ ille qui¹ terni capitolium celsus¹ triumphus sponte deus pateo qui¹ fretus¹ nullus re-pono abscondo sinus¹ non tueor moenia¹ urbs de metrum †uilem spondeus totus¹ concludo verro possum fio jungo sed dactylus aptus
+
 	// vs. "RERUM ROMANARUM LIBER I
 	//	Ille cui ternis Capitolia celsa triumphis..."
 

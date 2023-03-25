@@ -40,8 +40,9 @@ var (
 		"primus", "unus", "multus", "causa", "jam", "tamen", "Sue", "nos", "dies", "Ios", "modus", "tuus", "venio",
 		"pro¹", "pro²", "ago", "deus", "annus", "locus", "homo", "pater", "eo²", "tantus", "fero", "quidem", "noster",
 		"an", "locum"}
-	LatExtra = []string{"at", "o", "tum", "tunc", "dum", "illic", "quia", "sive", "num", "adhuc"}
-	LatStop  = append(Latin100, LatExtra...)
+	LatExtra = []string{"at", "o", "tum", "tunc", "dum", "illic", "quia", "sive", "num", "adhuc", "tam", "ibi", "cur",
+		"usquam"}
+	LatStop = append(Latin100, LatExtra...)
 	// LatinKeep - members of LatStop we will not toss
 	LatinKeep = []string{"facio", "possum", "habeo", "video", "magnus", "bonus", "volo¹", "primus", "venio", "ago",
 		"deus", "annus", "locus", "pater", "fero"}
@@ -119,6 +120,7 @@ func (w WHWList) Swap(i, j int) {
 	w[i], w[j] = w[j], w[i]
 }
 
+// fetchheadwordcounts - map a list of headwords to their corpus counts
 func fetchheadwordcounts(headwordset map[string]bool) map[string]int {
 	if len(headwordset) == 0 {
 		return make(map[string]int)
@@ -177,12 +179,14 @@ func fetchheadwordcounts(headwordset map[string]bool) map[string]int {
 // DB INTERACTION
 //
 
+// vectordbinit - initialize VECTORTABLENAME
 func vectordbinit(dbconn *pgxpool.Conn) {
 	const (
 		CREATE = `
 			CREATE TABLE %s
 			(
 			  fingerprint character(32),
+			  vectorsize  int,
 			  vectordata  bytea
 			)`
 	)
@@ -192,6 +196,7 @@ func vectordbinit(dbconn *pgxpool.Conn) {
 	msg("vectordbinit(): success", 3)
 }
 
+// vectordbcheck - has a search with this fingerprint already been stored?
 func vectordbcheck(fp string) bool {
 	const (
 		Q = `SELECT fingerprint FROM %s WHERE fingerprint = '%s' LIMIT 1`
@@ -210,13 +215,14 @@ func vectordbcheck(fp string) bool {
 	return foundrow.Next()
 }
 
+// vectordbadd - add a set of embeddings to VECTORTABLENAME
 func vectordbadd(fp string, embs embedding.Embeddings) {
 	const (
 		MSG1 = "vectordbadd(): "
 		INS  = `
 			INSERT INTO %s
-				(fingerprint, vectordata)
-			VALUES ('%s', $1)`
+				(fingerprint, vectorsize, vectordata)
+			VALUES ('%s', $1, $2)`
 	)
 
 	eb, err := json.Marshal(embs)
@@ -226,7 +232,8 @@ func vectordbadd(fp string, embs embedding.Embeddings) {
 
 	// https://stackoverflow.com/questions/61077668/how-to-gzip-string-and-return-byte-array-in-golang
 	var buf bytes.Buffer
-	zw := gzip.NewWriter(&buf)
+	zw, err := gzip.NewWriterLevel(&buf, gzip.DefaultCompression)
+	chke(err)
 	_, err = zw.Write(eb)
 	chke(err)
 	err = zw.Close()
@@ -240,14 +247,15 @@ func vectordbadd(fp string, embs embedding.Embeddings) {
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 
-	_, err = dbconn.Exec(context.Background(), ex, b)
+	_, err = dbconn.Exec(context.Background(), ex, l2, b)
 	chke(err)
 	msg(MSG1+fp, MSGFYI)
 
 	// the savings is real: compressed is c. 27% of original
-	msg(fmt.Sprintf("vector compression: %d -> %d (%.1f percent)", l1, l2, (float32(l2)/float32(l1))*100), 3)
+	msg(fmt.Sprintf("vector compression: %dk -> %dk (%.1f percent)", l1/1024, l2/1024, (float32(l2)/float32(l1))*100), 3)
 }
 
+// vectordbfetch - get a set of embeddings from VECTORTABLENAME
 func vectordbfetch(fp string) embedding.Embeddings {
 	const (
 		MSG1 = "vectordbfetch(): "
@@ -291,9 +299,11 @@ func vectordbfetch(fp string) embedding.Embeddings {
 	return emb
 }
 
+// vectordbreset - drop VECTORTABLENAME
 func vectordbreset() {
 	const (
-		MSG1 = "vectordbreset()"
+		MSG1 = "vectordbreset() dropped "
+		MSG2 = "vectordbreset(): 'DROP TABLE %s' returned an (ignored) error"
 		E    = `DROP TABLE %s`
 	)
 	ex := fmt.Sprintf(E, VECTORTABLENAME)
@@ -301,8 +311,11 @@ func vectordbreset() {
 	defer dbconn.Release()
 
 	_, err := dbconn.Exec(context.Background(), ex)
-	chke(err)
-	msg(MSG1, MSGFYI)
+	if err != nil {
+		msg(fmt.Sprintf(MSG2, VECTORTABLENAME), MSGFYI)
+	} else {
+		msg(MSG1+VECTORTABLENAME, MSGFYI)
+	}
 }
 
 //
@@ -310,6 +323,8 @@ func vectordbreset() {
 //
 
 func buildgraph() error {
+	// go-echarts is "too clever" and opaque about how to not do things its way
+
 	// TESTING
 
 	// https://github.com/go-echarts/examples/blob/master/examples/graph.go
@@ -342,11 +357,13 @@ func buildgraph() error {
 
 	// JSAssets.Init("echarts.min.js"): // Init creates a new OrderedSet instance, and adds any given items into this set.
 
+	// [1] build a charts.Graph
 	g := graphNpmDep()
 
-	// we are building a page with only one chart and doing it by hand
+	// [2] we are building a page with only one chart and doing it by hand
 	page := components.NewPage()
 
+	// [3] add assets to the page
 	assets := g.GetAssets()
 	for _, v := range assets.JSAssets.Values {
 		page.JSAssets.Add(v)
@@ -358,6 +375,7 @@ func buildgraph() error {
 
 	g.Validate()
 
+	// [4] add the chart to the page
 	page.Charts = append(page.Charts, g)
 
 	//fmt.Println(page.Charts[0])
@@ -506,6 +524,7 @@ func graphNpmDep() *charts.Graph {
 // WEGO NOTES AND DEFAULTS
 //
 
+// vectorconfig - read the CONFIGVECTOR file and return word2vec.Options
 func vectorconfig() word2vec.Options {
 	const (
 		ERR1 = "vectorconfig() cannot find UserHomeDir"
@@ -529,9 +548,9 @@ func vectorconfig() word2vec.Options {
 		content, err := json.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
 		chke(err)
 
-		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTOR, content, 0644)
+		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTOR, content, WRITEPERMS)
 		chke(err)
-		msg(MSG1+CONFIGVECTOR, 1)
+		msg(MSG1+CONFIGVECTOR, MSGPEEK)
 	} else {
 		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTOR)
 		decoderc := json.NewDecoder(loadedcfg)
@@ -539,10 +558,10 @@ func vectorconfig() word2vec.Options {
 		errc := decoderc.Decode(&vc)
 		_ = loadedcfg.Close()
 		if errc != nil {
-			msg(ERR2+CONFIGVECTOR, 0)
+			msg(ERR2+CONFIGVECTOR, MSGCRIT)
 			cfg = DefaultVectors
 		}
-		msg(MSG2+CONFIGVECTOR, 2)
+		msg(MSG2+CONFIGVECTOR, MSGTMI)
 		cfg = vc
 	}
 

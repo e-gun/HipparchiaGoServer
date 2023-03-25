@@ -31,6 +31,7 @@ type CurrentConfiguration struct {
 	ManualGC      bool // see SelfStats()
 	MaxText       int
 	PGLogin       PostgresLogin
+	ResetVectors  bool
 	QuietStart    bool
 	SelfTest      int
 	TickerActive  bool
@@ -212,6 +213,8 @@ func ConfigAtLaunch() {
 			Config.PGLogin = pl
 		case "-q":
 			Config.QuietStart = true
+		case "-rv":
+			Config.ResetVectors = true
 		case "-sa":
 			Config.HostIP = args[i+1]
 		case "-sp":
@@ -266,6 +269,7 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.ManualGC = true
 	c.MaxText = MAXTEXTLINEGENERATION
 	c.QuietStart = false
+	c.ResetVectors = false
 	c.SelfTest = 0
 	c.TickerActive = TICKERISACTIVE
 	c.VocabByCt = VOCABBYCOUNT
@@ -375,7 +379,6 @@ func CopyInstructions() {
 		CUST = "HGS_Customization.pdf"
 		FYIF = "HGS_FYI.pdf"
 		FNF  = "CopyInstructions(): Embedded PDF not found. This function will now return."
-		PERM = 0644
 	)
 
 	var f string
@@ -401,7 +404,7 @@ func CopyInstructions() {
 
 		msg(FYI, MSGCRIT)
 
-		err = os.WriteFile(f, data, PERM)
+		err = os.WriteFile(f, data, WRITEPERMS)
 		if err != nil {
 			msg(FNF, MSGWARN)
 			return
@@ -414,7 +417,7 @@ func CopyInstructions() {
 		if err != nil {
 			return
 		}
-		err = os.WriteFile(info, data, PERM)
+		err = os.WriteFile(info, data, WRITEPERMS)
 		if err != nil {
 			msg(FNF, MSGWARN)
 			return

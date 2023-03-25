@@ -88,7 +88,9 @@ func main() {
 
 	awaiting.Wait()
 
-	vectordbreset()
+	if Config.ResetVectors {
+		vectordbreset()
+	}
 
 	SelfStats("main() post-initialization")
 	msg(fmt.Sprintf(SUMM, time.Now().Sub(LaunchTime).Seconds()), MSGWARN)
