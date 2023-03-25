@@ -7,6 +7,7 @@ package main
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -18,6 +19,7 @@ import (
 	"github.com/ynqa/wego/pkg/embedding"
 	"github.com/ynqa/wego/pkg/model/word2vec"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -220,28 +222,30 @@ func vectordbadd(fp string, embs embedding.Embeddings) {
 	eb, err := json.Marshal(embs)
 	chke(err)
 
-	// l1 := len(eb)
+	l1 := len(eb)
 
 	// https://stackoverflow.com/questions/61077668/how-to-gzip-string-and-return-byte-array-in-golang
-	//var buf bytes.Buffer
-	//zw := gzip.NewWriter(&buf)
-	//_, err = zw.Write(eb)
-	//chke(err)
-	//err = zw.Close()
-	//chke(err)
-	//
-	//b := buf.Bytes()
-	//l2 := len(b)
+	var buf bytes.Buffer
+	zw := gzip.NewWriter(&buf)
+	_, err = zw.Write(eb)
+	chke(err)
+	err = zw.Close()
+	chke(err)
+
+	b := buf.Bytes()
+	l2 := len(b)
 
 	ex := fmt.Sprintf(INS, VECTORTABLENAME, fp)
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
-	_, err = dbconn.Exec(context.Background(), ex, eb)
+
+	_, err = dbconn.Exec(context.Background(), ex, b)
 	chke(err)
 	msg(MSG1+fp, MSGFYI)
+
 	// the savings is real: compressed is c. 27% of original
-	// msg(fmt.Sprintf("vector compression: %d -> %d (%.1f percent)", l1, l2, (float32(l2)/float32(l1))*100), 3)
+	msg(fmt.Sprintf("vector compression: %d -> %d (%.1f percent)", l1, l2, (float32(l2)/float32(l1))*100), 3)
 }
 
 func vectordbfetch(fp string) embedding.Embeddings {
@@ -270,21 +274,16 @@ func vectordbfetch(fp string) embedding.Embeddings {
 	var buf bytes.Buffer
 	buf.Write(vect)
 
-	// fmt.Println(string(buf.Bytes()))
-
 	// unzip
-	//zr, err := gzip.NewReader(&buf)
-	//chke(err)
-	//msg("vectordbfetch(): a", 3)
-	//_, err = zr.Read(vect)
-	//chke(err)
-	//msg("vectordbfetch(): b", 3)
-	//err = zr.Close()
-	//chke(err)
-	//msg("vectordbfetch(): c", 3)
+	zr, err := gzip.NewReader(&buf)
+	chke(err)
+	err = zr.Close()
+	chke(err)
+	decompr, err := io.ReadAll(zr)
+	chke(err)
 
 	var emb embedding.Embeddings
-	err = json.Unmarshal(buf.Bytes(), &emb)
+	err = json.Unmarshal(decompr, &emb)
 	chke(err)
 
 	msg(MSG1+fp, MSGFYI)
@@ -294,7 +293,8 @@ func vectordbfetch(fp string) embedding.Embeddings {
 
 func vectordbreset() {
 	const (
-		E = `DROP TABLE %s`
+		MSG1 = "vectordbreset()"
+		E    = `DROP TABLE %s`
 	)
 	ex := fmt.Sprintf(E, VECTORTABLENAME)
 	dbconn := GetPSQLconnection()
@@ -302,7 +302,7 @@ func vectordbreset() {
 
 	_, err := dbconn.Exec(context.Background(), ex)
 	chke(err)
-	msg("vectordbreset(): success", 3)
+	msg(MSG1, MSGFYI)
 }
 
 //

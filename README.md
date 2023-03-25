@@ -1,6 +1,6 @@
 # HipparchiaGoServer
 
-### STATUS (v0.0.0):
+### STATUS (v1.2.0):
 
 * 25%-700% faster than HipparchiaServer depending on the function. Uses c. 60% as much RAM.
 * monolithic binary: no need for extra files/folders beyond setting a password in `hgs-conf.json`
@@ -21,7 +21,7 @@
 * progress polling
 * self-configuration first run
 * self-installation on first run
-* vectors (but early tests of ML golang libraries are not promising)
+* semantic vectors: search and graph nearest neighbors
 
 ### INSTRUCTIONS
 * for installation, see the `INSTRUCTIONS` folder
