@@ -14,7 +14,7 @@ import (
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"html/template"
 	"io"
-	"io/ioutil"
+	"os"
 	"regexp"
 )
 
@@ -25,48 +25,17 @@ import (
 func buildgraph() string {
 	msg("DEBUGGING: buildgraph()", 0)
 	// go-echarts is "too clever" and opaque about how to not do things its way
+	// we override their page.Render() to yield html+js that gets injected to the "vectorgraphing" div on frontpage.html
 
-	// TESTING
-
-	// https://github.com/go-echarts/examples/blob/master/examples/graph.go
-	// [start] page.Render(io.MultiWriter(f))
-
-	// see: https://github.com/go-echarts/go-echarts/blob/master/components/page.go
-	// a page is a struct that contains a render.Renderer
-
-	// see: https://github.com/go-echarts/go-echarts/blob/master/render/engine.go
-	// a render.Renderer is an interface that calls Render(w io.Writer)
-
-	// [rendering]
-	// [a] call func (r *pageRender) Render(w io.Writer) error
-	// [b] run any "before" functions
-	// [c] build a slice of templates
-	// [d] call "MustTemplate" on these
-	// [e] call tpl.ExecuteTemplate and fill a buffer
-
-	// [templating]
-	// [a] tpl.ExecuteTemplate will use "r.c", that is pageRender.c where c is "interface{}"
-	// [b] in order to have something populating "c" you need to have called NewPageRender(c interface{}, before ...func())
-	// [c] NewPage() in https://github.com/go-echarts/go-echarts/blob/master/components/page.go calls NewPageRender(page, page.Validate)
-
-	// [page validation]
-	// NewPage() calls page.Assets.InitAssets(); this is an opts.Assets: see https://github.com/go-echarts/go-echarts/blob/master/opts/global.go
-
-	// [assets]
-	// these are JSAssets, CSSAssets, CustomizedJSAssets, CustomizedCSSAssets
-	// they belong to types.orderedset: see "github.com/go-echarts/go-echarts/v2/types"
-
-	// JSAssets.Init("echarts.min.js"): // Init creates a new OrderedSet instance, and adds any given items into this set.
-
-	// [1] build a charts.Graph
-	g := graphNpmDep()
+	// [a] build a charts.Graph
+	g := graphtest()
 	g.Validate()
 
-	// [2] we are building a page with only one chart and doing it by hand
+	// [b] we are building a page with only one chart and doing it by hand
 	p := components.NewPage()
-	p.Renderer = NewModPageRender(p, p.Validate)
+	p.Renderer = NewCustomPageRender(p, p.Validate)
 
-	// [3] add assets to the page
+	// [c] add assets to the page
 	assets := g.GetAssets()
 	for _, v := range assets.JSAssets.Values {
 		p.JSAssets.Add(v)
@@ -76,10 +45,11 @@ func buildgraph() string {
 		p.CSSAssets.Add(v)
 	}
 
-	// [4] add the chart to the page
+	// [d] add the chart to the page
 	p.Charts = append(p.Charts, g)
 	p.Validate()
 
+	// [e] render the chart and get the html+js for it
 	var buf bytes.Buffer
 	err := p.Render(&buf)
 	chke(err)
@@ -89,14 +59,50 @@ func buildgraph() string {
 	return htmlandjs
 }
 
-func graphNpmDep() *charts.Graph {
+var graphNodes = []opts.GraphNode{
+	{Name: "Node1"},
+	{Name: "Node2"},
+	{Name: "Node3"},
+	{Name: "Node4"},
+	{Name: "Node5"},
+	{Name: "Node6"},
+	{Name: "Node7"},
+	{Name: "Node8"},
+}
+
+func genLinks() []opts.GraphLink {
+	links := make([]opts.GraphLink, 0)
+	for i := 0; i < len(graphNodes)-1; i++ {
+		for j := len(graphNodes) - 1; j > 1; j-- {
+			links = append(links, opts.GraphLink{Source: graphNodes[i].Name, Target: graphNodes[j].Name, Value: float32(j * 2)})
+		}
+	}
+	return links
+}
+
+func graphtest() *charts.Graph {
 	graph := charts.NewGraph()
 	graph.SetGlobalOptions(
-		charts.WithTitleOpts(opts.Title{
-			Title: "dependencies demo",
-		}))
+		charts.WithTitleOpts(opts.Title{Title: "basic graph example"}),
+	)
+	graph.AddSeries("graph", graphNodes, genLinks(),
+		charts.WithGraphChartOpts(
+			// opts.GraphChart{Force: &opts.GraphForce{Repulsion: 8000}},
+			opts.GraphChart{Force: &opts.GraphForce{Repulsion: 2000}},
+		),
+	)
+	return graph
 
-	f, err := ioutil.ReadFile("npmdepgraph.json")
+}
+
+func graphNpmDep() *charts.Graph {
+	graph := charts.NewGraph()
+	//graph.SetGlobalOptions(
+	//	charts.WithTitleOpts(opts.Title{
+	//		Title: "dependencies demo",
+	//	}))
+
+	f, err := os.ReadFile("npmdepgraph.json")
 	if err != nil {
 		panic(err)
 	}
@@ -136,6 +142,57 @@ func graphNpmDep() *charts.Graph {
 // OVERRIDE GO-ECHARTS
 //
 
+// ModRenderer etc modified from https://github.com/go-echarts/go-echarts/render/engine.go
+type ModRenderer interface {
+	Render(w io.Writer) error
+}
+
+type CustomPageRender struct {
+	c      interface{}
+	before []func()
+}
+
+// NewCustomPageRender returns a render implementation for Page.
+func NewCustomPageRender(c interface{}, before ...func()) ModRenderer {
+	return &CustomPageRender{c: c, before: before}
+}
+
+// Render renders the page into the given io.Writer.
+func (r *CustomPageRender) Render(w io.Writer) error {
+	for _, fn := range r.before {
+		fn()
+	}
+
+	contents := []string{CustomHeaderTpl, CustomBaseTpl, CustomPageTpl}
+	tpl := ModMustTemplate("chart", contents)
+
+	var buf bytes.Buffer
+	if err := tpl.ExecuteTemplate(&buf, "chart", r.c); err != nil {
+		return err
+	}
+
+	pat := regexp.MustCompile(`(__f__")|("__f__)|(__f__)`)
+	content := pat.ReplaceAll(buf.Bytes(), []byte(""))
+
+	_, err := w.Write(content)
+	return err
+}
+
+// ModMustTemplate creates a new template with the given name and parsed contents.
+func ModMustTemplate(name string, contents []string) *template.Template {
+	tpl := template.Must(template.New(name).Parse(contents[0])).Funcs(template.FuncMap{
+		"safeJS": func(s interface{}) template.JS {
+			return template.JS(fmt.Sprint(s))
+		},
+	})
+
+	for _, cont := range contents[1:] {
+		tpl = template.Must(tpl.Parse(cont))
+	}
+	return tpl
+}
+
+// CustomHeaderTpl etc. adapted from https://github.com/go-echarts/go-echarts/templates/
 var CustomHeaderTpl = `
 {{ define "header" }}
 <head>
@@ -197,55 +254,6 @@ var CustomPageTpl = `
 	{{ end }}
 {{ end }}
 `
-
-type ModRenderer interface {
-	Render(w io.Writer) error
-}
-
-type pageRender struct {
-	c      interface{}
-	before []func()
-}
-
-// NewModPageRender returns a render implementation for Page.
-func NewModPageRender(c interface{}, before ...func()) ModRenderer {
-	return &pageRender{c: c, before: before}
-}
-
-// Render renders the page into the given io.Writer.
-func (r *pageRender) Render(w io.Writer) error {
-	for _, fn := range r.before {
-		fn()
-	}
-
-	contents := []string{CustomHeaderTpl, CustomBaseTpl, CustomPageTpl}
-	tpl := ModMustTemplate("chart", contents)
-
-	var buf bytes.Buffer
-	if err := tpl.ExecuteTemplate(&buf, "chart", r.c); err != nil {
-		return err
-	}
-
-	pat := regexp.MustCompile(`(__f__")|("__f__)|(__f__)`)
-	content := pat.ReplaceAll(buf.Bytes(), []byte(""))
-
-	_, err := w.Write(content)
-	return err
-}
-
-// ModMustTemplate creates a new template with the given name and parsed contents.
-func ModMustTemplate(name string, contents []string) *template.Template {
-	tpl := template.Must(template.New(name).Parse(contents[0])).Funcs(template.FuncMap{
-		"safeJS": func(s interface{}) template.JS {
-			return template.JS(fmt.Sprint(s))
-		},
-	})
-
-	for _, cont := range contents[1:] {
-		tpl = template.Must(tpl.Parse(cont))
-	}
-	return tpl
-}
 
 // https://github.com/go-echarts/go-echarts/blob/master/opts/charts.go
 // // GraphChart is the option set for graph chart.

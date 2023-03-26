@@ -34,6 +34,7 @@ type CurrentConfiguration struct {
 	ResetVectors  bool
 	QuietStart    bool
 	SelfTest      int
+	TestingRun    bool
 	TickerActive  bool
 	VocabByCt     bool
 	VocabScans    bool
@@ -225,6 +226,8 @@ func ConfigAtLaunch() {
 			Config.SelfTest += 1
 		case "-tk":
 			Config.TickerActive = true
+		case "-tr":
+			Config.TestingRun = true
 		case "-ui":
 			Config.BadChars = args[i+1]
 		case "-wc":
@@ -271,6 +274,7 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.QuietStart = false
 	c.ResetVectors = false
 	c.SelfTest = 0
+	c.TestingRun = false
 	c.TickerActive = TICKERISACTIVE
 	c.VocabByCt = VOCABBYCOUNT
 	c.VocabScans = VOCABSCANSION

@@ -31,7 +31,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 
 	c.Response().After(func() { SelfStats("VectorSearch()") })
 
-	if 1 == 0 {
+	if Config.TestingRun {
 		img := buildgraph()
 		soj := SearchOutputJSON{
 			Title:         "buildgraph()",
