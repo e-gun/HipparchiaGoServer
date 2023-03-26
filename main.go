@@ -37,6 +37,8 @@ func main() {
 
 	printversion()
 
+	// buildgraph()
+
 	if !Config.QuietStart {
 		msg(fmt.Sprintf(TERMINALTEXT, PROJYEAR, PROJAUTH, PROJMAIL), MSGMAND)
 	}

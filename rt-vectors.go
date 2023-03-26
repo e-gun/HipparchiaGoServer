@@ -29,6 +29,8 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		FAIL2 = `err: searcher.SearchInternal(word, rank)`
 	)
 
+	c.Response().After(func() { SelfStats("VectorSearch()") })
+
 	fp := fingerprintvectorsearch(srch)
 
 	isstored := vectordbcheck(fp)
@@ -309,6 +311,7 @@ func generateembeddings(c echo.Context, srch SearchStruct) embedding.Embeddings 
 	)
 
 	// note that MAXTEXTLINEGENERATION will prevent a vectorization of the full corpus
+	// TODO: fix the out of memory panic you get from postgres if you ask for too much
 	vs := sessionintobulksearch(c, VECTORMAXLINES)
 	srch.Results = vs.Results
 	vs.Results = []DbWorkline{}

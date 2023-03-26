@@ -43,8 +43,6 @@ func RtSearch(c echo.Context) error {
 	// [8] phrase + lemma
 	// [9] phrase + phrase
 
-	c.Response().After(func() { SelfStats("RtSearch()") })
-
 	user := readUUIDCookie(c)
 	if !AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, SearchOutputJSON{JS: VALIDATIONBOX}, JSONINDENT)
@@ -59,6 +57,8 @@ func RtSearch(c echo.Context) error {
 		// not a normal search: we grab all lines; build a model; query against the model
 		return VectorSearch(c, srch)
 	}
+	c.Response().After(func() { SelfStats("RtSearch()") })
+
 	// HasPhrase makes us use a fake limit temporarily
 	reallimit := srch.CurrentLimit
 

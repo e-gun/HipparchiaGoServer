@@ -41,7 +41,7 @@ var (
 		"pro¹", "pro²", "ago", "deus", "annus", "locus", "homo", "pater", "eo²", "tantus", "fero", "quidem", "noster",
 		"an", "locum"}
 	LatExtra = []string{"at", "o", "tum", "tunc", "dum", "illic", "quia", "sive", "num", "adhuc", "tam", "ibi", "cur",
-		"usquam"}
+		"usquam", "quoque", "duo", "talis"}
 	LatStop = append(Latin100, LatExtra...)
 	// LatinKeep - members of LatStop we will not toss
 	LatinKeep = []string{"facio", "possum", "habeo", "video", "magnus", "bonus", "volo¹", "primus", "venio", "ago",
@@ -322,7 +322,8 @@ func vectordbreset() {
 // GRAPHING
 //
 
-func buildgraph() error {
+func buildgraph() {
+	msg("DEBUGGING: buildgraph()", 0)
 	// go-echarts is "too clever" and opaque about how to not do things its way
 
 	// TESTING
@@ -359,122 +360,33 @@ func buildgraph() error {
 
 	// [1] build a charts.Graph
 	g := graphNpmDep()
+	g.Validate()
 
 	// [2] we are building a page with only one chart and doing it by hand
-	page := components.NewPage()
+	p := components.NewPage()
+	p.Renderer = NewModPageRender(p, p.Validate)
 
 	// [3] add assets to the page
 	assets := g.GetAssets()
 	for _, v := range assets.JSAssets.Values {
-		page.JSAssets.Add(v)
+		p.JSAssets.Add(v)
 	}
 
 	for _, v := range assets.CSSAssets.Values {
-		page.CSSAssets.Add(v)
+		p.CSSAssets.Add(v)
 	}
-
-	g.Validate()
 
 	// [4] add the chart to the page
-	page.Charts = append(page.Charts, g)
+	p.Charts = append(p.Charts, g)
+	p.Validate()
 
-	//fmt.Println(page.Charts[0])
-
-	var ctpl = `
-	{{- define "chart" }}
-	<!DOCTYPE html>
-	<html>
-		{{- template "header" . }}
-	<body>
-		{{- template "base" . }}
-	<style>
-		.container {margin-top:30px; display: flex;justify-content: center;align-items: center;}
-		.item {margin: auto;}
-	</style>
-	</body>
-	</html>
-	{{ end }}
-	`
-
-	t := func(name string, contents []string) *template.Template {
-		tpl := template.Must(template.New(name).Parse(contents[0])).Funcs(template.FuncMap{
-			"safeJS": func(s interface{}) template.JS {
-				return template.JS(fmt.Sprint(s))
-			},
-		})
-
-		for _, cont := range contents[1:] {
-			tpl = template.Must(tpl.Parse(cont))
-		}
-		return tpl
-	}
-
-	tpl := t("chart", []string{ctpl})
-	msg("x", 1)
 	var buf bytes.Buffer
-	if err := tpl.ExecuteTemplate(&buf, "chart", ctpl); err != nil {
-		return err
-	}
+	err := p.Render(&buf)
+	chke(err)
 
-	msg("y", 1)
-	pat := regexp.MustCompile(`(__f__")|("__f__)|(__f__)`)
-	content := pat.ReplaceAll(buf.Bytes(), []byte(""))
-	msg("z", 1)
-	fmt.Println(string(content))
+	fmt.Println(string(buf.Bytes()))
 
-	// {      }
-	//{map[echarts.min.js:true] [echarts.min.js]}
-	//{map[] []}
-	//center
-	// &{{{false      <nil>   map[]  <nil> 0 0      <nil>} {false   false  <nil>} {false      <nil>} {dependencies demo <nil>   <nil>      } {<nil>} { 0 0 [ ] [ ] {false   false  <nil>}} {{ 0 0  false 0 0 false 0 0 0 0 0 false false} false} {{ 0 0  false 0 0 false 0 0 0 0 0 false false}   {  0  <nil> <nil>} 0 0 false} {<nil> <nil> <nil>} <nil> 0x140043fae70 {Awesome go-echarts 900px 500px  fHptAJfNusSt https://go-echarts.github.io/go-echarts-assets/assets/ white} {{map[echarts.min.js:true] [https://go-echarts.github.io/go-echarts-assets/assets/echarts.min.js]} {map[] []} {map[] []} {map[] []}} {[]  0 <nil> <nil> <nil>} { <nil> false} {   } {[]} {<nil> <nil>     } [{graph graph  0 0   false false  [{jquery jsdom 0 <nil>} {jquery xmlhttprequest 0 <nil>} {jquery htmlparser 0 <nil>} {jquery contextify 0 <nil>} {backbone underscore 0 <nil>} {faye faye-websocket 0 <nil>} {faye cookiejar 0 <nil>} {socket.io redis 0 <nil>} {socket.io socket.io-client 0 <nil>} {mongoose mongodb 0 <nil>} {mongoose hooks 0 <nil>} {mongoose ms 0 <nil>} {cheerio underscore 0 <nil>} {cheerio htmlparser2 0 <nil>} {cheerio entities 0 <nil>} {express mkdirp 0 <nil>} {express connect 0 <nil>} {express commander 0 <nil>} {express debug 0 <nil>} {express cookie 0 <nil>} {express send 0 <nil>} {express methods 0 <nil>}] none <nil> [] true <nil> <nil> <nil> false true <nil> false false false false false   <nil> <nil> <nil> 0  false 0 <nil>     0 <nil> <nil>  [] []   false false false 0 0  0 0  0 [{jquery -739.36383 -404.26147 0 false <nil>  4.7252817 0x140009c56d0} {backbone -134.2215 -862.7517 0 false <nil>  6.1554675 0x140009c5720} {underscore -75.53079 -734.4221 0 false <nil>  100 0x140009c5770} {faye -818.97516 624.50604 0 false <nil>  0.67816025 0x140009c57c0} {socket.io -710.59204 120.37976 0 false <nil>  19.818306 0x140009c5810} {requirejs 71.52897 -612.5541 0 false <nil>  4.0862627 0x140009c5860} {amdefine 1202.1166 -556.3107 0 false <nil>  2.3822114 0x140009c58b0} {mongoose -1150.2018 378.15536 0 false <nil>  10.81118 0x140009c5900} {underscore.deferred -127.03764 477.03778 0 false <nil>  0.40429485 0x140009c5950}] <nil> <nil> <nil> <nil> 0x140084c1170 <nil> <nil> <nil> <nil> 0x140043fb560 <nil> <nil> <nil>}] {[{  false <nil> 0 false <nil> <nil> 0 0 0 <nil> <nil> <nil> <nil>}] [{  false <nil> 0 false <nil> <nil> 0 <nil> <nil> <nil> <nil>}]} {false  0  <nil> <nil> <nil>} {false  0  <nil> <nil> <nil>} {false  0  <nil> <nil> <nil>} {false 0 0 0 <nil>} {     false } [] [#5470c6 #91cc75 #fac858 #ee6666 #73c0de #3ba272 #fc8452 #9a60b4 #ea7ccc] [] [] [] [] false false false false false false false false []} { { [] <nil>}}}
-
-	// type Page struct {
-	//	render.Renderer  // "github.com/go-echarts/go-echarts/v2/render"
-	//	opts.Initialization
-	//	opts.Assets
-	//
-	//	Charts []interface{}
-	//	Layout Layout
-	//}
-
-	// func (r *chartRender) Render(w io.Writer) error {
-	//	for _, fn := range r.before {
-	//		fn()
-	//	}
-	//
-	//	contents := []string{tpls.HeaderTpl, tpls.BaseTpl, tpls.ChartTpl}
-	//	tpl := MustTemplate(ModChart, contents)
-	//
-	//	var buf bytes.Buffer
-	//	if err := tpl.ExecuteTemplate(&buf, ModChart, r.c); err != nil {
-	//		return err
-	//	}
-	//
-	//	content := pat.ReplaceAll(buf.Bytes(), []byte(""))
-	//
-	//	_, err := w.Write(content)
-	//	return err
-	//}
-
-	// AddCharts adds new charts to the page.
-	//func (page *Page) AddCharts(charts ...Charter) *Page {
-	//	for i := 0; i < len(charts); i++ {
-	//	assets := charts[i].GetAssets()
-	//	for _, v := range assets.JSAssets.Values {
-	//	page.JSAssets.Add(v)
-	//}
-	//
-	//	for _, v := range assets.CSSAssets.Values {
-	//	page.CSSAssets.Add(v)
-	//}
-	//	charts[i].Validate()
-	//	page.Charts = append(page.Charts, charts[i])
-	//}
-	//	return page
-	//}
-
-	// TESTING
-	return nil
+	return
 }
 
 func graphNpmDep() *charts.Graph {
@@ -495,8 +407,8 @@ func graphNpmDep() *charts.Graph {
 	}
 
 	var data Data
-	if err := json.Unmarshal(f, &data); err != nil {
-		fmt.Println(err)
+	if e := json.Unmarshal(f, &data); e != nil {
+		fmt.Println(e)
 	}
 
 	graph.AddSeries("graph", data.Nodes, data.Links).
@@ -669,3 +581,118 @@ func vectorconfig() word2vec.Options {
 //	// EdgeLabel is the properties of an label of edge.
 //	EdgeLabel *EdgeLabel `json:"edgeLabel"`
 //}
+
+//
+// OVERRIDE GO-ECHARTS
+//
+
+var CustomHeaderTpl = `
+{{ define "header" }}
+<head>
+	<!-- CustomHeaderTpl -->
+    <meta charset="utf-8">
+    <title>{{ .PageTitle }}</title>
+{{- range .JSAssets.Values }}
+    <script src="{{ . }}"></script>
+{{- end }}
+{{- range .CustomizedJSAssets.Values }}
+    <script src="{{ . }}"></script>
+{{- end }}
+{{- range .CSSAssets.Values }}
+    <link href="{{ . }}" rel="stylesheet">
+{{- end }}
+{{- range .CustomizedCSSAssets.Values }}
+    <link href="{{ . }}" rel="stylesheet">
+{{- end }}
+</head>
+{{ end }}
+`
+
+var CustomBaseTpl = `
+{{- define "base" }}
+<!-- CustomBaseTpl -->
+<div class="container">
+    <div class="item" id="{{ .ChartID }}" style="width:{{ .Initialization.Width }};height:{{ .Initialization.Height }};"></div>
+</div>
+<script type="text/javascript">
+    "use strict";
+    let goecharts_{{ .ChartID | safeJS }} = echarts.init(document.getElementById('{{ .ChartID | safeJS }}'), "{{ .Theme }}");
+    let option_{{ .ChartID | safeJS }} = {{ .JSONNotEscaped | safeJS }};
+	let action_{{ .ChartID | safeJS }} = {{ .JSONNotEscapedAction | safeJS }};
+    goecharts_{{ .ChartID | safeJS }}.setOption(option_{{ .ChartID | safeJS }});
+ 	goecharts_{{ .ChartID | safeJS }}.dispatchAction(action_{{ .ChartID | safeJS }});
+
+    {{- range .JSFunctions.Fns }}
+    {{ . | safeJS }}
+    {{- end }}
+</script>
+{{ end }}
+`
+
+var CustomPageTpl = `
+{{- define "chart" }}
+	<!-- CustomPageTpl -->
+	{{ if eq .Layout "none" }}
+		{{- range .Charts }} {{ template "base" . }} {{- end }}
+	{{ end }}
+	
+	{{ if eq .Layout "center" }}
+		<style> .container {display: flex;justify-content: center;align-items: center;} .item {margin: auto;} </style>
+		{{- range .Charts }} {{ template "base" . }} {{- end }}
+	{{ end }}
+	
+	{{ if eq .Layout "flex" }}
+		<style> .box { justify-content:center; display:flex; flex-wrap:wrap } </style>
+		<div class="box"> {{- range .Charts }} {{ template "base" . }} {{- end }} </div>
+	{{ end }}
+{{ end }}
+`
+
+type ModRenderer interface {
+	Render(w io.Writer) error
+}
+
+type pageRender struct {
+	c      interface{}
+	before []func()
+}
+
+// NewModPageRender returns a render implementation for Page.
+func NewModPageRender(c interface{}, before ...func()) ModRenderer {
+	return &pageRender{c: c, before: before}
+}
+
+// Render renders the page into the given io.Writer.
+func (r *pageRender) Render(w io.Writer) error {
+	for _, fn := range r.before {
+		fn()
+	}
+
+	contents := []string{CustomHeaderTpl, CustomBaseTpl, CustomPageTpl}
+	tpl := ModMustTemplate("chart", contents)
+
+	var buf bytes.Buffer
+	if err := tpl.ExecuteTemplate(&buf, "chart", r.c); err != nil {
+		return err
+	}
+
+	pat := regexp.MustCompile(`(__f__")|("__f__)|(__f__)`)
+	content := pat.ReplaceAll(buf.Bytes(), []byte(""))
+
+	_, err := w.Write(content)
+	return err
+}
+
+// ModMustTemplate creates a new template with the given name and parsed contents.
+func ModMustTemplate(name string, contents []string) *template.Template {
+	tpl := template.Must(template.New(name).Parse(contents[0])).Funcs(template.FuncMap{
+		"safeJS": func(s interface{}) template.JS {
+			return template.JS(fmt.Sprint(s))
+		},
+	})
+
+	for _, cont := range contents[1:] {
+		tpl = template.Must(tpl.Parse(cont))
+	}
+	return tpl
+}
