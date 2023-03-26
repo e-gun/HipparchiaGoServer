@@ -115,23 +115,24 @@ $(document).ready( function () {
         document.title = output['title'];
         $('#searchsummary').html(output['searchsummary']);
         $('#displayresults').html(output['found']);
+        $('#vectorgraphing').html(output['image']);
 
         //
         // THE GRAPH: if there is one... Note that if it is embedded in the output table, then
         // that table has to be created and  $('#imagearea') with it before you do any of the following
         //
 
-        let imagetarget = $('#imagearea');
-        if (typeof output['image'] !== 'undefined' && output['image'] !== '') {
-            let w = window.innerWidth * .9;
-            let h = window.innerHeight * .9;
-            jQuery('<img/>').prependTo(imagetarget).attr({
-                src: '/get/response/vectorfigure/' + output['image'],
-                alt: '[vector graph]',
-                id: 'insertedfigure',
-                height: h
-            });
-        }
+        // let imagetarget = $('#imagearea');
+        // if (typeof output['image'] !== 'undefined' && output['image'] !== '') {
+        //     let w = window.innerWidth * .9;
+        //     let h = window.innerHeight * .9;
+        //     jQuery('<img/>').prependTo(imagetarget).attr({
+        //         src: '/get/response/vectorfigure/' + output['image'],
+        //         alt: '[vector graph]',
+        //         id: 'insertedfigure',
+        //         height: h
+        //     });
+        // }
 
         //
         // JS UPDATE

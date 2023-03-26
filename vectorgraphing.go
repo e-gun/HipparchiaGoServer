@@ -22,7 +22,7 @@ import (
 // GRAPHING
 //
 
-func buildgraph() {
+func buildgraph() string {
 	msg("DEBUGGING: buildgraph()", 0)
 	// go-echarts is "too clever" and opaque about how to not do things its way
 
@@ -84,9 +84,9 @@ func buildgraph() {
 	err := p.Render(&buf)
 	chke(err)
 
-	fmt.Println(string(buf.Bytes()))
+	htmlandjs := string(buf.Bytes())
 
-	return
+	return htmlandjs
 }
 
 func graphNpmDep() *charts.Graph {

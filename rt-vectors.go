@@ -31,6 +31,19 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 
 	c.Response().After(func() { SelfStats("VectorSearch()") })
 
+	if 1 == 0 {
+		img := buildgraph()
+		soj := SearchOutputJSON{
+			Title:         "buildgraph()",
+			Searchsummary: "",
+			Found:         "[test]",
+			Image:         img,
+			JS:            "",
+		}
+		AllSearches.Delete(srch.ID)
+		return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
+	}
+
 	fp := fingerprintvectorsearch(srch)
 
 	isstored := vectordbcheck(fp)
