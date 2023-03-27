@@ -230,6 +230,7 @@ closeextendedsearcharea();
 
 if ($('#termoneisalemma').is(":checked")) {
     $('#termonecheckbox').show();
+    $('#vectorsearchcheckbox').show();
 }
 
 if ($('#vectorsearch').is(":checked")) {

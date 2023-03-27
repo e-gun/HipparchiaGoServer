@@ -167,7 +167,8 @@ const extrauichoices = Array().concat(categoryautofills);
 
 // firstload hiding
 const miscfirstloadhides = Array('#browserdialog', '#helptabs', '#fewerchoicesbutton', '#lemmatizing-ison',
-    '#vectorizing-ison', '#alt_upperleftbuttons', '#analogiesinputarea', '#extendsearchbutton-ispresentlyopen', '#trimmingcheckboxes');
+    '#vectorizing-ison', '#alt_upperleftbuttons', '#analogiesinputarea', '#extendsearchbutton-ispresentlyopen',
+    '#vectorsearchcheckbox', '#trimmingcheckboxes');
 const tohideonfirstload = Array().concat(miscfirstloadhides, endpointnoticesandbuttons,
     endpointids, inputids, actionbuttons, infobuttons, infoboxes, lemmatasearchforms, extrasearchcriteria,
     lemmatabagoptions, extrasearchuielements);

@@ -33,7 +33,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 
 	if Config.TestingRun {
 		nn := generategraphdata(c, srch)
-		img := buildgraph(srch.Seeking, nn)
+		img := buildgraph(srch.LemmaOne, nn)
 		soj := SearchOutputJSON{
 			Title:         "buildgraph()",
 			Searchsummary: "",

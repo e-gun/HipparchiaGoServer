@@ -109,4 +109,9 @@ $('#isvectorsearch').change(function() {
     if(this.checked) { setoptions('isvectorsearch', 'yes'); } else { setoptions('isvectorsearch', 'no'); }
     refreshselections();
     loadoptions();
+    if (vct.is(":checked")) {
+        lsf.attr('placeholder', '(semantic neighbors of...)');
+    } else {
+        lsf.attr('placeholder', '(all forms of...)');
+    }
 });

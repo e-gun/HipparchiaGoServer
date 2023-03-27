@@ -26,15 +26,17 @@ import (
 
 func generategraphdata(c echo.Context, srch SearchStruct) map[string]search.Neighbors {
 	const (
+		MSG1  = "generategraphdata(): fetching stored embeddings"
 		FAIL1 = "generategraphdata() could not find neighbors of a neighbor: '%s' neighbors (via '%s')"
+		FAIL2 = "generategraphdata() failed to produce a Searcher"
+		FAIL3 = "generategraphdata() failed to yield Neighbors"
 	)
 
-	msg("generategraphdata()", MSGFYI)
 	fp := fingerprintvectorsearch(srch)
 	isstored := vectordbcheck(fp)
 	var embs embedding.Embeddings
 	if isstored {
-		msg("generategraphdata(): fetching stored embeddings", MSGFYI)
+		msg(MSG1, MSGPEEK)
 		embs = vectordbfetch(fp)
 	} else {
 		embs = generateembeddings(c, srch)
@@ -43,20 +45,26 @@ func generategraphdata(c echo.Context, srch SearchStruct) map[string]search.Neig
 
 	// [b] make a query against the model
 	searcher, err := search.New(embs...)
-	chke(err)
+	if err != nil {
+		msg(FAIL2, MSGFYI)
+		searcher = func() *search.Searcher { return &search.Searcher{} }()
+	}
 
 	ncount := VECTORNEIGHBORS // how many neighbors to output; min is 1
-	word := srch.Seeking
+	word := srch.LemmaOne
 
 	nn := make(map[string]search.Neighbors)
 	neighbors, err := searcher.SearchInternal(word, ncount)
-	chke(err)
+	if err != nil {
+		msg(FAIL3, MSGFYI)
+		neighbors = search.Neighbors{}
+	}
 
 	nn[word] = neighbors
 	for _, n := range neighbors {
 		meta, e := searcher.SearchInternal(n.Word, ncount)
 		if e != nil {
-			msg(fmt.Sprintf(FAIL1, n.Word, word), 3)
+			msg(fmt.Sprintf(FAIL1, n.Word, word), MSGFYI)
 		} else {
 			nn[n.Word] = meta
 		}
@@ -144,11 +152,12 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 	const (
 		CHRTWIDTH  = "1500px"
 		CHRTHEIGHT = "1000px"
-		SYMSIZE    = "30"
+		SYMSIZE    = "30" // TODO: scaling this on an individual basis via item values
 		PRECISON   = 4
 		REPULSION  = 8000
 		GRAVITY    = .1
 		EDGELEN    = 40
+		HUEDGREY   = "hsl(240, 10%, 61%);"
 	)
 
 	graph := charts.NewGraph()
@@ -209,7 +218,7 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 }
 
 //
-// OVERRIDE GO-ECHARTS
+// OVERRIDE GO-ECHARTS [original code at https://github.com/go-echarts/go-echarts]
 //
 
 // ModRenderer etc modified from https://github.com/go-echarts/go-echarts/render/engine.go
@@ -308,18 +317,19 @@ var CustomBaseTpl = `
 
 var CustomPageTpl = `
 {{- define "chart" }}
+	<!-- "style" overridden because it is set in hgs.css -->
 	<!-- CustomPageTpl -->
 	{{ if eq .Layout "none" }}
 		{{- range .Charts }} {{ template "base" . }} {{- end }}
 	{{ end }}
 	
 	{{ if eq .Layout "center" }}
-		<style> .container {display: flex;justify-content: center;align-items: center;} .item {margin: auto;} </style>
+		<!-- <style> .container {display: flex;justify-content: center;align-items: center; } .item {margin: auto;} </style> -->
 		{{- range .Charts }} {{ template "base" . }} {{- end }}
 	{{ end }}
 	
 	{{ if eq .Layout "flex" }}
-		<style> .box { justify-content:center; display:flex; flex-wrap:wrap } </style>
+		<!--  <style> .box { justify-content:center; display:flex; flex-wrap:wrap } </style> -->
 		<div class="box"> {{- range .Charts }} {{ template "base" . }} {{- end }} </div>
 	{{ end }}
 {{ end }}

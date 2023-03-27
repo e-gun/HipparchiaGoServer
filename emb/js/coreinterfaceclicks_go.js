@@ -509,20 +509,28 @@ $('#endpointbutton-isopen').click(function(){
     hidemany(['#selectionendpoint']);
     });
 
-
 //
 // COMPLEX SEARCH BUTTONS (the clicks are in documentready_go.js; the code is here
 //
+
+let tol = $('#termoneisalemma');
+let vct = $('#vectorsearchcheckbox');
+
+tol.click(function(){
+    if (tol.is(":checked")) {
+        vct.show();
+    } else {
+        vct.hide();
+    }
+});
 
 function closeextendedsearcharea() {
     $('#extendsearchbutton-ispresentlyopen').hide();
     $('#extendsearchbutton-ispresentlyclosed').show();
     $('#complexsearching').hide();
-    let lsf = $('#lemmatasearchform');
     let wsf = $('#wordsearchform');
     let tcb = $('#termonecheckbox');
-    let vct = $('#vectorsearch');
-    if ($('#termoneisalemma').is(":checked")) {
+    if (tol.is(":checked")) {
         tcb.show();
         vct.show();
         lsf.show();
