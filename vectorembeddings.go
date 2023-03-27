@@ -374,10 +374,6 @@ func vectordbfetch(fp string) embedding.Embeddings {
 		chke(err)
 	}
 
-	// hipparchiaDB=# SELECT vectordata FROM vectors WHERE fingerprint = 'adb0ad4fe86ab27032cec006d0f68e6a' LIMIT 1;
-	// it looks like:  \x3166386230383030303030303030303030306666....
-	// or: 1f8b08000000000000ff849...
-
 	var buf bytes.Buffer
 	buf.Write(vect)
 

@@ -32,7 +32,8 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	c.Response().After(func() { SelfStats("VectorSearch()") })
 
 	if Config.TestingRun {
-		img := buildgraph()
+		nn := generategraphdata(c, srch)
+		img := buildgraph(srch.Seeking, nn)
 		soj := SearchOutputJSON{
 			Title:         "buildgraph()",
 			Searchsummary: "",
@@ -117,39 +118,6 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		out += fmt.Sprintf("%s\t%s\t\t\t%s\n", table[t][0], table[t][1], table[t][2])
 	}
 	out += "</pre>"
-
-	// PYTHON GRAPHING TO MIMIC
-
-	// want some day to build a graph as per matplotgraphmatches() in vectorgraphing.py
-
-	//  FROM generatenearestneighbordata() in gensimnearestneighbors.py
-	//  mostsimilar = findapproximatenearestneighbors(termone, vectorspace, vv)
-	//  [('εὕρηϲιϲ', 1.0), ('εὑρίϲκω', 0.6673248708248138), ('φυϲιάω', 0.5833806097507477), ('νόμοϲ', 0.5505017340183258), ...]
-
-	// FROM findapproximatenearestneighbors() in gensimnearestneighbors.py
-	// 	explore = max(2500, vectorvalues.neighborscap)
-	//
-	//	try:
-	//		mostsimilar = mymodel.wv.most_similar(query, topn=explore)
-	//		mostsimilar = [s for s in mostsimilar if s[1] > vectorvalues.nearestneighborcutoffdistance]
-
-	//  FROM matplotgraphmatches() in vectorgraphing.py:
-	// 	edgelist = list()
-	//	for t in mostsimilartuples:
-	//		edgelist.append((searchterm, t[0], round(t[1]*10, 2)))
-	//
-	//	for r in relevantconnections:
-	//		for c in relevantconnections[r]:
-	//			edgelist.append((r, c[0], round(c[1]*10, 2)))
-	//
-	//	graph.add_weighted_edges_from(edgelist)
-	//	edgelabels = {(u, v): d['weight'] for u, v, d in graph.edges(data=True)}
-
-	// ? https://github.com/yourbasic/graph
-
-	// ? https://github.com/go-echarts/go-echarts
-
-	// look at what is possible and links: https://blog.gopheracademy.com/advent-2018/go-webgl/
 
 	soj := SearchOutputJSON{
 		Title:         "VECTORS",

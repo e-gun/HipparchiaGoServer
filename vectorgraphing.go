@@ -7,14 +7,15 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/opts"
+	"github.com/labstack/echo/v4"
+	"github.com/ynqa/wego/pkg/embedding"
+	"github.com/ynqa/wego/pkg/search"
 	"html/template"
 	"io"
-	"os"
 	"regexp"
 )
 
@@ -22,13 +23,60 @@ import (
 // GRAPHING
 //
 
-func buildgraph() string {
-	msg("DEBUGGING: buildgraph()", 0)
+var graphLabels = []opts.EdgeLabel{
+	{Show: true, Formatter: "{c}"},
+	{Show: true, Formatter: "{b}"},
+}
+
+func generategraphdata(c echo.Context, srch SearchStruct) map[string]search.Neighbors {
+	const (
+		FAIL1 = "generategraphdata() could not find neighbors of a neighbor: '%s' neighbors (via '%s')"
+	)
+
+	msg("generategraphdata()", MSGFYI)
+	fp := fingerprintvectorsearch(srch)
+	isstored := vectordbcheck(fp)
+	var embs embedding.Embeddings
+	if isstored {
+		msg("generategraphdata(): fetching stored embeddings", MSGFYI)
+		embs = vectordbfetch(fp)
+	} else {
+		embs = generateembeddings(c, srch)
+		vectordbadd(fp, embs)
+	}
+
+	// [b] make a query against the model
+	searcher, err := search.New(embs...)
+	chke(err)
+
+	ncount := VECTORNEIGHBORS // how many neighbors to output; min is 1
+	word := srch.Seeking
+
+	nn := make(map[string]search.Neighbors)
+	neighbors, err := searcher.SearchInternal(word, ncount)
+	chke(err)
+
+	nn[word] = neighbors
+	for _, n := range neighbors {
+		meta, e := searcher.SearchInternal(n.Word, ncount)
+		if e != nil {
+			msg(fmt.Sprintf(FAIL1, n.Word, word), 3)
+		} else {
+			nn[n.Word] = meta
+		}
+	}
+
+	return nn
+}
+
+func buildgraph(coreword string, nn map[string]search.Neighbors) string {
+
 	// go-echarts is "too clever" and opaque about how to not do things its way
 	// we override their page.Render() to yield html+js that gets injected to the "vectorgraphing" div on frontpage.html
 
 	// [a] build a charts.Graph
-	g := graphtest()
+
+	g := generategraph(coreword, nn)
 	g.Validate()
 
 	// [b] we are building a page with only one chart and doing it by hand
@@ -59,82 +107,94 @@ func buildgraph() string {
 	return htmlandjs
 }
 
-var graphNodes = []opts.GraphNode{
-	{Name: "Node1"},
-	{Name: "Node2"},
-	{Name: "Node3"},
-	{Name: "Node4"},
-	{Name: "Node5"},
-	{Name: "Node6"},
-	{Name: "Node7"},
-	{Name: "Node8"},
-}
+// see also: https://echarts.apache.org/en/option.html#series-graph
 
-func genLinks() []opts.GraphLink {
-	links := make([]opts.GraphLink, 0)
-	for i := 0; i < len(graphNodes)-1; i++ {
-		for j := len(graphNodes) - 1; j > 1; j-- {
-			links = append(links, opts.GraphLink{Source: graphNodes[i].Name, Target: graphNodes[j].Name, Value: float32(j * 2)})
-		}
-	}
-	return links
-}
+// type SingleSeries struct {
+//	Name string `json:"name,omitempty"`
+//	Type string `json:"type,omitempty"`
+//
+//	// Graph
+//	Links              interface{} `json:"links,omitempty"`
+//	Layout             string      `json:"layout,omitempty"`
+//	Force              interface{} `json:"force,omitempty"`
+//	Categories         interface{} `json:"categories,omitempty"`
+//	Roam               bool        `json:"roam,omitempty"`
+//	EdgeSymbol         interface{} `json:"edgeSymbol,omitempty"`
+//	EdgeSymbolSize     interface{} `json:"edgeSymbolSize,omitempty"`
+//	EdgeLabel          interface{} `json:"edgeLabel,omitempty"`
+//	Draggable          bool        `json:"draggable,omitempty"`
+//	FocusNodeAdjacency bool        `json:"focusNodeAdjacency,omitempty"`
 
-func graphtest() *charts.Graph {
+//	// series data
+//	Data interface{} `json:"data"`
+//
+//	// series options
+//	*opts.Encode        `json:"encode,omitempty"`
+//	*opts.ItemStyle     `json:"itemStyle,omitempty"`
+//	*opts.Label         `json:"label,omitempty"`
+//	*opts.LabelLine     `json:"labelLine,omitempty"`
+//	*opts.Emphasis      `json:"emphasis,omitempty"`
+//	*opts.MarkLines     `json:"markLine,omitempty"`
+//	*opts.MarkAreas     `json:"markArea,omitempty"`
+//	*opts.MarkPoints    `json:"markPoint,omitempty"`
+//	*opts.RippleEffect  `json:"rippleEffect,omitempty"`
+//	*opts.LineStyle     `json:"lineStyle,omitempty"`
+//	*opts.AreaStyle     `json:"areaStyle,omitempty"`
+//	*opts.TextStyle     `json:"textStyle,omitempty"`
+//	*opts.CircularStyle `json:"circular,omitempty"`
+//}
+
+func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Graph {
+
 	graph := charts.NewGraph()
 	graph.SetGlobalOptions(
-		charts.WithTitleOpts(opts.Title{Title: "basic graph example"}),
+		charts.WithInitializationOpts(opts.Initialization{Width: "1500px", Height: "1000px"}),
+		charts.WithTitleOpts(opts.Title{Title: "generategraph()"}),
 	)
-	graph.AddSeries("graph", graphNodes, genLinks(),
+
+	var gnn []opts.GraphNode
+	var gll []opts.GraphLink
+
+	coreterms := ToSet(StringMapKeysIntoSlice(nn))
+	stringkeyprinter("coreterms", coreterms)
+
+	// the center point
+	gnn = append(gnn, opts.GraphNode{Name: coreword, Value: 0})
+
+	// the words directly related to this word
+	for _, w := range nn[coreword] {
+		gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: float32(w.Similarity) * 1000})
+		gll = append(gll, opts.GraphLink{Source: coreword, Target: w.Word, Value: float32(w.Similarity) * 1000, Label: &graphLabels[0]})
+	}
+
+	// the relationships between the other words [fancier would be to have each word center its own cluster]
+	for t := range coreterms {
+		if t == coreword {
+			continue
+		}
+		for _, w := range nn[t] {
+			if _, ok := coreterms[w.Word]; ok {
+				gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: float32(w.Similarity) * 1000, Label: &graphLabels[0]})
+			}
+		}
+	}
+
+	graph.AddSeries("graph", gnn, gll,
 		charts.WithGraphChartOpts(
 			// opts.GraphChart{Force: &opts.GraphForce{Repulsion: 8000}},
-			opts.GraphChart{Force: &opts.GraphForce{Repulsion: 2000}},
-		),
-	)
-	return graph
-
-}
-
-func graphNpmDep() *charts.Graph {
-	graph := charts.NewGraph()
-	//graph.SetGlobalOptions(
-	//	charts.WithTitleOpts(opts.Title{
-	//		Title: "dependencies demo",
-	//	}))
-
-	f, err := os.ReadFile("npmdepgraph.json")
-	if err != nil {
-		panic(err)
-	}
-
-	type Data struct {
-		Nodes []opts.GraphNode
-		Links []opts.GraphLink
-	}
-
-	var data Data
-	if e := json.Unmarshal(f, &data); e != nil {
-		fmt.Println(e)
-	}
-
-	graph.AddSeries("graph", data.Nodes, data.Links).
-		SetSeriesOptions(
-			charts.WithGraphChartOpts(opts.GraphChart{
-				Layout:             "none",
+			opts.GraphChart{
+				Layout: "force",
+				Force: &opts.GraphForce{
+					Repulsion:  8000,
+					Gravity:    .1,
+					EdgeLength: 40,
+				},
 				Roam:               true,
 				FocusNodeAdjacency: true,
-			}),
-			charts.WithEmphasisOpts(opts.Emphasis{
-				Label: &opts.Label{
-					Show:     true,
-					Color:    "black",
-					Position: "left",
-				},
-			}),
-			charts.WithLineStyleOpts(opts.LineStyle{
-				Curveness: 0.3,
-			}),
-		)
+				EdgeLabel:          &graphLabels[1],
+			},
+		),
+	)
 	return graph
 }
 
@@ -299,3 +359,9 @@ var CustomPageTpl = `
 //	// EdgeLabel is the properties of an label of edge.
 //	EdgeLabel *EdgeLabel `json:"edgeLabel"`
 //}
+
+// ? https://github.com/yourbasic/graph
+
+// ? https://github.com/go-echarts/go-echarts
+
+// look at what is possible and links: https://blog.gopheracademy.com/advent-2018/go-webgl/

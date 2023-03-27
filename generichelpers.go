@@ -249,7 +249,7 @@ func ResetScreen() {
 	fmt.Println(ERASESCRN + CURSHOME + DOWNONE + DOWNONE)
 }
 
-// stringmapprinter - print out the k/v pairs of a map
+// stringkeyprinter - print out the keys of a map
 func stringkeyprinter[T any](n string, m map[string]T) {
 	msg(n, MSGWARN)
 	counter := 0
