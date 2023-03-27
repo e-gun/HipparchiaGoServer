@@ -16,17 +16,13 @@ import (
 	"github.com/ynqa/wego/pkg/search"
 	"html/template"
 	"io"
+	"math"
 	"regexp"
 )
 
 //
 // GRAPHING
 //
-
-var graphLabels = []opts.EdgeLabel{
-	{Show: true, Formatter: "{c}"},
-	{Show: true, Formatter: "{b}"},
-}
 
 func generategraphdata(c echo.Context, srch SearchStruct) map[string]search.Neighbors {
 	const (
@@ -72,10 +68,10 @@ func generategraphdata(c echo.Context, srch SearchStruct) map[string]search.Neig
 func buildgraph(coreword string, nn map[string]search.Neighbors) string {
 
 	// go-echarts is "too clever" and opaque about how to not do things its way
-	// we override their page.Render() to yield html+js that gets injected to the "vectorgraphing" div on frontpage.html
+	// we override their page.Render() to yield html+js (see the ModX and CustomX code below)
+	// this gets injected to the "vectorgraphing" div on frontpage.html
 
-	// [a] build a charts.Graph
-
+	// [a] acquire a charts.Graph
 	g := generategraph(coreword, nn)
 	g.Validate()
 
@@ -145,53 +141,67 @@ func buildgraph(coreword string, nn map[string]search.Neighbors) string {
 //}
 
 func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Graph {
+	const (
+		CHRTWIDTH  = "1500px"
+		CHRTHEIGHT = "1000px"
+		SYMSIZE    = "30"
+		PRECISON   = 4
+		REPULSION  = 8000
+		GRAVITY    = .1
+		EDGELEN    = 40
+	)
 
 	graph := charts.NewGraph()
 	graph.SetGlobalOptions(
-		charts.WithInitializationOpts(opts.Initialization{Width: "1500px", Height: "1000px"}),
-		charts.WithTitleOpts(opts.Title{Title: "generategraph()"}),
+		charts.WithInitializationOpts(opts.Initialization{Width: CHRTWIDTH, Height: CHRTHEIGHT}),
+		charts.WithTitleOpts(opts.Title{Title: ""}),
 	)
 
 	var gnn []opts.GraphNode
 	var gll []opts.GraphLink
+	valuelabel := opts.EdgeLabel{Show: true, Formatter: "{c}"}
 
-	coreterms := ToSet(StringMapKeysIntoSlice(nn))
-	stringkeyprinter("coreterms", coreterms)
+	round := func(val float64) float32 {
+		ratio := math.Pow(10, float64(PRECISON))
+		return float32(math.Round(val*ratio) / ratio)
+	}
 
 	// the center point
-	gnn = append(gnn, opts.GraphNode{Name: coreword, Value: 0})
+	gnn = append(gnn, opts.GraphNode{Name: coreword, Value: 0, SymbolSize: SYMSIZE})
 
 	// the words directly related to this word
 	for _, w := range nn[coreword] {
-		gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: float32(w.Similarity) * 1000})
-		gll = append(gll, opts.GraphLink{Source: coreword, Target: w.Word, Value: float32(w.Similarity) * 1000, Label: &graphLabels[0]})
+		gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: round(w.Similarity), SymbolSize: SYMSIZE})
+		gll = append(gll, opts.GraphLink{Source: coreword, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
 	}
 
 	// the relationships between the other words [fancier would be to have each word center its own cluster]
+	coreterms := ToSet(StringMapKeysIntoSlice(nn))
 	for t := range coreterms {
 		if t == coreword {
 			continue
 		}
 		for _, w := range nn[t] {
 			if _, ok := coreterms[w.Word]; ok {
-				gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: float32(w.Similarity) * 1000, Label: &graphLabels[0]})
+				gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
 			}
 		}
 	}
 
 	graph.AddSeries("graph", gnn, gll,
+		charts.WithLabelOpts(opts.Label{Show: true, Position: "right"}),
 		charts.WithGraphChartOpts(
-			// opts.GraphChart{Force: &opts.GraphForce{Repulsion: 8000}},
+			// https://github.com/go-echarts/go-echarts/blob/master/opts/charts.go
+			// cf. https://echarts.apache.org/en/option.html#series-graph
 			opts.GraphChart{
 				Layout: "force",
 				Force: &opts.GraphForce{
-					Repulsion:  8000,
-					Gravity:    .1,
-					EdgeLength: 40,
+					Repulsion:  REPULSION,
+					Gravity:    GRAVITY,
+					EdgeLength: EDGELEN,
 				},
 				Roam:               true,
 				FocusNodeAdjacency: true,
-				EdgeLabel:          &graphLabels[1],
 			},
 		),
 	)
@@ -315,41 +325,6 @@ var CustomPageTpl = `
 {{ end }}
 `
 
-// https://github.com/go-echarts/go-echarts/blob/master/opts/charts.go
-// // GraphChart is the option set for graph chart.
-//// https://echarts.apache.org/en/option.html#series-graph
-//type GraphChart struct {
-//	// Graph layout.
-//	// * 'none' No layout, use x, y provided in node as the position of node.
-//	// * 'circular' Adopt circular layout, see the example Les Miserables.
-//	// * 'force' Adopt force-directed layout, see the example Force, the
-//	// detail about layout configurations are in graph.force
-//	Layout string
-//
-//	// Force is the option set for graph force layout.
-//	Force *GraphForce
-//
-//	// Whether to enable mouse zooming and translating. false by default.
-//	// If either zooming or translating is wanted, it can be set to 'scale' or 'move'.
-//	// Otherwise, set it to be true to enable both.
-//	Roam bool
-//
-//	// EdgeSymbol is the symbols of two ends of edge line.
-//	// * 'circle'
-//	// * 'arrow'
-//	// * 'none'
-//	// example: ["circle", "arrow"] or "circle"
-//	EdgeSymbol interface{}
-//
-//	// EdgeSymbolSize is size of symbol of two ends of edge line. Can be an array or a single number
-//	// example: [5,10] or 5
-//	EdgeSymbolSize interface{}
-//
-//	// Draggable allows you to move the nodes with the mouse if they are not fixed.
-//	Draggable bool
-//
-//	// Whether to focus/highlight the hover node and it's adjacencies.
-//	FocusNodeAdjacency bool
 //
 //	// The categories of node, which is optional. If there is a classification of nodes,
 //	// the category of each node can be assigned through data[i].category.
@@ -359,9 +334,3 @@ var CustomPageTpl = `
 //	// EdgeLabel is the properties of an label of edge.
 //	EdgeLabel *EdgeLabel `json:"edgeLabel"`
 //}
-
-// ? https://github.com/yourbasic/graph
-
-// ? https://github.com/go-echarts/go-echarts
-
-// look at what is possible and links: https://blog.gopheracademy.com/advent-2018/go-webgl/
