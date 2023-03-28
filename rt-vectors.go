@@ -20,10 +20,15 @@ import (
 func VectorSearch(c echo.Context, srch SearchStruct) error {
 	c.Response().After(func() { SelfStats("VectorSearch()") })
 
-	nn := generategraphdata(c, srch)
-	img := buildgraph(srch.LemmaOne, nn)
+	term := srch.LemmaOne
+	if term == "" {
+		term = srch.Seeking
+	}
 
-	neighbors := nn[srch.LemmaOne]
+	nn := generateneighborsdata(c, srch)
+	img := buildgraph(term, nn)
+
+	neighbors := nn[term]
 	// [c] prepare text output
 
 	table := make([][]string, len(neighbors))
@@ -86,10 +91,10 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		tablerows = append(tablerows, fmt.Sprintf(tr, rn, columnone[i], columntwo[i]))
 	}
 
-	out := fmt.Sprintf(tb, srch.LemmaOne, strings.Join(tablerows, "\n"))
+	out := fmt.Sprintf(tb, term, strings.Join(tablerows, "\n"))
 
 	soj := SearchOutputJSON{
-		Title:         fmt.Sprintf("Neighbors of '%s'", srch.LemmaOne),
+		Title:         fmt.Sprintf("Neighbors of '%s'", term),
 		Searchsummary: "",
 		Found:         out,
 		Image:         img,

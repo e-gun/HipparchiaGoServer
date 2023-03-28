@@ -11,8 +11,6 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/opts"
-	"github.com/labstack/echo/v4"
-	"github.com/ynqa/wego/pkg/embedding"
 	"github.com/ynqa/wego/pkg/search"
 	"html/template"
 	"io"
@@ -23,56 +21,6 @@ import (
 //
 // GRAPHING
 //
-
-// generategraphdata - generate the Neighbors data for a headword within a search
-func generategraphdata(c echo.Context, srch SearchStruct) map[string]search.Neighbors {
-	const (
-		MSG1  = "generategraphdata(): fetching stored embeddings"
-		FAIL1 = "generategraphdata() could not find neighbors of a neighbor: '%s' neighbors (via '%s')"
-		FAIL2 = "generategraphdata() failed to produce a Searcher"
-		FAIL3 = "generategraphdata() failed to yield Neighbors"
-	)
-
-	fp := fingerprintvectorsearch(srch)
-	isstored := vectordbcheck(fp)
-	var embs embedding.Embeddings
-	if isstored {
-		msg(MSG1, MSGPEEK)
-		embs = vectordbfetch(fp)
-	} else {
-		embs = generateembeddings(c, srch)
-		vectordbadd(fp, embs)
-	}
-
-	// [b] make a query against the model
-	searcher, err := search.New(embs...)
-	if err != nil {
-		msg(FAIL2, MSGFYI)
-		searcher = func() *search.Searcher { return &search.Searcher{} }()
-	}
-
-	ncount := VECTORNEIGHBORS // how many neighbors to output; min is 1
-	word := srch.LemmaOne
-
-	nn := make(map[string]search.Neighbors)
-	neighbors, err := searcher.SearchInternal(word, ncount)
-	if err != nil {
-		msg(FAIL3, MSGFYI)
-		neighbors = search.Neighbors{}
-	}
-
-	nn[word] = neighbors
-	for _, n := range neighbors {
-		meta, e := searcher.SearchInternal(n.Word, ncount)
-		if e != nil {
-			msg(fmt.Sprintf(FAIL1, n.Word, word), MSGFYI)
-		} else {
-			nn[n.Word] = meta
-		}
-	}
-
-	return nn
-}
 
 // buildgraph - generate the html and js for a nearest neighbors search
 func buildgraph(coreword string, nn map[string]search.Neighbors) string {

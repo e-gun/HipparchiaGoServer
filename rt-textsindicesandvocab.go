@@ -910,6 +910,7 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 		TT = `CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words`
 		QT = `SELECT observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords FROM %s_morphology WHERE EXISTS 
 				(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = %s_morphology.observed_form)`
+		MSG1 = "arraytogetrequiredmorphobjects() will search for %d headwords"
 	)
 
 	// look for the upper case matches too: Ϲωκράτηϲ and not just ϲωκρατέω (!)
@@ -928,6 +929,13 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 
 	wordlist = append(wordlist, uppers...)
 	wordlist = append(wordlist, apo...)
+
+	msg(fmt.Sprintf(MSG1, len(wordlist)), MSGFYI)
+
+	// TODO: full latin corpus vectorization is too much...
+	// [HGS] arraytogetrequiredmorphobjects() will search for 10708941 headwords
+	// [Hipparchia Golang Server v.1.2.0a] UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE
+	// ERROR: invalid memory alloc request size 1073741824 (SQLSTATE XX000)
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()

@@ -17,6 +17,7 @@ import (
 	"github.com/ynqa/wego/pkg/embedding"
 	"github.com/ynqa/wego/pkg/model/modelutil/vector"
 	"github.com/ynqa/wego/pkg/model/word2vec"
+	"github.com/ynqa/wego/pkg/search"
 	"io"
 	"os"
 	"sort"
@@ -38,7 +39,7 @@ var (
 		"pro¹", "pro²", "ago", "deus", "annus", "locus", "homo", "pater", "eo²", "tantus", "fero", "quidem", "noster",
 		"an", "locum"}
 	LatExtra = []string{"at", "o", "tum", "tunc", "dum", "illic", "quia", "sive", "num", "adhuc", "tam", "ibi", "cur",
-		"usquam", "quoque", "duo", "talis", "simul", "igitur", "utique²", "aliqui", "apud", "sic"}
+		"usquam", "quoque", "duo", "talis", "simul", "igitur", "utique²", "aliqui", "apud", "sic", "umquam"}
 	LatStop = append(Latin100, LatExtra...)
 	// LatinKeep - members of LatStop we will not toss
 	LatinKeep = []string{"facio", "possum", "habeo", "video", "magnus", "bonus", "volo¹", "primus", "venio", "ago",
@@ -118,18 +119,68 @@ func (w WHWList) Swap(i, j int) {
 	w[i], w[j] = w[j], w[i]
 }
 
+// generateneighborsdata - generate the Neighbors data for a headword within a search
+func generateneighborsdata(c echo.Context, srch SearchStruct) map[string]search.Neighbors {
+	const (
+		MSG1  = "generateneighborsdata(): fetching stored embeddings"
+		FAIL1 = "generateneighborsdata() could not find neighbors of a neighbor: '%s' neighbors (via '%s')"
+		FAIL2 = "generateneighborsdata() failed to produce a Searcher"
+		FAIL3 = "generateneighborsdata() failed to yield Neighbors"
+	)
+
+	fp := fingerprintvectorsearch(srch)
+	isstored := vectordbcheck(fp)
+	var embs embedding.Embeddings
+	if isstored {
+		msg(MSG1, MSGPEEK)
+		embs = vectordbfetch(fp)
+	} else {
+		embs = generateembeddings(c, srch)
+		vectordbadd(fp, embs)
+	}
+
+	// [b] make a query against the model
+	searcher, err := search.New(embs...)
+	if err != nil {
+		msg(FAIL2, MSGFYI)
+		searcher = func() *search.Searcher { return &search.Searcher{} }()
+	}
+
+	ncount := VECTORNEIGHBORS // how many neighbors to output; min is 1
+	word := srch.LemmaOne
+
+	nn := make(map[string]search.Neighbors)
+	neighbors, err := searcher.SearchInternal(word, ncount)
+	if err != nil {
+		msg(FAIL3, MSGFYI)
+		neighbors = search.Neighbors{}
+	}
+
+	nn[word] = neighbors
+	for _, n := range neighbors {
+		meta, e := searcher.SearchInternal(n.Word, ncount)
+		if e != nil {
+			msg(fmt.Sprintf(FAIL1, n.Word, word), MSGFYI)
+		} else {
+			nn[n.Word] = meta
+		}
+	}
+
+	return nn
+}
+
 // generateembeddings - turn a search into a collection of semantic vector embeddings
 func generateembeddings(c echo.Context, srch SearchStruct) embedding.Embeddings {
 	const (
 		FAIL1 = "word2vec model initialization failed"
 		FAIL2 = "generateembeddings() failed to train vector embeddings"
+		MSG1  = "generateembeddings() gathered %d lines"
 	)
 
-	// note that MAXTEXTLINEGENERATION will prevent a vectorization of the full corpus
-	// TODO: fix the out of memory panic you get from postgres if you ask for too much
 	vs := sessionintobulksearch(c, VECTORMAXLINES)
 	srch.Results = vs.Results
 	vs.Results = []DbWorkline{}
+	msg(fmt.Sprintf(MSG1, len(srch.Results)), MSGFYI)
 
 	thetext := buildtextblock(srch.Results)
 
@@ -151,18 +202,6 @@ func generateembeddings(c echo.Context, srch SearchStruct) embedding.Embeddings 
 	if err = vmodel.Train(b); err != nil {
 		msg(FAIL2, 1)
 	}
-
-	// write word vector to disk & then read it off the disk
-	//vfile := "/Users/erik/tmp/vect.out"
-	//f, err := os.Create(vfile)
-	//chke(err)
-	//err = vmodel.Save(f, vector.Agg)
-	//chke(err)
-	//input, err := os.Open(vfile)
-	//chke(err)
-	//defer input.Close()
-	//embs, err := embedding.Load(input)
-	//chke(err)
 
 	// use buffers; skip the disk; psql used for storage: vectordbadd() & vectordbfetch()
 	var buf bytes.Buffer
@@ -256,6 +295,9 @@ func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string
 
 // fetchheadwordcounts - map a list of headwords to their corpus counts
 func fetchheadwordcounts(headwordset map[string]bool) map[string]int {
+	const (
+		MSG1 = "fetchheadwordcounts() will search for %d headwords"
+	)
 	if len(headwordset) == 0 {
 		return make(map[string]int)
 	}
@@ -270,6 +312,8 @@ func fetchheadwordcounts(headwordset map[string]bool) map[string]int {
 	for h := range headwordset {
 		hw = append(hw, h)
 	}
+
+	msg(fmt.Sprintf(MSG1, len(headwordset)), MSGFYI)
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()

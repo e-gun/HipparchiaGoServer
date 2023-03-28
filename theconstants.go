@@ -19,7 +19,8 @@ const (
 	CONFIGAUTH               = "hgs-users.json"
 	CONFIGBASIC              = "hgs-conf.json"
 	CONFIGPROLIX             = "hgs-prolix-conf.json"
-	CONFIGVECTOR             = "hgs-vectors.json"
+	CONFIGVECTOR             = "hgs-vector-conf.json"
+	CONFIGVECTORSTOPS        = "hgs-vector-stops-conf.json"
 	DBAUMAPSIZE              = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
 	DBLMMAPSIZE              = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
 	DBWKMAPSIZE              = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
@@ -86,7 +87,7 @@ const (
 	VARIADATE                = 2000
 	VECTORNEIGHBORS          = 18
 	VECTORTABLENAME          = "semantic_vectors"
-	VECTORMAXLINES           = 200000 // 200k lines gets you how far?
+	VECTORMAXLINES           = 500000 // 300k lines is ok for arraytogetrequiredmorphobjects(); 500k is not (yet)
 	VOCABSCANSION            = false
 	VOCABBYCOUNT             = false
 	WRITEPERMS               = 0644

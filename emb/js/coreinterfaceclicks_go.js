@@ -492,17 +492,16 @@ function closeextendedsearcharea() {
     $('#extendsearchbutton-ispresentlyopen').hide();
     $('#extendsearchbutton-ispresentlyclosed').show();
     $('#complexsearching').hide();
+    vct.hide();
     let wsf = $('#wordsearchform');
     let tcb = $('#termonecheckbox');
     if (tol.is(":checked")) {
         tcb.show();
-        vct.show();
         lsf.show();
         lsf.attr('placeholder', '(all forms of...)');
         wsf.hide();
     } else {
         tcb.hide();
-        vct.hide();
         lsf.hide();
         wsf.show();
     }
