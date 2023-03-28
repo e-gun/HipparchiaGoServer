@@ -14,7 +14,6 @@ import (
 	"github.com/ynqa/wego/pkg/embedding"
 	"github.com/ynqa/wego/pkg/model/modelutil/vector"
 	"github.com/ynqa/wego/pkg/model/word2vec"
-	"github.com/ynqa/wego/pkg/search"
 	"io"
 	"net/http"
 	"os"
@@ -24,85 +23,12 @@ import (
 
 // VectorSearch - a special case for RtSearch() where you requested vectorization of the results
 func VectorSearch(c echo.Context, srch SearchStruct) error {
-	const (
-		FAIL1 = `err: search.New(embs...)`
-		FAIL2 = `err: searcher.SearchInternal(word, rank)`
-	)
-
 	c.Response().After(func() { SelfStats("VectorSearch()") })
+	nn := generategraphdata(c, srch)
+	img := buildgraph(srch.LemmaOne, nn)
 
-	if Config.TestingRun {
-		nn := generategraphdata(c, srch)
-		img := buildgraph(srch.LemmaOne, nn)
-		soj := SearchOutputJSON{
-			Title:         "buildgraph()",
-			Searchsummary: "",
-			Found:         "[test]",
-			Image:         img,
-			JS:            "",
-		}
-		AllSearches.Delete(srch.ID)
-		return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
-	}
-
-	fp := fingerprintvectorsearch(srch)
-
-	isstored := vectordbcheck(fp)
-
-	var embs embedding.Embeddings
-
-	if isstored {
-		embs = vectordbfetch(fp)
-	} else {
-		embs = generateembeddings(c, srch)
-		vectordbadd(fp, embs)
-	}
-
-	fail := func(f string) error {
-		soj := SearchOutputJSON{
-			Title:         "VECTORS",
-			Searchsummary: f,
-			Found:         "[failed]",
-			Image:         "",
-			JS:            "",
-		}
-		AllSearches.Delete(srch.ID)
-		return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
-	}
-
-	// [b] make a query against the model
-	searcher, err := search.New(embs...)
-	if err != nil {
-		return fail(FAIL1)
-	}
-
-	rank := VECTORNEIGHBORS // how many neighbors to output; min is 1
-	word := srch.Seeking
-
-	neighbors, err := searcher.SearchInternal(word, rank)
-	if err != nil {
-		return fail(FAIL2)
-	}
-
-	// neighbors.Describe()
-
-	// "dextra" in big chunks of Lucan...
-
-	//
-	//   RANK |    WORD    | SIMILARITY
-	//-------+------------+-------------
-	//     1 | serpentum  |   0.962808
-	//     2 | putat      |   0.954310
-	//     3 | praecipiti |   0.947326
-	//     4 | mors       |   0.942508
-	//     5 | lux        |   0.940325
-	//     6 | modum      |   0.938747
-	//     7 | quisquis   |   0.938089
-	//     8 | animae     |   0.936332
-	//     9 | uiros      |   0.928818
-	//    10 | etiam      |   0.927048
-
-	// [c] prepare output
+	neighbors := nn[srch.LemmaOne]
+	// [c] prepare text output
 
 	table := make([][]string, len(neighbors))
 	for i, n := range neighbors {
@@ -113,17 +39,46 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		}
 	}
 
-	out := "<pre>"
-	for t := range table {
-		out += fmt.Sprintf("%s\t%s\t\t\t%s\n", table[t][0], table[t][1], table[t][2])
+	tb := `
+	<table class="indented"><tbody>
+    <tr class="vectorrow">
+        <td class="vectorrank" colspan = "3">Nearest neighbors of '%s'</td>
+    </tr>
+	<tr class="vectorrow">
+		<td class="vectorrank">Rank</td>
+		<td class="vectorrank">Distance</td>
+		<td class="vectorrank">Word</td>
+	</tr>
+    %s
+	</tbody></table>`
+
+	tr := `
+	<tr class="%s">
+		<td class="vectorrank">%d</td>
+		<td class="vectorscore">%.4f</td>
+		<td class="vectorword"><lemmaheadword id="%s">%s</lemmaheadword> <span class="unobtrusive"></span></td>
+	</tr>`
+
+	nth := 3
+
+	var tablerows []string
+
+	for i, n := range neighbors {
+		rn := "vectorrow"
+		if i%nth == 0 {
+			rn = "nthrow"
+		}
+		r := fmt.Sprintf(tr, rn, n.Rank, n.Similarity, n.Word, n.Word)
+		tablerows = append(tablerows, r)
 	}
-	out += "</pre>"
+
+	out := fmt.Sprintf(tb, srch.LemmaOne, strings.Join(tablerows, "\n"))
 
 	soj := SearchOutputJSON{
-		Title:         "VECTORS",
-		Searchsummary: "[no summary]",
+		Title:         fmt.Sprintf("Neighbors of '%s'", srch.LemmaOne),
+		Searchsummary: fmt.Sprintf("Nearest neighbors of '%s'", srch.LemmaOne),
 		Found:         out,
-		Image:         "",
+		Image:         img,
 		JS:            "",
 	}
 

@@ -1918,9 +1918,13 @@ ul.roman {
 }
 
 .vectortable{
+	margin: 0 auto;
 	width: 50%;
-	margin: auto;
 	padding: 5px;
+}
+
+.vectorrank {
+	font-family: 'hipparchiasemiboldstatic', sans-serif;
 }
 
 unclickablebibl {
