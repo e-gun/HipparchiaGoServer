@@ -1625,13 +1625,6 @@ legend {
 	text-align: center;
 }
 
-lemmaheadword:hover{
-	border-bottom: 1px dotted black;
-	border-top: 1px dotted black;
-	color: var(--dkbabyblue);
-	text-shadow: 1px 1px 3px var(--transparentgrey);
-}
-
 li {
 	padding-top: 1px;
 }
@@ -1924,7 +1917,15 @@ ul.roman {
 }
 
 .vectorrank {
+	text-align: center;
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
+}
+
+vectorheadword:hover{
+	border-bottom: 1px dotted black;
+	border-top: 1px dotted black;
+	color: var(--dkbabyblue);
+	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
 unclickablebibl {

@@ -96,17 +96,6 @@ $(document).ready( function () {
         serverroot = '/srch/exec/';
         url = serverroot + searchid + '?' + qstring;
 
-        // if (areWeWearchingVectors() === 0) {
-        //     serverroot = '/srch/exec/';
-        //     url = serverroot + searchid + '?' + qstring;
-        // } else {
-        //     let lsv = $('#lemmatasearchform').val();
-        //     let vtype = whichVectorChoice();
-        //     if (lsv.length === 0) { lsv = '_'; }
-        //     serverroot = '/vectors/';
-        //     url = serverroot + vtype + '/' + searchid + '/' + lsv;
-        // }
-
         checkactivityviawebsocket(searchid);
         $.getJSON(url, function (returnedresults) { loadsearchresultsintodisplayresults(returnedresults); });
     }
@@ -116,29 +105,6 @@ $(document).ready( function () {
         $('#searchsummary').html(output['searchsummary']);
         $('#displayresults').html(output['found']);
         $('#vectorgraphing').html(output['image']);
-
-        //
-        // THE GRAPH: if there is one... Note that if it is embedded in the output table, then
-        // that table has to be created and  $('#imagearea') with it before you do any of the following
-        //
-
-        // let imagetarget = $('#imagearea');
-        // if (typeof output['image'] !== 'undefined' && output['image'] !== '') {
-        //     let w = window.innerWidth * .9;
-        //     let h = window.innerHeight * .9;
-        //     jQuery('<img/>').prependTo(imagetarget).attr({
-        //         src: '/get/response/vectorfigure/' + output['image'],
-        //         alt: '[vector graph]',
-        //         id: 'insertedfigure',
-        //         height: h
-        //     });
-        // }
-
-        //
-        // JS UPDATE
-        // [http://stackoverflow.com/questions/9413737/how-to-append-script-script-in-javascript#9413803]
-        //
-
         let browserclickscript = document.createElement('script');
         browserclickscript.innerHTML = output['js'];
         document.getElementById('browserclickscriptholder').appendChild(browserclickscript);

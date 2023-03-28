@@ -42,9 +42,13 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	tb := `
 	<table class="indented"><tbody>
     <tr class="vectorrow">
-        <td class="vectorrank" colspan = "3">Nearest neighbors of '%s'</td>
+        <td class="vectorrank" colspan = "7">Nearest neighbors of '%s'</td>
     </tr>
 	<tr class="vectorrow">
+		<td class="vectorrank">Rank</td>
+		<td class="vectorrank">Distance</td>
+		<td class="vectorrank">Word</td>
+		<td class="vectorrank">&nbsp;&nbsp;&nbsp;</td>
 		<td class="vectorrank">Rank</td>
 		<td class="vectorrank">Distance</td>
 		<td class="vectorrank">Word</td>
@@ -53,23 +57,37 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	</tbody></table>`
 
 	tr := `
-	<tr class="%s">
+	<tr class="%s">%s
+		<td class="vectorword">&nbsp;&nbsp;&nbsp;</td>%s
+	</tr>`
+
+	te := `
 		<td class="vectorrank">%d</td>
 		<td class="vectorscore">%.4f</td>
-		<td class="vectorword"><lemmaheadword id="%s">%s</lemmaheadword> <span class="unobtrusive"></span></td>
-	</tr>`
+		<td class="vectorword"><vectorheadword id="%s">%s</vectorheadword> <span class="unobtrusive"></span></td>`
 
 	nth := 3
 
-	var tablerows []string
+	var columnone []string
+	var columntwo []string
 
+	half := len(neighbors) / 2
 	for i, n := range neighbors {
+		r := fmt.Sprintf(te, n.Rank, n.Similarity, n.Word, n.Word)
+		if i < half {
+			columnone = append(columnone, r)
+		} else {
+			columntwo = append(columntwo, r)
+		}
+	}
+
+	var tablerows []string
+	for i := range columnone {
 		rn := "vectorrow"
 		if i%nth == 0 {
 			rn = "nthrow"
 		}
-		r := fmt.Sprintf(tr, rn, n.Rank, n.Similarity, n.Word, n.Word)
-		tablerows = append(tablerows, r)
+		tablerows = append(tablerows, fmt.Sprintf(tr, rn, columnone[i], columntwo[i]))
 	}
 
 	out := fmt.Sprintf(tb, srch.LemmaOne, strings.Join(tablerows, "\n"))
@@ -79,7 +97,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		Searchsummary: fmt.Sprintf("Nearest neighbors of '%s'", srch.LemmaOne),
 		Found:         out,
 		Image:         img,
-		JS:            "",
+		JS:            VECTORJS,
 	}
 
 	AllSearches.Delete(srch.ID)

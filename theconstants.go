@@ -308,6 +308,32 @@ const (
 		
 		});
 `
+
+	VECTORJS = `
+		$('vectorheadword').click( function(e) { 
+			var searchid = generateId(8);
+			url = '/srch/exec/' + searchid + '?lem=' + this.id;
+			$('#imagearea').empty();
+			$('#searchsummary').html(''); 
+			$('#displayresults').html('');
+			$('#wordsearchform').hide();
+			$('#lemmatasearchform').show();
+			$('#lemmatasearchform').val(this.id);
+			$('#lexicon').val(' '+this.id+' ');
+        	checkactivityviawebsocket(searchid);
+        	$.getJSON(url, function (returnedresults) { loadnewres(returnedresults); });
+		});
+
+    function loadnewres(output) {
+        document.title = output['title'];
+        $('#searchsummary').html(output['searchsummary']);
+        $('#displayresults').html(output['found']);
+        $('#vectorgraphing').html(output['image']);
+        let browserclickscript = document.createElement('script');
+        browserclickscript.innerHTML = output['js'];
+        document.getElementById('browserclickscriptholder').appendChild(browserclickscript);
+    }`
+
 	AUTHHTML = `    
 	<div id="currentuser" class="unobtrusive">
         <span id="userid" class="user">{{index . "user" }}</span>
