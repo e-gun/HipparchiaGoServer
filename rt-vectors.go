@@ -6,15 +6,10 @@
 package main
 
 import (
-	"bytes"
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
-	"github.com/ynqa/wego/pkg/embedding"
-	"github.com/ynqa/wego/pkg/model/modelutil/vector"
-	"github.com/ynqa/wego/pkg/model/word2vec"
-	"io"
 	"net/http"
 	"os"
 	"sort"
@@ -255,140 +250,4 @@ func buildtextblock(lines []DbWorkline) string {
 	}
 
 	return strings.TrimSpace(sb.String())
-}
-
-// generateembeddings - turn a search into a collection of semantic vector embeddings
-func generateembeddings(c echo.Context, srch SearchStruct) embedding.Embeddings {
-	const (
-		FAIL1 = "word2vec model initialization failed"
-		FAIL2 = "generateembeddings() failed to train vector embeddings"
-	)
-
-	// note that MAXTEXTLINEGENERATION will prevent a vectorization of the full corpus
-	// TODO: fix the out of memory panic you get from postgres if you ask for too much
-	vs := sessionintobulksearch(c, VECTORMAXLINES)
-	srch.Results = vs.Results
-	vs.Results = []DbWorkline{}
-
-	thetext := buildtextblock(srch.Results)
-
-	// "thetext" for Albinus , poet. [lt2002]
-	// res romanus liber⁴ eo¹ ille qui¹ terni capitolium celsus¹ triumphus sponte deus pateo qui¹ fretus¹ nullus re-pono abscondo sinus¹ non tueor moenia¹ urbs de metrum †uilem spondeus totus¹ concludo verro possum fio jungo sed dactylus aptus
-
-	// vs. "RERUM ROMANARUM LIBER I
-	//	Ille cui ternis Capitolia celsa triumphis..."
-
-	// [a] vectorize the text block
-
-	vmodel, err := word2vec.NewForOptions(vectorconfig())
-	if err != nil {
-		msg(FAIL1, 1)
-	}
-
-	// input for  word2vec.Train() is 'io.ReadSeeker'
-	b := bytes.NewReader([]byte(thetext))
-	if err = vmodel.Train(b); err != nil {
-		msg(FAIL2, 1)
-	}
-
-	// write word vector to disk & then read it off the disk
-	//vfile := "/Users/erik/tmp/vect.out"
-	//f, err := os.Create(vfile)
-	//chke(err)
-	//err = vmodel.Save(f, vector.Agg)
-	//chke(err)
-	//input, err := os.Open(vfile)
-	//chke(err)
-	//defer input.Close()
-	//embs, err := embedding.Load(input)
-	//chke(err)
-
-	// use buffers; skip the disk; psql used for storage: vectordbadd() & vectordbfetch()
-	var buf bytes.Buffer
-	w := io.Writer(&buf)
-	err = vmodel.Save(w, vector.Agg)
-
-	r := io.Reader(&buf)
-	embs, err := embedding.Load(r)
-	chke(err)
-
-	return embs
-}
-
-// flatstring - helper for buildtextblock() to generate unmodified text
-func flatstring(sb *strings.Builder, slicedwords []string) {
-	for i := 0; i < len(slicedwords); i++ {
-		sb.WriteString(slicedwords[i] + " ")
-	}
-}
-
-// winnerstring - helper for buildtextblock() to generate winner takes all substitutions
-func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[string][]string) {
-	for i := 0; i < len(slicedwords); i++ {
-		// drop skipwords
-		w := winnermap[slicedwords[i]][0]
-		_, s1 := LatinStops[w]
-		_, s2 := GreekStops[w]
-		if s1 || s2 {
-			continue
-		} else {
-			sb.WriteString(w + " ")
-		}
-	}
-}
-
-// buildwinnertakesallparsemap - figure out which is the most common of the possible headwords for any given word
-func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string][]string {
-	// turn a list of sentences into a list of headwords; here we figure out which headword is the dominant homonym
-	// then we just use that term; "esse" always comes from "sum" and never "edo", etc.
-
-	// [a] figure out all headwords in use
-
-	allheadwords := make(map[string]bool)
-	for i := range parsemap {
-		for k, _ := range parsemap[i] {
-			allheadwords[k] = true
-		}
-	}
-
-	// [b] generate scoremap and assign scores to each of the headwords
-
-	scoremap := fetchheadwordcounts(allheadwords)
-
-	// [c] note that there are capital words in the parsemap that need lowering
-
-	// [c1] lower the internal values first
-	for i := range parsemap {
-		newmap := make(map[string]bool)
-		for k, _ := range parsemap[i] {
-			newmap[strings.ToLower(k)] = true
-		}
-		parsemap[i] = newmap
-	}
-
-	// [c2] lower the parsemap keys; how worried should we be about the collisions...
-	lcparsemap := make(map[string]map[string]bool)
-	for i := range parsemap {
-		lcparsemap[strings.ToLower(i)] = parsemap[i]
-	}
-
-	// [d] run through the parsemap and kill off the losers
-
-	newparsemap := make(map[string][]string)
-	for i := range lcparsemap {
-		var hwl WHWList
-		// for j := 0; j < len(lcparsemap[i]); j++ {
-		for j, _ := range parsemap[i] {
-			var thishw WeightedHeadword
-			thishw.Word = j
-			thishw.Count = scoremap[j]
-			hwl = append(hwl, thishw)
-		}
-		sort.Sort(hwl)
-
-		newparsemap[i] = make([]string, 0, 1)
-		newparsemap[i] = append(newparsemap[i], hwl[0].Word)
-	}
-
-	return newparsemap
 }

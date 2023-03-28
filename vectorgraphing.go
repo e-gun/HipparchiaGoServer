@@ -24,6 +24,7 @@ import (
 // GRAPHING
 //
 
+// generategraphdata - generate the Neighbors data for a headword within a search
 func generategraphdata(c echo.Context, srch SearchStruct) map[string]search.Neighbors {
 	const (
 		MSG1  = "generategraphdata(): fetching stored embeddings"
@@ -73,11 +74,13 @@ func generategraphdata(c echo.Context, srch SearchStruct) map[string]search.Neig
 	return nn
 }
 
+// buildgraph - generate the html and js for a nearest neighbors search
 func buildgraph(coreword string, nn map[string]search.Neighbors) string {
-
 	// go-echarts is "too clever" and opaque about how to not do things its way
 	// we override their page.Render() to yield html+js (see the ModX and CustomX code below)
 	// this gets injected to the "vectorgraphing" div on frontpage.html
+
+	// see also: https://echarts.apache.org/en/option.html#series-graph
 
 	// [a] acquire a charts.Graph
 	g := generategraph(coreword, nn)
@@ -148,16 +151,29 @@ func buildgraph(coreword string, nn map[string]search.Neighbors) string {
 //	*opts.CircularStyle `json:"circular,omitempty"`
 //}
 
+//
+//	// The categories of node, which is optional. If there is a classification of nodes,
+//	// the category of each node can be assigned through data[i].category.
+//	// And the style of category will also be applied to the style of nodes. categories can also be used in legend.
+//	Categories []*GraphCategory
+//
+//	// EdgeLabel is the properties of an label of edge.
+//	EdgeLabel *EdgeLabel `json:"edgeLabel"`
+//}
+
 func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Graph {
 	const (
-		CHRTWIDTH  = "1500px"
-		CHRTHEIGHT = "1000px"
-		SYMSIZE    = "30" // TODO: scaling this on an individual basis via item values
-		PRECISON   = 4
-		REPULSION  = 8000
-		GRAVITY    = .1
-		EDGELEN    = 40
-		HUEDGREY   = "hsl(240, 10%, 61%);"
+		CHRTWIDTH    = "1500px"
+		CHRTHEIGHT   = "1000px"
+		SYMSIZE      = 25
+		SIZEDISTORT  = 2.0
+		PRECISON     = 4
+		REPULSION    = 8000
+		GRAVITY      = .1
+		EDGELEN      = 40
+		SERIESNAME   = "graph"
+		LAYOUTTYPE   = "force"
+		LABELPOSITON = "right"
 	)
 
 	graph := charts.NewGraph()
@@ -175,12 +191,21 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 		return float32(math.Round(val*ratio) / ratio)
 	}
 
+	// find the average similarity: this will let you adjust bubble size so that most similar are biggest
+	var maxsim float64
+	for _, w := range nn[coreword] {
+		if w.Similarity > maxsim {
+			maxsim = w.Similarity
+		}
+	}
+
 	// the center point
-	gnn = append(gnn, opts.GraphNode{Name: coreword, Value: 0, SymbolSize: SYMSIZE})
+	gnn = append(gnn, opts.GraphNode{Name: coreword, Value: 0, SymbolSize: fmt.Sprintf("%.4f", SYMSIZE*SIZEDISTORT)})
 
 	// the words directly related to this word
 	for _, w := range nn[coreword] {
-		gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: round(w.Similarity), SymbolSize: SYMSIZE})
+		sizemod := fmt.Sprintf("%.4f", ((w.Similarity/maxsim)*SIZEDISTORT)*SYMSIZE)
+		gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: round(w.Similarity), SymbolSize: sizemod})
 		gll = append(gll, opts.GraphLink{Source: coreword, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
 	}
 
@@ -197,13 +222,13 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 		}
 	}
 
-	graph.AddSeries("graph", gnn, gll,
-		charts.WithLabelOpts(opts.Label{Show: true, Position: "right"}),
+	graph.AddSeries(SERIESNAME, gnn, gll,
+		charts.WithLabelOpts(opts.Label{Show: true, Position: LABELPOSITON}),
 		charts.WithGraphChartOpts(
-			// https://github.com/go-echarts/go-echarts/blob/master/opts/charts.go
+			// https://github.com/go-echarts/go-echarts/opts/charts.go
 			// cf. https://echarts.apache.org/en/option.html#series-graph
 			opts.GraphChart{
-				Layout: "force",
+				Layout: LAYOUTTYPE,
 				Force: &opts.GraphForce{
 					Repulsion:  REPULSION,
 					Gravity:    GRAVITY,
@@ -238,19 +263,24 @@ func NewCustomPageRender(c interface{}, before ...func()) ModRenderer {
 
 // Render renders the page into the given io.Writer.
 func (r *CustomPageRender) Render(w io.Writer) error {
+	const (
+		TEMPLNAME = "chart"
+		PATTERN   = `(__f__")|("__f__)|(__f__)`
+	)
+
 	for _, fn := range r.before {
 		fn()
 	}
 
 	contents := []string{CustomHeaderTpl, CustomBaseTpl, CustomPageTpl}
-	tpl := ModMustTemplate("chart", contents)
+	tpl := ModMustTemplate(TEMPLNAME, contents)
 
 	var buf bytes.Buffer
-	if err := tpl.ExecuteTemplate(&buf, "chart", r.c); err != nil {
+	if err := tpl.ExecuteTemplate(&buf, TEMPLNAME, r.c); err != nil {
 		return err
 	}
 
-	pat := regexp.MustCompile(`(__f__")|("__f__)|(__f__)`)
+	pat := regexp.MustCompile(PATTERN)
 	content := pat.ReplaceAll(buf.Bytes(), []byte(""))
 
 	_, err := w.Write(content)
@@ -259,8 +289,12 @@ func (r *CustomPageRender) Render(w io.Writer) error {
 
 // ModMustTemplate creates a new template with the given name and parsed contents.
 func ModMustTemplate(name string, contents []string) *template.Template {
+	const (
+		JSNAME = "safeJS"
+	)
+
 	tpl := template.Must(template.New(name).Parse(contents[0])).Funcs(template.FuncMap{
-		"safeJS": func(s interface{}) template.JS {
+		JSNAME: func(s interface{}) template.JS {
 			return template.JS(fmt.Sprint(s))
 		},
 	})
@@ -334,13 +368,3 @@ var CustomPageTpl = `
 	{{ end }}
 {{ end }}
 `
-
-//
-//	// The categories of node, which is optional. If there is a classification of nodes,
-//	// the category of each node can be assigned through data[i].category.
-//	// And the style of category will also be applied to the style of nodes. categories can also be used in legend.
-//	Categories []*GraphCategory
-//
-//	// EdgeLabel is the properties of an label of edge.
-//	EdgeLabel *EdgeLabel `json:"edgeLabel"`
-//}
