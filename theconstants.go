@@ -84,7 +84,7 @@ const (
 	TIMETRACKERMSGTHRESH     = MSGFYI
 	USEGZIP                  = false
 	VARIADATE                = 2000
-	VECTORNEIGHBORS          = 20
+	VECTORNEIGHBORS          = 18
 	VECTORTABLENAME          = "semantic_vectors"
 	VECTORMAXLINES           = 200000 // 200k lines gets you how far?
 	VOCABSCANSION            = false
@@ -310,6 +310,8 @@ const (
 `
 
 	VECTORJS = `
+        $('#pollingdata').html('');
+
 		$('vectorheadword').click( function(e) { 
 			var searchid = generateId(8);
 			url = '/srch/exec/' + searchid + '?lem=' + this.id;

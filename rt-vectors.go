@@ -19,6 +19,7 @@ import (
 // VectorSearch - a special case for RtSearch() where you requested vectorization of the results
 func VectorSearch(c echo.Context, srch SearchStruct) error {
 	c.Response().After(func() { SelfStats("VectorSearch()") })
+
 	nn := generategraphdata(c, srch)
 	img := buildgraph(srch.LemmaOne, nn)
 
@@ -37,7 +38,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	tb := `
 	<table class="indented"><tbody>
     <tr class="vectorrow">
-        <td class="vectorrank" colspan = "7">Nearest neighbors of '%s'</td>
+        <td class="vectorrank" colspan = "7">Nearest neighbors of »%s«</td>
     </tr>
 	<tr class="vectorrow">
 		<td class="vectorrank">Rank</td>
@@ -89,7 +90,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 
 	soj := SearchOutputJSON{
 		Title:         fmt.Sprintf("Neighbors of '%s'", srch.LemmaOne),
-		Searchsummary: fmt.Sprintf("Nearest neighbors of '%s'", srch.LemmaOne),
+		Searchsummary: "",
 		Found:         out,
 		Image:         img,
 		JS:            VECTORJS,

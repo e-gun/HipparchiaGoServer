@@ -76,6 +76,9 @@ func formatpoll(pd PollData) string {
 		if pd.TwoBox {
 			m = MS
 		}
+		if pd.IsVect {
+			m = ""
+		}
 		return fmt.Sprintf(EL1, pd.Elapsed, m)
 	}()
 
@@ -117,6 +120,7 @@ type PollData struct {
 	Extra    string `json:"Notes"`
 	ID       string `json:"ID"`
 	TwoBox   bool
+	IsVect   bool
 }
 
 type WSClient struct {
@@ -196,6 +200,7 @@ func (c *WSClient) WSMessageLoop() {
 	var pd PollData
 	pd.TwoBox = srch.Twobox
 	pd.TotalWrk = srch.TableSize
+	pd.IsVect = srch.IsVector
 	pd.Msg = strings.Replace(srch.InitSum, "Sought", "Seeking", -1)
 
 	// loop until search finishes

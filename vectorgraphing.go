@@ -163,8 +163,8 @@ func buildgraph(coreword string, nn map[string]search.Neighbors) string {
 
 func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Graph {
 	const (
-		CHRTWIDTH    = "1500px"
-		CHRTHEIGHT   = "1000px"
+		CHRTWIDTH    = "1536px"
+		CHRTHEIGHT   = "1024px"
 		SYMSIZE      = 25
 		SIZEDISTORT  = 2.0
 		PRECISON     = 4
@@ -174,6 +174,7 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 		SERIESNAME   = "graph"
 		LAYOUTTYPE   = "force"
 		LABELPOSITON = "right"
+		DOTCOLOR     = "hsla(236, 44%, 45%, 1)"
 	)
 
 	graph := charts.NewGraph()
@@ -185,6 +186,7 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 	var gnn []opts.GraphNode
 	var gll []opts.GraphLink
 	valuelabel := opts.EdgeLabel{Show: true, Formatter: "{c}"}
+	dotstyle := opts.ItemStyle{Color: DOTCOLOR}
 
 	round := func(val float64) float32 {
 		ratio := math.Pow(10, float64(PRECISON))
@@ -200,12 +202,12 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 	}
 
 	// the center point
-	gnn = append(gnn, opts.GraphNode{Name: coreword, Value: 0, SymbolSize: fmt.Sprintf("%.4f", SYMSIZE*SIZEDISTORT)})
+	gnn = append(gnn, opts.GraphNode{Name: coreword, Value: 0, SymbolSize: fmt.Sprintf("%.4f", SYMSIZE*SIZEDISTORT), ItemStyle: &dotstyle})
 
 	// the words directly related to this word
 	for _, w := range nn[coreword] {
 		sizemod := fmt.Sprintf("%.4f", ((w.Similarity/maxsim)*SIZEDISTORT)*SYMSIZE)
-		gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: round(w.Similarity), SymbolSize: sizemod})
+		gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: round(w.Similarity), SymbolSize: sizemod, ItemStyle: &dotstyle})
 		gll = append(gll, opts.GraphLink{Source: coreword, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
 	}
 
