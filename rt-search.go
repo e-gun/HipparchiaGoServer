@@ -146,37 +146,37 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	user := readUUIDCookie(c)
 	sess := AllSessions.GetSess(user)
 
-	var srch SearchStruct
-	srch.User = user
-	srch.Launched = time.Now()
-	srch.CurrentLimit = sess.HitLimit
-	srch.OriginalLimit = sess.HitLimit
-	srch.SrchColumn = DEFAULTCOLUMN
-	srch.SrchSyntax = DEFAULTQUERYSYNTAX
-	srch.OrderBy = ORDERBY
-	srch.SearchIn = sess.Inclusions
-	srch.SearchEx = sess.Exclusions
-	srch.ProxDist = sess.Proximity
-	srch.ProxScope = sess.SearchScope
-	srch.NotNear = false
-	srch.Twobox = false
-	srch.HasPhrase = false
-	srch.HasLemma = false
-	srch.SkgRewritten = false
-	srch.OneHit = sess.OneHit
-	srch.PhaseNum = 1
-	srch.IsVector = sess.VecSearch
-	srch.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
-	srch.AcqHitCounter()
-	srch.AcqRemainCounter()
+	var s SearchStruct
+	s.User = user
+	s.Launched = time.Now()
+	s.CurrentLimit = sess.HitLimit
+	s.OriginalLimit = sess.HitLimit
+	s.SrchColumn = DEFAULTCOLUMN
+	s.SrchSyntax = DEFAULTQUERYSYNTAX
+	s.OrderBy = ORDERBY
+	s.SearchIn = sess.Inclusions
+	s.SearchEx = sess.Exclusions
+	s.ProxDist = sess.Proximity
+	s.ProxScope = sess.SearchScope
+	s.NotNear = false
+	s.Twobox = false
+	s.HasPhrase = false
+	s.HasLemma = false
+	s.SkgRewritten = false
+	s.OneHit = sess.OneHit
+	s.PhaseNum = 1
+	s.IsVector = sess.VecSearch
+	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
+	s.AcqHitCounter()
+	s.AcqRemainCounter()
 
 	if sess.NearOrNot == "notnear" {
-		srch.NotNear = true
+		s.NotNear = true
 	}
 
 	// msg("nonstandard BuildDefaultSearch() for testing", MSGCRIT)
 
-	return srch
+	return s
 }
 
 // BuildHollowSearch - is really a way to grab line collections via synthetic searchlists

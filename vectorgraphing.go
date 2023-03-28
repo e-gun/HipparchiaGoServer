@@ -225,7 +225,13 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 	}
 
 	graph.AddSeries(SERIESNAME, gnn, gll,
-		charts.WithLabelOpts(opts.Label{Show: true, Position: LABELPOSITON}),
+		charts.WithLabelOpts(
+			opts.Label{
+				Show:       true,
+				Position:   LABELPOSITON,
+				FontFamily: Config.Font,
+			},
+		),
 		charts.WithGraphChartOpts(
 			// https://github.com/go-echarts/go-echarts/opts/charts.go
 			// cf. https://echarts.apache.org/en/option.html#series-graph

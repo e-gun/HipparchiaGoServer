@@ -1704,6 +1704,13 @@ table {
 	font-weight: normal;
 }
 
+table.vectortable {
+	margin: 0 auto;
+	width: 50%;
+	padding: 5px;
+	display: block;
+}
+
 table.morphtable {
 	padding-top: 1px;
 	padding-bottom: 1px;
@@ -1910,15 +1917,17 @@ ul.roman {
 	padding-bottom: 5px;
 }
 
-.vectortable{
-	margin: 0 auto;
-	width: 50%;
-	padding: 5px;
-}
-
 .vectorrank {
 	text-align: center;
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
+}
+
+.vectorscore {
+	color: var(--dkgrey);
+}
+
+.vectorword {
+	color: var(--blue);
 }
 
 vectorheadword:hover{

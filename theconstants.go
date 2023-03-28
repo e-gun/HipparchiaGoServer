@@ -318,6 +318,7 @@ const (
 			$('#imagearea').empty();
 			$('#searchsummary').html(''); 
 			$('#displayresults').html('');
+			$('#vectorgraphing').html('');
 			$('#wordsearchform').hide();
 			$('#lemmatasearchform').show();
 			$('#lemmatasearchform').val(this.id);

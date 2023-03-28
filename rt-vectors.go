@@ -36,9 +36,9 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	}
 
 	tb := `
-	<table class="indented"><tbody>
+	<table class="vectortable"><tbody>
     <tr class="vectorrow">
-        <td class="vectorrank" colspan = "7">Nearest neighbors of »%s«</td>
+        <td class="vectorrank" colspan = "7">Nearest neighbors of »<span class="colorhighlight">%s</span>«</td>
     </tr>
 	<tr class="vectorrow">
 		<td class="vectorrank">Rank</td>
