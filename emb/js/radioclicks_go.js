@@ -103,15 +103,48 @@ $('#vocscansion').change(function() {
     loadoptions();
 });
 
-// vectors
+// lemmata and vectors
 
 $('#isvectorsearch').change(function() {
-    if(this.checked) { setoptions('isvectorsearch', 'yes'); } else { setoptions('isvectorsearch', 'no'); }
-    refreshselections();
-    loadoptions();
-    if (vct.is(":checked")) {
+    if(this.checked) {
+        setoptions('isvectorsearch', 'yes');
+        showvectornotification();
+        refreshselections();
+        loadoptions();
         lsf.attr('placeholder', '(semantic neighbors of...)');
     } else {
+        setoptions('isvectorsearch', 'no');
+        hidevectornotification();
+        refreshselections();
+        loadoptions();
         lsf.attr('placeholder', '(all forms of...)');
     }
 });
+
+const lsf = $('#lemmatasearchform');
+const vschon = $('#vectorizing-ison');
+const vschoff  = $('#vectorizing-isoff');
+
+function hidevectornotification() {
+    vschon.hide();
+    vschoff.show();
+}
+
+function showvectornotification() {
+    vschon.show();
+    vschoff.hide();
+}
+
+
+const lschon = $('#lemmatizing-ison');
+const lschoff= $('#lemmatizing-isoff');
+
+function hidelemmatanotification() {
+    lschon.hide();
+    lschoff.show();
+}
+
+function showlemmatanotification() {
+    lschon.show();
+    lschoff.hide();
+}

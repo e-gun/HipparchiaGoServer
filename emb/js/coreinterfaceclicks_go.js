@@ -112,46 +112,6 @@ function loadoptions() {
             }
         });
 
-        const baggingmethods =  {
-            // be careful about 'winnertakeall' vs 'winnerstakeall', etc.
-            //
-            'alternates': $('#alternatebagbutton'),
-            'flat': $('#flatbagbutton'),
-            'winnertakesall': $('#winnertakesallbutton'),
-            'unlemmatized': $('#unlemmatizedbutton'),
-        };
-
-        const baggingbuttons =  {
-            'alternates': $('#alternates-ison'),
-            'flat': $('#flatlemma-ison'),
-            'winnertakesall': $('#winnertakesall-ison'),
-            'unlemmatized': $('#unlemmatized-ison'),
-        };
-
-        Object.keys(baggingmethods).forEach(function(returnedkey) {
-            if (data.baggingmethod !== returnedkey) {
-                baggingmethods[returnedkey].prop('checked', false);
-                baggingbuttons[returnedkey].hide();
-            } else {
-                baggingmethods[returnedkey].prop('checked', true);
-                baggingbuttons[returnedkey].show();
-            }
-        });
-
-        const trimmingoptions =  {
-            'none': $('#trimming-none'),
-            'declined': $('#trimming-declined'),
-            'conjugated': $('#trimming-conjugated'),
-        };
-
-        Object.keys(trimmingoptions).forEach(function(returnedkey) {
-            if (data.trimvectoryby !== returnedkey) {
-                trimmingoptions[returnedkey].prop('checked', false);
-            } else {
-                trimmingoptions[returnedkey].prop('checked', true);
-            }
-        });
-
         let setspinnervalues = {
             'earliestdate': $('#earliestdate'),
             'latestdate': $('#latestdate'),
@@ -185,7 +145,6 @@ function loadoptions() {
             }
         });
 }
-
 
 // UPPER LEFT OPTIONS PANEL CLICKS
 
@@ -519,8 +478,13 @@ let vct = $('#vectorsearchcheckbox');
 tol.click(function(){
     if (tol.is(":checked")) {
         vct.show();
+        showlemmatanotification();
     } else {
         vct.hide();
+        setoptions('isvectorsearch', 'no');
+        loadoptions();
+        hidevectornotification();
+        hidelemmatanotification();
     }
 });
 
@@ -577,6 +541,3 @@ function openextendedsearcharea() {
     showmany(extrasearchuielements);
     showmany(vectorcheckboxspans);
 }
-
-
-

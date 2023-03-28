@@ -65,9 +65,9 @@ $(document).ready( function () {
     });
 
     function srch() {
-        $('#imagearea').empty();
         $('#searchsummary').html('');
         $('#displayresults').html('');
+        $('#vectorgraphing').html('');
 
         // the script additions can pile up: so first kill off any scripts we have already added
         let bcsh = document.getElementById("browserclickscriptholder");
