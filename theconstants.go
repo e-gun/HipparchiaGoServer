@@ -87,7 +87,7 @@ const (
 	VARIADATE                = 2000
 	VECTORNEIGHBORS          = 18
 	VECTORTABLENAME          = "semantic_vectors"
-	VECTORMAXLINES           = 500000 // 300k lines is ok for arraytogetrequiredmorphobjects(); 500k is not (yet)
+	VECTORMAXLINES           = 1000000 // 964403 lines will get you all of Latin
 	VOCABSCANSION            = false
 	VOCABBYCOUNT             = false
 	WRITEPERMS               = 0644

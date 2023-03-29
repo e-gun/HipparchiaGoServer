@@ -402,6 +402,14 @@ func StringMapKeysIntoSlice[T any](mp map[string]T) []string {
 	return sl
 }
 
+// ChunkSlice - thanks to https://stackoverflow.com/questions/35179656/slice-chunking-in-go
+func ChunkSlice[T any](items []T, chunkSize int) (chunks [][]T) {
+	for chunkSize < len(items) {
+		items, chunks = items[chunkSize:], append(chunks, items[0:chunkSize:chunkSize])
+	}
+	return append(chunks, items)
+}
+
 //
 // SORTING: https://pkg.go.dev/sort#example__sortMultiKeys
 //

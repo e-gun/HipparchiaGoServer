@@ -910,7 +910,8 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 		TT = `CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words`
 		QT = `SELECT observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords FROM %s_morphology WHERE EXISTS 
 				(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = %s_morphology.observed_form)`
-		MSG1 = "arraytogetrequiredmorphobjects() will search for %d headwords"
+		MSG1      = "arraytogetrequiredmorphobjects() will search among %d words"
+		CHUNKSIZE = 999999
 	)
 
 	// look for the upper case matches too: Ϲωκράτηϲ and not just ϲωκρατέω (!)
@@ -932,11 +933,6 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 
 	msg(fmt.Sprintf(MSG1, len(wordlist)), MSGFYI)
 
-	// TODO: full latin corpus vectorization is too much...
-	// [HGS] arraytogetrequiredmorphobjects() will search for 10708941 headwords
-	// [Hipparchia Golang Server v.1.2.0a] UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE
-	// ERROR: invalid memory alloc request size 1073741824 (SQLSTATE XX000)
-
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 
@@ -950,21 +946,29 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 		return nil
 	}
 
-	// a waste of time to check the language on every word; just flail/fail once
-	for _, uselang := range TheLanguages {
-		u := strings.Replace(uuid.New().String(), "-", "", -1)
-		id := fmt.Sprintf("%s_%s_mw", u, uselang)
-		a := fmt.Sprintf("'%s'", strings.Join(wordlist, "', '"))
-		t := fmt.Sprintf(TT, id, a)
+	// vectorization revealed that 10m words is too much for this function
+	// [HGS] arraytogetrequiredmorphobjects() will search for 10708941 words
+	// [Hipparchia Golang Server v.1.2.0a] UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE
+	// ERROR: invalid memory alloc request size 1073741824 (SQLSTATE XX000)
 
-		_, err := dbconn.Exec(context.Background(), t)
-		chke(err)
+	chunkedlist := ChunkSlice(wordlist, CHUNKSIZE)
+	for _, cl := range chunkedlist {
+		// a waste of time to check the language on every word; just flail/fail once
+		for _, uselang := range TheLanguages {
+			u := strings.Replace(uuid.New().String(), "-", "", -1)
+			id := fmt.Sprintf("%s_%s_mw", u, uselang)
+			a := fmt.Sprintf("'%s'", strings.Join(cl, "', '"))
+			t := fmt.Sprintf(TT, id, a)
 
-		foundrows, e := dbconn.Query(context.Background(), fmt.Sprintf(QT, uselang, id, uselang))
-		chke(e)
+			_, err := dbconn.Exec(context.Background(), t)
+			chke(err)
 
-		_, ee := pgx.ForEachRow(foundrows, foreach, rwfnc)
-		chke(ee)
+			foundrows, e := dbconn.Query(context.Background(), fmt.Sprintf(QT, uselang, id, uselang))
+			chke(e)
+
+			_, ee := pgx.ForEachRow(foundrows, foreach, rwfnc)
+			chke(ee)
+		}
 	}
 	return foundmorph
 }
