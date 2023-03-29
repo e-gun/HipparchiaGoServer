@@ -3,14 +3,18 @@
 If you request a lemmatized search (λ), you will be presented with the option to convert your search to a vectorized 
 search (v⃗).
 
+![inst02](../gitimg/ready_to_vectorize.png)
+
 The server will check to see if there is a pre-built model for the current combination of options and texts selected.
 
 If there is no model, one will be built and then saved for subsequent use. Building can be **slow**. Re-use is fast. 
 Expect to wait a significant amount of time if you try to vectorize the entire corpus of Latin, for example. This will
 take several minutes on a fast machine. All of Greek would take 10x as long. But the good news is that you only need to
-build a model once.
+build a model once. Also note that vectorization can be memory intensive. 
 
-There is currently not a web-facing "interface" that allows for the customization of the rules used to build these 
+![inst02](../gitimg/semantic_neighbors.png)
+
+There is currently no browser-facing interface that allows for the customization of the rules used to build these 
 models. Instead users will need to manually edit configuration files. Nevertheless, most people will feel little to
 no need to edit these files. The defaults are sensible. Only the very keen and very curious will change them.
 
@@ -47,7 +51,7 @@ the other settings.
     "BatchSize": 1024,
     "Dim": 125,
     "DocInMemory": true,
-    "Goroutines": 20,
+    "Goroutines": [= runtime.NumCPU() on your machine],
     "Initlr": 0.025,
     "Iter": 15,
     "LogBatch": 100000,
@@ -70,7 +74,7 @@ The underlying source code for the modeling can be found at https://github.com/y
 of "hidden" values one might adjust when setting `OptimizerType` and `ModelType`. The former can be either `ns` or `hs`.
 The latter can be either `cbow` or `skipgram`. You will also see the default values that the authors of that package
 distribute. Note that `defaultDim` is strikingly low at `10` and is only useful to show that code can generate a model,
-not that it can generate an interesting model. 
+not that it can generate an interesting model. Most tutorials talk about models with 100-300 dimensions. 
 
 ```
 const (

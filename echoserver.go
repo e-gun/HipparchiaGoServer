@@ -186,7 +186,7 @@ func StartEchoServer() {
 	e.GET("/sc/get/:num", RtSessionGetCookie)
 
 	// [r] vectors ("rt-vectors.go")
-	// e.GET("/vect/exec/:id", VectorSearch) // "GET /vect/exec/1f8f1d22?skg=dolor HTTP/1.1"
+	// pseudo-route: rt-vectors.go is called by rt-search.go if the current session has VecSearch set to true
 
 	if Config.SelfTest > 0 {
 		go func() {

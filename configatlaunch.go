@@ -16,29 +16,30 @@ import (
 )
 
 type CurrentConfiguration struct {
-	Authenticate  bool
-	BadChars      string
-	BlackAndWhite bool
-	BrowserCtx    int
-	DbDebug       bool
-	DefCorp       map[string]bool
-	EchoLog       int // 0: "none", 1: "terse", 2: "prolix", 3: "prolix+remoteip"
-	Font          string
-	Gzip          bool
-	HostIP        string
-	HostPort      int
-	LogLevel      int
-	ManualGC      bool // see SelfStats()
-	MaxText       int
-	PGLogin       PostgresLogin
-	ResetVectors  bool
-	QuietStart    bool
-	SelfTest      int
-	TickerActive  bool
-	VocabByCt     bool
-	VocabScans    bool
-	WorkerCount   int
-	ZapLunates    bool
+	Authenticate    bool
+	BadChars        string
+	BlackAndWhite   bool
+	BrowserCtx      int
+	DbDebug         bool
+	DefCorp         map[string]bool
+	EchoLog         int // 0: "none", 1: "terse", 2: "prolix", 3: "prolix+remoteip"
+	Font            string
+	Gzip            bool
+	HostIP          string
+	HostPort        int
+	LogLevel        int
+	ManualGC        bool // see SelfStats()
+	MaxText         int
+	PGLogin         PostgresLogin
+	ResetVectors    bool
+	QuietStart      bool
+	SelfTest        int
+	TickerActive    bool
+	VectorsDisabled bool
+	VocabByCt       bool
+	VocabScans      bool
+	WorkerCount     int
+	ZapLunates      bool
 }
 
 // LookForConfigFile - test to see if we can find a config file; if not build one and check to see if the DB needs loading
@@ -179,6 +180,8 @@ func ConfigAtLaunch() {
 			cf = args[i+1]
 		case "-db":
 			Config.DbDebug = true
+		case "-dv":
+			Config.VectorsDisabled = true
 		case "-ex":
 			ArchiveDB()
 			os.Exit(0)
@@ -272,6 +275,7 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.ResetVectors = false
 	c.SelfTest = 0
 	c.TickerActive = TICKERISACTIVE
+	c.VectorsDisabled = false
 	c.VocabByCt = VOCABBYCOUNT
 	c.VocabScans = VOCABSCANSION
 	c.WorkerCount = runtime.NumCPU()

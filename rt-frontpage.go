@@ -29,6 +29,10 @@ func RtFrontpage(c echo.Context) error {
 		PADDING  = " ----------------- "
 		STATTMPL = "%s: %d"
 		SPACER   = "    "
+		VECTORS  = `
+        <span id="vectorsearchcheckbox">
+            <span class="small">v⃗</span><input type="checkbox" id="isvectorsearch" value="yes">
+        </span>`
 	)
 	// will set if missing
 	user := readUUIDCookie(c)
@@ -67,10 +71,16 @@ func RtFrontpage(c echo.Context) error {
 		return strings.Join(pairs, "\n")
 	}
 
+	vec := ""
+	if !Config.VectorsDisabled {
+		vec = VECTORS
+	}
+
 	subs := map[string]interface{}{
 		"version":       VERSION + VersSuppl,
 		"longver":       ver,
 		"authhtm":       ahtm,
+		"vec":           vec,
 		"env":           env,
 		"ticker":        t(time.Since(LaunchTime)) + "\n\n" + svd(),
 		"user":          "Anonymous",

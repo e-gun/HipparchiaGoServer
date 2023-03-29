@@ -10,7 +10,7 @@ import "time"
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.2.0b"
+	VERSION                  = "1.2.0"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	BLACKANDWHITE            = false
 	CHARSPERLINE             = 60 // used by vector to preallocate memory: set it closer to a max than a real average
@@ -123,6 +123,7 @@ const (
    C1-bwC0          disable color output in the console
    C1-cfC0 C2{file}C0   read PSQL password from file [default: looks for "C3%s/%sC0" and "C3%s%sC0"]
    C1-dbC0          debug database: show internal references in browsed passages
+   C1-dvC0          disable semantic vector searching
    C1-elC0 C2{num}C0    set echo server log level (C10-3C0) [default: C3%dC0]
    C1-exC0          extract the data to an archive folder in the same directory as the application: "C3%sC0"
    C1-ftC0 C2{string}C0 force a client-side font instead of serving a font [served font: C3NotoSansC0]
