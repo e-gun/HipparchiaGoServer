@@ -22,6 +22,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 
 	term := srch.LemmaOne
 	if term == "" {
+		// JS not supposed to let this happen, but...
 		term = srch.Seeking
 	}
 
@@ -30,15 +31,6 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 
 	neighbors := nn[term]
 	// [c] prepare text output
-
-	table := make([][]string, len(neighbors))
-	for i, n := range neighbors {
-		table[i] = []string{
-			fmt.Sprintf("%d", n.Rank),
-			n.Word,
-			fmt.Sprintf("%.4f", n.Similarity),
-		}
-	}
 
 	tb := `
 	<table class="vectortable"><tbody>

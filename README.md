@@ -21,7 +21,7 @@
 * progress polling
 * self-configuration first run
 * self-installation on first run
-* semantic vectors: search and graph nearest neighbors
+* semantic vectors: search for terms and yield an interactive graph of nearest neighbors
 
 ### INSTRUCTIONS
 * for installation, see the `INSTRUCTIONS` folder

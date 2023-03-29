@@ -224,11 +224,14 @@ func flatstring(sb *strings.Builder, slicedwords []string) {
 
 // winnerstring - helper for buildtextblock() to generate winner takes all substitutions
 func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[string][]string) {
+	// TODO: modify this to use readstopconfig()
+	ls := ToSet(readstopconfig("latin"))
+	gs := ToSet(readstopconfig("greek"))
 	for i := 0; i < len(slicedwords); i++ {
 		// drop skipwords
 		w := winnermap[slicedwords[i]][0]
-		_, s1 := LatinStops[w]
-		_, s2 := GreekStops[w]
+		_, s1 := ls[w]
+		_, s2 := gs[w]
 		if s1 || s2 {
 			continue
 		} else {
@@ -399,6 +402,59 @@ func vectorconfig() word2vec.Options {
 	}
 
 	return cfg
+}
+
+// readstopconfig - read the CONFIGVECTORSTOP file and return []stopwords
+func readstopconfig(fn string) []string {
+	const (
+		ERR1 = "readstopconfig() cannot find UserHomeDir"
+		ERR2 = "readstopconfig() failed to parse "
+		MSG1 = "wrote vector stop configuration file: "
+		MSG2 = "read vector stop configuration from: "
+	)
+
+	var stops []string
+	var vcfg string
+
+	switch fn {
+	case "latin":
+		vcfg = CONFIGVECTORSTOPSLAT
+		stops = StringMapKeysIntoSlice(getlatinstops())
+	case "greek":
+		vcfg = CONFIGVECTORSTOPSGRK
+		stops = StringMapKeysIntoSlice(getgreekstops())
+	}
+
+	h, e := os.UserHomeDir()
+	if e != nil {
+		msg(ERR1, 0)
+		return stops
+	}
+
+	_, yes := os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + vcfg)
+
+	if yes != nil {
+		sort.Strings(stops)
+		content, err := json.MarshalIndent(stops, JSONINDENT, JSONINDENT)
+		chke(err)
+
+		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+vcfg, content, WRITEPERMS)
+		chke(err)
+		msg(MSG1+vcfg, MSGPEEK)
+	} else {
+		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + vcfg)
+		decoderc := json.NewDecoder(loadedcfg)
+		var stp []string
+		errc := decoderc.Decode(&stp)
+		_ = loadedcfg.Close()
+		if errc != nil {
+			msg(ERR2+vcfg, MSGCRIT)
+		} else {
+			stops = stp
+		}
+		msg(MSG2+vcfg, MSGTMI)
+	}
+	return stops
 }
 
 //const (

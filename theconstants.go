@@ -10,7 +10,7 @@ import "time"
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.2.0a"
+	VERSION                  = "1.2.0b"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	BLACKANDWHITE            = false
 	CHARSPERLINE             = 60 // used by vector to preallocate memory: set it closer to a max than a real average
@@ -20,7 +20,8 @@ const (
 	CONFIGBASIC              = "hgs-conf.json"
 	CONFIGPROLIX             = "hgs-prolix-conf.json"
 	CONFIGVECTOR             = "hgs-vector-conf.json"
-	CONFIGVECTORSTOPS        = "hgs-vector-stops-conf.json"
+	CONFIGVECTORSTOPSLAT     = "hgs-vector-stops-latin.json"
+	CONFIGVECTORSTOPSGRK     = "hgs-vector-stops-greek.json"
 	DBAUMAPSIZE              = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
 	DBLMMAPSIZE              = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
 	DBWKMAPSIZE              = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
