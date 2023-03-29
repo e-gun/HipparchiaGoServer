@@ -148,3 +148,44 @@ function showlemmatanotification() {
     lschon.show();
     lschoff.hide();
 }
+
+const trmonelem = $('#termoneisalemma');
+const trmtwolem = $('#termtwoisalemma');
+const wsf = $('#wordsearchform');
+
+trmonelem.change(function() {
+    if(this.checked) {
+        wsf.hide();
+        wsf.val('');
+        lsf.show();
+        vct.show();
+        showlemmatanotification();
+    } else {
+        lsf.hide();
+        lsf.val('');
+        wsf.show();
+        vct.hide();
+        setoptions('isvectorsearch', 'no');
+        loadoptions();
+        hidelemmatanotification();
+        if(!trmtwolem.is(':checked')) {
+            hidelemmatanotification();
+        }
+    }
+});
+
+trmtwolem.change(function() {
+    if(this.checked) {
+        psf.hide();
+        psf.val('');
+        plsf.show();
+        showlemmatanotification();
+    } else {
+        plsf.hide();
+        plsf.val('');
+        psf.show();
+        if(!trmonelem.is(':checked')) {
+            hidelemmatanotification();
+        }
+    }
+});

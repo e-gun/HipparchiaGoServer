@@ -475,19 +475,6 @@ $('#endpointbutton-isopen').click(function(){
 let tol = $('#termoneisalemma');
 let vct = $('#vectorsearchcheckbox');
 
-tol.click(function(){
-    if (tol.is(":checked")) {
-        vct.show();
-        showlemmatanotification();
-    } else {
-        vct.hide();
-        setoptions('isvectorsearch', 'no');
-        loadoptions();
-        hidevectornotification();
-        hidelemmatanotification();
-    }
-});
-
 function closeextendedsearcharea() {
     $('#extendsearchbutton-ispresentlyopen').hide();
     $('#extendsearchbutton-ispresentlyclosed').show();
