@@ -224,7 +224,6 @@ func flatstring(sb *strings.Builder, slicedwords []string) {
 
 // winnerstring - helper for buildtextblock() to generate winner takes all substitutions
 func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[string][]string) {
-	// TODO: modify this to use readstopconfig()
 	ls := ToSet(readstopconfig("latin"))
 	gs := ToSet(readstopconfig("greek"))
 	for i := 0; i < len(slicedwords); i++ {
@@ -404,7 +403,7 @@ func vectorconfig() word2vec.Options {
 	return cfg
 }
 
-// readstopconfig - read the CONFIGVECTORSTOP file and return []stopwords
+// readstopconfig - read the CONFIGVECTORSTOP file and return []stopwords; if it does not exist, generate it
 func readstopconfig(fn string) []string {
 	const (
 		ERR1 = "readstopconfig() cannot find UserHomeDir"
@@ -456,43 +455,6 @@ func readstopconfig(fn string) []string {
 	}
 	return stops
 }
-
-//const (
-//	NegativeSampling    OptimizerType = "ns"
-//	HierarchicalSoftmax OptimizerType = "hs"
-//)
-
-//const (
-//	Cbow     ModelType = "cbow"
-//	SkipGram ModelType = "skipgram"
-//)
-
-// var (
-//	defaultBatchSize          = 10000
-//	defaultDim                = 10
-//	defaultDocInMemory        = false
-//	defaultGoroutines         = runtime.NumCPU()
-//	defaultInitlr             = 0.025
-//	defaultIter               = 15
-//	defaultLogBatch           = 100000
-//	defaultMaxCount           = -1
-//	defaultMaxDepth           = 100
-//	defaultMinCount           = 5
-//	defaultMinLR              = defaultInitlr * 1.0e-4
-//	defaultModelType          = Cbow
-//	defaultNegativeSampleSize = 5
-//	defaultOptimizerType      = NegativeSampling
-//	defaultSubsampleThreshold = 1.0e-3
-//	defaultToLower            = false
-//	defaultUpdateLRBatch      = 100000
-//	defaultVerbose            = false
-//	defaultWindow             = 5
-//)
-
-// results do not repeat because word2vec.Train() in pkg/model/word2vec/word2vec.go has
-// "vec[i] = (rand.Float64() - 0.5) / float64(dim)"
-
-// see also: https://link.springer.com/article/10.1007/s41019-019-0096-6
 
 //
 // DB INTERACTION

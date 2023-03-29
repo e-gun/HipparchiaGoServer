@@ -9,7 +9,8 @@ if hash mdpdf &> /dev/null
     mdpdf INSTRUCTIONS/INSTALLATION_MACOS_RECOMMENDED.md emb/pdf/HGS_INSTALLATION_MacOS.pdf
     mdpdf INSTRUCTIONS/INSTALLATION_WINDOWS.md emb/pdf/HGS_INSTALLATION_Windows.pdf
     mdpdf INSTRUCTIONS/INSTALLATION_NIX.md emb/pdf/HGS_INSTALLATION_Nix.pdf
-    mdpdf INSTRUCTIONS/CUSTOMIZATION.md emb/pdf/HGS_Customization.pdf
+    mdpdf INSTRUCTIONS/CUSTOMIZATION.md emb/pdf/HGS_CUSTOMIZATION.pdf
+    mdpdf INSTRUCTIONS/SEMANTICVECTORS.md emb/pdf/HGS_SEMANTICVECTORS.pdf
     mdpdf fyi/README.md emb/pdf/HGS_FYI.pdf
 fi
 

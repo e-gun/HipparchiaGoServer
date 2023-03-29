@@ -376,7 +376,8 @@ func CopyInstructions() {
 		MACI = "HGS_INSTALLATION_MacOS.pdf"
 		WINI = "HGS_INSTALLATION_Windows.pdf"
 		NIXI = "HGS_INSTALLATION_Nix.pdf"
-		CUST = "HGS_Customization.pdf"
+		CUST = "HGS_CUSTOMIZATION.pdf"
+		SEMV = "HGS_SEMANTICVECTORS.pdf"
 		FYIF = "HGS_FYI.pdf"
 		FNF  = "CopyInstructions(): Embedded PDF not found. This function will now return."
 	)
@@ -412,7 +413,7 @@ func CopyInstructions() {
 		msg(fmt.Sprintf("\t\tWrote:\t'%s'", f), MSGCRIT)
 	}
 
-	for _, info := range []string{CUST, FYIF} {
+	for _, info := range []string{CUST, FYIF, SEMV} {
 		data, err := efs.ReadFile(EPD + info)
 		if err != nil {
 			return

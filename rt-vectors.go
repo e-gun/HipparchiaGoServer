@@ -137,15 +137,23 @@ func fingerprintvectorsearch(srch SearchStruct) string {
 	exc = append(exc, srch.SearchEx.Works...)
 	exc = append(exc, srch.SearchEx.Passages...)
 
+	var stops []string
+	stops = readstopconfig("latin")
+	stops = append(stops, readstopconfig("greek")...)
+	sort.Strings(stops)
+
 	f1, e1 := json.Marshal(inc)
 	f2, e2 := json.Marshal(exc)
 	f3, e3 := json.Marshal(vectorconfig())
-	if e1 != nil || e2 != nil || e3 != nil {
+	f4, e4 := json.Marshal(stops)
+	if e1 != nil || e2 != nil || e3 != nil || e4 != nil {
 		msg(FAIL, 0)
 		os.Exit(1)
 	}
+
 	f1 = append(f1, f2...)
 	f1 = append(f1, f3...)
+	f1 = append(f1, f4...)
 	m := fmt.Sprintf("%x", md5.Sum(f1))
 	msg(MSG1+m, MSGTMI)
 
