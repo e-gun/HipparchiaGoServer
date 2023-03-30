@@ -264,6 +264,7 @@ func buildtextblock(lines []DbWorkline) string {
 // VECTORBOT
 //
 
+// RtVectorBot - build a model for the author table requested; should only be called by activatevectorbot()
 func RtVectorBot(c echo.Context) error {
 	const (
 		MSG1    = "vectorbot found model for %s"
@@ -305,11 +306,12 @@ func RtVectorBot(c echo.Context) error {
 	return nil
 }
 
+// activatevectorbot - build a vector model for every author
 func activatevectorbot() {
 	const (
 		MSG2       = "(#%d) ensure vector modeling for %s (%s)"
 		URL        = "http://%s:%d/vbot/%s"
-		COUNTEVERY = 10
+		COUNTEVERY = 5
 	)
 
 	time.Sleep(2 * time.Second)
@@ -326,11 +328,11 @@ func activatevectorbot() {
 		count += 1
 		if count%COUNTEVERY == 0 {
 			TimeTracker("VB", fmt.Sprintf(MSG2, count, AllAuthors[a].Name, a), start, previous)
+			previous = time.Now()
 		}
 		u := fmt.Sprintf(URL, Config.HostIP, Config.HostPort, a)
 		_, err := http.Get(u)
 		chke(err)
-		previous = time.Now()
 		// if you do not throttle the bot it will violate MAXECHOREQPERSECONDPERIP
 		time.Sleep(10 * time.Millisecond)
 	}

@@ -198,6 +198,10 @@ func StartEchoServer() {
 		}()
 	}
 
+	if Config.VectorBot {
+		go activatevectorbot()
+	}
+
 	e.HideBanner = true
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", Config.HostIP, Config.HostPort)))
 }

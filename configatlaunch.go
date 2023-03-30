@@ -36,6 +36,7 @@ type CurrentConfiguration struct {
 	SelfTest        int
 	TickerActive    bool
 	VectorsDisabled bool
+	VectorBot       bool
 	VocabByCt       bool
 	VocabScans      bool
 	WorkerCount     int
@@ -170,6 +171,8 @@ func ConfigAtLaunch() {
 			}
 		case "-au":
 			Config.Authenticate = true
+		case "-av":
+			Config.VectorBot = true
 		case "-bc":
 			bc, err := strconv.Atoi(args[i+1])
 			chke(err)
@@ -275,6 +278,7 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.ResetVectors = false
 	c.SelfTest = 0
 	c.TickerActive = TICKERISACTIVE
+	c.VectorBot = false
 	c.VectorsDisabled = false
 	c.VocabByCt = VOCABBYCOUNT
 	c.VocabScans = VOCABSCANSION
