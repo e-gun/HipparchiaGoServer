@@ -6,6 +6,7 @@
 package main
 
 import (
+	"context"
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
@@ -278,6 +279,10 @@ func RtVectorBot(c echo.Context) error {
 		return nil
 	}
 
+	if Config.VectorsDisabled {
+		return nil
+	}
+
 	s := BuildDefaultSearch(c)
 	s.SearchIn.Authors = []string{a}
 
@@ -309,14 +314,28 @@ func RtVectorBot(c echo.Context) error {
 // activatevectorbot - build a vector model for every author
 func activatevectorbot() {
 	const (
-		MSG2       = "(#%d) ensure vector modeling for %s (%s)"
+		MSG2       = "(#%d) ensure model for %s (%s)"
+		MSG3       = "The vectorbot has checked all authors and is now shutting down"
+		MSG4       = "Total size of stored vectors is %dMB"
 		URL        = "http://%s:%d/vbot/%s"
 		COUNTEVERY = 5
+		THROTTLE   = 5
+		SZQ        = "SELECT SUM(vectorsize) AS total FROM semantic_vectors"
+		SIZEVERY   = 500
 	)
 
 	time.Sleep(2 * time.Second)
 
 	count := 0
+
+	vs := func() int {
+		var size int
+		dbconn := GetPSQLconnection()
+		defer dbconn.Release()
+		err := dbconn.QueryRow(context.Background(), SZQ).Scan(&size)
+		chke(err)
+		return size
+	}()
 
 	start := time.Now()
 	previous := time.Now()
@@ -334,6 +353,13 @@ func activatevectorbot() {
 		_, err := http.Get(u)
 		chke(err)
 		// if you do not throttle the bot it will violate MAXECHOREQPERSECONDPERIP
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(THROTTLE * time.Millisecond)
+
+		if count%SIZEVERY == 0 {
+			msg(fmt.Sprintf(MSG4, vs/1024/1024), MSGNOTE)
+		}
 	}
+
+	TimeTracker("VB", MSG3, start, previous)
+	msg(fmt.Sprintf(MSG4, vs/1024/1024), MSGNOTE)
 }

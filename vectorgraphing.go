@@ -88,11 +88,12 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 		REPULSION     = 5000
 		GRAVITY       = .15
 		EDGELEN       = 40
+		EDGEFNTSZ     = 9
 		SERIESNAME    = "graph"
 		LAYOUTTYPE    = "force"
 		LABELPOSITON  = "right"
 		DOTCOLOR      = "hsla(236, 44%, 45%, 1)"
-		LINECURVINESS = 0       // from 0 to 1
+		LINECURVINESS = 0       // from 0 to 1, but non-zero will double-up the lines...
 		LINETYPE      = "solid" // "solid", "dashed", "dotted"
 	)
 
@@ -104,7 +105,7 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 
 	var gnn []opts.GraphNode
 	var gll []opts.GraphLink
-	valuelabel := opts.EdgeLabel{Show: true, Formatter: "{c}"}
+	valuelabel := opts.EdgeLabel{Show: true, FontSize: EDGEFNTSZ, Formatter: "{c}"}
 	dotstyle := opts.ItemStyle{Color: DOTCOLOR}
 
 	round := func(val float64) float32 {
