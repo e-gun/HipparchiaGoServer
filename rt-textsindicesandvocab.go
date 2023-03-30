@@ -931,7 +931,7 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 	wordlist = append(wordlist, uppers...)
 	wordlist = append(wordlist, apo...)
 
-	msg(fmt.Sprintf(MSG1, len(wordlist)), MSGFYI)
+	msg(fmt.Sprintf(MSG1, len(wordlist)), MSGPEEK)
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()

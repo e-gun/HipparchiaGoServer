@@ -187,6 +187,7 @@ func StartEchoServer() {
 
 	// [r] vectors ("rt-vectors.go")
 	// pseudo-route: rt-vectors.go is called by rt-search.go if the current session has VecSearch set to true
+	e.GET("/vbot/:au", RtVectorBot)
 
 	if Config.SelfTest > 0 {
 		go func() {

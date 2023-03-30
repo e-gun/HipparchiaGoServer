@@ -9,11 +9,13 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"os"
 	"sort"
 	"strings"
+	"time"
 )
 
 // VectorSearch - a special case for RtSearch() where you requested vectorization of the results
@@ -256,4 +258,80 @@ func buildtextblock(lines []DbWorkline) string {
 	}
 
 	return strings.TrimSpace(sb.String())
+}
+
+//
+// VECTORBOT
+//
+
+func RtVectorBot(c echo.Context) error {
+	const (
+		MSG1    = "vectorbot found model for %s"
+		MSG2    = "vectorbot skipping %s - only %d lines found"
+		MINSIZE = 1000
+	)
+
+	a := c.Param("au")
+
+	if _, ok := AllAuthors[a]; !ok {
+		return nil
+	}
+
+	s := BuildDefaultSearch(c)
+	s.SearchIn.Authors = []string{a}
+
+	fp := fingerprintvectorsearch(s)
+	isstored := vectordbcheck(fp)
+
+	if isstored {
+		msg(fmt.Sprintf(MSG1, AllAuthors[a].Name), MSGPEEK)
+	} else {
+		// sessionintobulksearch() can't be used because there is no real session...
+		s.CurrentLimit = VECTORMAXLINES
+		s.Seeking = ""
+		s.ID = strings.Replace(uuid.New().String(), "-", "", -1)
+		SSBuildQueries(&s)
+		s.IsActive = true
+		s.TableSize = 1
+		s = HGoSrch(s)
+		if len(s.Results) > MINSIZE {
+			embs := generateembeddings(c, s)
+			vectordbadd(fp, embs)
+		} else {
+			msg(fmt.Sprintf(MSG2, a, len(s.Results)), MSGTMI)
+		}
+	}
+
+	return nil
+}
+
+func activatevectorbot() {
+	const (
+		MSG2       = "(#%d) ensure vector modeling for %s (%s)"
+		URL        = "http://%s:%d/vbot/%s"
+		COUNTEVERY = 10
+	)
+
+	time.Sleep(2 * time.Second)
+
+	count := 0
+
+	start := time.Now()
+	previous := time.Now()
+
+	auu := StringMapKeysIntoSlice(AllAuthors)
+	sort.Strings(auu)
+
+	for _, a := range auu {
+		count += 1
+		if count%COUNTEVERY == 0 {
+			TimeTracker("VB", fmt.Sprintf(MSG2, count, AllAuthors[a].Name, a), start, previous)
+		}
+		u := fmt.Sprintf(URL, Config.HostIP, Config.HostPort, a)
+		_, err := http.Get(u)
+		chke(err)
+		previous = time.Now()
+		// if you do not throttle the bot it will violate MAXECHOREQPERSECONDPERIP
+		time.Sleep(10 * time.Millisecond)
+	}
 }

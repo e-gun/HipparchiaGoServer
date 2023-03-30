@@ -58,13 +58,14 @@ var (
 		"φύω", "πάλιν", "ὅλοξ", "ἀρχή", "καλόϲ", "δύναμιϲ", "πωϲ", "δύο", "ἀγαθόϲ", "οἶδα", "δείκνυμι", "χρόνοϲ",
 		"ὅμοιοϲ", "ἕκαϲτοϲ", "ὁμοῖοϲ", "ὥϲτε", "ἡμέρα", "γράφω", "δραχμή", "μέροϲ"}
 	GreekExtra = []string{"ἀεί", "ὡϲαύτωϲ", "μηδέποτε", "μηδέ", "μηδ", "μηδέ", "ταὐτόϲ", "νυνί", "μεθ", "ἀντ", "μέχρι",
-		"ἄνωθεν", "ὀκτώ", "ἓξ", "μετ", "τ", "μ", "αὐτόθ", "οὐδ", "εἵνεκ", "νόϲφι"}
+		"ἄνωθεν", "ὀκτώ", "ἓξ", "μετ", "τ", "μ", "αὐτόθ", "οὐδ", "εἵνεκ", "νόϲφι", "ἐκεῖ", "οὔκουν", "θ", "μάλιϲτ", "ὧδε",
+		"πη", "τῇδ", "δι", "πρό"}
 	GreekStop = append(Greek150, GreekExtra...)
 	// GreekKeep - members of GreekStop we will not toss
 	GreekKeep = []string{"ἔχω", "λέγω¹", "θεόϲ", "φημί", "ποιέω", "ἵημι", "μόνοϲ", "κύριοϲ", "πόλιϲ", "θεάομαι", "δοκέω", "λαμβάνω",
 		"δίδωμι", "βαϲιλεύϲ", "φύϲιϲ", "ἔτοϲ", "πατήρ", "ϲῶμα", "καλέω", "ἐρῶ", "υἱόϲ", "γαῖα", "ἀνήρ", "ὁράω",
 		"ψυχή", "δύναμαι", "ἀρχή", "καλόϲ", "δύναμιϲ", "ἀγαθόϲ", "οἶδα", "δείκνυμι", "χρόνοϲ", "γράφω", "δραχμή",
-		"μέροϲ"}
+		"μέροϲ", "λόγοϲ"}
 	LatinStops     = getlatinstops()
 	GreekStops     = getgreekstops()
 	DefaultVectors = word2vec.Options{
@@ -177,10 +178,16 @@ func generateembeddings(c echo.Context, srch SearchStruct) embedding.Embeddings 
 		MSG1  = "generateembeddings() gathered %d lines"
 	)
 
-	vs := sessionintobulksearch(c, VECTORMAXLINES)
-	srch.Results = vs.Results
-	vs.Results = []DbWorkline{}
-	msg(fmt.Sprintf(MSG1, len(srch.Results)), MSGFYI)
+	// vectorbot sends a search with pre-generated results:
+	// lack of a real session means we can't call readUUIDCookie() repeatedly
+
+	if len(srch.Results) == 0 {
+		vs := sessionintobulksearch(c, VECTORMAXLINES)
+		srch.Results = vs.Results
+		vs.Results = []DbWorkline{}
+	}
+
+	msg(fmt.Sprintf(MSG1, len(srch.Results)), MSGPEEK)
 
 	thetext := buildtextblock(srch.Results)
 
@@ -315,7 +322,7 @@ func fetchheadwordcounts(headwordset map[string]bool) map[string]int {
 		hw = append(hw, h)
 	}
 
-	msg(fmt.Sprintf(MSG1, len(headwordset)), MSGFYI)
+	msg(fmt.Sprintf(MSG1, len(headwordset)), MSGPEEK)
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
@@ -408,8 +415,8 @@ func readstopconfig(fn string) []string {
 	const (
 		ERR1 = "readstopconfig() cannot find UserHomeDir"
 		ERR2 = "readstopconfig() failed to parse "
-		MSG1 = "wrote vector stop configuration file: "
-		MSG2 = "read vector stop configuration from: "
+		MSG1 = "readstopconfig() wrote vector stop configuration file: "
+		MSG2 = "readstopconfig() read vector stop configuration from: "
 	)
 
 	var stops []string
@@ -500,6 +507,7 @@ func vectordbcheck(fp string) bool {
 func vectordbadd(fp string, embs embedding.Embeddings) {
 	const (
 		MSG1 = "vectordbadd(): "
+		MSG2 = "%s compression: %dk -> %dk (%.1f percent)"
 		INS  = `
 			INSERT INTO %s
 				(fingerprint, vectorsize, vectordata)
@@ -530,10 +538,10 @@ func vectordbadd(fp string, embs embedding.Embeddings) {
 
 	_, err = dbconn.Exec(context.Background(), ex, l2, b)
 	chke(err)
-	msg(MSG1+fp, MSGFYI)
+	msg(MSG1+fp, MSGPEEK)
 
-	// the savings is real: compressed is c. 27% of original
-	msg(fmt.Sprintf("vector compression: %dk -> %dk (%.1f percent)", l1/1024, l2/1024, (float32(l2)/float32(l1))*100), 3)
+	// compressed is c. 28% of original
+	msg(fmt.Sprintf(MSG2, fp, l1/1024, l2/1024, (float32(l2)/float32(l1))*100), MSGPEEK)
 }
 
 // vectordbfetch - get a set of embeddings from VECTORTABLENAME

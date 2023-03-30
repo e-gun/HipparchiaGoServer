@@ -64,40 +64,9 @@ func buildgraph(coreword string, nn map[string]search.Neighbors) string {
 
 // see also: https://echarts.apache.org/en/option.html#series-graph
 
-// type SingleSeries struct {
-//	Name string `json:"name,omitempty"`
-//	Type string `json:"type,omitempty"`
-//
-//	// Graph
-//	Links              interface{} `json:"links,omitempty"`
-//	Layout             string      `json:"layout,omitempty"`
-//	Force              interface{} `json:"force,omitempty"`
-//	Categories         interface{} `json:"categories,omitempty"`
-//	Roam               bool        `json:"roam,omitempty"`
-//	EdgeSymbol         interface{} `json:"edgeSymbol,omitempty"`
-//	EdgeSymbolSize     interface{} `json:"edgeSymbolSize,omitempty"`
-//	EdgeLabel          interface{} `json:"edgeLabel,omitempty"`
-//	Draggable          bool        `json:"draggable,omitempty"`
-//	FocusNodeAdjacency bool        `json:"focusNodeAdjacency,omitempty"`
-
 //	// series data
 //	Data interface{} `json:"data"`
 //
-//	// series options
-//	*opts.Encode        `json:"encode,omitempty"`
-//	*opts.ItemStyle     `json:"itemStyle,omitempty"`
-//	*opts.Label         `json:"label,omitempty"`
-//	*opts.LabelLine     `json:"labelLine,omitempty"`
-//	*opts.Emphasis      `json:"emphasis,omitempty"`
-//	*opts.MarkLines     `json:"markLine,omitempty"`
-//	*opts.MarkAreas     `json:"markArea,omitempty"`
-//	*opts.MarkPoints    `json:"markPoint,omitempty"`
-//	*opts.RippleEffect  `json:"rippleEffect,omitempty"`
-//	*opts.LineStyle     `json:"lineStyle,omitempty"`
-//	*opts.AreaStyle     `json:"areaStyle,omitempty"`
-//	*opts.TextStyle     `json:"textStyle,omitempty"`
-//	*opts.CircularStyle `json:"circular,omitempty"`
-//}
 
 //
 //	// The categories of node, which is optional. If there is a classification of nodes,
@@ -111,18 +80,20 @@ func buildgraph(coreword string, nn map[string]search.Neighbors) string {
 
 func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Graph {
 	const (
-		CHRTWIDTH    = "1536px"
-		CHRTHEIGHT   = "1024px"
-		SYMSIZE      = 25
-		SIZEDISTORT  = 2.0
-		PRECISON     = 4
-		REPULSION    = 8000
-		GRAVITY      = .1
-		EDGELEN      = 40
-		SERIESNAME   = "graph"
-		LAYOUTTYPE   = "force"
-		LABELPOSITON = "right"
-		DOTCOLOR     = "hsla(236, 44%, 45%, 1)"
+		CHRTWIDTH     = "1536px"
+		CHRTHEIGHT    = "1024px"
+		SYMSIZE       = 25
+		SIZEDISTORT   = 2.0
+		PRECISON      = 4
+		REPULSION     = 5000
+		GRAVITY       = .15
+		EDGELEN       = 40
+		SERIESNAME    = "graph"
+		LAYOUTTYPE    = "force"
+		LABELPOSITON  = "right"
+		DOTCOLOR      = "hsla(236, 44%, 45%, 1)"
+		LINECURVINESS = 0       // from 0 to 1
+		LINETYPE      = "solid" // "solid", "dashed", "dotted"
 	)
 
 	graph := charts.NewGraph()
@@ -172,14 +143,24 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 		}
 	}
 
+	ft := Config.Font
+	if ft == "Noto" {
+		ft = "'hipparchiasemiboldstatic', sans-serif"
+	}
+
 	graph.AddSeries(SERIESNAME, gnn, gll,
 		charts.WithLabelOpts(
 			opts.Label{
 				Show:       true,
 				Position:   LABELPOSITON,
-				FontFamily: Config.Font,
+				FontFamily: ft,
 			},
 		),
+		charts.WithLineStyleOpts(
+			opts.LineStyle{
+				Curveness: LINECURVINESS,
+				Type:      LINETYPE,
+			}),
 		charts.WithGraphChartOpts(
 			// https://github.com/go-echarts/go-echarts/opts/charts.go
 			// cf. https://echarts.apache.org/en/option.html#series-graph

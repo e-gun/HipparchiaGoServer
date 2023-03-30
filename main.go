@@ -94,6 +94,9 @@ func main() {
 
 	SelfStats("main() post-initialization")
 	msg(fmt.Sprintf(SUMM, time.Now().Sub(LaunchTime).Seconds()), MSGWARN)
+
+	go activatevectorbot()
+
 	StartEchoServer()
 }
 
