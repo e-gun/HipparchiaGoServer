@@ -1,27 +1,30 @@
 # HipparchiaGoServer
 
-### STATUS (v1.2.0):
+### STATUS (v1.2.1):
 
 * 25%-700% faster than HipparchiaServer depending on the function. Uses c. 60% as much RAM.
 * monolithic binary: no need for extra files/folders beyond setting a password in `hgs-conf.json`
 
 ### FEATURES
 
+* self-configuration first run
+* self-installation on first run 
 * searching
-* browsing 
-* selections 
-* exclusions 
-* not-near syntax
-* semantic vectors 
-* dictionaries
+  * search scope selections 
+  * search scope exclusions 
+  * near/not-near syntax
+  * progress polling
+* semantic vectors
+  * search for terms and yield an interactive graph of nearest neighbors
+  * choice of modeling algorithms
+  * configurable model parameters
+  * configurable lists of stop-words
+* text browsing
 * text maker
 * indexing (+ flag unique forms)
 * vocabulary list generation (+ flag unique headwords)
 * morphology tables
-* progress polling
-* self-configuration first run
-* self-installation on first run
-* semantic vectors: search for terms and yield an interactive graph of nearest neighbors
+* dictionaries
 
 ### INSTRUCTIONS
 * for installation, see the `INSTRUCTIONS` folder

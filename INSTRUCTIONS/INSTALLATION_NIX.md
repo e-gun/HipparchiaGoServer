@@ -65,7 +65,8 @@ CREATE EXTENSION pg_trgm;
 5. Thousands of messages will fly across the screen.
 6. Eventually the server will launch. The self-load process only has to happen once.
 NB: `hippa_rd` errors are safe to ignore.
-7. When you see `http server started on 127.0.0.1:8000` you are up and running. From here on out you can just double-click
-   to launch the program. You can also leave it running indefinitely. It does not consume many resources if not active: 0% CPU, <1% RAM.
+7. When you see `http server started on 127.0.0.1:8000` you are up and running. You might as well click and then bookmark the following: http://127.0.0.1:8000.
+   From here on out you can just double-click to launch the program. When the server is running, your browser can interact with http://127.0.0.1:8000.
+   You can also leave the server running indefinitely. It does not consume many resources if not active: 0% CPU, <1% RAM.
 
 ![launch](../gitimg/linux/03_linux_loaded.png)

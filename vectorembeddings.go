@@ -110,7 +110,7 @@ var (
 		SolverType:         "adagrad", // "sdg", "adagrad" available
 		SubsampleThreshold: 0.001,
 		ToLower:            false,
-		Verbose:            false,
+		Verbose:            true,
 		Window:             8,
 		Xmax:               100,
 	}
@@ -131,7 +131,7 @@ var (
 		SubsampleThreshold: 1.0e-3,
 		ToLower:            false,
 		UpdateLRBatch:      100000,
-		Verbose:            false,
+		Verbose:            true,
 		Window:             8,
 	}
 )

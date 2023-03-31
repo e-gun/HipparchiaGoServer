@@ -152,7 +152,7 @@ The default `hgs-vector-conf-glove.json`:
     "SubsampleThreshold": 0.001,
     "ToLower": false,
     "UpdateLRBatch": 100000,
-    "Verbose": false,
+    "Verbose": true,
     "Window": 8
   }
 ```
