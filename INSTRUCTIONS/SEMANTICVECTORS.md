@@ -162,22 +162,22 @@ The default `hgs-vector-conf-glove.json`:
 This is not the default model maker. It must be requested from the command line via the `-md glove` flag, or it 
 can be set in `hgs-prolix-conf.json`
 
-The results are currently not as satisfying as those obtained from Word2Vec. `CountType` has two options, `inc` 
-and `prox`. But the model will panic if you pick `prox`. `SolverType` can be either `sdg` or `adagrad`. Either is
-safe to use. 
+The results are currently not nearly as satisfying as those obtained from either Word2Vec or LexVec. 
+`CountType` has two options, `inc` and `prox`. But the model will panic if you pick `prox`. `SolverType` 
+can be either `sdg` or `adagrad`. Either is safe to use. 
 
 The default `hgs-vector-conf-glove.json`:
 
 ```
 {
-    "Alpha": 0.40,
-    "BatchSize": 6000,
+    "Alpha": 0.55,
+    "BatchSize": 1024,
     "CountType": "inc",
-    "Dim": 125,
-    "DocInMemory": true,
+    "Dim": 75,
+    "DocInMemory": false,
     "Goroutines": [= runtime.NumCPU() on your machine],
     "Initlr": 0.025,
-    "Iter": 15,
+    "Iter": 25,
     "LogBatch": 100000,
     "MaxCount": -1,
     "MinCount": 10,
@@ -186,9 +186,15 @@ The default `hgs-vector-conf-glove.json`:
     "ToLower": false,
     "Verbose": true,
     "Window": 8,
-    "Xmax": 100
+    "Xmax": 90
   }
   
+```
+
+from `https://github.com/stanfordnlp/GloVe/blob/master/src/glove.c`
+```
+real alpha = 0.75, x_max = 100.0; // Weighting function parameters, not extremely sensitive to corpus, though may need adjustment for very small or very large corpora
+
 ```
 
 See also https://nlp.stanford.edu/projects/glove/.

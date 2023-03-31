@@ -43,7 +43,7 @@ var (
 		"pro¹", "pro²", "ago", "deus", "annus", "locus", "homo", "pater", "eo²", "tantus", "fero", "quidem", "noster",
 		"an", "locum"}
 	LatExtra = []string{"at", "o", "tum", "tunc", "dum", "illic", "quia", "sive", "num", "adhuc", "tam", "ibi", "cur",
-		"usquam", "quoque", "duo", "talis", "simul", "igitur", "utique²", "aliqui", "apud", "sic", "umquam"}
+		"usquam", "quoque", "duo", "talis", "simul", "igitur", "utique²", "aliqui", "apud", "sic", "umquam", "ergo"}
 	LatStop = append(Latin100, LatExtra...)
 	// LatinKeep - members of LatStop we will not toss
 	LatinKeep = []string{"facio", "possum", "habeo", "video", "magnus", "bonus", "volo¹", "primus", "venio", "ago",
@@ -96,14 +96,14 @@ var (
 	// DefaultGloveVectors - wego's default: {0.75 10000 inc 10 false 20 0.025 15 100000 -1 5 sgd 0.001 false false 5 100}
 	DefaultGloveVectors = glove.Options{
 		// see also: https://nlp.stanford.edu/projects/glove/
-		Alpha:              0.40,
-		BatchSize:          6000,
+		Alpha:              0.55,
+		BatchSize:          1024,
 		CountType:          "inc", // "inc", "prox" available; but we panic on "prox"
-		Dim:                125,
+		Dim:                75,
 		DocInMemory:        true,
 		Goroutines:         20,
 		Initlr:             0.025,
-		Iter:               15,
+		Iter:               25,
 		LogBatch:           100000,
 		MaxCount:           -1,
 		MinCount:           10,
@@ -112,7 +112,7 @@ var (
 		ToLower:            false,
 		Verbose:            true,
 		Window:             8,
-		Xmax:               100,
+		Xmax:               90,
 	}
 	DefaultLexVecVectors = lexvec.Options{
 		BatchSize:          1024,

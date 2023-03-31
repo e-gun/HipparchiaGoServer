@@ -18,7 +18,7 @@ Items of most interest:
     "Authenticate": false,
     "BadChars": "\"'!@:,=_/",
     "BlackAndWhite": false,
-    "BrowserCtx": 12,
+    "BrowserCtx": 14,
     "DbDebug": false,
     "DefCorp": {
       "ch": false,
@@ -49,7 +49,7 @@ Items of most interest:
     "VectorsDisabled": false,
     "VectorBot": false,
     "VectorModel": "w2v",
-    "VocabByCt": false,
+    "VectorWebExt": false,
     "VocabByCt": false,
     "VocabScans": false,
     "WorkerCount": 6,
