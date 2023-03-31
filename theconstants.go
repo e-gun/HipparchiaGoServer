@@ -92,7 +92,7 @@ const (
 	VECTORTABLENAME          = "semantic_vectors"
 	VECTORMAXLINES           = 1000000 // 964403 lines will get you all of Latin
 	VECTORMODELDEFAULT       = "w2v"
-	VECTROWEBDEFAULT         = "expanded"
+	VECTROWEBEXTDEFAULT      = false
 	VOCABSCANSION            = false
 	VOCABBYCOUNT             = false
 	WRITEPERMS               = 0644

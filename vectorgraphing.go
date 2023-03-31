@@ -11,6 +11,7 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/opts"
+	"github.com/labstack/echo/v4"
 	"github.com/ynqa/wego/pkg/search"
 	"html/template"
 	"io"
@@ -23,7 +24,7 @@ import (
 //
 
 // buildgraph - generate the html and js for a nearest neighbors search
-func buildgraph(coreword string, nn map[string]search.Neighbors) string {
+func buildgraph(c echo.Context, coreword string, nn map[string]search.Neighbors) string {
 	// go-echarts is "too clever" and opaque about how to not do things its way
 	// we override their page.Render() to yield html+js (see the ModX and CustomX code below)
 	// this gets injected to the "vectorgraphing" div on frontpage.html
@@ -31,7 +32,7 @@ func buildgraph(coreword string, nn map[string]search.Neighbors) string {
 	// see also: https://echarts.apache.org/en/option.html#series-graph
 
 	// [a] acquire a charts.Graph
-	g := generategraph(coreword, nn)
+	g := generategraph(c, coreword, nn)
 	g.Validate()
 
 	// [b] we are building a page with only one chart and doing it by hand
@@ -78,7 +79,7 @@ func buildgraph(coreword string, nn map[string]search.Neighbors) string {
 //	EdgeLabel *EdgeLabel `json:"edgeLabel"`
 //}
 
-func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Graph {
+func generategraph(c echo.Context, coreword string, nn map[string]search.Neighbors) *charts.Graph {
 	const (
 		CHRTWIDTH     = "1536px"
 		CHRTHEIGHT    = "1024px"
@@ -89,7 +90,7 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 		REPULSION     = 5000
 		GRAVITY       = .15
 		EDGELEN       = 40
-		EDGEFNTSZ     = 9
+		EDGEFNTSZ     = 8
 		SERIESNAME    = "graph"
 		LAYOUTTYPE    = "force"
 		LABELPOSITON  = "right"
@@ -98,6 +99,8 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 		LINECURVINESS = 0       // from 0 to 1, but non-zero will double-up the lines...
 		LINETYPE      = "solid" // "solid", "dashed", "dotted"
 	)
+
+	se := AllSessions.GetSess(readUUIDCookie(c))
 
 	graph := charts.NewGraph()
 	graph.SetGlobalOptions(
@@ -108,7 +111,6 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 	var gnn []opts.GraphNode
 	var gll []opts.GraphLink
 	valuelabel := opts.EdgeLabel{Show: true, FontSize: EDGEFNTSZ, Formatter: "{c}"}
-	// periphvalue := opts.EdgeLabel{Show: false, FontSize: EDGEFNTSZ, Formatter: "{c}"}
 	dotstyle := opts.ItemStyle{Color: DOTCOLOR}
 	periphdot := opts.ItemStyle{Color: DOTCOLPERIPH}
 
@@ -142,6 +144,21 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 	// the relationships between the other words
 	coreterms := ToSet(StringMapKeysIntoSlice(nn))
 
+	// populate the nodes with just the core collection of terms
+	simpleweb := func() {
+		for t := range coreterms {
+			if t == coreword {
+				continue
+			}
+			for _, w := range nn[t] {
+				if _, ok := coreterms[w.Word]; ok {
+					gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
+				}
+			}
+		}
+	}
+
+	// populate the nodes with both the core terms and the neighbors of those terms as well
 	expandedweb := func() {
 		for t := range coreterms {
 			if t == coreword {
@@ -160,25 +177,10 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 		}
 	}
 
-	simpleweb := func() {
-		for t := range coreterms {
-			if t == coreword {
-				continue
-			}
-			for _, w := range nn[t] {
-				if _, ok := coreterms[w.Word]; ok {
-					gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
-				}
-			}
-		}
-	}
-
-	switch Config.VectorWeb {
-	case "simple":
-		// expandedweb()
-		simpleweb()
-	default:
+	if se.VecGraphExt {
 		expandedweb()
+	} else {
+		simpleweb()
 	}
 
 	ft := Config.Font

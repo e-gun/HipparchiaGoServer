@@ -30,7 +30,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	}
 
 	nn := generateneighborsdata(c, srch)
-	img := buildgraph(term, nn)
+	img := buildgraph(c, term, nn)
 
 	neighbors := nn[term]
 	// [c] prepare text output

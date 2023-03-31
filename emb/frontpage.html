@@ -92,6 +92,19 @@
         <input type="checkbox" id="vocscansion" value="no">include scansion information
     </p>
 
+    <p class="optionlabel">Semantic vector graphs</p>
+    <p class="optionitem">
+        <input type="checkbox" id="extendedgraph" value="no">graphs include neighbors of neighbors
+    </p>
+    <p class="optionlabel">Semantic vector modeler</p>
+    <p class="optionitem">
+        <select name="modeler" id="modeler">
+            <option value="w2v">Word2Vec</option>
+            <option value="lexvec">LexVec</option>
+            <option value="glove">GloVe</option>
+        </select>
+    </p>
+
 </div>
 
 <!-- left and right side modal boxes for lexica and morphology maps -->
@@ -249,7 +262,7 @@
             <input id="proximatesearchform" type="text" name="proximate" placeholder="(near... and within...)" size=25>
             <input id="proximatelemmatasearchform" type="text" name="lemmata" placeholder="(near all forms of... and within...)" size=25>
             <span id="termtwocheckbox">
-                <span class="small">λ</span><input type="checkbox" id="termtwoisalemma" value="yes">
+                <span class="small rarechars">λ</span><input type="checkbox" id="termtwoisalemma" value="yes">
             </span>
 
             <input id="proximityspinner" type="text" size="2" value="{{index . "proxval"}}">
@@ -350,7 +363,7 @@
 
     <div id="lemmatizing-ison"><span class="rarechars activeoption">λ</span></div>
     <div id="lemmatizing-isoff"><span class="activeoption"></span></div>
-    <div id="vectorizing-ison"><span class="rarechars activeoption">ṽ</span></div>
+    <div id="vectorizing-ison"><span class="rarechars activeoption">v⃗</span></div>
     <div id="vectorizing-isoff"><span class="activeoption"></span></div>
     <br>
 

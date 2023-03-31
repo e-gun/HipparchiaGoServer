@@ -26,6 +26,7 @@ function loadoptions() {
             'debugdb': $('#debugdb'),
             'debuglex': $('#debuglex'),
             'debugparse': $('#debugparse'),
+            'extendedgraph': $('#extendedgraph'),
             'greekcorpus': $('#greekcorpus'),
             'incerta': $('#includeincerta'),
             'indexskipsknownwords': $('#indexskipsknownwords'),

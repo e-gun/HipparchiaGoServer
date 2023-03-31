@@ -47,6 +47,7 @@ type ServerSession struct {
 	TmpStr      string
 	LoginName   string
 	VecSearch   bool
+	VecGraphExt bool
 }
 
 //
@@ -111,6 +112,7 @@ func MakeDefaultSession(id string) ServerSession {
 	s.LoginName = "Anonymous"
 	s.VocScansion = Config.VocabScans
 	s.VocByCount = Config.VocabByCt
+	s.VecGraphExt = Config.VectorWebExt
 	s.VecSearch = false
 
 	if Config.Authenticate {

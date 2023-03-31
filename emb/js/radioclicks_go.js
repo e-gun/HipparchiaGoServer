@@ -103,6 +103,12 @@ $('#vocscansion').change(function() {
     loadoptions();
 });
 
+$('#extendedgraph').change(function() {
+    if(this.checked) { setoptions('extendedgraph', 'yes'); } else { setoptions('extendedgraph', 'no'); }
+    refreshselections();
+    loadoptions();
+});
+
 // lemmata and vectors
 
 $('#isvectorsearch').change(function() {

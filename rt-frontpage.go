@@ -31,7 +31,7 @@ func RtFrontpage(c echo.Context) error {
 		SPACER   = "    "
 		VECTORS  = `
         <span id="vectorsearchcheckbox">
-            <span class="small">v⃗</span><input type="checkbox" id="isvectorsearch" value="yes">
+            <span class="rarechars small">v⃗</span><input type="checkbox" id="isvectorsearch" value="yes">
         </span>`
 	)
 	// will set if missing
