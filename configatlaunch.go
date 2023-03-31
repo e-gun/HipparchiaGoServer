@@ -38,6 +38,7 @@ type CurrentConfiguration struct {
 	VectorsDisabled bool
 	VectorBot       bool
 	VectorModel     string
+	VectorWeb       string // "simple" or "expanded"
 	VocabByCt       bool
 	VocabScans      bool
 	WorkerCount     int
@@ -284,6 +285,7 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.VectorBot = false
 	c.VectorModel = VECTORMODELDEFAULT
 	c.VectorsDisabled = false
+	c.VectorWeb = VECTROWEBDEFAULT
 	c.VocabByCt = VOCABBYCOUNT
 	c.VocabScans = VOCABSCANSION
 	c.WorkerCount = runtime.NumCPU()

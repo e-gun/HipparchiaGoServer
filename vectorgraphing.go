@@ -83,7 +83,8 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 		CHRTWIDTH     = "1536px"
 		CHRTHEIGHT    = "1024px"
 		SYMSIZE       = 25
-		SIZEDISTORT   = 2.0
+		PERIPHSYMSZ   = 15
+		SIZEDISTORT   = 2.25
 		PRECISON      = 4
 		REPULSION     = 5000
 		GRAVITY       = .15
@@ -93,6 +94,7 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 		LAYOUTTYPE    = "force"
 		LABELPOSITON  = "right"
 		DOTCOLOR      = "hsla(236, 44%, 45%, 1)"
+		DOTCOLPERIPH  = "hsla(236, 44%, 70%, 1)"
 		LINECURVINESS = 0       // from 0 to 1, but non-zero will double-up the lines...
 		LINETYPE      = "solid" // "solid", "dashed", "dotted"
 	)
@@ -106,7 +108,9 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 	var gnn []opts.GraphNode
 	var gll []opts.GraphLink
 	valuelabel := opts.EdgeLabel{Show: true, FontSize: EDGEFNTSZ, Formatter: "{c}"}
+	// periphvalue := opts.EdgeLabel{Show: false, FontSize: EDGEFNTSZ, Formatter: "{c}"}
 	dotstyle := opts.ItemStyle{Color: DOTCOLOR}
+	periphdot := opts.ItemStyle{Color: DOTCOLPERIPH}
 
 	round := func(val float64) float32 {
 		ratio := math.Pow(10, float64(PRECISON))
@@ -121,27 +125,60 @@ func generategraph(coreword string, nn map[string]search.Neighbors) *charts.Grap
 		}
 	}
 
+	used := make(map[string]bool)
+
 	// the center point
 	gnn = append(gnn, opts.GraphNode{Name: coreword, Value: 0, SymbolSize: fmt.Sprintf("%.4f", SYMSIZE*SIZEDISTORT), ItemStyle: &dotstyle})
+	used[coreword] = true
 
 	// the words directly related to this word
 	for _, w := range nn[coreword] {
 		sizemod := fmt.Sprintf("%.4f", ((w.Similarity/maxsim)*SIZEDISTORT)*SYMSIZE)
 		gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: round(w.Similarity), SymbolSize: sizemod, ItemStyle: &dotstyle})
 		gll = append(gll, opts.GraphLink{Source: coreword, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
+		used[w.Word] = true
 	}
 
-	// the relationships between the other words [fancier would be to have each word center its own cluster]
+	// the relationships between the other words
 	coreterms := ToSet(StringMapKeysIntoSlice(nn))
-	for t := range coreterms {
-		if t == coreword {
-			continue
-		}
-		for _, w := range nn[t] {
-			if _, ok := coreterms[w.Word]; ok {
+
+	expandedweb := func() {
+		for t := range coreterms {
+			if t == coreword {
+				continue
+			}
+			for _, w := range nn[t] {
+				if _, ok := coreterms[w.Word]; ok {
+					gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
+				}
+				if _, ok := used[w.Word]; !ok {
+					gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: round(w.Similarity), SymbolSize: PERIPHSYMSZ, ItemStyle: &periphdot})
+					used[w.Word] = true
+				}
 				gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
 			}
 		}
+	}
+
+	simpleweb := func() {
+		for t := range coreterms {
+			if t == coreword {
+				continue
+			}
+			for _, w := range nn[t] {
+				if _, ok := coreterms[w.Word]; ok {
+					gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
+				}
+			}
+		}
+	}
+
+	switch Config.VectorWeb {
+	case "simple":
+		// expandedweb()
+		simpleweb()
+	default:
+		expandedweb()
 	}
 
 	ft := Config.Font
