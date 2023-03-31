@@ -124,6 +124,39 @@ will differ. In fact, one often seems to be more interesting than the other.
 
 On models see also: https://link.springer.com/article/10.1007/s41019-019-0096-6
 
+## LexVec
+
+This is not the default model maker. It must be requested from the command line via the `-md lexvec` flag, or it
+can be set in `hgs-prolix-conf.json`.
+
+The results are of comparable quality to those offered by Word2Vec. `RelationType` has four options: `ppmi`, 
+`pmi`, `co`, and `logco`. 
+
+The default `hgs-vector-conf-glove.json`:
+
+```
+{
+    "BatchSize": 1024,
+    "Dim": 125,
+    "DocInMemory": true,
+    "Goroutines": [= runtime.NumCPU() on your machine],
+    "Initlr": 0.025,
+    "Iter": 15,
+    "LogBatch": 100000,
+    "MaxCount": -1,
+    "MinCount": 10,
+    "MinLR": 0.0000025,
+    "NegativeSampleSize": 5,
+    "RelationType": "ppmi",
+    "Smooth": 0.75,
+    "SubsampleThreshold": 0.001,
+    "ToLower": false,
+    "UpdateLRBatch": 100000,
+    "Verbose": false,
+    "Window": 8
+  }
+```
+
 ## GloVe
 
 This is not the default model maker. It must be requested from the command line via the `-md glove` flag, or it 

@@ -17,6 +17,7 @@ import (
 	"github.com/ynqa/wego/pkg/embedding"
 	"github.com/ynqa/wego/pkg/model"
 	"github.com/ynqa/wego/pkg/model/glove"
+	"github.com/ynqa/wego/pkg/model/lexvec"
 	"github.com/ynqa/wego/pkg/model/modelutil/vector"
 	"github.com/ynqa/wego/pkg/model/word2vec"
 	"github.com/ynqa/wego/pkg/search"
@@ -112,6 +113,26 @@ var (
 		Verbose:            false,
 		Window:             8,
 		Xmax:               100,
+	}
+	DefaultLexVecVectors = lexvec.Options{
+		BatchSize:          1024,
+		Dim:                125,
+		DocInMemory:        true,
+		Goroutines:         20,
+		Initlr:             0.025,
+		Iter:               15,
+		LogBatch:           100000,
+		MaxCount:           -1,
+		MinCount:           10,
+		MinLR:              0.025 * 1.0e-4,
+		NegativeSampleSize: 5,
+		RelationType:       "ppmi", // "ppmi", "pmi", "co", "logco" are available
+		Smooth:             0.75,
+		SubsampleThreshold: 1.0e-3,
+		ToLower:            false,
+		UpdateLRBatch:      100000,
+		Verbose:            false,
+		Window:             8,
 	}
 )
 
@@ -229,6 +250,12 @@ func generateembeddings(c echo.Context, srch SearchStruct) embedding.Embeddings 
 	switch Config.VectorModel {
 	case "glove":
 		m, err := glove.NewForOptions(glovevectorconfig())
+		if err != nil {
+			msg(FAIL1, 1)
+		}
+		vmodel = m
+	case "lexvec":
+		m, err := lexvec.NewForOptions(lexvecvectorconfig())
 		if err != nil {
 			msg(FAIL1, 1)
 		}
@@ -450,6 +477,51 @@ func w2vvectorconfig() word2vec.Options {
 	return cfg
 }
 
+// lexvecvectorconfig() - read the CONFIGVECTORW2V file and return word2vec.Options
+func lexvecvectorconfig() lexvec.Options {
+	const (
+		ERR1 = "w2vvectorconfig() cannot find UserHomeDir"
+		ERR2 = "w2vvectorconfig() failed to parse "
+		MSG1 = "wrote default vector configuration file "
+		MSG2 = "read vector configuration from "
+	)
+
+	// cfg := lexvec.DefaultOptions()
+	cfg := DefaultLexVecVectors
+	cfg.Goroutines = runtime.NumCPU()
+
+	h, e := os.UserHomeDir()
+	if e != nil {
+		msg(ERR1, 0)
+		return cfg
+	}
+
+	_, yes := os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORLEXVEX)
+
+	if yes != nil {
+		content, err := json.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
+		chke(err)
+
+		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTORLEXVEX, content, WRITEPERMS)
+		chke(err)
+		msg(MSG1+CONFIGVECTORLEXVEX, MSGPEEK)
+	} else {
+		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORLEXVEX)
+		decoderc := json.NewDecoder(loadedcfg)
+		vc := lexvec.Options{}
+		errc := decoderc.Decode(&vc)
+		_ = loadedcfg.Close()
+		if errc != nil {
+			msg(ERR2+CONFIGVECTORLEXVEX, MSGCRIT)
+			cfg = DefaultLexVecVectors
+		}
+		msg(MSG2+CONFIGVECTORLEXVEX, MSGTMI)
+		cfg = vc
+	}
+
+	return cfg
+}
+
 // glovevectorconfig() - read the CONFIGVECTORW2V file and return word2vec.Options
 func glovevectorconfig() glove.Options {
 	const (
@@ -477,7 +549,7 @@ func glovevectorconfig() glove.Options {
 
 		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTORGLOVE, content, WRITEPERMS)
 		chke(err)
-		msg(MSG1+CONFIGVECTORW2V, MSGPEEK)
+		msg(MSG1+CONFIGVECTORGLOVE, MSGPEEK)
 	} else {
 		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORGLOVE)
 		decoderc := json.NewDecoder(loadedcfg)

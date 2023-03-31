@@ -50,6 +50,9 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		<td class="vectorrank">Word</td>
 	</tr>
     %s
+    <tr class="vectorrow">
+        <td class="vectorrank small" colspan = "7">(model type: %s)</td>
+    </tr>
 	</tbody></table>`
 
 	tr := `
@@ -86,7 +89,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		tablerows = append(tablerows, fmt.Sprintf(tr, rn, columnone[i], columntwo[i]))
 	}
 
-	out := fmt.Sprintf(tb, term, strings.Join(tablerows, "\n"))
+	out := fmt.Sprintf(tb, term, strings.Join(tablerows, "\n"), Config.VectorModel)
 
 	soj := SearchOutputJSON{
 		Title:         fmt.Sprintf("Neighbors of '%s'", term),
@@ -154,6 +157,10 @@ func fingerprintvectorsearch(srch SearchStruct) string {
 	switch Config.VectorModel {
 	case "glove":
 		ff, ee := json.Marshal(glovevectorconfig())
+		f4 = ff
+		e4 = ee
+	case "lexvec":
+		ff, ee := json.Marshal(lexvecvectorconfig())
 		f4 = ff
 		e4 = ee
 	default:
