@@ -147,8 +147,21 @@ func fingerprintvectorsearch(srch SearchStruct) string {
 
 	f1, e1 := json.Marshal(inc)
 	f2, e2 := json.Marshal(exc)
-	f3, e3 := json.Marshal(vectorconfig())
-	f4, e4 := json.Marshal(stops)
+	f3, e3 := json.Marshal(stops)
+
+	var f4 []byte
+	var e4 error
+	switch Config.VectorModel {
+	case "glove":
+		ff, ee := json.Marshal(glovevectorconfig())
+		f4 = ff
+		e4 = ee
+	default:
+		ff, ee := json.Marshal(w2vvectorconfig())
+		f4 = ff
+		e4 = ee
+	}
+
 	if e1 != nil || e2 != nil || e3 != nil || e4 != nil {
 		msg(FAIL, 0)
 		os.Exit(1)
@@ -327,9 +340,9 @@ func activatevectorbot() {
 	time.Sleep(2 * time.Second)
 
 	count := 0
+	var size int64
 
-	vs := func() int {
-		var size int
+	vs := func() int64 {
 		dbconn := GetPSQLconnection()
 		defer dbconn.Release()
 		err := dbconn.QueryRow(context.Background(), SZQ).Scan(&size)

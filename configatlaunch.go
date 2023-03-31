@@ -37,6 +37,7 @@ type CurrentConfiguration struct {
 	TickerActive    bool
 	VectorsDisabled bool
 	VectorBot       bool
+	VectorModel     string
 	VocabByCt       bool
 	VocabScans      bool
 	WorkerCount     int
@@ -205,9 +206,11 @@ func ConfigAtLaunch() {
 			printbuildinfo()
 			ht := styleoutput(coloroutput(HELPTEXT))
 			fmt.Println(fmt.Sprintf(ht, pwf, DEFAULTBROWSERCTX, CONFIGLOCATION, CONFIGBASIC, h, CONFIGBASIC,
-				DEFAULTECHOLOGLEVEL, HDBFOLDER, DEFAULTGOLOGLEVEL, SERVEDFROMHOST, SERVEDFROMPORT,
-				UNACCEPTABLEINPUT, runtime.NumCPU(), CONFIGPROLIX, h, PROJURL))
+				DEFAULTECHOLOGLEVEL, HDBFOLDER, DEFAULTGOLOGLEVEL, "w2v", "glove", VECTORMODELDEFAULT, SERVEDFROMHOST,
+				SERVEDFROMPORT, UNACCEPTABLEINPUT, runtime.NumCPU(), CONFIGPROLIX, h, PROJURL))
 			os.Exit(0)
+		case "-md":
+			Config.VectorModel = args[i+1]
 		case "-pg":
 			js := args[i+1]
 			var pl PostgresLogin
@@ -279,6 +282,7 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.SelfTest = 0
 	c.TickerActive = TICKERISACTIVE
 	c.VectorBot = false
+	c.VectorModel = VECTORMODELDEFAULT
 	c.VectorsDisabled = false
 	c.VocabByCt = VOCABBYCOUNT
 	c.VocabScans = VOCABSCANSION

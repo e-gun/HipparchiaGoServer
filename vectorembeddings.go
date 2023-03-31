@@ -15,11 +15,14 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
 	"github.com/ynqa/wego/pkg/embedding"
+	"github.com/ynqa/wego/pkg/model"
+	"github.com/ynqa/wego/pkg/model/glove"
 	"github.com/ynqa/wego/pkg/model/modelutil/vector"
 	"github.com/ynqa/wego/pkg/model/word2vec"
 	"github.com/ynqa/wego/pkg/search"
 	"io"
 	"os"
+	"runtime"
 	"sort"
 	"strings"
 )
@@ -59,16 +62,16 @@ var (
 		"ὅμοιοϲ", "ἕκαϲτοϲ", "ὁμοῖοϲ", "ὥϲτε", "ἡμέρα", "γράφω", "δραχμή", "μέροϲ"}
 	GreekExtra = []string{"ἀεί", "ὡϲαύτωϲ", "μηδέποτε", "μηδέ", "μηδ", "μηδέ", "ταὐτόϲ", "νυνί", "μεθ", "ἀντ", "μέχρι",
 		"ἄνωθεν", "ὀκτώ", "ἓξ", "μετ", "τ", "μ", "αὐτόθ", "οὐδ", "εἵνεκ", "νόϲφι", "ἐκεῖ", "οὔκουν", "θ", "μάλιϲτ", "ὧδε",
-		"πη", "τῇδ", "δι", "πρό", "ἀλλ", "ἕνεκα", "δ", "ἀλλά", "ἔπειτα", " καθ", "ταῦθ", "μήποτ"}
+		"πη", "τῇδ", "δι", "πρό", "ἀλλ", "ἕνεκα", "δ", "ἀλλά", "ἔπειτα", " καθ", "ταῦθ", "μήποτ", "ἀπ"}
 	GreekStop = append(Greek150, GreekExtra...)
 	// GreekKeep - members of GreekStop we will not toss
 	GreekKeep = []string{"ἔχω", "λέγω¹", "θεόϲ", "φημί", "ποιέω", "ἵημι", "μόνοϲ", "κύριοϲ", "πόλιϲ", "θεάομαι", "δοκέω", "λαμβάνω",
 		"δίδωμι", "βαϲιλεύϲ", "φύϲιϲ", "ἔτοϲ", "πατήρ", "ϲῶμα", "καλέω", "ἐρῶ", "υἱόϲ", "γαῖα", "ἀνήρ", "ὁράω",
 		"ψυχή", "δύναμαι", "ἀρχή", "καλόϲ", "δύναμιϲ", "ἀγαθόϲ", "οἶδα", "δείκνυμι", "χρόνοϲ", "γράφω", "δραχμή",
 		"μέροϲ", "λόγοϲ"}
-	LatinStops     = getlatinstops()
-	GreekStops     = getgreekstops()
-	DefaultVectors = word2vec.Options{
+	LatinStops        = getlatinstops()
+	GreekStops        = getgreekstops()
+	DefaultW2VVectors = word2vec.Options{
 		BatchSize:          1024,
 		Dim:                125,
 		DocInMemory:        true,
@@ -88,6 +91,27 @@ var (
 		UpdateLRBatch:      100000,
 		Verbose:            true,
 		Window:             8,
+	}
+	// DefaultGloveVectors - wego's default: {0.75 10000 inc 10 false 20 0.025 15 100000 -1 5 sgd 0.001 false false 5 100}
+	DefaultGloveVectors = glove.Options{
+		// see also: https://nlp.stanford.edu/projects/glove/
+		Alpha:              0.40,
+		BatchSize:          6000,
+		CountType:          "inc", // "inc", "prox" available; but we panic on "prox"
+		Dim:                125,
+		DocInMemory:        true,
+		Goroutines:         20,
+		Initlr:             0.025,
+		Iter:               15,
+		LogBatch:           100000,
+		MaxCount:           -1,
+		MinCount:           10,
+		SolverType:         "adagrad", // "sdg", "adagrad" available
+		SubsampleThreshold: 0.001,
+		ToLower:            false,
+		Verbose:            false,
+		Window:             8,
+		Xmax:               100,
 	}
 )
 
@@ -173,9 +197,10 @@ func generateneighborsdata(c echo.Context, srch SearchStruct) map[string]search.
 // generateembeddings - turn a search into a collection of semantic vector embeddings
 func generateembeddings(c echo.Context, srch SearchStruct) embedding.Embeddings {
 	const (
-		FAIL1 = "word2vec model initialization failed"
+		FAIL1 = "model initialization failed"
 		FAIL2 = "generateembeddings() failed to train vector embeddings"
 		MSG1  = "generateembeddings() gathered %d lines"
+		MSG2  = "generateembeddings() successfuly trained a %s model"
 	)
 
 	// vectorbot sends a search with pre-generated results:
@@ -199,21 +224,35 @@ func generateembeddings(c echo.Context, srch SearchStruct) embedding.Embeddings 
 
 	// [a] vectorize the text block
 
-	vmodel, err := word2vec.NewForOptions(vectorconfig())
-	if err != nil {
-		msg(FAIL1, 1)
+	var vmodel model.Model
+
+	switch Config.VectorModel {
+	case "glove":
+		m, err := glove.NewForOptions(glovevectorconfig())
+		if err != nil {
+			msg(FAIL1, 1)
+		}
+		vmodel = m
+	default:
+		m, err := word2vec.NewForOptions(w2vvectorconfig())
+		if err != nil {
+			msg(FAIL1, 1)
+		}
+		vmodel = m
 	}
 
 	// input for  word2vec.Train() is 'io.ReadSeeker'
 	b := bytes.NewReader([]byte(thetext))
-	if err = vmodel.Train(b); err != nil {
+	if err := vmodel.Train(b); err != nil {
 		msg(FAIL2, 1)
+	} else {
+		msg(fmt.Sprintf(MSG2, Config.VectorModel), MSGTMI)
 	}
 
 	// use buffers; skip the disk; psql used for storage: vectordbadd() & vectordbfetch()
 	var buf bytes.Buffer
 	w := io.Writer(&buf)
-	err = vmodel.Save(w, vector.Agg)
+	err := vmodel.Save(w, vector.Agg)
 
 	r := io.Reader(&buf)
 	embs, err := embedding.Load(r)
@@ -366,17 +405,18 @@ func fetchheadwordcounts(headwordset map[string]bool) map[string]int {
 // WEGO NOTES AND DEFAULTS
 //
 
-// vectorconfig - read the CONFIGVECTOR file and return word2vec.Options
-func vectorconfig() word2vec.Options {
+// w2vvectorconfig - read the CONFIGVECTORW2V file and return word2vec.Options
+func w2vvectorconfig() word2vec.Options {
 	const (
-		ERR1 = "vectorconfig() cannot find UserHomeDir"
-		ERR2 = "vectorconfig() failed to parse "
+		ERR1 = "w2vvectorconfig() cannot find UserHomeDir"
+		ERR2 = "w2vvectorconfig() failed to parse "
 		MSG1 = "wrote default vector configuration file "
 		MSG2 = "read vector configuration from "
 	)
 
 	// cfg := word2vec.DefaultOptions()
-	cfg := DefaultVectors
+	cfg := DefaultW2VVectors
+	cfg.Goroutines = runtime.NumCPU()
 
 	h, e := os.UserHomeDir()
 	if e != nil {
@@ -384,26 +424,71 @@ func vectorconfig() word2vec.Options {
 		return cfg
 	}
 
-	_, yes := os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTOR)
+	_, yes := os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORW2V)
 
 	if yes != nil {
 		content, err := json.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
 		chke(err)
 
-		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTOR, content, WRITEPERMS)
+		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTORW2V, content, WRITEPERMS)
 		chke(err)
-		msg(MSG1+CONFIGVECTOR, MSGPEEK)
+		msg(MSG1+CONFIGVECTORW2V, MSGPEEK)
 	} else {
-		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTOR)
+		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORW2V)
 		decoderc := json.NewDecoder(loadedcfg)
 		vc := word2vec.Options{}
 		errc := decoderc.Decode(&vc)
 		_ = loadedcfg.Close()
 		if errc != nil {
-			msg(ERR2+CONFIGVECTOR, MSGCRIT)
-			cfg = DefaultVectors
+			msg(ERR2+CONFIGVECTORW2V, MSGCRIT)
+			cfg = DefaultW2VVectors
 		}
-		msg(MSG2+CONFIGVECTOR, MSGTMI)
+		msg(MSG2+CONFIGVECTORW2V, MSGTMI)
+		cfg = vc
+	}
+
+	return cfg
+}
+
+// glovevectorconfig() - read the CONFIGVECTORW2V file and return word2vec.Options
+func glovevectorconfig() glove.Options {
+	const (
+		ERR1 = "w2vvectorconfig() cannot find UserHomeDir"
+		ERR2 = "w2vvectorconfig() failed to parse "
+		MSG1 = "wrote default vector configuration file "
+		MSG2 = "read vector configuration from "
+	)
+
+	// cfg := glove.DefaultOptions()
+	cfg := DefaultGloveVectors
+	cfg.Goroutines = runtime.NumCPU()
+
+	h, e := os.UserHomeDir()
+	if e != nil {
+		msg(ERR1, 0)
+		return cfg
+	}
+
+	_, yes := os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORGLOVE)
+
+	if yes != nil {
+		content, err := json.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
+		chke(err)
+
+		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTORGLOVE, content, WRITEPERMS)
+		chke(err)
+		msg(MSG1+CONFIGVECTORW2V, MSGPEEK)
+	} else {
+		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORGLOVE)
+		decoderc := json.NewDecoder(loadedcfg)
+		vc := glove.Options{}
+		errc := decoderc.Decode(&vc)
+		_ = loadedcfg.Close()
+		if errc != nil {
+			msg(ERR2+CONFIGVECTORGLOVE, MSGCRIT)
+			cfg = DefaultGloveVectors
+		}
+		msg(MSG2+CONFIGVECTORGLOVE, MSGTMI)
 		cfg = vc
 	}
 

@@ -19,7 +19,8 @@ models. Instead users will need to manually edit configuration files. Neverthele
 no need to edit these files. The defaults are sensible. Only the very keen and very curious will change them.
 
 Vector models have three relevant configuration files stored inside of `~/.config/`. These are:
-* `hgs-vector-conf.json`
+* `hgs-vector-conf-w2v.json`
+* `hgs-vector-conf-glove.json`
 * `hgs-vector-stops-greek.json`
 * `hgs-vector-stops-latin.json`
 
@@ -35,6 +36,10 @@ new settings.
 The `stops` are lists of terms you wish to omit from the model. These should be common words that reveal little about the
 underlying collection of words: "the", "this", "a", "where", "so" ... 
 
+## Word2Vec
+
+This is the default model maker. 
+
 The default model building values follow. The values that one is most likely to adjust are `BatchSize`, `Dim`, `Iter`, 
 and `Window`.
 
@@ -45,6 +50,8 @@ and `Window`.
 
 Tinkering with these four settings is not a bad idea. It would be a good idea to read up on `word2vec` before exploring
 the other settings. 
+
+The default `hgs-vector-conf-w2v.json`:
 
 ```
 {
@@ -116,3 +123,39 @@ Individual model results do not repeat because `word2vec.Train()` in `pkg/model/
 will differ. In fact, one often seems to be more interesting than the other. 
 
 On models see also: https://link.springer.com/article/10.1007/s41019-019-0096-6
+
+## GloVe
+
+This is not the default model maker. It must be requested from the command line via the `-md glove` flag, or it 
+can be set in `hgs-prolix-conf.json`
+
+The results are currently not as satisfying as those obtained from Word2Vec. `CountType` has two options, `inc` 
+and `prox`. But the model will panic if you pick `prox`. `SolverType` can be either `sdg` or `adagrad`. Either is
+safe to use. 
+
+The default `hgs-vector-conf-glove.json`:
+
+```
+{
+    "Alpha": 0.40,
+    "BatchSize": 6000,
+    "CountType": "inc",
+    "Dim": 125,
+    "DocInMemory": true,
+    "Goroutines": [= runtime.NumCPU() on your machine],
+    "Initlr": 0.025,
+    "Iter": 15,
+    "LogBatch": 100000,
+    "MaxCount": -1,
+    "MinCount": 10,
+    "SolverType": "adagrad",
+    "SubsampleThreshold": 0.001,
+    "ToLower": false,
+    "Verbose": true,
+    "Window": 8,
+    "Xmax": 100
+  }
+  
+```
+
+See also https://nlp.stanford.edu/projects/glove/.

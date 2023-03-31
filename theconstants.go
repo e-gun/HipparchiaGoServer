@@ -19,7 +19,8 @@ const (
 	CONFIGAUTH               = "hgs-users.json"
 	CONFIGBASIC              = "hgs-conf.json"
 	CONFIGPROLIX             = "hgs-prolix-conf.json"
-	CONFIGVECTOR             = "hgs-vector-conf.json"
+	CONFIGVECTORW2V          = "hgs-vector-conf-w2v.json"
+	CONFIGVECTORGLOVE        = "hgs-vector-conf-glove.json"
 	CONFIGVECTORSTOPSLAT     = "hgs-vector-stops-latin.json"
 	CONFIGVECTORSTOPSGRK     = "hgs-vector-stops-greek.json"
 	DBAUMAPSIZE              = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
@@ -89,6 +90,7 @@ const (
 	VECTORNEIGHBORS          = 18
 	VECTORTABLENAME          = "semantic_vectors"
 	VECTORMAXLINES           = 1000000 // 964403 lines will get you all of Latin
+	VECTORMODELDEFAULT       = "w2v"
 	VOCABSCANSION            = false
 	VOCABBYCOUNT             = false
 	WRITEPERMS               = 0644
@@ -132,6 +134,7 @@ const (
    C1-glC0 C2{num}C0    set golang log level (C10-5C0) [default: C3%dC0]
    C1-gzC0          enable gzip compression of the server's output
    C1-hC0           print this help information
+   C1-mdC0 C2{string}C0 set the vector model type; available: C3%sC0 & C3%sC0 [default: C3%sC0]
    C1-pgC0 C2{string}C0 supply full PostgreSQL credentials C4(†)C0
    C1-qC0           quiet startup: suppress copyright notice
    C1-rvC0          reset the stored semantic vector table
