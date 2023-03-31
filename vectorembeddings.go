@@ -173,15 +173,17 @@ func generateneighborsdata(c echo.Context, srch SearchStruct) map[string]search.
 		FAIL2 = "generateneighborsdata() failed to produce a Searcher"
 		FAIL3 = "generateneighborsdata() failed to yield Neighbors"
 	)
+	se := AllSessions.GetSess(readUUIDCookie(c))
+	mt := se.VecModeler
 
-	fp := fingerprintvectorsearch(srch)
+	fp := fingerprintvectorsearch(srch, mt)
 	isstored := vectordbcheck(fp)
 	var embs embedding.Embeddings
 	if isstored {
 		msg(MSG1, MSGPEEK)
 		embs = vectordbfetch(fp)
 	} else {
-		embs = generateembeddings(c, srch)
+		embs = generateembeddings(c, mt, srch)
 		vectordbadd(fp, embs)
 	}
 
@@ -216,7 +218,7 @@ func generateneighborsdata(c echo.Context, srch SearchStruct) map[string]search.
 }
 
 // generateembeddings - turn a search into a collection of semantic vector embeddings
-func generateembeddings(c echo.Context, srch SearchStruct) embedding.Embeddings {
+func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) embedding.Embeddings {
 	const (
 		FAIL1 = "model initialization failed"
 		FAIL2 = "generateembeddings() failed to train vector embeddings"
@@ -226,6 +228,7 @@ func generateembeddings(c echo.Context, srch SearchStruct) embedding.Embeddings 
 
 	// vectorbot sends a search with pre-generated results:
 	// lack of a real session means we can't call readUUIDCookie() repeatedly
+	// this also means we need have the "modeltype" parameter as well (bot: configtype; surfer: sessiontype)
 
 	if len(srch.Results) == 0 {
 		vs := sessionintobulksearch(c, VECTORMAXLINES)
@@ -247,7 +250,7 @@ func generateembeddings(c echo.Context, srch SearchStruct) embedding.Embeddings 
 
 	var vmodel model.Model
 
-	switch Config.VectorModel {
+	switch modeltype {
 	case "glove":
 		m, err := glove.NewForOptions(glovevectorconfig())
 		if err != nil {

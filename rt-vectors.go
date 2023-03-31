@@ -21,21 +21,9 @@ import (
 
 // VectorSearch - a special case for RtSearch() where you requested vectorization of the results
 func VectorSearch(c echo.Context, srch SearchStruct) error {
-	c.Response().After(func() { SelfStats("VectorSearch()") })
-
-	term := srch.LemmaOne
-	if term == "" {
-		// JS not supposed to let this happen, but...
-		term = srch.Seeking
-	}
-
-	nn := generateneighborsdata(c, srch)
-	img := buildgraph(c, term, nn)
-
-	neighbors := nn[term]
-	// [c] prepare text output
-
-	tb := `
+	const (
+		NTH      = 3
+		THETABLE = `
 	<table class="vectortable"><tbody>
     <tr class="vectorrow">
         <td class="vectorrank" colspan = "7">Nearest neighbors of »<span class="colorhighlight">%s</span>«</td>
@@ -51,28 +39,41 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	</tr>
     %s
     <tr class="vectorrow">
-        <td class="vectorrank small" colspan = "7">(model type: %s)</td>
+        <td class="vectorrank small" colspan = "7">(model type: <span class="dbb">%s</span>)</td>
     </tr>
 	</tbody></table>`
 
-	tr := `
+		TABLEROW = `
 	<tr class="%s">%s
 		<td class="vectorword">&nbsp;&nbsp;&nbsp;</td>%s
 	</tr>`
 
-	te := `
+		TABLEELEM = `
 		<td class="vectorrank">%d</td>
 		<td class="vectorscore">%.4f</td>
-		<td class="vectorword"><vectorheadword id="%s">%s</vectorheadword> <span class="unobtrusive"></span></td>`
+		<td class="vectorword"><vectorheadword id="%s">%s</vectorheadword></td>`
+	)
 
-	nth := 3
+	c.Response().After(func() { SelfStats("VectorSearch()") })
+
+	term := srch.LemmaOne
+	if term == "" {
+		// JS not supposed to let this happen, but...
+		term = srch.Seeking
+	}
+
+	nn := generateneighborsdata(c, srch)
+	img := buildgraph(c, term, nn)
+
+	neighbors := nn[term]
+	// [c] prepare text output
 
 	var columnone []string
 	var columntwo []string
 
 	half := len(neighbors) / 2
 	for i, n := range neighbors {
-		r := fmt.Sprintf(te, n.Rank, n.Similarity, n.Word, n.Word)
+		r := fmt.Sprintf(TABLEELEM, n.Rank, n.Similarity, n.Word, n.Word)
 		if i < half {
 			columnone = append(columnone, r)
 		} else {
@@ -83,13 +84,14 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	var tablerows []string
 	for i := range columnone {
 		rn := "vectorrow"
-		if i%nth == 0 {
+		if i%NTH == 0 {
 			rn = "nthrow"
 		}
-		tablerows = append(tablerows, fmt.Sprintf(tr, rn, columnone[i], columntwo[i]))
+		tablerows = append(tablerows, fmt.Sprintf(TABLEROW, rn, columnone[i], columntwo[i]))
 	}
 
-	out := fmt.Sprintf(tb, term, strings.Join(tablerows, "\n"), Config.VectorModel)
+	se := AllSessions.GetSess(readUUIDCookie(c))
+	out := fmt.Sprintf(THETABLE, term, strings.Join(tablerows, "\n"), se.VecModeler)
 
 	soj := SearchOutputJSON{
 		Title:         fmt.Sprintf("Neighbors of '%s'", term),
@@ -105,11 +107,14 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 }
 
 // fingerprintvectorsearch - derive a unique md5 for any given mix of search items & vector settings
-func fingerprintvectorsearch(srch SearchStruct) string {
+func fingerprintvectorsearch(srch SearchStruct, modeltype string) string {
 	const (
 		MSG1 = "VectorSearch() fingerprint: "
 		FAIL = "fingerprintvectorsearch() failed to Marshal"
 	)
+
+	// vectorbot vs normal surfer requires passing the model type (bot: configtype; surfer: sessiontype)
+
 	// unless you sort, you do not get repeatable results with a md5sum of srch.SearchIn if you look at "all latin"
 	var inc []string
 	sort.Strings(srch.SearchIn.AuGenres)
@@ -154,7 +159,7 @@ func fingerprintvectorsearch(srch SearchStruct) string {
 
 	var f4 []byte
 	var e4 error
-	switch Config.VectorModel {
+	switch modeltype {
 	case "glove":
 		ff, ee := json.Marshal(glovevectorconfig())
 		f4 = ff
@@ -306,7 +311,8 @@ func RtVectorBot(c echo.Context) error {
 	s := BuildDefaultSearch(c)
 	s.SearchIn.Authors = []string{a}
 
-	fp := fingerprintvectorsearch(s)
+	m := Config.VectorModel
+	fp := fingerprintvectorsearch(s, m)
 	isstored := vectordbcheck(fp)
 
 	if isstored {
@@ -321,7 +327,7 @@ func RtVectorBot(c echo.Context) error {
 		s.TableSize = 1
 		s = HGoSrch(s)
 		if len(s.Results) > MINSIZE {
-			embs := generateembeddings(c, s)
+			embs := generateembeddings(c, m, s)
 			vectordbadd(fp, embs)
 		} else {
 			msg(fmt.Sprintf(MSG2, a, len(s.Results)), MSGTMI)

@@ -58,6 +58,7 @@ func RtGetJSSession(c echo.Context) error {
 		VocScansion       string `json:"vocscansion"`
 		VecSearch         string `json:"isvectorsearch"`
 		VecGraphExt       string `json:"extendedgraph"`
+		VecModeler        string `json:"vecmodeler"`
 	}
 
 	t2y := func(b bool) string {
@@ -95,6 +96,7 @@ func RtGetJSSession(c echo.Context) error {
 	jso.VocScansion = t2y(s.VocScansion)
 	jso.VecSearch = t2y(s.VecSearch)
 	jso.VecGraphExt = t2y(s.VecGraphExt)
+	jso.VecModeler = s.VecModeler
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }

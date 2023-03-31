@@ -48,6 +48,7 @@ type ServerSession struct {
 	LoginName   string
 	VecSearch   bool
 	VecGraphExt bool
+	VecModeler  string
 }
 
 //
@@ -114,6 +115,7 @@ func MakeDefaultSession(id string) ServerSession {
 	s.VocByCount = Config.VocabByCt
 	s.VecGraphExt = Config.VectorWebExt
 	s.VecSearch = false
+	s.VecModeler = Config.VectorModel
 
 	if Config.Authenticate {
 		AllAuthorized.Register(id, false)

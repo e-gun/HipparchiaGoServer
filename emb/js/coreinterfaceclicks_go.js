@@ -131,6 +131,9 @@ function loadoptions() {
         $('#fontchoice').val(data.fontchoice);
         $('#fontchoice').selectmenu('refresh');
 
+        $('#modeler').val(data.vecmodeler);
+        $('#modeler').selectmenu('refresh');
+
         if(data['principleparts'] === 'yes') { $('#mophologytablesoptions').show(); } else { $('#mophologytablesoptions').hide(); }
 
         if (data.nearestneighborsquery === 'yes' || data.analogyfinder === 'yes') {
@@ -392,6 +395,17 @@ $(function() {
                 window.location.reload();
             }
         });
+});
+
+$('#modeler').selectmenu({ width: 120});
+
+$(function() {
+    $('#modeler').selectmenu({
+        change: function() {
+            let result = $('#modeler').val();
+            setoptions('modeler', String(result));
+        }
+    });
 });
 
 //
