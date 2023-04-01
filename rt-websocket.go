@@ -221,9 +221,8 @@ func (c *WSClient) WSMessageLoop() {
 			pd.Extra = ""
 		}
 
-		pd.Extra = srch.ID
-		if srchinfo.ProgStrg != "" {
-			pd.Extra += srchinfo.ProgStrg
+		if srchinfo.VProgStrg != "" {
+			pd.Extra = srchinfo.VProgStrg
 		}
 
 		jso := &WSJSOut{

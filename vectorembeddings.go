@@ -229,6 +229,7 @@ func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) emb
 		FAIL2 = "generateembeddings() failed to train vector embeddings"
 		MSG1  = "generateembeddings() gathered %d lines"
 		MSG2  = "generateembeddings() successfuly trained a %s model"
+		VMSG  = "Modeling %d words; last iteration took %d; on iteration %d of %d"
 	)
 
 	// vectorbot sends a search with pre-generated results:
@@ -255,26 +256,33 @@ func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) emb
 	// [a] vectorize the text block
 
 	var vmodel model.Model
+	var ti int
 
 	switch modeltype {
 	case "glove":
-		m, err := glove.NewForOptions(glovevectorconfig())
+		cfg := glovevectorconfig()
+		m, err := glove.NewForOptions(cfg)
 		if err != nil {
 			msg(FAIL1, 1)
 		}
 		vmodel = m
+		ti = cfg.Iter
 	case "lexvec":
-		m, err := lexvec.NewForOptions(lexvecvectorconfig())
+		cfg := lexvecvectorconfig()
+		m, err := lexvec.NewForOptions(cfg)
 		if err != nil {
 			msg(FAIL1, 1)
 		}
 		vmodel = m
+		ti = cfg.Iter
 	default:
-		m, err := word2vec.NewForOptions(w2vvectorconfig())
+		cfg := w2vvectorconfig()
+		m, err := word2vec.NewForOptions(cfg)
 		if err != nil {
 			msg(FAIL1, 1)
 		}
 		vmodel = m
+		ti = cfg.Iter
 	}
 
 	// input for  word2vec.Train() is 'io.ReadSeeker'
@@ -282,7 +290,7 @@ func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) emb
 
 	finished := make(chan bool)
 
-	// .Train() but do not block so we can also .Reporter()
+	// .Train() but do not block; so we can also .Reporter()
 	go func() {
 		if err := vmodel.Train(b); err != nil {
 			msg(FAIL2, 1)
@@ -292,23 +300,36 @@ func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) emb
 		finished <- true
 	}()
 
-	xmit := make(chan string)
-	go vmodel.Reporter(xmit)
+	ct := make(chan int)
+	rep := make(chan string)
+	go vmodel.Reporter(ct, rep)
 
-	getrep := func() {
+	getreport := func() {
+		vm := `<span class="smallerthannormal">Modeling <code>%s</code> words; last iteration took <code>%s</code>; on iteration <code>%d</code> of <code>%d</code></span>`
+		wd := "unk"
+		tm := "n/a"
+		in := 0
 		for {
 			select {
-			case m := <-xmit:
-				// fmt.Println("xmit() - " + m)
-				srch.ExtraMsg = m
-				// fmt.Println(srch.ID + " : " + srch.ExtraMsg)
-				AllSearches.InsertSS(srch)
+			case m := <-ct:
+				// final count will be 2 * the "Iter" setting
+				in = m / 2
+			case m := <-rep:
+				// msg(m, 2)
+				// [HGS] trained 100062 words 529.0315ms
+				coll := strings.Split(m, " ")
+				if len(coll) == 4 {
+					wd = coll[1]
+					tm = coll[3]
+				}
 			}
+			srch.ExtraMsg = fmt.Sprintf(vm, wd, tm, in, ti)
+			AllSearches.InsertSS(srch)
 			time.Sleep(WSPOLLINGPAUSE)
 		}
 	}
 
-	go getrep()
+	go getreport()
 
 	_ = <-finished
 
