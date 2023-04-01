@@ -113,7 +113,7 @@ func RtSetOption(c echo.Context) error {
 		}
 	}
 
-	spinoptionlist := []string{"maxresults", "linesofcontext", "browsercontext", "proximity"}
+	spinoptionlist := []string{"maxresults", "linesofcontext", "browsercontext", "proximity", "neighborcount"}
 	if IsInSlice(opt, spinoptionlist) {
 		intval, e := strconv.Atoi(val)
 		if e == nil {
@@ -137,10 +137,20 @@ func RtSetOption(c echo.Context) error {
 					s.BrowseCtx = MAXBROWSERCONTEXT
 				}
 			case "proximity":
-				if intval <= MAXDISTANCE {
+				if 1 <= intval || intval <= MAXDISTANCE {
 					s.Proximity = intval
+				} else if intval < 1 {
+					s.Proximity = 1
 				} else {
-					s.HitLimit = MAXHITLIMIT
+					s.Proximity = MAXDISTANCE
+				}
+			case "neighborcount":
+				if VECTORNEIGHBORSMIN <= intval || intval <= VECTORNEIGHBORSMAX {
+					s.VecNeighbCt = intval
+				} else if intval < VECTORNEIGHBORSMIN {
+					s.VecNeighbCt = VECTORNEIGHBORSMIN
+				} else {
+					s.VecNeighbCt = VECTORNEIGHBORSMAX
 				}
 			default:
 				msg(FAIL2, MSGWARN)

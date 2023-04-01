@@ -10,7 +10,7 @@ import "time"
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.2.1"
+	VERSION                  = "1.2.2"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	BLACKANDWHITE            = false
 	CHARSPERLINE             = 60 // used by vector to preallocate memory: set it closer to a max than a real average
@@ -88,7 +88,9 @@ const (
 	TIMETRACKERMSGTHRESH     = MSGFYI
 	USEGZIP                  = false
 	VARIADATE                = 2000
-	VECTORNEIGHBORS          = 18
+	VECTORNEIGHBORS          = 20
+	VECTORNEIGHBORSMAX       = 40
+	VECTORNEIGHBORSMIN       = 4
 	VECTORTABLENAME          = "semantic_vectors"
 	VECTORMAXLINES           = 1000000 // 964403 lines will get you all of Latin
 	VECTORMODELDEFAULT       = "w2v"

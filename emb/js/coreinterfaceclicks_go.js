@@ -10,7 +10,7 @@ function refreshselections() {
 
 function loadoptions() {
     $.getJSON('/get/json/sessionvariables', function (data) {
-        // console.log(data);
+        console.log(data);
         const simpletoggles = {
             'authorssummary': $('#authorssummary'),
             'authorflagging': $('#authorflagging'),
@@ -118,7 +118,8 @@ function loadoptions() {
             'latestdate': $('#latestdate'),
             'linesofcontext': $('#linesofcontextspinner'),
             'maxresults': $('#hitlimitspinner'),
-            'browsercontext': $('#browserspinner')
+            'browsercontext': $('#browserspinner'),
+            'neighborcount': $('#neighborcount'),
         };
 
         Object.keys(setspinnervalues).forEach(function(key) {
@@ -134,19 +135,6 @@ function loadoptions() {
         $('#modeler').val(data.vecmodeler);
         $('#modeler').selectmenu('refresh');
 
-        if(data['principleparts'] === 'yes') { $('#mophologytablesoptions').show(); } else { $('#mophologytablesoptions').hide(); }
-
-        if (data.nearestneighborsquery === 'yes' || data.analogyfinder === 'yes') {
-            $('#trimmingcheckboxes').show();
-        } else {
-            $('#trimmingcheckboxes').hide();
-        }
-
-        if (data.cosdistbysentence === 'yes' || data.cosdistbylineorword === 'yes' || data.semanticvectorquery === 'yes' ||
-            data.nearestneighborsquery === 'yes' || data.tensorflowgraph === 'yes' || data.sentencesimilarity === 'yes' ||
-            data.topicmodel === 'yes' || data.analogyfinder === 'yes') {
-            showextendedsearch();
-            }
         });
 }
 

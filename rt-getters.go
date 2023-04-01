@@ -59,6 +59,7 @@ func RtGetJSSession(c echo.Context) error {
 		VecSearch         string `json:"isvectorsearch"`
 		VecGraphExt       string `json:"extendedgraph"`
 		VecModeler        string `json:"vecmodeler"`
+		VecNeighbCt       string `json:"neighborcount"`
 	}
 
 	t2y := func(b bool) string {
@@ -69,10 +70,10 @@ func RtGetJSSession(c echo.Context) error {
 		}
 	}
 
-	is := func(i int) string { return fmt.Sprintf("%d", i) }
+	i2s := func(i int) string { return fmt.Sprintf("%d", i) }
 
 	var jso JSO
-	jso.Browsercontext = is(s.BrowseCtx)
+	jso.Browsercontext = i2s(s.BrowseCtx)
 	jso.Christiancorpus = t2y(s.ActiveCorp["ch"])
 	jso.Earliestdate = s.Earliest
 	jso.Greekcorpus = t2y(s.ActiveCorp["gr"])
@@ -82,11 +83,11 @@ func RtGetJSSession(c echo.Context) error {
 	jso.Inscriptioncorpus = t2y(s.ActiveCorp["in"])
 	jso.Latestdate = s.Latest
 	jso.Latincorpus = t2y(s.ActiveCorp["lt"])
-	jso.Linesofcontext = is(s.HitContext)
-	jso.Maxresults = is(s.HitLimit)
+	jso.Linesofcontext = i2s(s.HitContext)
+	jso.Maxresults = i2s(s.HitLimit)
 	jso.Nearornot = s.NearOrNot
 	jso.Papyruscorpus = t2y(s.ActiveCorp["dp"])
-	jso.Proximity = is(s.Proximity)
+	jso.Proximity = i2s(s.Proximity)
 	jso.Rawinputstyle = t2y(s.RawInput)
 	jso.Searchscope = s.SearchScope
 	jso.Sortorder = s.SortHitsBy
@@ -97,6 +98,7 @@ func RtGetJSSession(c echo.Context) error {
 	jso.VecSearch = t2y(s.VecSearch)
 	jso.VecGraphExt = t2y(s.VecGraphExt)
 	jso.VecModeler = s.VecModeler
+	jso.VecNeighbCt = i2s(s.VecNeighbCt)
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }

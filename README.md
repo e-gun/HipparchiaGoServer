@@ -1,6 +1,6 @@
 # HipparchiaGoServer
 
-### STATUS (v1.2.1):
+### STATUS (v1.2.2):
 
 * 25%-700% faster than HipparchiaServer depending on the function. Uses c. 60% as much RAM.
 * monolithic binary: no need for extra files/folders
@@ -20,6 +20,7 @@
   * choice of modeling algorithms
   * configurable model parameters
   * configurable lists of stop-words
+  * configure how many neighbors to track
 * text browsing
 * text maker
 * indexing (+ flag unique forms)

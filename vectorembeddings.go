@@ -194,7 +194,11 @@ func generateneighborsdata(c echo.Context, srch SearchStruct) map[string]search.
 		searcher = func() *search.Searcher { return &search.Searcher{} }()
 	}
 
-	ncount := VECTORNEIGHBORS // how many neighbors to output; min is 1
+	ncount := se.VecNeighbCt // how many neighbors to output; min is 1
+	if ncount < VECTORNEIGHBORSMIN || ncount > VECTORNEIGHBORSMAX {
+		ncount = VECTORNEIGHBORS
+	}
+
 	word := srch.LemmaOne
 
 	nn := make(map[string]search.Neighbors)

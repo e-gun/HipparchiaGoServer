@@ -38,6 +38,7 @@ type CurrentConfiguration struct {
 	VectorsDisabled bool
 	VectorBot       bool
 	VectorModel     string
+	VectorNeighb    int
 	VectorWebExt    bool // "simple" when false; "expanded" when true
 	VocabByCt       bool
 	VocabScans      bool
@@ -284,6 +285,7 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.TickerActive = TICKERISACTIVE
 	c.VectorBot = false
 	c.VectorModel = VECTORMODELDEFAULT
+	c.VectorNeighb = VECTORNEIGHBORS
 	c.VectorsDisabled = false
 	c.VectorWebExt = VECTROWEBEXTDEFAULT
 	c.VocabByCt = VOCABBYCOUNT

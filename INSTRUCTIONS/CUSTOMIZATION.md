@@ -49,6 +49,7 @@ Items of most interest:
     "VectorsDisabled": false,
     "VectorBot": false,
     "VectorModel": "w2v",
+    "VectorNeighb": 20,
     "VectorWebExt": false,
     "VocabByCt": false,
     "VocabScans": false,

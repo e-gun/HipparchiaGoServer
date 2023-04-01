@@ -48,6 +48,7 @@ type ServerSession struct {
 	LoginName   string
 	VecSearch   bool
 	VecGraphExt bool
+	VecNeighbCt int
 	VecModeler  string
 }
 
@@ -114,6 +115,7 @@ func MakeDefaultSession(id string) ServerSession {
 	s.VocScansion = Config.VocabScans
 	s.VocByCount = Config.VocabByCt
 	s.VecGraphExt = Config.VectorWebExt
+	s.VecNeighbCt = Config.VectorNeighb
 	s.VecSearch = false
 	s.VecModeler = Config.VectorModel
 

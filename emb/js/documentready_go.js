@@ -403,6 +403,20 @@ $( '#hitlimitspinner' ).spinner({
     }
 });
 
+$( '#neighborcount' ).spinner({
+    min: 4,
+    value: 20,
+    step: 1,
+    stop: function( event, ui ) {
+        let result = $('#neighborcount').spinner('value');
+        setoptions('neighborcount', String(result));
+    },
+    spin: function( event, ui ) {
+        let result = $('#neighborcount').spinner('value');
+        setoptions('neighborcount', String(result));
+    }
+});
+
 $( '#latestdate' ).spinner({
     min: -850,
     max: 1500,
