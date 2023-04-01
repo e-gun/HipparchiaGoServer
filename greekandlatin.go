@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	// to avoid looping this in hot code
+	// RuneFd etc. to avoid looping this in hot code
 	RuneFd  = getrunefeeder()
 	ERuneFd = extendedrunefeeder()
 	RuneRed = getrunereducer()
@@ -87,7 +87,15 @@ func UVσςϲ(u string) string {
 	}
 	s := string(stripped)
 	return s
+}
 
+// RestoreInitialVJ - semantic vectors need v and j; the hinter does not have them; note that this is too stupid to do non-initial letters
+func RestoreInitialVJ(vj string) string {
+	vv := regexp.MustCompile(`^u([aeiou])`)
+	jj := regexp.MustCompile(`^i([aeiou])`)
+	vj = vv.ReplaceAllString(vj, "v$1")
+	vj = jj.ReplaceAllString(vj, "j$1")
+	return vj
 }
 
 // FindAcuteOrGrave - prepare regex equiv: ά -> [άὰ]

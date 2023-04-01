@@ -62,6 +62,11 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		term = srch.Seeking
 	}
 
+	// the words in the model have different formation rules from the hints supplied...
+	term = strings.ToLower(term)
+	term = RestoreInitialVJ(term) // a quick, partial fix...
+	srch.LemmaOne = term
+
 	nn := generateneighborsdata(c, srch)
 	img := buildgraph(c, term, nn)
 

@@ -3,13 +3,13 @@ module github.com/e-gun/HipparchiaGoServer
 go 1.20
 
 require (
+	github.com/e-gun/wego v0.0.5
 	github.com/go-echarts/go-echarts/v2 v2.2.5
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/jackc/pgx/v5 v5.3.1
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/pkg/profile v1.7.0
-	github.com/ynqa/wego v0.0.0-20220728190415-4ce56c0b4c6d
 	golang.org/x/text v0.8.0
 )
 

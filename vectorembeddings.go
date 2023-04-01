@@ -11,21 +11,22 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/e-gun/wego/pkg/embedding"
+	"github.com/e-gun/wego/pkg/model"
+	"github.com/e-gun/wego/pkg/model/glove"
+	"github.com/e-gun/wego/pkg/model/lexvec"
+	"github.com/e-gun/wego/pkg/model/modelutil/vector"
+	"github.com/e-gun/wego/pkg/model/word2vec"
+	"github.com/e-gun/wego/pkg/search"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
-	"github.com/ynqa/wego/pkg/embedding"
-	"github.com/ynqa/wego/pkg/model"
-	"github.com/ynqa/wego/pkg/model/glove"
-	"github.com/ynqa/wego/pkg/model/lexvec"
-	"github.com/ynqa/wego/pkg/model/modelutil/vector"
-	"github.com/ynqa/wego/pkg/model/word2vec"
-	"github.com/ynqa/wego/pkg/search"
 	"io"
 	"os"
 	"runtime"
 	"sort"
 	"strings"
+	"time"
 )
 
 //
@@ -243,6 +244,7 @@ func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) emb
 	msg(fmt.Sprintf(MSG1, len(srch.Results)), MSGPEEK)
 
 	thetext := buildtextblock(srch.Results)
+	srch.Results = []DbWorkline{}
 
 	// "thetext" for Albinus , poet. [lt2002]
 	// res romanus liber⁴ eo¹ ille qui¹ terni capitolium celsus¹ triumphus sponte deus pateo qui¹ fretus¹ nullus re-pono abscondo sinus¹ non tueor moenia¹ urbs de metrum †uilem spondeus totus¹ concludo verro possum fio jungo sed dactylus aptus
@@ -277,11 +279,38 @@ func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) emb
 
 	// input for  word2vec.Train() is 'io.ReadSeeker'
 	b := bytes.NewReader([]byte(thetext))
-	if err := vmodel.Train(b); err != nil {
-		msg(FAIL2, 1)
-	} else {
-		msg(fmt.Sprintf(MSG2, Config.VectorModel), MSGTMI)
+
+	finished := make(chan bool)
+
+	// .Train() but do not block so we can also .Reporter()
+	go func() {
+		if err := vmodel.Train(b); err != nil {
+			msg(FAIL2, 1)
+		} else {
+			msg(fmt.Sprintf(MSG2, Config.VectorModel), MSGTMI)
+		}
+		finished <- true
+	}()
+
+	xmit := make(chan string)
+	go vmodel.Reporter(xmit)
+
+	getrep := func() {
+		for {
+			select {
+			case m := <-xmit:
+				// fmt.Println("xmit() - " + m)
+				srch.ExtraMsg = m
+				// fmt.Println(srch.ID + " : " + srch.ExtraMsg)
+				AllSearches.InsertSS(srch)
+			}
+			time.Sleep(WSPOLLINGPAUSE)
+		}
 	}
+
+	go getrep()
+
+	_ = <-finished
 
 	// use buffers; skip the disk; psql used for storage: vectordbadd() & vectordbfetch()
 	var buf bytes.Buffer

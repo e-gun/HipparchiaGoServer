@@ -100,9 +100,6 @@ func RtSearch(c echo.Context) error {
 
 // InitializeSearch - set up a search; this is DRY code needed by both plain searches and vector searches
 func InitializeSearch(c echo.Context, user string) SearchStruct {
-	const (
-		VS = "Acquiring a model for the selected texts."
-	)
 
 	srch := BuildDefaultSearch(c)
 	srch.User = user
@@ -117,7 +114,8 @@ func InitializeSearch(c echo.Context, user string) SearchStruct {
 	srch.SetType() // must happen before SSBuildQueries()
 	srch.FormatInitialSummary()
 	if srch.IsVector {
-		srch.InitSum = VS
+		srch.InitSum = VECTORSEARCHSUMMARY
+		srch.IsVector = true
 	}
 
 	// now safe to rewrite skg oj that "^|\s", etc. can be added

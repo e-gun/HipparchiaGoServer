@@ -8,11 +8,11 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/e-gun/wego/pkg/search"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/labstack/echo/v4"
-	"github.com/ynqa/wego/pkg/search"
 	"html/template"
 	"io"
 	"math"
