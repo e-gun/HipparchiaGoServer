@@ -225,24 +225,35 @@ func generateneighborsdata(c echo.Context, srch SearchStruct) map[string]search.
 // generateembeddings - turn a search into a collection of semantic vector embeddings
 func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) embedding.Embeddings {
 	const (
-		FAIL1 = "model initialization failed"
-		FAIL2 = "generateembeddings() failed to train vector embeddings"
-		MSG1  = "generateembeddings() gathered %d lines"
-		MSG2  = "generateembeddings() successfuly trained a %s model"
-		VMSG  = "Modeling %d words; last iteration took %d; on iteration %d of %d"
+		FAIL1  = "model initialization failed"
+		FAIL2  = "generateembeddings() failed to train vector embeddings"
+		MSG1   = "generateembeddings() gathered %d lines"
+		MSG2   = "generateembeddings() successfuly trained a %s model"
+		PRLMSG = `<span class="smallerthannormal">Acquiring the raw data</span>`
+		TBMSG  = `<span class="smallerthannormal">Building the unified text block</span>`
+		VMSG   = `<span class="smallerthannormal">Training run <code>#%d</code> out of <code>%d</code> total iterations. 
+<code>%s</code> required to process the last block of words.</span>`
 	)
 
 	// vectorbot sends a search with pre-generated results:
 	// lack of a real session means we can't call readUUIDCookie() repeatedly
 	// this also means we need have the "modeltype" parameter as well (bot: configtype; surfer: sessiontype)
 
+	srch.ExtraMsg = PRLMSG
+	AllSearches.InsertSS(srch)
+
+	var vs SearchStruct
 	if len(srch.Results) == 0 {
-		vs := sessionintobulksearch(c, VECTORMAXLINES)
-		srch.Results = vs.Results
-		vs.Results = []DbWorkline{}
+		vs = sessionintobulksearch(c, VECTORMAXLINES)
 	}
 
 	msg(fmt.Sprintf(MSG1, len(srch.Results)), MSGPEEK)
+
+	srch.ExtraMsg = TBMSG
+	AllSearches.InsertSS(srch)
+
+	srch.Results = vs.Results
+	vs.Results = []DbWorkline{}
 
 	thetext := buildtextblock(srch.Results)
 	srch.Results = []DbWorkline{}
@@ -305,25 +316,23 @@ func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) emb
 	go vmodel.Reporter(ct, rep)
 
 	getreport := func() {
-		vm := `<span class="smallerthannormal">Modeling <code>%s</code> words; last iteration took <code>%s</code>; on iteration <code>%d</code> of <code>%d</code></span>`
-		wd := "unk"
+		// wd := "unk"
 		tm := "n/a"
 		in := 0
 		for {
 			select {
 			case m := <-ct:
-				// final count will be 2 * the "Iter" setting
-				in = m / 2
+				in = m
 			case m := <-rep:
 				// msg(m, 2)
 				// [HGS] trained 100062 words 529.0315ms
 				coll := strings.Split(m, " ")
 				if len(coll) == 4 {
-					wd = coll[1]
+					// wd = coll[1]
 					tm = coll[3]
 				}
 			}
-			srch.ExtraMsg = fmt.Sprintf(vm, wd, tm, in, ti)
+			srch.ExtraMsg = fmt.Sprintf(VMSG, in, ti, tm)
 			AllSearches.InsertSS(srch)
 			time.Sleep(WSPOLLINGPAUSE)
 		}
