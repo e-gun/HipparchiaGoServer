@@ -91,7 +91,7 @@ func generategraph(c echo.Context, coreword string, nn map[string]search.Neighbo
 		GRAVITY       = .15
 		EDGELEN       = 40
 		EDGEFNTSZ     = 8
-		SERIESNAME    = "graph"
+		SERIESNAME    = ""
 		LAYOUTTYPE    = "force"
 		LABELPOSITON  = "right"
 		DOTCOLOR      = "hsla(236, 44%, 45%, 1)"
