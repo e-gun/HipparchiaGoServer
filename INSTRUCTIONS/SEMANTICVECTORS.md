@@ -204,5 +204,6 @@ real alpha = 0.75, x_max = 100.0; // Weighting function parameters, not extremel
 
 See also https://nlp.stanford.edu/projects/glove/.
 
+---
 
 ![inst02](../gitimg/semantic_neighbors_meta.png)
