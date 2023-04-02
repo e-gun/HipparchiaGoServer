@@ -177,7 +177,8 @@ func (c *WSClient) ReceiveID() {
 // WSMessageLoop - output the constantly updated search progress to the websocket; then exit
 func (c *WSClient) WSMessageLoop() {
 	const (
-		FAIL = `WSClient.WSMessageLoop() never found '%s' in the SearchMap`
+		FAIL      = `WSClient.WSMessageLoop() never found '%s' in the SearchMap`
+		VECAPPEND = `<span class="smallerthannormal">%s</span>`
 	)
 
 	// wait for the search to exist
@@ -222,7 +223,7 @@ func (c *WSClient) WSMessageLoop() {
 		}
 
 		if srchinfo.VProgStrg != "" {
-			pd.Extra = srchinfo.VProgStrg
+			pd.Extra = fmt.Sprintf(VECAPPEND, srchinfo.VProgStrg)
 		}
 
 		jso := &WSJSOut{

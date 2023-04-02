@@ -10,6 +10,7 @@ Items of most interest:
 * `Font` sets the interface font. `Noto` is embedded in the program. If you pick another name, you need to have it installed on your machine. 
 * `QuietStart` spares you the copyright notice.
 * `WorkerCount` sets the number of cores of your CPU to use when searching. You will be sorry if you pick a number that is larger than what the machine actually has installed. `WorkerCount` = `CoreCount` is probably the best choice unless you know why it is not.
+* `VectorMaxlines` sets the maximum scope of a vector search. `1000000` will let you model all of Latin. All of Greek is about 10x larger.
 * `ZapLunates` lets you see σ/ς instead of lunate sigmas. But why would you want that?
 
 
@@ -48,6 +49,7 @@ Items of most interest:
     "TickerActive": false,
     "VectorsDisabled": false,
     "VectorBot": false,
+    "VectorMaxlines": 1000000,
     "VectorModel": "w2v",
     "VectorNeighb": 20,
     "VectorWebExt": false,

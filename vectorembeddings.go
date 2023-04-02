@@ -169,10 +169,12 @@ func (w WHWList) Swap(i, j int) {
 // generateneighborsdata - generate the Neighbors data for a headword within a search
 func generateneighborsdata(c echo.Context, srch SearchStruct) map[string]search.Neighbors {
 	const (
-		MSG1  = "generateneighborsdata(): fetching stored embeddings"
+		FMSG  = `<span class="smallerthannormal">Fetching a stored model</span>`
+		GMSG  = `<span class="smallerthannormal">Generating a model</span>`
 		FAIL1 = "generateneighborsdata() could not find neighbors of a neighbor: '%s' neighbors (via '%s')"
 		FAIL2 = "generateneighborsdata() failed to produce a Searcher"
 		FAIL3 = "generateneighborsdata() failed to yield Neighbors"
+		MQMEG = `<span class="smallerthannormal">Querying the model</span>`
 	)
 	se := AllSessions.GetSess(readUUIDCookie(c))
 	mt := se.VecModeler
@@ -181,14 +183,21 @@ func generateneighborsdata(c echo.Context, srch SearchStruct) map[string]search.
 	isstored := vectordbcheck(fp)
 	var embs embedding.Embeddings
 	if isstored {
-		msg(MSG1, MSGPEEK)
+		srch.ExtraMsg = FMSG
+		AllSearches.InsertSS(srch)
 		embs = vectordbfetch(fp)
 	} else {
+		srch.ExtraMsg = GMSG
+		AllSearches.InsertSS(srch)
 		embs = generateembeddings(c, mt, srch)
 		vectordbadd(fp, embs)
 	}
 
 	// [b] make a query against the model
+
+	srch.ExtraMsg = MQMEG
+	AllSearches.InsertSS(srch)
+
 	searcher, err := search.New(embs...)
 	if err != nil {
 		msg(FAIL2, MSGFYI)
@@ -229,22 +238,22 @@ func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) emb
 		FAIL2  = "generateembeddings() failed to train vector embeddings"
 		MSG1   = "generateembeddings() gathered %d lines"
 		MSG2   = "generateembeddings() successfuly trained a %s model"
-		PRLMSG = `<span class="smallerthannormal">Acquiring the raw data</span>`
-		TBMSG  = `<span class="smallerthannormal">Building the unified text block</span>`
-		VMSG   = `<span class="smallerthannormal">Training run <code>#%d</code> out of <code>%d</code> total iterations. 
-<code>%s</code> required to process the last block of words.</span>`
+		PRLMSG = `Acquiring the raw data`
+		TBMSG  = `Building the unified text block`
+		VMSG   = `Training run <code>#%d</code> out of <code>%d</code> total iterations.`
+		DBMSG  = `Storing the model in the database. Then fetching it again.`
 	)
 
 	// vectorbot sends a search with pre-generated results:
 	// lack of a real session means we can't call readUUIDCookie() repeatedly
-	// this also means we need have the "modeltype" parameter as well (bot: configtype; surfer: sessiontype)
+	// this also means we need the "modeltype" parameter as well (bot: configtype; surfer: sessiontype)
 
 	srch.ExtraMsg = PRLMSG
 	AllSearches.InsertSS(srch)
 
 	var vs SearchStruct
 	if len(srch.Results) == 0 {
-		vs = sessionintobulksearch(c, VECTORMAXLINES)
+		vs = sessionintobulksearch(c, Config.VectorMaxlines)
 	}
 
 	msg(fmt.Sprintf(MSG1, len(srch.Results)), MSGPEEK)
@@ -317,7 +326,7 @@ func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) emb
 
 	getreport := func() {
 		// wd := "unk"
-		tm := "n/a"
+		// tm := "n/a"
 		in := 0
 		for {
 			select {
@@ -329,10 +338,10 @@ func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) emb
 				coll := strings.Split(m, " ")
 				if len(coll) == 4 {
 					// wd = coll[1]
-					tm = coll[3]
+					// tm = coll[3]
 				}
 			}
-			srch.ExtraMsg = fmt.Sprintf(VMSG, in, ti, tm)
+			srch.ExtraMsg = fmt.Sprintf(VMSG, in, ti)
 			AllSearches.InsertSS(srch)
 			time.Sleep(WSPOLLINGPAUSE)
 		}
@@ -341,6 +350,9 @@ func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) emb
 	go getreport()
 
 	_ = <-finished
+
+	srch.ExtraMsg = DBMSG
+	AllSearches.InsertSS(srch)
 
 	// use buffers; skip the disk; psql used for storage: vectordbadd() & vectordbfetch()
 	var buf bytes.Buffer

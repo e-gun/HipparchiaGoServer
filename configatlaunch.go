@@ -37,6 +37,7 @@ type CurrentConfiguration struct {
 	TickerActive    bool
 	VectorsDisabled bool
 	VectorBot       bool
+	VectorMaxlines  int
 	VectorModel     string
 	VectorNeighb    int
 	VectorWebExt    bool // "simple" when false; "expanded" when true
@@ -263,6 +264,10 @@ func ConfigAtLaunch() {
 	if Config.Authenticate {
 		BuildUserPassPairs()
 	}
+
+	if Config.VectorMaxlines == 0 {
+		Config.VectorMaxlines = VECTORMAXLINES
+	}
 }
 
 // BuildDefaultConfig - return a CurrentConfiguration filled out with various default values
@@ -284,6 +289,7 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.SelfTest = 0
 	c.TickerActive = TICKERISACTIVE
 	c.VectorBot = false
+	c.VectorMaxlines = VECTORMAXLINES
 	c.VectorModel = VECTORMODELDEFAULT
 	c.VectorNeighb = VECTORNEIGHBORS
 	c.VectorsDisabled = false

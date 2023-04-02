@@ -20,6 +20,7 @@ no need to edit these files. The defaults are sensible. Only the very keen and v
 
 Vector models have three relevant configuration files stored inside of `~/.config/`. These are:
 * `hgs-vector-conf-w2v.json`
+* `hgs-vector-conf-lexvec.json`
 * `hgs-vector-conf-glove.json`
 * `hgs-vector-stops-greek.json`
 * `hgs-vector-stops-latin.json`
@@ -31,10 +32,10 @@ There is no way to drop an individual model. But you can reset the collection of
 with the `-rv` flag: `HipparchiaGoServer -rv`
 
 Any edit to any of these configuration files will be detected when you next search. A new model will be built with those 
-new settings.
+new settings. There is no need to restart the server.
 
 The `stops` are lists of terms you wish to omit from the model. These should be common words that reveal little about the
-underlying collection of words: "the", "this", "a", "where", "so" ... 
+underlying collection of words: "the", "this", "a", "where", "so", "under" ... 
 
 ## Word2Vec
 
@@ -46,7 +47,7 @@ and `Window`.
 * Bigger `BatchSize` values should build faster, but the results might be less interesting. 
 * Dimensionality (`Dim`) sets how many interrelationships to track. Too few or too many yield poor results. The "right" value is likely an illusion, but good choices are related to the size of the corpus you are searching.
 * Iterations (`Iter`) are "training runs" on the data. It is possible to over-train. It is possible to under-train. 
-* The `Window` setting adjusts the distance across which relationships will be tracked. If A and B are outside the window, no connection will be noted.
+* The `Window` setting adjusts the distance across which relationships will be tracked. If A and B are outside the window, no association between them will be noted.
 
 Tinkering with these four settings is not a bad idea. It would be a good idea to read up on `word2vec` before exploring
 the other settings. 
@@ -76,6 +77,8 @@ The default `hgs-vector-conf-w2v.json`:
     "Window": 8
   }
 ```
+
+If you disable `Verbose` you will turn off the live progress updates. Why would you do this?
 
 The underlying source code for the modeling can be found at https://github.com/ynqa/wego. There you can find a couple 
 of "hidden" values one might adjust when setting `OptimizerType` and `ModelType`. The former can be either `ns` or `hs`.
@@ -126,8 +129,9 @@ On models see also: https://link.springer.com/article/10.1007/s41019-019-0096-6
 
 ## LexVec
 
-This is not the default model maker. It must be requested from the command line via the `-md lexvec` flag, or it
-can be set in `hgs-prolix-conf.json`.
+This is not the default model maker. It can be requested via the browser interface if you open up the 
+`Configuration options` panel. It can be set as the temporary default via the command line. It can be made the
+permanent default by editing `hgs-prolix-conf.json`.
 
 The results are of comparable quality to those offered by Word2Vec. `RelationType` has four options: `ppmi`, 
 `pmi`, `co`, and `logco`. 
@@ -159,12 +163,13 @@ The default `hgs-vector-conf-glove.json`:
 
 ## GloVe
 
-This is not the default model maker. It must be requested from the command line via the `-md glove` flag, or it 
-can be set in `hgs-prolix-conf.json`
+This is not the default model maker. It can be requested via the browser interface if you open up the
+`Configuration options` panel. It can be set as the temporary default via the command line. It can be made the
+permanent default by editing `hgs-prolix-conf.json`.
 
-The results are currently not nearly as satisfying as those obtained from either Word2Vec or LexVec. 
-`CountType` has two options, `inc` and `prox`. But the model will panic if you pick `prox`. `SolverType` 
-can be either `sdg` or `adagrad`. Either is safe to use. 
+The results are currently not nearly as satisfying as those obtained from either Word2Vec or LexVec, especially on
+smaller selections. `CountType` has two options, `inc` and `prox`. But the model will panic if you pick `prox`. 
+`SolverType` can be either `sdg` or `adagrad`. Either is safe to use. 
 
 The default `hgs-vector-conf-glove.json`:
 
@@ -198,3 +203,6 @@ real alpha = 0.75, x_max = 100.0; // Weighting function parameters, not extremel
 ```
 
 See also https://nlp.stanford.edu/projects/glove/.
+
+
+![inst02](../gitimg/semantic_neighbors_meta.png)

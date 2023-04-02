@@ -45,7 +45,7 @@
 	--transparentgrey: hsla(0, 0%, 67%, .8);
 	--vdkteal: hsla(196, 27%, 20%, 1);
 	--vdkgrey: hsla(0, 0%, 20%, 1);
-	--vltgrey: hsla(0, 0%, 95%, 1);
+	--vltgrey: hsla(0, 0%, 96%, 1);
 }
 
 /* core interface font info begins; inserted by rt-embhcss.go */
@@ -229,7 +229,7 @@ body {
 	/*border-color: var(--midgrey);*/
 	margin-left: 15px;
 	margin-right: 15px;
-	background-color: var(--vltgrey);
+	/*background-color: var(--vltgrey);*/
 }
 
 .counter {

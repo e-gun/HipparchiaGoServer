@@ -81,13 +81,13 @@ func buildgraph(c echo.Context, coreword string, nn map[string]search.Neighbors)
 
 func generategraph(c echo.Context, coreword string, nn map[string]search.Neighbors) *charts.Graph {
 	const (
-		CHRTWIDTH     = "1536px"
-		CHRTHEIGHT    = "1024px"
+		CHRTWIDTH     = "1600px"
+		CHRTHEIGHT    = "1200px"
 		SYMSIZE       = 25
 		PERIPHSYMSZ   = 15
 		SIZEDISTORT   = 2.25
 		PRECISON      = 4
-		REPULSION     = 5000
+		REPULSION     = 6000
 		GRAVITY       = .15
 		EDGELEN       = 40
 		EDGEFNTSZ     = 8

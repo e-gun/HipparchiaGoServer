@@ -41,7 +41,8 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
     <tr class="vectorrow">
         <td class="vectorrank small" colspan = "7">(model type: <span class="dbb">%s</span>)</td>
     </tr>
-	</tbody></table>`
+	</tbody></table>
+	<hr>`
 
 		TABLEROW = `
 	<tr class="%s">%s
@@ -324,7 +325,7 @@ func RtVectorBot(c echo.Context) error {
 		msg(fmt.Sprintf(MSG1, AllAuthors[a].Name), MSGPEEK)
 	} else {
 		// sessionintobulksearch() can't be used because there is no real session...
-		s.CurrentLimit = VECTORMAXLINES
+		s.CurrentLimit = Config.VectorMaxlines
 		s.Seeking = ""
 		s.ID = strings.Replace(uuid.New().String(), "-", "", -1)
 		SSBuildQueries(&s)
