@@ -3,7 +3,7 @@ module github.com/e-gun/HipparchiaGoServer
 go 1.20
 
 require (
-	github.com/e-gun/wego v0.0.10
+	github.com/e-gun/wego v0.0.11
 	github.com/go-echarts/go-echarts/v2 v2.2.6
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0

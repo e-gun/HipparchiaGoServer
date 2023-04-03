@@ -46,10 +46,11 @@ type ServerSession struct {
 	TmpInt      int
 	TmpStr      string
 	LoginName   string
-	VecSearch   bool
 	VecGraphExt bool
-	VecNeighbCt int
 	VecModeler  string
+	VecNeighbCt int
+	VecSearch   bool
+	VecTextPrep string
 }
 
 //
@@ -118,6 +119,7 @@ func MakeDefaultSession(id string) ServerSession {
 	s.VecNeighbCt = Config.VectorNeighb
 	s.VecSearch = false
 	s.VecModeler = Config.VectorModel
+	s.VecTextPrep = Config.VectorTextPrep
 
 	if Config.Authenticate {
 		AllAuthorized.Register(id, false)

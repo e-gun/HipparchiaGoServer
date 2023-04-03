@@ -135,7 +135,10 @@ function loadoptions() {
         $('#modeler').val(data.vecmodeler);
         $('#modeler').selectmenu('refresh');
 
-        });
+        $('#vtextprep').val(data.vtextprep);
+        $('#vtextprep').selectmenu('refresh');
+
+    });
 }
 
 // UPPER LEFT OPTIONS PANEL CLICKS
@@ -392,6 +395,17 @@ $(function() {
         change: function() {
             let result = $('#modeler').val();
             setoptions('modeler', String(result));
+        }
+    });
+});
+
+$('#vtextprep').selectmenu({ width: 120});
+
+$(function() {
+    $('#vtextprep').selectmenu({
+        change: function() {
+            let result = $('#vtextprep').val();
+            setoptions('vtextprep', String(result));
         }
     });
 });

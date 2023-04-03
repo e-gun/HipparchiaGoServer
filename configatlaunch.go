@@ -40,6 +40,7 @@ type CurrentConfiguration struct {
 	VectorMaxlines  int
 	VectorModel     string
 	VectorNeighb    int
+	VectorTextPrep  string
 	VectorWebExt    bool // "simple" when false; "expanded" when true
 	VocabByCt       bool
 	VocabScans      bool
@@ -293,6 +294,7 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.VectorModel = VECTORMODELDEFAULT
 	c.VectorNeighb = VECTORNEIGHBORS
 	c.VectorsDisabled = false
+	c.VectorTextPrep = VECTORTEXTPREPDEFAULT
 	c.VectorWebExt = VECTROWEBEXTDEFAULT
 	c.VocabByCt = VOCABBYCOUNT
 	c.VocabScans = VOCABSCANSION

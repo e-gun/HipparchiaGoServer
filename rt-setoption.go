@@ -85,7 +85,7 @@ func RtSetOption(c echo.Context) error {
 		}
 	}
 
-	valoptionlist := []string{"nearornot", "searchscope", "sortorder", "modeler"}
+	valoptionlist := []string{"nearornot", "searchscope", "sortorder", "modeler", "vtextprep"}
 	if IsInSlice(opt, valoptionlist) {
 		switch opt {
 		case "nearornot":
@@ -107,6 +107,11 @@ func RtSetOption(c echo.Context) error {
 			valid := []string{"w2v", "glove", "lexvec"}
 			if IsInSlice(val, valid) {
 				s.VecModeler = val
+			}
+		case "vtextprep":
+			valid := []string{"winner", "unparsed"}
+			if IsInSlice(val, valid) {
+				s.VecTextPrep = val
 			}
 		default:
 			msg(FAIL2, MSGWARN)

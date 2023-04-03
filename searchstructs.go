@@ -37,6 +37,8 @@ type SearchStruct struct {
 	SrchColumn    string // usually "stripped_line", sometimes "accented_line"
 	SrchSyntax    string // almost always "~"
 	OrderBy       string // almost always "index" + ASC
+	VecTextPrep   string
+	VecModeler    string
 	CurrentLimit  int
 	OriginalLimit int
 	SkgSlice      []string // either just Seeking or a decomposed version of a Lemma's possibilities

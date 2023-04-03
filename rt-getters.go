@@ -59,6 +59,7 @@ func RtGetJSSession(c echo.Context) error {
 		VecSearch         string `json:"isvectorsearch"`
 		VecGraphExt       string `json:"extendedgraph"`
 		VecModeler        string `json:"vecmodeler"`
+		VecTextPrep       string `json:"vtextprep"`
 		VecNeighbCt       string `json:"neighborcount"`
 	}
 
@@ -93,12 +94,13 @@ func RtGetJSSession(c echo.Context) error {
 	jso.Sortorder = s.SortHitsBy
 	jso.Spuria = t2y(s.SpuriaOK)
 	jso.Varia = t2y(s.VariaOK)
-	jso.VocByCount = t2y(s.VocByCount)
-	jso.VocScansion = t2y(s.VocScansion)
-	jso.VecSearch = t2y(s.VecSearch)
 	jso.VecGraphExt = t2y(s.VecGraphExt)
 	jso.VecModeler = s.VecModeler
 	jso.VecNeighbCt = i2s(s.VecNeighbCt)
+	jso.VecSearch = t2y(s.VecSearch)
+	jso.VecTextPrep = s.VecTextPrep
+	jso.VocByCount = t2y(s.VocByCount)
+	jso.VocScansion = t2y(s.VocScansion)
 
 	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
 }

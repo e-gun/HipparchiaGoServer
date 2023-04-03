@@ -53,6 +53,7 @@ func RtSearch(c echo.Context) error {
 
 	se := AllSessions.GetSess(user)
 
+	fmt.Println("srch.VecTextPrep:" + srch.VecTextPrep)
 	if se.VecSearch && !Config.VectorsDisabled {
 		// not a normal search: we grab all lines; build a model; query against the model
 		return VectorSearch(c, srch)
@@ -113,6 +114,7 @@ func InitializeSearch(c echo.Context, user string) SearchStruct {
 	srch.CleanInput()
 	srch.SetType() // must happen before SSBuildQueries()
 	srch.FormatInitialSummary()
+
 	if srch.IsVector {
 		srch.InitSum = VECTORSEARCHSUMMARY
 		srch.IsVector = true
@@ -164,6 +166,8 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	s.OneHit = sess.OneHit
 	s.PhaseNum = 1
 	s.IsVector = sess.VecSearch
+	s.VecTextPrep = sess.VecTextPrep
+	s.VecModeler = sess.VecModeler
 	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
 	s.AcqHitCounter()
 	s.AcqRemainCounter()
@@ -203,6 +207,8 @@ func BuildHollowSearch() SearchStruct {
 		SrchColumn:    DEFAULTCOLUMN,
 		SrchSyntax:    DEFAULTQUERYSYNTAX,
 		OrderBy:       ORDERBY,
+		VecTextPrep:   VECTORTEXTPREPDEFAULT,
+		VecModeler:    VECTORMODELDEFAULT,
 		CurrentLimit:  FIRSTSEARCHLIM,
 		OriginalLimit: FIRSTSEARCHLIM,
 		SkgSlice:      nil,
