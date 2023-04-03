@@ -7,10 +7,33 @@ search (v⃗).
 
 The server will check to see if there is a pre-built model for the current combination of options and texts selected.
 
-If there is no model, one will be built and then saved for subsequent use. Building can be **slow**. Re-use is fast. 
-Expect to wait a significant amount of time if you try to vectorize the entire corpus of Latin, for example. This will
-take several minutes on a fast machine. All of Greek would take 10x as long. But the good news is that you only need to
-build a model once. Also note that vectorization can be memory intensive. 
+If there is no model, one will be built and then saved for subsequent use. Building can be **slow**. Re-use is very fast. 
+
+Models of <100k lines are quick and easy enough to build. After that, modeling can become a chore.
+
+Expect to wait a significant amount of time if you try to model the entire corpus of Latin, for example: c 900k lines. 
+This will take several minutes on a fast machine. All of Greek is even more formidable. Note that the default 1 million 
+line cap on models will prevent building a model of the whole Greek corpus. Edit `hgs-prolix-conf.json` to change 
+`VectorMaxlines` to 9 million lines. Preparing the text will take >11 minutes. This is before the model even starts 
+its training runs. Each training iteration will take >3m on a fast machine. Queries of this model take >15s: `205MB`
+of data has to be fetched and decompressed.
+
+```
+(building all of greek)
+[HGS] generateembeddings() gathered 8992999 lines
+[HGS] arraytogetrequiredmorphobjects() will search among 218526522 words
+[HGS] fetchheadwordcounts() will search for 630893 headwords
+[HGS] vectordbadd(): 423bccb6be32a80a992176a548e8630a
+[HGS] 423bccb6be32a80a992176a548e8630a compression: 745572k -> 210508k (28.2 percent)
+[HGS] VectorSearch() runtime.GC() 4468M --> 1436M
+(subsequent queries)
+[HGS] VectorSearch() runtime.GC() 2029M --> 431M
+```
+Note as well that vectorization can be memory intensive. A query of the full Latin corpus needs to allocate c. `450MB` of 
+extra RAM: `[HGS] VectorSearch() runtime.GC() 694M --> 237M`. You might want to set `DocInMemory` to `false` if you
+try to build all of Greek as `HGS` will use `30GB` of RAM while building. Few computers have that much memory. And if you
+run out of memory a slow operation will become very, very slow if it finishes at all. 
+
 
 ![inst02](../gitimg/semantic_neighbors.png)
 
@@ -84,7 +107,7 @@ The underlying source code for the modeling can be found at https://github.com/y
 of "hidden" values one might adjust when setting `OptimizerType` and `ModelType`. The former can be either `ns` or `hs`.
 The latter can be either `cbow` or `skipgram`. You will also see the default values that the authors of that package
 distribute. Note that `defaultDim` is strikingly low at `10` and is only useful to show that code can generate a model,
-not that it can generate an interesting model. Most tutorials talk about models with 100-300 dimensions. 
+not that it can generate an interesting model. Most tutorials talk about models with `100-300` dimensions. 
 
 ```
 const (

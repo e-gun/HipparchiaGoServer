@@ -174,6 +174,7 @@ trmonelem.change(function() {
         setoptions('isvectorsearch', 'no');
         loadoptions();
         hidelemmatanotification();
+        hidevectornotification();
         if(!trmtwolem.is(':checked')) {
             hidelemmatanotification();
         }

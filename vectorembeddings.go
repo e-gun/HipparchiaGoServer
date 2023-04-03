@@ -21,6 +21,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 	"io"
 	"os"
 	"runtime"
@@ -169,12 +171,12 @@ func (w WHWList) Swap(i, j int) {
 // generateneighborsdata - generate the Neighbors data for a headword within a search
 func generateneighborsdata(c echo.Context, srch SearchStruct) map[string]search.Neighbors {
 	const (
-		FMSG  = `<span class="smallerthannormal">Fetching a stored model</span>`
-		GMSG  = `<span class="smallerthannormal">Generating a model</span>`
+		FMSG  = `Fetching a stored model`
+		GMSG  = `Generating a model`
 		FAIL1 = "generateneighborsdata() could not find neighbors of a neighbor: '%s' neighbors (via '%s')"
 		FAIL2 = "generateneighborsdata() failed to produce a Searcher"
 		FAIL3 = "generateneighborsdata() failed to yield Neighbors"
-		MQMEG = `<span class="smallerthannormal">Querying the model</span>`
+		MQMEG = `Querying the model`
 	)
 	se := AllSessions.GetSess(readUUIDCookie(c))
 	mt := se.VecModeler
@@ -239,7 +241,7 @@ func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) emb
 		MSG1   = "generateembeddings() gathered %d lines"
 		MSG2   = "generateembeddings() successfuly trained a %s model"
 		PRLMSG = `Acquiring the raw data`
-		TBMSG  = `Building the unified text block`
+		TBMSG  = `Turning %d lines into a unified text block`
 		VMSG   = `Training run <code>#%d</code> out of <code>%d</code> total iterations.`
 		DBMSG  = `Storing the model in the database. Then fetching it again.`
 	)
@@ -256,9 +258,10 @@ func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) emb
 		vs = sessionintobulksearch(c, Config.VectorMaxlines)
 	}
 
-	msg(fmt.Sprintf(MSG1, len(srch.Results)), MSGPEEK)
+	msg(fmt.Sprintf(MSG1, len(vs.Results)), MSGPEEK)
 
-	srch.ExtraMsg = TBMSG
+	p := message.NewPrinter(language.English)
+	srch.ExtraMsg = p.Sprintf(TBMSG, len(vs.Results))
 	AllSearches.InsertSS(srch)
 
 	srch.Results = vs.Results
@@ -375,14 +378,16 @@ func flatstring(sb *strings.Builder, slicedwords []string) {
 
 // winnerstring - helper for buildtextblock() to generate winner takes all substitutions
 func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[string][]string) {
-	ls := ToSet(readstopconfig("latin"))
-	gs := ToSet(readstopconfig("greek"))
+	ls := readstopconfig("latin")
+	gs := readstopconfig("greek")
+	ss := append(gs, ls...)
+	stops := ToSet(ss)
+
 	for i := 0; i < len(slicedwords); i++ {
 		// drop skipwords
 		w := winnermap[slicedwords[i]][0]
-		_, s1 := ls[w]
-		_, s2 := gs[w]
-		if s1 || s2 {
+		_, s := stops[w]
+		if s {
 			continue
 		} else {
 			sb.WriteString(w + " ")
