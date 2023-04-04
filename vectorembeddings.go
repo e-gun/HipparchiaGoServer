@@ -46,11 +46,12 @@ var (
 		"pro¹", "pro²", "ago", "deus", "annus", "locus", "homo", "pater", "eo²", "tantus", "fero", "quidem", "noster",
 		"an", "locum"}
 	LatExtra = []string{"at", "o", "tum", "tunc", "dum", "illic", "quia", "sive", "num", "adhuc", "tam", "ibi", "cur",
-		"usquam", "quoque", "duo", "talis", "simul", "igitur", "utique²", "aliqui", "apud", "sic", "umquam", "ergo"}
+		"usquam", "quoque", "duo", "talis", "simul", "igitur", "utique²", "aliqui", "apud", "sic", "umquam", "ergo",
+		"ob", "xu", "x", "iii", "u", "post", "ac", "ut"}
 	LatStop = append(Latin100, LatExtra...)
 	// LatinKeep - members of LatStop we will not toss
 	LatinKeep = []string{"facio", "possum", "habeo", "video", "magnus", "bonus", "volo¹", "primus", "venio", "ago",
-		"deus", "annus", "locus", "pater", "fero", "ob", "xu", "x", "iii", "u", "post", "ac", "ut"}
+		"deus", "annus", "locus", "pater", "fero"}
 	// Greek150 - the 150 most common greek headwords
 	Greek150 = []string{"ὁ", "καί", "τίϲ", "ἔδω", "δέ", "εἰμί", "δέω¹", "δεῖ", "δέομαι", "εἰϲ", "αὐτόϲ", "τιϲ", "οὗτοϲ", "ἐν",
 		"γάροϲ", "γάρον", "γάρ", "οὐ", "μένω", "μέν", "τῷ", "ἐγώ", "ἡμόϲ", "κατά", "Ζεύϲ", "ἐπί", "ὡϲ", "διά",
@@ -439,12 +440,6 @@ func buildtextblock(method string, lines []DbWorkline) string {
 	// map[abscondere:map[abscondo:true] apte:map[apte:true aptus:true] capitolia:map[capitolium:true] celsa:map[celsus¹:true] concludere:map[concludo:true] cui:map[quis²:true quis¹:true qui²:true qui¹:true] dactylum:map[dactylus:true] de:map[de:true] deum:map[deus:true] fieri:map[fio:true] freta:map[fretum:true fretus¹:true] i:map[eo¹:true] ille:map[ille:true] iungens:map[jungo:true] liber:map[liber¹:true liber⁴:true libo¹:true] metris:map[metrum:true] moenibus:map[moenia¹:true] non:map[non:true] nulla:map[nullus:true] patuere:map[pateo:true patesco:true] posse:map[possum:true] repostos:map[re-pono:true] rerum:map[res:true] romanarum:map[romanus:true] sed:map[sed:true] sinus:map[sinus¹:true] spondeum:map[spondeum:true spondeus:true] sponte:map[sponte:true] ternis:map[terni:true] totum:map[totus²:true totus¹:true] triumphis:map[triumphus:true] tutae:map[tueor:true] uersum:map[verro:true versum:true versus³:true verto:true] urbes:map[urbs:true] †uilem:map[†uilem:true]]
 	//
 
-	// [d] swap out words for headwords
-	winnermap := buildwinnertakesallparsemap(morphmapstrslc)
-
-	// "winnermap" for Albinus , poet. [lt2002]
-	// map[abscondere:[abscondo] apte:[aptus] capitolia:[capitolium] celsa:[celsus¹] concludere:[concludo] cui:[qui¹] dactylum:[dactylus] de:[de] deum:[deus] fieri:[fio] freta:[fretus¹] i:[eo¹] ille:[ille] iungens:[jungo] liber:[liber⁴] metris:[metrum] moenibus:[moenia¹] non:[non] nulla:[nullus] patuere:[pateo] posse:[possum] repostos:[re-pono] rerum:[res] romanarum:[romanus] sed:[sed] sinus:[sinus¹] spondeum:[spondeus] sponte:[sponte] ternis:[terni] totum:[totus¹] triumphis:[triumphus] tutae:[tueor] uersum:[verro] urbes:[urbs] †uilem:[†uilem]]
-
 	// [e] turn results into unified text block
 
 	// string addition will use a huge amount of time: 120s to concatinate Cicero: txt = txt + newtxt...
@@ -457,8 +452,19 @@ func buildtextblock(method string, lines []DbWorkline) string {
 	switch method {
 	case "unparsed":
 		flatstring(&sb, slicedwords)
+		//case "montecarlo":
+		//	mcm := buildmontecarlomap(morphmapstrslc)
+		//	montecarlostring(&sb, slicedwords, mcm)
+	case "yoked":
+		yokedmap := buildyokedparsemap(morphmapstrslc)
+		yokedstring(&sb, slicedwords, yokedmap)
 	default:
 		// "winner"
+		winnermap := buildwinnertakesallparsemap(morphmapstrslc)
+
+		// "winnermap" for Albinus , poet. [lt2002]
+		// map[abscondere:[abscondo] apte:[aptus] capitolia:[capitolium] celsa:[celsus¹] concludere:[concludo] cui:[qui¹] dactylum:[dactylus] de:[de] deum:[deus] fieri:[fio] freta:[fretus¹] i:[eo¹] ille:[ille] iungens:[jungo] liber:[liber⁴] metris:[metrum] moenibus:[moenia¹] non:[non] nulla:[nullus] patuere:[pateo] posse:[possum] repostos:[re-pono] rerum:[res] romanarum:[romanus] sed:[sed] sinus:[sinus¹] spondeum:[spondeus] sponte:[sponte] ternis:[terni] totum:[totus¹] triumphis:[triumphus] tutae:[tueor] uersum:[verro] urbes:[urbs] †uilem:[†uilem]]
+
 		winnerstring(&sb, slicedwords, winnermap)
 	}
 
@@ -487,8 +493,13 @@ func flatstring(sb *strings.Builder, slicedwords []string) {
 	}
 }
 
-// winnerstring - helper for buildtextblock() to generate winner takes all substitutions
-func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[string][]string) {
+// montecarlostring - helper for buildtextblock() to generate lucky-ducky substitutions
+// [see notes in buildwinnertakesallparsemap() for when to branch]
+
+// yokedstring - helper for buildtextblock() to generate conjoined string substitutions
+// [see notes in buildwinnertakesallparsemap() for when to branch]
+func yokedstring(sb *strings.Builder, slicedwords []string, yokedmap map[string]string) {
+	// same code as winnerstring() refactor later
 	ls := readstopconfig("latin")
 	gs := readstopconfig("greek")
 	ss := append(gs, ls...)
@@ -496,7 +507,7 @@ func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[strin
 
 	for i := 0; i < len(slicedwords); i++ {
 		// drop skipwords
-		w := winnermap[slicedwords[i]][0]
+		w := yokedmap[slicedwords[i]]
 		_, s := stops[w]
 		if s {
 			continue
@@ -506,8 +517,82 @@ func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[strin
 	}
 }
 
+// winnerstring - helper for buildtextblock() to generate winner takes all substitutions
+func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[string]string) {
+	ls := readstopconfig("latin")
+	gs := readstopconfig("greek")
+	ss := append(gs, ls...)
+	stops := ToSet(ss)
+
+	for i := 0; i < len(slicedwords); i++ {
+		// drop skipwords
+		w := winnermap[slicedwords[i]]
+		_, s := stops[w]
+		if s {
+			continue
+		} else {
+			sb.WriteString(w + " ")
+		}
+	}
+}
+
+// [d] run through the parsemap and build a montecarlomap
+// if a word might be A, B, or C and A appears 50 times, B appears 25 times, and C appears 5 times, then you
+// want to randomly assign the word to A 5/8 of the time, etc.
+
+// buildyokedparsemap
+func buildyokedparsemap(parsemap map[string]map[string]bool) map[string]string {
+	const (
+		SEPARATOR = `•`
+	)
+	// turn a list of sentences into a list of headwords; here we accept all headwords and yoke them
+	// "esse" is "sum" + "edo", etc.
+
+	// [a] figure out all headwords in use
+
+	allheadwords := make(map[string]bool)
+	for i := range parsemap {
+		for k, _ := range parsemap[i] {
+			allheadwords[k] = true
+		}
+	}
+
+	// [b] note that there are capital words in the parsemap that need lowering
+
+	// [b1] lower the internal values first
+	for i := range parsemap {
+		newmap := make(map[string]bool)
+		for k, _ := range parsemap[i] {
+			newmap[strings.ToLower(k)] = true
+		}
+		parsemap[i] = newmap
+	}
+
+	// [b2] lower the parsemap keys; how worried should we be about the collisions...
+	lcparsemap := make(map[string]map[string]bool)
+	for i := range parsemap {
+		lcparsemap[strings.ToLower(i)] = parsemap[i]
+	}
+
+	// [c] build the yoked map
+
+	yoked := make(map[string]string)
+	for i := range lcparsemap {
+		var ww []string
+		// for j := 0; j < len(lcparsemap[i]); j++ {
+		for j, _ := range parsemap[i] {
+			ww = append(ww, j)
+		}
+		sort.Strings(ww)
+
+		yoked[i] = strings.Join(ww, SEPARATOR)
+	}
+
+	return yoked
+}
+
 // buildwinnertakesallparsemap - figure out which is the most common of the possible headwords for any given word
-func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string][]string {
+func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string]string {
 	// turn a list of sentences into a list of headwords; here we figure out which headword is the dominant homonym
 	// then we just use that term; "esse" always comes from "sum" and never "edo", etc.
 
@@ -543,7 +628,7 @@ func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string
 
 	// [d] run through the parsemap and kill off the losers
 
-	newparsemap := make(map[string][]string)
+	winnermap := make(map[string]string)
 	for i := range lcparsemap {
 		var hwl WHWList
 		// for j := 0; j < len(lcparsemap[i]); j++ {
@@ -554,12 +639,12 @@ func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string
 			hwl = append(hwl, thishw)
 		}
 		sort.Sort(hwl)
-
-		newparsemap[i] = make([]string, 0, 1)
-		newparsemap[i] = append(newparsemap[i], hwl[0].Word)
+		// as of this moment, you have 'montecarlo' info, and...
+		// you are now going to drop montecarlo info
+		winnermap[i] = hwl[0].Word
 	}
 
-	return newparsemap
+	return winnermap
 }
 
 // fetchheadwordcounts - map a list of headwords to their corpus counts

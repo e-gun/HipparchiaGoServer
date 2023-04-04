@@ -39,7 +39,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	</tr>
     %s
     <tr class="vectorrow">
-        <td class="vectorrank small" colspan = "7">(model type: <span class="dbb">%s</span>)</td>
+        <td class="vectorrank small" colspan = "7">(model type: <span class="dbb">%s</span>; text prep: <span class="dbb">%s</span>)</td>
     </tr>
 	</tbody></table>
 	<hr>`
@@ -97,7 +97,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	}
 
 	se := AllSessions.GetSess(readUUIDCookie(c))
-	out := fmt.Sprintf(THETABLE, term, strings.Join(tablerows, "\n"), se.VecModeler)
+	out := fmt.Sprintf(THETABLE, term, strings.Join(tablerows, "\n"), se.VecModeler, se.VecTextPrep)
 
 	soj := SearchOutputJSON{
 		Title:         fmt.Sprintf("Neighbors of '%s'", term),

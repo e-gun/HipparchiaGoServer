@@ -53,7 +53,6 @@ func RtSearch(c echo.Context) error {
 
 	se := AllSessions.GetSess(user)
 
-	fmt.Println("srch.VecTextPrep:" + srch.VecTextPrep)
 	if se.VecSearch && !Config.VectorsDisabled {
 		// not a normal search: we grab all lines; build a model; query against the model
 		return VectorSearch(c, srch)

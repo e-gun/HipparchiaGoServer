@@ -109,7 +109,7 @@ func RtSetOption(c echo.Context) error {
 				s.VecModeler = val
 			}
 		case "vtextprep":
-			valid := []string{"winner", "unparsed"}
+			valid := []string{"winner", "unparsed", "yoked"}
 			if IsInSlice(val, valid) {
 				s.VecTextPrep = val
 			}
