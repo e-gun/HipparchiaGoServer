@@ -281,7 +281,7 @@ func lemmaintoregexslice(hdwd string) []string {
 
 	var qq []string
 	if _, ok := AllLemm[hdwd]; !ok {
-		msg(fmt.Sprintf(FAILMSG, hdwd), MSGWARN)
+		msg(fmt.Sprintf(FAILMSG, hdwd), MSGFYI)
 		return []string{FAILSLC}
 	}
 

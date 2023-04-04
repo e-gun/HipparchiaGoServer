@@ -6,7 +6,6 @@
 package main
 
 import (
-	"context"
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
@@ -39,7 +38,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	</tr>
     %s
     <tr class="vectorrow">
-        <td class="vectorrank small" colspan = "7">(model type: <span class="dbb">%s</span>; text prep: <span class="dbb">%s</span>)</td>
+        <td class="vectorrank small" colspan = "7">(model type: <code>%s</code>; text prep: <code>%s</code>)</td>
     </tr>
 	</tbody></table>
 	<hr>`
@@ -252,26 +251,15 @@ func activatevectorbot() {
 	const (
 		MSG2       = "(#%d) ensure model for %s (%s)"
 		MSG3       = "The vectorbot has checked all authors and is now shutting down"
-		MSG4       = "Total size of stored vectors is %dMB"
 		URL        = "http://%s:%d/vbot/%s"
 		COUNTEVERY = 5
 		THROTTLE   = 5
-		SZQ        = "SELECT SUM(vectorsize) AS total FROM semantic_vectors"
 		SIZEVERY   = 500
 	)
 
 	time.Sleep(2 * time.Second)
 
 	count := 0
-	var size int64
-
-	vs := func() int64 {
-		dbconn := GetPSQLconnection()
-		defer dbconn.Release()
-		err := dbconn.QueryRow(context.Background(), SZQ).Scan(&size)
-		chke(err)
-		return size
-	}()
 
 	start := time.Now()
 	previous := time.Now()
@@ -292,10 +280,10 @@ func activatevectorbot() {
 		time.Sleep(THROTTLE * time.Millisecond)
 
 		if count%SIZEVERY == 0 {
-			msg(fmt.Sprintf(MSG4, vs/1024/1024), MSGNOTE)
+			vectordbsize(MSGFYI)
 		}
 	}
 
 	TimeTracker("VB", MSG3, start, previous)
-	msg(fmt.Sprintf(MSG4, vs/1024/1024), MSGNOTE)
+	vectordbsize(MSGNOTE)
 }

@@ -33,49 +33,18 @@ import (
 )
 
 //
-// BAGGING
+// NOTE: this code uses many large maps; it is possible that https://github.com/dolthub/swiss might one day speed this up
+//
+
+//
+// FLOW:
+// 	generateneighborsdata() which means you need to...
+//  	generateembeddings() which relies upon...
+//		buildtextblock() with help of ...
+//		buildparsemap() data
 //
 
 var (
-	// Latin100 - the 100 most common latin headwords
-	Latin100 = []string{"qui¹", "et", "in", "edo¹", "is", "sum¹", "hic", "non", "ab", "ut", "Cos²", "si", "ad", "cum", "ex", "a", "eo¹",
-		"ego", "quis¹", "tu", "Eos", "dico²", "ille", "sed", "de", "neque", "facio", "possum", "atque", "sui", "res",
-		"quam", "aut", "ipse", "huc", "habeo", "do", "omne", "video", "ito", "magnus", "b", "alius²", "for", "idem",
-		"suum", "etiam", "per", "enim", "omnes", "ita", "suus", "omnis", "autem", "vel", "vel", "Alius¹", "qui²", "quo",
-		"nam", "bonus", "neo¹", "meus", "volo¹", "ne³", "ne¹", "suo", "verus", "pars", "reor", "sua", "vaco", "verum",
-		"primus", "unus", "multus", "causa", "jam", "tamen", "Sue", "nos", "dies", "Ios", "modus", "tuus", "venio",
-		"pro¹", "pro²", "ago", "deus", "annus", "locus", "homo", "pater", "eo²", "tantus", "fero", "quidem", "noster",
-		"an", "locum"}
-	LatExtra = []string{"at", "o", "tum", "tunc", "dum", "illic", "quia", "sive", "num", "adhuc", "tam", "ibi", "cur",
-		"usquam", "quoque", "duo", "talis", "simul", "igitur", "utique²", "aliqui", "apud", "sic", "umquam", "ergo",
-		"ob", "xu", "x", "iii", "u", "post", "ac", "ut"}
-	LatStop = append(Latin100, LatExtra...)
-	// LatinKeep - members of LatStop we will not toss
-	LatinKeep = []string{"facio", "possum", "habeo", "video", "magnus", "bonus", "volo¹", "primus", "venio", "ago",
-		"deus", "annus", "locus", "pater", "fero"}
-	// Greek150 - the 150 most common greek headwords
-	Greek150 = []string{"ὁ", "καί", "τίϲ", "ἔδω", "δέ", "εἰμί", "δέω¹", "δεῖ", "δέομαι", "εἰϲ", "αὐτόϲ", "τιϲ", "οὗτοϲ", "ἐν",
-		"γάροϲ", "γάρον", "γάρ", "οὐ", "μένω", "μέν", "τῷ", "ἐγώ", "ἡμόϲ", "κατά", "Ζεύϲ", "ἐπί", "ὡϲ", "διά",
-		"πρόϲ", "προϲάμβ", "τε", "πᾶϲ", "ἐκ", "ἕ", "ϲύ", "Ἀλλά", "γίγνομαι", "ἁμόϲ", "ὅϲτιϲ", "ἤ¹", "ἤ²", "ἔχω",
-		"ὅϲ", "μή", "ὅτι¹", "λέγω¹", "ὅτι²", "τῇ", "Τήιοϲ", "ἀπό", "εἰ", "περί", "ἐάν", "θεόϲ", "φημί", "ἐκάϲ",
-		"ἄν¹", "ἄνω¹", "ἄλλοϲ", "qui¹", "πηρόϲ", "παρά", "ἀνά", "αὐτοῦ", "ποιέω", "ἄναξ", "ἄνα", "ἄν²", "πολύϲ",
-		"οὖν", "λόγοϲ", "οὕτωϲ", "μετά", "ἔτι", "ὑπό", "ἑαυτοῦ", "ἐκεῖνοϲ", "εἶπον", "πρότεροϲ", "edo¹", "μέγαϲ",
-		"ἵημι", "εἷϲ", "οὐδόϲ", "οὐδέ", "ἄνθρωποϲ", "ἠμί", "μόνοϲ", "κύριοϲ", "διό", "οὐδείϲ", "ἐπεί", "πόλιϲ",
-		"τοιοῦτοϲ", "χάω", "καθά", "θεάομαι", "γε", "ἕτεροϲ", "δοκέω", "λαμβάνω", "δή", "δίδωμι", "ἵνα",
-		"βαϲιλεύϲ", "φύϲιϲ", "ἔτοϲ", "πατήρ", "ϲῶμα", "καλέω", "ἐρῶ", "υἱόϲ", "ὅϲοϲ", "γαῖα", "οὔτε", "οἷοϲ",
-		"ἀνήρ", "ὁράω", "ψυχή", "Ἔχιϲ", "ὥϲπερ", "αὐτόϲε", "χέω", "ὑπέρ", "ϲόϲ", "θεάω", "νῦν", "ἐμόϲ", "δύναμαι",
-		"φύω", "πάλιν", "ὅλοξ", "ἀρχή", "καλόϲ", "δύναμιϲ", "πωϲ", "δύο", "ἀγαθόϲ", "οἶδα", "δείκνυμι", "χρόνοϲ",
-		"ὅμοιοϲ", "ἕκαϲτοϲ", "ὁμοῖοϲ", "ὥϲτε", "ἡμέρα", "γράφω", "δραχμή", "μέροϲ"}
-	GreekExtra = []string{"ἀεί", "ὡϲαύτωϲ", "μηδέποτε", "μηδέ", "μηδ", "μηδέ", "ταὐτόϲ", "νυνί", "μεθ", "ἀντ", "μέχρι",
-		"ἄνωθεν", "ὀκτώ", "ἓξ", "μετ", "τ", "μ", "αὐτόθ", "οὐδ", "εἵνεκ", "νόϲφι", "ἐκεῖ", "οὔκουν", "θ", "μάλιϲτ", "ὧδε",
-		"πη", "τῇδ", "δι", "πρό", "ἀλλ", "ἕνεκα", "δ", "ἀλλά", "ἔπειτα", "καθ", "ταῦθ", "μήποτ", "ἀπ", "κ", "μήτ",
-		"εὖτ", "αὖθιϲ", "∙∙∙", "∙∙", "∙", "∙∙∙∙", "oxy", "col", "fr", "*"}
-	GreekStop = append(Greek150, GreekExtra...)
-	// GreekKeep - members of GreekStop we will not toss
-	GreekKeep = []string{"ἔχω", "λέγω¹", "θεόϲ", "φημί", "ποιέω", "ἵημι", "μόνοϲ", "κύριοϲ", "πόλιϲ", "θεάομαι", "δοκέω", "λαμβάνω",
-		"δίδωμι", "βαϲιλεύϲ", "φύϲιϲ", "ἔτοϲ", "πατήρ", "ϲῶμα", "καλέω", "ἐρῶ", "υἱόϲ", "γαῖα", "ἀνήρ", "ὁράω",
-		"ψυχή", "δύναμαι", "ἀρχή", "καλόϲ", "δύναμιϲ", "ἀγαθόϲ", "οἶδα", "δείκνυμι", "χρόνοϲ", "γράφω", "δραχμή",
-		"μέροϲ", "λόγοϲ"}
 	DefaultW2VVectors = word2vec.Options{
 		BatchSize:          1024,
 		Dim:                125,
@@ -140,16 +109,6 @@ var (
 	}
 )
 
-func getgreekstops() map[string]struct{} {
-	gs := SetSubtraction(GreekStop, GreekKeep)
-	return ToSet(gs)
-}
-
-func getlatinstops() map[string]struct{} {
-	ls := SetSubtraction(LatStop, LatinKeep)
-	return ToSet(ls)
-}
-
 type WeightedHeadword struct {
 	Word  string
 	Count int
@@ -170,7 +129,7 @@ func (w WHWList) Swap(i, j int) {
 }
 
 // generateneighborsdata - generate the Neighbors data for a headword within a search
-func generateneighborsdata(c echo.Context, srch SearchStruct) map[string]search.Neighbors {
+func generateneighborsdata(c echo.Context, s SearchStruct) map[string]search.Neighbors {
 	const (
 		FMSG  = `Fetching a stored model`
 		GMSG  = `Generating a model`
@@ -180,24 +139,25 @@ func generateneighborsdata(c echo.Context, srch SearchStruct) map[string]search.
 		MQMEG = `Querying the model`
 	)
 
-	fp := fingerprintvectorsearch(srch, srch.VecModeler, srch.VecTextPrep)
+	fp := fingerprintvectorsearch(s, s.VecModeler, s.VecTextPrep)
 	isstored := vectordbcheck(fp)
 	var embs embedding.Embeddings
 	if isstored {
-		srch.ExtraMsg = FMSG
-		AllSearches.InsertSS(srch)
+		s.ExtraMsg = FMSG
+		AllSearches.InsertSS(s)
 		embs = vectordbfetch(fp)
 	} else {
-		srch.ExtraMsg = GMSG
-		AllSearches.InsertSS(srch)
-		embs = generateembeddings(c, srch.VecModeler, srch)
+		s.ExtraMsg = GMSG
+		AllSearches.InsertSS(s)
+		embs = generateembeddings(c, s.VecModeler, s)
 		vectordbadd(fp, embs)
+		vectordbsize(MSGPEEK)
 	}
 
 	// [b] make a query against the model
 
-	srch.ExtraMsg = MQMEG
-	AllSearches.InsertSS(srch)
+	s.ExtraMsg = MQMEG
+	AllSearches.InsertSS(s)
 
 	searcher, err := search.New(embs...)
 	if err != nil {
@@ -211,7 +171,7 @@ func generateneighborsdata(c echo.Context, srch SearchStruct) map[string]search.
 		ncount = VECTORNEIGHBORS
 	}
 
-	word := srch.LemmaOne
+	word := s.LemmaOne
 
 	nn := make(map[string]search.Neighbors)
 	neighbors, err := searcher.SearchInternal(word, ncount)
@@ -234,7 +194,7 @@ func generateneighborsdata(c echo.Context, srch SearchStruct) map[string]search.
 }
 
 // generateembeddings - turn a search into a collection of semantic vector embeddings
-func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) embedding.Embeddings {
+func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedding.Embeddings {
 	const (
 		FAIL1  = "model initialization failed"
 		FAIL2  = "generateembeddings() failed to train vector embeddings"
@@ -250,25 +210,25 @@ func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) emb
 	// lack of a real session means we can't call readUUIDCookie() repeatedly
 	// this also means we need the "modeltype" parameter as well (bot: configtype; surfer: sessiontype)
 
-	srch.ExtraMsg = PRLMSG
-	AllSearches.InsertSS(srch)
+	s.ExtraMsg = PRLMSG
+	AllSearches.InsertSS(s)
 
 	var vs SearchStruct
-	if len(srch.Results) == 0 {
+	if len(s.Results) == 0 {
 		vs = sessionintobulksearch(c, Config.VectorMaxlines)
 	}
 
 	msg(fmt.Sprintf(MSG1, len(vs.Results)), MSGPEEK)
 
 	p := message.NewPrinter(language.English)
-	srch.ExtraMsg = p.Sprintf(TBMSG, len(vs.Results))
-	AllSearches.InsertSS(srch)
+	s.ExtraMsg = p.Sprintf(TBMSG, len(vs.Results))
+	AllSearches.InsertSS(s)
 
-	srch.Results = vs.Results
+	s.Results = vs.Results
 	vs.Results = []DbWorkline{}
 
-	thetext := buildtextblock(srch.VecTextPrep, srch.Results)
-	srch.Results = []DbWorkline{}
+	thetext := buildtextblock(s.VecTextPrep, s.Results)
+	s.Results = []DbWorkline{}
 
 	// "thetext" for Albinus , poet. [lt2002]
 	// res romanus liber⁴ eo¹ ille qui¹ terni capitolium celsus¹ triumphus sponte deus pateo qui¹ fretus¹ nullus re-pono abscondo sinus¹ non tueor moenia¹ urbs de metrum †uilem spondeus totus¹ concludo verro possum fio jungo sed dactylus aptus
@@ -344,8 +304,8 @@ func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) emb
 					// tm = coll[3]
 				}
 			}
-			srch.ExtraMsg = fmt.Sprintf(VMSG, in, ti)
-			AllSearches.InsertSS(srch)
+			s.ExtraMsg = fmt.Sprintf(VMSG, in, ti)
+			AllSearches.InsertSS(s)
 			time.Sleep(WSPOLLINGPAUSE)
 		}
 	}
@@ -354,8 +314,8 @@ func generateembeddings(c echo.Context, modeltype string, srch SearchStruct) emb
 
 	_ = <-finished
 
-	srch.ExtraMsg = DBMSG
-	AllSearches.InsertSS(srch)
+	s.ExtraMsg = DBMSG
+	AllSearches.InsertSS(s)
 
 	// use buffers; skip the disk; psql used for storage: vectordbadd() & vectordbfetch()
 	var buf bytes.Buffer
@@ -479,12 +439,13 @@ func buildtextblock(method string, lines []DbWorkline) string {
 	return strings.TrimSpace(sb.String())
 }
 
+//
+// buildtextblock() HELPERS
+//
+
 // flatstring - helper for buildtextblock() to generate unmodified text
 func flatstring(sb *strings.Builder, slicedwords []string) {
-	ls := readstopconfig("latin")
-	gs := readstopconfig("greek")
-	ss := append(gs, ls...)
-	stops := ToSet(ss)
+	stops := getstopset()
 
 	for i := 0; i < len(slicedwords); i++ {
 		// drop skipwords
@@ -501,20 +462,41 @@ func flatstring(sb *strings.Builder, slicedwords []string) {
 	}
 }
 
+// yokedstring - helper for buildtextblock() to generate conjoined string substitutions
+func yokedstring(sb *strings.Builder, slicedwords []string, yokedmap map[string]string) {
+	// exact same logic as winnerstring()
+	winnerstring(sb, slicedwords, yokedmap)
+}
+
+// winnerstring - helper for buildtextblock() to generate winner takes all substitutions
+func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[string]string) {
+	stops := getstopset()
+
+	for i := 0; i < len(slicedwords); i++ {
+		// drop skipwords
+		w := winnermap[slicedwords[i]]
+		_, s := stops[w]
+		if s {
+			continue
+		} else {
+			sb.WriteString(w + " ")
+		}
+	}
+}
+
 // montecarlostring - helper for buildtextblock() to generate lucky-ducky substitutions
 func montecarlostring(sb *strings.Builder, slicedwords []string, guessermap map[string]hwguesser) {
-	ls := readstopconfig("latin")
-	gs := readstopconfig("greek")
-	ss := append(gs, ls...)
-	stops := ToSet(ss)
+	stops := getstopset()
+	msg("montecarlostring()", 1)
 	var w string
 	for i := 0; i < len(slicedwords); i++ {
+		w = ""
 		// pick a word...
 		mc := guessermap[slicedwords[i]]
 		if mc.total > 0 {
 			g := rand.Intn(mc.total)
 			for k, v := range mc.words {
-				if k < g {
+				if g < k {
 					w = v
 					break
 				}
@@ -527,32 +509,10 @@ func montecarlostring(sb *strings.Builder, slicedwords []string, guessermap map[
 			}
 		}
 
-		_, s := stops[w]
-		if s {
-			continue
-		} else {
-			sb.WriteString(w + " ")
+		if w == "" {
+			w = slicedwords[i]
 		}
-	}
 
-}
-
-// yokedstring - helper for buildtextblock() to generate conjoined string substitutions
-func yokedstring(sb *strings.Builder, slicedwords []string, yokedmap map[string]string) {
-	// exact same logic as winnerstring()
-	winnerstring(sb, slicedwords, yokedmap)
-}
-
-// winnerstring - helper for buildtextblock() to generate winner takes all substitutions
-func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[string]string) {
-	ls := readstopconfig("latin")
-	gs := readstopconfig("greek")
-	ss := append(gs, ls...)
-	stops := ToSet(ss)
-
-	for i := 0; i < len(slicedwords); i++ {
-		// drop skipwords
-		w := winnermap[slicedwords[i]]
 		_, s := stops[w]
 		if s {
 			continue
@@ -613,6 +573,10 @@ func buildyokedparsemap(parsemap map[string]map[string]bool) map[string]string {
 	return yoked
 }
 
+//
+// PARSEMAPPERS
+//
+
 type hwguesser struct {
 	total int
 	words map[int]string
@@ -656,7 +620,7 @@ func buildmontecarloparsemap(parsemap map[string]map[string]bool) map[string]hwg
 		lcparsemap[strings.ToLower(i)] = parsemap[i]
 	}
 
-	// [d] run through the parsemap and kill off the losers
+	// [d] run through the parsemap convert to a hwguesser map
 
 	guessermap := make(map[string]hwguesser)
 	for i := range lcparsemap {
@@ -1024,7 +988,7 @@ func vectordbcheck(fp string) bool {
 func vectordbadd(fp string, embs embedding.Embeddings) {
 	const (
 		MSG1 = "vectordbadd(): "
-		MSG2 = "%s compression: %dk -> %dk (%.1f percent)"
+		MSG2 = "%s compression: %dM -> %dM (%.1f percent)"
 		INS  = `
 			INSERT INTO %s
 				(fingerprint, vectorsize, vectordata)
@@ -1058,13 +1022,14 @@ func vectordbadd(fp string, embs embedding.Embeddings) {
 	msg(MSG1+fp, MSGPEEK)
 
 	// compressed is c. 28% of original
-	msg(fmt.Sprintf(MSG2, fp, l1/1024, l2/1024, (float32(l2)/float32(l1))*100), MSGPEEK)
+	msg(fmt.Sprintf(MSG2, fp, l1/1024/1024, l2/1024/1024, (float32(l2)/float32(l1))*100), MSGPEEK)
 }
 
 // vectordbfetch - get a set of embeddings from VECTORTABLENAME
 func vectordbfetch(fp string) embedding.Embeddings {
 	const (
 		MSG1 = "vectordbfetch(): "
+		MSG2 = "vectordbfetch() pulled empty set of embeddings for %s"
 		Q    = `SELECT vectordata FROM %s WHERE fingerprint = '%s' LIMIT 1`
 	)
 	dbconn := GetPSQLconnection()
@@ -1096,6 +1061,10 @@ func vectordbfetch(fp string) embedding.Embeddings {
 	err = json.Unmarshal(decompr, &emb)
 	chke(err)
 
+	if emb.Empty() {
+		msg(fmt.Sprintf(MSG2, fp), MSGNOTE)
+	}
+
 	msg(MSG1+fp, MSGFYI)
 
 	return emb
@@ -1118,4 +1087,81 @@ func vectordbreset() {
 	} else {
 		msg(MSG1+VECTORTABLENAME, MSGFYI)
 	}
+}
+
+// vectordbsize - how much space is the vectordb using?
+func vectordbsize(priority int) {
+	const (
+		SZQ  = "SELECT SUM(vectorsize) AS total FROM semantic_vectors"
+		MSG4 = "Total storage used by stored vectors is %dMB"
+	)
+	var size int64
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
+	err := dbconn.QueryRow(context.Background(), SZQ).Scan(&size)
+	chke(err)
+	msg(fmt.Sprintf(MSG4, size/1024/1024), priority)
+}
+
+//
+// STOPWORDS
+//
+
+var (
+	// Latin100 - the 100 most common latin headwords
+	Latin100 = []string{"qui¹", "et", "in", "edo¹", "is", "sum¹", "hic", "non", "ab", "ut", "Cos²", "si", "ad", "cum", "ex", "a", "eo¹",
+		"ego", "quis¹", "tu", "Eos", "dico²", "ille", "sed", "de", "neque", "facio", "possum", "atque", "sui", "res",
+		"quam", "aut", "ipse", "huc", "habeo", "do", "omne", "video", "ito", "magnus", "b", "alius²", "for", "idem",
+		"suum", "etiam", "per", "enim", "omnes", "ita", "suus", "omnis", "autem", "vel", "vel", "Alius¹", "qui²", "quo",
+		"nam", "bonus", "neo¹", "meus", "volo¹", "ne³", "ne¹", "suo", "verus", "pars", "reor", "sua", "vaco", "verum",
+		"primus", "unus", "multus", "causa", "jam", "tamen", "Sue", "nos", "dies", "Ios", "modus", "tuus", "venio",
+		"pro¹", "pro²", "ago", "deus", "annus", "locus", "homo", "pater", "eo²", "tantus", "fero", "quidem", "noster",
+		"an", "locum"}
+	LatExtra = []string{"at", "o", "tum", "tunc", "dum", "illic", "quia", "sive", "num", "adhuc", "tam", "ibi", "cur",
+		"usquam", "quoque", "duo", "talis", "simul", "igitur", "utique²", "aliqui", "apud", "sic", "umquam", "ergo",
+		"ob", "xu", "x", "iii", "u", "post", "ac", "ut"}
+	LatStop = append(Latin100, LatExtra...)
+	// LatinKeep - members of LatStop we will not toss
+	LatinKeep = []string{"facio", "possum", "habeo", "video", "magnus", "bonus", "volo¹", "primus", "venio", "ago",
+		"deus", "annus", "locus", "pater", "fero"}
+	// Greek150 - the 150 most common greek headwords
+	Greek150 = []string{"ὁ", "καί", "τίϲ", "ἔδω", "δέ", "εἰμί", "δέω¹", "δεῖ", "δέομαι", "εἰϲ", "αὐτόϲ", "τιϲ", "οὗτοϲ", "ἐν",
+		"γάροϲ", "γάρον", "γάρ", "οὐ", "μένω", "μέν", "τῷ", "ἐγώ", "ἡμόϲ", "κατά", "Ζεύϲ", "ἐπί", "ὡϲ", "διά",
+		"πρόϲ", "προϲάμβ", "τε", "πᾶϲ", "ἐκ", "ἕ", "ϲύ", "Ἀλλά", "γίγνομαι", "ἁμόϲ", "ὅϲτιϲ", "ἤ¹", "ἤ²", "ἔχω",
+		"ὅϲ", "μή", "ὅτι¹", "λέγω¹", "ὅτι²", "τῇ", "Τήιοϲ", "ἀπό", "εἰ", "περί", "ἐάν", "θεόϲ", "φημί", "ἐκάϲ",
+		"ἄν¹", "ἄνω¹", "ἄλλοϲ", "qui¹", "πηρόϲ", "παρά", "ἀνά", "αὐτοῦ", "ποιέω", "ἄναξ", "ἄνα", "ἄν²", "πολύϲ",
+		"οὖν", "λόγοϲ", "οὕτωϲ", "μετά", "ἔτι", "ὑπό", "ἑαυτοῦ", "ἐκεῖνοϲ", "εἶπον", "πρότεροϲ", "edo¹", "μέγαϲ",
+		"ἵημι", "εἷϲ", "οὐδόϲ", "οὐδέ", "ἄνθρωποϲ", "ἠμί", "μόνοϲ", "κύριοϲ", "διό", "οὐδείϲ", "ἐπεί", "πόλιϲ",
+		"τοιοῦτοϲ", "χάω", "καθά", "θεάομαι", "γε", "ἕτεροϲ", "δοκέω", "λαμβάνω", "δή", "δίδωμι", "ἵνα",
+		"βαϲιλεύϲ", "φύϲιϲ", "ἔτοϲ", "πατήρ", "ϲῶμα", "καλέω", "ἐρῶ", "υἱόϲ", "ὅϲοϲ", "γαῖα", "οὔτε", "οἷοϲ",
+		"ἀνήρ", "ὁράω", "ψυχή", "Ἔχιϲ", "ὥϲπερ", "αὐτόϲε", "χέω", "ὑπέρ", "ϲόϲ", "θεάω", "νῦν", "ἐμόϲ", "δύναμαι",
+		"φύω", "πάλιν", "ὅλοξ", "ἀρχή", "καλόϲ", "δύναμιϲ", "πωϲ", "δύο", "ἀγαθόϲ", "οἶδα", "δείκνυμι", "χρόνοϲ",
+		"ὅμοιοϲ", "ἕκαϲτοϲ", "ὁμοῖοϲ", "ὥϲτε", "ἡμέρα", "γράφω", "δραχμή", "μέροϲ"}
+	GreekExtra = []string{"ἀεί", "ὡϲαύτωϲ", "μηδέποτε", "μηδέ", "μηδ", "μηδέ", "ταὐτόϲ", "νυνί", "μεθ", "ἀντ", "μέχρι",
+		"ἄνωθεν", "ὀκτώ", "ἓξ", "μετ", "τ", "μ", "αὐτόθ", "οὐδ", "εἵνεκ", "νόϲφι", "ἐκεῖ", "οὔκουν", "θ", "μάλιϲτ", "ὧδε",
+		"πη", "τῇδ", "δι", "πρό", "ἀλλ", "ἕνεκα", "δ", "ἀλλά", "ἔπειτα", "καθ", "ταῦθ", "μήποτ", "ἀπ", "κ", "μήτ",
+		"εὖτ", "αὖθιϲ", "∙∙∙", "∙∙", "∙", "∙∙∙∙", "oxy", "col", "fr", "*"}
+	GreekStop = append(Greek150, GreekExtra...)
+	// GreekKeep - members of GreekStop we will not toss
+	GreekKeep = []string{"ἔχω", "λέγω¹", "θεόϲ", "φημί", "ποιέω", "ἵημι", "μόνοϲ", "κύριοϲ", "πόλιϲ", "θεάομαι", "δοκέω", "λαμβάνω",
+		"δίδωμι", "βαϲιλεύϲ", "φύϲιϲ", "ἔτοϲ", "πατήρ", "ϲῶμα", "καλέω", "ἐρῶ", "υἱόϲ", "γαῖα", "ἀνήρ", "ὁράω",
+		"ψυχή", "δύναμαι", "ἀρχή", "καλόϲ", "δύναμιϲ", "ἀγαθόϲ", "οἶδα", "δείκνυμι", "χρόνοϲ", "γράφω", "δραχμή",
+		"μέροϲ", "λόγοϲ"}
+)
+
+func getgreekstops() map[string]struct{} {
+	gs := SetSubtraction(GreekStop, GreekKeep)
+	return ToSet(gs)
+}
+
+func getlatinstops() map[string]struct{} {
+	ls := SetSubtraction(LatStop, LatinKeep)
+	return ToSet(ls)
+}
+
+func getstopset() map[string]struct{} {
+	ls := readstopconfig("latin")
+	gs := readstopconfig("greek")
+	ss := append(gs, ls...)
+	return ToSet(ss)
 }

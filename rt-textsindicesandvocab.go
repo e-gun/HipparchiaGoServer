@@ -951,6 +951,8 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 	// [Hipparchia Golang Server v.1.2.0a] UNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE
 	// ERROR: invalid memory alloc request size 1073741824 (SQLSTATE XX000)
 
+	// this could be parallelized...
+
 	chunkedlist := ChunkSlice(wordlist, CHUNKSIZE)
 	for _, cl := range chunkedlist {
 		// a waste of time to check the language on every word; just flail/fail once
