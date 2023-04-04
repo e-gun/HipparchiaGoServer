@@ -24,6 +24,7 @@ import (
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"io"
+	"math/rand"
 	"os"
 	"runtime"
 	"sort"
@@ -452,14 +453,21 @@ func buildtextblock(method string, lines []DbWorkline) string {
 	switch method {
 	case "unparsed":
 		flatstring(&sb, slicedwords)
-		//case "montecarlo":
-		//	mcm := buildmontecarlomap(morphmapstrslc)
-		//	montecarlostring(&sb, slicedwords, mcm)
+	case "montecarlo":
+		mcm := buildmontecarloparsemap(morphmapstrslc)
+
+		// "mcm" for Albinus , poet. [lt2002]
+		// map[abscondere:{213 map[213:abscondo]} apte:{1591 map[168:apte 1591:aptus]} capitolia:{0 map[0:capitolium]} celsa:{1050 map[1050:celsus¹]} concludere:{353 map[353:concludo]} cui:{324175 map[0:quis² 251744:qui¹ 271556:qui² 324175:quis¹]} dactylum:{167 map[167:dactylus]} de:{42695 map[42695:de]} deum:{14899 map[14899:deus]} fieri:{12305 map[12305:fio]} freta:{1507 map[746:fretum 1507:fretus¹]} i:{58129 map[58129:eo¹]} ille:{44214 map[44214:ille]} iungens:{2275 map[2275:jungo]} liber:{24949 map[7550:liber¹ 20953:liber⁴ 24949:libo¹]} metris:{383 map[383:metrum]} moenibus:{1308 map[1308:moenia¹]} non:{96475 map[96475:non]} nulla:{11785 map[11785:nullus]} patuere:{1874 map[1828:pateo 1874:patesco]} posse:{41631 map[41631:possum]} repostos:{47 map[47:re-pono]} rerum:{38669 map[38669:res]} romanarum:{0 map[0:romanus]} sed:{44131 map[44131:sed]} sinus:{1223 map[1223:sinus¹]} spondeum:{363 map[158:spondeum 363:spondeus]} sponte:{841 map[841:sponte]} ternis:{591 map[591:terni]} totum:{9166 map[0:totus² 9166:totus¹]} triumphis:{1058 map[1058:triumphus]} tutae:{3734 map[3734:tueor]} uersum:{9139 map[1471:verto 5314:verro 5749:versum 9139:versus³]} urbes:{8564 map[8564:urbs]} †uilem:{0 map[0:†uilem]}]
+
+		montecarlostring(&sb, slicedwords, mcm)
 	case "yoked":
 		yokedmap := buildyokedparsemap(morphmapstrslc)
+
+		// "yokedmap" for Albinus , poet. [lt2002]
+		// map[abscondere:abscondo apte:apte•aptus capitolia:capitolium celsa:celsus¹ concludere:concludo cui:quis²•quis¹•qui²•qui¹ dactylum:dactylus de:de deum:deus fieri:fio freta:fretum•fretus¹ i:eo¹ ille:ille iungens:jungo liber:liber¹•liber⁴•libo¹ metris:metrum moenibus:moenia¹ non:non nulla:nullus patuere:pateo•patesco posse:possum repostos:re-pono rerum:res romanarum:romanus sed:sed sinus:sinus¹ spondeum:spondeum•spondeus sponte:sponte ternis:terni totum:totus²•totus¹ triumphis:triumphus tutae:tueor uersum:verro•versum•versus³•verto urbes:urbs †uilem:†uilem]
+
 		yokedstring(&sb, slicedwords, yokedmap)
-	default:
-		// "winner"
+	default: // "winner"
 		winnermap := buildwinnertakesallparsemap(morphmapstrslc)
 
 		// "winnermap" for Albinus , poet. [lt2002]
@@ -494,20 +502,31 @@ func flatstring(sb *strings.Builder, slicedwords []string) {
 }
 
 // montecarlostring - helper for buildtextblock() to generate lucky-ducky substitutions
-// [see notes in buildwinnertakesallparsemap() for when to branch]
-
-// yokedstring - helper for buildtextblock() to generate conjoined string substitutions
-// [see notes in buildwinnertakesallparsemap() for when to branch]
-func yokedstring(sb *strings.Builder, slicedwords []string, yokedmap map[string]string) {
-	// same code as winnerstring() refactor later
+func montecarlostring(sb *strings.Builder, slicedwords []string, guessermap map[string]hwguesser) {
 	ls := readstopconfig("latin")
 	gs := readstopconfig("greek")
 	ss := append(gs, ls...)
 	stops := ToSet(ss)
-
+	var w string
 	for i := 0; i < len(slicedwords); i++ {
-		// drop skipwords
-		w := yokedmap[slicedwords[i]]
+		// pick a word...
+		mc := guessermap[slicedwords[i]]
+		if mc.total > 0 {
+			g := rand.Intn(mc.total)
+			for k, v := range mc.words {
+				if k < g {
+					w = v
+					break
+				}
+			}
+		} else {
+			// just grab the first one
+			for _, v := range mc.words {
+				w = v
+				break
+			}
+		}
+
 		_, s := stops[w]
 		if s {
 			continue
@@ -515,6 +534,13 @@ func yokedstring(sb *strings.Builder, slicedwords []string, yokedmap map[string]
 			sb.WriteString(w + " ")
 		}
 	}
+
+}
+
+// yokedstring - helper for buildtextblock() to generate conjoined string substitutions
+func yokedstring(sb *strings.Builder, slicedwords []string, yokedmap map[string]string) {
+	// exact same logic as winnerstring()
+	winnerstring(sb, slicedwords, yokedmap)
 }
 
 // winnerstring - helper for buildtextblock() to generate winner takes all substitutions
@@ -535,10 +561,6 @@ func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[strin
 		}
 	}
 }
-
-// [d] run through the parsemap and build a montecarlomap
-// if a word might be A, B, or C and A appears 50 times, B appears 25 times, and C appears 5 times, then you
-// want to randomly assign the word to A 5/8 of the time, etc.
 
 // buildyokedparsemap
 func buildyokedparsemap(parsemap map[string]map[string]bool) map[string]string {
@@ -591,6 +613,67 @@ func buildyokedparsemap(parsemap map[string]map[string]bool) map[string]string {
 	return yoked
 }
 
+type hwguesser struct {
+	total int
+	words map[int]string
+}
+
+// buildmontecarloparsemap
+func buildmontecarloparsemap(parsemap map[string]map[string]bool) map[string]hwguesser {
+	// turn a list of sentences into a list of headwords; here we figure out the chances of any given homonym
+	// then we set ourselves up to do a weighted guess of which one is in use
+	// if a word might be A, B, or C and A appears 50 times, B appears 25 times, and C appears 5 times, then you
+	// want to randomly assign the word to A 5/8 of the time, etc.
+	// this can be acheived by a cumulative weight: [A -> 1-50, B -> 51-75, C -> 76-80]; a guess of 66 is a "B"
+
+	// [a] figure out all headwords in use
+
+	allheadwords := make(map[string]bool)
+	for i := range parsemap {
+		for k, _ := range parsemap[i] {
+			allheadwords[k] = true
+		}
+	}
+
+	// [b] generate scoremap and assign scores to each of the headwords
+
+	scoremap := fetchheadwordcounts(allheadwords)
+
+	// [c] note that there are capital words in the parsemap that need lowering
+
+	// [c1] lower the internal values first
+	for i := range parsemap {
+		newmap := make(map[string]bool)
+		for k, _ := range parsemap[i] {
+			newmap[strings.ToLower(k)] = true
+		}
+		parsemap[i] = newmap
+	}
+
+	// [c2] lower the parsemap keys; how worried should we be about the collisions...
+	lcparsemap := make(map[string]map[string]bool)
+	for i := range parsemap {
+		lcparsemap[strings.ToLower(i)] = parsemap[i]
+	}
+
+	// [d] run through the parsemap and kill off the losers
+
+	guessermap := make(map[string]hwguesser)
+	for i := range lcparsemap {
+		var g hwguesser
+		g.words = make(map[int]string)
+		t := 0
+		for j, _ := range parsemap[i] {
+			t += scoremap[j]
+			g.words[t] = j
+		}
+		g.total = t
+		guessermap[i] = g
+	}
+
+	return guessermap
+}
+
 // buildwinnertakesallparsemap - figure out which is the most common of the possible headwords for any given word
 func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string]string {
 	// turn a list of sentences into a list of headwords; here we figure out which headword is the dominant homonym
@@ -639,8 +722,6 @@ func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string
 			hwl = append(hwl, thishw)
 		}
 		sort.Sort(hwl)
-		// as of this moment, you have 'montecarlo' info, and...
-		// you are now going to drop montecarlo info
 		winnermap[i] = hwl[0].Word
 	}
 
