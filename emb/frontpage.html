@@ -92,17 +92,17 @@
         <input type="checkbox" id="vocscansion" value="no">include scansion information
     </p>
 
-    <p class="optionlabel">Semantic vector graphs</p>
+    <p class="optionlabel">Neighbors graphs</p>
     <p class="optionitem">
         <input type="checkbox" id="extendedgraph" value="no">graphs include neighbors of neighbors
     </p>
 
-    <p class="optionlabel">Number of semantic neighbors to track</p>
+    <p class="optionlabel">Neighbors to track</p>
     <p class="optionitem">
         <input id="neighborcount" type="text" value="20" style="width: 90px;">
     </p>
 
-    <p class="optionlabel">Semantic vector modeler</p>
+    <p class="optionlabel">Neighbors modeler</p>
     <p class="optionitem">
         <select name="modeler" id="modeler">
             <option value="w2v">Word2Vec</option>
@@ -111,12 +111,12 @@
         </select>
     </p>
 
-    <p class="optionlabel">Semantic vector text preparation</p>
+    <p class="optionlabel">Neighbors text parsing</p>
     <p class="optionitem">
         <select name="vtextprep" id="vtextprep">
             <option value="winner">Winner takes all</option>
-            <option value="yoked">Yoked headwords</option>
             <option value="montecarlo">Weighted chance headwords</option>
+            <option value="yoked">Yoked headwords</option>
             <option value="unparsed">Unparsed</option>
         </select>
     </p>

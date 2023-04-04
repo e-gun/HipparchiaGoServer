@@ -1,5 +1,6 @@
 # Semantic Vector Nearest Neighbor Searches
 
+## Building Models
 If you request a lemmatized search (λ), you will be presented with the option to convert your search to a vectorized 
 search (v⃗).
 
@@ -9,12 +10,30 @@ The server will check to see if there is a pre-built model for the current combi
 
 If there is no model, one will be built and then saved for subsequent use. Building can be **slow**. Re-use is very fast. 
 
+### Sample Simple Neighbors Output 
+
+![inst02](../gitimg/semantic_neighbors.png)
+
+### Sample Neighbors of Neighbors Output
+
+![inst02](../gitimg/semantic_neighbors_meta.png)
+
+--- 
+
+## Notes about model building
+
+See also the sections on **Model Makers** and **Text Preparation** below.
+
 Models of <100k lines are quick and easy enough to build. After that, modeling can become a chore.
 
-Expect to wait a significant amount of time if you try to model the entire corpus of Latin, for example: c 900k lines. 
-This will take several minutes on a fast machine. All of Greek is even more formidable. Note that the default 1 million 
-line cap on models will prevent building a model of the whole Greek corpus. Edit `hgs-prolix-conf.json` to change 
-`VectorMaxlines` to 9 million lines. Preparing the text will take >11 minutes. This is before the model even starts 
+This makes it important not to make a query unless you have a search list built. If the search list is empty, you just
+requested "everything". And that might mean all of both Greek and Latin and perhaps the inscriptions...This click can
+hog your machine for 60+ minutes unless `VectorMaxlines` is set to a low number.
+
+Expect to wait a significant amount of time if you try to model the entire corpus of Latin, for example: c 900k lines.
+This will take several minutes on a fast machine. All of Greek is even more formidable. Note that the default 1 million
+line cap on models will prevent building a model of the whole Greek corpus. Edit `hgs-prolix-conf.json` to change
+`VectorMaxlines` to 9 million lines. Preparing the text will take >11 minutes. This is before the model even starts
 its training runs. Each training iteration will take >3m on a fast machine. Queries of this model take >15s: `205MB`
 of data has to be fetched and decompressed.
 
@@ -29,13 +48,14 @@ of data has to be fetched and decompressed.
 (subsequent queries)
 [HGS] VectorSearch() runtime.GC() 2029M --> 431M
 ```
-Note as well that vectorization can be memory intensive. A query of the full Latin corpus needs to allocate c. `450MB` of 
+Note as well that vectorization can be memory intensive. A query of the full Latin corpus needs to allocate c. `450MB` of
 extra RAM: `[HGS] VectorSearch() runtime.GC() 694M --> 237M`. You might want to set `DocInMemory` to `false` if you
 try to build all of Greek as `HGS` will use `30GB` of RAM while building. Few computers have that much memory. And if you
-run out of memory a slow operation will become very, very slow if it finishes at all. 
+run out of memory a slow operation will become very, very slow if it finishes at all.
 
+---
 
-![inst02](../gitimg/semantic_neighbors.png)
+## Configuration options
 
 There is currently no browser-facing interface that allows for the customization of the rules used to build these 
 models. Instead users will need to manually edit configuration files. Nevertheless, most people will feel little to
@@ -60,7 +80,25 @@ new settings. There is no need to restart the server.
 The `stops` are lists of terms you wish to omit from the model. These should be common words that reveal little about the
 underlying collection of words: "the", "this", "a", "where", "so", "under" ... 
 
-## Word2Vec
+---
+
+## Text Preparation
+
+![inst02](../gitimg/semantic_neighbors_text_prep.png)
+
+The pre-modeled text can be prepared in a variety of ways. Each has its trade-offs. 
+* `Unparsed` will just model the raw text. But that means that `dedissent` and `dare` each get their own separate analysis. And so if you want to know how the verb works in general, you have only indirectly looked at that. 
+* `Winner takes all` will look at every word and then try to parse it. For example, `est` might be from `edo` or `sum`. Forms of `sum` are more common. So we assign `est` to `sum` 100% of the time. The text is then rewritten as a collection of headwords rather than inflected forms. The model is built against this rewritten text. *This is the current default method for preparing texts*.
+* `Weighted chance headwords` will look at every word and then try to parse it. For example, `apte` can be found under `apte` or `aptus` in the lookup tables. But inflected forms of `aptus` are about 10x more common than `apte` in the data. So every time `apte` is seen it will be assigned to `aptus` 90% of the time. The text is then rewritten as a collection of headwords rather than inflected forms. 
+* `Yoked headwords` will look at every word and then try to parse it. For example, `est` might be from `edo` or `sum`. No choice will be made. Instead `edo•sum` will be inserted into the text. The text is then rewritten as a collection of yoked headwords.
+
+With `Unparsed` you will have a lot of trouble tracking concepts. With `Winner takes all` many words will never appear, even common ones that really should appear. `Weighted chance headwords` is inserts a bunch of hidden guesses. `Yoked headwords` will model both `edo•sum` and `sum` AND you will need to search for `edo•sum` to see its neighbors, i.e., a form you were not likely to guess and request. But the modeler does an OK job of it in the end, especially given how imperfect the parsing data is. And unless/until ever word of every text is perfectly parsed, that will have to be good enough.
+
+---
+
+## Model Makers
+
+### Word2Vec
 
 This is the default model maker. 
 
@@ -150,7 +188,7 @@ will differ. In fact, one often seems to be more interesting than the other.
 
 On models see also: https://link.springer.com/article/10.1007/s41019-019-0096-6
 
-## LexVec
+### LexVec
 
 This is not the default model maker. It can be requested via the browser interface if you open up the 
 `Configuration options` panel. It can be set as the temporary default via the command line. It can be made the
@@ -184,7 +222,7 @@ The default `hgs-vector-conf-glove.json`:
   }
 ```
 
-## GloVe
+### GloVe
 
 This is not the default model maker. It can be requested via the browser interface if you open up the
 `Configuration options` panel. It can be set as the temporary default via the command line. It can be made the
@@ -227,6 +265,3 @@ real alpha = 0.75, x_max = 100.0; // Weighting function parameters, not extremel
 
 See also https://nlp.stanford.edu/projects/glove/.
 
----
-
-![inst02](../gitimg/semantic_neighbors_meta.png)

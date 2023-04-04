@@ -174,7 +174,7 @@ func fingerprintvectorsearch(srch SearchStruct, modeltype string, textprep strin
 		ff, ee := json.Marshal(lexvecvectorconfig())
 		f4 = ff
 		e4 = ee
-	default:
+	default: // w2v
 		ff, ee := json.Marshal(w2vvectorconfig())
 		f4 = ff
 		e4 = ee
@@ -188,7 +188,8 @@ func fingerprintvectorsearch(srch SearchStruct, modeltype string, textprep strin
 	f1 = append(f1, f2...)
 	f1 = append(f1, f3...)
 	f1 = append(f1, f4...)
-	f1 = append([]byte(textprep))
+	f1 = append(f1, []byte(textprep)...)
+
 	m := fmt.Sprintf("%x", md5.Sum(f1))
 	msg(MSG1+m, MSGTMI)
 
