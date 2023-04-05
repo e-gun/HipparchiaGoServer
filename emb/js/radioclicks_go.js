@@ -131,6 +131,9 @@ const lsf = $('#lemmatasearchform');
 const vschon = $('#vectorizing-ison');
 const vschoff  = $('#vectorizing-isoff');
 
+const plsf = $('#proximatelemmatasearchform');
+const psf = $('#proximatesearchform');
+
 function hidevectornotification() {
     vschon.hide();
     vschoff.show();
