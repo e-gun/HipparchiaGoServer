@@ -179,6 +179,8 @@ func selftest() {
 	TimeTracker("D4", fmt.Sprintf(MSG13, len(lex)), start, previous)
 	previous = time.Now()
 
+	// vector selftest is not so easy: need a context
+
 	msg("exiting selftest mode", MSGMAND)
 	Config.LogLevel = oldloglevel
 }

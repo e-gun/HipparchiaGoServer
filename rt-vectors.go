@@ -221,7 +221,8 @@ func RtVectorBot(c echo.Context) error {
 	s.SearchIn.Authors = []string{a}
 
 	m := Config.VectorModel
-	fp := fingerprintvectorsearch(s, m, VECTORTEXTPREPDEFAULT)
+	fp := fingerprintvectorsearch(s, m, Config.VectorTextPrep)
+
 	isstored := vectordbcheck(fp)
 
 	if isstored {

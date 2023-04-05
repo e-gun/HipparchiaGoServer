@@ -12,6 +12,7 @@ if hash mdpdf &> /dev/null
     mdpdf INSTRUCTIONS/CUSTOMIZATION.md emb/pdf/HGS_CUSTOMIZATION.pdf
     mdpdf INSTRUCTIONS/SEMANTICVECTORS.md emb/pdf/HGS_SEMANTICVECTORS.pdf
     mdpdf fyi/README.md emb/pdf/HGS_FYI.pdf
+    mdpdf INSTRUCTIONS/BASIC_USE.md emb/pdf/HGS_BASIC_USE.pdf
 fi
 
 oss=(linux windows darwin freebsd)

@@ -278,7 +278,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 		if err := vmodel.Train(b); err != nil {
 			msg(FAIL2, 1)
 		} else {
-			msg(fmt.Sprintf(MSG2, Config.VectorModel), MSGTMI)
+			msg(fmt.Sprintf(MSG2, modeltype), MSGTMI)
 		}
 		finished <- true
 	}()
@@ -446,7 +446,6 @@ func buildtextblock(method string, lines []DbWorkline) string {
 // flatstring - helper for buildtextblock() to generate unmodified text
 func flatstring(sb *strings.Builder, slicedwords []string) {
 	stops := getstopset()
-
 	for i := 0; i < len(slicedwords); i++ {
 		// drop skipwords
 		_, s := stops[slicedwords[i]]
@@ -471,7 +470,6 @@ func yokedstring(sb *strings.Builder, slicedwords []string, yokedmap map[string]
 // winnerstring - helper for buildtextblock() to generate winner takes all substitutions
 func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[string]string) {
 	stops := getstopset()
-
 	for i := 0; i < len(slicedwords); i++ {
 		// drop skipwords
 		w := winnermap[slicedwords[i]]
@@ -487,7 +485,6 @@ func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[strin
 // montecarlostring - helper for buildtextblock() to generate lucky-ducky substitutions
 func montecarlostring(sb *strings.Builder, slicedwords []string, guessermap map[string]hwguesser) {
 	stops := getstopset()
-	msg("montecarlostring()", 1)
 	var w string
 	for i := 0; i < len(slicedwords); i++ {
 		w = ""
@@ -520,57 +517,6 @@ func montecarlostring(sb *strings.Builder, slicedwords []string, guessermap map[
 			sb.WriteString(w + " ")
 		}
 	}
-}
-
-// buildyokedparsemap
-func buildyokedparsemap(parsemap map[string]map[string]bool) map[string]string {
-	const (
-		SEPARATOR = `•`
-	)
-	// turn a list of sentences into a list of headwords; here we accept all headwords and yoke them
-	// "esse" is "sum" + "edo", etc.
-
-	// [a] figure out all headwords in use
-
-	allheadwords := make(map[string]bool)
-	for i := range parsemap {
-		for k, _ := range parsemap[i] {
-			allheadwords[k] = true
-		}
-	}
-
-	// [b] note that there are capital words in the parsemap that need lowering
-
-	// [b1] lower the internal values first
-	for i := range parsemap {
-		newmap := make(map[string]bool)
-		for k, _ := range parsemap[i] {
-			newmap[strings.ToLower(k)] = true
-		}
-		parsemap[i] = newmap
-	}
-
-	// [b2] lower the parsemap keys; how worried should we be about the collisions...
-	lcparsemap := make(map[string]map[string]bool)
-	for i := range parsemap {
-		lcparsemap[strings.ToLower(i)] = parsemap[i]
-	}
-
-	// [c] build the yoked map
-
-	yoked := make(map[string]string)
-	for i := range lcparsemap {
-		var ww []string
-		// for j := 0; j < len(lcparsemap[i]); j++ {
-		for j, _ := range parsemap[i] {
-			ww = append(ww, j)
-		}
-		sort.Strings(ww)
-
-		yoked[i] = strings.Join(ww, SEPARATOR)
-	}
-
-	return yoked
 }
 
 //
@@ -691,6 +637,61 @@ func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string
 
 	return winnermap
 }
+
+// buildyokedparsemap
+func buildyokedparsemap(parsemap map[string]map[string]bool) map[string]string {
+	const (
+		SEPARATOR = `•`
+	)
+	// turn a list of sentences into a list of headwords; here we accept all headwords and yoke them
+	// "esse" is "sum" + "edo", etc.
+
+	// [a] figure out all headwords in use
+
+	allheadwords := make(map[string]bool)
+	for i := range parsemap {
+		for k, _ := range parsemap[i] {
+			allheadwords[k] = true
+		}
+	}
+
+	// [b] note that there are capital words in the parsemap that need lowering
+
+	// [b1] lower the internal values first
+	for i := range parsemap {
+		newmap := make(map[string]bool)
+		for k, _ := range parsemap[i] {
+			newmap[strings.ToLower(k)] = true
+		}
+		parsemap[i] = newmap
+	}
+
+	// [b2] lower the parsemap keys; how worried should we be about the collisions...
+	lcparsemap := make(map[string]map[string]bool)
+	for i := range parsemap {
+		lcparsemap[strings.ToLower(i)] = parsemap[i]
+	}
+
+	// [c] build the yoked map
+
+	yoked := make(map[string]string)
+	for i := range lcparsemap {
+		var ww []string
+		// for j := 0; j < len(lcparsemap[i]); j++ {
+		for j, _ := range parsemap[i] {
+			ww = append(ww, j)
+		}
+		sort.Strings(ww)
+
+		yoked[i] = strings.Join(ww, SEPARATOR)
+	}
+
+	return yoked
+}
+
+//
+// DB SUPPORT
+//
 
 // fetchheadwordcounts - map a list of headwords to their corpus counts
 func fetchheadwordcounts(headwordset map[string]bool) map[string]int {
@@ -1093,7 +1094,7 @@ func vectordbreset() {
 func vectordbsize(priority int) {
 	const (
 		SZQ  = "SELECT SUM(vectorsize) AS total FROM semantic_vectors"
-		MSG4 = "Total storage used by stored vectors is %dMB"
+		MSG4 = "Disk space used by stored vectors is currently %dMB"
 	)
 	var size int64
 	dbconn := GetPSQLconnection()
