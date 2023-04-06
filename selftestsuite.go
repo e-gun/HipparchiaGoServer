@@ -189,7 +189,7 @@ func selftest() {
 
 	vmod := []string{"w2v", "lexvec", "glove"}
 	vtxp := []string{"winner", "unparsed", "yoked", "montecarlo"}
-	vauu := []string{"lt0959", "gr0011"} // ovid and sophocles
+	vauu := []string{"lt0472", "gr0011"} // catullus and sophocles
 
 	au := func() {
 		for _, a := range vauu {
