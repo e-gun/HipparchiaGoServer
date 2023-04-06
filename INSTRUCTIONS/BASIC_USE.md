@@ -14,7 +14,10 @@
 12. The dictionary is linked to a morphology chart maker.
 13. The morphology chart is linked to the searcher.
 14. The search results list is linked to the browser.
-15. I need to know still more...
+15. Get a text of the current selection.
+16. Build and index of the current selection.
+17. Get the vocabulary for the current selection.
+18. I need to know still more...
 
 ---
 [0] **Built-in tips**
@@ -188,7 +191,35 @@ passage.
 ![inst03](../gitimg/basic_use/14_search_to_browse.png)
 
 ---
-[15] **I need to know still more...**
+
+[15] Get a text of the current selection.
+
+Click the icon and a text will be generated for whatever you have selected up to the `MaxText` configuration setting
+(default `35000` lines)
+
+![inst03](../gitimg/basic_use/15_textmaker.png)
+
+---
+
+[16] Build and index of the current selection.
+
+Click the icon and an index will be generated for whatever you have selected up to the `MaxText` configuration setting
+(default `35000` lines)
+
+![inst03](../gitimg/basic_use/16_index_maker.png)
+
+---
+
+[17] Get the vocabulary for the current selection.
+
+Click the icon and a vocabulary list will be generated for whatever you have selected up to the `MaxText` configuration setting
+(default `35000` lines)
+
+![inst03](../gitimg/basic_use/17_vocab_list.png)
+
+---
+
+[18] **I need to know still more...**
 
 More help is also available via the `?` button in the bottom right corner of the page. There you can learn about
 `regex`, see some warnings about the data, etc. See also the separate instructions about `semantic vectors`. 

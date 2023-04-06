@@ -18,6 +18,7 @@
   * search for terms and yield an interactive graph of nearest neighbors
   * choice of graphing styles: "neighbors" or "neighbors + neighbors of neighbors"
   * configure how many neighbors to track
+  * choice of text building strategies
   * choice of modeling algorithms
   * configurable model parameters
   * configurable lists of stop-words
