@@ -204,6 +204,7 @@ func RtVectorBot(c echo.Context) error {
 	const (
 		MSG1    = "vectorbot found model for %s"
 		MSG2    = "vectorbot skipping %s - only %d lines found"
+		MSG3    = "attempted access to vectorbot route by foreign IP: '%s'"
 		MINSIZE = 1000
 	)
 
@@ -215,6 +216,10 @@ func RtVectorBot(c echo.Context) error {
 
 	if Config.VectorsDisabled {
 		return nil
+	}
+
+	if c.RealIP() != Config.HostIP {
+		msg(fmt.Sprintf(MSG3, c.RealIP()), MSGNOTE)
 	}
 
 	s := BuildDefaultSearch(c)

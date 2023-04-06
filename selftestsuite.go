@@ -54,6 +54,8 @@ func selftest() {
 		MSG11 = "look up %d specific words"
 		MSG12 = "look up %d word substrings"
 		MSG13 = "reverse lookup for %d word substrings"
+		MSG14 = "vector model test: %s (%d authors with %d text preparation modes each)"
+		URL   = "http://%s:%d/vbot/%s"
 	)
 
 	printbuildinfo()
@@ -179,8 +181,47 @@ func selftest() {
 	TimeTracker("D4", fmt.Sprintf(MSG13, len(lex)), start, previous)
 	previous = time.Now()
 
-	// vector selftest is not so easy: need a context
+	// vector selftest
+	msg("[IV] vectorization tests", MSGWARN)
+	vectordbreset()
+	ovm := Config.VectorModel
+	otx := Config.VectorTextPrep
+
+	vmod := []string{"w2v", "lexvec", "glove"}
+	vtxp := []string{"winner", "unparsed", "yoked", "montecarlo"}
+	vauu := []string{"lt0959", "gr0011"} // ovid and sophocles
+
+	au := func() {
+		for _, a := range vauu {
+			url := fmt.Sprintf(URL, Config.HostIP, Config.HostPort, a)
+			_, ee := http.Get(url)
+			chke(ee)
+		}
+	}
+
+	tx := func() {
+		for _, t := range vtxp {
+			Config.VectorTextPrep = t
+			au()
+		}
+	}
+
+	md := func() {
+		count := 0
+		for _, m := range vmod {
+			count += 1
+			Config.VectorModel = m
+			tx()
+			nb := fmt.Sprintf(MSG14, m, len(vauu), len(vtxp))
+			TimeTracker(fmt.Sprintf("E%d", count), nb, start, previous)
+			previous = time.Now()
+		}
+	}
+
+	md()
 
 	msg("exiting selftest mode", MSGMAND)
 	Config.LogLevel = oldloglevel
+	Config.VectorModel = ovm
+	Config.VectorTextPrep = otx
 }
