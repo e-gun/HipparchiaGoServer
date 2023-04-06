@@ -214,18 +214,18 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	AllSearches.InsertSS(s)
 
 	var vs SearchStruct
+
+	// vectorbot already has s.Results vs normal user who does not
 	if len(s.Results) == 0 {
 		vs = sessionintobulksearch(c, Config.VectorMaxlines)
+		msg(fmt.Sprintf(MSG1, len(vs.Results)), MSGPEEK)
+		s.Results = vs.Results
+		vs.Results = []DbWorkline{}
 	}
-
-	msg(fmt.Sprintf(MSG1, len(vs.Results)), MSGPEEK)
 
 	p := message.NewPrinter(language.English)
 	s.ExtraMsg = p.Sprintf(TBMSG, len(vs.Results))
 	AllSearches.InsertSS(s)
-
-	s.Results = vs.Results
-	vs.Results = []DbWorkline{}
 
 	thetext := buildtextblock(s.VecTextPrep, s.Results)
 	s.Results = []DbWorkline{}
