@@ -195,7 +195,7 @@ passage.
 [15] Get a text of the current selection.
 
 Click the icon and a text will be generated for whatever you have selected up to the `MaxText` configuration setting
-(default `35000` lines)
+(default: `35000` lines)
 
 ![inst03](../gitimg/basic_use/15_textmaker.png)
 
@@ -204,7 +204,7 @@ Click the icon and a text will be generated for whatever you have selected up to
 [16] Build and index of the current selection.
 
 Click the icon and an index will be generated for whatever you have selected up to the `MaxText` configuration setting
-(default `35000` lines)
+(default: `35000` lines). If you click on a locus, a panel will open at that locus. 
 
 ![inst03](../gitimg/basic_use/16_index_maker.png)
 
@@ -213,7 +213,7 @@ Click the icon and an index will be generated for whatever you have selected up 
 [17] Get the vocabulary for the current selection.
 
 Click the icon and a vocabulary list will be generated for whatever you have selected up to the `MaxText` configuration setting
-(default `35000` lines)
+(default: `35000` lines). If you click on a headword, a panel will open with the dictionary entry for that word. 
 
 ![inst03](../gitimg/basic_use/17_vocab_list.png)
 

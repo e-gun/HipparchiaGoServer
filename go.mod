@@ -10,13 +10,13 @@ require (
 	github.com/jackc/pgx/v5 v5.3.1
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/pkg/profile v1.7.0
-	golang.org/x/text v0.8.0
+	golang.org/x/text v0.9.0
 )
 
 require (
 	github.com/felixge/fgprof v0.9.3 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	github.com/google/pprof v0.0.0-20230323073829-e72429f035bd // indirect
+	github.com/google/pprof v0.0.0-20230405160723-4a4c7d95572b // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
