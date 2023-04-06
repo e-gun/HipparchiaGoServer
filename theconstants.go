@@ -10,7 +10,7 @@ import "time"
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.2.3"
+	VERSION                  = "1.2.4"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	BLACKANDWHITE            = false
 	CHARSPERLINE             = 60 // used by vector to preallocate memory: set it closer to a max than a real average
@@ -141,6 +141,7 @@ const (
    C1-gzC0          enable gzip compression of the server's output
    C1-hC0           print this help information
    C1-mdC0 C2{string}C0 set the vector model type; available: C3%sC0, C3%sC0, & C3%sC0 [default: C3%sC0]
+   C1-pdC0          write a copy of the embedded PDF instructions to the current directory
    C1-pgC0 C2{string}C0 supply full PostgreSQL credentials C4(†)C0
    C1-qC0           quiet startup: suppress copyright notice
    C1-rvC0          reset the stored semantic vector table

@@ -160,6 +160,16 @@ func ConfigAtLaunch() {
 
 	args := os.Args[1:len(os.Args)]
 
+	help := func() {
+		printversion()
+		printbuildinfo()
+		ht := styleoutput(coloroutput(HELPTEXT))
+		fmt.Println(fmt.Sprintf(ht, pwf, DEFAULTBROWSERCTX, CONFIGLOCATION, CONFIGBASIC, h, CONFIGBASIC,
+			DEFAULTECHOLOGLEVEL, HDBFOLDER, DEFAULTGOLOGLEVEL, "glove", "lexvec", "w2v", VECTORMODELDEFAULT,
+			SERVEDFROMHOST, SERVEDFROMPORT, UNACCEPTABLEINPUT, runtime.NumCPU(), CONFIGPROLIX, h, PROJURL))
+		os.Exit(0)
+	}
+
 	for i, a := range args {
 		switch a {
 		case "-vv":
@@ -206,15 +216,11 @@ func ConfigAtLaunch() {
 		case "-gz":
 			Config.Gzip = true
 		case "-h":
-			printversion()
-			printbuildinfo()
-			ht := styleoutput(coloroutput(HELPTEXT))
-			fmt.Println(fmt.Sprintf(ht, pwf, DEFAULTBROWSERCTX, CONFIGLOCATION, CONFIGBASIC, h, CONFIGBASIC,
-				DEFAULTECHOLOGLEVEL, HDBFOLDER, DEFAULTGOLOGLEVEL, "glove", "lexvec", "w2v", VECTORMODELDEFAULT,
-				SERVEDFROMHOST, SERVEDFROMPORT, UNACCEPTABLEINPUT, runtime.NumCPU(), CONFIGPROLIX, h, PROJURL))
-			os.Exit(0)
+			help()
 		case "-md":
 			Config.VectorModel = args[i+1]
+		case "-pd":
+			CopyInstructions()
 		case "-pg":
 			js := args[i+1]
 			var pl PostgresLogin
@@ -396,7 +402,7 @@ func SetConfigPass(cfg CurrentConfiguration, cf string) {
 // CopyInstructions - write the embedded PDF to the filesystem
 func CopyInstructions() {
 	const (
-		FYI  = "Assuming this is a first run...\n\tWriting instruction files to the current working directory."
+		FYI  = "Writing instruction files to the current working directory."
 		MACI = "HGS_INSTALLATION_MacOS.pdf"
 		WINI = "HGS_INSTALLATION_Windows.pdf"
 		NIXI = "HGS_INSTALLATION_Nix.pdf"
