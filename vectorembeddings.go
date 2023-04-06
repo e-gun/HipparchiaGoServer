@@ -199,7 +199,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 		FAIL1  = "model initialization failed"
 		FAIL2  = "generateembeddings() failed to train vector embeddings"
 		MSG1   = "generateembeddings() gathered %d lines"
-		MSG2   = "generateembeddings() successfuly trained a %s model"
+		MSG2   = "generateembeddings() successfuly trained a %s model (%ss)"
 		PRLMSG = `Acquiring the raw data`
 		TBMSG  = `Turning %d lines into a unified text block`
 		VMSG   = `Training run <code>#%d</code> out of <code>%d</code> total iterations.`
@@ -209,10 +209,10 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	// vectorbot sends a search with pre-generated results:
 	// lack of a real session means we can't call readUUIDCookie() repeatedly
 	// this also means we need the "modeltype" parameter as well (bot: configtype; surfer: sessiontype)
+	start := time.Now()
 
 	s.ExtraMsg = PRLMSG
 	AllSearches.InsertSS(s)
-
 	var vs SearchStruct
 
 	// vectorbot already has s.Results vs normal user who does not
@@ -278,7 +278,8 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 		if err := vmodel.Train(b); err != nil {
 			msg(FAIL2, 1)
 		} else {
-			msg(fmt.Sprintf(MSG2, modeltype), MSGTMI)
+			t := fmt.Sprintf("%.3f", time.Now().Sub(start).Seconds())
+			msg(fmt.Sprintf(MSG2, modeltype, t), MSGTMI)
 		}
 		finished <- true
 	}()
@@ -898,7 +899,6 @@ func readstopconfig(fn string) []string {
 		ERR1 = "readstopconfig() cannot find UserHomeDir"
 		ERR2 = "readstopconfig() failed to parse "
 		MSG1 = "readstopconfig() wrote vector stop configuration file: "
-		MSG2 = "readstopconfig() read vector stop configuration from: "
 	)
 
 	var stops []string
@@ -940,7 +940,6 @@ func readstopconfig(fn string) []string {
 		} else {
 			stops = stp
 		}
-		msg(MSG2+vcfg, MSGTMI)
 	}
 	return stops
 }

@@ -91,7 +91,7 @@ At any point you can click on the `+` button to add the current selection to you
 [5] **Building a search list with multiple texts and an exclusion**
 
 To build a search list you can add multiple texts from multiple authors, genres, etc. You can also exclude items 
-by clicking on the `-` button. To see extended search options clock on the `...` button. This will make more 
+by clicking on the `-` button. To see extended search options click on the `...` button. This will make more 
 autocomplete boxes available. Below you will see two example search lists: `Three works of Cicero, less one of the 
 books of the De officiis` and `All of the Philosophici up to 200BCE less Aristotle and omit Plato's Republic`.
 

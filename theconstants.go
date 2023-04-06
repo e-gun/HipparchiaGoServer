@@ -128,6 +128,7 @@ const (
    C1-auC0          require authentication 
                    also implies "C3%sC0" exists and has been properly configured C4(**)C0
    C1-avC0          automatically generate vector models for every author in the database
+                   default settings will consume c. C11.3GBC0 of extra disk space
    C1-bcC0 C2{num}C0    default lines of browser context to display [current: C3%dC0]
    C1-bwC0          disable color output in the console
    C1-cfC0 C2{file}C0   read PSQL password from file [default: looks for "C3%s/%sC0" and "C3%s%sC0"]

@@ -202,17 +202,24 @@ func fingerprintvectorsearch(srch SearchStruct, modeltype string, textprep strin
 // RtVectorBot - build a model for the author table requested; should only be called by activatevectorbot()
 func RtVectorBot(c echo.Context) error {
 	const (
-		MSG1    = "vectorbot found model for %s"
-		MSG2    = "vectorbot skipping %s - only %d lines found"
-		MSG3    = "attempted access to vectorbot route by foreign IP: '%s'"
-		MINSIZE = 1000
+		MSG1    = "RtVectorBot() found model for %s"
+		MSG2    = "RtVectorBot() skipping %s - only %d lines found"
+		MSG3    = "attempted access to RtVectorBot() by foreign IP: '%s'"
+		MSG4    = "RtVectorBot() building a model for '%s' (%d tables) [maxlines=%d]"
+		MINSIZE = 10000
 	)
 
-	a := c.Param("au")
+	// the question is how much time are you saving vs how much space are you wasting
+	// Catullus is 2555 lines and can be vectorized in just a couple of seconds: easy to leave this as ad hoc
+	// Caesar is 11038 lines and requires 5s or so on a fast machine; 10s on a 'medium' machine
 
-	if _, ok := AllAuthors[a]; !ok {
-		return nil
-	}
+	// first 500 will take 13MG if MINSIZE = 10000; 118MB if MINSIZE = 1000...
+	// if MINSIZE = 10000: 170MB @ 1000; 319MB @ 2000; 729MB @ 2500; 930MB @ 3000; 1021MB @ 3456
+	// if VectorMaxlines = 1M, then 'gr' adds only 58MB to the db and takes 365s
+	// all authors and all categories: 1282MB
+
+	// testable via:
+	// curl localhost:8000/vbot/ch0d09
 
 	if Config.VectorsDisabled {
 		return nil
@@ -220,10 +227,35 @@ func RtVectorBot(c echo.Context) error {
 
 	if c.RealIP() != Config.HostIP {
 		msg(fmt.Sprintf(MSG3, c.RealIP()), MSGNOTE)
+		return nil
 	}
 
+	a := c.Param("au")
 	s := BuildDefaultSearch(c)
-	s.SearchIn.Authors = []string{a}
+
+	allof := func(db string) []string {
+		allauth := StringMapKeysIntoSlice(AllAuthors)
+		var dbauth []string
+		for _, au := range allauth {
+			if strings.HasPrefix(au, db) {
+				dbauth = append(dbauth, au)
+			}
+		}
+		return dbauth
+	}
+
+	dbs := []string{"lt", "gr", "in", "dp", "ch"}
+
+	if IsInSlice(a, dbs) {
+		s.SearchIn.Authors = allof(a)
+		m := fmt.Sprintf(MSG4, a, len(s.SearchIn.Authors), Config.VectorMaxlines)
+		msg(m, MSGFYI)
+	} else {
+		if _, ok := AllAuthors[a]; !ok {
+			return nil
+		}
+		s.SearchIn.Authors = []string{a}
+	}
 
 	m := Config.VectorModel
 	fp := fingerprintvectorsearch(s, m, Config.VectorTextPrep)
@@ -255,15 +287,16 @@ func RtVectorBot(c echo.Context) error {
 // activatevectorbot - build a vector model for every author
 func activatevectorbot() {
 	const (
-		MSG2       = "(#%d) ensure model for %s (%s)"
+		MSG2       = "(#%d) checking need to model %s (%s)"
 		MSG3       = "The vectorbot has checked all authors and is now shutting down"
 		URL        = "http://%s:%d/vbot/%s"
 		COUNTEVERY = 5
-		THROTTLE   = 5
+		THROTTLE   = 4
 		SIZEVERY   = 500
+		STARTDELAY = 2
 	)
 
-	time.Sleep(2 * time.Second)
+	time.Sleep(STARTDELAY * time.Second)
 
 	count := 0
 
@@ -273,10 +306,20 @@ func activatevectorbot() {
 	auu := StringMapKeysIntoSlice(AllAuthors)
 	sort.Strings(auu)
 
+	dbs := []string{"lt", "gr", "in", "dp", "ch"}
+	auu = append(auu, dbs...)
+
 	for _, a := range auu {
+		mustnotify := false
+		an := AllAuthors[a].Name
+		if IsInSlice(a, dbs) {
+			mustnotify = true
+			an = a
+		}
+
 		count += 1
-		if count%COUNTEVERY == 0 {
-			TimeTracker("VB", fmt.Sprintf(MSG2, count, AllAuthors[a].Name, a), start, previous)
+		if count%COUNTEVERY == 0 || mustnotify {
+			TimeTracker("AV", fmt.Sprintf(MSG2, count, an, a), start, previous)
 			previous = time.Now()
 		}
 		u := fmt.Sprintf(URL, Config.HostIP, Config.HostPort, a)
@@ -286,7 +329,7 @@ func activatevectorbot() {
 		time.Sleep(THROTTLE * time.Millisecond)
 
 		if count%SIZEVERY == 0 {
-			vectordbsize(MSGFYI)
+			vectordbsize(MSGNOTE)
 		}
 	}
 
