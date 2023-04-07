@@ -73,11 +73,19 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	nn := generateneighborsdata(c, srch)
 
 	set := fmt.Sprintf(SETTINGS, se.VecModeler, se.VecTextPrep)
-	img := buildgraph(c, term, set, nn)
+	ft := Config.Font
+	if ft == "Noto" {
+		ft = "'hipparchiasemiboldstatic', sans-serif"
+	}
+
+	// [a] prepare the image output
+	blank := buildblankgraph(ft, set, term)
+	graph := formatgraph(c, blank, term, nn)
+	img := customgraphhtmlandjs(graph)
 
 	neighbors := nn[term]
-	// [c] prepare text output
 
+	// [b] prepare text output
 	var columnone []string
 	var columntwo []string
 

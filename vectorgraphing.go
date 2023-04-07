@@ -23,63 +23,85 @@ import (
 // GRAPHING
 //
 
-// buildgraph - generate the html and js for a nearest neighbors search
-func buildgraph(c echo.Context, coreword string, settings string, nn map[string]search.Neighbors) string {
-	// go-echarts is "too clever" and opaque about how to not do things its way
-	// we override their page.Render() to yield html+js (see the ModX and CustomX code below)
-	// this gets injected to the "vectorgraphing" div on frontpage.html
+// buildblankgraph - return a pre-formatted charts.Graph
+func buildblankgraph(ft string, settings string, coreword string) *charts.Graph {
+	const (
+		CHRTWIDTH  = "1600px"
+		CHRTHEIGHT = "1200px"
+		FONTSTYLE  = "normal"
+		TITLESTR   = "Nearest neighbors of »%s«"
+		LEFTALIGN  = "20"
+		BOTTALIGN  = "3%"
+		SAVETYPE   = "svg"
+		SAVESTR    = "Save to file..."
+		TEXTCOLOR  = "" // "black"
+	)
 
-	// see also: https://echarts.apache.org/en/option.html#series-graph
-
-	// [a] acquire a charts.Graph
-	g := generategraph(c, coreword, settings, nn)
-	g.Validate()
-
-	// [b] we are building a page with only one chart and doing it by hand
-	p := components.NewPage()
-	p.Renderer = NewCustomPageRender(p, p.Validate)
-
-	// [c] add assets to the page
-	assets := g.GetAssets()
-	for _, v := range assets.JSAssets.Values {
-		p.JSAssets.Add(v)
+	tst := opts.TextStyle{
+		Color:      TEXTCOLOR,
+		FontStyle:  FONTSTYLE,
+		FontSize:   16,
+		FontFamily: ft,
+		Padding:    "15",
+		Normal:     nil,
 	}
 
-	for _, v := range assets.CSSAssets.Values {
-		p.CSSAssets.Add(v)
+	sst := opts.TextStyle{
+		Color:      TEXTCOLOR,
+		FontStyle:  FONTSTYLE,
+		FontSize:   10,
+		FontFamily: ft,
 	}
 
-	// [d] add the chart to the page
-	p.Charts = append(p.Charts, g)
-	p.Validate()
+	tit := opts.Title{
+		Title:         fmt.Sprintf(TITLESTR, coreword),
+		TitleStyle:    &tst,
+		Subtitle:      settings, // can not see this if you put the title on the bottom of the image
+		SubtitleStyle: &sst,
+		Top:           "",
+		Bottom:        BOTTALIGN,
+		Left:          LEFTALIGN,
+		Right:         "",
+	}
 
-	// [e] render the chart and get the html+js for it
-	var buf bytes.Buffer
-	err := p.Render(&buf)
-	chke(err)
+	tbs := opts.ToolBoxFeatureSaveAsImage{
+		Show:  true,
+		Type:  SAVETYPE, // svg, jpeg, png; svg requires specific chart initialization
+		Name:  fmt.Sprintf(TITLESTR, StripaccentsSTR(coreword)),
+		Title: SAVESTR, // get chinese if ""
+	}
 
-	htmlandjs := string(buf.Bytes())
+	tbf := opts.ToolBoxFeature{
+		SaveAsImage: &tbs,
+	}
 
-	return htmlandjs
+	tbo := opts.Toolbox{
+		Show:    true,
+		Orient:  "vertical",
+		Left:    LEFTALIGN,
+		Top:     "",
+		Right:   "",
+		Bottom:  "",
+		Feature: &tbf,
+	}
+
+	graph := charts.NewGraph()
+	graph.SetGlobalOptions(
+		charts.WithInitializationOpts(opts.Initialization{Width: CHRTWIDTH, Height: CHRTHEIGHT}),
+		charts.WithTitleOpts(tit),
+		charts.WithToolboxOpts(tbo),
+		// charts.WithLegendOpts(opts.Legend{}),
+	)
+
+	// on using a legend see also https://echarts.apache.org/en/option.html#legend.data
+	// nb legend users will want to look at series and/or categories too
+	// not clear that we can/will gain anything with legends unless/until the graphing is rethought/expanded
+
+	return graph
 }
 
-// see also: https://echarts.apache.org/en/option.html#series-graph
-
-//	// series data
-//	Data interface{} `json:"data"`
-//
-
-//
-//	// The categories of node, which is optional. If there is a classification of nodes,
-//	// the category of each node can be assigned through data[i].category.
-//	// And the style of category will also be applied to the style of nodes. categories can also be used in legend.
-//	Categories []*GraphCategory
-//
-//	// EdgeLabel is the properties of an label of edge.
-//	EdgeLabel *EdgeLabel `json:"edgeLabel"`
-//}
-
-func generategraph(c echo.Context, coreword string, settings string, nn map[string]search.Neighbors) *charts.Graph {
+// formatgraph - fill out a blank graph
+func formatgraph(c echo.Context, graph *charts.Graph, coreword string, nn map[string]search.Neighbors) *charts.Graph {
 	const (
 		SYMSIZE       = 25
 		PERIPHSYMSZ   = 15
@@ -94,6 +116,7 @@ func generategraph(c echo.Context, coreword string, settings string, nn map[stri
 		LABELPOSITON  = "right"
 		DOTHUE        = 236
 		DOTSL         = ", 33%, 40%, 1)"
+		DOTSLPER      = ", 33%, 70%, 1)"
 		LINECURVINESS = 0       // from 0 to 1, but non-zero will double-up the lines...
 		LINETYPE      = "solid" // "solid", "dashed", "dotted"
 	)
@@ -104,8 +127,6 @@ func generategraph(c echo.Context, coreword string, settings string, nn map[stri
 	if ft == "Noto" {
 		ft = "'hipparchiasemiboldstatic', sans-serif"
 	}
-
-	graph := newsvgraph(ft, settings, coreword)
 
 	var gnn []opts.GraphNode
 	var gll []opts.GraphLink
@@ -136,7 +157,7 @@ func generategraph(c echo.Context, coreword string, settings string, nn map[stri
 	periphvardot := func(i int) *opts.ItemStyle {
 		// dv := DOTHUE + (i * 2) + 50
 		dv := DOTHUE
-		vd := "hsla(" + fmt.Sprintf("%d", dv) + DOTSL
+		vd := "hsla(" + fmt.Sprintf("%d", dv) + DOTSLPER
 		return &opts.ItemStyle{Color: vd}
 	}
 
@@ -229,81 +250,42 @@ func generategraph(c echo.Context, coreword string, settings string, nn map[stri
 	return graph
 }
 
-// newsvgraph - return a pre-formatted charts.Graph
-func newsvgraph(ft string, settings string, coreword string) *charts.Graph {
-	const (
-		CHRTWIDTH  = "1600px"
-		CHRTHEIGHT = "1200px"
-		FONTSTYLE  = "normal"
-		TITLESTR   = "Nearest neighbors of »%s«"
-		LEFTALIGN  = "20"
-		BOTTALIGN  = "3%"
-		SAVETYPE   = "svg"
-		SAVESTR    = "Save to file..."
-		TEXTCOLOR  = "" // "black"
-	)
+// customgraphhtmlandjs - generate the html and js for a nearest neighbors search
+func customgraphhtmlandjs(g *charts.Graph) string {
+	// go-echarts is "too clever" and opaque about how to not do things its way
+	// we override their page.Render() to yield html+js (see the ModX and CustomX code below)
+	// this gets injected to the "vectorgraphing" div on frontpage.html
 
-	tst := opts.TextStyle{
-		Color:      TEXTCOLOR,
-		FontStyle:  FONTSTYLE,
-		FontSize:   16,
-		FontFamily: ft,
-		Padding:    "15",
-		Normal:     nil,
+	// see also: https://echarts.apache.org/en/option.html#series-graph
+
+	g.Validate()
+
+	// [a] we are building a page with only one chart and doing it by hand
+	p := components.NewPage()
+	p.Renderer = NewCustomPageRender(p, p.Validate)
+
+	// [b] add assets to the page
+	assets := g.GetAssets()
+	for _, v := range assets.JSAssets.Values {
+		p.JSAssets.Add(v)
 	}
 
-	sst := opts.TextStyle{
-		Color:      TEXTCOLOR,
-		FontStyle:  FONTSTYLE,
-		FontSize:   10,
-		FontFamily: ft,
+	for _, v := range assets.CSSAssets.Values {
+		p.CSSAssets.Add(v)
 	}
 
-	tit := opts.Title{
-		Title:         fmt.Sprintf(TITLESTR, coreword),
-		TitleStyle:    &tst,
-		Subtitle:      settings, // can not see this if you put the title on the bottom of the image
-		SubtitleStyle: &sst,
-		Top:           "",
-		Bottom:        BOTTALIGN,
-		Left:          LEFTALIGN,
-		Right:         "",
-	}
+	// [c] add the chart to the page
+	p.Charts = append(p.Charts, g)
+	p.Validate()
 
-	tbs := opts.ToolBoxFeatureSaveAsImage{
-		Show:  true,
-		Type:  SAVETYPE, // svg, jpeg, png; svg requires specific chart initialization
-		Name:  fmt.Sprintf(TITLESTR, StripaccentsSTR(coreword)),
-		Title: SAVESTR, // get chinese if ""
-	}
+	// [d] render the chart and get the html+js for it
+	var buf bytes.Buffer
+	err := p.Render(&buf)
+	chke(err)
 
-	tbf := opts.ToolBoxFeature{
-		SaveAsImage: &tbs,
-	}
+	htmlandjs := string(buf.Bytes())
 
-	tbo := opts.Toolbox{
-		Show:    true,
-		Orient:  "vertical",
-		Left:    LEFTALIGN,
-		Top:     "",
-		Right:   "",
-		Bottom:  "",
-		Feature: &tbf,
-	}
-
-	graph := charts.NewGraph()
-	graph.SetGlobalOptions(
-		charts.WithInitializationOpts(opts.Initialization{Width: CHRTWIDTH, Height: CHRTHEIGHT}),
-		charts.WithTitleOpts(tit),
-		charts.WithToolboxOpts(tbo),
-		// charts.WithLegendOpts(opts.Legend{}),
-	)
-
-	// on using a legend see also https://echarts.apache.org/en/option.html#legend.data
-	// nb legend users will want to look at series and/or categories too
-	// not clear that we can/will gain anything with legends unless/until the graphing is rethought/expanded
-
-	return graph
+	return htmlandjs
 }
 
 //
