@@ -24,7 +24,7 @@ import (
 //
 
 // buildgraph - generate the html and js for a nearest neighbors search
-func buildgraph(c echo.Context, coreword string, nn map[string]search.Neighbors) string {
+func buildgraph(c echo.Context, coreword string, settings string, nn map[string]search.Neighbors) string {
 	// go-echarts is "too clever" and opaque about how to not do things its way
 	// we override their page.Render() to yield html+js (see the ModX and CustomX code below)
 	// this gets injected to the "vectorgraphing" div on frontpage.html
@@ -32,7 +32,7 @@ func buildgraph(c echo.Context, coreword string, nn map[string]search.Neighbors)
 	// see also: https://echarts.apache.org/en/option.html#series-graph
 
 	// [a] acquire a charts.Graph
-	g := generategraph(c, coreword, nn)
+	g := generategraph(c, coreword, settings, nn)
 	g.Validate()
 
 	// [b] we are building a page with only one chart and doing it by hand
@@ -79,7 +79,7 @@ func buildgraph(c echo.Context, coreword string, nn map[string]search.Neighbors)
 //	EdgeLabel *EdgeLabel `json:"edgeLabel"`
 //}
 
-func generategraph(c echo.Context, coreword string, nn map[string]search.Neighbors) *charts.Graph {
+func generategraph(c echo.Context, coreword string, settings string, nn map[string]search.Neighbors) *charts.Graph {
 	const (
 		CHRTWIDTH     = "1600px"
 		CHRTHEIGHT    = "1200px"
@@ -94,25 +94,84 @@ func generategraph(c echo.Context, coreword string, nn map[string]search.Neighbo
 		SERIESNAME    = ""
 		LAYOUTTYPE    = "force"
 		LABELPOSITON  = "right"
-		DOTCOLOR      = "hsla(236, 44%, 45%, 1)"
-		DOTCOLPERIPH  = "hsla(236, 44%, 70%, 1)"
+		DOTHUE        = 236
 		LINECURVINESS = 0       // from 0 to 1, but non-zero will double-up the lines...
 		LINETYPE      = "solid" // "solid", "dashed", "dotted"
 	)
 
 	se := AllSessions.GetSess(readUUIDCookie(c))
 
+	ft := Config.Font
+	if ft == "Noto" {
+		ft = "'hipparchiasemiboldstatic', sans-serif"
+	}
+
+	tst := opts.TextStyle{
+		Color:      "",
+		FontStyle:  "normal",
+		FontSize:   16,
+		FontFamily: ft,
+		Padding:    "15",
+		Normal:     nil,
+	}
+
+	sst := opts.TextStyle{
+		Color:      "",
+		FontStyle:  "normal",
+		FontSize:   10,
+		FontFamily: ft,
+	}
+
+	tit := opts.Title{
+		Title:         fmt.Sprintf("Nearest neighbors of »%s«", coreword),
+		TitleStyle:    &tst,
+		Link:          "",
+		Subtitle:      settings, // can not see this if you put the title on the bottom of the image
+		SubtitleStyle: &sst,
+		SubLink:       "",
+		Target:        "",
+		Top:           "",
+		Bottom:        "3%",
+		Left:          "20",
+		Right:         "",
+	}
+
+	tbs := opts.ToolBoxFeatureSaveAsImage{
+		Show:  true,
+		Type:  "png", // svg, jpeg, png; svg requires specific chart initialization
+		Name:  fmt.Sprintf("nearest_neighbors_of_%s", coreword),
+		Title: " ", // get chinese if ""
+	}
+
+	tbf := opts.ToolBoxFeature{
+		SaveAsImage: &tbs,
+	}
+
+	tbo := opts.Toolbox{
+		Show:    true,
+		Orient:  "",
+		Left:    "20",
+		Top:     "",
+		Right:   "",
+		Bottom:  "",
+		Feature: &tbf,
+	}
+
 	graph := charts.NewGraph()
 	graph.SetGlobalOptions(
 		charts.WithInitializationOpts(opts.Initialization{Width: CHRTWIDTH, Height: CHRTHEIGHT}),
-		charts.WithTitleOpts(opts.Title{Title: ""}),
+		charts.WithTitleOpts(tit),
+		charts.WithToolboxOpts(tbo),
+		// charts.WithLegendOpts(opts.Legend{}),
 	)
+
+	// on using a legend see also https://echarts.apache.org/en/option.html#legend.data
+	// nb legend users will want to look at series and/or categories too
+	// not clear that we can/will gain anything with legends unless/until the graphing is rethought/expanded
 
 	var gnn []opts.GraphNode
 	var gll []opts.GraphLink
 	valuelabel := opts.EdgeLabel{Show: true, FontSize: EDGEFNTSZ, Formatter: "{c}"}
-	dotstyle := opts.ItemStyle{Color: DOTCOLOR}
-	periphdot := opts.ItemStyle{Color: DOTCOLPERIPH}
 
 	round := func(val float64) float32 {
 		ratio := math.Pow(10, float64(PRECISON))
@@ -127,16 +186,34 @@ func generategraph(c echo.Context, coreword string, nn map[string]search.Neighbo
 		}
 	}
 
+	// dotstyle := opts.ItemStyle{Color: DOTCOLOR}
+	vardot := func(i int) *opts.ItemStyle {
+		// dv := DOTHUE + (i * 3) + 1
+		dv := DOTHUE
+		dc := fmt.Sprintf("%d", dv)
+		vd := "hsla(" + dc + ", 33%, 40%, 1)"
+		return &opts.ItemStyle{Color: vd}
+	}
+
+	// periphdot := opts.ItemStyle{Color: DOTCOLPERIPH}
+	periphvardot := func(i int) *opts.ItemStyle {
+		// dv := DOTHUE + (i * 2) + 50
+		dv := DOTHUE
+		dc := fmt.Sprintf("%d", dv)
+		vd := "hsla(" + dc + ", 33%, 65%, 1)"
+		return &opts.ItemStyle{Color: vd}
+	}
+
 	used := make(map[string]bool)
 
 	// the center point
-	gnn = append(gnn, opts.GraphNode{Name: coreword, Value: 0, SymbolSize: fmt.Sprintf("%.4f", SYMSIZE*SIZEDISTORT), ItemStyle: &dotstyle})
+	gnn = append(gnn, opts.GraphNode{Name: coreword, Value: 0, SymbolSize: fmt.Sprintf("%.4f", SYMSIZE*SIZEDISTORT), ItemStyle: vardot(-1)})
 	used[coreword] = true
 
 	// the words directly related to this word
-	for _, w := range nn[coreword] {
+	for i, w := range nn[coreword] {
 		sizemod := fmt.Sprintf("%.4f", ((w.Similarity/maxsim)*SIZEDISTORT)*SYMSIZE)
-		gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: round(w.Similarity), SymbolSize: sizemod, ItemStyle: &dotstyle})
+		gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: round(w.Similarity), SymbolSize: sizemod, ItemStyle: vardot(i)})
 		gll = append(gll, opts.GraphLink{Source: coreword, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
 		used[w.Word] = true
 	}
@@ -160,7 +237,9 @@ func generategraph(c echo.Context, coreword string, nn map[string]search.Neighbo
 
 	// populate the nodes with both the core terms and the neighbors of those terms as well
 	expandedweb := func() {
+		i := -1
 		for t := range coreterms {
+			i += 1
 			if t == coreword {
 				continue
 			}
@@ -169,7 +248,7 @@ func generategraph(c echo.Context, coreword string, nn map[string]search.Neighbo
 					gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
 				}
 				if _, ok := used[w.Word]; !ok {
-					gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: round(w.Similarity), SymbolSize: PERIPHSYMSZ, ItemStyle: &periphdot})
+					gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: round(w.Similarity), SymbolSize: PERIPHSYMSZ, ItemStyle: periphvardot(i)})
 					used[w.Word] = true
 				}
 				gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
@@ -181,11 +260,6 @@ func generategraph(c echo.Context, coreword string, nn map[string]search.Neighbo
 		expandedweb()
 	} else {
 		simpleweb()
-	}
-
-	ft := Config.Font
-	if ft == "Noto" {
-		ft = "'hipparchiasemiboldstatic', sans-serif"
 	}
 
 	graph.AddSeries(SERIESNAME, gnn, gll,

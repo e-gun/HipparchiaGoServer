@@ -52,9 +52,12 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		<td class="vectorrank">%d</td>
 		<td class="vectorscore">%.4f</td>
 		<td class="vectorword"><vectorheadword id="%s">%s</vectorheadword></td>`
+
+		SETTINGS = `model type: %s; text prep: %s`
 	)
 
 	c.Response().After(func() { SelfStats("VectorSearch()") })
+	se := AllSessions.GetSess(readUUIDCookie(c))
 
 	term := srch.LemmaOne
 	if term == "" {
@@ -68,7 +71,9 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	srch.LemmaOne = term
 
 	nn := generateneighborsdata(c, srch)
-	img := buildgraph(c, term, nn)
+
+	set := fmt.Sprintf(SETTINGS, se.VecModeler, se.VecTextPrep)
+	img := buildgraph(c, term, set, nn)
 
 	neighbors := nn[term]
 	// [c] prepare text output
@@ -95,7 +100,6 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		tablerows = append(tablerows, fmt.Sprintf(TABLEROW, rn, columnone[i], columntwo[i]))
 	}
 
-	se := AllSessions.GetSess(readUUIDCookie(c))
 	out := fmt.Sprintf(THETABLE, term, strings.Join(tablerows, "\n"), se.VecModeler, se.VecTextPrep)
 
 	soj := SearchOutputJSON{
@@ -216,7 +220,15 @@ func RtVectorBot(c echo.Context) error {
 	// first 500 will take 13MG if MINSIZE = 10000; 118MB if MINSIZE = 1000...
 	// if MINSIZE = 10000: 170MB @ 1000; 319MB @ 2000; 729MB @ 2500; 930MB @ 3000; 1021MB @ 3456
 	// if VectorMaxlines = 1M, then 'gr' adds only 58MB to the db and takes 365s
-	// all authors and all categories: 1282MB
+	// all authors and all categories: 1311MB after 4804.478s (i.e. 80min) on a mac studio
+
+	// the default is just 'gr' and 'lt'; and this yields different results
+	//[HGS] [AV: 3278.550s][Δ: 0.007s] (#2186) checking need to model gr (gr)
+	//[HGS] RtVectorBot() building a model for 'gr' (1823 tables) [maxlines=1000000]
+	//[HGS] [AV: 3643.051s][Δ: 364.501s] (#2187) checking need to model lt (lt)
+	//[HGS] RtVectorBot() building a model for 'lt' (362 tables) [maxlines=1000000]
+	//[HGS] [VB: 4060.712s][Δ: 417.661s] The vectorbot has checked all authors and is now shutting down
+	//[HGS] Disk space used by stored vectors is currently 997MB
 
 	// testable via:
 	// curl localhost:8000/vbot/ch0d09
@@ -306,8 +318,24 @@ func activatevectorbot() {
 	auu := StringMapKeysIntoSlice(AllAuthors)
 	sort.Strings(auu)
 
-	dbs := []string{"lt", "gr", "in", "dp", "ch"}
-	auu = append(auu, dbs...)
+	// dbs := []string{"lt", "gr", "in", "dp", "ch"}
+
+	// only model the ones you actually use regularly
+	var trimmedauu []string
+	var dbs []string
+
+	for k, v := range Config.DefCorp {
+		if v {
+			for _, a := range auu {
+				if strings.HasPrefix(a, k) {
+					trimmedauu = append(trimmedauu, a)
+				}
+			}
+			dbs = append(dbs, k)
+		}
+	}
+
+	auu = append(trimmedauu, dbs...)
 
 	for _, a := range auu {
 		mustnotify := false

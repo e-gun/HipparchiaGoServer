@@ -214,17 +214,17 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	s.ExtraMsg = PRLMSG
 	AllSearches.InsertSS(s)
 	var vs SearchStruct
+	p := message.NewPrinter(language.English)
 
 	// vectorbot already has s.Results vs normal user who does not
 	if len(s.Results) == 0 {
 		vs = sessionintobulksearch(c, Config.VectorMaxlines)
 		msg(fmt.Sprintf(MSG1, len(vs.Results)), MSGPEEK)
 		s.Results = vs.Results
+		s.ExtraMsg = p.Sprintf(TBMSG, len(vs.Results))
 		vs.Results = []DbWorkline{}
 	}
 
-	p := message.NewPrinter(language.English)
-	s.ExtraMsg = p.Sprintf(TBMSG, len(vs.Results))
 	AllSearches.InsertSS(s)
 
 	thetext := buildtextblock(s.VecTextPrep, s.Results)
@@ -523,6 +523,9 @@ func montecarlostring(sb *strings.Builder, slicedwords []string, guessermap map[
 //
 // PARSEMAPPERS
 //
+
+// note that building these can be quite slow when you send 1m lines into the modeler
+// it might be possible to speed them up, but they are still <25% of the model building time so...
 
 type hwguesser struct {
 	total int
