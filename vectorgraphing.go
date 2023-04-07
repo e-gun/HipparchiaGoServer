@@ -81,8 +81,6 @@ func buildgraph(c echo.Context, coreword string, settings string, nn map[string]
 
 func generategraph(c echo.Context, coreword string, settings string, nn map[string]search.Neighbors) *charts.Graph {
 	const (
-		CHRTWIDTH     = "1600px"
-		CHRTHEIGHT    = "1200px"
 		SYMSIZE       = 25
 		PERIPHSYMSZ   = 15
 		SIZEDISTORT   = 2.25
@@ -95,6 +93,7 @@ func generategraph(c echo.Context, coreword string, settings string, nn map[stri
 		LAYOUTTYPE    = "force"
 		LABELPOSITON  = "right"
 		DOTHUE        = 236
+		DOTSL         = ", 33%, 40%, 1)"
 		LINECURVINESS = 0       // from 0 to 1, but non-zero will double-up the lines...
 		LINETYPE      = "solid" // "solid", "dashed", "dotted"
 	)
@@ -106,68 +105,7 @@ func generategraph(c echo.Context, coreword string, settings string, nn map[stri
 		ft = "'hipparchiasemiboldstatic', sans-serif"
 	}
 
-	tst := opts.TextStyle{
-		Color:      "",
-		FontStyle:  "normal",
-		FontSize:   16,
-		FontFamily: ft,
-		Padding:    "15",
-		Normal:     nil,
-	}
-
-	sst := opts.TextStyle{
-		Color:      "",
-		FontStyle:  "normal",
-		FontSize:   10,
-		FontFamily: ft,
-	}
-
-	tit := opts.Title{
-		Title:         fmt.Sprintf("Nearest neighbors of »%s«", coreword),
-		TitleStyle:    &tst,
-		Link:          "",
-		Subtitle:      settings, // can not see this if you put the title on the bottom of the image
-		SubtitleStyle: &sst,
-		SubLink:       "",
-		Target:        "",
-		Top:           "",
-		Bottom:        "3%",
-		Left:          "20",
-		Right:         "",
-	}
-
-	tbs := opts.ToolBoxFeatureSaveAsImage{
-		Show:  true,
-		Type:  "png", // svg, jpeg, png; svg requires specific chart initialization
-		Name:  fmt.Sprintf("nearest_neighbors_of_%s", coreword),
-		Title: " ", // get chinese if ""
-	}
-
-	tbf := opts.ToolBoxFeature{
-		SaveAsImage: &tbs,
-	}
-
-	tbo := opts.Toolbox{
-		Show:    true,
-		Orient:  "",
-		Left:    "20",
-		Top:     "",
-		Right:   "",
-		Bottom:  "",
-		Feature: &tbf,
-	}
-
-	graph := charts.NewGraph()
-	graph.SetGlobalOptions(
-		charts.WithInitializationOpts(opts.Initialization{Width: CHRTWIDTH, Height: CHRTHEIGHT}),
-		charts.WithTitleOpts(tit),
-		charts.WithToolboxOpts(tbo),
-		// charts.WithLegendOpts(opts.Legend{}),
-	)
-
-	// on using a legend see also https://echarts.apache.org/en/option.html#legend.data
-	// nb legend users will want to look at series and/or categories too
-	// not clear that we can/will gain anything with legends unless/until the graphing is rethought/expanded
+	graph := newsvgraph(ft, settings, coreword)
 
 	var gnn []opts.GraphNode
 	var gll []opts.GraphLink
@@ -190,8 +128,7 @@ func generategraph(c echo.Context, coreword string, settings string, nn map[stri
 	vardot := func(i int) *opts.ItemStyle {
 		// dv := DOTHUE + (i * 3) + 1
 		dv := DOTHUE
-		dc := fmt.Sprintf("%d", dv)
-		vd := "hsla(" + dc + ", 33%, 40%, 1)"
+		vd := "hsla(" + fmt.Sprintf("%d", dv) + DOTSL
 		return &opts.ItemStyle{Color: vd}
 	}
 
@@ -199,8 +136,7 @@ func generategraph(c echo.Context, coreword string, settings string, nn map[stri
 	periphvardot := func(i int) *opts.ItemStyle {
 		// dv := DOTHUE + (i * 2) + 50
 		dv := DOTHUE
-		dc := fmt.Sprintf("%d", dv)
-		vd := "hsla(" + dc + ", 33%, 65%, 1)"
+		vd := "hsla(" + fmt.Sprintf("%d", dv) + DOTSL
 		return &opts.ItemStyle{Color: vd}
 	}
 
@@ -290,6 +226,83 @@ func generategraph(c echo.Context, coreword string, settings string, nn map[stri
 			},
 		),
 	)
+	return graph
+}
+
+// newsvgraph - return a pre-formatted charts.Graph
+func newsvgraph(ft string, settings string, coreword string) *charts.Graph {
+	const (
+		CHRTWIDTH  = "1600px"
+		CHRTHEIGHT = "1200px"
+		FONTSTYLE  = "normal"
+		TITLESTR   = "Nearest neighbors of »%s«"
+		LEFTALIGN  = "20"
+		BOTTALIGN  = "3%"
+		SAVETYPE   = "svg"
+		SAVESTR    = "Save to file..."
+		TEXTCOLOR  = "" // "black"
+	)
+
+	tst := opts.TextStyle{
+		Color:      TEXTCOLOR,
+		FontStyle:  FONTSTYLE,
+		FontSize:   16,
+		FontFamily: ft,
+		Padding:    "15",
+		Normal:     nil,
+	}
+
+	sst := opts.TextStyle{
+		Color:      TEXTCOLOR,
+		FontStyle:  FONTSTYLE,
+		FontSize:   10,
+		FontFamily: ft,
+	}
+
+	tit := opts.Title{
+		Title:         fmt.Sprintf(TITLESTR, coreword),
+		TitleStyle:    &tst,
+		Subtitle:      settings, // can not see this if you put the title on the bottom of the image
+		SubtitleStyle: &sst,
+		Top:           "",
+		Bottom:        BOTTALIGN,
+		Left:          LEFTALIGN,
+		Right:         "",
+	}
+
+	tbs := opts.ToolBoxFeatureSaveAsImage{
+		Show:  true,
+		Type:  SAVETYPE, // svg, jpeg, png; svg requires specific chart initialization
+		Name:  fmt.Sprintf(TITLESTR, StripaccentsSTR(coreword)),
+		Title: SAVESTR, // get chinese if ""
+	}
+
+	tbf := opts.ToolBoxFeature{
+		SaveAsImage: &tbs,
+	}
+
+	tbo := opts.Toolbox{
+		Show:    true,
+		Orient:  "vertical",
+		Left:    LEFTALIGN,
+		Top:     "",
+		Right:   "",
+		Bottom:  "",
+		Feature: &tbf,
+	}
+
+	graph := charts.NewGraph()
+	graph.SetGlobalOptions(
+		charts.WithInitializationOpts(opts.Initialization{Width: CHRTWIDTH, Height: CHRTHEIGHT}),
+		charts.WithTitleOpts(tit),
+		charts.WithToolboxOpts(tbo),
+		// charts.WithLegendOpts(opts.Legend{}),
+	)
+
+	// on using a legend see also https://echarts.apache.org/en/option.html#legend.data
+	// nb legend users will want to look at series and/or categories too
+	// not clear that we can/will gain anything with legends unless/until the graphing is rethought/expanded
+
 	return graph
 }
 
