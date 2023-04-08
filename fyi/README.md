@@ -7,6 +7,8 @@
 
 ## self-test
 
+self-test without vectors is now `HipparchiaGoServer -st -dv`
+
 ``` 
 [HGS] Hipparchia Golang Server (v1.1.6-pre) [git: 3cc8a3df] [gl=0; el=0]
 [HGS] Running Selftest 1 of 1
@@ -35,6 +37,36 @@
 [HGS] [D4: 64.088s][Δ: 14.741s] reverse lookup for 6 word substrings
 [HGS] exiting selftest mode
 ```
+
+self-test with vectors is deceptive because `-wc` flag will not override config json.
+
+20 M1 cores
+```
+[HGS] Hipparchia Golang Server (v1.2.4-pre) [git: 3104b990] [gl=0; el=0]
+[HGS] Running Selftest 1 of 2
+	Built:	2023-04-07@20:12:58
+	Go:	go1.20.3
+⇨ http server started on 127.0.0.1:8000
+...
+[HGS] [IV] vectorization tests
+[HGS] vectordbreset() dropped semantic_vectors
+[HGS] vectordbinit(): success
+[HGS] [E1: 97.276s][Δ: 26.007s] vector model test: w2v (2 authors with 4 text preparation modes each)
+[HGS] [E2: 123.754s][Δ: 26.478s] vector model test: lexvec (2 authors with 4 text preparation modes each)
+[HGS] [E3: 161.489s][Δ: 37.735s] vector model test: glove (2 authors with 4 text preparation modes each)
+
+```
+6 M1 cores + virtualization
+
+```
+[HGS] [IV] vectorization tests
+[HGS] vectordbreset() dropped semantic_vectors
+[HGS] vectordbinit(): success
+[HGS] [E1: 198.268s][Δ: 43.153s] vector model test: w2v (2 authors with 4 text preparation modes each)
+[HGS] [E2: 245.816s][Δ: 47.548s] vector model test: lexvec (2 authors with 4 text preparation modes each)
+[HGS] [E3: 302.168s][Δ: 56.351s] vector model test: glove (2 authors with 4 text preparation modes each)
+```
+
 
 ### some selftest times
 
@@ -136,13 +168,13 @@
       37 unique files.                              
        1 file ignored.
 
-github.com/AlDanial/cloc v 1.96  T=0.04 s (1027.8 files/s, 424414.0 lines/s)
+github.com/AlDanial/cloc v 1.96  T=0.04 s (963.0 files/s, 410096.8 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                              37           2287           1967          11024
+Go                              37           2359           2049          11348
 -------------------------------------------------------------------------------
-SUM:                            37           2287           1967          11024
+SUM:                            37           2359           2049          11348
 -------------------------------------------------------------------------------
 
 ```

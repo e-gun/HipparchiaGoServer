@@ -181,6 +181,10 @@ func selftest() {
 	TimeTracker("D4", fmt.Sprintf(MSG13, len(lex)), start, previous)
 	previous = time.Now()
 
+	if Config.VectorsDisabled {
+		return
+	}
+
 	// vector selftest
 	msg("[IV] vectorization tests", MSGWARN)
 	vectordbreset()

@@ -66,6 +66,26 @@ var (
 		Verbose:            true,
 		Window:             8,
 	}
+	DefaultLexVecVectors = lexvec.Options{
+		BatchSize:          1024,
+		Dim:                125,
+		DocInMemory:        true,
+		Goroutines:         20,
+		Initlr:             0.025,
+		Iter:               15,
+		LogBatch:           100000,
+		MaxCount:           -1,
+		MinCount:           10,
+		MinLR:              0.025 * 1.0e-4,
+		NegativeSampleSize: 5,
+		RelationType:       "ppmi", // "ppmi", "pmi", "co", "logco" are available
+		Smooth:             0.75,
+		SubsampleThreshold: 1.0e-3,
+		ToLower:            false,
+		UpdateLRBatch:      100000,
+		Verbose:            true,
+		Window:             8,
+	}
 	// DefaultGloveVectors - wego's default: {0.75 10000 inc 10 false 20 0.025 15 100000 -1 5 sgd 0.001 false false 5 100}
 	DefaultGloveVectors = glove.Options{
 		// see also: https://nlp.stanford.edu/projects/glove/
@@ -86,26 +106,6 @@ var (
 		Verbose:            true,
 		Window:             8,
 		Xmax:               90,
-	}
-	DefaultLexVecVectors = lexvec.Options{
-		BatchSize:          1024,
-		Dim:                125,
-		DocInMemory:        true,
-		Goroutines:         20,
-		Initlr:             0.025,
-		Iter:               15,
-		LogBatch:           100000,
-		MaxCount:           -1,
-		MinCount:           10,
-		MinLR:              0.025 * 1.0e-4,
-		NegativeSampleSize: 5,
-		RelationType:       "ppmi", // "ppmi", "pmi", "co", "logco" are available
-		Smooth:             0.75,
-		SubsampleThreshold: 1.0e-3,
-		ToLower:            false,
-		UpdateLRBatch:      100000,
-		Verbose:            true,
-		Window:             8,
 	}
 )
 
@@ -538,7 +538,7 @@ func buildmontecarloparsemap(parsemap map[string]map[string]bool) map[string]hwg
 	// then we set ourselves up to do a weighted guess of which one is in use
 	// if a word might be A, B, or C and A appears 50 times, B appears 25 times, and C appears 5 times, then you
 	// want to randomly assign the word to A 5/8 of the time, etc.
-	// this can be acheived by a cumulative weight: [A -> 1-50, B -> 51-75, C -> 76-80]; a guess of 66 is a "B"
+	// this can be achieved by a cumulative weight: [A -> 1-50, B -> 51-75, C -> 76-80]; a guess of 66 is a "B"
 
 	// [a] figure out all headwords in use
 
@@ -1068,7 +1068,7 @@ func vectordbfetch(fp string) embedding.Embeddings {
 		msg(fmt.Sprintf(MSG2, fp), MSGNOTE)
 	}
 
-	msg(MSG1+fp, MSGFYI)
+	msg(MSG1+fp, MSGPEEK)
 
 	return emb
 }

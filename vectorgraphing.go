@@ -19,6 +19,13 @@ import (
 	"regexp"
 )
 
+const (
+	DOTHUE    = 236
+	DOTSAT    = 33
+	DOTLUM    = 40
+	DOTLUMPER = 70
+)
+
 //
 // GRAPHING
 //
@@ -26,37 +33,39 @@ import (
 // buildblankgraph - return a pre-formatted charts.Graph
 func buildblankgraph(ft string, settings string, coreword string) *charts.Graph {
 	const (
-		CHRTWIDTH  = "1600px"
+		CHRTWIDTH  = "1500px"
 		CHRTHEIGHT = "1200px"
-		FONTSTYLE  = "normal"
 		TITLESTR   = "Nearest neighbors of »%s«"
+		SAVEFILE   = "nearest_neighbors_of_%s"
+		SAVETYPE   = "png" // svg, jpeg, png; svg requires chart initialization option ('renderer'); go-echarts can't set?
+		SAVESTR    = "Save to file..."
 		LEFTALIGN  = "20"
 		BOTTALIGN  = "3%"
-		SAVETYPE   = "svg"
-		SAVESTR    = "Save to file..."
-		TEXTCOLOR  = "" // "black"
+		FONTSTYLE  = "normal"
+		FONTSIZE   = 16
+		FONTDIFF   = 6
+		TEXTPAD    = "10"
 	)
 
 	tst := opts.TextStyle{
-		Color:      TEXTCOLOR,
+		Color:      fmthsl(DOTHUE, DOTSAT, DOTLUM),
 		FontStyle:  FONTSTYLE,
-		FontSize:   16,
+		FontSize:   FONTSIZE,
 		FontFamily: ft,
-		Padding:    "15",
-		Normal:     nil,
+		Padding:    TEXTPAD,
 	}
 
 	sst := opts.TextStyle{
-		Color:      TEXTCOLOR,
+		Color:      fmthsl(DOTHUE, DOTSAT, DOTLUMPER),
 		FontStyle:  FONTSTYLE,
-		FontSize:   10,
+		FontSize:   FONTSIZE - FONTDIFF,
 		FontFamily: ft,
 	}
 
 	tit := opts.Title{
 		Title:         fmt.Sprintf(TITLESTR, coreword),
 		TitleStyle:    &tst,
-		Subtitle:      settings, // can not see this if you put the title on the bottom of the image
+		Subtitle:      settings, // can not see this if you put the title on the very bottom of the image
 		SubtitleStyle: &sst,
 		Top:           "",
 		Bottom:        BOTTALIGN,
@@ -66,8 +75,8 @@ func buildblankgraph(ft string, settings string, coreword string) *charts.Graph 
 
 	tbs := opts.ToolBoxFeatureSaveAsImage{
 		Show:  true,
-		Type:  SAVETYPE, // svg, jpeg, png; svg requires specific chart initialization
-		Name:  fmt.Sprintf(TITLESTR, StripaccentsSTR(coreword)),
+		Type:  SAVETYPE,
+		Name:  fmt.Sprintf(SAVEFILE, StripaccentsSTR(coreword)),
 		Title: SAVESTR, // get chinese if ""
 	}
 
@@ -114,9 +123,6 @@ func formatgraph(c echo.Context, graph *charts.Graph, coreword string, nn map[st
 		SERIESNAME    = ""
 		LAYOUTTYPE    = "force"
 		LABELPOSITON  = "right"
-		DOTHUE        = 236
-		DOTSL         = ", 33%, 40%, 1)"
-		DOTSLPER      = ", 33%, 70%, 1)"
 		LINECURVINESS = 0       // from 0 to 1, but non-zero will double-up the lines...
 		LINETYPE      = "solid" // "solid", "dashed", "dotted"
 	)
@@ -149,7 +155,7 @@ func formatgraph(c echo.Context, graph *charts.Graph, coreword string, nn map[st
 	vardot := func(i int) *opts.ItemStyle {
 		// dv := DOTHUE + (i * 3) + 1
 		dv := DOTHUE
-		vd := "hsla(" + fmt.Sprintf("%d", dv) + DOTSL
+		vd := fmthsl(dv, DOTSAT, DOTLUM)
 		return &opts.ItemStyle{Color: vd}
 	}
 
@@ -157,7 +163,7 @@ func formatgraph(c echo.Context, graph *charts.Graph, coreword string, nn map[st
 	periphvardot := func(i int) *opts.ItemStyle {
 		// dv := DOTHUE + (i * 2) + 50
 		dv := DOTHUE
-		vd := "hsla(" + fmt.Sprintf("%d", dv) + DOTSLPER
+		vd := fmthsl(dv, DOTSAT, DOTLUMPER)
 		return &opts.ItemStyle{Color: vd}
 	}
 
@@ -286,6 +292,13 @@ func customgraphhtmlandjs(g *charts.Graph) string {
 	htmlandjs := string(buf.Bytes())
 
 	return htmlandjs
+}
+
+// fmthsl - turn hsl integers into an html hsl string
+func fmthsl(h int, s int, l int) string {
+	// 0, 0, 0 --> hsla(0, 0%, 0%, 1);
+	st := func(i int) string { return fmt.Sprintf("%d", i) }
+	return "hsla(" + st(h) + ", " + st(s) + "%, " + st(l) + "%, 1)"
 }
 
 //
