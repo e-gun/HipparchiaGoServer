@@ -1,0 +1,20 @@
+{
+    "BatchSize": 1024,
+    "Dim": 125,
+    "DocInMemory": true,
+    "Goroutines": 6,
+    "Initlr": 0.025,
+    "Iter": 15,
+    "LogBatch": 100000,
+    "MaxCount": -1,
+    "MinCount": 10,
+    "MinLR": 0.0000025,
+    "NegativeSampleSize": 5,
+    "RelationType": "ppmi",
+    "Smooth": 0.75,
+    "SubsampleThreshold": 0.001,
+    "ToLower": false,
+    "UpdateLRBatch": 100000,
+    "Verbose": false,
+    "Window": 8
+  }

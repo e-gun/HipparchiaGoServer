@@ -20,10 +20,12 @@ import (
 )
 
 const (
-	DOTHUE    = 236
-	DOTSAT    = 33
-	DOTLUM    = 40
-	DOTLUMPER = 70
+	CHRTWIDTH  = "1500px"
+	CHRTHEIGHT = "1200px"
+	DOTHUE     = 236
+	DOTSAT     = 33
+	DOTLUM     = 40
+	DOTLUMPER  = DOTLUM + 30
 )
 
 //
@@ -33,18 +35,16 @@ const (
 // buildblankgraph - return a pre-formatted charts.Graph
 func buildblankgraph(ft string, settings string, coreword string) *charts.Graph {
 	const (
-		CHRTWIDTH  = "1500px"
-		CHRTHEIGHT = "1200px"
-		TITLESTR   = "Nearest neighbors of »%s«"
-		SAVEFILE   = "nearest_neighbors_of_%s"
-		SAVETYPE   = "png" // svg, jpeg, png; svg requires chart initialization option ('renderer'); go-echarts can't set?
-		SAVESTR    = "Save to file..."
-		LEFTALIGN  = "20"
-		BOTTALIGN  = "3%"
-		FONTSTYLE  = "normal"
-		FONTSIZE   = 16
-		FONTDIFF   = 6
-		TEXTPAD    = "10"
+		TITLESTR  = "Nearest neighbors of »%s«"
+		SAVEFILE  = "nearest_neighbors_of_%s"
+		SAVETYPE  = "png" // svg, jpeg, png; svg requires chart initialization option ('renderer'); go-echarts can't set?
+		SAVESTR   = "Save to file..."
+		LEFTALIGN = "20"
+		BOTTALIGN = "3%"
+		FONTSTYLE = "normal"
+		FONTSIZE  = 16
+		FONTDIFF  = 6
+		TEXTPAD   = "10"
 	)
 
 	tst := opts.TextStyle{

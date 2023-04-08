@@ -1,0 +1,19 @@
+{
+    "Alpha": 0.55,
+    "BatchSize": 1024,
+    "CountType": "inc",
+    "Dim": 75,
+    "DocInMemory": false,
+    "Goroutines": 6,
+    "Initlr": 0.025,
+    "Iter": 25,
+    "LogBatch": 100000,
+    "MaxCount": -1,
+    "MinCount": 10,
+    "SolverType": "adagrad",
+    "SubsampleThreshold": 0.001,
+    "ToLower": false,
+    "Verbose": true,
+    "Window": 8,
+    "Xmax": 90
+  }
