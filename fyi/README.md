@@ -38,7 +38,7 @@ self-test without vectors is now `HipparchiaGoServer -st -dv`
 [HGS] exiting selftest mode
 ```
 
-self-test with vectors is deceptive because `-wc` flag will not override config json.
+self-test with vectors can be deceptive because `-wc` flag will not override config json.
 
 20 M1 cores
 ```
@@ -67,8 +67,18 @@ self-test with vectors is deceptive because `-wc` flag will not override config 
 [HGS] [E3: 302.168s][Δ: 56.351s] vector model test: glove (2 authors with 4 text preparation modes each)
 ```
 
+6 intel 9900k cores 
+```
+[HGS] [IV] vectorization tests
+[HGS] vectordbreset() dropped semantic_vectors
+[HGS] vectordbinit(): success
+[HGS] [E1: 157.453s][Δ: 41.629s] vector model test: w2v (2 authors with 4 text preparation modes each)
+[HGS] [E2: 213.944s][Δ: 56.491s] vector model test: lexvec (2 authors with 4 text preparation modes each)
+[HGS] [E3: 247.067s][Δ: 33.124s] vector model test: glove (2 authors with 4 text preparation modes each)
+```
 
-### some selftest times
+
+### some vectroless selftest times
 
 * 91s on 8 cores of apple silicon (m1) virtualizing rocky linux
 * 111s on 6 cores of apple silicon (m1) virtualizing rocky linux

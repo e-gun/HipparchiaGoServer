@@ -137,6 +137,7 @@ func formatgraph(c echo.Context, graph *charts.Graph, coreword string, nn map[st
 	var gnn []opts.GraphNode
 	var gll []opts.GraphLink
 	valuelabel := opts.EdgeLabel{Show: true, FontSize: EDGEFNTSZ, Formatter: "{c}"}
+	hiddenvals := opts.EdgeLabel{Show: false, FontSize: EDGEFNTSZ, Formatter: "{c}"}
 
 	round := func(val float64) float32 {
 		ratio := math.Pow(10, float64(PRECISON))
@@ -199,6 +200,7 @@ func formatgraph(c echo.Context, graph *charts.Graph, coreword string, nn map[st
 	}
 
 	// populate the nodes with both the core terms and the neighbors of those terms as well
+
 	expandedweb := func() {
 		i := -1
 		for t := range coreterms {
@@ -214,7 +216,7 @@ func formatgraph(c echo.Context, graph *charts.Graph, coreword string, nn map[st
 					gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: round(w.Similarity), SymbolSize: PERIPHSYMSZ, ItemStyle: periphvardot(i)})
 					used[w.Word] = true
 				}
-				gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
+				gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &hiddenvals})
 			}
 		}
 	}
