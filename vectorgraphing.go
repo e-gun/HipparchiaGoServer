@@ -26,6 +26,7 @@ const (
 	DOTSAT     = 33
 	DOTLUM     = 40
 	DOTLUMPER  = DOTLUM + 30
+	DOTSHIFT   = 0
 )
 
 //
@@ -33,19 +34,24 @@ const (
 //
 
 // buildblankgraph - return a pre-formatted charts.Graph
-func buildblankgraph(ft string, settings string, coreword string) *charts.Graph {
+func buildblankgraph(settings string, coreword string, incl string) *charts.Graph {
 	const (
-		TITLESTR  = "Nearest neighbors of »%s«"
+		TITLESTR  = "Nearest neighbors of »%s« in %s"
 		SAVEFILE  = "nearest_neighbors_of_%s"
 		SAVETYPE  = "png" // svg, jpeg, png; svg requires chart initialization option ('renderer'); go-echarts can't set?
 		SAVESTR   = "Save to file..."
 		LEFTALIGN = "20"
 		BOTTALIGN = "3%"
 		FONTSTYLE = "normal"
-		FONTSIZE  = 16
+		FONTSIZE  = 14
 		FONTDIFF  = 6
 		TEXTPAD   = "10"
 	)
+
+	ft := Config.Font
+	if ft == "Noto" {
+		ft = "'hipparchiacondensedboldstatic', sans-serif"
+	}
 
 	tst := opts.TextStyle{
 		Color:      fmthsl(DOTHUE, DOTSAT, DOTLUM),
@@ -63,7 +69,7 @@ func buildblankgraph(ft string, settings string, coreword string) *charts.Graph 
 	}
 
 	tit := opts.Title{
-		Title:         fmt.Sprintf(TITLESTR, coreword),
+		Title:         fmt.Sprintf(TITLESTR, coreword, incl),
 		TitleStyle:    &tst,
 		Subtitle:      settings, // can not see this if you put the title on the very bottom of the image
 		SubtitleStyle: &sst,
@@ -154,16 +160,14 @@ func formatgraph(c echo.Context, graph *charts.Graph, coreword string, nn map[st
 
 	// dotstyle := opts.ItemStyle{Color: DOTCOLOR}
 	vardot := func(i int) *opts.ItemStyle {
-		// dv := DOTHUE + (i * 3) + 1
-		dv := DOTHUE
+		dv := DOTHUE + (i * DOTSHIFT)
 		vd := fmthsl(dv, DOTSAT, DOTLUM)
 		return &opts.ItemStyle{Color: vd}
 	}
 
 	// periphdot := opts.ItemStyle{Color: DOTCOLPERIPH}
 	periphvardot := func(i int) *opts.ItemStyle {
-		// dv := DOTHUE + (i * 2) + 50
-		dv := DOTHUE
+		dv := DOTHUE + (i * DOTSHIFT)
 		vd := fmthsl(dv, DOTSAT, DOTLUMPER)
 		return &opts.ItemStyle{Color: vd}
 	}

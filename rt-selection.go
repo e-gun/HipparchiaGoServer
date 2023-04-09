@@ -779,12 +779,7 @@ func reportcurrentselections(c echo.Context) SelectionData {
 
 	user := readUUIDCookie(c)
 	s := AllSessions.GetSess(user)
-	s.Inclusions.BuildAuByName()
-	s.Exclusions.BuildAuByName()
-	s.Inclusions.BuildWkByName()
-	s.Exclusions.BuildWkByName()
-	s.Inclusions.BuildPsgByName()
-	s.Exclusions.BuildPsgByName()
+	s.BuildSelectionOverview()
 
 	i := s.Inclusions
 	e := s.Exclusions

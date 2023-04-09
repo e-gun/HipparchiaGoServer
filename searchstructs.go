@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -152,6 +153,55 @@ func (s *SearchStruct) FormatInitialSummary() {
 	}
 	sum := fmt.Sprintf(TPM, af1, sk, two)
 	s.InitSum = sum
+}
+
+// InclusionOverview - yield a summary of the inclusions; VectorSearch will use this when calling buildblankgraph()
+func (s *SearchStruct) InclusionOverview(sessincl SearchIncExl) string {
+	const (
+		MAXITEMS = 4
+	)
+
+	in := s.SearchIn
+	in.BuildAuByName()
+	in.BuildWkByName()
+
+	// the named passages are available to a SeverSession, not a SearchStruct
+	namemap := sessincl.MappedPsgByName
+	var nameslc []string
+	for _, v := range namemap {
+		nameslc = append(nameslc, v)
+	}
+	sort.Strings(nameslc)
+
+	var ov []string
+	ov = append(ov, in.AuGenres...)
+	ov = append(ov, in.WkGenres...)
+	ov = append(ov, in.ListedABN...)
+	ov = append(ov, in.ListedWBN...)
+	ov = append(ov, nameslc...)
+
+	sort.Strings(ov)
+
+	var enum []string
+
+	if len(ov) != 1 {
+		for i, p := range ov {
+			enum = append(enum, fmt.Sprintf("(%d) %s", i+1, p))
+		}
+	} else {
+		enum = append(enum, fmt.Sprintf("%s", ov[0]))
+	}
+
+	if len(enum) > MAXITEMS {
+		diff := len(enum) - MAXITEMS
+		enum = enum[0:MAXITEMS]
+		enum = append(enum, fmt.Sprintf("and %d others", diff))
+	}
+
+	o := strings.Join(enum, "; ")
+	nomarkup := strings.NewReplacer("<i>", "", "</i>", "")
+
+	return nomarkup.Replace(o)
 }
 
 // SortResults - sort the search results by the session's registerselection criterion

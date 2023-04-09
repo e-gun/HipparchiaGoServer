@@ -536,6 +536,7 @@ type hwguesser struct {
 func buildmontecarloparsemap(parsemap map[string]map[string]bool) map[string]hwguesser {
 	// turn a list of sentences into a list of headwords; here we figure out the chances of any given homonym
 	// then we set ourselves up to do a weighted guess of which one is in use
+
 	// if a word might be A, B, or C and A appears 50 times, B appears 25 times, and C appears 5 times, then you
 	// want to randomly assign the word to A 5/8 of the time, etc.
 	// this can be achieved by a cumulative weight: [A -> 1-50, B -> 51-75, C -> 76-80]; a guess of 66 is a "B"
@@ -628,7 +629,6 @@ func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string
 	winnermap := make(map[string]string)
 	for i := range lcparsemap {
 		var hwl WHWList
-		// for j := 0; j < len(lcparsemap[i]); j++ {
 		for j, _ := range parsemap[i] {
 			var thishw WeightedHeadword
 			thishw.Word = j
@@ -681,7 +681,6 @@ func buildyokedparsemap(parsemap map[string]map[string]bool) map[string]string {
 	yoked := make(map[string]string)
 	for i := range lcparsemap {
 		var ww []string
-		// for j := 0; j < len(lcparsemap[i]); j++ {
 		for j, _ := range parsemap[i] {
 			ww = append(ww, j)
 		}

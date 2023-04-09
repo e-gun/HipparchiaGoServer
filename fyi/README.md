@@ -78,7 +78,7 @@ self-test with vectors can be deceptive because `-wc` flag will not override con
 ```
 
 
-### some vectroless selftest times
+### some vectorless selftest times
 
 * 91s on 8 cores of apple silicon (m1) virtualizing rocky linux
 * 111s on 6 cores of apple silicon (m1) virtualizing rocky linux

@@ -53,6 +53,15 @@ type ServerSession struct {
 	VecTextPrep string
 }
 
+func (s *ServerSession) BuildSelectionOverview() {
+	s.Inclusions.BuildAuByName()
+	s.Exclusions.BuildAuByName()
+	s.Inclusions.BuildWkByName()
+	s.Exclusions.BuildWkByName()
+	s.Inclusions.BuildPsgByName()
+	s.Exclusions.BuildPsgByName()
+}
+
 //
 // THREAD SAFE INFRASTRUCTURE: MUTEX
 //
