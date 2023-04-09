@@ -303,18 +303,19 @@ func RtVectorBot(c echo.Context) error {
 // activatevectorbot - build a vector model for every author
 func activatevectorbot() {
 	const (
-		MSG2       = "(#%d) checking need to model %s (%s)"
+		MSG1       = "activatevectorbot() is launching"
+		MSG2       = "(%.1f%%) checking need to model %s (%s)"
 		MSG3       = "The vectorbot has checked all authors and is now shutting down"
 		URL        = "http://%s:%d/vbot/%s"
-		COUNTEVERY = 5
+		COUNTEVERY = 10
 		THROTTLE   = 4
 		SIZEVERY   = 500
 		STARTDELAY = 2
 	)
 
-	time.Sleep(STARTDELAY * time.Second)
+	msg(MSG1, MSGNOTE)
 
-	count := 0
+	time.Sleep(STARTDELAY * time.Second)
 
 	start := time.Now()
 	previous := time.Now()
@@ -341,6 +342,9 @@ func activatevectorbot() {
 
 	auu = append(trimmedauu, dbs...)
 
+	tot := float32(len(auu))
+	count := 0
+
 	for _, a := range auu {
 		mustnotify := false
 		an := AllAuthors[a].Name
@@ -351,7 +355,7 @@ func activatevectorbot() {
 
 		count += 1
 		if count%COUNTEVERY == 0 || mustnotify {
-			TimeTracker("AV", fmt.Sprintf(MSG2, count, an, a), start, previous)
+			TimeTracker("AV", fmt.Sprintf(MSG2, float32(count)/tot*100, an, a), start, previous)
 			previous = time.Now()
 		}
 		u := fmt.Sprintf(URL, Config.HostIP, Config.HostPort, a)
