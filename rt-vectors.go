@@ -238,6 +238,9 @@ func RtVectorBot(c echo.Context) error {
 	//[HGS] [VB: 4060.712s][Δ: 417.661s] The vectorbot has checked all authors and is now shutting down
 	//[HGS] Disk space used by stored vectors is currently 997MB
 
+	// 6 cores of intel 9900k
+	// [HGS] [VB: 7602.934s][Δ: 877.251s] The vectorbot has checked all authors and is now shutting down
+
 	// testable via:
 	// curl localhost:8000/vbot/ch0d09
 

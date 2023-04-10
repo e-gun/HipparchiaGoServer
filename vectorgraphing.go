@@ -125,20 +125,16 @@ func formatgraph(c echo.Context, graph *charts.Graph, coreword string, nn map[st
 		REPULSION     = 6000
 		GRAVITY       = .15
 		EDGELEN       = 40
-		EDGEFNTSZ     = 8
+		EDGEFNTSZ     = 8.0
 		SERIESNAME    = ""
 		LAYOUTTYPE    = "force"
 		LABELPOSITON  = "right"
+		LABELFTSIZE   = 12.0
 		LINECURVINESS = 0       // from 0 to 1, but non-zero will double-up the lines...
 		LINETYPE      = "solid" // "solid", "dashed", "dotted"
 	)
 
 	se := AllSessions.GetSess(readUUIDCookie(c))
-
-	ft := Config.Font
-	if ft == "Noto" {
-		ft = "'hipparchiasemiboldstatic', sans-serif"
-	}
 
 	var gnn []opts.GraphNode
 	var gll []opts.GraphLink
@@ -231,12 +227,18 @@ func formatgraph(c echo.Context, graph *charts.Graph, coreword string, nn map[st
 		simpleweb()
 	}
 
+	ft := Config.Font
+	if ft == "Noto" {
+		ft = "'hipparchiasemiboldstatic', sans-serif"
+	}
+
 	graph.AddSeries(SERIESNAME, gnn, gll,
 		charts.WithLabelOpts(
 			opts.Label{
 				Show:       true,
 				Position:   LABELPOSITON,
 				FontFamily: ft,
+				FontSize:   LABELFTSIZE,
 			},
 		),
 		charts.WithLineStyleOpts(
