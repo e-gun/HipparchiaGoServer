@@ -157,8 +157,22 @@ func (s *SearchStruct) FormatInitialSummary() {
 
 // InclusionOverview - yield a summary of the inclusions; VectorSearch will use this when calling buildblankgraph()
 func (s *SearchStruct) InclusionOverview(sessincl SearchIncExl) string {
+	// possible to get burned, but this cheat is "good enough"
+	// hipparchiaDB=# SELECT COUNT(universalid) FROM authors WHERE universalid LIKE 'gr%';
+	// gr: 1823
+	// lt: 362
+	// in: 463
+	// ch: 291
+	// dp: 516
+
 	const (
 		MAXITEMS = 4
+		GRCT     = 1823
+		LTCT     = 362
+		INCT     = 463
+		CHCT     = 291
+		DPCT     = 516
+		FULL     = "all %d of the %s tables"
 	)
 
 	in := s.SearchIn
@@ -180,28 +194,52 @@ func (s *SearchStruct) InclusionOverview(sessincl SearchIncExl) string {
 	ov = append(ov, in.ListedWBN...)
 	ov = append(ov, nameslc...)
 
-	sort.Strings(ov)
+	notall := func() string {
+		sort.Strings(ov)
 
-	var enum []string
+		var enum []string
 
-	if len(ov) != 1 {
-		for i, p := range ov {
-			enum = append(enum, fmt.Sprintf("(%d) %s", i+1, p))
+		if len(ov) != 1 {
+			for i, p := range ov {
+				enum = append(enum, fmt.Sprintf("(%d) %s", i+1, p))
+			}
+		} else {
+			enum = append(enum, fmt.Sprintf("%s", ov[0]))
 		}
-	} else {
-		enum = append(enum, fmt.Sprintf("%s", ov[0]))
+
+		if len(enum) > MAXITEMS {
+			diff := len(enum) - MAXITEMS
+			enum = enum[0:MAXITEMS]
+			enum = append(enum, fmt.Sprintf("and %d others", diff))
+		}
+
+		o := strings.Join(enum, "; ")
+		nomarkup := strings.NewReplacer("<i>", "", "</i>", "")
+		return nomarkup.Replace(o)
 	}
 
-	if len(enum) > MAXITEMS {
-		diff := len(enum) - MAXITEMS
-		enum = enum[0:MAXITEMS]
-		enum = append(enum, fmt.Sprintf("and %d others", diff))
+	tt := len(ov)
+	if tt != len(in.Authors) {
+		tt = -1
 	}
 
-	o := strings.Join(enum, "; ")
-	nomarkup := strings.NewReplacer("<i>", "", "</i>", "")
+	r := ""
+	switch tt {
+	case GRCT:
+		r = fmt.Sprintf(FULL, GRCT, "Greek author")
+	case LTCT:
+		r = fmt.Sprintf(FULL, LTCT, "Latin author")
+	case INCT:
+		r = fmt.Sprintf(FULL, INCT, "classical inscriptions")
+	case DPCT:
+		r = fmt.Sprintf(FULL, DPCT, "documentary papyri")
+	case CHCT:
+		r = fmt.Sprintf(FULL, CHCT, "christian era inscriptions")
+	default:
+		r = notall()
+	}
 
-	return nomarkup.Replace(o)
+	return r
 }
 
 // SortResults - sort the search results by the session's registerselection criterion

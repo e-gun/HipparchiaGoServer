@@ -18,6 +18,10 @@ import (
 	"time"
 )
 
+// "github.com/james-bowman/nlp" also contains some interesting possibilities: LatentDirichletAllocation, etc.
+// bagging would need to go as per the old HipparchiaGoDBHelper code: sentence by sentence
+// then you can model the topics; it is not immediately clear how to graph and interpret them, though
+
 // VectorSearch - a special case for RtSearch() where you requested vectorization of the results
 func VectorSearch(c echo.Context, srch SearchStruct) error {
 	const (
