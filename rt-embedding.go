@@ -64,6 +64,11 @@ func RtEbmTouchIcon(c echo.Context) error {
 	return fileembedder(c, EITC)
 }
 
+// RtEmbPDFHelp - send one of the embedded PDF files
+func RtEmbPDFHelp(c echo.Context) error {
+	return pathembedder(c, EPD)
+}
+
 //
 // HELPERS
 //
@@ -106,33 +111,37 @@ func addresponsehead(f string) string {
 	// c.Response().Header().Add("Content-Type", "text/css")
 	add := ""
 
-	if strings.Contains(f, ".css") {
+	if strings.HasSuffix(f, ".css") {
 		// jquery-ui.css
 		add = "text/css"
 	}
 
-	if strings.Contains(f, ".ico") {
+	if strings.HasSuffix(f, ".ico") {
 		add = "image/vnd.microsoft.icon"
 	}
 
-	if strings.Contains(f, ".js") {
+	if strings.HasSuffix(f, ".js") {
 		add = "text/javascript"
 	}
 
-	if strings.Contains(f, ".png") {
+	if strings.HasSuffix(f, ".png") {
 		add = "image/png"
 	}
 
-	if strings.Contains(f, ".ttf") {
+	if strings.HasSuffix(f, ".ttf") {
 		add = "font/ttf"
 	}
 
-	if strings.Contains(f, ".otf") {
+	if strings.HasSuffix(f, ".otf") {
 		add = "font/opentype"
 	}
 
-	if strings.Contains(f, ".woff2") {
+	if strings.HasSuffix(f, ".woff2") {
 		add = "font/woff2"
+	}
+
+	if strings.HasSuffix(f, ".pdf") {
+		add = "application/pdf"
 	}
 
 	return add

@@ -148,7 +148,7 @@ func RtGetJSWorksStruct(c echo.Context) error {
 // RtGetJSHelpdata - populate <div id="helptabs"> on frontpage.html via $('#helpbutton').click in documentready_go.js
 func RtGetJSHelpdata(c echo.Context) error {
 	cat := []string{"Interface", "Browsing", "Dictionaries", "MakingSearchLists", "BasicSyntax", "RegexSearching",
-		"LemmaSearching", "Oddities", "Extending", "IncludedMaterials"}
+		"LemmaSearching", "Oddities", "Extending", "IncludedMaterials", "PDFFiles"}
 
 	fm := make(map[string]string)
 	fm["Browsing"] = "helpbrowsing.html"
@@ -164,6 +164,7 @@ func RtGetJSHelpdata(c echo.Context) error {
 	fm["IncludedMaterials"] = "includedmaterials.html"
 	// fm["Openness"] = "helpopenness.html"
 	fm["Interface"] = "helpinterface.html"
+	fm["PDFFiles"] = "helppdf.html"
 
 	type JSOut struct {
 		HC []string `json:"helpcategories"`

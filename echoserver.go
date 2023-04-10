@@ -179,6 +179,7 @@ func StartEchoServer() {
 	e.GET("/emb/wof/:file", RtEmbWOF)
 	e.GET("/favicon.ico", RtEbmFavicon)
 	e.GET("/apple-touch-icon-precomposed.png", RtEbmTouchIcon)
+	e.GET("/emb/pdf/:file", RtEmbPDFHelp)
 
 	// [q] cookies ("rt-session.go")
 
