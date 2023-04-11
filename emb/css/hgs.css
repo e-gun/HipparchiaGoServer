@@ -1787,10 +1787,16 @@ td.moodlabel {
 td.morphcell {
 	padding-left: 5px;
 	padding-right: 5px;
+	color: var(--brtblue);
 }
 
 td.morphcell.labelcell {
 	font-weight: normal;
+}
+
+td.morphlabelcell {
+	/*color: var(--huedgrey);*/
+	font-family: 'hipparchiasemiboldstatic', sans-serif;
 }
 
 td.morphcell.invisible {

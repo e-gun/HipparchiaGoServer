@@ -44,7 +44,7 @@ const (
 	GREY3   = "\033[38;5;242m" // Grey42
 	WHITE   = "\033[38;5;255m" // Grey93
 	BLINK   = "\033[30;0;5m"
-	PANIC   = "[%s%s v.%s%s] %sUNRECOVERABLE ERROR: PLEASE TAKE NOTE OF THE FOLLOWING PANIC MESSAGE%s\n"
+	PANIC   = "[%s%s v.%s%s] %sUNRECOVERABLE ERROR%s\n"
 )
 
 // chke - send a generic message and panic on error

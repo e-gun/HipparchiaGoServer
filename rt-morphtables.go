@@ -75,11 +75,8 @@ func RtMorphchart(c echo.Context) error {
 	}
 
 	const (
-		MFLD = `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
-		MQT  = `SELECT %s FROM %s_morphology WHERE xrefs ~ '%s' AND prefixrefs=''`
-		TTT  = `CREATE TEMPORARY TABLE ttw_%s AS SELECT values AS wordforms FROM unnest(ARRAY[%s]) values`
-		WCQT = `SELECT entry_name, total_count FROM wordcounts_%s WHERE EXISTS 
-		(SELECT 1 FROM ttw_%s temptable WHERE temptable.wordforms = wordcounts_%s.entry_name)`
+		MFLD  = `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
+		MQT   = `SELECT %s FROM %s_morphology WHERE xrefs ~ '%s' AND prefixrefs=''`
 		CTM   = `<verbform searchterm="%s">%s</verbform> (<span class="counter">%d</span>)`
 		TBTOP = `
 		<div class="center">

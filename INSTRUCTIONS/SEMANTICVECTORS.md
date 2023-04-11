@@ -37,6 +37,11 @@ line cap on models will prevent building a model of the whole Greek corpus. Edit
 its training runs. Each training iteration will take >3m on a fast machine. Queries of this model take >15s: `205MB`
 of data has to be fetched and decompressed.
 
+But note that a model of Greek with "only" 1M lines instead of 9M lines still produces good and interesting associations.
+People for whom 1M words are not enough could try 3M, or 6M, or... A lot of Greek is post 300CE, people who are not interested
+in that material could shave millions of words of their models. Because of the way the bulk search algorithm executes
+there will be a bias towards "classical" greek in line-limited grabs. Capped models are generally "earlier" models. 
+
 ```
 (building all of greek)
 [HGS] generateembeddings() gathered 8992999 lines
@@ -143,7 +148,8 @@ If you disable `Verbose` you will turn off the live progress updates. Why would 
 
 The underlying source code for the modeling can be found at https://github.com/ynqa/wego. There you can find a couple 
 of "hidden" values one might adjust when setting `OptimizerType` and `ModelType`. The former can be either `ns` or `hs`.
-The latter can be either `cbow` or `skipgram`. You will also see the default values that the authors of that package
+The latter can be either `cbow` or `skipgram`. `skipgram` seems to produce models that are far better than `cbow`.
+You will also see the default values that the authors of that package
 distribute. Note that `defaultDim` is strikingly low at `10` and is only useful to show that code can generate a model,
 not that it can generate an interesting model. Most tutorials talk about models with `100-300` dimensions. 
 
@@ -195,7 +201,8 @@ This is not the default model maker. It can be requested via the browser interfa
 permanent default by editing `hgs-prolix-conf.json`.
 
 The results are of comparable quality to those offered by Word2Vec. `RelationType` has four options: `ppmi`, 
-`pmi`, `co`, and `logco`. 
+`pmi`, `co`, and `logco`. `co` will produce broken models that `vectordbadd()` cannot store. Do not use this option.
+`ppmi` and `pmi` models yield similar results. `logco` models are more distinct. 
 
 The default `hgs-vector-conf-glove.json`:
 

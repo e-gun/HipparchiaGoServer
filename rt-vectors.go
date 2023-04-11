@@ -75,7 +75,6 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	srch.LemmaOne = term
 
 	nn := generateneighborsdata(c, srch)
-
 	set := fmt.Sprintf(SETTINGS, se.VecModeler, se.VecTextPrep)
 
 	// [a] prepare the image output

@@ -28,6 +28,7 @@
 * vocabulary list generation (+ flag unique headwords)
 * morphology tables
 * dictionaries
+* embedded help files
 
 ### INSTRUCTIONS
 * for installation, see the `INSTRUCTIONS` folder
@@ -39,7 +40,7 @@
 
 * c. 325MB resident RAM on launch (note that a simple application like iTerm2 uses 354MB and Firefox uses 855MB)
 * add about 125MB of RAM per postgres client connection in the pool
-* a very heavy search like "all forms of Πόλιϲ near..." can kick you up into 660MB
+* a very heavy search like "all forms of πόλιϲ near..." can kick you up into 660MB
 
 ### MINIMUM VERSION OF GOLANG REQUIRED TO BUILD
 * go 1.19 because `atomic.Int32` and `atomic.Int64` are called

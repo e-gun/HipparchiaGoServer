@@ -68,21 +68,27 @@ func SrchFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, e
 	emitqueries := make(chan PrerolledQuery, Config.WorkerCount)
 	remainder := -1
 
-	go func() {
+	emitone := func(i int) {
+		remainder = len(ss.Queries) - i - 1
+		if remainder%POLLEVERYNTABLES == 0 {
+			ss.Remain.Set(remainder)
+		}
+		emitqueries <- ss.Queries[i]
+	}
+
+	feed := func() {
 		defer close(emitqueries)
 		for i := 0; i < len(ss.Queries); i++ {
 			select {
 			case <-ctx.Done():
 				break
 			default:
-				remainder = len(ss.Queries) - i - 1
-				if remainder%POLLEVERYNTABLES == 0 {
-					ss.Remain.Set(remainder)
-				}
-				emitqueries <- ss.Queries[i]
+				emitone(i)
 			}
 		}
-	}()
+	}
+
+	go feed()
 
 	return emitqueries, nil
 }
@@ -90,7 +96,8 @@ func SrchFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, e
 // SrchConsumer - grab a PrerolledQuery; execute search; emit finds to a channel
 func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWorkline, error) {
 	emitfinds := make(chan []DbWorkline)
-	go func() {
+
+	consume := func() {
 		dbconn := GetPSQLconnection()
 		defer dbconn.Release()
 		defer close(emitfinds)
@@ -102,7 +109,10 @@ func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWo
 				emitfinds <- WorklineQuery(q, dbconn)
 			}
 		}
-	}()
+	}
+
+	go consume()
+
 	return emitfinds, nil
 }
 
@@ -134,8 +144,20 @@ func ResultAggregator(ctx context.Context, findchannels ...<-chan []DbWorkline) 
 }
 
 // ResultCollation - return the actual []DbWorkline results after pulling them from the ResultAggregator channel
-func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, values <-chan []DbWorkline) []DbWorkline {
+func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundlines <-chan []DbWorkline) []DbWorkline {
 	var allhits []DbWorkline
+
+	addhits := func(worklines []DbWorkline) {
+		// each bundle of []DbWorkline comes off of a single author table
+		// so OneHit searches will just grab the top of that bundle
+		if ss.OneHit && ss.PhaseNum == 1 && len(worklines) > 0 {
+			allhits = append(allhits, worklines[0])
+		} else {
+			allhits = append(allhits, worklines...)
+		}
+		ss.Hits.Set(len(allhits))
+	}
+
 	done := false
 	for {
 		if done {
@@ -145,17 +167,9 @@ func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, values 
 		case <-ctx.Done():
 			log.Print(ctx.Err().Error())
 			done = true
-		case val, ok := <-values:
+		case ll, ok := <-foundlines:
 			if ok {
-				// each bundle of []DbWorkline comes off of a single author table
-				// so OneHit searches will just grab the top of that bundle
-				if ss.OneHit && ss.PhaseNum == 1 && len(val) > 0 {
-					allhits = append(allhits, val[0])
-				} else {
-					allhits = append(allhits, val...)
-				}
-				ss.Hits.Set(len(allhits))
-
+				addhits(ll)
 				if len(allhits) > maxhits {
 					done = true
 				}

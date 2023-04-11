@@ -172,7 +172,6 @@ func generateneighborsdata(c echo.Context, s SearchStruct) map[string]search.Nei
 	}
 
 	word := s.LemmaOne
-
 	nn := make(map[string]search.Neighbors)
 	neighbors, err := searcher.SearchInternal(word, ncount)
 	if err != nil {
@@ -198,8 +197,11 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	const (
 		FAIL1  = "model initialization failed"
 		FAIL2  = "generateembeddings() failed to train vector embeddings"
+		FAIL3  = "generateembeddings() failed to save vector embeddings"
+		FAIL4  = "generateembeddings() failed to load vector embeddings"
 		MSG1   = "generateembeddings() gathered %d lines"
 		MSG2   = "generateembeddings() successfuly trained a %s model (%ss)"
+		MSG3   = "generateembeddings() exiting"
 		PRLMSG = `Acquiring the raw data`
 		TBMSG  = `Turning %d lines into a unified text block`
 		VMSG   = `Training run <code>#%d</code> out of <code>%d</code> total iterations.`
@@ -322,11 +324,20 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	var buf bytes.Buffer
 	w := io.Writer(&buf)
 	err := vmodel.Save(w, vector.Agg)
+	if err != nil {
+		msg(FAIL3, MSGNOTE)
+
+	}
 
 	r := io.Reader(&buf)
-	embs, err := embedding.Load(r)
-	chke(err)
+	var embs embedding.Embeddings
+	embs, err = embedding.Load(r)
+	if err != nil {
+		msg(FAIL4, MSGNOTE)
+		embs = embedding.Embeddings{}
+	}
 
+	// msg(MSG3, MSGTMI)
 	return embs
 }
 
@@ -808,8 +819,8 @@ func w2vvectorconfig() word2vec.Options {
 // lexvecvectorconfig() - read the CONFIGVECTORW2V file and return word2vec.Options
 func lexvecvectorconfig() lexvec.Options {
 	const (
-		ERR1 = "w2vvectorconfig() cannot find UserHomeDir"
-		ERR2 = "w2vvectorconfig() failed to parse "
+		ERR1 = "lexvecvectorconfig() cannot find UserHomeDir"
+		ERR2 = "lexvecvectorconfig() failed to parse "
 		MSG1 = "wrote default vector configuration file "
 		MSG2 = "read vector configuration from "
 	)
@@ -846,15 +857,14 @@ func lexvecvectorconfig() lexvec.Options {
 		msg(MSG2+CONFIGVECTORLEXVEX, MSGTMI)
 		cfg = vc
 	}
-
 	return cfg
 }
 
 // glovevectorconfig() - read the CONFIGVECTORW2V file and return word2vec.Options
 func glovevectorconfig() glove.Options {
 	const (
-		ERR1 = "w2vvectorconfig() cannot find UserHomeDir"
-		ERR2 = "w2vvectorconfig() failed to parse "
+		ERR1 = "glovevectorconfig() cannot find UserHomeDir"
+		ERR2 = "glovevectorconfig() failed to parse "
 		MSG1 = "wrote default vector configuration file "
 		MSG2 = "read vector configuration from "
 	)
@@ -991,6 +1001,7 @@ func vectordbadd(fp string, embs embedding.Embeddings) {
 	const (
 		MSG1 = "vectordbadd(): "
 		MSG2 = "%s compression: %dM -> %dM (%.1f percent)"
+		FAIL = "vectordbadd() failed when calling json.Marshal(embs): nothing stored"
 		INS  = `
 			INSERT INTO %s
 				(fingerprint, vectorsize, vectordata)
@@ -998,7 +1009,10 @@ func vectordbadd(fp string, embs embedding.Embeddings) {
 	)
 
 	eb, err := json.Marshal(embs)
-	chke(err)
+	if err != nil {
+		msg(FAIL, MSGNOTE)
+		eb = []byte{}
+	}
 
 	l1 := len(eb)
 
