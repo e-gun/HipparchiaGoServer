@@ -1,4 +1,4 @@
-# Hipparchia - The basics
+# HipparchiaGoServer - The basics
 0. Built-in tips
 1. Basic search area
 2. Options panel
@@ -7,17 +7,18 @@
 5. Building a search list with multiple texts and an exclusion
 6. Selecting an arbitrary subsection of a work
 7. Search for `All forms of...`
-8. Saving/loading search lists
-9. Browsing
-10. Dictionary lookups in browsed passages
-11. The dictionary is linked to the browser
-12. The dictionary is linked to a morphology chart maker.
-13. The morphology chart is linked to the searcher.
-14. The search results list is linked to the browser.
-15. Get a text of the current selection.
-16. Build and index of the current selection.
-17. Get the vocabulary for the current selection.
-18. I need to know still more...
+8. The different types of search
+9. Saving/loading search lists
+10. Browsing
+11. Dictionary lookups in browsed passages
+12. The dictionary is linked to the browser 
+13. The dictionary is linked to a morphology chart maker. 
+14. The morphology chart is linked to the searcher. 
+15. The search results list is linked to the browser. 
+16. Get a text of the current selection. 
+17. Build and index of the current selection. 
+18. Get the vocabulary for the current selection. 
+19. I need to know still more...
 
 ---
 [0] **Built-in tips**
@@ -122,7 +123,26 @@ near all forms of B in a subsection of a single work where A is `within N lines`
 ![inst03](../gitimg/basic_use/07_two_lemmata_in_selection.png)
 
 ---
-[8] **Saving/loading search lists**
+
+[8] **The different types of search**
+
+If you have clicked `Complicate the search`, then you now have access to the full collection of search types. 
+* Single search box searches
+  * An individual word or portion of a word: `antiq` or `antiquos` or `antiquu[sm]`, for example.
+  * All forms of a word via the `λ` checkbox: `antiquus` (a word that has `45` known forms in use)
+  * A phrase: `apud antiquos`
+* Double search box searches
+  * Two individual words `Caesar` near `Cicero`
+  * All forms of X near some Y: all forms of `ago` near `bellis`, for example.
+  * All forms of X near all forms of Y
+  * A phrase near a single word or portion of a word: `non solum` near `agric`
+  * A phrase near all forms of a word: `non solum` near all forms of `puer`
+  * A phrase near another phrase: `non solum` near `sed etiam`
+
+Use the scope constraints as needed: `near` vs `not near` and `within N lines` vs `within N words`
+
+---
+[9] **Saving/loading search lists**
 
 If you look at the lower right side of the page you will see a disk icon and a folder icon. Click on either/both. 
 Then you will see numbers: 1, 2, 3, 4, 5. If you click `Dark 1` you just saved the current settings, including the
@@ -132,7 +152,7 @@ the new current settings. **NB:** Stored saves are wiped out when the server res
 ![inst03](../gitimg/basic_use/08_load_and_save.png)
 
 ---
-[9] **Browsing**
+[10] **Browsing**
 
 You can browse to any location in any text. Act as if you were about to add an author selection to a search list.
 You can click on the `Expand` button at any time. 
@@ -148,7 +168,7 @@ The browser arrow buttons will move you forward and back in the text. One will a
 ![inst03](../gitimg/basic_use/09b_browser_xen.png)
 
 ---
-[10] **Dictionary lookups in browsed passages**
+[11] **Dictionary lookups in browsed passages**
 
 The browser is linked to the dictionary.
 
@@ -161,12 +181,12 @@ So if you click on `ἐβούλετο` at Xenophon, Anabasis 2.1.6.1 you will se
 ![inst03](../gitimg/basic_use/10_browser_dict.png)
 
 ---
-[11] **The dictionary is linked to the browser.**
+[12] **The dictionary is linked to the browser.**
 
 If you click on the `blue` citations in the dictionary panel, the server will attempt to send you to that passage. So, the `βούλομαι` entry mentions `Herodotus 1.11`. If you hover over it, it will change color, gain a shadow, and have lines appear over/under it. If you click on this the browser will open Herodotus' Histories to that book and chapter.
 
 ---
-[12] **The dictionary is linked to a morphology chart maker.**
+[13] **The dictionary is linked to a morphology chart maker.**
 
 If a dictionary entry says `417 known forms`, for example, you can click on that text and be sent to a chart of those 
 forms. The numbers in parentheses show the count of occurrences of that form across all the data. 
@@ -174,7 +194,7 @@ forms. The numbers in parentheses show the count of occurrences of that form acr
 ![inst03](../gitimg/basic_use/12_morphology.png)
 
 ---
-[13] **The morphology chart is linked to the searcher.**
+[14] **The morphology chart is linked to the searcher.**
 
 If you click on an item in a morphology chart, that word will be sought across the current search selction. So a click
 on `ἑώραϲ (57)` returns a search that has 57 results (since all 57 items appear in `Ⓖ` which was currently active...)
@@ -182,7 +202,7 @@ on `ἑώραϲ (57)` returns a search that has 57 results (since all 57 items a
 ![inst03](../gitimg/basic_use/13_morph_search.png)
 
 ---
-[14] **The search results list is linked to the browser.** 
+[15] **The search results list is linked to the browser.** 
 
 If you hover over the blue final segment of an item on a search result list citation it will change color, gain a 
 shadow, and have lines appear over/under it. If you click on this the browser will open that author and work to that 
@@ -192,7 +212,7 @@ passage.
 
 ---
 
-[15] Get a text of the current selection.
+[16] Get a text of the current selection.
 
 Click the icon and a text will be generated for whatever you have selected up to the `MaxText` configuration setting
 (default: `35000` lines)
@@ -201,7 +221,7 @@ Click the icon and a text will be generated for whatever you have selected up to
 
 ---
 
-[16] Build and index of the current selection.
+[17] Build and index of the current selection.
 
 Click the icon and an index will be generated for whatever you have selected up to the `MaxText` configuration setting
 (default: `35000` lines). If you click on a locus, a panel will open at that locus. 
@@ -210,7 +230,7 @@ Click the icon and an index will be generated for whatever you have selected up 
 
 ---
 
-[17] Get the vocabulary for the current selection.
+[18] Get the vocabulary for the current selection.
 
 Click the icon and a vocabulary list will be generated for whatever you have selected up to the `MaxText` configuration setting
 (default: `35000` lines). If you click on a headword, a panel will open with the dictionary entry for that word. 
@@ -219,7 +239,7 @@ Click the icon and a vocabulary list will be generated for whatever you have sel
 
 ---
 
-[18] **I need to know still more...**
+[19] **I need to know still more...**
 
 More help is also available via the `?` button in the bottom right corner of the page. There you can learn about
 `regex`, see some warnings about the data, etc. See also the separate instructions about `semantic vectors`. 

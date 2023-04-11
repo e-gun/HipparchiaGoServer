@@ -88,10 +88,9 @@ const (
 	TIMETRACKERMSGTHRESH     = MSGFYI
 	USEGZIP                  = false
 	VARIADATE                = 2000
-	VECTORNEIGHBORS          = 18
+	VECTORNEIGHBORS          = 16
 	VECTORNEIGHBORSMAX       = 40
 	VECTORNEIGHBORSMIN       = 4
-	VECTORSEARCHSUMMARY      = "Acquiring a model for the selected texts"
 	VECTORTABLENAME          = "semantic_vectors"
 	VECTORMAXLINES           = 1000000 // 964403 lines will get you all of Latin
 	VECTORMODELDEFAULT       = "w2v"

@@ -100,6 +100,9 @@ func RtSearch(c echo.Context) error {
 
 // InitializeSearch - set up a search; this is DRY code needed by both plain searches and vector searches
 func InitializeSearch(c echo.Context, user string) SearchStruct {
+	const (
+		VECTORSEARCHSUMMARY = "Acquiring a model for the selected texts"
+	)
 
 	srch := BuildDefaultSearch(c)
 	srch.User = user

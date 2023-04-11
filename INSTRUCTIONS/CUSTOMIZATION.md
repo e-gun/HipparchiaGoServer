@@ -1,9 +1,11 @@
+# Customizing an instillation
+
 If you edit the file named `hgs-prolix-conf.json` in the folder `.config` within your home folder, you can override a number of built-in defaults. 
 You need to get `PGLogin` right. The password is the most important part. The other values should be correct at their defaults.
 
 One-time overrides are available by setting flags when launching `HipparchiaGoServer`. Try running `HipparchiaGoServer -h` to see them.
 
-Items of most interest:
+Items of most interest in the configuration file:
 
 * `BrowserCtx` sets the default number of lines to show in the browser. The size of your monitor will determine the most convenient value for you.
 * `DefCorp` sets which corpora are active on a reset. So if you almost never search Greek, you can set `gr` to `false`, for example. On a slow machine, this would significantly speed up `in every active author` searches.
