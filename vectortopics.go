@@ -19,6 +19,8 @@ import (
 
 // bowman's package can also do nearest neighbour similarity searches: LinearScanIndex.Search(qv mat.Vector, k int) -> []Match
 
+// with some (i.e., a lot of...) work the output could be fed to JS as per the python LDA visualizer
+
 // see bottom of file for sample results
 
 const (
@@ -46,6 +48,14 @@ func (b *BagWithLocus) GetWL() {
 
 // ldatest - testing LatentDirichletAllocation
 func ldatest(c echo.Context) {
+	// not for production...
+
+	// there is no interface for this
+	// the output goes to the terminal, not to the web page
+
+	// force "s.VecLDA = true" in MakeDefaultSession(); build; run
+	// then all vector searches will pass through here (and NN searches will be unavailable in this build)
+
 	vs := sessionintobulksearch(c, Config.VectorMaxlines)
 	lda(vs.Results)
 }
