@@ -38,7 +38,7 @@ func buildblankgraph(settings string, coreword string, incl string) *charts.Grap
 	const (
 		TITLESTR  = "Nearest neighbors of »%s« in %s"
 		SAVEFILE  = "nearest_neighbors_of_%s"
-		SAVETYPE  = "png" // svg, jpeg, png; svg requires chart initialization option ('renderer'); go-echarts can't set?
+		SAVETYPE  = "png" // svg, jpeg, or png
 		SAVESTR   = "Save to file..."
 		LEFTALIGN = "20"
 		BOTTALIGN = "3%"
@@ -47,6 +47,11 @@ func buildblankgraph(settings string, coreword string, incl string) *charts.Grap
 		FONTDIFF  = 6
 		TEXTPAD   = "10"
 	)
+
+	// A note on SAVETYPE: svg requires a chart initialization option: {renderer: 'svg'}; see CustomBaseTpl below
+	// BUT, then the fonts turn into a problem since SVG has its own way of handling them
+	// see: https://vecta.io/blog/how-to-use-fonts-in-svg
+	// SO, at the end of the day, you do not want to use SVG
 
 	ft := Config.Font
 	if ft == "Noto" {
@@ -377,6 +382,7 @@ var CustomHeaderTpl = `
 {{ define "header" }}
 <head>
 	<!-- CustomHeaderTpl -->
+    <!-- Note that all of these comments get nuked and will not be sent out to the page. Alas... -->
     <meta charset="utf-8">
     <title>{{ .PageTitle }}</title>
 {{- range .JSAssets.Values }}
@@ -395,6 +401,7 @@ var CustomHeaderTpl = `
 {{ end }}
 `
 
+// CustomBaseTpl - to enable svg, add the following to "let goecharts_...": `, {renderer: "svg"}`; but the fonts will break
 var CustomBaseTpl = `
 {{- define "base" }}
 <!-- CustomBaseTpl -->

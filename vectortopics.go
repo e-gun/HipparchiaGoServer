@@ -14,6 +14,8 @@ import (
 	"strings"
 )
 
+// currently unused/unreachable ; for testing purposes only
+
 // "github.com/james-bowman/nlp" also contains some interesting possibilities: LatentDirichletAllocation, etc.
 // bagging as per the old HipparchiaGoDBHelper code: sentence by sentence; much of the code below from HipparchiaGoDBHelper
 

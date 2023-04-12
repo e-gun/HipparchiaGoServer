@@ -63,6 +63,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		// unreachable; edit MakeDefaultSession() to pass this check
 		msg("TESTING: VectorSearch rerouting to ldatest()", 0)
 		ldatest(c)
+		AllSearches.Delete(srch.ID)
 		return nil
 	}
 

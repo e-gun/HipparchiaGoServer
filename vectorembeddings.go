@@ -670,13 +670,11 @@ func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string
 	return winnermap
 }
 
-// buildyokedparsemap
+// buildyokedparsemap - set of sentences --> set of headwords; accept all headwords and yoke them: "esse" is "sum" + "edo", etc.
 func buildyokedparsemap(parsemap map[string]map[string]bool) map[string]string {
 	const (
 		SEPARATOR = `•`
 	)
-	// turn a list of sentences into a list of headwords; here we accept all headwords and yoke them
-	// "esse" is "sum" + "edo", etc.
 
 	// [a] figure out all headwords in use
 
