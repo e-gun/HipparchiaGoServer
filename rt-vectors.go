@@ -18,10 +18,6 @@ import (
 	"time"
 )
 
-// "github.com/james-bowman/nlp" also contains some interesting possibilities: LatentDirichletAllocation, etc.
-// bagging would need to go as per the old HipparchiaGoDBHelper code: sentence by sentence
-// then you can model the topics; it is not immediately clear how to graph and interpret them, though
-
 // VectorSearch - a special case for RtSearch() where you requested vectorization of the results
 func VectorSearch(c echo.Context, srch SearchStruct) error {
 	const (
@@ -59,6 +55,12 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 
 		SETTINGS = `model type: %s; text prep: %s`
 	)
+
+	if 1 > 0 {
+		msg("TESTING: VectorSearch rerouting to lsatest()", 0)
+		lsatest(c)
+		return nil
+	}
 
 	c.Response().After(func() { SelfStats("VectorSearch()") })
 	se := AllSessions.GetSess(readUUIDCookie(c))
@@ -236,6 +238,12 @@ func RtVectorBot(c echo.Context) error {
 	//[HGS] RtVectorBot() building a model for 'lt' (362 tables) [maxlines=1000000]
 	//[HGS] [VB: 4060.712s][Δ: 417.661s] The vectorbot has checked all authors and is now shutting down
 	//[HGS] Disk space used by stored vectors is currently 997MB
+
+	// if you adjust maxlines...
+	//[HGS] [AV: 504.021s][Δ: 0.046s] (100.0%) checking need to model gr (gr)
+	//[HGS] RtVectorBot() building a model for 'gr' (1823 tables) [maxlines=1250000]
+	//[HGS] [AV: 946.632s][Δ: 442.611s] (100.0%) checking need to model lt (lt)
+	//[HGS] RtVectorBot() building a model for 'lt' (362 tables) [maxlines=1250000]
 
 	// 6 cores of intel 9900k
 	// [HGS] [VB: 7602.934s][Δ: 877.251s] The vectorbot has checked all authors and is now shutting down
