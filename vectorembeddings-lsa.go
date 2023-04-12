@@ -7,11 +7,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/james-bowman/nlp"
 	"github.com/labstack/echo/v4"
 	"regexp"
 	"strings"
-
-	"github.com/james-bowman/nlp"
 )
 
 // "github.com/james-bowman/nlp" also contains some interesting possibilities: LatentDirichletAllocation, etc.
@@ -68,6 +67,11 @@ func lsa(dblines []DbWorkline) {
 	for i := 0; i < len(split); i++ {
 		if len(split[i]) > 0 {
 			ss = append(ss, split[i])
+
+			// fmt.Printf("(%d) %s\n", i, split[i])
+			//(0) ⊏line/lt0959w014/34502⊐HALIEUTICA ⊏line/lt0959w014/34503⊐* * * ⊏line/lt0959w014/34504⊐Accepit mundus legem
+			//(1)  dedit arma per omnes ⊏line/lt0959w014/34505⊐Admonuitque sui
+			//(2)  uitulus sic namque minatur, ⊏line/lt0959w014/34506⊐Qui nondum gerit in tenera iam cornua fronte, ⊏line/lt0959w014/34507⊐Sic dammae fugiunt, pugnant uirtute leones ⊏line/lt0959w014/34508⊐Et morsu canis et caudae sic scorpios ictu ⊏line/lt0959w014/34509⊐Concussisque leuis pinnis sic euolat ales
 		}
 	}
 
@@ -97,7 +101,13 @@ func lsa(dblines []DbWorkline) {
 		sl.Loc = first
 		sl.Bag = strings.ToLower(parcel)
 		sl.Bag = stripper(sl.Bag, []string{tagger, notachar})
+
 		thebags = append(thebags, sl)
+
+		// fmt.Println(sl)
+		//{line/lt0959w014/34502 halieutica    accepit mundus legem }
+		//{line/lt0959w014/34505  dedit arma per omnes admonuitque sui }
+		//{line/lt0959w014/34506  uitulus sic namque minatur qui nondum gerit in tenera iam cornua fronte sic dammae fugiunt pugnant uirtute leones et morsu canis et caudae sic scorpios ictu concussisque leuis pinnis sic euolat ales }
 	}
 
 	allwords := make(map[string]bool, len(thebags))
@@ -115,9 +125,13 @@ func lsa(dblines []DbWorkline) {
 
 	for i := 0; i < len(thebags); i++ {
 		var b strings.Builder
-		winnerstring(&b, slicedwords, winnermap)
+		winnerstring(&b, strings.Split(thebags[i].Bag, " "), winnermap)
 		thebags[i].ModifiedBag = b.String()
-		b.Reset()
+
+		// fmt.Printf("%s\t%s\n", thebags[i].Loc, thebags[i].ModifiedBag)
+		//line/lt0959w014/34502	halieuticus    accipio mundus lego¹
+		//line/lt0959w014/34505	 arma admoneo
+		//line/lt0959w014/34506	 vitulus mino nondum gero¹ tener cornu frons² damma fugio pugno virtus leo² mordeo canae cauda scorpius ictus² concutio levis¹ pinnis evolo alo
 	}
 
 	corpus := make([]string, len(thebags))
