@@ -54,6 +54,7 @@ type ServerSession struct {
 	VecLDA      bool
 }
 
+// BuildSelectionOverview will call the relevant SearchIncExl functions: see buildsearchlist.go
 func (s *ServerSession) BuildSelectionOverview() {
 	s.Inclusions.BuildAuByName()
 	s.Exclusions.BuildAuByName()
@@ -139,6 +140,9 @@ func MakeDefaultSession(id string) ServerSession {
 	}
 
 	//msg("MakeDefaultSession() in non-default state for testing; this is not a release build of HGS", 0)
+	//
+	//s.VecLDA = true
+
 	//m := make(map[string]string)
 	//m["lt0917_FROM_1431_TO_2193"] = "Lucanus, Marcus Annaeus, Bellum Civile, 3"
 	//m["lt0917_FROM_2_TO_692"] = "Lucanus, Marcus Annaeus, Bellum Civile, 1"
