@@ -4,6 +4,10 @@ go get -u ./...
 go mod tidy
 
 # CopyInstructions() wants these PDFs, but it can survive without them
+# RtEmbPDFHelp() really wants these too; awkward to 404 help files...
+# $ pip install mdpdf
+# $ npm install mdpdf
+
 if hash mdpdf &> /dev/null
   then
     mdpdf INSTRUCTIONS/INSTALLATION_MACOS_RECOMMENDED.md emb/pdf/HGS_INSTALLATION_MacOS.pdf

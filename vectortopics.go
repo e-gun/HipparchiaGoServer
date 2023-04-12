@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-// currently unused/unreachable ; for testing purposes only
+// currently unused/unreachable ; for testing purposes only; edit MakeDefaultSession() to reach this code
 
 // "github.com/james-bowman/nlp" also contains some interesting possibilities: LatentDirichletAllocation, etc.
 // bagging as per the old HipparchiaGoDBHelper code: sentence by sentence; much of the code below from HipparchiaGoDBHelper
@@ -28,8 +28,37 @@ import (
 const (
 	SENTENCESPERBAG = 1
 	NUMBEROFTOPICS  = 5
-	LDAITERATIONS   = 12
+	LDAITERATIONS   = 35
 )
+
+//see https://github.com/james-bowman/nlp/blob/26d441fa0ded/lda.go
+//DefaultLDA = nlp.LatentDirichletAllocation{
+//	Iterations:                    1000,
+//	PerplexityTolerance:           1e-2,
+//	PerplexityEvaluationFrequency: 30,
+//	BatchSize:                     100,
+//	K:                             k,
+//	BurnInPasses:                  1,
+//	TransformationPasses:          500,
+//	MeanChangeTolerance:           1e-5,
+//	ChangeEvaluationFrequency:     30,
+//	Alpha:                         0.1,
+//	Eta:                           0.01,
+//	RhoPhi: LearningSchedule{
+//		S:     10,
+//		Tau:   1000,
+//		Kappa: 0.9,
+//	},
+//	RhoTheta: LearningSchedule{
+//		S:     1,
+//		Tau:   10,
+//		Kappa: 0.9,
+//	},
+//	rhoPhiT:   1,
+//	rhoThetaT: 1,
+//	Rnd:       rand.New(rand.NewSource(uint64(time.Now().UnixNano()))),
+//	Processes: runtime.GOMAXPROCS(0),
+//}
 
 type BagWithLocus struct {
 	Loc         string
@@ -302,33 +331,59 @@ func acuteforgrave(thetext string) string {
 
 // [HGS] TESTING: VectorSearch rerouting to ldatest()
 //topic 1:	0.993753.3	Apuleius Madaurensis, Metamorphoses 9.12.11	 dii boni quales illic homunculi uibicibus liuidis totam cutem depicti dorsumque plagosum scissili centunculo magis inumbrati quam obtecti nonnulli exiguo tegili tantum modo pubem iniecti cuncti tamen sic tunicati ut essent per pannulos manifesti frontes litterati et capillum semirasi et pedes anulati tum lurore deformes et fumosis tenebris uaporosae caliginis palpebras adesi atque adeo male luminati et in modum pugilum qui puluisculo perspersi dimicant farinulenta cinere sordide candidati
-//
 //topic 2:	0.994870.3	Apuleius Madaurensis, Metamorphoses 11.3.15	 corona multiformis uariis floribus sublimem destrinxerat uerticem cuius media quidem super frontem plana rutunditas in modum speculi uel immo argumentum lunae candidum lumen emicabat dextra laeuaque sulcis insurgentium uiperarum cohibita spicis etiam cerialibus desuper porrectis conspicuante tunica multicolor bysso tenui pertexta nunc albo candore lucida nunc croceo flore lutea nunc roseo rubore flammida et quae longe longeque etiam meum confutabat optutum palla nigerrima splendescens atro nitore quae circumcirca remeans et sub dexterum latus ad umerum laeuum recurrens umbonis uicem deiecta parte laciniae multiplici contabulatione dependula ad ultimas oras nodulis fimbriarum decoriter confluctuabat
-//
 //topic 3:	0.994591.3	Apuleius Madaurensis, Metamorphoses 10.20.5	 quattuor eunuchi confestim puluillis compluribus uentose tumentibus pluma delicata terrestrem nobis cubitum praestruunt sed et stragula ueste auro ac murice tyrio depicta probe consternunt ac desuper breuibus admodum sed satis copiosis puluillis aliis nimis modicis quis maxillas et ceruices delicatae mulieres suffulcire consuerunt superstruunt
-//
 //topic 4:	0.993883.3	Apuleius Madaurensis, Metamorphoses 11.30.3	 nec deinceps postposito uel in supinam procrastinationem reiecto negotio statim sacerdoti meo relatis quae uideram inanimae protinus castimoniae iugum subeo et lege perpetua praescriptis illis decem diebus spontali sobrietate multiplicatis instructum teletae comparo largitus omnibus ex studio pietatis magis quam mensura rerum mearum collatis
-//
 //topic 5:	0.992361.3	Apuleius Madaurensis, Metamorphoses 6.12.1	 perrexit psyche uolenter non obsequium quidem illa functura sed requiem malorum praecipitio fluuialis rupis habiturante sed inde de fluuio musicae suauis nutricula leni crepitu dulcis aurae diuinitus inspirata sic uaticinatur harundo uiridis psyche tantis aerumnis exercita neque tua miserrima morte meas sanctas aquas polluas nec uero istud horae con tra formidabiles oues feras aditum quoad de solis fraglantia mutuatae calorem truci rabie solent efferri cornuque acuto et fronte saxea et non nunquam uenenatis morsibus in exitium saeuire mortalium
 //
 //[HGS] TESTING: VectorSearch rerouting to ldatest()
 //topic 1:	0.993477.3	Apuleius Madaurensis, Metamorphoses 4.8.9	 estur ac potatur incondite pulmentis aceruatim panibus aggeratim poculis agminatim ingestis
-//
 //topic 2:	0.996230.3	Apuleius Madaurensis, Metamorphoses 5.20.6	 nouaculam praeacutam adpulsu etiam palmulae lenientis exasperatam tori qua parte cubare consuesti latenter absconde lucernamque concinnem completam oleo claro lumine praemicantem subde aliquo claudentis aululae tegmine omnique isto apparatu tenacissime dissimulato postquam sulcatum trahens gressum cubile solitum conscenderit iamque porrectus et exordio somni prementis implicitus altum soporem flare coeperit toro delapsa nudoque uestigio pensilem gradum paullulatim minuens cae cae tenebrae custodia liberata lucerna praeclari tui facinoris opportunitatem de luminis consilio mutuare et ancipiti telo illo audaciter prius dextera sursum elata nisu quam ualido noxii serpentis nodum ceruicis et capitis abscide
-//
 //topic 3:	0.993673.3	Apuleius Madaurensis, Metamorphoses 9.32.9	 sed ecce siderum ordinatis ambagibus per numeros dierum ac mensuum remeans annus post mustulentas autumni delicias ad hibernas capricorni pruinas deflexerat et adsiduis pluuiis noctur nisque rorationibus sub dio et intecto conclusus stabulo continuo discruciabar frigore quippe cum meus dominus prae nimia paupertate ne sibi quidem nedum mihi posset stramen aliquod uel exiguum tegimen parare sed frondoso casulae contentus umbraculo degeret
-//
 //topic 4:	0.996601.3	Apuleius Madaurensis, Metamorphoses 11.28.3	 nam et uiriculas patrimonii peregrinationis adtriuerant impensae et erogationes urbicae pristinis illis prouincialibus antistabant plurimum
-//
 //topic 5:	0.993569.3	Apuleius Madaurensis, Metamorphoses 8.27.1	 die sequenti uariis coloribus indusiati et deformiter quisque formati facie caenoso pigmento delita et oculis obunctis graphice prodeunt mitellis et crocotis et carbasinis et bombycinis iniecti quidam tunicas albas in modum lanciolarum quoquouersum fluente purpura depictas cingulo subligati pedes luteis induti calceis
 //
 //[HGS] TESTING: VectorSearch rerouting to ldatest()
 //topic 1:	0.994495.3	Apuleius Madaurensis, Metamorphoses 11.25.13	 tiberiusbi respondent sidera redeunt tempora gaudent numina seruiunt elementante tuo nutu spirant flamina nutriunt nubila germinant semina crescunt germinante tuam maiestatem perhorrescunt aues caelo meantes ferae montibus errantes serpentes solo latentes beluae ponto natantes
-//
 //topic 2:	0.995036.3	Apuleius Madaurensis, Metamorphoses 1.2.5	 postquam ardua montium et lubrica uallium et roscida cespitum et glebosa camporum emensus emersi in equo indigena peralbo uehens iam eo quoque admodum fesso ut ipse etiam fatigationem sedentariam incessus uegetatione discuterem in pedes desilio equi sudorem fronde detergeo frontem curiose exfrico auris remulceo frenos detraho in gradum lenem sensim proueho quoad lassitudinis incommodum alui solitum ac naturale praesidium eliquaret
-//
 //topic 3:	0.992108.3	Apuleius Madaurensis, Metamorphoses 1.6.9	 at uero domi tuae iam defletus et conclamatus es liberis tuis tutores iuridici prouincialis decreto dati uxor persolutis feralibus officiis luctu et maerore diuturno deformata diffletis paene ad extremam captiuitatem oculis suis domus infortunium nouarum nuptiarum gaudiis a suis sibi parentibus hilarare compellitur
-//
 //topic 4:	0.996159.3	Apuleius Madaurensis, Metamorphoses 10.20.5	 quattuor eunuchi confestim puluillis compluribus uentose tumentibus pluma delicata terrestrem nobis cubitum praestruunt sed et stragula ueste auro ac murice tyrio depicta probe consternunt ac desuper breuibus admodum sed satis copiosis puluillis aliis nimis modicis quis maxillas et ceruices delicatae mulieres suffulcire consuerunt superstruunt
-//
 //topic 5:	0.992793.3	Apuleius Madaurensis, Metamorphoses 11.16.28	 tunc cuncti populi tam religiosi quam profani uannos onustas aromatis et huiusce modi suppliciis certatim congerunt et insuper fluctus libant intritum lacte confectum donec muneribus largis et deuotionibus faustis completa nauis absoluta strophiis ancoralibus peculiari serenoque flatu pelago redderetur
+
+// if the iterations goes way, way up, the topic sentences get very short
+// 1000 iterations
+//topic 1:        0.999957.3      Apuleius Madaurensis, Metamorphoses 2.30.27      aures pertracto deruunt
+//topic 2:        0.999925.3      Apuleius Madaurensis, Metamorphoses 1.25.10      sed non impune
+//topic 3:        0.999881.3      Apuleius Madaurensis, Metamorphoses 3.9.20       quod monstrum
+//topic 4:        0.997353.3      Apuleius Madaurensis, Metamorphoses 4.34.13      quid canitiem scinditis
+//topic 5:        0.999912.3      Apuleius Madaurensis, Metamorphoses 2.18.18      nec tamen incomitatus ibo
+
+// 250 iterations
+//topic 1:        0.997896.3      Apuleius Madaurensis, Metamorphoses 1.21.6       adnuit
+//topic 2:        0.999632.3      Apuleius Madaurensis, Metamorphoses 1.24.20      quae autem tibi causa peregrinationis huius
+//topic 3:        0.997320.3      Apuleius Madaurensis, Metamorphoses 2.7.8        ipsa linea tunica mundule amicta et russea fasceola praenitente altiuscule sub ipsas papillas succinctula illud cibarium uasculum floridis palmulis rotabat in circulum et in orbis flexibus crebra succutiens et simul membra sua leniter inlubricans lumbis sensim  uibrantibus spinam mobilem quatiens placide decenter undabat
+//topic 4:        0.999935.3      Apuleius Madaurensis, Metamorphoses 9.17.8       aretem meam condiscipulam memoras
+//topic 5:        0.999668.3      Apuleius Madaurensis, Metamorphoses 2.18.18      nec tamen incomitatus ibo
+
+// 100 iterations
+// [HGS] TESTING: VectorSearch rerouting to ldatest()
+//topic 1:        0.995875.3      Apuleius Madaurensis, Metamorphoses 1.1.7        exordior
+//topic 2:        0.994873.3      Apuleius Madaurensis, Metamorphoses 6.6.14       cedunt nubes et caelum filiae panditur et summus aether cum gaudio suscipit deam nec obuias aquilas uel accipitres rapaces pertimescit magnae veneris canora familiante tunc se protinus ad iouis regias arces dirigit et petitu superbo mercuri dei uocalis operae necessa riam usuram postulat
+//topic 3:        0.995717.3      Apuleius Madaurensis, Metamorphoses 4.21.20      sic etiam thrasyleon nobis periuit sed a gloria non peribit
+//topic 4:        0.995084.3      Apuleius Madaurensis, Metamorphoses 11.28.3      nam et uiriculas patrimonii peregrinationis adtriuerant impensae et erogationes urbicae pristinis illis prouincialibus antistabant plurimum
+//topic 5:        0.997372.3      Apuleius Madaurensis, Metamorphoses 9.17.8       aretem meam condiscipulam memoras
+
+// 50 iterations
+//topic 1:        0.992799.3      Apuleius Madaurensis, Metamorphoses 7.16.4       equinis armentis namque me congregem pastor egregius mandati dominici serus auscultator aliquando permisit
+//topic 2:        0.994830.3      Apuleius Madaurensis, Metamorphoses 11.26.1       diu denique gratiarum gerendarum sermone prolixo commoratus tandem digredior et recta patrium larem reuisurus meum post aliquam multum temporis contendo paucisque post diebus deae potentis instinctu raptim constrictis sarcinulis naue conscensa romam uersus profectionem dirigo tutusque prosperitate uentorum ferentium augusti portum celerrime peruenio ac dehinc carpento peruolaui uesperaque quam dies insequebatur iduum decembrium sacrosanctam istam ciuitatem accedo
+//topic 3:        0.996028.3      Apuleius Madaurensis, Metamorphoses 11.11.21     eius orificium non altiuscule leuatum in canalem porrectum longo riuulo prominebat ex alia uero parte multum recedens spatiosa dilatione adhaerebat ansa quam contorto nodulo supersedebat aspis squameae ceruicis striato tumore sublimis
+//topic 4:        0.999708.3      Apuleius Madaurensis, Metamorphoses 1.4.21       haec tibi merces deposita est
+//topic 5:        0.994164.3      Apuleius Madaurensis, Metamorphoses 11.30.3      nec deinceps postposito uel in supinam procrastinationem reiecto negotio statim sacerdoti meo relatis quae uideram inanimae protinus castimoniae iugum subeo et lege perpetua praescriptis illis decem diebus spontali sobrietate multiplicatis instructum teletae comparo largitus omnibus ex studio pietatis magis quam mensura rerum mearum collatis
+
+// 25 iterations
+//[HGS] TESTING: VectorSearch rerouting to ldatest()
+//topic 1:        0.995270.3      Apuleius Madaurensis, Metamorphoses 10.18.15     spretis luculentis illis suis uehiculis ac posthabitis decoris raedarum carpentis quae partim contecta partim reuelata frustra nouissimis trahebantur consequiis equis etiam thessalicis et aliis iumentis gallicanis quibus generosa suboles perhibet pretiosam dignitatem me phaleris aureis et fucatis ephippiis et purpureis tapetis et frenis argenteis et pictilibus balteis et tintinnabulis perargutis exornatum ipse residens amantissime nonnunquam comissimis adfatur sermonibus atque inter alia pleraque summe se delectari  profitebatur quod haberet in me simul et conuiuam et uectorem
+//topic 2:        0.994604.3      Apuleius Madaurensis, Metamorphoses 11.3.15      corona multiformis uariis floribus sublimem destrinxerat uerticem cuius media quidem super frontem plana rutunditas in modum speculi uel immo argumentum lunae candidum lumen emicabat dextra laeuaque sulcis insurgentium uiperarum cohibita spicis etiam cerialibus desuper porrectis conspicuante tunica multicolor bysso tenui pertexta nunc albo candore lucida nunc croceo flore lutea nunc roseo rubore flammida et quae longe longeque etiam meum confutabat optutum palla nigerrima splendescens atro nitore quae circumcirca remeans et sub dexterum latus ad umerum laeuum recurrens umbonis uicem deiecta parte laciniae multiplici contabulatione dependula ad ultimas oras nodulis fimbriarum decoriter confluctuabat
+//topic 3:        0.995729.3      Apuleius Madaurensis, Metamorphoses 10.5.14      sed dira illa femina et malitiae nouercalis exemplar unicum non acerba filii morte non parricidii conscientia non infortunio domus non luctu mariti uel aerumna funeris commota cladem familiae in uindictae compendium traxit missoque protinus cursore qui uianti marito domus expugnationem nuntiaret ac mox eodem ocius ab itinere regresso personata nimia temeritate insimulat priuigni ueneno filium suum interceptum
+//topic 4:        0.995073.3      Apuleius Madaurensis, Metamorphoses 6.24.10      tunc apollo cantauit ad citharam venus suaui musicae superingressa formonsa saltauit scaena sibi sic concinnata ut musae quidem chorum canerent tibias inflaret saturus et paniscus ad fistulam diceret
+//topic 5:        0.993980.3      Apuleius Madaurensis, Metamorphoses 11.28.3      nam et uiriculas patrimonii peregrinationis adtriuerant impensae et erogationes urbicae pristinis illis prouincialibus antistabant plurimum
