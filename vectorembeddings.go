@@ -1006,6 +1006,7 @@ func vectordbadd(fp string, embs embedding.Embeddings) {
 			INSERT INTO %s
 				(fingerprint, vectorsize, vectordata)
 			VALUES ('%s', $1, $2)`
+		GZ = gzip.BestSpeed
 	)
 
 	eb, err := json.Marshal(embs)
@@ -1018,7 +1019,7 @@ func vectordbadd(fp string, embs embedding.Embeddings) {
 
 	// https://stackoverflow.com/questions/61077668/how-to-gzip-string-and-return-byte-array-in-golang
 	var buf bytes.Buffer
-	zw, err := gzip.NewWriterLevel(&buf, gzip.DefaultCompression)
+	zw, err := gzip.NewWriterLevel(&buf, GZ)
 	chke(err)
 	_, err = zw.Write(eb)
 	chke(err)
@@ -1065,7 +1066,7 @@ func vectordbfetch(fp string) embedding.Embeddings {
 	var buf bytes.Buffer
 	buf.Write(vect)
 
-	// unzip
+	// the data in the tables is zipped and needs unzipping
 	zr, err := gzip.NewReader(&buf)
 	chke(err)
 	err = zr.Close()
@@ -1117,6 +1118,19 @@ func vectordbsize(priority int) {
 	err := dbconn.QueryRow(context.Background(), SZQ).Scan(&size)
 	chke(err)
 	msg(fmt.Sprintf(MSG4, size/1024/1024), priority)
+}
+
+func vectordbcount(priority int) {
+	const (
+		SZQ  = "SELECT COUNT(vectorsize) AS total FROM semantic_vectors"
+		MSG4 = "Number of stored vector models: %d"
+	)
+	var size int64
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
+	err := dbconn.QueryRow(context.Background(), SZQ).Scan(&size)
+	chke(err)
+	msg(fmt.Sprintf(MSG4, size), priority)
 }
 
 //

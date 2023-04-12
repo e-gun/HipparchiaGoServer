@@ -100,6 +100,8 @@ func main() {
 
 	if Config.ResetVectors {
 		vectordbreset()
+	} else {
+		vectordbcount(MSGNOTE)
 	}
 
 	SelfStats("main() post-initialization")

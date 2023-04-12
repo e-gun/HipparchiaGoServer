@@ -309,7 +309,7 @@ func RtVectorBot(c echo.Context) error {
 // activatevectorbot - build a vector model for every author
 func activatevectorbot() {
 	const (
-		MSG1       = "activatevectorbot() is launching"
+		MSG1       = "activatevectorbot(): launching"
 		MSG2       = "(%.1f%%) checking need to model %s (%s)"
 		MSG3       = "The vectorbot has checked all authors and is now shutting down"
 		URL        = "http://%s:%d/vbot/%s"
@@ -367,6 +367,7 @@ func activatevectorbot() {
 		u := fmt.Sprintf(URL, Config.HostIP, Config.HostPort, a)
 		_, err := http.Get(u)
 		chke(err)
+
 		// if you do not throttle the bot it will violate MAXECHOREQPERSECONDPERIP
 		time.Sleep(THROTTLE * time.Millisecond)
 
@@ -377,4 +378,5 @@ func activatevectorbot() {
 
 	TimeTracker("VB", MSG3, start, previous)
 	vectordbsize(MSGNOTE)
+	vectordbcount(MSGNOTE)
 }
