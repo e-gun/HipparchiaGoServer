@@ -51,6 +51,7 @@ type ServerSession struct {
 	VecNeighbCt int
 	VecSearch   bool
 	VecTextPrep string
+	VecLDA      bool
 }
 
 func (s *ServerSession) BuildSelectionOverview() {
@@ -129,6 +130,7 @@ func MakeDefaultSession(id string) ServerSession {
 	s.VecSearch = false
 	s.VecModeler = Config.VectorModel
 	s.VecTextPrep = Config.VectorTextPrep
+	s.VecLDA = false
 
 	if Config.Authenticate {
 		AllAuthorized.Register(id, false)

@@ -14,29 +14,31 @@ import (
 )
 
 // "github.com/james-bowman/nlp" also contains some interesting possibilities: LatentDirichletAllocation, etc.
-// bagging would need to go as per the old HipparchiaGoDBHelper code: sentence by sentence
-// then you can model the topics; it is not immediately clear how to graph and interpret them, though
-// would be possible to model; then grab the N sentences that most resemble the N topics
+// bagging as per the old HipparchiaGoDBHelper code: sentence by sentence
 
-// this requires retaining locus info: the sentences get heavily rewritten, after all
-// HipparchiaGoDBHelper knows how to do all of this...
+// bowman's package can also do nearest neighbour similarity searches: LinearScanIndex.Search(qv mat.Vector, k int) -> []Match
+
+const (
+	SENTENCESPERBAG = 1
+	NUMBEROFTOPICS  = 4
+	LDAITERATIONS   = 5
+)
 
 type BagWithLocus struct {
 	Loc         string
 	Bag         string
 	ModifiedBag string
+	LDAScore    float64
 }
 
-func lsatest(c echo.Context) {
+// ldatest - testing LatentDirichletAllocation
+func ldatest(c echo.Context) {
 	vs := sessionintobulksearch(c, Config.VectorMaxlines)
-	lsa(vs.Results)
+	lda(vs.Results)
 }
 
-func lsa(dblines []DbWorkline) {
-	const (
-		SENTENCESPERBAG = 1
-		NUMBEROFTOPICS  = 4
-	)
+// lda - report the N sentences that most fit the N topics you are modeling
+func lda(dblines []DbWorkline) {
 
 	var sb strings.Builder
 	preallocate := CHARSPERLINE * len(dblines) // NB: a long line has 60 chars
@@ -141,7 +143,11 @@ func lsa(dblines []DbWorkline) {
 
 	stops := StringMapKeysIntoSlice(getstopset())
 	vectoriser := nlp.NewCountVectoriser(stops...)
+
 	lda := nlp.NewLatentDirichletAllocation(NUMBEROFTOPICS)
+	lda.Processes = Config.WorkerCount
+	lda.Iterations = LDAITERATIONS
+
 	pipeline := nlp.NewPipeline(vectoriser, lda)
 
 	docsOverTopics, err := pipeline.FitTransform(corpus...)
@@ -151,34 +157,61 @@ func lsa(dblines []DbWorkline) {
 	}
 
 	// Examine Document over topic probability distribution
-	dr, dc := docsOverTopics.Dims()
-	for doc := 0; doc < dc; doc++ {
-		fmt.Printf("\nTopic distribution for document: '%s' -", corpus[doc])
-		for topic := 0; topic < dr; topic++ {
-			if topic > 0 {
-				fmt.Printf(",")
-			}
-			fmt.Printf(" Topic #%d=%f", topic, docsOverTopics.At(topic, doc))
+	type DocRanker struct {
+		d  string
+		ff [NUMBEROFTOPICS]float64
+	}
+
+	thedocs := make([]DocRanker, len(corpus))
+	rows, columns := docsOverTopics.Dims() // rows = NUMBEROFTOPICS; columns = len(thedocs)
+
+	for doc := 0; doc < columns; doc++ {
+		thedocs[doc].d = corpus[doc]
+		for topic := 0; topic < rows; topic++ {
+			f := docsOverTopics.At(topic, doc)
+			thedocs[doc].ff[topic] = f
 		}
+	}
+
+	// note that "i" is referring to the same item across slices; need this to be true...
+	winners := make([]BagWithLocus, NUMBEROFTOPICS)
+	for topic := 0; topic < rows; topic++ {
+		max := float64(0)
+		winner := 0
+		for i := 0; i < len(thedocs); i++ {
+			ff := thedocs[i].ff
+			if ff[topic] > max {
+				winner = i
+				max = ff[topic]
+			}
+			// fmt.Printf("(Topic #%d)(max=%f) Sentence #%d:\t%f - %s\n", topic, max, i, ff[topic], thedocs[i].d)
+		}
+		winners[topic] = thebags[winner]
+		winners[topic].LDAScore = max
+	}
+
+	for i := 0; i < NUMBEROFTOPICS; i++ {
+		w := winners[i]
+		fmt.Printf("topic %d:\t%f.3\t%s\t%s\n\n", i+1, w.LDAScore, w.Loc, w.Bag)
 	}
 
 	// Examine Topic over word probability distribution
-	topicsOverWords := lda.Components()
-	tr, tc := topicsOverWords.Dims()
-
-	vocab := make([]string, len(vectoriser.Vocabulary))
-	for k, v := range vectoriser.Vocabulary {
-		vocab[v] = k
-	}
-	for topic := 0; topic < tr; topic++ {
-		fmt.Printf("\nWord distribution for Topic #%d -", topic)
-		for word := 0; word < tc; word++ {
-			if word > 0 {
-				fmt.Printf(",")
-			}
-			fmt.Printf(" '%s'=%f", vocab[word], topicsOverWords.At(topic, word))
-		}
-	}
+	//topicsOverWords := lda.Components()
+	//tr, tc := topicsOverWords.Dims()
+	//
+	//vocab := make([]string, len(vectoriser.Vocabulary))
+	//for k, v := range vectoriser.Vocabulary {
+	//	vocab[v] = k
+	//}
+	//for topic := 0; topic < tr; topic++ {
+	//	fmt.Printf("\nWord distribution for Topic #%d -", topic)
+	//	for word := 0; word < tc; word++ {
+	//		if word > 0 {
+	//			fmt.Printf(",")
+	//		}
+	//		fmt.Printf(" '%s'=%f", vocab[word], topicsOverWords.At(topic, word))
+	//	}
+	//}
 }
 
 //

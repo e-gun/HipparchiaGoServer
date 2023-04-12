@@ -56,14 +56,15 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		SETTINGS = `model type: %s; text prep: %s`
 	)
 
-	if 1 > 0 {
-		msg("TESTING: VectorSearch rerouting to lsatest()", 0)
-		lsatest(c)
-		return nil
-	}
-
 	c.Response().After(func() { SelfStats("VectorSearch()") })
 	se := AllSessions.GetSess(readUUIDCookie(c))
+
+	if se.VecLDA {
+		// unreachable; edit MakeDefaultSession() to pass this check
+		msg("TESTING: VectorSearch rerouting to ldatest()", 0)
+		ldatest(c)
+		return nil
+	}
 
 	term := srch.LemmaOne
 	if term == "" {
