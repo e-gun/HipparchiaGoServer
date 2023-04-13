@@ -91,14 +91,7 @@ func ldatest(c echo.Context, srch SearchStruct) error {
 
 	const (
 		ITERATIONS = 3
-		TABLE      = `
-	<table id="ldavectortable"><tbody>
-    <tr class="vectorrow">
-        <td class="vectorrank" colspan = "4">%s</td>
-    </tr>
-	%s
-	</tbody></table>`
-		LABEL = `Latent dirichlet allocation and the most representative sentence of any given topic`
+		LABEL      = `Latent dirichlet allocation and the most representative sentence of any given topic`
 	)
 
 	vs := sessionintobulksearch(c, Config.VectorMaxlines)
@@ -114,19 +107,19 @@ func ldatest(c echo.Context, srch SearchStruct) error {
 	vectoriser := nlp.NewCountVectoriser(stops...)
 
 	// consider building ITERATIONS models and making a table for each one
-	var tablerows string
+	var tables []string
 	for i := 0; i < ITERATIONS; i++ {
 		docsOverTopics, topicsOverWords := ldamodel(corpus, vectoriser)
-		tablerows += ldatopsentences(i+1, ITERATIONS, bags, corpus, docsOverTopics)
-		ldatopwords(topicsOverWords, vectoriser)
+		tables = append(tables, ldatopsentences(i+1, ITERATIONS, bags, corpus, docsOverTopics))
+		tables = append(tables, ldatopwords(topicsOverWords, vectoriser))
 	}
 
-	htmltable := fmt.Sprintf(TABLE, LABEL, tablerows)
+	htmltables := strings.Join(tables, "")
 
 	soj := SearchOutputJSON{
 		Title:         "",
 		Searchsummary: "",
-		Found:         htmltable,
+		Found:         htmltables,
 		Image:         "",
 		JS:            VECTORJS,
 	}
@@ -259,8 +252,14 @@ func ldamodel(corpus []string, vectoriser *nlp.CountVectoriser) (mat.Matrix, mat
 
 func ldatopsentences(iter int, tot int, thebags []BagWithLocus, corpus []string, docsOverTopics mat.Matrix) string {
 	const (
-		NTH      = 2
-		THETABLE = `
+		NTH = 2
+
+		FULLTABLE = `
+	<table class="ldasentences"><tbody>
+	%s
+	</tbody></table>`
+
+		TABLETOP = `
     <tr class="vectorrow">
         <td class="vectorrank" colspan = "4">Model %d of %d</td>
     </tr>
@@ -319,7 +318,7 @@ func ldatopsentences(iter int, tot int, thebags []BagWithLocus, corpus []string,
 	}
 
 	// [b] prepare text output
-	var columnone []string
+	var tablecolumn []string
 
 	tp := `%s, %s %s`
 
@@ -330,26 +329,52 @@ func ldatopsentences(iter int, tot int, thebags []BagWithLocus, corpus []string,
 		au := stripbold.Replace(AllAuthors[wl.AuID()].IDXname)
 		cit := fmt.Sprintf(tp, au, AllWorks[wl.WkUID].Title, wl.Citation())
 		r := fmt.Sprintf(TABLEELEM, i+1, w.LDAScore, cit, w.Bag)
-		columnone = append(columnone, r)
+		tablecolumn = append(tablecolumn, r)
 	}
 
 	var tablerows []string
-	for i := range columnone {
+	for i := range tablecolumn {
 		rn := "vectorrow"
 		if i%NTH == 0 {
 			rn = "nthrow"
 		}
-		tablerows = append(tablerows, fmt.Sprintf(TABLEROW, rn, columnone[i]))
+		tablerows = append(tablerows, fmt.Sprintf(TABLEROW, rn, tablecolumn[i]))
 	}
 
-	tableout := fmt.Sprintf(THETABLE, iter, tot, strings.Join(tablerows, "\n"))
+	tableout := fmt.Sprintf(TABLETOP, iter, tot, strings.Join(tablerows, "\n"))
+	tableout = fmt.Sprintf(FULLTABLE, tableout)
 
 	return tableout
 }
 
-func ldatopwords(topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser) {
+func ldatopwords(topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser) string {
 	const (
-		TOPN = 6
+		TOPN = 8
+		NTH  = 2
+
+		FULLTABLE = `
+	<table class="ldawords"><tbody>
+	%s
+	</tbody></table>
+	<hr>`
+
+		TABLETOP = `
+    <tr class="vectorrow">
+        <td class="vectorrank" colspan = "4"></td>
+    </tr>
+	<tr class="vectorrow">
+		<td class="vectorrank">Topic</td>
+		<td class="vectorrank">Top %d words associated with each topic</td>
+	</tr>
+    %s`
+
+		TABLEROW = `
+	<tr class="%s">%s
+	</tr>`
+
+		TABLEELEM = `
+		<td class="vectorrank">%d</td>
+		<td class="vectorsent">%s</td>`
 	)
 
 	// Examine Topic over word probability distribution
@@ -381,14 +406,31 @@ func ldatopwords(topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser) {
 		tops[topic] = tss[0:TOPN]
 	}
 
+	var tablecolumn []string
 	for topic := 0; topic < tr; topic++ {
 		ts := tops[topic]
 		ww := make([]string, TOPN)
 		for i := 0; i < TOPN; i++ {
-			ww[i] = fmt.Sprintf("%s (%.4f)", ts[i].W, ts[i].V)
+			// ww[i] = fmt.Sprintf("%s (%.4f)", ts[i].W, ts[i].V)
+			ww[i] = fmt.Sprintf("%s", ts[i].W)
 		}
-		fmt.Printf("(%d) %s\n", topic, strings.Join(ww, ", "))
+		data := strings.Join(ww, ", ")
+		r := fmt.Sprintf(TABLEELEM, topic+1, data)
+		tablecolumn = append(tablecolumn, r)
 	}
+
+	var tablerows []string
+	for i := range tablecolumn {
+		rn := "vectorrow"
+		if i%NTH == 0 {
+			rn = "nthrow"
+		}
+		tablerows = append(tablerows, fmt.Sprintf(TABLEROW, rn, tablecolumn[i]))
+	}
+
+	tableout := fmt.Sprintf(TABLETOP, TOPN, strings.Join(tablerows, "\n"))
+	tableout = fmt.Sprintf(FULLTABLE, tableout)
+	return tableout
 }
 
 //

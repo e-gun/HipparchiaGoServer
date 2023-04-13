@@ -1464,12 +1464,6 @@ body {
 	margin: auto;
 }
 
-#ldavectortable {
-	padding: 10px;
-	margin: auto;
-	font-size: 85%;
-}
-
 #versioning {
 	position: fixed;
 	bottom: 10px;
@@ -1719,6 +1713,20 @@ table.vectortable {
 	width: 50%;
 	padding: 5px;
 	display: block;
+}
+
+table.ldasentences {
+	padding: 10px;
+	margin: auto;
+	font-size: 85%;
+	width: 100%;
+}
+
+table.ldawords {
+	padding: 10px;
+	margin: auto;
+	font-size: 85%;
+	width: 50%;
 }
 
 table.morphtable {
