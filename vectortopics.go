@@ -88,13 +88,35 @@ func ldatest(c echo.Context, srch SearchStruct) error {
 	// force "s.VecLDA = true" in MakeDefaultSession(); build; run
 	// then all vector searches will pass through here (and NN searches will be unavailable in this build)
 
+	const (
+		ITERATIONS = 3
+		TABLE      = `
+	<table id="ldavectortable"><tbody>
+    <tr class="vectorrow">
+        <td class="vectorrank" colspan = "4">%s</td>
+    </tr>
+	%s
+	</tbody></table>`
+		LABEL = `Latent dirichlet allocation and the most representative sentence of any given topic`
+	)
+
 	vs := sessionintobulksearch(c, Config.VectorMaxlines)
 
 	bags := ldapreptext(vs.Results)
 
-	docsOverTopics, corpus := ldamodel(bags)
+	corpus := make([]string, len(bags))
+	for i := 0; i < len(bags); i++ {
+		corpus[i] = bags[i].ModifiedBag
+	}
 
-	htmltable := ldaoutput(bags, corpus, docsOverTopics)
+	// consider building ITERATIONS models and making a table for each one
+	var tablerows string
+	for i := 0; i < ITERATIONS; i++ {
+		docsOverTopics := ldamodel(corpus)
+		tablerows += ldaoutput(i+1, ITERATIONS, bags, corpus, docsOverTopics)
+	}
+
+	htmltable := fmt.Sprintf(TABLE, LABEL, tablerows)
 
 	soj := SearchOutputJSON{
 		Title:         "",
@@ -211,12 +233,7 @@ func ldapreptext(dblines []DbWorkline) []BagWithLocus {
 	return thebags
 }
 
-func ldamodel(thebags []BagWithLocus) (mat.Matrix, []string) {
-	corpus := make([]string, len(thebags))
-	for i := 0; i < len(thebags); i++ {
-		corpus[i] = thebags[i].ModifiedBag
-	}
-
+func ldamodel(corpus []string) mat.Matrix {
 	stops := StringMapKeysIntoSlice(getstopset())
 	vectoriser := nlp.NewCountVectoriser(stops...)
 
@@ -232,16 +249,15 @@ func ldamodel(thebags []BagWithLocus) (mat.Matrix, []string) {
 		panic(err)
 	}
 
-	return docsOverTopics, corpus
+	return docsOverTopics
 }
 
-func ldaoutput(thebags []BagWithLocus, corpus []string, docsOverTopics mat.Matrix) string {
+func ldaoutput(iter int, tot int, thebags []BagWithLocus, corpus []string, docsOverTopics mat.Matrix) string {
 	const (
-		NTH      = 3
+		NTH      = 2
 		THETABLE = `
-	<table class="vectortable"><tbody>
     <tr class="vectorrow">
-        <td class="vectorrank" colspan = "4">Latent dirichlet allocation and the most representative sentence of any given topic</td>
+        <td class="vectorrank" colspan = "4">Model %d of %d</td>
     </tr>
 	<tr class="vectorrow">
 		<td class="vectorrank">Topic</td>
@@ -249,12 +265,7 @@ func ldaoutput(thebags []BagWithLocus, corpus []string, docsOverTopics mat.Matri
 		<td class="vectorrank">Locus</td>
 		<td class="vectorrank">Sentence</td>
 	</tr>
-    %s
-    <tr class="vectorrow">
-        <td class="vectorrank small" colspan = "4">(model info: TBA)</td>
-    </tr>
-	</tbody></table>
-	<hr>`
+    %s`
 
 		TABLEROW = `
 	<tr class="%s">%s
@@ -344,7 +355,7 @@ func ldaoutput(thebags []BagWithLocus, corpus []string, docsOverTopics mat.Matri
 	//	}
 	//}
 
-	tableout := fmt.Sprintf(THETABLE, strings.Join(tablerows, "\n"))
+	tableout := fmt.Sprintf(THETABLE, iter, tot, strings.Join(tablerows, "\n"))
 
 	return tableout
 }

@@ -1464,6 +1464,12 @@ body {
 	margin: auto;
 }
 
+#ldavectortable {
+	padding: 10px;
+	margin: auto;
+	font-size: 85%;
+}
+
 #versioning {
 	position: fixed;
 	bottom: 10px;
