@@ -12,11 +12,12 @@ import (
 	"gonum.org/v1/gonum/mat"
 	"net/http"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 )
 
-// currently unused/unreachable ; for testing purposes only; edit MakeDefaultSession() to reach this code
+// currently unused/unreachable ; for testing purposes only; edit MakeDefaultSession() in rt-session.go to reach this code
 
 // "github.com/james-bowman/nlp" also contains some interesting possibilities: LatentDirichletAllocation, etc.
 // bagging as per the old HipparchiaGoDBHelper code: sentence by sentence; much of the code below from HipparchiaGoDBHelper
@@ -109,11 +110,15 @@ func ldatest(c echo.Context, srch SearchStruct) error {
 		corpus[i] = bags[i].ModifiedBag
 	}
 
+	stops := StringMapKeysIntoSlice(getstopset())
+	vectoriser := nlp.NewCountVectoriser(stops...)
+
 	// consider building ITERATIONS models and making a table for each one
 	var tablerows string
 	for i := 0; i < ITERATIONS; i++ {
-		docsOverTopics := ldamodel(corpus)
-		tablerows += ldaoutput(i+1, ITERATIONS, bags, corpus, docsOverTopics)
+		docsOverTopics, topicsOverWords := ldamodel(corpus, vectoriser)
+		tablerows += ldatopsentences(i+1, ITERATIONS, bags, corpus, docsOverTopics)
+		ldatopwords(topicsOverWords, vectoriser)
 	}
 
 	htmltable := fmt.Sprintf(TABLE, LABEL, tablerows)
@@ -233,9 +238,7 @@ func ldapreptext(dblines []DbWorkline) []BagWithLocus {
 	return thebags
 }
 
-func ldamodel(corpus []string) mat.Matrix {
-	stops := StringMapKeysIntoSlice(getstopset())
-	vectoriser := nlp.NewCountVectoriser(stops...)
+func ldamodel(corpus []string, vectoriser *nlp.CountVectoriser) (mat.Matrix, mat.Matrix) {
 
 	lda := nlp.NewLatentDirichletAllocation(NUMBEROFTOPICS)
 	lda.Processes = Config.WorkerCount
@@ -249,10 +252,12 @@ func ldamodel(corpus []string) mat.Matrix {
 		panic(err)
 	}
 
-	return docsOverTopics
+	topicsOverWords := lda.Components()
+
+	return docsOverTopics, topicsOverWords
 }
 
-func ldaoutput(iter int, tot int, thebags []BagWithLocus, corpus []string, docsOverTopics mat.Matrix) string {
+func ldatopsentences(iter int, tot int, thebags []BagWithLocus, corpus []string, docsOverTopics mat.Matrix) string {
 	const (
 		NTH      = 2
 		THETABLE = `
@@ -337,27 +342,53 @@ func ldaoutput(iter int, tot int, thebags []BagWithLocus, corpus []string, docsO
 		tablerows = append(tablerows, fmt.Sprintf(TABLEROW, rn, columnone[i]))
 	}
 
-	// Examine Topic over word probability distribution
-	//topicsOverWords := lda.Components()
-	//tr, tc := topicsOverWords.Dims()
-	//
-	//vocab := make([]string, len(vectoriser.Vocabulary))
-	//for k, v := range vectoriser.Vocabulary {
-	//	vocab[v] = k
-	//}
-	//for topic := 0; topic < tr; topic++ {
-	//	fmt.Printf("\nWord distribution for Topic #%d -", topic)
-	//	for word := 0; word < tc; word++ {
-	//		if word > 0 {
-	//			fmt.Printf(",")
-	//		}
-	//		fmt.Printf(" '%s'=%f", vocab[word], topicsOverWords.At(topic, word))
-	//	}
-	//}
-
 	tableout := fmt.Sprintf(THETABLE, iter, tot, strings.Join(tablerows, "\n"))
 
 	return tableout
+}
+
+func ldatopwords(topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser) {
+	const (
+		TOPN = 6
+	)
+
+	// Examine Topic over word probability distribution
+
+	type topicsorter struct {
+		W string
+		V float64
+	}
+
+	tr, tc := topicsOverWords.Dims()
+
+	vocab := make([]string, len(vectoriser.Vocabulary))
+	for k, v := range vectoriser.Vocabulary {
+		vocab[v] = k
+	}
+
+	tops := make(map[int][]topicsorter)
+	for topic := 0; topic < tr; topic++ {
+		tss := make([]topicsorter, tc)
+		for word := 0; word < tc; word++ {
+			tss[word] = topicsorter{
+				W: vocab[word],
+				V: topicsOverWords.At(topic, word),
+			}
+		}
+		sort.Slice(tss, func(i, j int) bool {
+			return tss[i].V > tss[j].V
+		})
+		tops[topic] = tss[0:TOPN]
+	}
+
+	for topic := 0; topic < tr; topic++ {
+		ts := tops[topic]
+		ww := make([]string, TOPN)
+		for i := 0; i < TOPN; i++ {
+			ww[i] = fmt.Sprintf("%s (%.4f)", ts[i].W, ts[i].V)
+		}
+		fmt.Printf("(%d) %s\n", topic, strings.Join(ww, ", "))
+	}
 }
 
 //
@@ -482,3 +513,33 @@ func acuteforgrave(thetext string) string {
 // LDA for Cic, Ep. ad Att. will routinely grab Greek sentences. I.e., Greek is one of the consistent "topics".
 // LDA for Plato is very interested in the spuria; it seems to note that the as-if plato is especially on the nose...
 // LDA for Sophocles is extremely likely to turn up Philoctetes 739: ἆ ἆ ἆ ἆ; "lament" being a "topic"... [also v. interested in φεῦ φεῦ δύϲταν]
+
+// python
+// from sklearn.decomposition import NMF, LatentDirichletAllocation, TruncatedSVD
+
+//     ldamodel = LatentDirichletAllocation(n_components=settings['components'],
+//                                         max_iter=settings['iterations'],
+//                                         learning_method='online',
+//                                         learning_offset=50.,
+//                                         random_state=0)
+//
+//    ldamodel.fit(ldavectorized)
+//
+//    visualisation = ldavis.prepare(ldamodel, ldavectorized, ldavectorizer)
+//    # pyLDAvis.save_html(visualisation, 'ldavis.html')
+//
+//    ldavishtmlandjs = pyLDAvis.prepared_data_to_html(visualisation)
+//    storevectorindatabase(so, ldavishtmlandjs)
+
+// https://pyldavis.readthedocs.io/en/latest/_modules/pyLDAvis/_prepare.html
+// def prepare(topic_term_dists, doc_topic_dists, doc_lengths, vocab, term_frequency, \
+//            R=30, lambda_step=0.01, mds=js_PCoA, n_jobs=-1, \
+//            plot_opts={'xlab': 'PC1', 'ylab': 'PC2'}, sort_topics=True):
+//   """Transforms the topic model distributions and related corpus data into
+//   the data structures needed for the visualization.
+
+// https://towardsdatascience.com/visualizing-topic-models-with-scatterpies-and-t-sne-f21f228f7b02
+
+// https://www.machinelearningplus.com/nlp/topic-modeling-visualization-how-to-present-results-lda-models/
+// 9. Word Clouds of Top N Keywords in Each Topic
+// 13. t-SNE Clustering Chart
