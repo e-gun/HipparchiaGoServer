@@ -62,9 +62,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	if se.VecLDA {
 		// unreachable; edit MakeDefaultSession() to pass this check
 		msg("TESTING: VectorSearch rerouting to ldatest()", 0)
-		ldatest(c)
-		AllSearches.Delete(srch.ID)
-		return nil
+		return ldatest(c, srch)
 	}
 
 	term := srch.LemmaOne

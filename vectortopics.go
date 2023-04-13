@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"github.com/james-bowman/nlp"
 	"github.com/labstack/echo/v4"
+	"gonum.org/v1/gonum/mat"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -78,21 +80,37 @@ func (b *BagWithLocus) GetWL() {
 }
 
 // ldatest - testing LatentDirichletAllocation
-func ldatest(c echo.Context) {
+func ldatest(c echo.Context, srch SearchStruct) error {
 	// not for production...
 
 	// there is no interface for this
-	// the output goes to the terminal, not to the web page
 
 	// force "s.VecLDA = true" in MakeDefaultSession(); build; run
 	// then all vector searches will pass through here (and NN searches will be unavailable in this build)
 
 	vs := sessionintobulksearch(c, Config.VectorMaxlines)
-	lda(vs.Results)
+
+	bags := ldapreptext(vs.Results)
+
+	docsOverTopics, corpus := ldamodel(bags)
+
+	htmltable := ldaoutput(bags, corpus, docsOverTopics)
+
+	soj := SearchOutputJSON{
+		Title:         "",
+		Searchsummary: "",
+		Found:         htmltable,
+		Image:         "",
+		JS:            VECTORJS,
+	}
+
+	AllSearches.Delete(srch.ID)
+
+	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
 
 // lda - report the N sentences that most fit the N topics you are modeling
-func lda(dblines []DbWorkline) {
+func ldapreptext(dblines []DbWorkline) []BagWithLocus {
 
 	var sb strings.Builder
 	preallocate := CHARSPERLINE * len(dblines) // NB: a long line has 60 chars
@@ -190,6 +208,10 @@ func lda(dblines []DbWorkline) {
 		//line/lt0959w014/34506	 vitulus mino nondum gero¹ tener cornu frons² damma fugio pugno virtus leo² mordeo canae cauda scorpius ictus² concutio levis¹ pinnis evolo alo
 	}
 
+	return thebags
+}
+
+func ldamodel(thebags []BagWithLocus) (mat.Matrix, []string) {
 	corpus := make([]string, len(thebags))
 	for i := 0; i < len(thebags); i++ {
 		corpus[i] = thebags[i].ModifiedBag
@@ -206,9 +228,44 @@ func lda(dblines []DbWorkline) {
 
 	docsOverTopics, err := pipeline.FitTransform(corpus...)
 	if err != nil {
-		fmt.Printf("Failed to model topics for documents because %v", err)
-		return
+		fmt.Println("Failed to model topics for documents")
+		panic(err)
 	}
+
+	return docsOverTopics, corpus
+}
+
+func ldaoutput(thebags []BagWithLocus, corpus []string, docsOverTopics mat.Matrix) string {
+	const (
+		NTH      = 3
+		THETABLE = `
+	<table class="vectortable"><tbody>
+    <tr class="vectorrow">
+        <td class="vectorrank" colspan = "4">Latent dirichlet allocation and the most representative sentence of any given topic</td>
+    </tr>
+	<tr class="vectorrow">
+		<td class="vectorrank">Topic</td>
+		<td class="vectorrank">Distance</td>
+		<td class="vectorrank">Locus</td>
+		<td class="vectorrank">Sentence</td>
+	</tr>
+    %s
+    <tr class="vectorrow">
+        <td class="vectorrank small" colspan = "4">(model info: TBA)</td>
+    </tr>
+	</tbody></table>
+	<hr>`
+
+		TABLEROW = `
+	<tr class="%s">%s
+	</tr>`
+
+		TABLEELEM = `
+		<td class="vectorrank">%d</td>
+		<td class="vectorscore">%.4f</td>
+		<td class="vectorloc">%s</td>
+		<td class="vectorsent">%s</td>`
+	)
 
 	// Examine Document over topic probability distribution
 	type DocRanker struct {
@@ -245,12 +302,28 @@ func lda(dblines []DbWorkline) {
 		winners[topic].GetWL()
 	}
 
-	for i := 0; i < NUMBEROFTOPICS; i++ {
-		w := winners[i]
+	// [b] prepare text output
+	var columnone []string
+
+	tp := `%s, %s %s`
+
+	stripbold := strings.NewReplacer("&1", "", "&", "")
+
+	for i, w := range winners {
 		wl := w.Workline
-		tp := `%s, %s %s`
-		cit := fmt.Sprintf(tp, AllAuthors[wl.AuID()].Cleaname, AllWorks[wl.WkUID].Title, wl.Citation())
-		fmt.Printf("topic %d:\t%f.3\t%s\t%s\n\n", i+1, w.LDAScore, cit, w.Bag)
+		au := stripbold.Replace(AllAuthors[wl.AuID()].IDXname)
+		cit := fmt.Sprintf(tp, au, AllWorks[wl.WkUID].Title, wl.Citation())
+		r := fmt.Sprintf(TABLEELEM, i+1, w.LDAScore, cit, w.Bag)
+		columnone = append(columnone, r)
+	}
+
+	var tablerows []string
+	for i := range columnone {
+		rn := "vectorrow"
+		if i%NTH == 0 {
+			rn = "nthrow"
+		}
+		tablerows = append(tablerows, fmt.Sprintf(TABLEROW, rn, columnone[i]))
 	}
 
 	// Examine Topic over word probability distribution
@@ -270,6 +343,10 @@ func lda(dblines []DbWorkline) {
 	//		fmt.Printf(" '%s'=%f", vocab[word], topicsOverWords.At(topic, word))
 	//	}
 	//}
+
+	tableout := fmt.Sprintf(THETABLE, strings.Join(tablerows, "\n"))
+
+	return tableout
 }
 
 //
@@ -387,3 +464,10 @@ func acuteforgrave(thetext string) string {
 //topic 3:        0.995729.3      Apuleius Madaurensis, Metamorphoses 10.5.14      sed dira illa femina et malitiae nouercalis exemplar unicum non acerba filii morte non parricidii conscientia non infortunio domus non luctu mariti uel aerumna funeris commota cladem familiae in uindictae compendium traxit missoque protinus cursore qui uianti marito domus expugnationem nuntiaret ac mox eodem ocius ab itinere regresso personata nimia temeritate insimulat priuigni ueneno filium suum interceptum
 //topic 4:        0.995073.3      Apuleius Madaurensis, Metamorphoses 6.24.10      tunc apollo cantauit ad citharam venus suaui musicae superingressa formonsa saltauit scaena sibi sic concinnata ut musae quidem chorum canerent tibias inflaret saturus et paniscus ad fistulam diceret
 //topic 5:        0.993980.3      Apuleius Madaurensis, Metamorphoses 11.28.3      nam et uiriculas patrimonii peregrinationis adtriuerant impensae et erogationes urbicae pristinis illis prouincialibus antistabant plurimum
+
+// notes from other experiments
+
+// LDA for Ap. Met. really does gravitate to books 1 and 11. Somehow noting the open/close/programmatic quality of these books
+// LDA for Cic, Ep. ad Att. will routinely grab Greek sentences. I.e., Greek is one of the consistent "topics".
+// LDA for Plato is very interested in the spuria; it seems to note that the as-if plato is especially on the nose...
+// LDA for Sophocles is extremely likely to turn up Philoctetes 739: ἆ ἆ ἆ ἆ; "lament" being a "topic"... [also v. interested in φεῦ φεῦ δύϲταν]

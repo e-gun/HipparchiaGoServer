@@ -48,10 +48,13 @@ func buildblankgraph(settings string, coreword string, incl string) *charts.Grap
 		TEXTPAD   = "10"
 	)
 
-	// A note on SAVETYPE: svg requires a chart initialization option: {renderer: 'svg'}; see CustomBaseTpl below
+	// A note on SAVETYPE: svg requires a chart initialization option: {renderer: 'svg'}
+	// see https://echarts.apache.org/en/api.html#echarts and see CustomBaseTpl below
 	// BUT, then the fonts turn into a problem since SVG has its own way of handling them
 	// see: https://vecta.io/blog/how-to-use-fonts-in-svg
 	// SO, at the end of the day, you do not want to use SVG
+
+	// FYI: https://echarts.apache.org/en/theme-builder.html, but there is not much room for "theming" ATM
 
 	ft := Config.Font
 	if ft == "Noto" {
