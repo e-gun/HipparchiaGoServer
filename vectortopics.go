@@ -19,7 +19,7 @@ import (
 
 // currently unused/unreachable ; for testing purposes only; edit MakeDefaultSession() in rt-session.go to reach this code
 
-// "github.com/james-bowman/nlp" also contains some interesting possibilities: LatentDirichletAllocation, etc.
+// "github.com/james-bowman/nlp" contains some interesting possibilities: LatentDirichletAllocation, etc.
 // bagging as per the old HipparchiaGoDBHelper code: sentence by sentence; much of the code below from HipparchiaGoDBHelper
 
 // bowman's package can also do nearest neighbour similarity searches: LinearScanIndex.Search(qv mat.Vector, k int) -> []Match
@@ -30,7 +30,7 @@ import (
 
 const (
 	SENTENCESPERBAG = 1
-	NUMBEROFTOPICS  = 5
+	NUMBEROFTOPICS  = 6
 	LDAITERATIONS   = 35
 )
 
@@ -90,8 +90,7 @@ func ldatest(c echo.Context, srch SearchStruct) error {
 	// then all vector searches will pass through here (and NN searches will be unavailable in this build)
 
 	const (
-		ITERATIONS = 3
-		LABEL      = `Latent dirichlet allocation and the most representative sentence of any given topic`
+		ITERATIONS = 2
 	)
 
 	vs := sessionintobulksearch(c, Config.VectorMaxlines)
@@ -110,8 +109,8 @@ func ldatest(c echo.Context, srch SearchStruct) error {
 	var tables []string
 	for i := 0; i < ITERATIONS; i++ {
 		docsOverTopics, topicsOverWords := ldamodel(corpus, vectoriser)
-		tables = append(tables, ldatopsentences(i+1, ITERATIONS, bags, corpus, docsOverTopics))
-		tables = append(tables, ldatopwords(topicsOverWords, vectoriser))
+		tables = append(tables, ldatopicsummary(i+1, ITERATIONS, topicsOverWords, vectoriser, docsOverTopics))
+		tables = append(tables, ldatopsentences(bags, corpus, docsOverTopics))
 	}
 
 	htmltables := strings.Join(tables, "")
@@ -193,7 +192,7 @@ func ldapreptext(dblines []DbWorkline) []BagWithLocus {
 		}
 		var sl BagWithLocus
 		sl.Loc = first
-		sl.Bag = strings.ToLower(parcel)
+		sl.Bag = strings.TrimSpace(strings.ToLower(parcel))
 		sl.Bag = stripper(sl.Bag, []string{tagger, notachar})
 
 		thebags = append(thebags, sl)
@@ -215,7 +214,7 @@ func ldapreptext(dblines []DbWorkline) []BagWithLocus {
 	slicedwords := StringMapKeysIntoSlice(allwords)
 	morphmapdbm := arraytogetrequiredmorphobjects(slicedwords) // map[string]DbMorphology
 	morphmapstrslc := buildmorphmapstrslc(slicedwords, morphmapdbm)
-	winnermap := buildwinnertakesallparsemap(morphmapstrslc)
+	winnermap := buildwinnertakesallparsemap(morphmapstrslc) // should also support montecarlo, etc some day
 
 	for i := 0; i < len(thebags); i++ {
 		var b strings.Builder
@@ -250,18 +249,19 @@ func ldamodel(corpus []string, vectoriser *nlp.CountVectoriser) (mat.Matrix, mat
 	return docsOverTopics, topicsOverWords
 }
 
-func ldatopsentences(iter int, tot int, thebags []BagWithLocus, corpus []string, docsOverTopics mat.Matrix) string {
+func ldatopsentences(thebags []BagWithLocus, corpus []string, docsOverTopics mat.Matrix) string {
 	const (
 		NTH = 2
 
 		FULLTABLE = `
 	<table class="ldasentences"><tbody>
 	%s
-	</tbody></table>`
+	</tbody></table>
+	<hr>`
 
 		TABLETOP = `
     <tr class="vectorrow">
-        <td class="vectorrank" colspan = "4">Model %d of %d</td>
+        <td class="vectorrank" colspan = "4"></td>
     </tr>
 	<tr class="vectorrow">
 		<td class="vectorrank">Topic</td>
@@ -341,13 +341,13 @@ func ldatopsentences(iter int, tot int, thebags []BagWithLocus, corpus []string,
 		tablerows = append(tablerows, fmt.Sprintf(TABLEROW, rn, tablecolumn[i]))
 	}
 
-	tableout := fmt.Sprintf(TABLETOP, iter, tot, strings.Join(tablerows, "\n"))
+	tableout := fmt.Sprintf(TABLETOP, strings.Join(tablerows, "\n"))
 	tableout = fmt.Sprintf(FULLTABLE, tableout)
 
 	return tableout
 }
 
-func ldatopwords(topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser) string {
+func ldatopicsummary(iter int, tot int, topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser, docsOverTopics mat.Matrix) string {
 	const (
 		TOPN = 8
 		NTH  = 2
@@ -356,15 +356,17 @@ func ldatopwords(topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser) st
 	<table class="ldawords"><tbody>
 	%s
 	</tbody></table>
-	<hr>`
+	`
 
 		TABLETOP = `
     <tr class="vectorrow">
-        <td class="vectorrank" colspan = "4"></td>
+        <td class="vectorrank" colspan = "4">Topic model %d of %d</td>
     </tr>
 	<tr class="vectorrow">
 		<td class="vectorrank">Topic</td>
 		<td class="vectorrank">Top %d words associated with each topic</td>
+		<td class="vectorrank"># of sentences with topic N as their dominant topic</td>
+		<td class="vectorrank">scaled total accumulated weight of each topic</td>
 	</tr>
     %s`
 
@@ -374,15 +376,56 @@ func ldatopwords(topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser) st
 
 		TABLEELEM = `
 		<td class="vectorrank">%d</td>
-		<td class="vectorsent">%s</td>`
+		<td class="vectorsent">%s</td>
+		<td class="vectorsent">%d (%.2f%%)</td>
+		<td class="vectorsent">%.2f%%</td>`
+	)
+
+	tops := ldasortedtopics(topicsOverWords, vectoriser)
+	docspertopic := ldadocpertopic(docsOverTopics)
+	docsbyweight := ldadocbyweight(docsOverTopics)
+
+	tr, _ := topicsOverWords.Dims()
+	_, dc := docsOverTopics.Dims()
+
+	var tablecolumn []string
+	for topic := 0; topic < tr; topic++ {
+		ts := tops[topic]
+		ww := make([]string, TOPN)
+		for i := 0; i < TOPN; i++ {
+			// ww[i] = fmt.Sprintf("%s (%.4f)", ts[i].W, ts[i].V)
+			ww[i] = fmt.Sprintf("%s", ts[i].W)
+		}
+		data := strings.Join(ww, ", ")
+		r := fmt.Sprintf(TABLEELEM, topic+1, data, docspertopic[topic], float64(docspertopic[topic])/float64(dc)*100, docsbyweight[topic]*100)
+		tablecolumn = append(tablecolumn, r)
+	}
+
+	var tablerows []string
+	for i := range tablecolumn {
+		rn := "vectorrow"
+		if i%NTH == 0 {
+			rn = "nthrow"
+		}
+		tablerows = append(tablerows, fmt.Sprintf(TABLEROW, rn, tablecolumn[i]))
+	}
+
+	tableout := fmt.Sprintf(TABLETOP, iter, tot, TOPN, strings.Join(tablerows, "\n"))
+	tableout = fmt.Sprintf(FULLTABLE, tableout)
+	return tableout
+}
+
+type topicsorter struct {
+	W string
+	V float64
+}
+
+func ldasortedtopics(topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser) map[int][]topicsorter {
+	const (
+		TOPN = 8
 	)
 
 	// Examine Topic over word probability distribution
-
-	type topicsorter struct {
-		W string
-		V float64
-	}
 
 	tr, tc := topicsOverWords.Dims()
 
@@ -405,32 +448,54 @@ func ldatopwords(topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser) st
 		})
 		tops[topic] = tss[0:TOPN]
 	}
+	return tops
+}
 
-	var tablecolumn []string
-	for topic := 0; topic < tr; topic++ {
-		ts := tops[topic]
-		ww := make([]string, TOPN)
-		for i := 0; i < TOPN; i++ {
-			// ww[i] = fmt.Sprintf("%s (%.4f)", ts[i].W, ts[i].V)
-			ww[i] = fmt.Sprintf("%s", ts[i].W)
+func ldadocpertopic(docsOverTopics mat.Matrix) []int {
+	counter := make([]int, NUMBEROFTOPICS)
+	dr, dc := docsOverTopics.Dims()
+	for doc := 0; doc < dc; doc++ {
+		max := float64(0)
+		winner := 0
+		for topic := 0; topic < dr; topic++ {
+			// any given corpus[doc] will look like
+			// Topic #0=0.006009, Topic #1=0.006915, Topic #2=0.000688, Topic #3=0.449514, Topic #4=0.536875
+			if docsOverTopics.At(topic, doc) > max {
+				winner = topic
+				max = docsOverTopics.At(topic, doc)
+			}
 		}
-		data := strings.Join(ww, ", ")
-		r := fmt.Sprintf(TABLEELEM, topic+1, data)
-		tablecolumn = append(tablecolumn, r)
+		counter[winner] += 1
+	}
+	//msg("ldadocpertopic(): N sentences have topic X as their dominant topic", 1)
+	//for i := 0; i < NUMBEROFTOPICS; i++ {
+	//	fmt.Printf("topic %d: %d (%.2f%%)\n", i+1, counter[i], float64(counter[i])/float64(dc)*100)
+	//}
+	return counter
+}
+
+func ldadocbyweight(docsOverTopics mat.Matrix) []float64 {
+	counter := make([]float64, NUMBEROFTOPICS)
+	dr, dc := docsOverTopics.Dims()
+	for doc := 0; doc < dc; doc++ {
+		for topic := 0; topic < dr; topic++ {
+			// any given corpus[doc] will look like
+			// Topic #0=0.006009, Topic #1=0.006915, Topic #2=0.000688, Topic #3=0.449514, Topic #4=0.536875
+			counter[topic] += docsOverTopics.At(topic, doc)
+		}
 	}
 
-	var tablerows []string
-	for i := range tablecolumn {
-		rn := "vectorrow"
-		if i%NTH == 0 {
-			rn = "nthrow"
-		}
-		tablerows = append(tablerows, fmt.Sprintf(TABLEROW, rn, tablecolumn[i]))
-	}
+	mx := counter
+	sort.Float64s(mx)
+	high := mx[len(mx)-1]
 
-	tableout := fmt.Sprintf(TABLETOP, TOPN, strings.Join(tablerows, "\n"))
-	tableout = fmt.Sprintf(FULLTABLE, tableout)
-	return tableout
+	scaled := make([]float64, NUMBEROFTOPICS)
+	// msg("ldadocbyweight(): scaled total accumulated weight of each topic", 1)
+	for i := 0; i < NUMBEROFTOPICS; i++ {
+		scaled[i] = counter[i] / high
+		// fmt.Printf("topic %d: %.2f%%\n", i+1, scaled[i])
+	}
+	return scaled
 }
 
 //
@@ -464,7 +529,7 @@ func makesubstitutions(thetext string) string {
 func splitonpunctuaton(thetext string) []string {
 	// replacement for recursivesplitter(): perhaps very slightly faster, but definitely much more direct and legible
 	// swap all punctuation for one item; then split on it...
-	swap := strings.NewReplacer("?", ".", "!", ".", "·", ".", ";", ".")
+	swap := strings.NewReplacer("?", ".", "!", ".", "·", ".", ";", ".", ":", ".")
 	thetext = swap.Replace(thetext)
 	split := strings.Split(thetext, ".")
 
@@ -510,6 +575,8 @@ func acuteforgrave(thetext string) string {
 //topic 3:	0.992108.3	Apuleius Madaurensis, Metamorphoses 1.6.9	 at uero domi tuae iam defletus et conclamatus es liberis tuis tutores iuridici prouincialis decreto dati uxor persolutis feralibus officiis luctu et maerore diuturno deformata diffletis paene ad extremam captiuitatem oculis suis domus infortunium nouarum nuptiarum gaudiis a suis sibi parentibus hilarare compellitur
 //topic 4:	0.996159.3	Apuleius Madaurensis, Metamorphoses 10.20.5	 quattuor eunuchi confestim puluillis compluribus uentose tumentibus pluma delicata terrestrem nobis cubitum praestruunt sed et stragula ueste auro ac murice tyrio depicta probe consternunt ac desuper breuibus admodum sed satis copiosis puluillis aliis nimis modicis quis maxillas et ceruices delicatae mulieres suffulcire consuerunt superstruunt
 //topic 5:	0.992793.3	Apuleius Madaurensis, Metamorphoses 11.16.28	 tunc cuncti populi tam religiosi quam profani uannos onustas aromatis et huiusce modi suppliciis certatim congerunt et insuper fluctus libant intritum lacte confectum donec muneribus largis et deuotionibus faustis completa nauis absoluta strophiis ancoralibus peculiari serenoque flatu pelago redderetur
+
+// 8 topic sends the modeler to book 11 hard; and will multi-hit 11.30!!
 
 // if the iterations goes way, way up, the topic sentences get very short
 // 1000 iterations
@@ -584,4 +651,5 @@ func acuteforgrave(thetext string) string {
 
 // https://www.machinelearningplus.com/nlp/topic-modeling-visualization-how-to-present-results-lda-models/
 // 9. Word Clouds of Top N Keywords in Each Topic
-// 13. t-SNE Clustering Chart
+// 12. What are the most discussed topics in the documents? (Number of Documents by Dominant Topic / Number of Documents by Topic Weightage)
+// 13. t-SNE Clustering Chart (would need https://github.com/danaugrs/go-tsne)

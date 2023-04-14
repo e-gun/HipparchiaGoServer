@@ -142,6 +142,7 @@ func MakeDefaultSession(id string) ServerSession {
 	//msg("MakeDefaultSession() in non-default state for testing; this is not a release build of HGS", 0)
 	//
 	//s.VecLDA = true
+	//s.VecSearch = true
 
 	//m := make(map[string]string)
 	//m["lt0917_FROM_1431_TO_2193"] = "Lucanus, Marcus Annaeus, Bellum Civile, 3"
