@@ -21,6 +21,7 @@ var efs embed.FS
 //
 
 const (
+	EEC  = "emb/echarts/"
 	EJQ  = "emb/jq/"
 	EJQI = "emb/jq/images/"
 	EJS  = "emb/js/"
@@ -67,6 +68,11 @@ func RtEbmTouchIcon(c echo.Context) error {
 // RtEmbPDFHelp - send one of the embedded PDF files
 func RtEmbPDFHelp(c echo.Context) error {
 	return pathembedder(c, EPD)
+}
+
+// RtEmbEcharts - send one of the embedded graphing JS files
+func RtEmbEcharts(c echo.Context) error {
+	return pathembedder(c, EEC)
 }
 
 //

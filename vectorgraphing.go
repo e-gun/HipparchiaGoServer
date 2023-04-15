@@ -22,7 +22,6 @@ import (
 	"io"
 	"math"
 	"math/rand"
-	"os"
 	"regexp"
 	"strings"
 )
@@ -326,7 +325,7 @@ func fmthsl(h int, s int, l int) string {
 }
 
 //
-// LDA graphing
+// LDA SCATTER GRAPHS
 //
 
 func ldascatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string {
@@ -652,28 +651,20 @@ func lda3dscatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string
 		scatter,
 	)
 
+	// TODO - custom3dscatterhtmlandjs() will panic...
+	htmlandjs := custom3dscatterhtmlandjs(scatter)
+
 	// TODO: temporary fix - output to a file...
-	f, err := os.Create("ldascatter.html")
-	if err != nil {
-		panic(err)
-	}
-	err = page.Render(io.MultiWriter(f))
-	chke(err)
-
-	// htmlandjs := custom3dscatterhtmlandjs(scatter)
-
-	// TODO - customscatterhtmlandjs() will panic...
-	// [d] render the chart and get the html+js for it
-	//var buf bytes.Buffer
-	//err := p.Render(&buf)
-
-	//
-	//[Hipparchia Golang Server v.1.2.6] UNRECOVERABLE ERROR
-	//template: chart:11:41: executing "base" at <.JSONNotEscapedAction>: can't evaluate field JSONNotEscapedAction in type *charts.Scatter3D
+	//f, err := os.Create("ldascatter.html")
+	//if err != nil {
+	//	panic(err)
+	//}
+	//err = page.Render(io.MultiWriter(f))
+	//chke(err)
+	// htmlandjs := ""
 
 	// see: https://pkg.go.dev/github.com/go-echarts/go-echarts/v2/charts#pkg-types
 
-	htmlandjs := ""
 	return htmlandjs
 }
 
@@ -705,7 +696,46 @@ func customscatterhtmlandjs(s *charts.Scatter) string {
 	// [d] render the chart and get the html+js for it
 	var buf bytes.Buffer
 	err := p.Render(&buf)
-	chke(err)
+	if err != nil {
+		msg("customscatterhtmlandjs() failed to render the page template", 1)
+	}
+
+	htmlandjs := string(buf.Bytes())
+
+	return htmlandjs
+}
+
+func custom3dscatterhtmlandjs(s *charts.Scatter3D) string {
+	// WARNING: this will not produce a chart right now
+
+	s.Validate()
+
+	// [a] we are building a page with only one chart and doing it by hand
+	p := components.NewPage()
+	p.Renderer = NewCustomPageRender(p, p.Validate)
+
+	// [b] add assets to the page
+	assets := s.GetAssets()
+	for _, v := range assets.JSAssets.Values {
+		p.JSAssets.Add(v)
+	}
+
+	for _, v := range assets.CSSAssets.Values {
+		p.CSSAssets.Add(v)
+	}
+
+	// [c] add the chart to the page
+	p.Charts = append(p.Charts, s)
+	p.Validate()
+
+	// [d] render the chart and get the html+js for it
+	var buf bytes.Buffer
+	err := p.Render(&buf)
+	if err != nil {
+		msg("custom3dscatterhtmlandjs() failed to render the page template", 1)
+		//[Hipparchia Golang Server v.1.2.6] UNRECOVERABLE ERROR
+		//template: chart:11:41: executing "base" at <.JSONNotEscapedAction>: can't evaluate field JSONNotEscapedAction in type *charts.Scatter3D
+	}
 
 	htmlandjs := string(buf.Bytes())
 
@@ -846,6 +876,8 @@ var CustomHeaderTpl = `
 </head>
 {{ end }}
 `
+
+// note that BaseTpl has since changed at https://github.com/go-echarts/go-echarts/blob/master/charts/base.go
 
 // CustomBaseTpl - to enable svg, add the following to "let goecharts_...": `, {renderer: "svg"}`; but the fonts will break
 var CustomBaseTpl = `

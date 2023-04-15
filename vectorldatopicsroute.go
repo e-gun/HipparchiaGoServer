@@ -580,12 +580,12 @@ func ldaplot(ntopics int, docsOverTopics mat.Matrix, bags []BagWithLocus) string
 	wv := mat.NewDense(dc, dr, dd)
 	Y := mat.NewDense(dc, 1, doclabels)
 
-	// 2d
+	// 2d - does work
 	t := tsne.NewTSNE(DIM, PERPLEX, LEARNRT, MAXITER, VERBOSE)
 	t.EmbedData(wv, nil)
 	htmlandjs := ldascatter(ntopics, t.Y, Y, bags)
 
-	// 3d
+	// 3d - does not work
 	//nd := tsne.NewTSNE(3, PERPLEX, LEARNRT, MAXITER, VERBOSE)
 	//nd.EmbedData(wv, nil)
 	//htmlandjs := lda3dscatter(ntopics, nd.Y, Y, bags)

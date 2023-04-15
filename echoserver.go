@@ -171,6 +171,7 @@ func StartEchoServer() {
 	// [p] serve via the embedded FS ("rt-embedding.go")
 	//
 
+	e.GET("/emb/echarts/:file", RtEmbEcharts)
 	e.GET("/emb/jq/:file", RtEmbJQuery)
 	e.GET("/emb/jq/images/:file", RtEmbJQueryImg)
 	e.GET("/emb/js/:file", RtEmbJS)
