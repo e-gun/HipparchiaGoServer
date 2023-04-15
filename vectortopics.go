@@ -8,6 +8,9 @@ package main
 import (
 	"fmt"
 	"github.com/danaugrs/go-tsne/tsne"
+	"github.com/go-echarts/go-echarts/v2/charts"
+	"github.com/go-echarts/go-echarts/v2/components"
+	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/james-bowman/nlp"
 	"github.com/labstack/echo/v4"
 	"gonum.org/v1/gonum/mat"
@@ -15,7 +18,9 @@ import (
 	"gonum.org/v1/plot/plotter"
 	"gonum.org/v1/plot/plotutil"
 	"gonum.org/v1/plot/vg"
+	"io"
 	"net/http"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -107,12 +112,18 @@ func ldatest(c echo.Context, srch SearchStruct) error {
 	stops := StringMapKeysIntoSlice(getstopset())
 	vectoriser := nlp.NewCountVectoriser(stops...)
 
-	// consider building TESTITERATIONS models and making a table for each one
+	srch.ExtraMsg = fmt.Sprintf("wordking on Latent Dirichlet Allocation topic models")
+	AllSearches.InsertSS(srch)
+
+	// consider building TESTITERATIONS models and making a table for each
+	var dot mat.Matrix
 	var tables []string
+
 	for i := 0; i < TESTITERATIONS; i++ {
 		docsOverTopics, topicsOverWords := ldamodel(NUMBEROFTOPICS, corpus, vectoriser)
 		tables = append(tables, ldatopicsummary(i+1, TESTITERATIONS, topicsOverWords, vectoriser, docsOverTopics))
 		tables = append(tables, ldatopsentences(bags, corpus, docsOverTopics))
+		dot = docsOverTopics
 	}
 
 	htmltables := strings.Join(tables, "")
@@ -125,10 +136,10 @@ func ldatest(c echo.Context, srch SearchStruct) error {
 		JS:            VECTORJS,
 	}
 
+	srch.ExtraMsg = fmt.Sprintf("using t-Distributed Stochastic Neighbor Embedding to build graph")
+	AllSearches.InsertSS(srch)
+	ldaplot(dot)
 	AllSearches.Delete(srch.ID)
-
-	// does not do anything interesting
-	ldaplot(corpus, vectoriser)
 
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
@@ -155,7 +166,7 @@ func ldapreptext(dblines []DbWorkline) []BagWithLocus {
 
 	// this would be a good place to deabbreviate, etc...
 	thetext = makesubstitutions(thetext)
-	thetext = acuteforgrave(thetext)
+	thetext = SwapAcuteForGrave(thetext)
 	split := splitonpunctuaton(thetext)
 
 	// empty sentences via "..."? not much of an issue: Cicero goes from 68790 to 68697
@@ -529,27 +540,11 @@ func makesubstitutions(thetext string) string {
 	return swap.Replace(thetext)
 }
 
+// splitonpunctuaton - swap all punctuation for one item; then split on it...
 func splitonpunctuaton(thetext string) []string {
-	// replacement for recursivesplitter(): perhaps very slightly faster, but definitely much more direct and legible
-	// swap all punctuation for one item; then split on it...
 	swap := strings.NewReplacer("?", ".", "!", ".", "·", ".", ";", ".", ":", ".")
 	thetext = swap.Replace(thetext)
-	split := strings.Split(thetext, ".")
-
-	// slower way of doing the same...
-
-	//re := regexp.MustCompile("[?!;·]")
-	//thetext = re.ReplaceAllString(thetext, ".")
-	//split := strings.Split(thetext, ".")
-
-	return split
-}
-
-func acuteforgrave(thetext string) string {
-	swap := strings.NewReplacer("ὰ", "ά", "ὲ", "έ", "ὶ", "ί", "ὸ", "ό", "ὺ", "ύ", "ὴ", "ή", "ὼ", "ώ",
-		"ἂ", "ἄ", "ἒ", "ἔ", "ἲ", "ἴ", "ὂ", "ὄ", "ὒ", "ὔ", "ἢ", "ἤ", "ὢ", "ὤ", "ᾃ", "ᾅ", "ᾓ", "ᾕ", "ᾣ", "ᾥ",
-		"ᾂ", "ᾄ", "ᾒ", "ᾔ", "ᾢ", "ᾤ")
-	return swap.Replace(thetext)
+	return strings.Split(thetext, ".")
 }
 
 //
@@ -558,11 +553,17 @@ func acuteforgrave(thetext string) string {
 
 // see https://pkg.go.dev/gonum.org/v1/gonum/mat@v0.12.0#pkg-index
 
-func ldaplot(corpus []string, vectoriser *nlp.CountVectoriser) {
+func ldaplot(docsOverTopics mat.Matrix) {
 	// m := mat.NewDense()
 	// func NewDense(r int, c int, data []float64) *Dense
-	msg("ldaplot()", 1)
-	docsOverTopics, _ := ldamodel(NUMBEROFTOPICS, corpus, vectoriser)
+
+	const (
+		DIM     = 2
+		PERPLEX = 150 // default 300
+		LEARNRT = 100 // default 100
+		MAXITER = 150 // default 300
+		VERBOSE = false
+	)
 
 	dr, dc := docsOverTopics.Dims()
 	doclabels := make([]float64, dc)
@@ -581,7 +582,7 @@ func ldaplot(corpus []string, vectoriser *nlp.CountVectoriser) {
 		doclabels[doc] = float64(winner)
 	}
 
-	t := tsne.NewTSNE(2, 300, 100, 300, true)
+	t := tsne.NewTSNE(DIM, PERPLEX, LEARNRT, MAXITER, VERBOSE)
 
 	var dd []float64
 	for doc := 0; doc < dc; doc++ {
@@ -608,7 +609,7 @@ func ldaplot(corpus []string, vectoriser *nlp.CountVectoriser) {
 	t.EmbedData(wv, nil)
 
 	plotY2D(t.Y, Y, fmt.Sprintf("lda-out-%d.png", 1))
-
+	ldascatter(t.Y, Y)
 	// but really want a go-charts scatter....
 
 }
@@ -616,6 +617,53 @@ func ldaplot(corpus []string, vectoriser *nlp.CountVectoriser) {
 //
 // LDA graphing
 //
+
+func ldascatter(Y, labels mat.Matrix) {
+	const (
+		DOTSIZE  = 10
+		DOTSTYLE = "circle"
+	)
+	scatter := charts.NewScatter()
+	scatter.SetGlobalOptions(
+		charts.WithTitleOpts(opts.Title{Title: "basic scatter example"}),
+		charts.WithInitializationOpts(opts.Initialization{Width: CHRTHEIGHT, Height: CHRTHEIGHT}), // square
+	)
+
+	dr, _ := Y.Dims()
+
+	generateseries := func(topic int) []opts.ScatterData {
+		// Value        interface{} `json:"value,omitempty"`
+		items := make([]opts.ScatterData, 0)
+		for i := 0; i < dr; i++ {
+			label := int(labels.At(i, 0))
+			if label == topic {
+				x := Y.At(i, 0)
+				y := Y.At(i, 1)
+				items = append(items, opts.ScatterData{
+					Value:      []float64{x, y},
+					Symbol:     DOTSTYLE,
+					SymbolSize: DOTSIZE,
+				})
+			}
+		}
+		return items
+	}
+
+	for i := 0; i < NUMBEROFTOPICS; i++ {
+		scatter.AddSeries(fmt.Sprintf("%d", i), generateseries(i))
+	}
+
+	page := components.NewPage()
+	page.AddCharts(
+		scatter,
+	)
+	f, err := os.Create("ldascatter.html")
+	if err != nil {
+		panic(err)
+	}
+	err = page.Render(io.MultiWriter(f))
+	chke(err)
+}
 
 // plotY2D plots the 2D embedding Y and saves an image of the plot with the specified filename.
 func plotY2D(Y, labels mat.Matrix, filename string) {
@@ -633,6 +681,11 @@ func plotY2D(Y, labels mat.Matrix, filename string) {
 	for i := 0; i < n; i++ {
 		label := int(labels.At(i, 0))
 		classPlotters[label] = append(classPlotters[label], plotter.XY{Y.At(i, 0), Y.At(i, 1)})
+		// fmt.Printf("x: %f\ty: %f\n", Y.At(i, 0), Y.At(i, 1))
+		//x: -0.000249	y: 0.000022
+		//x: -0.000103	y: -0.000169
+		//x: 0.000038	y: 0.000126
+		// ...
 	}
 
 	// Create a plot and update title and axes
