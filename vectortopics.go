@@ -128,7 +128,7 @@ func ldatest(c echo.Context, srch SearchStruct) error {
 	AllSearches.Delete(srch.ID)
 
 	// does not do anything interesting
-	// ldaplot(corpus, vectoriser)
+	ldaplot(corpus, vectoriser)
 
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
@@ -589,15 +589,27 @@ func ldaplot(corpus []string, vectoriser *nlp.CountVectoriser) {
 			dd = append(dd, docsOverTopics.At(topic, doc))
 		}
 	}
-	wv := mat.NewDense(dr, dc, dd)
-	Y := mat.NewDense(dc, 1, doclabels)
 
-	fmt.Println(Y)
-
-	t.EmbedData(wv, nil)
+	// note that we flop r & c in the uncommented code; otherwise you get an 8x2 matrix later...
+	// wv := mat.NewDense(dr, dc, dd)
 	//fmt.Println(Y)
 	// Y is the label for each row in the matrix
+
+	// at the moment you get the following with Ovidius, Publius Naso, Halieutica [sp.]
+	// &{{39 1 [6 6 2 6 0 6 6 6 4 7 1 0 7 6 4 3 1 5 2 1 1 4 4 5 2 5 7 5 3 1 4 2 6 5 2 1 0 7 6] 1} 39 1}
+	//Computing P-values for point 0 of 8...
+	//8
+	//&{{8 2 [-2.808419429316656e-05 9.116052264392355e-06 -0.00010388007260382351 -1.5467174909099705e-05 5.304935449968505e-05 -5.228522386515839e-05 3.919385587076133e-06 -4.8151150810876286e-05 -0.00010957199636924793 -3.192900565781712e-05 6.719290262741853e-05 1.537943454450102e-05 1.1299109041087078e-05 1.4831064365075226e-05 0.00010607551151097121 0.00010850600406898292] 2} 8 2}
+	// but what you want is a 39x2 matrix in that second slot
+
+	wv := mat.NewDense(dc, dr, dd)
+	Y := mat.NewDense(dc, 1, doclabels)
+
+	t.EmbedData(wv, nil)
+
 	plotY2D(t.Y, Y, fmt.Sprintf("lda-out-%d.png", 1))
+
+	// but really want a go-charts scatter....
 
 }
 
@@ -618,7 +630,6 @@ func plotY2D(Y, labels mat.Matrix, filename string) {
 
 	// Populate the class plotters with their respective data
 	n, _ := Y.Dims()
-	fmt.Println(n)
 	for i := 0; i < n; i++ {
 		label := int(labels.At(i, 0))
 		classPlotters[label] = append(classPlotters[label], plotter.XY{Y.At(i, 0), Y.At(i, 1)})
