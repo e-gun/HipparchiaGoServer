@@ -119,17 +119,18 @@ func ldatest(c echo.Context, srch SearchStruct) error {
 
 	htmltables := strings.Join(tables, "")
 
+	srch.ExtraMsg = fmt.Sprintf("using t-Distributed Stochastic Neighbor Embedding to build graph")
+	AllSearches.InsertSS(srch)
+	img := ldaplot(dot, bags)
+
 	soj := SearchOutputJSON{
 		Title:         "",
 		Searchsummary: "",
 		Found:         htmltables,
-		Image:         "",
+		Image:         img,
 		JS:            VECTORJS,
 	}
 
-	srch.ExtraMsg = fmt.Sprintf("using t-Distributed Stochastic Neighbor Embedding to build graph")
-	AllSearches.InsertSS(srch)
-	ldaplot(dot, bags)
 	AllSearches.Delete(srch.ID)
 
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
@@ -509,7 +510,7 @@ func ldadocbyweight(docsOverTopics mat.Matrix) []float64 {
 
 // see https://pkg.go.dev/gonum.org/v1/gonum/mat@v0.12.0#pkg-index
 
-func ldaplot(docsOverTopics mat.Matrix, bags []BagWithLocus) {
+func ldaplot(docsOverTopics mat.Matrix, bags []BagWithLocus) string {
 	// m := mat.NewDense()
 	// func NewDense(r int, c int, data []float64) *Dense
 
@@ -564,9 +565,8 @@ func ldaplot(docsOverTopics mat.Matrix, bags []BagWithLocus) {
 
 	t.EmbedData(wv, nil)
 
-	plotY2D(t.Y, Y, fmt.Sprintf("lda-out-%d.png", 1))
-	ldascatter(t.Y, Y, bags)
-
+	htmlandjs := ldascatter(t.Y, Y, bags)
+	return htmlandjs
 }
 
 //

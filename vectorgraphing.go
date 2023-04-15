@@ -21,7 +21,6 @@ import (
 	"html/template"
 	"io"
 	"math"
-	"os"
 	"regexp"
 	"strings"
 )
@@ -37,7 +36,7 @@ const (
 )
 
 //
-// GRAPHING
+// NEAREST NEIGHBORS FORCE GRAPHS
 //
 
 // buildblankgraph - return a pre-formatted charts.Graph
@@ -328,13 +327,14 @@ func fmthsl(h int, s int, l int) string {
 // LDA graphing
 //
 
-func ldascatter(Y, labels mat.Matrix, bags []BagWithLocus) {
+func ldascatter(Y, labels mat.Matrix, bags []BagWithLocus) string {
 	const (
 		DOTSIZE  = 10
 		DOTSTYLE = "circle"
 		TTF      = ""
 		NAMETMPL = "%s: %s"
 		SAMPSIZE = 5
+		TITLE    = "t-distributed Stochastic Neighbor Embedding"
 	)
 
 	// https://echarts.apache.org/en/option.html#tooltip
@@ -367,7 +367,7 @@ func ldascatter(Y, labels mat.Matrix, bags []BagWithLocus) {
 
 	scatter := charts.NewScatter()
 	scatter.SetGlobalOptions(
-		charts.WithTitleOpts(opts.Title{Title: "basic scatter example"}),
+		charts.WithTitleOpts(opts.Title{Title: TITLE}),
 		charts.WithInitializationOpts(opts.Initialization{Width: CHRTHEIGHT, Height: CHRTHEIGHT}), // square
 		charts.WithTooltipOpts(tt),
 	)
@@ -406,19 +406,57 @@ func ldascatter(Y, labels mat.Matrix, bags []BagWithLocus) {
 	}
 
 	for i := 0; i < NUMBEROFTOPICS; i++ {
-		scatter.AddSeries(fmt.Sprintf("%d", i), generateseries(i))
+		scatter.AddSeries(fmt.Sprintf("Topic %d", i+1), generateseries(i))
 	}
 
 	page := components.NewPage()
 	page.AddCharts(
 		scatter,
 	)
-	f, err := os.Create("ldascatter.html")
-	if err != nil {
-		panic(err)
+	//f, err := os.Create("ldascatter.html")
+	//if err != nil {
+	//	panic(err)
+	//}
+	//err = page.Render(io.MultiWriter(f))
+	//chke(err)
+
+	htmlandjs := customscatterhtmlandjs(scatter)
+	return htmlandjs
+}
+
+func customscatterhtmlandjs(s *charts.Scatter) string {
+	// go-echarts is "too clever" and opaque about how to not do things its way
+	// we override their page.Render() to yield html+js (see the ModX and CustomX code below)
+	// this gets injected to the "vectorgraphing" div on frontpage.html
+
+	s.Validate()
+
+	// [a] we are building a page with only one chart and doing it by hand
+	p := components.NewPage()
+	p.Renderer = NewCustomPageRender(p, p.Validate)
+
+	// [b] add assets to the page
+	assets := s.GetAssets()
+	for _, v := range assets.JSAssets.Values {
+		p.JSAssets.Add(v)
 	}
-	err = page.Render(io.MultiWriter(f))
+
+	for _, v := range assets.CSSAssets.Values {
+		p.CSSAssets.Add(v)
+	}
+
+	// [c] add the chart to the page
+	p.Charts = append(p.Charts, s)
+	p.Validate()
+
+	// [d] render the chart and get the html+js for it
+	var buf bytes.Buffer
+	err := p.Render(&buf)
 	chke(err)
+
+	htmlandjs := string(buf.Bytes())
+
+	return htmlandjs
 }
 
 // plotY2D plots the 2D embedding Y and saves an image of the plot with the specified filename.
