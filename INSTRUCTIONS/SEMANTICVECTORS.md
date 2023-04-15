@@ -284,7 +284,7 @@ If you expand the search options to `Complicate the search...` you will expose t
 
 ![inst02](../gitimg/lda_start.png)
 
-There is no need to enter any check. Just `Execute the search...`.
+There is no need to enter any text. Just `Execute the search...`.
 
 You can set how many topics to track via the `Configuration options` panel. The default is `8`.
 

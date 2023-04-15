@@ -558,8 +558,6 @@ func ldaplot(ntopics int, docsOverTopics mat.Matrix, bags []BagWithLocus) string
 		doclabels[doc] = float64(winner)
 	}
 
-	t := tsne.NewTSNE(DIM, PERPLEX, LEARNRT, MAXITER, VERBOSE)
-
 	var dd []float64
 	for doc := 0; doc < dc; doc++ {
 		for topic := 0; topic < dr; topic++ {
@@ -582,9 +580,16 @@ func ldaplot(ntopics int, docsOverTopics mat.Matrix, bags []BagWithLocus) string
 	wv := mat.NewDense(dc, dr, dd)
 	Y := mat.NewDense(dc, 1, doclabels)
 
+	// 2d
+	t := tsne.NewTSNE(DIM, PERPLEX, LEARNRT, MAXITER, VERBOSE)
 	t.EmbedData(wv, nil)
-
 	htmlandjs := ldascatter(ntopics, t.Y, Y, bags)
+
+	// 3d
+	//nd := tsne.NewTSNE(3, PERPLEX, LEARNRT, MAXITER, VERBOSE)
+	//nd.EmbedData(wv, nil)
+	//htmlandjs := lda3dscatter(ntopics, nd.Y, Y, bags)
+
 	return htmlandjs
 }
 

@@ -74,9 +74,9 @@ func NeighborsSearch(c echo.Context, srch SearchStruct) error {
 	set := fmt.Sprintf(SETTINGS, se.VecModeler, se.VecTextPrep)
 
 	// [a] prepare the image output
-	blank := buildblankgraph(set, term, srch.InclusionOverview(se.Inclusions))
-	graph := formatgraph(c, blank, term, nn)
-	img := customgraphhtmlandjs(graph)
+	blank := buildblanknngraph(set, term, srch.InclusionOverview(se.Inclusions))
+	graph := formatnngraph(c, blank, term, nn)
+	img := customnngraphhtmlandjs(graph)
 
 	neighbors := nn[term]
 

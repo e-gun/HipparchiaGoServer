@@ -22,6 +22,7 @@ import (
 	"io"
 	"math"
 	"math/rand"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -40,8 +41,8 @@ const (
 // NEAREST NEIGHBORS FORCE GRAPHS
 //
 
-// buildblankgraph - return a pre-formatted charts.Graph
-func buildblankgraph(settings string, coreword string, incl string) *charts.Graph {
+// buildblanknngraph - return a pre-formatted charts.Graph
+func buildblanknngraph(settings string, coreword string, incl string) *charts.Graph {
 	const (
 		TITLESTR  = "Nearest neighbors of »%s« in %s"
 		SAVEFILE  = "nearest_neighbors_of_%s"
@@ -130,8 +131,8 @@ func buildblankgraph(settings string, coreword string, incl string) *charts.Grap
 	return graph
 }
 
-// formatgraph - fill out a blank graph
-func formatgraph(c echo.Context, graph *charts.Graph, coreword string, nn map[string]search.Neighbors) *charts.Graph {
+// formatnngraph - fill out a blank graph
+func formatnngraph(c echo.Context, graph *charts.Graph, coreword string, nn map[string]search.Neighbors) *charts.Graph {
 	const (
 		SYMSIZE       = 25
 		PERIPHSYMSZ   = 15
@@ -279,8 +280,8 @@ func formatgraph(c echo.Context, graph *charts.Graph, coreword string, nn map[st
 	return graph
 }
 
-// customgraphhtmlandjs - generate the html and js for a nearest neighbors search
-func customgraphhtmlandjs(g *charts.Graph) string {
+// customnngraphhtmlandjs - generate the html and js for a nearest neighbors search
+func customnngraphhtmlandjs(g *charts.Graph) string {
 	// go-echarts is "too clever" and opaque about how to not do things its way
 	// we override their page.Render() to yield html+js (see the ModX and CustomX code below)
 	// this gets injected to the "vectorgraphing" div on frontpage.html
@@ -488,6 +489,191 @@ func ldascatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string {
 	//chke(err)
 
 	htmlandjs := customscatterhtmlandjs(scatter)
+	return htmlandjs
+}
+
+func lda3dscatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string {
+	const (
+		TTF       = ""
+		NAMETMPL  = "%s: %s"
+		SAMPSIZE  = 7
+		TITLE     = "t-SNE scattergraph"
+		SAVEFILE  = "lda_tsne_scattergraph"
+		SAVETYPE  = "png" // svg, jpeg, or png
+		SAVESTR   = "Save to file..."
+		LEFTALIGN = "20"
+		BOTTALIGN = "0%"
+		FONTSTYLE = "normal"
+		FONTSIZE  = 14
+		FONTDIFF  = 6
+		TEXTPAD   = "10"
+		STARTHUE  = 0
+	)
+
+	// https://echarts.apache.org/en/option.html#tooltip
+	tt := opts.Tooltip{
+		Show:        true,
+		Trigger:     "item",      // item, axis, none
+		TriggerOn:   "mousemove", // mousemove, click, mousemove|click, none
+		Enterable:   false,
+		Formatter:   TTF,
+		AxisPointer: nil,
+	}
+
+	// the fancy TTF used at https://echarts.apache.org/examples/en/editor.html?c=scatter-aqi-color
+	// 		TTF      = `
+	//		function (param) {
+	//			  var value = param.value;
+	//			  // prettier-ignore
+	//			  return '<div style="border-bottom: 1px solid rgba(255,255,255,.3); font-size: 18px;padding-bottom: 7px;margin-bottom: 7px">'
+	//						+ param.seriesName + ' ' + value[0] + '日：'
+	//						+ value[7]
+	//						+ '</div>'
+	//						+ schema[1].text + '：' + value[1] + '<br>'
+	//						+ schema[2].text + '：' + value[2] + '<br>'
+	//						+ schema[3].text + '：' + value[3] + '<br>'
+	//						+ schema[4].text + '：' + value[4] + '<br>'
+	//						+ schema[5].text + '：' + value[5] + '<br>'
+	//						+ schema[6].text + '：' + value[6] + '<br>';
+	//			}`
+	// could use this to actually give a real location, etc. via a get()
+
+	tbs := opts.ToolBoxFeatureSaveAsImage{
+		Show:  true,
+		Type:  SAVETYPE,
+		Name:  SAVEFILE,
+		Title: SAVESTR, // get chinese if ""
+	}
+
+	tbf := opts.ToolBoxFeature{
+		SaveAsImage: &tbs,
+	}
+
+	tbo := opts.Toolbox{
+		Show:    true,
+		Orient:  "vertical",
+		Left:    LEFTALIGN,
+		Top:     "",
+		Right:   "",
+		Bottom:  "",
+		Feature: &tbf,
+	}
+
+	ft := Config.Font
+	if ft == "Noto" {
+		ft = "'hipparchiasemiboldstatic', sans-serif"
+	}
+
+	tst := opts.TextStyle{
+		Color:      fmthsl(DOTHUE, DOTSAT, DOTLUM),
+		FontStyle:  FONTSTYLE,
+		FontSize:   FONTSIZE,
+		FontFamily: ft,
+		Padding:    TEXTPAD,
+	}
+
+	sst := opts.TextStyle{
+		Color:      fmthsl(DOTHUE, DOTSAT, DOTLUMPER),
+		FontStyle:  FONTSTYLE,
+		FontSize:   FONTSIZE - FONTDIFF,
+		FontFamily: ft,
+	}
+
+	tit := opts.Title{
+		Title:         TITLE,
+		TitleStyle:    &tst,
+		Subtitle:      "", // can not see this if you put the title on the very bottom of the image
+		SubtitleStyle: &sst,
+		Top:           "",
+		Bottom:        BOTTALIGN,
+		Left:          LEFTALIGN,
+		Right:         "",
+	}
+
+	scatter := charts.NewScatter3D()
+	scatter.SetGlobalOptions(
+		charts.WithTitleOpts(opts.Title{Title: "user-defined item style"}),
+		charts.WithXAxis3DOpts(opts.XAxis3D{Name: "MY-X-AXIS", Show: true}),
+		charts.WithYAxis3DOpts(opts.YAxis3D{Name: "MY-Y-AXIS"}),
+		charts.WithZAxis3DOpts(opts.ZAxis3D{Name: "MY-Z-AXIS"}),
+	)
+
+	scatter.SetGlobalOptions(
+		charts.WithTitleOpts(tit),
+		charts.WithInitializationOpts(opts.Initialization{Width: CHRTHEIGHT, Height: CHRTHEIGHT}), // square
+		charts.WithTooltipOpts(tt),
+		charts.WithToolboxOpts(tbo),
+	)
+
+	dr, _ := Y.Dims()
+
+	namer := func(idx int) string {
+		loc := strings.TrimPrefix(bags[idx].Loc, "line/")
+		init := strings.Split(bags[idx].Bag, " ")
+		samp := ""
+		if len(init) > SAMPSIZE {
+			samp = strings.Join(init[0:SAMPSIZE], " ") + "..."
+			return fmt.Sprintf(NAMETMPL, loc, samp)
+		} else {
+			samp = strings.Join(init[0:], " ") + "..."
+			return fmt.Sprintf(NAMETMPL, loc, samp)
+		}
+	}
+
+	col := func(top int) *opts.ItemStyle {
+		return &opts.ItemStyle{Color: fmthsl(STARTHUE+(30*top), DOTSAT, DOTLUM)}
+	}
+
+	generateseries := func(topic int) []opts.Chart3DData {
+		// Value        interface{} `json:"value,omitempty"`
+		items := make([]opts.Chart3DData, 0)
+		for i := 0; i < dr; i++ {
+			label := int(labels.At(i, 0))
+			if label == topic {
+				x := Y.At(i, 0)
+				y := Y.At(i, 1)
+				z := Y.At(i, 2)
+				items = append(items, opts.Chart3DData{
+					Value:     []interface{}{x, y, z},
+					ItemStyle: col(topic),
+					Name:      namer(i),
+				})
+			}
+		}
+		return items
+	}
+
+	for i := 0; i < ntopics; i++ {
+		scatter.AddSeries(fmt.Sprintf("Topic %d", i+1), generateseries(i))
+	}
+
+	page := components.NewPage()
+	page.AddCharts(
+		scatter,
+	)
+
+	// TODO: temporary fix - output to a file...
+	f, err := os.Create("ldascatter.html")
+	if err != nil {
+		panic(err)
+	}
+	err = page.Render(io.MultiWriter(f))
+	chke(err)
+
+	// htmlandjs := custom3dscatterhtmlandjs(scatter)
+
+	// TODO - customscatterhtmlandjs() will panic...
+	// [d] render the chart and get the html+js for it
+	//var buf bytes.Buffer
+	//err := p.Render(&buf)
+
+	//
+	//[Hipparchia Golang Server v.1.2.6] UNRECOVERABLE ERROR
+	//template: chart:11:41: executing "base" at <.JSONNotEscapedAction>: can't evaluate field JSONNotEscapedAction in type *charts.Scatter3D
+
+	// see: https://pkg.go.dev/github.com/go-echarts/go-echarts/v2/charts#pkg-types
+
+	htmlandjs := ""
 	return htmlandjs
 }
 
