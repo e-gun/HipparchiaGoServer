@@ -13,10 +13,17 @@ import (
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/labstack/echo/v4"
+	"gonum.org/v1/gonum/mat"
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/plotutil"
+	"gonum.org/v1/plot/vg"
 	"html/template"
 	"io"
 	"math"
+	"os"
 	"regexp"
+	"strings"
 )
 
 const (
@@ -315,6 +322,151 @@ func fmthsl(h int, s int, l int) string {
 	// 0, 0, 0 --> hsla(0, 0%, 0%, 1);
 	st := func(i int) string { return fmt.Sprintf("%d", i) }
 	return "hsla(" + st(h) + ", " + st(s) + "%, " + st(l) + "%, 1)"
+}
+
+//
+// LDA graphing
+//
+
+func ldascatter(Y, labels mat.Matrix, bags []BagWithLocus) {
+	const (
+		DOTSIZE  = 10
+		DOTSTYLE = "circle"
+		TTF      = ""
+		NAMETMPL = "%s: %s"
+		SAMPSIZE = 5
+	)
+
+	// https://echarts.apache.org/en/option.html#tooltip
+	tt := opts.Tooltip{
+		Show:        true,
+		Trigger:     "item",  // item, axis, none
+		TriggerOn:   "click", // mousemove, click, mousemove|click, none
+		Enterable:   false,
+		Formatter:   TTF,
+		AxisPointer: nil,
+	}
+
+	// the fancy TTF used at https://echarts.apache.org/examples/en/editor.html?c=scatter-aqi-color
+	// 		TTF      = `
+	//		function (param) {
+	//			  var value = param.value;
+	//			  // prettier-ignore
+	//			  return '<div style="border-bottom: 1px solid rgba(255,255,255,.3); font-size: 18px;padding-bottom: 7px;margin-bottom: 7px">'
+	//						+ param.seriesName + ' ' + value[0] + '日：'
+	//						+ value[7]
+	//						+ '</div>'
+	//						+ schema[1].text + '：' + value[1] + '<br>'
+	//						+ schema[2].text + '：' + value[2] + '<br>'
+	//						+ schema[3].text + '：' + value[3] + '<br>'
+	//						+ schema[4].text + '：' + value[4] + '<br>'
+	//						+ schema[5].text + '：' + value[5] + '<br>'
+	//						+ schema[6].text + '：' + value[6] + '<br>';
+	//			}`
+	// could use this to actually give a real location, etc.
+
+	scatter := charts.NewScatter()
+	scatter.SetGlobalOptions(
+		charts.WithTitleOpts(opts.Title{Title: "basic scatter example"}),
+		charts.WithInitializationOpts(opts.Initialization{Width: CHRTHEIGHT, Height: CHRTHEIGHT}), // square
+		charts.WithTooltipOpts(tt),
+	)
+
+	dr, _ := Y.Dims()
+
+	namer := func(idx int) string {
+		loc := strings.TrimPrefix(bags[idx].Loc, "line/")
+		init := strings.Split(bags[idx].Bag, " ")
+		samp := ""
+		if len(init) > SAMPSIZE {
+			samp = strings.Join(init[0:SAMPSIZE], " ") + "..."
+			return fmt.Sprintf(NAMETMPL, loc, samp)
+		} else {
+			return loc
+		}
+	}
+
+	generateseries := func(topic int) []opts.ScatterData {
+		// Value        interface{} `json:"value,omitempty"`
+		items := make([]opts.ScatterData, 0)
+		for i := 0; i < dr; i++ {
+			label := int(labels.At(i, 0))
+			if label == topic {
+				x := Y.At(i, 0)
+				y := Y.At(i, 1)
+				items = append(items, opts.ScatterData{
+					Value:      []float64{x, y},
+					Symbol:     DOTSTYLE,
+					SymbolSize: DOTSIZE,
+					Name:       namer(i),
+				})
+			}
+		}
+		return items
+	}
+
+	for i := 0; i < NUMBEROFTOPICS; i++ {
+		scatter.AddSeries(fmt.Sprintf("%d", i), generateseries(i))
+	}
+
+	page := components.NewPage()
+	page.AddCharts(
+		scatter,
+	)
+	f, err := os.Create("ldascatter.html")
+	if err != nil {
+		panic(err)
+	}
+	err = page.Render(io.MultiWriter(f))
+	chke(err)
+}
+
+// plotY2D plots the 2D embedding Y and saves an image of the plot with the specified filename.
+func plotY2D(Y, labels mat.Matrix, filename string) {
+	// copied from https://github.com/danaugrs/go-tsne/blob/master/examples/mnist2d/mnist2d.go
+
+	// Create a plotter for each of the 8 digit classes
+	classes := []float64{0, 1, 2, 3, 4, 5, 6, 7}
+	classPlotters := make([]plotter.XYs, len(classes))
+	for i := range classes {
+		classPlotters[i] = make(plotter.XYs, 0)
+	}
+
+	// Populate the class plotters with their respective data
+	n, _ := Y.Dims()
+	for i := 0; i < n; i++ {
+		label := int(labels.At(i, 0))
+		classPlotters[label] = append(classPlotters[label], plotter.XY{Y.At(i, 0), Y.At(i, 1)})
+		// fmt.Printf("x: %f\ty: %f\n", Y.At(i, 0), Y.At(i, 1))
+		//x: -0.000249	y: 0.000022
+		//x: -0.000103	y: -0.000169
+		//x: 0.000038	y: 0.000126
+		// ...
+	}
+
+	// Create a plot and update title and axes
+	p := plot.New()
+	p.Title.Text = "t-SNE MNIST"
+	p.X.Label.Text = "X"
+	p.Y.Label.Text = "Y"
+
+	// Convert plotters to array of empty interfaces
+	classPlottersEI := make([]interface{}, len(classes))
+	for i := range classes {
+		classPlottersEI[i] = classPlotters[i]
+	}
+
+	// Add class plotters to the plot
+	err := plotutil.AddScatters(p, classPlottersEI...)
+	if err != nil {
+		panic(err)
+	}
+
+	// Save the plot to a PNG file
+	err = p.Save(8*vg.Inch, 8*vg.Inch, filename)
+	if err != nil {
+		panic(err)
+	}
 }
 
 //

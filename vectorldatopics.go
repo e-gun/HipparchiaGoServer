@@ -8,19 +8,10 @@ package main
 import (
 	"fmt"
 	"github.com/danaugrs/go-tsne/tsne"
-	"github.com/go-echarts/go-echarts/v2/charts"
-	"github.com/go-echarts/go-echarts/v2/components"
-	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/james-bowman/nlp"
 	"github.com/labstack/echo/v4"
 	"gonum.org/v1/gonum/mat"
-	"gonum.org/v1/plot"
-	"gonum.org/v1/plot/plotter"
-	"gonum.org/v1/plot/plotutil"
-	"gonum.org/v1/plot/vg"
-	"io"
 	"net/http"
-	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -138,7 +129,7 @@ func ldatest(c echo.Context, srch SearchStruct) error {
 
 	srch.ExtraMsg = fmt.Sprintf("using t-Distributed Stochastic Neighbor Embedding to build graph")
 	AllSearches.InsertSS(srch)
-	ldaplot(dot)
+	ldaplot(dot, bags)
 	AllSearches.Delete(srch.ID)
 
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
@@ -513,47 +504,12 @@ func ldadocbyweight(docsOverTopics mat.Matrix) []float64 {
 }
 
 //
-// CLEANING
-//
-
-func stripper(item string, purge []string) string {
-	// delete each in a list of items from a string
-	for i := 0; i < len(purge); i++ {
-		re := regexp.MustCompile(purge[i])
-		item = re.ReplaceAllString(item, "")
-	}
-	return item
-}
-
-func makesubstitutions(thetext string) string {
-	// https://golang.org/pkg/strings/#NewReplacer
-	// cf cleanvectortext() in vectorhelpers.py
-	swap := strings.NewReplacer("v", "u", "j", "i", "σ", "ϲ", "ς", "ϲ", "A.", "Aulus", "App.", "Appius",
-		"C.", "Caius", "G.", "Gaius", "Cn.", "Cnaius", "Gn.", "Gnaius", "D.", "Decimus", "L.", "Lucius", "M.", "Marcus",
-		"M.’", "Manius", "N.", "Numerius", "P.", "Publius", "Q.", "Quintus", "S.", "Spurius", "Sp.", "Spurius",
-		"Ser.", "Servius", "Sex.", "Sextus", "T.", "Titus", "Ti", "Tiberius", "V.", "Vibius", "a.", "ante",
-		"d.", "dies", "Id.", "Idibus", "Kal.", "Kalendas", "Non.", "Nonas", "prid.", "pridie", "Ian.", "Ianuarias",
-		"Feb.", "Februarias", "Mart.", "Martias", "Apr.", "Aprilis", "Mai.", "Maias", "Iun.", "Iunias",
-		"Quint.", "Quintilis", "Sext.", "Sextilis", "Sept.", "Septembris", "Oct.", "Octobris", "Nov.", "Novembris",
-		"Dec.", "Decembris")
-
-	return swap.Replace(thetext)
-}
-
-// splitonpunctuaton - swap all punctuation for one item; then split on it...
-func splitonpunctuaton(thetext string) []string {
-	swap := strings.NewReplacer("?", ".", "!", ".", "·", ".", ";", ".", ":", ".")
-	thetext = swap.Replace(thetext)
-	return strings.Split(thetext, ".")
-}
-
-//
-// LDA matrix
+// LDA graphing prep
 //
 
 // see https://pkg.go.dev/gonum.org/v1/gonum/mat@v0.12.0#pkg-index
 
-func ldaplot(docsOverTopics mat.Matrix) {
+func ldaplot(docsOverTopics mat.Matrix, bags []BagWithLocus) {
 	// m := mat.NewDense()
 	// func NewDense(r int, c int, data []float64) *Dense
 
@@ -609,108 +565,43 @@ func ldaplot(docsOverTopics mat.Matrix) {
 	t.EmbedData(wv, nil)
 
 	plotY2D(t.Y, Y, fmt.Sprintf("lda-out-%d.png", 1))
-	ldascatter(t.Y, Y)
-	// but really want a go-charts scatter....
+	ldascatter(t.Y, Y, bags)
 
 }
 
 //
-// LDA graphing
+// CLEANING
 //
 
-func ldascatter(Y, labels mat.Matrix) {
-	const (
-		DOTSIZE  = 10
-		DOTSTYLE = "circle"
-	)
-	scatter := charts.NewScatter()
-	scatter.SetGlobalOptions(
-		charts.WithTitleOpts(opts.Title{Title: "basic scatter example"}),
-		charts.WithInitializationOpts(opts.Initialization{Width: CHRTHEIGHT, Height: CHRTHEIGHT}), // square
-	)
-
-	dr, _ := Y.Dims()
-
-	generateseries := func(topic int) []opts.ScatterData {
-		// Value        interface{} `json:"value,omitempty"`
-		items := make([]opts.ScatterData, 0)
-		for i := 0; i < dr; i++ {
-			label := int(labels.At(i, 0))
-			if label == topic {
-				x := Y.At(i, 0)
-				y := Y.At(i, 1)
-				items = append(items, opts.ScatterData{
-					Value:      []float64{x, y},
-					Symbol:     DOTSTYLE,
-					SymbolSize: DOTSIZE,
-				})
-			}
-		}
-		return items
+func stripper(item string, purge []string) string {
+	// delete each in a list of items from a string
+	for i := 0; i < len(purge); i++ {
+		re := regexp.MustCompile(purge[i])
+		item = re.ReplaceAllString(item, "")
 	}
-
-	for i := 0; i < NUMBEROFTOPICS; i++ {
-		scatter.AddSeries(fmt.Sprintf("%d", i), generateseries(i))
-	}
-
-	page := components.NewPage()
-	page.AddCharts(
-		scatter,
-	)
-	f, err := os.Create("ldascatter.html")
-	if err != nil {
-		panic(err)
-	}
-	err = page.Render(io.MultiWriter(f))
-	chke(err)
+	return item
 }
 
-// plotY2D plots the 2D embedding Y and saves an image of the plot with the specified filename.
-func plotY2D(Y, labels mat.Matrix, filename string) {
-	// copied from https://github.com/danaugrs/go-tsne/blob/master/examples/mnist2d/mnist2d.go
+func makesubstitutions(thetext string) string {
+	// https://golang.org/pkg/strings/#NewReplacer
+	// cf cleanvectortext() in vectorhelpers.py
+	swap := strings.NewReplacer("v", "u", "j", "i", "σ", "ϲ", "ς", "ϲ", "A.", "Aulus", "App.", "Appius",
+		"C.", "Caius", "G.", "Gaius", "Cn.", "Cnaius", "Gn.", "Gnaius", "D.", "Decimus", "L.", "Lucius", "M.", "Marcus",
+		"M.’", "Manius", "N.", "Numerius", "P.", "Publius", "Q.", "Quintus", "S.", "Spurius", "Sp.", "Spurius",
+		"Ser.", "Servius", "Sex.", "Sextus", "T.", "Titus", "Ti", "Tiberius", "V.", "Vibius", "a.", "ante",
+		"d.", "dies", "Id.", "Idibus", "Kal.", "Kalendas", "Non.", "Nonas", "prid.", "pridie", "Ian.", "Ianuarias",
+		"Feb.", "Februarias", "Mart.", "Martias", "Apr.", "Aprilis", "Mai.", "Maias", "Iun.", "Iunias",
+		"Quint.", "Quintilis", "Sext.", "Sextilis", "Sept.", "Septembris", "Oct.", "Octobris", "Nov.", "Novembris",
+		"Dec.", "Decembris")
 
-	// Create a plotter for each of the 8 digit classes
-	classes := []float64{0, 1, 2, 3, 4, 5, 6, 7}
-	classPlotters := make([]plotter.XYs, len(classes))
-	for i := range classes {
-		classPlotters[i] = make(plotter.XYs, 0)
-	}
+	return swap.Replace(thetext)
+}
 
-	// Populate the class plotters with their respective data
-	n, _ := Y.Dims()
-	for i := 0; i < n; i++ {
-		label := int(labels.At(i, 0))
-		classPlotters[label] = append(classPlotters[label], plotter.XY{Y.At(i, 0), Y.At(i, 1)})
-		// fmt.Printf("x: %f\ty: %f\n", Y.At(i, 0), Y.At(i, 1))
-		//x: -0.000249	y: 0.000022
-		//x: -0.000103	y: -0.000169
-		//x: 0.000038	y: 0.000126
-		// ...
-	}
-
-	// Create a plot and update title and axes
-	p := plot.New()
-	p.Title.Text = "t-SNE MNIST"
-	p.X.Label.Text = "X"
-	p.Y.Label.Text = "Y"
-
-	// Convert plotters to array of empty interfaces
-	classPlottersEI := make([]interface{}, len(classes))
-	for i := range classes {
-		classPlottersEI[i] = classPlotters[i]
-	}
-
-	// Add class plotters to the plot
-	err := plotutil.AddScatters(p, classPlottersEI...)
-	if err != nil {
-		panic(err)
-	}
-
-	// Save the plot to a PNG file
-	err = p.Save(8*vg.Inch, 8*vg.Inch, filename)
-	if err != nil {
-		panic(err)
-	}
+// splitonpunctuaton - swap all punctuation for one item; then split on it...
+func splitonpunctuaton(thetext string) []string {
+	swap := strings.NewReplacer("?", ".", "!", ".", "·", ".", ";", ".", ":", ".")
+	thetext = swap.Replace(thetext)
+	return strings.Split(thetext, ".")
 }
 
 //
