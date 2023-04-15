@@ -21,6 +21,7 @@ import (
 	"html/template"
 	"io"
 	"math"
+	"math/rand"
 	"regexp"
 	"strings"
 )
@@ -329,19 +330,28 @@ func fmthsl(h int, s int, l int) string {
 
 func ldascatter(Y, labels mat.Matrix, bags []BagWithLocus) string {
 	const (
-		DOTSIZE  = 10
-		DOTSTYLE = "circle"
-		TTF      = ""
-		NAMETMPL = "%s: %s"
-		SAMPSIZE = 5
-		TITLE    = "t-distributed Stochastic Neighbor Embedding"
+		DOTSIZE   = 8
+		DOTSTYLE  = "triangle"
+		TTF       = ""
+		NAMETMPL  = "%s: %s"
+		SAMPSIZE  = 7
+		TITLE     = "t-SNE scattergraph"
+		SAVEFILE  = "lda_tsne_scattergraph"
+		SAVETYPE  = "png" // svg, jpeg, or png
+		SAVESTR   = "Save to file..."
+		LEFTALIGN = "20"
+		BOTTALIGN = "0%"
+		FONTSTYLE = "normal"
+		FONTSIZE  = 14
+		FONTDIFF  = 6
+		TEXTPAD   = "10"
 	)
 
 	// https://echarts.apache.org/en/option.html#tooltip
 	tt := opts.Tooltip{
 		Show:        true,
-		Trigger:     "item",  // item, axis, none
-		TriggerOn:   "click", // mousemove, click, mousemove|click, none
+		Trigger:     "item",      // item, axis, none
+		TriggerOn:   "mousemove", // mousemove, click, mousemove|click, none
 		Enterable:   false,
 		Formatter:   TTF,
 		AxisPointer: nil,
@@ -363,13 +373,66 @@ func ldascatter(Y, labels mat.Matrix, bags []BagWithLocus) string {
 	//						+ schema[5].text + '：' + value[5] + '<br>'
 	//						+ schema[6].text + '：' + value[6] + '<br>';
 	//			}`
-	// could use this to actually give a real location, etc.
+	// could use this to actually give a real location, etc. via a get()
+
+	tbs := opts.ToolBoxFeatureSaveAsImage{
+		Show:  true,
+		Type:  SAVETYPE,
+		Name:  SAVEFILE,
+		Title: SAVESTR, // get chinese if ""
+	}
+
+	tbf := opts.ToolBoxFeature{
+		SaveAsImage: &tbs,
+	}
+
+	tbo := opts.Toolbox{
+		Show:    true,
+		Orient:  "vertical",
+		Left:    LEFTALIGN,
+		Top:     "",
+		Right:   "",
+		Bottom:  "",
+		Feature: &tbf,
+	}
+
+	ft := Config.Font
+	if ft == "Noto" {
+		ft = "'hipparchiasemiboldstatic', sans-serif"
+	}
+
+	tst := opts.TextStyle{
+		Color:      fmthsl(DOTHUE, DOTSAT, DOTLUM),
+		FontStyle:  FONTSTYLE,
+		FontSize:   FONTSIZE,
+		FontFamily: ft,
+		Padding:    TEXTPAD,
+	}
+
+	sst := opts.TextStyle{
+		Color:      fmthsl(DOTHUE, DOTSAT, DOTLUMPER),
+		FontStyle:  FONTSTYLE,
+		FontSize:   FONTSIZE - FONTDIFF,
+		FontFamily: ft,
+	}
+
+	tit := opts.Title{
+		Title:         TITLE,
+		TitleStyle:    &tst,
+		Subtitle:      "", // can not see this if you put the title on the very bottom of the image
+		SubtitleStyle: &sst,
+		Top:           "",
+		Bottom:        BOTTALIGN,
+		Left:          LEFTALIGN,
+		Right:         "",
+	}
 
 	scatter := charts.NewScatter()
 	scatter.SetGlobalOptions(
-		charts.WithTitleOpts(opts.Title{Title: TITLE}),
+		charts.WithTitleOpts(tit),
 		charts.WithInitializationOpts(opts.Initialization{Width: CHRTHEIGHT, Height: CHRTHEIGHT}), // square
 		charts.WithTooltipOpts(tt),
+		charts.WithToolboxOpts(tbo),
 	)
 
 	dr, _ := Y.Dims()
@@ -382,7 +445,8 @@ func ldascatter(Y, labels mat.Matrix, bags []BagWithLocus) string {
 			samp = strings.Join(init[0:SAMPSIZE], " ") + "..."
 			return fmt.Sprintf(NAMETMPL, loc, samp)
 		} else {
-			return loc
+			samp = strings.Join(init[0:], " ") + "..."
+			return fmt.Sprintf(NAMETMPL, loc, samp)
 		}
 	}
 
@@ -395,10 +459,11 @@ func ldascatter(Y, labels mat.Matrix, bags []BagWithLocus) string {
 				x := Y.At(i, 0)
 				y := Y.At(i, 1)
 				items = append(items, opts.ScatterData{
-					Value:      []float64{x, y},
-					Symbol:     DOTSTYLE,
-					SymbolSize: DOTSIZE,
-					Name:       namer(i),
+					Value:        []float64{x, y},
+					Symbol:       DOTSTYLE,
+					SymbolSize:   DOTSIZE,
+					SymbolRotate: rand.Intn(360),
+					Name:         namer(i),
 				})
 			}
 		}
@@ -413,6 +478,8 @@ func ldascatter(Y, labels mat.Matrix, bags []BagWithLocus) string {
 	page.AddCharts(
 		scatter,
 	)
+
+	// output to a file...
 	//f, err := os.Create("ldascatter.html")
 	//if err != nil {
 	//	panic(err)

@@ -59,12 +59,6 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 	c.Response().After(func() { SelfStats("VectorSearch()") })
 	se := AllSessions.GetSess(readUUIDCookie(c))
 
-	if se.VecLDA {
-		// unreachable; edit MakeDefaultSession() to pass this check
-		msg("TESTING: VectorSearch rerouting to ldatest()", 0)
-		return ldatest(c, srch)
-	}
-
 	term := srch.LemmaOne
 	if term == "" {
 		// JS not supposed to let this happen, but...

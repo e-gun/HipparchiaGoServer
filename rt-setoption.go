@@ -33,7 +33,7 @@ func RtSetOption(c echo.Context) error {
 
 	ynoptionlist := []string{"greekcorpus", "latincorpus", "papyruscorpus", "inscriptioncorpus", "christiancorpus",
 		"rawinputstyle", "onehit", "headwordindexing", "indexbyfrequency", "spuria", "incerta", "varia", "vocbycount",
-		"vocscansion", "isvectorsearch", "extendedgraph"}
+		"vocscansion", "isvectorsearch", "extendedgraph", "ldagraph", "isldasearch"}
 
 	s := AllSessions.GetSess(user)
 
@@ -77,8 +77,12 @@ func RtSetOption(c echo.Context) error {
 				s.VocScansion = b
 			case "isvectorsearch":
 				s.VecSearch = b
+			case "isldasearch":
+				s.VecLDA = b
 			case "extendedgraph":
 				s.VecGraphExt = b
+			case "ldagraph":
+				s.LDAgraph = b
 			default:
 				msg(FAIL2, MSGWARN)
 			}
@@ -118,7 +122,7 @@ func RtSetOption(c echo.Context) error {
 		}
 	}
 
-	spinoptionlist := []string{"maxresults", "linesofcontext", "browsercontext", "proximity", "neighborcount"}
+	spinoptionlist := []string{"maxresults", "linesofcontext", "browsercontext", "proximity", "neighborcount", "ldatopiccount"}
 	if IsInSlice(opt, spinoptionlist) {
 		intval, e := strconv.Atoi(val)
 		if e == nil {
@@ -156,6 +160,14 @@ func RtSetOption(c echo.Context) error {
 					s.VecNeighbCt = VECTORNEIGHBORSMIN
 				} else {
 					s.VecNeighbCt = VECTORNEIGHBORSMAX
+				}
+			case "ldatopiccount":
+				if 1 <= intval || intval <= LDAMAXTOPICS {
+					s.LDAtopics = intval
+				} else if intval < 1 {
+					s.LDAtopics = 1
+				} else {
+					s.LDAtopics = LDAMAXTOPICS
 				}
 			default:
 				msg(FAIL2, MSGWARN)

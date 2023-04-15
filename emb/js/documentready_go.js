@@ -417,6 +417,20 @@ $( '#neighborcount' ).spinner({
     }
 });
 
+$( '#ldatopiccount' ).spinner({
+    min: 4,
+    value: 20,
+    step: 1,
+    stop: function( event, ui ) {
+        let result = $('#ldatopiccount').spinner('value');
+        setoptions('ldatopiccount', String(result));
+    },
+    spin: function( event, ui ) {
+        let result = $('#ldatopiccount').spinner('value');
+        setoptions('ldatopiccount', String(result));
+    }
+});
+
 $( '#latestdate' ).spinner({
     min: -850,
     max: 1500,

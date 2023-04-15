@@ -33,7 +33,7 @@ const (
 	SENTENCESPERBAG = 1
 	NUMBEROFTOPICS  = 8
 	LDAITERATIONS   = 50
-	TESTITERATIONS  = 2
+	TESTITERATIONS  = 1
 )
 
 //see https://github.com/james-bowman/nlp/blob/26d441fa0ded/lda.go

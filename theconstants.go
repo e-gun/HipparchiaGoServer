@@ -46,6 +46,8 @@ const (
 	GENRESTOCOUNT            = 5
 	INCERTADATE              = 2500
 	JSONINDENT               = "  "
+	LDATOPICS                = 8
+	LDAMAXTOPICS             = 30
 	MAXBROWSERCONTEXT        = 60
 	MAXDATE                  = 1500
 	MAXDATESTR               = "1500"

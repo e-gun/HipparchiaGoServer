@@ -57,6 +57,13 @@ func RtSearch(c echo.Context) error {
 		// not a normal search: we grab all lines; build a model; query against the model
 		return VectorSearch(c, srch)
 	}
+
+	if se.VecLDA && !Config.VectorsDisabled {
+		// unreachable; edit MakeDefaultSession() to pass this check
+		msg("ldatest()", 0)
+		return ldatest(c, srch)
+	}
+
 	c.Response().After(func() { SelfStats("RtSearch()") })
 
 	// HasPhrase makes us use a fake limit temporarily

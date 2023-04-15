@@ -27,6 +27,8 @@ type CurrentConfiguration struct {
 	Gzip            bool
 	HostIP          string
 	HostPort        int
+	LdaGraph        bool
+	LdaTopics       int
 	LogLevel        int
 	ManualGC        bool // see SelfStats()
 	MaxText         int
@@ -289,6 +291,8 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.Gzip = USEGZIP
 	c.HostIP = SERVEDFROMHOST
 	c.HostPort = SERVEDFROMPORT
+	c.LdaTopics = LDATOPICS
+	c.LdaGraph = false
 	c.ManualGC = true
 	c.MaxText = MAXTEXTLINEGENERATION
 	c.QuietStart = false

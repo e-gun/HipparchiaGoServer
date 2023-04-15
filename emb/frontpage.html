@@ -111,7 +111,7 @@
         </select>
     </p>
 
-    <p class="optionlabel">Neighbors text parsing</p>
+    <p class="optionlabel">Vectorization text preparation</p>
     <p class="optionitem">
         <select name="vtextprep" id="vtextprep">
             <option value="winner">Winner takes all</option>
@@ -121,6 +121,17 @@
         </select>
     </p>
 
+    <p class="optionlabel">LDA topics to generate</p>
+    <p class="optionitem">
+        <input id="ldatopiccount" type="text" value="8" style="width: 90px;">
+    </p>
+    <p class="optionlabel">Build LDA graph</p>
+    <p class="optionitem">
+        <label for="ldagraph_y">yes
+            <input name="ldagraph" id="ldagraph_y" value="yes" type="radio"></label>
+        <label for="ldagraph_n">no
+            <input name="ldagraph" id="ldagraph_n" value="no" type="radio"></label>
+    </p>
 </div>
 
 <!-- left and right side modal boxes for lexica and morphology maps -->
@@ -381,6 +392,8 @@
     <div id="lemmatizing-isoff"><span class="activeoption"></span></div>
     <div id="vectorizing-ison"><span class="rarechars activeoption">v⃗</span></div>
     <div id="vectorizing-isoff"><span class="activeoption"></span></div>
+    <div id="ldamodel-ison"><span class="rarechars activeoption">τ⃗</span></div>
+    <div id="ldamodel-isoff"><span class="activeoption"></span></div>
     <br>
 
     <div id="alternates-ison"><span class="rarechars activeoption">🄰</span></div>

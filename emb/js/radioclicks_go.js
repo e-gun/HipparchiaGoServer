@@ -23,6 +23,14 @@ $('#frequencyindexing_n').click( function(){
     setoptions('indexbyfrequency', 'no'); $('#frequencyindexinginactive').show(); $('#frequencyindexingactive').hide();
 });
 
+$('#ldagraph_y').click( function(){
+    setoptions('ldagraph', 'yes');
+});
+
+$('#ldagraph_n').click( function(){
+    setoptions('ldagraph', 'no');
+});
+
 
 $('#onehit_y').click( function(){
     setoptions('onehit', 'yes'); $('#onehitistrue').show(); $('#onehitisfalse').hide();
@@ -127,6 +135,22 @@ $('#isvectorsearch').change(function() {
     }
 });
 
+$('#isldasearch').change(function() {
+    if(this.checked) {
+        setoptions('isldasearch', 'yes');
+        showtopicnotification();
+        refreshselections();
+        loadoptions();
+        lsf.attr('placeholder', '(topic model for...)');
+    } else {
+        setoptions('isldasearch', 'no');
+        hidetopicnotification();
+        refreshselections();
+        loadoptions();
+        lsf.attr('placeholder', '(all forms of...)');
+    }
+});
+
 const lsf = $('#lemmatasearchform');
 const vschon = $('#vectorizing-ison');
 const vschoff  = $('#vectorizing-isoff');
@@ -156,6 +180,18 @@ function hidelemmatanotification() {
 function showlemmatanotification() {
     lschon.show();
     lschoff.hide();
+}
+const topicson = $('#ldamodel-ison');
+const topicsoff= $('#ldamodel-isoff');
+
+function hidetopicnotification() {
+    topicson.hide();
+    topicsoff.show();
+}
+
+function showtopicnotification() {
+    topicson.show();
+    topicsoff.hide();
 }
 
 const trmonelem = $('#termoneisalemma');

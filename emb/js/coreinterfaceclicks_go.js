@@ -31,6 +31,7 @@ function loadoptions() {
             'incerta': $('#includeincerta'),
             'indexskipsknownwords': $('#indexskipsknownwords'),
             'inscriptioncorpus': $('#inscriptioncorpus'),
+            'isldasearch': $('#isldasearch'),
             'isvectorsearch': $('#isvectorsearch'),
             'latincorpus': $('#latincorpus'),
             'morphdialects': $('#morphdialects'),
@@ -97,6 +98,7 @@ function loadoptions() {
             'headwordindexing': {'y': $('#headwordindexing_y'), 'n': $('#headwordindexing_n'), 'f': $('#headwordindexinginactive'), 't': $('#headwordindexingactive')},
             'indexbyfrequency': {'y': $('#frequencyindexing_y'), 'n': $('#frequencyindexing_n'), 'f': $('#frequencyindexinginactive'), 't': $('#frequencyindexingactive')},
             'rawinputstyle': {'y': $('#manualinput'), 'n': $('#autofillinput'), 'f': $('#usingautoinput'), 't': $('#usingrawinput')},
+            'ldagraph': {'y': $('#ldagraph_y'), 'n': $('#ldagraph_n')},
         };
 
         Object.keys(xoredtoggles).forEach(function(key) {
@@ -120,6 +122,7 @@ function loadoptions() {
             'maxresults': $('#hitlimitspinner'),
             'browsercontext': $('#browserspinner'),
             'neighborcount': $('#neighborcount'),
+            'ldatopiccount': $('#ldatopiccount'),
         };
 
         Object.keys(setspinnervalues).forEach(function(key) {
