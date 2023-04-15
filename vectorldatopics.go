@@ -31,9 +31,7 @@ import (
 
 const (
 	SENTENCESPERBAG = 1
-	NUMBEROFTOPICS  = 8
 	LDAITERATIONS   = 50
-	TESTITERATIONS  = 1
 )
 
 //see https://github.com/james-bowman/nlp/blob/26d441fa0ded/lda.go
@@ -82,16 +80,22 @@ func (b *BagWithLocus) GetWL() {
 	b.Workline = GrabOneLine(tb[1][:6], ln)
 }
 
-// ldatest - testing LatentDirichletAllocation
-func ldatest(c echo.Context, srch SearchStruct) error {
-	// not for production...
+// LDASearch - search via Latent Dirichlet Allocation
+func LDASearch(c echo.Context, srch SearchStruct) error {
+	c.Response().After(func() { SelfStats("LDASearch()") })
 
-	// there is no interface for this
-
-	// force "s.VecLDA = true" in MakeDefaultSession(); build; run
-	// then all vector searches will pass through here (and NN searches will be unavailable in this build)
+	user := readUUIDCookie(c)
+	se := AllSessions.GetSess(user)
+	ntopics := se.LDAtopics
+	if ntopics < 1 {
+		ntopics = LDATOPICS
+	}
 
 	vs := sessionintobulksearch(c, Config.VectorMaxlines)
+
+	AllSearches.SetRemain(srch.ID, 1)
+	srch.ExtraMsg = fmt.Sprintf("<br>preparing the text for modeling")
+	AllSearches.InsertSS(srch)
 
 	bags := ldapreptext(vs.Results)
 
@@ -103,25 +107,26 @@ func ldatest(c echo.Context, srch SearchStruct) error {
 	stops := StringMapKeysIntoSlice(getstopset())
 	vectoriser := nlp.NewCountVectoriser(stops...)
 
-	srch.ExtraMsg = fmt.Sprintf("wordking on Latent Dirichlet Allocation topic models")
+	srch.ExtraMsg = fmt.Sprintf("<br>building topic models")
 	AllSearches.InsertSS(srch)
 
 	// consider building TESTITERATIONS models and making a table for each
 	var dot mat.Matrix
 	var tables []string
 
-	for i := 0; i < TESTITERATIONS; i++ {
-		docsOverTopics, topicsOverWords := ldamodel(NUMBEROFTOPICS, corpus, vectoriser)
-		tables = append(tables, ldatopicsummary(i+1, TESTITERATIONS, topicsOverWords, vectoriser, docsOverTopics))
-		tables = append(tables, ldatopsentences(bags, corpus, docsOverTopics))
-		dot = docsOverTopics
-	}
+	docsOverTopics, topicsOverWords := ldamodel(ntopics, corpus, vectoriser)
+	tables = append(tables, ldatopicsummary(ntopics, topicsOverWords, vectoriser, docsOverTopics))
+	tables = append(tables, ldatopsentences(ntopics, bags, corpus, docsOverTopics))
+	dot = docsOverTopics
 
 	htmltables := strings.Join(tables, "")
 
-	srch.ExtraMsg = fmt.Sprintf("using t-Distributed Stochastic Neighbor Embedding to build graph")
-	AllSearches.InsertSS(srch)
-	img := ldaplot(dot, bags)
+	var img string
+	if se.LDAgraph {
+		srch.ExtraMsg = fmt.Sprintf("<br>using t-Distributed Stochastic Neighbor Embedding to build graph")
+		AllSearches.InsertSS(srch)
+		img = ldaplot(ntopics, dot, bags)
+	}
 
 	soj := SearchOutputJSON{
 		Title:         "",
@@ -260,7 +265,7 @@ func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser) (mat
 }
 
 // ldatopsentences - generate html table reporting sentences most associated with each topic
-func ldatopsentences(thebags []BagWithLocus, corpus []string, docsOverTopics mat.Matrix) string {
+func ldatopsentences(ntopics int, thebags []BagWithLocus, corpus []string, docsOverTopics mat.Matrix) string {
 	const (
 		NTH = 2
 
@@ -272,7 +277,7 @@ func ldatopsentences(thebags []BagWithLocus, corpus []string, docsOverTopics mat
 
 		TABLETOP = `
     <tr class="vectorrow">
-        <td class="vectorrank" colspan = "4"></td>
+        <td class="vectorrank" colspan = "4">Sentences most associated with each topic</td>
     </tr>
 	<tr class="vectorrow">
 		<td class="vectorrank">Topic</td>
@@ -294,13 +299,21 @@ func ldatopsentences(thebags []BagWithLocus, corpus []string, docsOverTopics mat
 	)
 
 	// Examine Document over topic probability distribution
+
+	rows, columns := docsOverTopics.Dims() // rows = NUMBEROFTOPICS; columns = len(thedocs)
+
 	type DocRanker struct {
 		d  string
-		ff [NUMBEROFTOPICS]float64
+		ff []float64 // would be nice if we could say [ntopics]float64
 	}
 
 	thedocs := make([]DocRanker, len(corpus))
-	rows, columns := docsOverTopics.Dims() // rows = NUMBEROFTOPICS; columns = len(thedocs)
+	// need to fill the array with zeros to avoid "index out of range" error in next loop
+	for doc := 0; doc < columns; doc++ {
+		for i := 0; i < ntopics; i++ {
+			thedocs[doc].ff = append(thedocs[doc].ff, float64(0))
+		}
+	}
 
 	for doc := 0; doc < columns; doc++ {
 		thedocs[doc].d = corpus[doc]
@@ -311,7 +324,7 @@ func ldatopsentences(thebags []BagWithLocus, corpus []string, docsOverTopics mat
 	}
 
 	// note that "i" is referring to the same item across slices; need this to be true...
-	winners := make([]BagWithLocus, NUMBEROFTOPICS)
+	winners := make([]BagWithLocus, ntopics)
 	for topic := 0; topic < rows; topic++ {
 		max := float64(0)
 		winner := 0
@@ -359,7 +372,7 @@ func ldatopsentences(thebags []BagWithLocus, corpus []string, docsOverTopics mat
 }
 
 // ldatopicsummary - html table that reports on top words and topic weights in the model
-func ldatopicsummary(iter int, tot int, topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser, docsOverTopics mat.Matrix) string {
+func ldatopicsummary(ntopics int, topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser, docsOverTopics mat.Matrix) string {
 	const (
 		TOPN = 8
 		NTH  = 2
@@ -372,7 +385,7 @@ func ldatopicsummary(iter int, tot int, topicsOverWords mat.Matrix, vectoriser *
 
 		TABLETOP = `
     <tr class="vectorrow">
-        <td class="vectorrank" colspan = "4">Topic model %d of %d</td>
+        <td class="vectorrank" colspan = "4">Topic model of selection via Latent Dirichlet Allocation</td>
     </tr>
 	<tr class="vectorrow">
 		<td class="vectorrank">Topic</td>
@@ -393,9 +406,9 @@ func ldatopicsummary(iter int, tot int, topicsOverWords mat.Matrix, vectoriser *
 		<td class="vectorsent">%.2f%%</td>`
 	)
 
-	tops := ldasortedtopics(topicsOverWords, vectoriser)
-	docspertopic := ldadocpertopic(docsOverTopics)
-	docsbyweight := ldadocbyweight(docsOverTopics)
+	tops := ldasortedtopics(ntopics, topicsOverWords, vectoriser)
+	docspertopic := ldadocpertopic(ntopics, docsOverTopics)
+	docsbyweight := ldadocbyweight(ntopics, docsOverTopics)
 
 	tr, _ := topicsOverWords.Dims()
 	_, dc := docsOverTopics.Dims()
@@ -422,7 +435,7 @@ func ldatopicsummary(iter int, tot int, topicsOverWords mat.Matrix, vectoriser *
 		tablerows = append(tablerows, fmt.Sprintf(TABLEROW, rn, tablecolumn[i]))
 	}
 
-	tableout := fmt.Sprintf(TABLETOP, iter, tot, TOPN, strings.Join(tablerows, "\n"))
+	tableout := fmt.Sprintf(TABLETOP, TOPN, strings.Join(tablerows, "\n"))
 	tableout = fmt.Sprintf(FULLTABLE, tableout)
 	return tableout
 }
@@ -433,10 +446,16 @@ type topicsorter struct {
 }
 
 // ldasortedtopics - sorted most significant words for each topic
-func ldasortedtopics(topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser) map[int][]topicsorter {
+func ldasortedtopics(ntopics int, topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser) map[int][]topicsorter {
 	const (
 		TOPN = 8
 	)
+
+	top := TOPN
+	if top > ntopics {
+		top = ntopics
+	}
+
 	tr, tc := topicsOverWords.Dims()
 
 	vocab := make([]string, len(vectoriser.Vocabulary))
@@ -456,14 +475,14 @@ func ldasortedtopics(topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser
 		sort.Slice(tss, func(i, j int) bool {
 			return tss[i].V > tss[j].V
 		})
-		tops[topic] = tss[0:TOPN]
+		tops[topic] = tss[0:top]
 	}
 	return tops
 }
 
 // ldadocpertopic - N sentences have topic X as their dominant topic
-func ldadocpertopic(docsOverTopics mat.Matrix) []int {
-	counter := make([]int, NUMBEROFTOPICS)
+func ldadocpertopic(ntopics int, docsOverTopics mat.Matrix) []int {
+	counter := make([]int, ntopics)
 	dr, dc := docsOverTopics.Dims()
 	for doc := 0; doc < dc; doc++ {
 		max := float64(0)
@@ -482,8 +501,8 @@ func ldadocpertopic(docsOverTopics mat.Matrix) []int {
 }
 
 // ldadocbyweight - scaled total accumulated weight of each topic
-func ldadocbyweight(docsOverTopics mat.Matrix) []float64 {
-	counter := make([]float64, NUMBEROFTOPICS)
+func ldadocbyweight(ntopics int, docsOverTopics mat.Matrix) []float64 {
+	counter := make([]float64, ntopics)
 	dr, dc := docsOverTopics.Dims()
 	for doc := 0; doc < dc; doc++ {
 		for topic := 0; topic < dr; topic++ {
@@ -497,8 +516,8 @@ func ldadocbyweight(docsOverTopics mat.Matrix) []float64 {
 	sort.Float64s(mx)
 	high := mx[len(mx)-1]
 
-	scaled := make([]float64, NUMBEROFTOPICS)
-	for i := 0; i < NUMBEROFTOPICS; i++ {
+	scaled := make([]float64, ntopics)
+	for i := 0; i < ntopics; i++ {
 		scaled[i] = counter[i] / high
 	}
 	return scaled
@@ -510,7 +529,7 @@ func ldadocbyweight(docsOverTopics mat.Matrix) []float64 {
 
 // see https://pkg.go.dev/gonum.org/v1/gonum/mat@v0.12.0#pkg-index
 
-func ldaplot(docsOverTopics mat.Matrix, bags []BagWithLocus) string {
+func ldaplot(ntopics int, docsOverTopics mat.Matrix, bags []BagWithLocus) string {
 	// m := mat.NewDense()
 	// func NewDense(r int, c int, data []float64) *Dense
 
@@ -565,7 +584,7 @@ func ldaplot(docsOverTopics mat.Matrix, bags []BagWithLocus) string {
 
 	t.EmbedData(wv, nil)
 
-	htmlandjs := ldascatter(t.Y, Y, bags)
+	htmlandjs := ldascatter(ntopics, t.Y, Y, bags)
 	return htmlandjs
 }
 
@@ -610,21 +629,21 @@ func splitonpunctuaton(thetext string) []string {
 
 // the third is interesting: beginnings and endings are being found...
 
-// [HGS] TESTING: VectorSearch rerouting to ldatest()
+// [HGS] TESTING: NeighborsSearch rerouting to LDASearch()
 //topic 1:	0.993753.3	Apuleius Madaurensis, Metamorphoses 9.12.11	 dii boni quales illic homunculi uibicibus liuidis totam cutem depicti dorsumque plagosum scissili centunculo magis inumbrati quam obtecti nonnulli exiguo tegili tantum modo pubem iniecti cuncti tamen sic tunicati ut essent per pannulos manifesti frontes litterati et capillum semirasi et pedes anulati tum lurore deformes et fumosis tenebris uaporosae caliginis palpebras adesi atque adeo male luminati et in modum pugilum qui puluisculo perspersi dimicant farinulenta cinere sordide candidati
 //topic 2:	0.994870.3	Apuleius Madaurensis, Metamorphoses 11.3.15	 corona multiformis uariis floribus sublimem destrinxerat uerticem cuius media quidem super frontem plana rutunditas in modum speculi uel immo argumentum lunae candidum lumen emicabat dextra laeuaque sulcis insurgentium uiperarum cohibita spicis etiam cerialibus desuper porrectis conspicuante tunica multicolor bysso tenui pertexta nunc albo candore lucida nunc croceo flore lutea nunc roseo rubore flammida et quae longe longeque etiam meum confutabat optutum palla nigerrima splendescens atro nitore quae circumcirca remeans et sub dexterum latus ad umerum laeuum recurrens umbonis uicem deiecta parte laciniae multiplici contabulatione dependula ad ultimas oras nodulis fimbriarum decoriter confluctuabat
 //topic 3:	0.994591.3	Apuleius Madaurensis, Metamorphoses 10.20.5	 quattuor eunuchi confestim puluillis compluribus uentose tumentibus pluma delicata terrestrem nobis cubitum praestruunt sed et stragula ueste auro ac murice tyrio depicta probe consternunt ac desuper breuibus admodum sed satis copiosis puluillis aliis nimis modicis quis maxillas et ceruices delicatae mulieres suffulcire consuerunt superstruunt
 //topic 4:	0.993883.3	Apuleius Madaurensis, Metamorphoses 11.30.3	 nec deinceps postposito uel in supinam procrastinationem reiecto negotio statim sacerdoti meo relatis quae uideram inanimae protinus castimoniae iugum subeo et lege perpetua praescriptis illis decem diebus spontali sobrietate multiplicatis instructum teletae comparo largitus omnibus ex studio pietatis magis quam mensura rerum mearum collatis
 //topic 5:	0.992361.3	Apuleius Madaurensis, Metamorphoses 6.12.1	 perrexit psyche uolenter non obsequium quidem illa functura sed requiem malorum praecipitio fluuialis rupis habiturante sed inde de fluuio musicae suauis nutricula leni crepitu dulcis aurae diuinitus inspirata sic uaticinatur harundo uiridis psyche tantis aerumnis exercita neque tua miserrima morte meas sanctas aquas polluas nec uero istud horae con tra formidabiles oues feras aditum quoad de solis fraglantia mutuatae calorem truci rabie solent efferri cornuque acuto et fronte saxea et non nunquam uenenatis morsibus in exitium saeuire mortalium
 //
-//[HGS] TESTING: VectorSearch rerouting to ldatest()
+//[HGS] TESTING: NeighborsSearch rerouting to LDASearch()
 //topic 1:	0.993477.3	Apuleius Madaurensis, Metamorphoses 4.8.9	 estur ac potatur incondite pulmentis aceruatim panibus aggeratim poculis agminatim ingestis
 //topic 2:	0.996230.3	Apuleius Madaurensis, Metamorphoses 5.20.6	 nouaculam praeacutam adpulsu etiam palmulae lenientis exasperatam tori qua parte cubare consuesti latenter absconde lucernamque concinnem completam oleo claro lumine praemicantem subde aliquo claudentis aululae tegmine omnique isto apparatu tenacissime dissimulato postquam sulcatum trahens gressum cubile solitum conscenderit iamque porrectus et exordio somni prementis implicitus altum soporem flare coeperit toro delapsa nudoque uestigio pensilem gradum paullulatim minuens cae cae tenebrae custodia liberata lucerna praeclari tui facinoris opportunitatem de luminis consilio mutuare et ancipiti telo illo audaciter prius dextera sursum elata nisu quam ualido noxii serpentis nodum ceruicis et capitis abscide
 //topic 3:	0.993673.3	Apuleius Madaurensis, Metamorphoses 9.32.9	 sed ecce siderum ordinatis ambagibus per numeros dierum ac mensuum remeans annus post mustulentas autumni delicias ad hibernas capricorni pruinas deflexerat et adsiduis pluuiis noctur nisque rorationibus sub dio et intecto conclusus stabulo continuo discruciabar frigore quippe cum meus dominus prae nimia paupertate ne sibi quidem nedum mihi posset stramen aliquod uel exiguum tegimen parare sed frondoso casulae contentus umbraculo degeret
 //topic 4:	0.996601.3	Apuleius Madaurensis, Metamorphoses 11.28.3	 nam et uiriculas patrimonii peregrinationis adtriuerant impensae et erogationes urbicae pristinis illis prouincialibus antistabant plurimum
 //topic 5:	0.993569.3	Apuleius Madaurensis, Metamorphoses 8.27.1	 die sequenti uariis coloribus indusiati et deformiter quisque formati facie caenoso pigmento delita et oculis obunctis graphice prodeunt mitellis et crocotis et carbasinis et bombycinis iniecti quidam tunicas albas in modum lanciolarum quoquouersum fluente purpura depictas cingulo subligati pedes luteis induti calceis
 //
-//[HGS] TESTING: VectorSearch rerouting to ldatest()
+//[HGS] TESTING: NeighborsSearch rerouting to LDASearch()
 //topic 1:	0.994495.3	Apuleius Madaurensis, Metamorphoses 11.25.13	 tiberiusbi respondent sidera redeunt tempora gaudent numina seruiunt elementante tuo nutu spirant flamina nutriunt nubila germinant semina crescunt germinante tuam maiestatem perhorrescunt aues caelo meantes ferae montibus errantes serpentes solo latentes beluae ponto natantes
 //topic 2:	0.995036.3	Apuleius Madaurensis, Metamorphoses 1.2.5	 postquam ardua montium et lubrica uallium et roscida cespitum et glebosa camporum emensus emersi in equo indigena peralbo uehens iam eo quoque admodum fesso ut ipse etiam fatigationem sedentariam incessus uegetatione discuterem in pedes desilio equi sudorem fronde detergeo frontem curiose exfrico auris remulceo frenos detraho in gradum lenem sensim proueho quoad lassitudinis incommodum alui solitum ac naturale praesidium eliquaret
 //topic 3:	0.992108.3	Apuleius Madaurensis, Metamorphoses 1.6.9	 at uero domi tuae iam defletus et conclamatus es liberis tuis tutores iuridici prouincialis decreto dati uxor persolutis feralibus officiis luctu et maerore diuturno deformata diffletis paene ad extremam captiuitatem oculis suis domus infortunium nouarum nuptiarum gaudiis a suis sibi parentibus hilarare compellitur
@@ -649,7 +668,7 @@ func splitonpunctuaton(thetext string) []string {
 //topic 5:        0.999668.3      Apuleius Madaurensis, Metamorphoses 2.18.18      nec tamen incomitatus ibo
 
 // 100 iterations
-// [HGS] TESTING: VectorSearch rerouting to ldatest()
+// [HGS] TESTING: NeighborsSearch rerouting to LDASearch()
 //topic 1:        0.995875.3      Apuleius Madaurensis, Metamorphoses 1.1.7        exordior
 //topic 2:        0.994873.3      Apuleius Madaurensis, Metamorphoses 6.6.14       cedunt nubes et caelum filiae panditur et summus aether cum gaudio suscipit deam nec obuias aquilas uel accipitres rapaces pertimescit magnae veneris canora familiante tunc se protinus ad iouis regias arces dirigit et petitu superbo mercuri dei uocalis operae necessa riam usuram postulat
 //topic 3:        0.995717.3      Apuleius Madaurensis, Metamorphoses 4.21.20      sic etiam thrasyleon nobis periuit sed a gloria non peribit
@@ -664,7 +683,7 @@ func splitonpunctuaton(thetext string) []string {
 //topic 5:        0.994164.3      Apuleius Madaurensis, Metamorphoses 11.30.3      nec deinceps postposito uel in supinam procrastinationem reiecto negotio statim sacerdoti meo relatis quae uideram inanimae protinus castimoniae iugum subeo et lege perpetua praescriptis illis decem diebus spontali sobrietate multiplicatis instructum teletae comparo largitus omnibus ex studio pietatis magis quam mensura rerum mearum collatis
 
 // 25 iterations
-//[HGS] TESTING: VectorSearch rerouting to ldatest()
+//[HGS] TESTING: NeighborsSearch rerouting to LDASearch()
 //topic 1:        0.995270.3      Apuleius Madaurensis, Metamorphoses 10.18.15     spretis luculentis illis suis uehiculis ac posthabitis decoris raedarum carpentis quae partim contecta partim reuelata frustra nouissimis trahebantur consequiis equis etiam thessalicis et aliis iumentis gallicanis quibus generosa suboles perhibet pretiosam dignitatem me phaleris aureis et fucatis ephippiis et purpureis tapetis et frenis argenteis et pictilibus balteis et tintinnabulis perargutis exornatum ipse residens amantissime nonnunquam comissimis adfatur sermonibus atque inter alia pleraque summe se delectari  profitebatur quod haberet in me simul et conuiuam et uectorem
 //topic 2:        0.994604.3      Apuleius Madaurensis, Metamorphoses 11.3.15      corona multiformis uariis floribus sublimem destrinxerat uerticem cuius media quidem super frontem plana rutunditas in modum speculi uel immo argumentum lunae candidum lumen emicabat dextra laeuaque sulcis insurgentium uiperarum cohibita spicis etiam cerialibus desuper porrectis conspicuante tunica multicolor bysso tenui pertexta nunc albo candore lucida nunc croceo flore lutea nunc roseo rubore flammida et quae longe longeque etiam meum confutabat optutum palla nigerrima splendescens atro nitore quae circumcirca remeans et sub dexterum latus ad umerum laeuum recurrens umbonis uicem deiecta parte laciniae multiplici contabulatione dependula ad ultimas oras nodulis fimbriarum decoriter confluctuabat
 //topic 3:        0.995729.3      Apuleius Madaurensis, Metamorphoses 10.5.14      sed dira illa femina et malitiae nouercalis exemplar unicum non acerba filii morte non parricidii conscientia non infortunio domus non luctu mariti uel aerumna funeris commota cladem familiae in uindictae compendium traxit missoque protinus cursore qui uianti marito domus expugnationem nuntiaret ac mox eodem ocius ab itinere regresso personata nimia temeritate insimulat priuigni ueneno filium suum interceptum

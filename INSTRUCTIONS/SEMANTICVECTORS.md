@@ -1,4 +1,8 @@
-# Semantic Vector Nearest Neighbor Searches
+# Semantic Vectors
+
+---
+
+##  [A] Nearest Neighbor Searches
 
 ## Building Models
 If you request a lemmatized search (λ), you will be presented with the option to convert your search to a vectorized 
@@ -272,3 +276,24 @@ real alpha = 0.75, x_max = 100.0; // Weighting function parameters, not extremel
 
 See also https://nlp.stanford.edu/projects/glove/.
 
+---
+
+## [B] Topic Modeling
+
+If you expand the search options to `Complicate the search...` you will expose the topic model checkbox: `τ⃗`
+
+![inst02](../gitimg/lda_start.png)
+
+There is no need to enter any check. Just `Execute the search...`.
+
+You can set how many topics to track via the `Configuration options` panel. The default is `8`.
+
+![inst02](../gitimg/lda_model.png)
+
+You can also request a graph of your model. This can be slow to generate. 
+
+![inst02](../gitimg/lda_tsne_scattergraph.png)
+
+If you hover over a point you will see the text it is drawn from. 
+
+![inst02](../gitimg/lda_hover.png)

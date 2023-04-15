@@ -14,14 +14,19 @@
   * search scope exclusions 
   * near/not-near syntax
   * progress polling
-* semantic vectors
-  * search for terms and yield an interactive graph of nearest neighbors
-  * choice of graphing styles: "neighbors" or "neighbors + neighbors of neighbors"
-  * configure how many neighbors to track
-  * choice of text building strategies
-  * choice of modeling algorithms
-  * configurable model parameters
-  * configurable lists of stop-words
+* semantic vectors 
+  * general
+    * configurable model parameters
+    * configurable lists of stop-words
+  * nearest neighbors
+    * search for terms and yield an interactive graph of nearest neighbors
+    * choice of graphing styles: "neighbors" or "neighbors + neighbors of neighbors"
+    * configure how many neighbors to track
+    * choice of modeling algorithms
+    * choice of text building strategies
+  * topic models
+    * configure number of topics to track
+    * option to graph the LDA model via t-SNE reduction
 * text browsing
 * text maker
 * indexing (+ flag unique forms)

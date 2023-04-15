@@ -499,6 +499,7 @@ function closeextendedsearcharea() {
     $('#extendsearchbutton-ispresentlyopen').hide();
     $('#extendsearchbutton-ispresentlyclosed').show();
     $('#complexsearching').hide();
+    $('#ldasearches').hide();
     vct.hide();
     let wsf = $('#wordsearchform');
     let tcb = $('#termonecheckbox');
@@ -512,6 +513,7 @@ function closeextendedsearcharea() {
         lsf.hide();
         wsf.show();
     }
+
     $('#termtwocheckbox').hide();
     // reset vectors
     // the checkbox names can be found via
@@ -531,6 +533,7 @@ function closeextendedsearcharea() {
 function openextendedsearcharea() {
     $('#extendsearchbutton-ispresentlyclosed').hide();
     $('#extendsearchbutton-ispresentlyopen').show();
+    $('#ldasearches').show();
     $.getJSON('/get/json/sessionvariables', function (data) {
             $( "#proximityspinner" ).spinner('value', data.proximity);
             if (data.searchscope === 'lines') {

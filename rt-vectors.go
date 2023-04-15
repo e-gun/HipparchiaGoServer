@@ -18,8 +18,8 @@ import (
 	"time"
 )
 
-// VectorSearch - a special case for RtSearch() where you requested vectorization of the results
-func VectorSearch(c echo.Context, srch SearchStruct) error {
+// NeighborsSearch - a special case for RtSearch() where you requested vectorization of the results
+func NeighborsSearch(c echo.Context, srch SearchStruct) error {
 	const (
 		NTH      = 3
 		THETABLE = `
@@ -56,7 +56,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 		SETTINGS = `model type: %s; text prep: %s`
 	)
 
-	c.Response().After(func() { SelfStats("VectorSearch()") })
+	c.Response().After(func() { SelfStats("NeighborsSearch()") })
 	se := AllSessions.GetSess(readUUIDCookie(c))
 
 	term := srch.LemmaOne
@@ -121,7 +121,7 @@ func VectorSearch(c echo.Context, srch SearchStruct) error {
 // fingerprintvectorsearch - derive a unique md5 for any given mix of search items & vector settings
 func fingerprintvectorsearch(srch SearchStruct, modeltype string, textprep string) string {
 	const (
-		MSG1 = "VectorSearch() fingerprint: "
+		MSG1 = "NeighborsSearch() fingerprint: "
 		FAIL = "fingerprintvectorsearch() failed to Marshal"
 	)
 

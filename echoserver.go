@@ -187,7 +187,7 @@ func StartEchoServer() {
 	e.GET("/sc/get/:num", RtSessionGetCookie)
 
 	// [r] vectors ("rt-vectors.go")
-	// pseudo-route RtVectors in rt-vectors.go is called by rt-search.go if the current session has VecSearch set to true
+	// pseudo-route RtVectors in rt-vectors.go is called by rt-search.go if the current session has VecNNSearch set to true
 	e.GET("/vbot/:au", RtVectorBot) // only the goroutine running the vectorbot is supposed to request this
 
 	if Config.SelfTest > 0 {

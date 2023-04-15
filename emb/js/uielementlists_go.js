@@ -144,12 +144,6 @@ const vectorcheckboxspans = ['#cosinedistancesentencecheckbox', '#cosinedistance
 const vectorboxes = ['#cosdistbysentence', '#cosdistbylineorword', '#semanticvectorquery', '#nearestneighborsquery',
     '#tensorflowgraph', '#sentencesimilarity', '#topicmodel', '#vectortestfunction'];
 
-const vectorformattingdotpyids = Array(['#analogiescheckbox', '#analogyfinder', '#cosdistbylineorword',
-    '#cosdistbysentence', '#cosinedistancelineorwordcheckbox', '#cosinedistancesentencecheckbox', '#nearestneighborsquery',
-    '#semanticvectornnquerycheckbox', '#semanticvectorquery', '#semanticvectorquerycheckbox', '#sentencesimilarity',
-    '#sentencesimilaritycheckbox', '#tensorflowgraph', '#tensorflowgraphcheckbox', '#topicmodel', '#topicmodelcheckbox',
-    '#vectortestcheckbox', '#vectortestfunction']);
-
 // the checkbox names can be found via: vectorhtmlforfrontpage() in vectorformatting.py
 // >>> f = re.compile(r'type="checkbox" id="(.*?)"')
 // >>> re.findall(f,x)
@@ -168,7 +162,7 @@ const extrauichoices = Array().concat(categoryautofills);
 // firstload hiding
 const miscfirstloadhides = Array('#browserdialog', '#helptabs', '#fewerchoicesbutton', '#lemmatizing-ison',
     '#vectorizing-ison', '#alt_upperleftbuttons', '#analogiesinputarea', '#extendsearchbutton-ispresentlyopen',
-    '#vectorsearchcheckbox', '#trimmingcheckboxes');
+    '#vectorsearchcheckbox', '#trimmingcheckboxes', '#ldamodel-ison', '#ldasearches');
 const tohideonfirstload = Array().concat(miscfirstloadhides, endpointnoticesandbuttons,
     endpointids, inputids, actionbuttons, infobuttons, infoboxes, lemmatasearchforms, extrasearchcriteria,
     lemmatabagoptions, extrasearchuielements);

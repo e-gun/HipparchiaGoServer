@@ -76,9 +76,9 @@ func RtSetOption(c echo.Context) error {
 			case "vocscansion":
 				s.VocScansion = b
 			case "isvectorsearch":
-				s.VecSearch = b
+				s.VecNNSearch = b
 			case "isldasearch":
-				s.VecLDA = b
+				s.VecLDASearch = b
 			case "extendedgraph":
 				s.VecGraphExt = b
 			case "ldagraph":

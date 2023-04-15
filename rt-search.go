@@ -53,15 +53,13 @@ func RtSearch(c echo.Context) error {
 
 	se := AllSessions.GetSess(user)
 
-	if se.VecSearch && !Config.VectorsDisabled {
+	if se.VecNNSearch && !Config.VectorsDisabled {
 		// not a normal search: we grab all lines; build a model; query against the model
-		return VectorSearch(c, srch)
+		return NeighborsSearch(c, srch)
 	}
 
-	if se.VecLDA && !Config.VectorsDisabled {
-		// unreachable; edit MakeDefaultSession() to pass this check
-		msg("ldatest()", 0)
-		return ldatest(c, srch)
+	if se.VecLDASearch && !Config.VectorsDisabled {
+		return LDASearch(c, srch)
 	}
 
 	c.Response().After(func() { SelfStats("RtSearch()") })
@@ -174,7 +172,7 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	s.SkgRewritten = false
 	s.OneHit = sess.OneHit
 	s.PhaseNum = 1
-	s.IsVector = sess.VecSearch
+	s.IsVector = sess.VecNNSearch
 	s.VecTextPrep = sess.VecTextPrep
 	s.VecModeler = sess.VecModeler
 	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)

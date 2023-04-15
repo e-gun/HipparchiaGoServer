@@ -90,7 +90,7 @@ func RtGetJSSession(c echo.Context) error {
 	jso.Linesofcontext = i2s(s.HitContext)
 	jso.LdaGraph = t2y(s.LDAgraph)
 	jso.LdaTopicCt = i2s(s.LDAtopics)
-	jso.LdaSearch = t2y(s.VecLDA)
+	jso.LdaSearch = t2y(s.VecLDASearch)
 	jso.Maxresults = i2s(s.HitLimit)
 	jso.Nearornot = s.NearOrNot
 	jso.Papyruscorpus = t2y(s.ActiveCorp["dp"])
@@ -103,7 +103,7 @@ func RtGetJSSession(c echo.Context) error {
 	jso.VecGraphExt = t2y(s.VecGraphExt)
 	jso.VecModeler = s.VecModeler
 	jso.VecNeighbCt = i2s(s.VecNeighbCt)
-	jso.VecSearch = t2y(s.VecSearch)
+	jso.VecSearch = t2y(s.VecNNSearch)
 	jso.VecTextPrep = s.VecTextPrep
 	jso.VocByCount = t2y(s.VocByCount)
 	jso.VocScansion = t2y(s.VocScansion)

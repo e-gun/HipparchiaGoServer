@@ -155,7 +155,7 @@ func (s *SearchStruct) FormatInitialSummary() {
 	s.InitSum = sum
 }
 
-// InclusionOverview - yield a summary of the inclusions; VectorSearch will use this when calling buildblankgraph()
+// InclusionOverview - yield a summary of the inclusions; NeighborsSearch will use this when calling buildblankgraph()
 func (s *SearchStruct) InclusionOverview(sessincl SearchIncExl) string {
 	// possible to get burned, but this cheat is "good enough"
 	// hipparchiaDB=# SELECT COUNT(universalid) FROM authors WHERE universalid LIKE 'gr%';

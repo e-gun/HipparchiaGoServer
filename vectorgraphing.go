@@ -328,7 +328,7 @@ func fmthsl(h int, s int, l int) string {
 // LDA graphing
 //
 
-func ldascatter(Y, labels mat.Matrix, bags []BagWithLocus) string {
+func ldascatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string {
 	const (
 		DOTSIZE   = 8
 		DOTSTYLE  = "triangle"
@@ -470,7 +470,7 @@ func ldascatter(Y, labels mat.Matrix, bags []BagWithLocus) string {
 		return items
 	}
 
-	for i := 0; i < NUMBEROFTOPICS; i++ {
+	for i := 0; i < ntopics; i++ {
 		scatter.AddSeries(fmt.Sprintf("Topic %d", i+1), generateseries(i))
 	}
 

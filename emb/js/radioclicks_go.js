@@ -142,12 +142,14 @@ $('#isldasearch').change(function() {
         refreshselections();
         loadoptions();
         lsf.attr('placeholder', '(topic model for...)');
+        wsf.attr('placeholder', '(topic model for...)');
     } else {
         setoptions('isldasearch', 'no');
         hidetopicnotification();
         refreshselections();
         loadoptions();
         lsf.attr('placeholder', '(all forms of...)');
+        wsf.attr('placeholder', '(looking for...)')
     }
 });
 

@@ -20,40 +20,40 @@ import (
 //
 
 type ServerSession struct {
-	ID          string
-	Inclusions  SearchIncExl
-	Exclusions  SearchIncExl
-	ActiveCorp  map[string]bool
-	VariaOK     bool   `json:"varia"`
-	IncertaOK   bool   `json:"incerta"`
-	SpuriaOK    bool   `json:"spuria"`
-	RawInput    bool   `json:"rawinputstyle"`
-	OneHit      bool   `json:"onehit"`
-	HeadwordIdx bool   `json:"headwordindexing"`
-	FrqIdx      bool   `json:"indexbyfrequency"`
-	VocByCount  bool   `json:"vocbycount"`
-	VocScansion bool   `json:"vocscansion"`
-	NearOrNot   string `json:"nearornot"`
-	SearchScope string `json:"searchscope"`
-	SortHitsBy  string `json:"sortorder"`
-	Proximity   int    `json:"proximity"`
-	BrowseCtx   int
-	InputStyle  string
-	HitLimit    int
-	HitContext  int
-	Earliest    string
-	Latest      string
-	TmpInt      int
-	TmpStr      string
-	LoginName   string
-	VecGraphExt bool
-	VecModeler  string
-	VecNeighbCt int
-	VecSearch   bool
-	VecTextPrep string
-	VecLDA      bool
-	LDAgraph    bool
-	LDAtopics   int
+	ID           string
+	Inclusions   SearchIncExl
+	Exclusions   SearchIncExl
+	ActiveCorp   map[string]bool
+	VariaOK      bool   `json:"varia"`
+	IncertaOK    bool   `json:"incerta"`
+	SpuriaOK     bool   `json:"spuria"`
+	RawInput     bool   `json:"rawinputstyle"`
+	OneHit       bool   `json:"onehit"`
+	HeadwordIdx  bool   `json:"headwordindexing"`
+	FrqIdx       bool   `json:"indexbyfrequency"`
+	VocByCount   bool   `json:"vocbycount"`
+	VocScansion  bool   `json:"vocscansion"`
+	NearOrNot    string `json:"nearornot"`
+	SearchScope  string `json:"searchscope"`
+	SortHitsBy   string `json:"sortorder"`
+	Proximity    int    `json:"proximity"`
+	BrowseCtx    int
+	InputStyle   string
+	HitLimit     int
+	HitContext   int
+	Earliest     string
+	Latest       string
+	TmpInt       int
+	TmpStr       string
+	LoginName    string
+	VecGraphExt  bool
+	VecModeler   string
+	VecNeighbCt  int
+	VecNNSearch  bool
+	VecTextPrep  string
+	VecLDASearch bool
+	LDAgraph     bool
+	LDAtopics    int
 }
 
 // BuildSelectionOverview will call the relevant SearchIncExl functions: see buildsearchlist.go
@@ -130,10 +130,10 @@ func MakeDefaultSession(id string) ServerSession {
 	s.VocByCount = Config.VocabByCt
 	s.VecGraphExt = Config.VectorWebExt
 	s.VecNeighbCt = Config.VectorNeighb
-	s.VecSearch = false
+	s.VecNNSearch = false
 	s.VecModeler = Config.VectorModel
 	s.VecTextPrep = Config.VectorTextPrep
-	s.VecLDA = false
+	s.VecLDASearch = false
 
 	if Config.Authenticate {
 		AllAuthorized.Register(id, false)
@@ -143,8 +143,8 @@ func MakeDefaultSession(id string) ServerSession {
 
 	//msg("MakeDefaultSession() in non-default state for testing; this is not a release build of HGS", 0)
 	//
-	//s.VecLDA = true
-	//s.VecSearch = true
+	//s.VecLDASearch = true
+	//s.VecNNSearch = true
 
 	//m := make(map[string]string)
 	//m["lt0917_FROM_1431_TO_2193"] = "Lucanus, Marcus Annaeus, Bellum Civile, 3"
