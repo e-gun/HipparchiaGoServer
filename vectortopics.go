@@ -7,9 +7,14 @@ package main
 
 import (
 	"fmt"
+	"github.com/danaugrs/go-tsne/tsne"
 	"github.com/james-bowman/nlp"
 	"github.com/labstack/echo/v4"
 	"gonum.org/v1/gonum/mat"
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/plotutil"
+	"gonum.org/v1/plot/vg"
 	"net/http"
 	"regexp"
 	"sort"
@@ -30,8 +35,9 @@ import (
 
 const (
 	SENTENCESPERBAG = 1
-	NUMBEROFTOPICS  = 6
-	LDAITERATIONS   = 35
+	NUMBEROFTOPICS  = 8
+	LDAITERATIONS   = 50
+	TESTITERATIONS  = 2
 )
 
 //see https://github.com/james-bowman/nlp/blob/26d441fa0ded/lda.go
@@ -89,10 +95,6 @@ func ldatest(c echo.Context, srch SearchStruct) error {
 	// force "s.VecLDA = true" in MakeDefaultSession(); build; run
 	// then all vector searches will pass through here (and NN searches will be unavailable in this build)
 
-	const (
-		ITERATIONS = 2
-	)
-
 	vs := sessionintobulksearch(c, Config.VectorMaxlines)
 
 	bags := ldapreptext(vs.Results)
@@ -105,11 +107,11 @@ func ldatest(c echo.Context, srch SearchStruct) error {
 	stops := StringMapKeysIntoSlice(getstopset())
 	vectoriser := nlp.NewCountVectoriser(stops...)
 
-	// consider building ITERATIONS models and making a table for each one
+	// consider building TESTITERATIONS models and making a table for each one
 	var tables []string
-	for i := 0; i < ITERATIONS; i++ {
-		docsOverTopics, topicsOverWords := ldamodel(corpus, vectoriser)
-		tables = append(tables, ldatopicsummary(i+1, ITERATIONS, topicsOverWords, vectoriser, docsOverTopics))
+	for i := 0; i < TESTITERATIONS; i++ {
+		docsOverTopics, topicsOverWords := ldamodel(NUMBEROFTOPICS, corpus, vectoriser)
+		tables = append(tables, ldatopicsummary(i+1, TESTITERATIONS, topicsOverWords, vectoriser, docsOverTopics))
 		tables = append(tables, ldatopsentences(bags, corpus, docsOverTopics))
 	}
 
@@ -124,6 +126,9 @@ func ldatest(c echo.Context, srch SearchStruct) error {
 	}
 
 	AllSearches.Delete(srch.ID)
+
+	// does not do anything interesting
+	// ldaplot(corpus, vectoriser)
 
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
@@ -230,11 +235,13 @@ func ldapreptext(dblines []DbWorkline) []BagWithLocus {
 	return thebags
 }
 
-func ldamodel(corpus []string, vectoriser *nlp.CountVectoriser) (mat.Matrix, mat.Matrix) {
+// ldamodel - build the lda model for the corpus
+func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser) (mat.Matrix, mat.Matrix) {
 
-	lda := nlp.NewLatentDirichletAllocation(NUMBEROFTOPICS)
+	lda := nlp.NewLatentDirichletAllocation(topics)
 	lda.Processes = Config.WorkerCount
 	lda.Iterations = LDAITERATIONS
+	lda.TransformationPasses = LDAITERATIONS / 2
 
 	pipeline := nlp.NewPipeline(vectoriser, lda)
 
@@ -249,6 +256,7 @@ func ldamodel(corpus []string, vectoriser *nlp.CountVectoriser) (mat.Matrix, mat
 	return docsOverTopics, topicsOverWords
 }
 
+// ldatopsentences - generate html table reporting sentences most associated with each topic
 func ldatopsentences(thebags []BagWithLocus, corpus []string, docsOverTopics mat.Matrix) string {
 	const (
 		NTH = 2
@@ -347,6 +355,7 @@ func ldatopsentences(thebags []BagWithLocus, corpus []string, docsOverTopics mat
 	return tableout
 }
 
+// ldatopicsummary - html table that reports on top words and topic weights in the model
 func ldatopicsummary(iter int, tot int, topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser, docsOverTopics mat.Matrix) string {
 	const (
 		TOPN = 8
@@ -394,7 +403,7 @@ func ldatopicsummary(iter int, tot int, topicsOverWords mat.Matrix, vectoriser *
 		ww := make([]string, TOPN)
 		for i := 0; i < TOPN; i++ {
 			// ww[i] = fmt.Sprintf("%s (%.4f)", ts[i].W, ts[i].V)
-			ww[i] = fmt.Sprintf("%s", ts[i].W)
+			ww[i] = ts[i].W
 		}
 		data := strings.Join(ww, ", ")
 		r := fmt.Sprintf(TABLEELEM, topic+1, data, docspertopic[topic], float64(docspertopic[topic])/float64(dc)*100, docsbyweight[topic]*100)
@@ -420,13 +429,11 @@ type topicsorter struct {
 	V float64
 }
 
+// ldasortedtopics - sorted most significant words for each topic
 func ldasortedtopics(topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser) map[int][]topicsorter {
 	const (
 		TOPN = 8
 	)
-
-	// Examine Topic over word probability distribution
-
 	tr, tc := topicsOverWords.Dims()
 
 	vocab := make([]string, len(vectoriser.Vocabulary))
@@ -451,6 +458,7 @@ func ldasortedtopics(topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser
 	return tops
 }
 
+// ldadocpertopic - N sentences have topic X as their dominant topic
 func ldadocpertopic(docsOverTopics mat.Matrix) []int {
 	counter := make([]int, NUMBEROFTOPICS)
 	dr, dc := docsOverTopics.Dims()
@@ -467,13 +475,10 @@ func ldadocpertopic(docsOverTopics mat.Matrix) []int {
 		}
 		counter[winner] += 1
 	}
-	//msg("ldadocpertopic(): N sentences have topic X as their dominant topic", 1)
-	//for i := 0; i < NUMBEROFTOPICS; i++ {
-	//	fmt.Printf("topic %d: %d (%.2f%%)\n", i+1, counter[i], float64(counter[i])/float64(dc)*100)
-	//}
 	return counter
 }
 
+// ldadocbyweight - scaled total accumulated weight of each topic
 func ldadocbyweight(docsOverTopics mat.Matrix) []float64 {
 	counter := make([]float64, NUMBEROFTOPICS)
 	dr, dc := docsOverTopics.Dims()
@@ -490,10 +495,8 @@ func ldadocbyweight(docsOverTopics mat.Matrix) []float64 {
 	high := mx[len(mx)-1]
 
 	scaled := make([]float64, NUMBEROFTOPICS)
-	// msg("ldadocbyweight(): scaled total accumulated weight of each topic", 1)
 	for i := 0; i < NUMBEROFTOPICS; i++ {
 		scaled[i] = counter[i] / high
-		// fmt.Printf("topic %d: %.2f%%\n", i+1, scaled[i])
 	}
 	return scaled
 }
@@ -547,6 +550,103 @@ func acuteforgrave(thetext string) string {
 		"ἂ", "ἄ", "ἒ", "ἔ", "ἲ", "ἴ", "ὂ", "ὄ", "ὒ", "ὔ", "ἢ", "ἤ", "ὢ", "ὤ", "ᾃ", "ᾅ", "ᾓ", "ᾕ", "ᾣ", "ᾥ",
 		"ᾂ", "ᾄ", "ᾒ", "ᾔ", "ᾢ", "ᾤ")
 	return swap.Replace(thetext)
+}
+
+//
+// LDA matrix
+//
+
+// see https://pkg.go.dev/gonum.org/v1/gonum/mat@v0.12.0#pkg-index
+
+func ldaplot(corpus []string, vectoriser *nlp.CountVectoriser) {
+	// m := mat.NewDense()
+	// func NewDense(r int, c int, data []float64) *Dense
+	msg("ldaplot()", 1)
+	docsOverTopics, _ := ldamodel(NUMBEROFTOPICS, corpus, vectoriser)
+
+	dr, dc := docsOverTopics.Dims()
+	doclabels := make([]float64, dc)
+	for doc := 0; doc < dc; doc++ {
+		max := float64(0)
+		winner := 0
+		for topic := 0; topic < dr; topic++ {
+			// any given corpus[doc] will look like
+			// Topic #0=0.006009, Topic #1=0.006915, Topic #2=0.000688, Topic #3=0.449514, Topic #4=0.536875
+			if docsOverTopics.At(topic, doc) > max {
+				winner = topic
+				max = docsOverTopics.At(topic, doc)
+			}
+
+		}
+		doclabels[doc] = float64(winner)
+	}
+
+	t := tsne.NewTSNE(2, 300, 100, 300, true)
+
+	var dd []float64
+	for doc := 0; doc < dc; doc++ {
+		for topic := 0; topic < dr; topic++ {
+			dd = append(dd, docsOverTopics.At(topic, doc))
+		}
+	}
+	wv := mat.NewDense(dr, dc, dd)
+	Y := mat.NewDense(dc, 1, doclabels)
+
+	fmt.Println(Y)
+
+	t.EmbedData(wv, nil)
+	//fmt.Println(Y)
+	// Y is the label for each row in the matrix
+	plotY2D(t.Y, Y, fmt.Sprintf("lda-out-%d.png", 1))
+
+}
+
+//
+// LDA graphing
+//
+
+// plotY2D plots the 2D embedding Y and saves an image of the plot with the specified filename.
+func plotY2D(Y, labels mat.Matrix, filename string) {
+	// copied from https://github.com/danaugrs/go-tsne/blob/master/examples/mnist2d/mnist2d.go
+
+	// Create a plotter for each of the 8 digit classes
+	classes := []float64{0, 1, 2, 3, 4, 5, 6, 7}
+	classPlotters := make([]plotter.XYs, len(classes))
+	for i := range classes {
+		classPlotters[i] = make(plotter.XYs, 0)
+	}
+
+	// Populate the class plotters with their respective data
+	n, _ := Y.Dims()
+	fmt.Println(n)
+	for i := 0; i < n; i++ {
+		label := int(labels.At(i, 0))
+		classPlotters[label] = append(classPlotters[label], plotter.XY{Y.At(i, 0), Y.At(i, 1)})
+	}
+
+	// Create a plot and update title and axes
+	p := plot.New()
+	p.Title.Text = "t-SNE MNIST"
+	p.X.Label.Text = "X"
+	p.Y.Label.Text = "Y"
+
+	// Convert plotters to array of empty interfaces
+	classPlottersEI := make([]interface{}, len(classes))
+	for i := range classes {
+		classPlottersEI[i] = classPlotters[i]
+	}
+
+	// Add class plotters to the plot
+	err := plotutil.AddScatters(p, classPlottersEI...)
+	if err != nil {
+		panic(err)
+	}
+
+	// Save the plot to a PNG file
+	err = p.Save(8*vg.Inch, 8*vg.Inch, filename)
+	if err != nil {
+		panic(err)
+	}
 }
 
 //
@@ -653,3 +753,4 @@ func acuteforgrave(thetext string) string {
 // 9. Word Clouds of Top N Keywords in Each Topic
 // 12. What are the most discussed topics in the documents? (Number of Documents by Dominant Topic / Number of Documents by Topic Weightage)
 // 13. t-SNE Clustering Chart (would need https://github.com/danaugrs/go-tsne)
+// https://www.kaggle.com/code/yohanb/lda-visualized-using-t-sne-and-bokeh
