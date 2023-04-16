@@ -86,6 +86,15 @@ var (
 		Window:             8,
 		Xmax:               90,
 	}
+
+	DefaultLDAVectors = LDAConfig{
+		SentencesPerBag: LDASENTPERBAG,
+		LDAIterations:   LDAITER,
+		LDAXformPasses:  LDAXFORMPASSES,
+		BurnInPasses:    LDABURNINPASSES,
+		ChangeEvalFrq:   LDACHGEVALFRQ,
+		PerplexEvalFrq:  LDAPERPEVALFRQ,
+	}
 )
 
 //
@@ -326,6 +335,62 @@ func vectordbcount(priority int) {
 }
 
 //
+// LDA CONFIGURATION
+//
+
+type LDAConfig struct {
+	SentencesPerBag int
+	LDAIterations   int
+	LDAXformPasses  int
+	BurnInPasses    int
+	ChangeEvalFrq   int
+	PerplexEvalFrq  int
+	Goroutines      int
+}
+
+func ldavecconfig() LDAConfig {
+	const (
+		ERR1 = "ldavecconfig() cannot find UserHomeDir"
+		ERR2 = "ldavecconfig() failed to parse "
+		MSG1 = "wrote default vector configuration file "
+		MSG2 = "read vector configuration from "
+	)
+
+	cfg := DefaultLDAVectors
+	cfg.Goroutines = runtime.NumCPU()
+
+	h, e := os.UserHomeDir()
+	if e != nil {
+		msg(ERR1, 0)
+		return cfg
+	}
+
+	_, yes := os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORLDA)
+
+	if yes != nil {
+		content, err := json.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
+		chke(err)
+
+		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTORLDA, content, WRITEPERMS)
+		chke(err)
+		msg(MSG1+CONFIGVECTORLDA, MSGPEEK)
+	} else {
+		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORLDA)
+		decoderc := json.NewDecoder(loadedcfg)
+		vc := LDAConfig{}
+		errc := decoderc.Decode(&vc)
+		_ = loadedcfg.Close()
+		if errc != nil {
+			msg(ERR2+CONFIGVECTORLDA, MSGCRIT)
+			vc = cfg
+		}
+		msg(MSG2+CONFIGVECTORLDA, MSGTMI)
+		cfg = vc
+	}
+	return cfg
+}
+
+//
 // WEGO NOTES AND DEFAULTS
 //
 
@@ -365,7 +430,7 @@ func w2vvectorconfig() word2vec.Options {
 		_ = loadedcfg.Close()
 		if errc != nil {
 			msg(ERR2+CONFIGVECTORW2V, MSGCRIT)
-			cfg = DefaultW2VVectors
+			vc = DefaultW2VVectors
 		}
 		msg(MSG2+CONFIGVECTORW2V, MSGTMI)
 		cfg = vc
@@ -374,7 +439,7 @@ func w2vvectorconfig() word2vec.Options {
 	return cfg
 }
 
-// lexvecvectorconfig() - read the CONFIGVECTORW2V file and return word2vec.Options
+// lexvecvectorconfig() - read the CONFIGVECTORLEXVEC file and return word2vec.Options
 func lexvecvectorconfig() lexvec.Options {
 	const (
 		ERR1 = "lexvecvectorconfig() cannot find UserHomeDir"
@@ -393,32 +458,32 @@ func lexvecvectorconfig() lexvec.Options {
 		return cfg
 	}
 
-	_, yes := os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORLEXVEX)
+	_, yes := os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORLEXVEC)
 
 	if yes != nil {
 		content, err := json.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
 		chke(err)
 
-		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTORLEXVEX, content, WRITEPERMS)
+		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTORLEXVEC, content, WRITEPERMS)
 		chke(err)
-		msg(MSG1+CONFIGVECTORLEXVEX, MSGPEEK)
+		msg(MSG1+CONFIGVECTORLEXVEC, MSGPEEK)
 	} else {
-		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORLEXVEX)
+		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORLEXVEC)
 		decoderc := json.NewDecoder(loadedcfg)
 		vc := lexvec.Options{}
 		errc := decoderc.Decode(&vc)
 		_ = loadedcfg.Close()
 		if errc != nil {
-			msg(ERR2+CONFIGVECTORLEXVEX, MSGCRIT)
-			cfg = DefaultLexVecVectors
+			msg(ERR2+CONFIGVECTORLEXVEC, MSGCRIT)
+			vc = DefaultLexVecVectors
 		}
-		msg(MSG2+CONFIGVECTORLEXVEX, MSGTMI)
+		msg(MSG2+CONFIGVECTORLEXVEC, MSGTMI)
 		cfg = vc
 	}
 	return cfg
 }
 
-// glovevectorconfig() - read the CONFIGVECTORW2V file and return word2vec.Options
+// glovevectorconfig() - read the CONFIGVECTORGLOVE file and return word2vec.Options
 func glovevectorconfig() glove.Options {
 	const (
 		ERR1 = "glovevectorconfig() cannot find UserHomeDir"
@@ -454,7 +519,7 @@ func glovevectorconfig() glove.Options {
 		_ = loadedcfg.Close()
 		if errc != nil {
 			msg(ERR2+CONFIGVECTORGLOVE, MSGCRIT)
-			cfg = DefaultGloveVectors
+			vc = DefaultGloveVectors
 		}
 		msg(MSG2+CONFIGVECTORGLOVE, MSGTMI)
 		cfg = vc

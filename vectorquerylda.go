@@ -290,11 +290,14 @@ func ldamontecarlobagging(thebags []BagWithLocus, montecarlo map[string]hwguesse
 
 // ldamodel - build the lda model for the corpus
 func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser) (mat.Matrix, mat.Matrix) {
-
+	cfg := ldavecconfig()
 	lda := nlp.NewLatentDirichletAllocation(topics)
-	lda.Processes = Config.WorkerCount
-	lda.Iterations = LDAITERATIONS
-	lda.TransformationPasses = LDAITERATIONS / 2
+	lda.Processes = cfg.Goroutines
+	lda.Iterations = cfg.LDAIterations
+	lda.TransformationPasses = cfg.LDAXformPasses
+	lda.BurnInPasses = cfg.BurnInPasses
+	lda.ChangeEvaluationFrequency = cfg.ChangeEvalFrq
+	lda.PerplexityEvaluationFrequency = cfg.PerplexEvalFrq
 
 	// WARNING: the corpus and the vocab look different if you have the wrong separator set in yokedbags
 	// nlp.NewPipeline(vectoriser, lda) will split yokedbags: spondeum•spondeus --> spondeum:25 spondeus:26

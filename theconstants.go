@@ -21,7 +21,8 @@ const (
 	CONFIGPROLIX             = "hgs-prolix-conf.json"
 	CONFIGVECTORW2V          = "hgs-vector-conf-w2v.json"
 	CONFIGVECTORGLOVE        = "hgs-vector-conf-glove.json"
-	CONFIGVECTORLEXVEX       = "hgs-vector-conf-lexvec.json"
+	CONFIGVECTORLEXVEC       = "hgs-vector-conf-lexvec.json"
+	CONFIGVECTORLDA          = "hgs-vector-conf-lda.json"
 	CONFIGVECTORSTOPSLAT     = "hgs-vector-stops-latin.json"
 	CONFIGVECTORSTOPSGRK     = "hgs-vector-stops-greek.json"
 	DBAUMAPSIZE              = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
@@ -48,6 +49,12 @@ const (
 	JSONINDENT               = "  "
 	LDATOPICS                = 8
 	LDAMAXTOPICS             = 30
+	LDASENTPERBAG            = 1
+	LDAITER                  = 50
+	LDAXFORMPASSES           = 30
+	LDABURNINPASSES          = 1
+	LDACHGEVALFRQ            = 15
+	LDAPERPEVALFRQ           = 15
 	MAXBROWSERCONTEXT        = 60
 	MAXDATE                  = 1500
 	MAXDATESTR               = "1500"
