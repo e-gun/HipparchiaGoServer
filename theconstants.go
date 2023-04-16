@@ -50,11 +50,12 @@ const (
 	LDATOPICS                = 8
 	LDAMAXTOPICS             = 30
 	LDASENTPERBAG            = 1
-	LDAITER                  = 50
+	LDAITER                  = 60
 	LDAXFORMPASSES           = 30
 	LDABURNINPASSES          = 1
 	LDACHGEVALFRQ            = 15
 	LDAPERPEVALFRQ           = 15
+	LDAPERPTOL               = 1e-2
 	MAXBROWSERCONTEXT        = 60
 	MAXDATE                  = 1500
 	MAXDATESTR               = "1500"

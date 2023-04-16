@@ -301,3 +301,27 @@ If you hover over a point you will see the text it is drawn from.
 The `Configuration options` panel also gives you the option of building a 3D graph instead of a 2D graph.
 
 ![inst02](../gitimg/lda_3d.png)
+
+There is a configuration file for LDA queries: `hgs-vector-conf-lda.json`. 
+
+```
+{
+    "SentencesPerBag": 1,
+    "LDAIterations": 60,
+    "LDAXformPasses": 30,
+    "BurnInPasses": 1,
+    "ChangeEvalFrq": 15,
+    "PerplexEvalFrq": 15,
+    "PerplexTol": 0.01,
+    "Goroutines": 20
+  }
+```
+
+The default value for `LDAIterations` in the package that provides the LDA code is `1000`. If you do that the 
+topic sentences returned will be very, very short. The system will gravitate towards single word sentences.
+
+In fact `100` as an iterations value still tends to produce this effect to some extent. 
+
+The defaults sem to be OK. But there is a lot of room for experimentation given that LDA results are not as
+clearly good/bad as are nearest neighbor search results.
+

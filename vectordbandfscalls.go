@@ -94,6 +94,7 @@ var (
 		BurnInPasses:    LDABURNINPASSES,
 		ChangeEvalFrq:   LDACHGEVALFRQ,
 		PerplexEvalFrq:  LDAPERPEVALFRQ,
+		PerplexTol:      LDAPERPTOL,
 	}
 )
 
@@ -345,6 +346,7 @@ type LDAConfig struct {
 	BurnInPasses    int
 	ChangeEvalFrq   int
 	PerplexEvalFrq  int
+	PerplexTol      float64
 	Goroutines      int
 }
 

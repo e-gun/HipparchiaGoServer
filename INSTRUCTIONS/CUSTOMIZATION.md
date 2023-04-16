@@ -81,3 +81,17 @@ placed in `~/.config/`. It is formatted as follows:
   }
 ]
 ```
+
+The full list of configuration files follows. Note that many of them are specific to `SEMATNTICVECTORS`. See that help file for more.
+
+```
+~/.config/ % ls -1 hgs-*
+hgs-prolix-conf.json
+hgs-users.json
+hgs-vector-conf-glove.json
+hgs-vector-conf-lda.json
+hgs-vector-conf-lexvec.json
+hgs-vector-conf-w2v.json
+hgs-vector-stops-greek.json
+hgs-vector-stops-latin.json
+```

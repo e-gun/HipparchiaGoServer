@@ -333,7 +333,7 @@ var (
 		"an", "locum"}
 	LatExtra = []string{"at", "o", "tum", "tunc", "dum", "illic", "quia", "sive", "num", "adhuc", "tam", "ibi", "cur",
 		"usquam", "quoque", "duo", "talis", "simul", "igitur", "utique²", "aliqui", "apud", "sic", "umquam", "ergo",
-		"ob", "xu", "x", "iii", "u", "post", "ac", "ut", "totus", "iste", "sue", "ceter", "inter"}
+		"ob", "xu", "x", "iii", "u", "post", "ac", "ut", "totus", "iste", "sue", "ceter", "inter", "eos"}
 	LatStop = append(Latin100, LatExtra...)
 	// LatinKeep - members of LatStop we will not toss
 	LatinKeep = []string{"facio", "possum", "habeo", "video", "magnus", "bonus", "volo¹", "primus", "venio", "ago",
