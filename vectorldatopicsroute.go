@@ -121,11 +121,13 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 
 	htmltables := strings.Join(tables, "")
 
+	incl := srch.InclusionOverview(se.Inclusions)
+
 	var img string
 	if se.LDAgraph {
 		srch.ExtraMsg = fmt.Sprintf("<br>using t-Distributed Stochastic Neighbor Embedding to build graph")
 		AllSearches.InsertSS(srch)
-		img = ldaplot(se.LDA2D, ntopics, dot, bags)
+		img = ldaplot(se.LDA2D, ntopics, incl, dot, bags)
 	}
 
 	soj := SearchOutputJSON{
@@ -534,7 +536,7 @@ func ldadocbyweight(ntopics int, docsOverTopics mat.Matrix) []float64 {
 
 // see https://pkg.go.dev/gonum.org/v1/gonum/mat@v0.12.0#pkg-index
 
-func ldaplot(graph2d bool, ntopics int, docsOverTopics mat.Matrix, bags []BagWithLocus) string {
+func ldaplot(graph2d bool, ntopics int, incl string, docsOverTopics mat.Matrix, bags []BagWithLocus) string {
 	// m := mat.NewDense()
 	// func NewDense(r int, c int, data []float64) *Dense
 
@@ -588,12 +590,12 @@ func ldaplot(graph2d bool, ntopics int, docsOverTopics mat.Matrix, bags []BagWit
 	if graph2d {
 		t := tsne.NewTSNE(2, PERPLEX, LEARNRT, MAXITER, VERBOSE)
 		t.EmbedData(wv, nil)
-		htmlandjs = ldascatter(ntopics, t.Y, Y, bags)
+		htmlandjs = ldascatter(ntopics, incl, t.Y, Y, bags)
 	} else {
 		// 3d - does not work
 		nd := tsne.NewTSNE(3, PERPLEX, LEARNRT, MAXITER, VERBOSE)
 		nd.EmbedData(wv, nil)
-		htmlandjs = lda3dscatter(ntopics, nd.Y, Y, bags)
+		htmlandjs = lda3dscatter(ntopics, incl, nd.Y, Y, bags)
 	}
 
 	return htmlandjs

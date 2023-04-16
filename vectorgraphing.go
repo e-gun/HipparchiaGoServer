@@ -321,37 +321,14 @@ func fmthsl(h int, s int, l int) string {
 }
 
 //
-// LDA SCATTER GRAPHS
+// SHARED CHART FEATURES
 //
 
-func ldascatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string {
+func getcharttooltip() opts.Tooltip {
 	const (
-		DOTSIZE   = 8
-		DOTSTYLE  = "triangle"
-		TTF       = ""
-		NAMETMPL  = "%s: %s"
-		SAMPSIZE  = 7
-		TITLE     = "t-SNE scattergraph"
-		SAVEFILE  = "lda_tsne_scattergraph"
-		SAVETYPE  = "png" // svg, jpeg, or png
-		SAVESTR   = "Save to file..."
-		LEFTALIGN = "20"
-		BOTTALIGN = "0%"
-		FONTSTYLE = "normal"
-		FONTSIZE  = 14
-		FONTDIFF  = 6
-		TEXTPAD   = "10"
+		TTF = ""
 	)
-
 	// https://echarts.apache.org/en/option.html#tooltip
-	tt := opts.Tooltip{
-		Show:        true,
-		Trigger:     "item",      // item, axis, none
-		TriggerOn:   "mousemove", // mousemove, click, mousemove|click, none
-		Enterable:   false,
-		Formatter:   TTF,
-		AxisPointer: nil,
-	}
 
 	// the fancy TTF used at https://echarts.apache.org/examples/en/editor.html?c=scatter-aqi-color
 	// 		TTF      = `
@@ -371,10 +348,26 @@ func ldascatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string {
 	//			}`
 	// could use this to actually give a real location, etc. via a get()
 
+	return opts.Tooltip{
+		Show:        true,
+		Trigger:     "item",      // item, axis, none
+		TriggerOn:   "mousemove", // mousemove, click, mousemove|click, none
+		Enterable:   false,
+		Formatter:   TTF,
+		AxisPointer: nil,
+	}
+}
+
+func getcharttoolboxopts(sfn string) opts.Toolbox {
+	const (
+		SAVETYPE  = "png" // svg, jpeg, or png
+		SAVESTR   = "Save to file..."
+		LEFTALIGN = "20"
+	)
 	tbs := opts.ToolBoxFeatureSaveAsImage{
 		Show:  true,
 		Type:  SAVETYPE,
-		Name:  SAVEFILE,
+		Name:  sfn,
 		Title: SAVESTR, // get chinese if ""
 	}
 
@@ -391,7 +384,18 @@ func ldascatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string {
 		Bottom:  "",
 		Feature: &tbf,
 	}
+	return tbo
+}
 
+func getcharttitleopts(t string, incl string) opts.Title {
+	const (
+		LEFTALIGN = "20"
+		BOTTALIGN = "0%"
+		FONTSTYLE = "normal"
+		FONTSIZE  = 14
+		FONTDIFF  = 6
+		TEXTPAD   = "10"
+	)
 	ft := Config.Font
 	if ft == "Noto" {
 		ft = "'hipparchiasemiboldstatic', sans-serif"
@@ -413,7 +417,7 @@ func ldascatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string {
 	}
 
 	tit := opts.Title{
-		Title:         TITLE,
+		Title:         fmt.Sprintf(t, incl),
 		TitleStyle:    &tst,
 		Subtitle:      "", // can not see this if you put the title on the very bottom of the image
 		SubtitleStyle: &sst,
@@ -422,29 +426,63 @@ func ldascatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string {
 		Left:          LEFTALIGN,
 		Right:         "",
 	}
+	return tit
+}
+
+func getchartseriesstyle(top int) charts.SeriesOpts {
+	so := charts.WithItemStyleOpts(getchartitemstyle(top))
+	return so
+}
+
+func getchartitemstyle(top int) opts.ItemStyle {
+	const (
+		STARTHUE  = 0
+		HUEOFFSET = 40
+	)
+	is := opts.ItemStyle{
+		Color: fmthsl(STARTHUE+(HUEOFFSET*top), DOTSAT, DOTLUM),
+	}
+	return is
+}
+
+func getdotcitation(idx int, bags []BagWithLocus) string {
+	const (
+		NAMETMPL = "%s: %s"
+		SAMPSIZE = 7
+	)
+	loc := strings.TrimPrefix(bags[idx].Loc, "line/")
+	init := strings.Split(bags[idx].Bag, " ")
+	samp := ""
+	if len(init) > SAMPSIZE {
+		samp = strings.Join(init[0:SAMPSIZE], " ") + "..."
+		return fmt.Sprintf(NAMETMPL, loc, samp)
+	} else {
+		samp = strings.Join(init[0:], " ") + "..."
+		return fmt.Sprintf(NAMETMPL, loc, samp)
+	}
+}
+
+//
+// LDA SCATTER GRAPHS
+//
+
+func ldascatter(ntopics int, incl string, Y, labels mat.Matrix, bags []BagWithLocus) string {
+	const (
+		DOTSIZE  = 8
+		DOTSTYLE = "triangle"
+		TITLE    = "t-SNE scattergraph of %s"
+		SAVEFILE = "lda_tsne_2d_scattergraph"
+	)
 
 	scatter := charts.NewScatter()
 	scatter.SetGlobalOptions(
-		charts.WithTitleOpts(tit),
+		charts.WithTitleOpts(getcharttitleopts(TITLE, incl)),
 		charts.WithInitializationOpts(opts.Initialization{Width: CHRTHEIGHT, Height: CHRTHEIGHT}), // square
-		charts.WithTooltipOpts(tt),
-		charts.WithToolboxOpts(tbo),
+		charts.WithTooltipOpts(getcharttooltip()),
+		charts.WithToolboxOpts(getcharttoolboxopts(SAVEFILE)),
 	)
 
 	dr, _ := Y.Dims()
-
-	namer := func(idx int) string {
-		loc := strings.TrimPrefix(bags[idx].Loc, "line/")
-		init := strings.Split(bags[idx].Bag, " ")
-		samp := ""
-		if len(init) > SAMPSIZE {
-			samp = strings.Join(init[0:SAMPSIZE], " ") + "..."
-			return fmt.Sprintf(NAMETMPL, loc, samp)
-		} else {
-			samp = strings.Join(init[0:], " ") + "..."
-			return fmt.Sprintf(NAMETMPL, loc, samp)
-		}
-	}
 
 	generateseries := func(topic int) []opts.ScatterData {
 		// Value        interface{} `json:"value,omitempty"`
@@ -459,7 +497,7 @@ func ldascatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string {
 					Symbol:       DOTSTYLE,
 					SymbolSize:   DOTSIZE,
 					SymbolRotate: rand.Intn(360),
-					Name:         namer(i),
+					Name:         getdotcitation(i, bags),
 				})
 			}
 		}
@@ -467,7 +505,7 @@ func ldascatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string {
 	}
 
 	for i := 0; i < ntopics; i++ {
-		scatter.AddSeries(fmt.Sprintf("Topic %d", i+1), generateseries(i))
+		scatter.AddSeries(fmt.Sprintf("Topic %d", i+1), generateseries(i), getchartseriesstyle(i))
 	}
 
 	page := components.NewPage()
@@ -487,137 +525,36 @@ func ldascatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string {
 	return htmlandjs
 }
 
-func lda3dscatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string {
+func lda3dscatter(ntopics int, incl string, Y, labels mat.Matrix, bags []BagWithLocus) string {
 	const (
-		TTF       = ""
-		NAMETMPL  = "%s: %s"
-		SAMPSIZE  = 7
-		TITLE     = "t-SNE scattergraph"
-		SAVEFILE  = "lda_tsne_scattergraph"
-		SAVETYPE  = "png" // svg, jpeg, or png
-		SAVESTR   = "Save to file..."
-		LEFTALIGN = "20"
-		BOTTALIGN = "0%"
-		FONTSTYLE = "normal"
-		FONTSIZE  = 14
-		FONTDIFF  = 6
-		TEXTPAD   = "10"
-		STARTHUE  = 0
-		HUEOFFSET = 40
+		TITLE    = "t-SNE scattergraph of %s"
+		SAVEFILE = "lda_tsne_3d_scattergraph"
 	)
-
-	// https://echarts.apache.org/en/option.html#tooltip
-	tt := opts.Tooltip{
-		Show:        true,
-		Trigger:     "item",      // item, axis, none
-		TriggerOn:   "mousemove", // mousemove, click, mousemove|click, none
-		Enterable:   false,
-		Formatter:   TTF,
-		AxisPointer: nil,
-	}
-
-	// the fancy TTF used at https://echarts.apache.org/examples/en/editor.html?c=scatter-aqi-color
-	// 		TTF      = `
-	//		function (param) {
-	//			  var value = param.value;
-	//			  // prettier-ignore
-	//			  return '<div style="border-bottom: 1px solid rgba(255,255,255,.3); font-size: 18px;padding-bottom: 7px;margin-bottom: 7px">'
-	//						+ param.seriesName + ' ' + value[0] + '日：'
-	//						+ value[7]
-	//						+ '</div>'
-	//						+ schema[1].text + '：' + value[1] + '<br>'
-	//						+ schema[2].text + '：' + value[2] + '<br>'
-	//						+ schema[3].text + '：' + value[3] + '<br>'
-	//						+ schema[4].text + '：' + value[4] + '<br>'
-	//						+ schema[5].text + '：' + value[5] + '<br>'
-	//						+ schema[6].text + '：' + value[6] + '<br>';
-	//			}`
-	// could use this to actually give a real location, etc. via a get()
-
-	tbs := opts.ToolBoxFeatureSaveAsImage{
-		Show:  true,
-		Type:  SAVETYPE,
-		Name:  SAVEFILE,
-		Title: SAVESTR, // get chinese if ""
-	}
-
-	tbf := opts.ToolBoxFeature{
-		SaveAsImage: &tbs,
-	}
-
-	tbo := opts.Toolbox{
-		Show:    true,
-		Orient:  "vertical",
-		Left:    LEFTALIGN,
-		Top:     "",
-		Right:   "",
-		Bottom:  "",
-		Feature: &tbf,
-	}
 
 	ft := Config.Font
 	if ft == "Noto" {
 		ft = "'hipparchiasemiboldstatic', sans-serif"
 	}
 
-	tst := opts.TextStyle{
-		Color:      fmthsl(DOTHUE, DOTSAT, DOTLUM),
-		FontStyle:  FONTSTYLE,
-		FontSize:   FONTSIZE,
-		FontFamily: ft,
-		Padding:    TEXTPAD,
-	}
-
-	sst := opts.TextStyle{
-		Color:      fmthsl(DOTHUE, DOTSAT, DOTLUMPER),
-		FontStyle:  FONTSTYLE,
-		FontSize:   FONTSIZE - FONTDIFF,
-		FontFamily: ft,
-	}
-
-	tit := opts.Title{
-		Title:         TITLE,
-		TitleStyle:    &tst,
-		Subtitle:      "", // can not see this if you put the title on the very bottom of the image
-		SubtitleStyle: &sst,
-		Top:           "",
-		Bottom:        BOTTALIGN,
-		Left:          LEFTALIGN,
-		Right:         "",
-	}
-
 	scatter := charts.NewScatter3D()
 	scatter.SetGlobalOptions(
-		charts.WithTitleOpts(opts.Title{Title: ""}),
 		charts.WithXAxis3DOpts(opts.XAxis3D{Name: "X-AXIS", Show: true}),
 		charts.WithYAxis3DOpts(opts.YAxis3D{Name: "Y-AXIS"}),
 		charts.WithZAxis3DOpts(opts.ZAxis3D{Name: "Z-AXIS"}),
 	)
 
 	scatter.SetGlobalOptions(
-		charts.WithTitleOpts(tit),
+		charts.WithTitleOpts(getcharttitleopts(TITLE, incl)),
 		charts.WithInitializationOpts(opts.Initialization{Width: CHRTHEIGHT, Height: CHRTHEIGHT}), // square
-		charts.WithTooltipOpts(tt),
-		charts.WithToolboxOpts(tbo),
+		charts.WithTooltipOpts(getcharttooltip()),
+		charts.WithToolboxOpts(getcharttoolboxopts(SAVEFILE)),
 	)
 
 	dr, _ := Y.Dims()
 
-	namer := func(idx int) string {
-		loc := strings.TrimPrefix(bags[idx].Loc, "line/")
-		init := strings.Split(bags[idx].Bag, " ")
-		samp := ""
-		if len(init) > SAMPSIZE {
-			samp = strings.Join(init[0:SAMPSIZE], " ") + "..."
-			return fmt.Sprintf(NAMETMPL, loc, samp)
-		} else {
-			samp = strings.Join(init[0:], " ") + "..."
-			return fmt.Sprintf(NAMETMPL, loc, samp)
-		}
-	}
-
 	col := func(top int) *opts.ItemStyle {
-		return &opts.ItemStyle{Color: fmthsl(STARTHUE+(HUEOFFSET*top), DOTSAT, DOTLUM)}
+		is := getchartitemstyle(top)
+		return &is
 	}
 
 	generateseries := func(topic int) []opts.Chart3DData {
@@ -632,7 +569,7 @@ func lda3dscatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string
 				items = append(items, opts.Chart3DData{
 					Value:     []interface{}{x, y, z},
 					ItemStyle: col(topic),
-					Name:      namer(i),
+					Name:      getdotcitation(i, bags),
 				})
 			}
 		}
@@ -644,16 +581,8 @@ func lda3dscatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string
 		ItemStyle: nil,
 	})
 
-	iso := func(top int) charts.SeriesOpts {
-		z := charts.WithItemStyleOpts(
-			opts.ItemStyle{
-				Color: fmthsl(STARTHUE+(HUEOFFSET*top), DOTSAT, DOTLUM),
-			})
-		return z
-	}
-
 	for i := 0; i < ntopics; i++ {
-		scatter.AddSeries(fmt.Sprintf("Topic %d", i+1), generateseries(i), iso(i))
+		scatter.AddSeries(fmt.Sprintf("Topic %d", i+1), generateseries(i), getchartseriesstyle(i))
 	}
 
 	page := components.NewPage()
@@ -661,10 +590,7 @@ func lda3dscatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string
 		scatter,
 	)
 
-	// TODO? - custom3dscatterhtmlandjs() will panic...
-	// htmlandjs := custom3dscatterhtmlandjs(scatter)
-
-	// Temporary fix - output to a file...
+	// output to a file...
 	//f, err := os.Create("ldascatter.html")
 	//if err != nil {
 	//	panic(err)
@@ -672,15 +598,18 @@ func lda3dscatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string
 	//err = page.Render(io.MultiWriter(f))
 	//chke(err)
 
+	// TODO? - custom3dscatterhtmlandjs() will panic...
+	// htmlandjs := custom3dscatterhtmlandjs(scatter)
+
 	// KLUDGE
 	// use buffers; skip the disk
-	htmlandjs := pagerendertostring(page)
+	htmlandjs := pagerendertojscriptblock(page)
 
 	return htmlandjs
 }
 
-// pagerendertostring - kludge to use buffers to render a page and then trim the surrounding html
-func pagerendertostring(page *components.Page) string {
+// pagerendertojscriptblock - kludge to use buffers to render a page and then trim the surrounding html
+func pagerendertojscriptblock(page *components.Page) string {
 	var buf bytes.Buffer
 	w := io.Writer(&buf)
 	err := page.Render(io.MultiWriter(w))
