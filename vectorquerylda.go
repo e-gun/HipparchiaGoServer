@@ -18,13 +18,8 @@ import (
 	"strings"
 )
 
-// currently unused/unreachable ; for testing purposes only; edit MakeDefaultSession() in rt-session.go to reach this code
-
-// "github.com/james-bowman/nlp" contains some interesting possibilities: LatentDirichletAllocation, etc.
 // bagging as per the old HipparchiaGoDBHelper code: sentence by sentence; much of the code below from HipparchiaGoDBHelper
-
 // bowman's package can also do nearest neighbour similarity searches: LinearScanIndex.Search(qv mat.Vector, k int) -> []Match
-
 // with some (i.e., a lot of...) work the output could be fed to JS as per the python LDA visualizer
 
 // see bottom of file for sample results
@@ -82,6 +77,9 @@ func (b *BagWithLocus) GetWL() {
 
 // LDASearch - search via Latent Dirichlet Allocation
 func LDASearch(c echo.Context, srch SearchStruct) error {
+	const (
+		LDAMSG = `Building LDA model for the current selections`
+	)
 	c.Response().After(func() { SelfStats("LDASearch()") })
 
 	user := readUUIDCookie(c)
@@ -94,6 +92,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	vs := sessionintobulksearch(c, Config.VectorMaxlines)
 
 	AllSearches.SetRemain(srch.ID, 1)
+	srch.InitSum = LDAMSG
 	srch.ExtraMsg = fmt.Sprintf("<br>preparing the text for modeling")
 	AllSearches.InsertSS(srch)
 
@@ -143,7 +142,6 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
 
-// lda - report the N sentences that most fit the N topics you are modeling
 func ldapreptext(bagger string, dblines []DbWorkline) []BagWithLocus {
 
 	var sb strings.Builder
@@ -230,7 +228,6 @@ func ldapreptext(bagger string, dblines []DbWorkline) []BagWithLocus {
 	morphmapdbm := arraytogetrequiredmorphobjects(slicedwords) // map[string]DbMorphology
 	morphmapstrslc := buildmorphmapstrslc(slicedwords, morphmapdbm)
 
-	fmt.Println(bagger)
 	switch bagger {
 	case "unparsed":
 		thebags = ldaunmodifiedbagging(thebags)
@@ -299,6 +296,8 @@ func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser) (mat
 	lda.Iterations = LDAITERATIONS
 	lda.TransformationPasses = LDAITERATIONS / 2
 
+	// WARNING: the corpus and the vocab look different if you have the wrong separator set in yokedbags
+	// nlp.NewPipeline(vectoriser, lda) will split yokedbags: spondeum•spondeus --> spondeum:25 spondeus:26
 	pipeline := nlp.NewPipeline(vectoriser, lda)
 
 	docsOverTopics, err := pipeline.FitTransform(corpus...)
@@ -306,9 +305,7 @@ func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser) (mat
 		fmt.Println("Failed to model topics for documents")
 		panic(err)
 	}
-
 	topicsOverWords := lda.Components()
-
 	return docsOverTopics, topicsOverWords
 }
 
@@ -783,7 +780,3 @@ func splitonpunctuaton(thetext string) []string {
 // https://towardsdatascience.com/visualizing-topic-models-with-scatterpies-and-t-sne-f21f228f7b02
 
 // https://www.machinelearningplus.com/nlp/topic-modeling-visualization-how-to-present-results-lda-models/
-// 9. Word Clouds of Top N Keywords in Each Topic
-// 12. What are the most discussed topics in the documents? (Number of Documents by Dominant Topic / Number of Documents by Topic Weightage)
-// 13. t-SNE Clustering Chart (would need https://github.com/danaugrs/go-tsne)
-// https://www.kaggle.com/code/yohanb/lda-visualized-using-t-sne-and-bokeh

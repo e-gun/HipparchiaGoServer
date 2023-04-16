@@ -360,6 +360,7 @@ type SrchInfo struct {
 	Remain    int
 	SrchCount int
 	VProgStrg string
+	Summary   string
 }
 
 // SearchVault - there should be only one of these; and it contains all the searches
@@ -402,6 +403,7 @@ func (sv *SearchVault) GetInfo(id string) SrchInfo {
 		m.Remain = sv.SearchMap[id].Remain.Get()
 		m.Hits = sv.SearchMap[id].Hits.Get()
 		m.VProgStrg = sv.SearchMap[id].ExtraMsg
+		m.Summary = sv.SearchMap[id].InitSum
 	}
 	m.SrchCount = len(sv.SearchMap)
 	return m

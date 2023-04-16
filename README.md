@@ -18,15 +18,15 @@
   * general
     * configurable model parameters
     * configurable lists of stop-words
+    * choice of text building strategies
   * nearest neighbors
-    * search for terms and yield an interactive graph of nearest neighbors
+    * search for terms and yield a table and an interactive graph of nearest neighbors
     * choice of graphing styles: "neighbors" or "neighbors + neighbors of neighbors"
     * configure how many neighbors to track
     * choice of modeling algorithms
-    * choice of text building strategies
   * topic models
     * configure number of topics to track
-    * option to graph the LDA model via t-SNE reduction
+    * option to build an interactive graph the LDA model via t-SNE reduction (graphs can be 2d or 3d)
 * text browsing
 * text maker
 * indexing (+ flag unique forms)

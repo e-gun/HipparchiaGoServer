@@ -173,17 +173,18 @@ self-test with vectors can be deceptive because `-wc` flag will not override con
 ## code stats
 
 ```
-      38 text files.
-      38 unique files.                              
-       1 file ignored.
+% cloc *.go
+      41 text files.
+      41 unique files.                              
+       0 files ignored.
 
-github.com/AlDanial/cloc v 1.96  T=0.04 s (1075.4 files/s, 460832.9 lines/s)
+github.com/AlDanial/cloc v 1.96  T=0.04 s (1119.9 files/s, 468722.8 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                              38           2449           2173          11662
+Go                              41           2582           2336          12242
 -------------------------------------------------------------------------------
-SUM:                            38           2449           2173          11662
+SUM:                            41           2582           2336          12242
 -------------------------------------------------------------------------------
 
 ```
