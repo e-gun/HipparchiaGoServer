@@ -297,3 +297,7 @@ You can also request a graph of your model. This can be slow to generate.
 If you hover over a point you will see the text it is drawn from. 
 
 ![inst02](../gitimg/lda_hover.png)
+
+The `Configuration options` panel also gives you the option of building a 3D graph instead of a 2D graph.
+
+![inst02](../gitimg/lda_3d.png)

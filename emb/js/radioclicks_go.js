@@ -31,6 +31,13 @@ $('#ldagraph_n').click( function(){
     setoptions('ldagraph', 'no');
 });
 
+$('#ldagraph_2d').click( function(){
+    setoptions('ldagraph2dimensions', 'yes');
+});
+
+$('#ldagraph_3d').click( function(){
+    setoptions('ldagraph2dimensions', 'no');
+});
 
 $('#onehit_y').click( function(){
     setoptions('onehit', 'yes'); $('#onehitistrue').show(); $('#onehitisfalse').hide();

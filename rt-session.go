@@ -54,6 +54,7 @@ type ServerSession struct {
 	VecLDASearch bool
 	LDAgraph     bool
 	LDAtopics    int
+	LDA2D        bool
 }
 
 // BuildSelectionOverview will call the relevant SearchIncExl functions: see buildsearchlist.go
@@ -134,6 +135,7 @@ func MakeDefaultSession(id string) ServerSession {
 	s.VecModeler = Config.VectorModel
 	s.VecTextPrep = Config.VectorTextPrep
 	s.VecLDASearch = false
+	s.LDA2D = true
 
 	if Config.Authenticate {
 		AllAuthorized.Register(id, false)

@@ -45,6 +45,7 @@ func RtGetJSSession(c echo.Context) error {
 		LdaGraph          string `json:"ldagraph"`
 		LdaTopicCt        string `json:"ldatopiccount"`
 		LdaSearch         string `json:"isldasearch"`
+		Lda2D             string `json:"ldagraph2dimensions"`
 		Latincorpus       string `json:"latincorpus"`
 		Linesofcontext    string `json:"linesofcontext"`
 		Maxresults        string `json:"maxresults"`
@@ -88,6 +89,7 @@ func RtGetJSSession(c echo.Context) error {
 	jso.Latestdate = s.Latest
 	jso.Latincorpus = t2y(s.ActiveCorp["lt"])
 	jso.Linesofcontext = i2s(s.HitContext)
+	jso.Lda2D = t2y(s.LDA2D)
 	jso.LdaGraph = t2y(s.LDAgraph)
 	jso.LdaTopicCt = i2s(s.LDAtopics)
 	jso.LdaSearch = t2y(s.VecLDASearch)

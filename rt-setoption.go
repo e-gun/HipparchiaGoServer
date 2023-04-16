@@ -33,7 +33,7 @@ func RtSetOption(c echo.Context) error {
 
 	ynoptionlist := []string{"greekcorpus", "latincorpus", "papyruscorpus", "inscriptioncorpus", "christiancorpus",
 		"rawinputstyle", "onehit", "headwordindexing", "indexbyfrequency", "spuria", "incerta", "varia", "vocbycount",
-		"vocscansion", "isvectorsearch", "extendedgraph", "ldagraph", "isldasearch"}
+		"vocscansion", "isvectorsearch", "extendedgraph", "ldagraph", "isldasearch", "ldagraph2dimensions"}
 
 	s := AllSessions.GetSess(user)
 
@@ -83,6 +83,8 @@ func RtSetOption(c echo.Context) error {
 				s.VecGraphExt = b
 			case "ldagraph":
 				s.LDAgraph = b
+			case "ldagraph2dimensions":
+				s.LDA2D = b
 			default:
 				msg(FAIL2, MSGWARN)
 			}
