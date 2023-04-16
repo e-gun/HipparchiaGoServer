@@ -97,7 +97,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	srch.ExtraMsg = fmt.Sprintf("<br>preparing the text for modeling")
 	AllSearches.InsertSS(srch)
 
-	bags := ldapreptext(vs.Results)
+	bags := ldapreptext(se.VecTextPrep, vs.Results)
 
 	corpus := make([]string, len(bags))
 	for i := 0; i < len(bags); i++ {
@@ -127,7 +127,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	if se.LDAgraph {
 		srch.ExtraMsg = fmt.Sprintf("<br>using t-Distributed Stochastic Neighbor Embedding to build graph")
 		AllSearches.InsertSS(srch)
-		img = ldaplot(se.LDA2D, ntopics, incl, dot, bags)
+		img = ldaplot(se.LDA2D, ntopics, incl, se.VecTextPrep, dot, bags)
 	}
 
 	soj := SearchOutputJSON{
@@ -144,7 +144,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 }
 
 // lda - report the N sentences that most fit the N topics you are modeling
-func ldapreptext(dblines []DbWorkline) []BagWithLocus {
+func ldapreptext(bagger string, dblines []DbWorkline) []BagWithLocus {
 
 	var sb strings.Builder
 	preallocate := CHARSPERLINE * len(dblines) // NB: a long line has 60 chars
@@ -229,11 +229,48 @@ func ldapreptext(dblines []DbWorkline) []BagWithLocus {
 	slicedwords := StringMapKeysIntoSlice(allwords)
 	morphmapdbm := arraytogetrequiredmorphobjects(slicedwords) // map[string]DbMorphology
 	morphmapstrslc := buildmorphmapstrslc(slicedwords, morphmapdbm)
-	winnermap := buildwinnertakesallparsemap(morphmapstrslc) // should also support montecarlo, etc some day
 
+	fmt.Println(bagger)
+	switch bagger {
+	case "unparsed":
+		thebags = ldaunmodifiedbagging(thebags)
+	case "yoked":
+		yokedmap := buildyokedparsemap(morphmapstrslc)
+		thebags = ldayokedbagging(thebags, yokedmap)
+	case "montecarlo":
+		mcm := buildmontecarloparsemap(morphmapstrslc)
+		thebags = ldamontecarlobagging(thebags, mcm)
+	default:
+		// winner
+		winnermap := buildwinnertakesallparsemap(morphmapstrslc)
+		thebags = ldawinnerbagging(thebags, winnermap)
+	}
+
+	return thebags
+}
+
+func ldaunmodifiedbagging(thebags []BagWithLocus) []BagWithLocus {
+	for i := 0; i < len(thebags); i++ {
+		thebags[i].ModifiedBag = thebags[i].Bag
+	}
+	return thebags
+}
+
+func ldayokedbagging(thebags []BagWithLocus, yokermap map[string]string) []BagWithLocus {
+	stops := getstopset()
 	for i := 0; i < len(thebags); i++ {
 		var b strings.Builder
-		winnerstring(&b, strings.Split(thebags[i].Bag, " "), winnermap)
+		yokedstring(&b, strings.Split(thebags[i].Bag, " "), yokermap, stops)
+		thebags[i].ModifiedBag = b.String()
+	}
+	return thebags
+}
+
+func ldawinnerbagging(thebags []BagWithLocus, winnermap map[string]string) []BagWithLocus {
+	stops := getstopset()
+	for i := 0; i < len(thebags); i++ {
+		var b strings.Builder
+		winnerstring(&b, strings.Split(thebags[i].Bag, " "), winnermap, stops)
 		thebags[i].ModifiedBag = b.String()
 
 		// fmt.Printf("%s\t%s\n", thebags[i].Loc, thebags[i].ModifiedBag)
@@ -241,7 +278,16 @@ func ldapreptext(dblines []DbWorkline) []BagWithLocus {
 		//line/lt0959w014/34505	 arma admoneo
 		//line/lt0959w014/34506	 vitulus mino nondum gero¹ tener cornu frons² damma fugio pugno virtus leo² mordeo canae cauda scorpius ictus² concutio levis¹ pinnis evolo alo
 	}
+	return thebags
+}
 
+func ldamontecarlobagging(thebags []BagWithLocus, montecarlo map[string]hwguesser) []BagWithLocus {
+	stops := getstopset()
+	for i := 0; i < len(thebags); i++ {
+		var b strings.Builder
+		montecarlostring(&b, strings.Split(thebags[i].Bag, " "), montecarlo, stops)
+		thebags[i].ModifiedBag = b.String()
+	}
 	return thebags
 }
 
@@ -536,7 +582,7 @@ func ldadocbyweight(ntopics int, docsOverTopics mat.Matrix) []float64 {
 
 // see https://pkg.go.dev/gonum.org/v1/gonum/mat@v0.12.0#pkg-index
 
-func ldaplot(graph2d bool, ntopics int, incl string, docsOverTopics mat.Matrix, bags []BagWithLocus) string {
+func ldaplot(graph2d bool, ntopics int, incl string, bagger string, docsOverTopics mat.Matrix, bags []BagWithLocus) string {
 	// m := mat.NewDense()
 	// func NewDense(r int, c int, data []float64) *Dense
 
@@ -590,12 +636,12 @@ func ldaplot(graph2d bool, ntopics int, incl string, docsOverTopics mat.Matrix, 
 	if graph2d {
 		t := tsne.NewTSNE(2, PERPLEX, LEARNRT, MAXITER, VERBOSE)
 		t.EmbedData(wv, nil)
-		htmlandjs = ldascatter(ntopics, incl, t.Y, Y, bags)
+		htmlandjs = lda2dscatter(ntopics, incl, bagger, t.Y, Y, bags)
 	} else {
 		// 3d - does not work
 		nd := tsne.NewTSNE(3, PERPLEX, LEARNRT, MAXITER, VERBOSE)
 		nd.EmbedData(wv, nil)
-		htmlandjs = lda3dscatter(ntopics, incl, nd.Y, Y, bags)
+		htmlandjs = lda3dscatter(ntopics, incl, bagger, nd.Y, Y, bags)
 	}
 
 	return htmlandjs

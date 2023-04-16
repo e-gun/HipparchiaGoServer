@@ -410,7 +410,7 @@ func getdotcitation(idx int, bags []BagWithLocus) string {
 // LDA SCATTER GRAPHS
 //
 
-func ldascatter(ntopics int, incl string, Y, labels mat.Matrix, bags []BagWithLocus) string {
+func lda2dscatter(ntopics int, incl string, bagger string, Y, labels mat.Matrix, bags []BagWithLocus) string {
 	const (
 		DOTSIZE  = 8
 		DOTSTYLE = "triangle"
@@ -419,7 +419,7 @@ func ldascatter(ntopics int, incl string, Y, labels mat.Matrix, bags []BagWithLo
 	)
 
 	t := fmt.Sprintf(TITLE, incl)
-	st := ""
+	st := "text prep: " + bagger
 
 	scatter := charts.NewScatter()
 	scatter.SetGlobalOptions(
@@ -461,7 +461,7 @@ func ldascatter(ntopics int, incl string, Y, labels mat.Matrix, bags []BagWithLo
 	)
 
 	// output to a file...
-	//f, err := os.Create("ldascatter.html")
+	//f, err := os.Create("lda2dscatter.html")
 	//if err != nil {
 	//	panic(err)
 	//}
@@ -472,7 +472,7 @@ func ldascatter(ntopics int, incl string, Y, labels mat.Matrix, bags []BagWithLo
 	return htmlandjs
 }
 
-func lda3dscatter(ntopics int, incl string, Y, labels mat.Matrix, bags []BagWithLocus) string {
+func lda3dscatter(ntopics int, incl string, bagger string, Y, labels mat.Matrix, bags []BagWithLocus) string {
 	const (
 		TITLE    = "t-SNE scattergraph of %s"
 		SAVEFILE = "lda_tsne_3d_scattergraph"
@@ -486,7 +486,7 @@ func lda3dscatter(ntopics int, incl string, Y, labels mat.Matrix, bags []BagWith
 	)
 
 	t := fmt.Sprintf(TITLE, incl)
-	st := ""
+	st := "text prep: " + bagger
 
 	scatter.SetGlobalOptions(
 		charts.WithTitleOpts(getcharttitleopts(t, st)),
@@ -536,7 +536,7 @@ func lda3dscatter(ntopics int, incl string, Y, labels mat.Matrix, bags []BagWith
 	)
 
 	// output to a file...
-	//f, err := os.Create("ldascatter.html")
+	//f, err := os.Create("lda2dscatter.html")
 	//if err != nil {
 	//	panic(err)
 	//}

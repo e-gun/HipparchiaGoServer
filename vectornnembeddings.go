@@ -378,7 +378,7 @@ func buildtextblock(method string, lines []DbWorkline) string {
 	var sb strings.Builder
 	preallocate := CHARSPERLINE * len(lines) // NB: a long line has 60 chars
 	sb.Grow(preallocate)
-
+	stops := getstopset()
 	switch method {
 	case "unparsed":
 		flatstring(&sb, slicedwords)
@@ -388,21 +388,21 @@ func buildtextblock(method string, lines []DbWorkline) string {
 		// "mcm" for Albinus , poet. [lt2002]
 		// map[abscondere:{213 map[213:abscondo]} apte:{1591 map[168:apte 1591:aptus]} capitolia:{0 map[0:capitolium]} celsa:{1050 map[1050:celsus¹]} concludere:{353 map[353:concludo]} cui:{324175 map[0:quis² 251744:qui¹ 271556:qui² 324175:quis¹]} dactylum:{167 map[167:dactylus]} de:{42695 map[42695:de]} deum:{14899 map[14899:deus]} fieri:{12305 map[12305:fio]} freta:{1507 map[746:fretum 1507:fretus¹]} i:{58129 map[58129:eo¹]} ille:{44214 map[44214:ille]} iungens:{2275 map[2275:jungo]} liber:{24949 map[7550:liber¹ 20953:liber⁴ 24949:libo¹]} metris:{383 map[383:metrum]} moenibus:{1308 map[1308:moenia¹]} non:{96475 map[96475:non]} nulla:{11785 map[11785:nullus]} patuere:{1874 map[1828:pateo 1874:patesco]} posse:{41631 map[41631:possum]} repostos:{47 map[47:re-pono]} rerum:{38669 map[38669:res]} romanarum:{0 map[0:romanus]} sed:{44131 map[44131:sed]} sinus:{1223 map[1223:sinus¹]} spondeum:{363 map[158:spondeum 363:spondeus]} sponte:{841 map[841:sponte]} ternis:{591 map[591:terni]} totum:{9166 map[0:totus² 9166:totus¹]} triumphis:{1058 map[1058:triumphus]} tutae:{3734 map[3734:tueor]} uersum:{9139 map[1471:verto 5314:verro 5749:versum 9139:versus³]} urbes:{8564 map[8564:urbs]} †uilem:{0 map[0:†uilem]}]
 
-		montecarlostring(&sb, slicedwords, mcm)
+		montecarlostring(&sb, slicedwords, mcm, stops)
 	case "yoked":
 		yokedmap := buildyokedparsemap(morphmapstrslc)
 
 		// "yokedmap" for Albinus , poet. [lt2002]
 		// map[abscondere:abscondo apte:apte•aptus capitolia:capitolium celsa:celsus¹ concludere:concludo cui:quis²•quis¹•qui²•qui¹ dactylum:dactylus de:de deum:deus fieri:fio freta:fretum•fretus¹ i:eo¹ ille:ille iungens:jungo liber:liber¹•liber⁴•libo¹ metris:metrum moenibus:moenia¹ non:non nulla:nullus patuere:pateo•patesco posse:possum repostos:re-pono rerum:res romanarum:romanus sed:sed sinus:sinus¹ spondeum:spondeum•spondeus sponte:sponte ternis:terni totum:totus²•totus¹ triumphis:triumphus tutae:tueor uersum:verro•versum•versus³•verto urbes:urbs †uilem:†uilem]
 
-		yokedstring(&sb, slicedwords, yokedmap)
+		yokedstring(&sb, slicedwords, yokedmap, stops)
 	default: // "winner"
 		winnermap := buildwinnertakesallparsemap(morphmapstrslc)
 
 		// "winnermap" for Albinus , poet. [lt2002]
 		// map[abscondere:[abscondo] apte:[aptus] capitolia:[capitolium] celsa:[celsus¹] concludere:[concludo] cui:[qui¹] dactylum:[dactylus] de:[de] deum:[deus] fieri:[fio] freta:[fretus¹] i:[eo¹] ille:[ille] iungens:[jungo] liber:[liber⁴] metris:[metrum] moenibus:[moenia¹] non:[non] nulla:[nullus] patuere:[pateo] posse:[possum] repostos:[re-pono] rerum:[res] romanarum:[romanus] sed:[sed] sinus:[sinus¹] spondeum:[spondeus] sponte:[sponte] ternis:[terni] totum:[totus¹] triumphis:[triumphus] tutae:[tueor] uersum:[verro] urbes:[urbs] †uilem:[†uilem]]
 
-		winnerstring(&sb, slicedwords, winnermap)
+		winnerstring(&sb, slicedwords, winnermap, stops)
 	}
 
 	return strings.TrimSpace(sb.String())
@@ -491,14 +491,13 @@ func flatstring(sb *strings.Builder, slicedwords []string) {
 }
 
 // yokedstring - helper for buildtextblock() to generate conjoined string substitutions
-func yokedstring(sb *strings.Builder, slicedwords []string, yokedmap map[string]string) {
+func yokedstring(sb *strings.Builder, slicedwords []string, yokedmap map[string]string, stops map[string]struct{}) {
 	// exact same logic as winnerstring()
-	winnerstring(sb, slicedwords, yokedmap)
+	winnerstring(sb, slicedwords, yokedmap, stops)
 }
 
 // winnerstring - helper for buildtextblock() to generate winner takes all substitutions
-func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[string]string) {
-	stops := getstopset()
+func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[string]string, stops map[string]struct{}) {
 	for i := 0; i < len(slicedwords); i++ {
 		// drop skipwords
 		w := winnermap[slicedwords[i]]
@@ -512,8 +511,7 @@ func winnerstring(sb *strings.Builder, slicedwords []string, winnermap map[strin
 }
 
 // montecarlostring - helper for buildtextblock() to generate lucky-ducky substitutions
-func montecarlostring(sb *strings.Builder, slicedwords []string, guessermap map[string]hwguesser) {
-	stops := getstopset()
+func montecarlostring(sb *strings.Builder, slicedwords []string, guessermap map[string]hwguesser, stops map[string]struct{}) {
 	var w string
 	for i := 0; i < len(slicedwords); i++ {
 		w = ""
