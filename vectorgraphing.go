@@ -14,10 +14,6 @@ import (
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/labstack/echo/v4"
 	"gonum.org/v1/gonum/mat"
-	"gonum.org/v1/plot"
-	"gonum.org/v1/plot/plotter"
-	"gonum.org/v1/plot/plotutil"
-	"gonum.org/v1/plot/vg"
 	"html/template"
 	"io"
 	"math"
@@ -507,6 +503,7 @@ func lda3dscatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string
 		FONTDIFF  = 6
 		TEXTPAD   = "10"
 		STARTHUE  = 0
+		HUEOFFSET = 40
 	)
 
 	// https://echarts.apache.org/en/option.html#tooltip
@@ -591,10 +588,10 @@ func lda3dscatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string
 
 	scatter := charts.NewScatter3D()
 	scatter.SetGlobalOptions(
-		charts.WithTitleOpts(opts.Title{Title: "user-defined item style"}),
-		charts.WithXAxis3DOpts(opts.XAxis3D{Name: "MY-X-AXIS", Show: true}),
-		charts.WithYAxis3DOpts(opts.YAxis3D{Name: "MY-Y-AXIS"}),
-		charts.WithZAxis3DOpts(opts.ZAxis3D{Name: "MY-Z-AXIS"}),
+		charts.WithTitleOpts(opts.Title{Title: ""}),
+		charts.WithXAxis3DOpts(opts.XAxis3D{Name: "X-AXIS", Show: true}),
+		charts.WithYAxis3DOpts(opts.YAxis3D{Name: "Y-AXIS"}),
+		charts.WithZAxis3DOpts(opts.ZAxis3D{Name: "Z-AXIS"}),
 	)
 
 	scatter.SetGlobalOptions(
@@ -620,7 +617,7 @@ func lda3dscatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string
 	}
 
 	col := func(top int) *opts.ItemStyle {
-		return &opts.ItemStyle{Color: fmthsl(STARTHUE+(30*top), DOTSAT, DOTLUM)}
+		return &opts.ItemStyle{Color: fmthsl(STARTHUE+(HUEOFFSET*top), DOTSAT, DOTLUM)}
 	}
 
 	generateseries := func(topic int) []opts.Chart3DData {
@@ -642,8 +639,21 @@ func lda3dscatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string
 		return items
 	}
 
+	charts.WithEmphasisOpts(opts.Emphasis{
+		Label:     nil,
+		ItemStyle: nil,
+	})
+
+	iso := func(top int) charts.SeriesOpts {
+		z := charts.WithItemStyleOpts(
+			opts.ItemStyle{
+				Color: fmthsl(STARTHUE+(HUEOFFSET*top), DOTSAT, DOTLUM),
+			})
+		return z
+	}
+
 	for i := 0; i < ntopics; i++ {
-		scatter.AddSeries(fmt.Sprintf("Topic %d", i+1), generateseries(i))
+		scatter.AddSeries(fmt.Sprintf("Topic %d", i+1), generateseries(i), iso(i))
 	}
 
 	page := components.NewPage()
@@ -651,21 +661,42 @@ func lda3dscatter(ntopics int, Y, labels mat.Matrix, bags []BagWithLocus) string
 		scatter,
 	)
 
-	// TODO - custom3dscatterhtmlandjs() will panic...
-	htmlandjs := custom3dscatterhtmlandjs(scatter)
+	// TODO? - custom3dscatterhtmlandjs() will panic...
+	// htmlandjs := custom3dscatterhtmlandjs(scatter)
 
-	// TODO: temporary fix - output to a file...
+	// Temporary fix - output to a file...
 	//f, err := os.Create("ldascatter.html")
 	//if err != nil {
 	//	panic(err)
 	//}
 	//err = page.Render(io.MultiWriter(f))
 	//chke(err)
-	// htmlandjs := ""
 
-	// see: https://pkg.go.dev/github.com/go-echarts/go-echarts/v2/charts#pkg-types
+	// KLUDGE
+	// use buffers; skip the disk
+	htmlandjs := pagerendertostring(page)
 
 	return htmlandjs
+}
+
+// pagerendertostring - kludge to use buffers to render a page and then trim the surrounding html
+func pagerendertostring(page *components.Page) string {
+	var buf bytes.Buffer
+	w := io.Writer(&buf)
+	err := page.Render(io.MultiWriter(w))
+	chke(err)
+
+	r := io.Reader(&buf)
+	sb := new(strings.Builder)
+	_, err = io.Copy(sb, r)
+	chke(err)
+
+	// now you have " <html><head>...</head><body>STUFF</body></html>" ; you want to grab STUFF
+	one := strings.Split(sb.String(), "<body>")
+	two := one[1]
+	three := strings.Split(two, "</body>")
+	four := three[0]
+	return four
 }
 
 func customscatterhtmlandjs(s *charts.Scatter) string {
@@ -742,54 +773,6 @@ func custom3dscatterhtmlandjs(s *charts.Scatter3D) string {
 	return htmlandjs
 }
 
-// plotY2D plots the 2D embedding Y and saves an image of the plot with the specified filename.
-func plotY2D(Y, labels mat.Matrix, filename string) {
-	// copied from https://github.com/danaugrs/go-tsne/blob/master/examples/mnist2d/mnist2d.go
-
-	// Create a plotter for each of the 8 digit classes
-	classes := []float64{0, 1, 2, 3, 4, 5, 6, 7}
-	classPlotters := make([]plotter.XYs, len(classes))
-	for i := range classes {
-		classPlotters[i] = make(plotter.XYs, 0)
-	}
-
-	// Populate the class plotters with their respective data
-	n, _ := Y.Dims()
-	for i := 0; i < n; i++ {
-		label := int(labels.At(i, 0))
-		classPlotters[label] = append(classPlotters[label], plotter.XY{Y.At(i, 0), Y.At(i, 1)})
-		// fmt.Printf("x: %f\ty: %f\n", Y.At(i, 0), Y.At(i, 1))
-		//x: -0.000249	y: 0.000022
-		//x: -0.000103	y: -0.000169
-		//x: 0.000038	y: 0.000126
-		// ...
-	}
-
-	// Create a plot and update title and axes
-	p := plot.New()
-	p.Title.Text = "t-SNE MNIST"
-	p.X.Label.Text = "X"
-	p.Y.Label.Text = "Y"
-
-	// Convert plotters to array of empty interfaces
-	classPlottersEI := make([]interface{}, len(classes))
-	for i := range classes {
-		classPlottersEI[i] = classPlotters[i]
-	}
-
-	// Add class plotters to the plot
-	err := plotutil.AddScatters(p, classPlottersEI...)
-	if err != nil {
-		panic(err)
-	}
-
-	// Save the plot to a PNG file
-	err = p.Save(8*vg.Inch, 8*vg.Inch, filename)
-	if err != nil {
-		panic(err)
-	}
-}
-
 //
 // OVERRIDE GO-ECHARTS [original code at https://github.com/go-echarts/go-echarts]
 //
@@ -860,7 +843,7 @@ var CustomHeaderTpl = `
 	<!-- CustomHeaderTpl -->
     <!-- Note that all of these comments get nuked and will not be sent out to the page. Alas... -->
     <meta charset="utf-8">
-    <title>{{ .PageTitle }}</title>
+    <title>{{ .PageTitle }} [CustomHeaderTpl]</title>
 {{- range .JSAssets.Values }}
     <script src="{{ . }}"></script>
 {{- end }}

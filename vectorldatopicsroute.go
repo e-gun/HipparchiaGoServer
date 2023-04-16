@@ -413,11 +413,16 @@ func ldatopicsummary(ntopics int, topicsOverWords mat.Matrix, vectoriser *nlp.Co
 	tr, _ := topicsOverWords.Dims()
 	_, dc := docsOverTopics.Dims()
 
+	topn := TOPN
+	if topn > ntopics {
+		topn = ntopics
+	}
+
 	var tablecolumn []string
 	for topic := 0; topic < tr; topic++ {
 		ts := tops[topic]
-		ww := make([]string, TOPN)
-		for i := 0; i < TOPN; i++ {
+		ww := make([]string, topn)
+		for i := 0; i < topn; i++ {
 			// ww[i] = fmt.Sprintf("%s (%.4f)", ts[i].W, ts[i].V)
 			ww[i] = ts[i].W
 		}
@@ -435,7 +440,7 @@ func ldatopicsummary(ntopics int, topicsOverWords mat.Matrix, vectoriser *nlp.Co
 		tablerows = append(tablerows, fmt.Sprintf(TABLEROW, rn, tablecolumn[i]))
 	}
 
-	tableout := fmt.Sprintf(TABLETOP, TOPN, strings.Join(tablerows, "\n"))
+	tableout := fmt.Sprintf(TABLETOP, topn, strings.Join(tablerows, "\n"))
 	tableout = fmt.Sprintf(FULLTABLE, tableout)
 	return tableout
 }
@@ -581,14 +586,14 @@ func ldaplot(ntopics int, docsOverTopics mat.Matrix, bags []BagWithLocus) string
 	Y := mat.NewDense(dc, 1, doclabels)
 
 	// 2d - does work
-	t := tsne.NewTSNE(DIM, PERPLEX, LEARNRT, MAXITER, VERBOSE)
-	t.EmbedData(wv, nil)
-	htmlandjs := ldascatter(ntopics, t.Y, Y, bags)
+	//t := tsne.NewTSNE(DIM, PERPLEX, LEARNRT, MAXITER, VERBOSE)
+	//t.EmbedData(wv, nil)
+	//htmlandjs := ldascatter(ntopics, t.Y, Y, bags)
 
 	// 3d - does not work
-	//nd := tsne.NewTSNE(3, PERPLEX, LEARNRT, MAXITER, VERBOSE)
-	//nd.EmbedData(wv, nil)
-	//htmlandjs := lda3dscatter(ntopics, nd.Y, Y, bags)
+	nd := tsne.NewTSNE(3, PERPLEX, LEARNRT, MAXITER, VERBOSE)
+	nd.EmbedData(wv, nil)
+	htmlandjs := lda3dscatter(ntopics, nd.Y, Y, bags)
 
 	return htmlandjs
 }

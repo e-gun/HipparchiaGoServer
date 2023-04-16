@@ -98,7 +98,7 @@ function loadoptions() {
             'headwordindexing': {'y': $('#headwordindexing_y'), 'n': $('#headwordindexing_n'), 'f': $('#headwordindexinginactive'), 't': $('#headwordindexingactive')},
             'indexbyfrequency': {'y': $('#frequencyindexing_y'), 'n': $('#frequencyindexing_n'), 'f': $('#frequencyindexinginactive'), 't': $('#frequencyindexingactive')},
             'rawinputstyle': {'y': $('#manualinput'), 'n': $('#autofillinput'), 'f': $('#usingautoinput'), 't': $('#usingrawinput')},
-            'ldagraph': {'y': $('#ldagraph_y'), 'n': $('#ldagraph_n')},
+            'ldagraph': {'y': $('#ldagraph_y'), 'n': $('#ldagraph_n'), 'f': $('#ldagraph_isoff'), 't': $('#ldagraph_ison')},
         };
 
         Object.keys(xoredtoggles).forEach(function(key) {
