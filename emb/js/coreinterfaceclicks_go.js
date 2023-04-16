@@ -26,7 +26,6 @@ function loadoptions() {
             'debugdb': $('#debugdb'),
             'debuglex': $('#debuglex'),
             'debugparse': $('#debugparse'),
-            'extendedgraph': $('#extendedgraph'),
             'greekcorpus': $('#greekcorpus'),
             'incerta': $('#includeincerta'),
             'indexskipsknownwords': $('#indexskipsknownwords'),
@@ -93,13 +92,16 @@ function loadoptions() {
             }
         });
 
+        const zeroaction = $('#ldagraph_isoff');
+        
         const xoredtoggles = {
             'onehit': {'y': $('#onehit_y'), 'n': $('#onehit_n'), 'f': $('#onehitisfalse'), 't': $('#onehitistrue')},
             'headwordindexing': {'y': $('#headwordindexing_y'), 'n': $('#headwordindexing_n'), 'f': $('#headwordindexinginactive'), 't': $('#headwordindexingactive')},
             'indexbyfrequency': {'y': $('#frequencyindexing_y'), 'n': $('#frequencyindexing_n'), 'f': $('#frequencyindexinginactive'), 't': $('#frequencyindexingactive')},
             'rawinputstyle': {'y': $('#manualinput'), 'n': $('#autofillinput'), 'f': $('#usingautoinput'), 't': $('#usingrawinput')},
-            'ldagraph': {'y': $('#ldagraph_y'), 'n': $('#ldagraph_n'), 'f': $('#ldagraph_isoff'), 't': $('#ldagraph_ison')},
-            'ldagraph2dimensions': {'y': $('#ldagraph_2d'), 'n': $('#ldagraph_3d'), 'f': $('#ldagraph_isoff'), 't': $('#ldagraph_ison')},
+            'ldagraph': {'y': $('#ldagraph_y'), 'n': $('#ldagraph_n'), 'f': zeroaction, 't': zeroaction},
+            'ldagraph2dimensions': {'y': $('#ldagraph_2d'), 'n': $('#ldagraph_3d'), 'f': zeroaction, 't': zeroaction},
+            'extendedgraph': {'y': $('#extendedgraph_y'), 'n': $('#extendedgraph_n'), 'f':zeroaction, 't': zeroaction},
         };
 
         Object.keys(xoredtoggles).forEach(function(key) {

@@ -27,8 +27,8 @@ const (
 	CHRTHEIGHT = "1200px"
 	DOTHUE     = 236
 	DOTSAT     = 33
-	DOTLUM     = 40
-	DOTLUMPER  = DOTLUM + 30
+	DOTLUM     = 45
+	DOTLUMPER  = DOTLUM + 25
 	DOTSHIFT   = 0
 )
 
@@ -39,83 +39,20 @@ const (
 // buildblanknngraph - return a pre-formatted charts.Graph
 func buildblanknngraph(settings string, coreword string, incl string) *charts.Graph {
 	const (
-		TITLESTR  = "Nearest neighbors of »%s« in %s"
-		SAVEFILE  = "nearest_neighbors_of_%s"
-		SAVETYPE  = "png" // svg, jpeg, or png
-		SAVESTR   = "Save to file..."
-		LEFTALIGN = "20"
-		BOTTALIGN = "3%"
-		FONTSTYLE = "normal"
-		FONTSIZE  = 14
-		FONTDIFF  = 6
-		TEXTPAD   = "10"
+		TITLESTR = "Nearest neighbors of »%s« in %s"
+		SAVEFILE = "nearest_neighbors_of_%s"
 	)
-
-	// A note on SAVETYPE: svg requires a chart initialization option: {renderer: 'svg'}
-	// see https://echarts.apache.org/en/api.html#echarts and see CustomBaseTpl below
-	// BUT, then the fonts turn into a problem since SVG has its own way of handling them
-	// see: https://vecta.io/blog/how-to-use-fonts-in-svg
-	// SO, at the end of the day, you do not want to use SVG
 
 	// FYI: https://echarts.apache.org/en/theme-builder.html, but there is not much room for "theming" ATM
 
-	ft := Config.Font
-	if ft == "Noto" {
-		ft = "'hipparchiacondensedboldstatic', sans-serif"
-	}
-
-	tst := opts.TextStyle{
-		Color:      fmthsl(DOTHUE, DOTSAT, DOTLUM),
-		FontStyle:  FONTSTYLE,
-		FontSize:   FONTSIZE,
-		FontFamily: ft,
-		Padding:    TEXTPAD,
-	}
-
-	sst := opts.TextStyle{
-		Color:      fmthsl(DOTHUE, DOTSAT, DOTLUMPER),
-		FontStyle:  FONTSTYLE,
-		FontSize:   FONTSIZE - FONTDIFF,
-		FontFamily: ft,
-	}
-
-	tit := opts.Title{
-		Title:         fmt.Sprintf(TITLESTR, coreword, incl),
-		TitleStyle:    &tst,
-		Subtitle:      settings, // can not see this if you put the title on the very bottom of the image
-		SubtitleStyle: &sst,
-		Top:           "",
-		Bottom:        BOTTALIGN,
-		Left:          LEFTALIGN,
-		Right:         "",
-	}
-
-	tbs := opts.ToolBoxFeatureSaveAsImage{
-		Show:  true,
-		Type:  SAVETYPE,
-		Name:  fmt.Sprintf(SAVEFILE, StripaccentsSTR(coreword)),
-		Title: SAVESTR, // get chinese if ""
-	}
-
-	tbf := opts.ToolBoxFeature{
-		SaveAsImage: &tbs,
-	}
-
-	tbo := opts.Toolbox{
-		Show:    true,
-		Orient:  "vertical",
-		Left:    LEFTALIGN,
-		Top:     "",
-		Right:   "",
-		Bottom:  "",
-		Feature: &tbf,
-	}
+	t := fmt.Sprintf(TITLESTR, coreword, incl)
+	sf := fmt.Sprintf(SAVEFILE, StripaccentsSTR(coreword))
 
 	graph := charts.NewGraph()
 	graph.SetGlobalOptions(
 		charts.WithInitializationOpts(opts.Initialization{Width: CHRTWIDTH, Height: CHRTHEIGHT}),
-		charts.WithTitleOpts(tit),
-		charts.WithToolboxOpts(tbo),
+		charts.WithTitleOpts(getcharttitleopts(t, settings)),
+		charts.WithToolboxOpts(getcharttoolboxopts(sf)),
 		// charts.WithLegendOpts(opts.Legend{}),
 	)
 
@@ -364,6 +301,13 @@ func getcharttoolboxopts(sfn string) opts.Toolbox {
 		SAVESTR   = "Save to file..."
 		LEFTALIGN = "20"
 	)
+
+	// A note on SAVETYPE: svg requires a chart initialization option: {renderer: 'svg'}
+	// see https://echarts.apache.org/en/api.html#echarts and see CustomBaseTpl below
+	// BUT, then the fonts turn into a problem since SVG has its own way of handling them
+	// see: https://vecta.io/blog/how-to-use-fonts-in-svg
+	// SO, at the end of the day, you do not want to use SVG
+
 	tbs := opts.ToolBoxFeatureSaveAsImage{
 		Show:  true,
 		Type:  SAVETYPE,
@@ -387,7 +331,7 @@ func getcharttoolboxopts(sfn string) opts.Toolbox {
 	return tbo
 }
 
-func getcharttitleopts(t string, incl string) opts.Title {
+func getcharttitleopts(t string, st string) opts.Title {
 	const (
 		LEFTALIGN = "20"
 		BOTTALIGN = "0%"
@@ -417,9 +361,9 @@ func getcharttitleopts(t string, incl string) opts.Title {
 	}
 
 	tit := opts.Title{
-		Title:         fmt.Sprintf(t, incl),
+		Title:         t,
 		TitleStyle:    &tst,
-		Subtitle:      "", // can not see this if you put the title on the very bottom of the image
+		Subtitle:      st, // can not see this if you put the title on the very bottom of the image
 		SubtitleStyle: &sst,
 		Top:           "",
 		Bottom:        BOTTALIGN,
@@ -474,9 +418,12 @@ func ldascatter(ntopics int, incl string, Y, labels mat.Matrix, bags []BagWithLo
 		SAVEFILE = "lda_tsne_2d_scattergraph"
 	)
 
+	t := fmt.Sprintf(TITLE, incl)
+	st := ""
+
 	scatter := charts.NewScatter()
 	scatter.SetGlobalOptions(
-		charts.WithTitleOpts(getcharttitleopts(TITLE, incl)),
+		charts.WithTitleOpts(getcharttitleopts(t, st)),
 		charts.WithInitializationOpts(opts.Initialization{Width: CHRTHEIGHT, Height: CHRTHEIGHT}), // square
 		charts.WithTooltipOpts(getcharttooltip()),
 		charts.WithToolboxOpts(getcharttoolboxopts(SAVEFILE)),
@@ -531,11 +478,6 @@ func lda3dscatter(ntopics int, incl string, Y, labels mat.Matrix, bags []BagWith
 		SAVEFILE = "lda_tsne_3d_scattergraph"
 	)
 
-	ft := Config.Font
-	if ft == "Noto" {
-		ft = "'hipparchiasemiboldstatic', sans-serif"
-	}
-
 	scatter := charts.NewScatter3D()
 	scatter.SetGlobalOptions(
 		charts.WithXAxis3DOpts(opts.XAxis3D{Name: "X-AXIS", Show: true}),
@@ -543,8 +485,11 @@ func lda3dscatter(ntopics int, incl string, Y, labels mat.Matrix, bags []BagWith
 		charts.WithZAxis3DOpts(opts.ZAxis3D{Name: "Z-AXIS"}),
 	)
 
+	t := fmt.Sprintf(TITLE, incl)
+	st := ""
+
 	scatter.SetGlobalOptions(
-		charts.WithTitleOpts(getcharttitleopts(TITLE, incl)),
+		charts.WithTitleOpts(getcharttitleopts(t, st)),
 		charts.WithInitializationOpts(opts.Initialization{Width: CHRTHEIGHT, Height: CHRTHEIGHT}), // square
 		charts.WithTooltipOpts(getcharttooltip()),
 		charts.WithToolboxOpts(getcharttoolboxopts(SAVEFILE)),

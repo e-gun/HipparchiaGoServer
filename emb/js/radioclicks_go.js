@@ -23,6 +23,14 @@ $('#frequencyindexing_n').click( function(){
     setoptions('indexbyfrequency', 'no'); $('#frequencyindexinginactive').show(); $('#frequencyindexingactive').hide();
 });
 
+$('#extendedgraph_y').click( function(){
+    setoptions('extendedgraph', 'yes');
+});
+
+$('#extendedgraph_n').click( function(){
+    setoptions('extendedgraph', 'no');
+});
+
 $('#ldagraph_y').click( function(){
     setoptions('ldagraph', 'yes');
 });
@@ -114,12 +122,6 @@ $('#vocbycount').change(function() {
 
 $('#vocscansion').change(function() {
     if(this.checked) { setoptions('vocscansion', 'yes'); } else { setoptions('vocscansion', 'no'); }
-    refreshselections();
-    loadoptions();
-});
-
-$('#extendedgraph').change(function() {
-    if(this.checked) { setoptions('extendedgraph', 'yes'); } else { setoptions('extendedgraph', 'no'); }
     refreshselections();
     loadoptions();
 });
