@@ -322,6 +322,6 @@ topic sentences returned will be very, very short. The system will gravitate tow
 
 In fact `100` as an iterations value still tends to produce this effect to some extent. 
 
-The defaults sem to be OK. But there is a lot of room for experimentation given that LDA results are not as
+The defaults seem to be OK. But there is a lot of room for experimentation given that LDA results are not as
 clearly good/bad as are nearest neighbor search results.
 
