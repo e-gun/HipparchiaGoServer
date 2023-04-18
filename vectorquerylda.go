@@ -17,6 +17,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	tsnemp "github.com/e-gun/tsnemp/pkg"
 )
 
 // bagging as per the old HipparchiaGoDBHelper code: sentence by sentence; much of the code below from HipparchiaGoDBHelper
@@ -141,6 +143,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
 
+// ldapreptext - prepare a collectio of dblines for lda analysis
 func ldapreptext(bagger string, dblines []DbWorkline) []BagWithLocus {
 
 	var sb strings.Builder
@@ -247,6 +250,7 @@ func ldapreptext(bagger string, dblines []DbWorkline) []BagWithLocus {
 	return thebags
 }
 
+// ldaunmodifiedbagging - lda unmodified text bagger
 func ldaunmodifiedbagging(thebags []BagWithLocus) []BagWithLocus {
 	for i := 0; i < len(thebags); i++ {
 		thebags[i].ModifiedBag = thebags[i].Bag
@@ -254,6 +258,7 @@ func ldaunmodifiedbagging(thebags []BagWithLocus) []BagWithLocus {
 	return thebags
 }
 
+// ldayokedbagging - lda yoked headwords text bagger
 func ldayokedbagging(thebags []BagWithLocus, yokermap map[string]string) []BagWithLocus {
 	stops := getstopset()
 	for i := 0; i < len(thebags); i++ {
@@ -264,6 +269,7 @@ func ldayokedbagging(thebags []BagWithLocus, yokermap map[string]string) []BagWi
 	return thebags
 }
 
+// ldawinnerbagging - lda winner takes all headwords text bagger
 func ldawinnerbagging(thebags []BagWithLocus, winnermap map[string]string) []BagWithLocus {
 	stops := getstopset()
 	for i := 0; i < len(thebags); i++ {
@@ -279,6 +285,7 @@ func ldawinnerbagging(thebags []BagWithLocus, winnermap map[string]string) []Bag
 	return thebags
 }
 
+// ldamontecarlobagging - lda monte carlo headwords text bagger
 func ldamontecarlobagging(thebags []BagWithLocus, montecarlo map[string]hwguesser) []BagWithLocus {
 	stops := getstopset()
 	for i := 0; i < len(thebags); i++ {
@@ -583,6 +590,7 @@ func ldadocbyweight(ntopics int, docsOverTopics mat.Matrix) []float64 {
 
 // see https://pkg.go.dev/gonum.org/v1/gonum/mat@v0.12.0#pkg-index
 
+// ldaplot - plot the lda results
 func ldaplot(graph2d bool, ntopics int, incl string, bagger string, docsOverTopics mat.Matrix, bags []BagWithLocus) string {
 	// m := mat.NewDense()
 	// func NewDense(r int, c int, data []float64) *Dense
@@ -644,12 +652,12 @@ func ldaplot(graph2d bool, ntopics int, incl string, bagger string, docsOverTopi
 	var htmlandjs string
 	if graph2d && graph {
 		// t := NewTSNE(2, PERPLEX, LEARNRT, MAXITER, VERBOSE)
-		t := NewMPTSNE(Config.WorkerCount, 2, PERPLEX, LEARNRT, MAXITER, VERBOSE)
+		t := tsnemp.NewMPTSNE(Config.WorkerCount, 2, PERPLEX, LEARNRT, MAXITER, VERBOSE)
 		t.EmbedData(wv, nil)
 		htmlandjs = lda2dscatter(ntopics, incl, bagger, t.Y, Y, bags)
 	} else if graph {
 		// 3d
-		nd := NewMPTSNE(Config.WorkerCount, 3, PERPLEX, LEARNRT, MAXITER, VERBOSE)
+		nd := tsnemp.NewMPTSNE(Config.WorkerCount, 3, PERPLEX, LEARNRT, MAXITER, VERBOSE)
 		nd.EmbedData(wv, nil)
 		htmlandjs = lda3dscatter(ntopics, incl, bagger, nd.Y, Y, bags)
 	} else {
@@ -665,8 +673,8 @@ func ldaplot(graph2d bool, ntopics int, incl string, bagger string, docsOverTopi
 // CLEANING
 //
 
+// stripper - delete each in a list of items from a string
 func stripper(item string, purge []string) string {
-	// delete each in a list of items from a string
 	for i := 0; i < len(purge); i++ {
 		re := regexp.MustCompile(purge[i])
 		item = re.ReplaceAllString(item, "")
@@ -674,6 +682,7 @@ func stripper(item string, purge []string) string {
 	return item
 }
 
+// makesubstitutions - swap full words for abbreviations, etc
 func makesubstitutions(thetext string) string {
 	// https://golang.org/pkg/strings/#NewReplacer
 	// cf cleanvectortext() in vectorhelpers.py

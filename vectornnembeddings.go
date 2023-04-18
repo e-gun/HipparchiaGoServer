@@ -62,7 +62,7 @@ func generateneighborsdata(c echo.Context, s SearchStruct) map[string]search.Nei
 		MQMEG = `Querying the model`
 	)
 
-	fp := fingerprintvectorsearch(s, s.VecModeler, s.VecTextPrep)
+	fp := fingerprintnnvectorsearch(s)
 	isstored := vectordbcheck(fp)
 	var embs embedding.Embeddings
 	if isstored {

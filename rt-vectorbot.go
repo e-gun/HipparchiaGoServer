@@ -112,8 +112,17 @@ func RtVectorBot(c echo.Context) error {
 	return nil
 }
 
+// ldamodelbot - automate the building of lda models
 func ldamodelbot(c echo.Context, s SearchStruct, a string) {
+	// note that only the selftest suite is calling this right now
+
+	// there is no storage mechanism for lda
+
+	// in fact pre-building works makes more sense than authors
+	// and the caps need to be borne in mind
+
 	// sessionintobulksearch() can't be used because there is no real session...
+
 	s.CurrentLimit = Config.VectorMaxlines
 	s.Seeking = ""
 	// s.ID = strings.Replace(uuid.New().String(), "-", "", -1)
@@ -129,6 +138,7 @@ func ldamodelbot(c echo.Context, s SearchStruct, a string) {
 	}
 }
 
+// nnmodelbot - automate the building of nn models
 func nnmodelbot(c echo.Context, s SearchStruct, a string) {
 	const (
 		MSG1    = "RtVectorBot() found model for %s"
@@ -136,7 +146,7 @@ func nnmodelbot(c echo.Context, s SearchStruct, a string) {
 		MINSIZE = 10000
 	)
 	m := Config.VectorModel
-	fp := fingerprintvectorsearch(s, m, Config.VectorTextPrep)
+	fp := fingerprintnnvectorsearch(s)
 
 	isstored := vectordbcheck(fp)
 

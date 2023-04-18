@@ -116,16 +116,17 @@ func NeighborsSearch(c echo.Context, srch SearchStruct) error {
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
 
-// fingerprintvectorsearch - derive a unique md5 for any given mix of search items & vector settings
-func fingerprintvectorsearch(srch SearchStruct, modeltype string, textprep string) string {
+// fingerprintnnvectorsearch - derive a unique md5 for any given mix of search items & vector settings
+func fingerprintnnvectorsearch(srch SearchStruct) string {
 	const (
 		MSG1 = "NeighborsSearch() fingerprint: "
-		FAIL = "fingerprintvectorsearch() failed to Marshal"
+		FAIL = "fingerprintnnvectorsearch() failed to Marshal"
 	)
 
 	// vectorbot vs normal surfer requires passing the model type and textprep style (bot: configtype; surfer: sessiontype)
 
 	// unless you sort, you do not get repeatable results with a md5sum of srch.SearchIn if you look at "all latin"
+
 	var inc []string
 	sort.Strings(srch.SearchIn.AuGenres)
 	sort.Strings(srch.SearchIn.WkGenres)
@@ -169,7 +170,8 @@ func fingerprintvectorsearch(srch SearchStruct, modeltype string, textprep strin
 
 	var f4 []byte
 	var e4 error
-	switch modeltype {
+
+	switch srch.VecModeler {
 	case "glove":
 		ff, ee := json.Marshal(glovevectorconfig())
 		f4 = ff
@@ -192,7 +194,7 @@ func fingerprintvectorsearch(srch SearchStruct, modeltype string, textprep strin
 	f1 = append(f1, f2...)
 	f1 = append(f1, f3...)
 	f1 = append(f1, f4...)
-	f1 = append(f1, []byte(textprep)...)
+	f1 = append(f1, []byte(srch.VecTextPrep)...)
 
 	m := fmt.Sprintf("%x", md5.Sum(f1))
 	msg(MSG1+m, MSGTMI)
