@@ -7,9 +7,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/danaugrs/go-tsne/tsne"
 	"github.com/james-bowman/nlp"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 	"gonum.org/v1/gonum/mat"
 	"net/http"
 	"regexp"
@@ -23,11 +24,6 @@ import (
 // with some (i.e., a lot of...) work the output could be fed to JS as per the python LDA visualizer
 
 // see bottom of file for sample results
-
-const (
-	SENTENCESPERBAG = 1
-	LDAITERATIONS   = 50
-)
 
 //see https://github.com/james-bowman/nlp/blob/26d441fa0ded/lda.go
 //DefaultLDA = nlp.LatentDirichletAllocation{
@@ -89,12 +85,16 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 		ntopics = LDATOPICS
 	}
 
-	vs := sessionintobulksearch(c, Config.VectorMaxlines)
-
-	AllSearches.SetRemain(srch.ID, 1)
-	srch.InitSum = LDAMSG
-	srch.ExtraMsg = fmt.Sprintf("<br>preparing the text for modeling")
-	AllSearches.InsertSS(srch)
+	var vs SearchStruct
+	if srch.ID != "ldamodelbot()" {
+		AllSearches.SetRemain(srch.ID, 1)
+		srch.InitSum = LDAMSG
+		srch.ExtraMsg = fmt.Sprintf("<br>preparing the text for modeling")
+		AllSearches.InsertSS(srch)
+		vs = sessionintobulksearch(c, Config.VectorMaxlines)
+	} else {
+		vs = srch
+	}
 
 	bags := ldapreptext(se.VecTextPrep, vs.Results)
 
@@ -123,7 +123,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	incl := srch.InclusionOverview(se.Inclusions)
 
 	var img string
-	if se.LDAgraph {
+	if se.LDAgraph || srch.ID == "ldamodelbot()" {
 		srch.ExtraMsg = fmt.Sprintf("<br>using t-Distributed Stochastic Neighbor Embedding to build graph")
 		AllSearches.InsertSS(srch)
 		img = ldaplot(se.LDA2D, ntopics, incl, se.VecTextPrep, dot, bags)
@@ -191,11 +191,13 @@ func ldapreptext(bagger string, dblines []DbWorkline) []BagWithLocus {
 
 	// SentPerBag = number of sentences per bag
 
-	iterations := len(ss) / SENTENCESPERBAG
+	cfg := ldavecconfig()
+
+	iterations := len(ss) / cfg.SentencesPerBag
 	index := 0
 	for i := 0; i < iterations; i++ {
-		parcel := strings.Join(ss[index:index+SENTENCESPERBAG], " ")
-		index = index + SENTENCESPERBAG
+		parcel := strings.Join(ss[index:index+cfg.SentencesPerBag], " ")
+		index = index + cfg.SentencesPerBag
 		tags := re.FindAllStringSubmatch(parcel, -1)
 		if len(tags) > 0 {
 			first = tags[0][1]
@@ -591,6 +593,7 @@ func ldaplot(graph2d bool, ntopics int, incl string, bagger string, docsOverTopi
 		LEARNRT = 100 // default 100
 		MAXITER = 150 // default 300
 		VERBOSE = false
+		SKIPPED = `<span class="emph center">Skipped building a graph because the selection is larger than the cap: <code>%d</code> lines vs <code>%d</code> lines</span>`
 	)
 
 	dr, dc := docsOverTopics.Dims()
@@ -632,17 +635,29 @@ func ldaplot(graph2d bool, ntopics int, incl string, bagger string, docsOverTopi
 	wv := mat.NewDense(dc, dr, dd)
 	Y := mat.NewDense(dc, 1, doclabels)
 
+	graph := true
+	cfg := ldavecconfig()
+	if dc > cfg.MaxLDAGraphSize {
+		graph = false
+	}
+
+	// LaunchTime = time.Now()
 	var htmlandjs string
-	if graph2d {
-		t := tsne.NewTSNE(2, PERPLEX, LEARNRT, MAXITER, VERBOSE)
+	if graph2d && graph {
+		// t := NewTSNE(2, PERPLEX, LEARNRT, MAXITER, VERBOSE)
+		t := NewMPTSNE(Config.WorkerCount, 2, PERPLEX, LEARNRT, MAXITER, VERBOSE)
 		t.EmbedData(wv, nil)
 		htmlandjs = lda2dscatter(ntopics, incl, bagger, t.Y, Y, bags)
-	} else {
-		// 3d - does not work
-		nd := tsne.NewTSNE(3, PERPLEX, LEARNRT, MAXITER, VERBOSE)
+	} else if graph {
+		// 3d
+		nd := NewMPTSNE(Config.WorkerCount, 3, PERPLEX, LEARNRT, MAXITER, VERBOSE)
 		nd.EmbedData(wv, nil)
 		htmlandjs = lda3dscatter(ntopics, incl, bagger, nd.Y, Y, bags)
+	} else {
+		p := message.NewPrinter(language.English)
+		htmlandjs = p.Sprintf(SKIPPED, dc, cfg.MaxLDAGraphSize)
 	}
+	// msg(fmt.Sprintf("EmbedData took %.3fs", time.Now().Sub(LaunchTime).Seconds()), MSGWARN)
 
 	return htmlandjs
 }

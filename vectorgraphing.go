@@ -392,7 +392,7 @@ func getchartitemstyle(top int) opts.ItemStyle {
 func getdotcitation(idx int, bags []BagWithLocus) string {
 	const (
 		NAMETMPL = "%s: %s"
-		SAMPSIZE = 7
+		SAMPSIZE = 9
 	)
 	loc := strings.TrimPrefix(bags[idx].Loc, "line/")
 	init := strings.Split(bags[idx].Bag, " ")

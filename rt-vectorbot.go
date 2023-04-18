@@ -22,11 +22,8 @@ import (
 // RtVectorBot - build a model for the author table requested; should only be called by activatevectorbot()
 func RtVectorBot(c echo.Context) error {
 	const (
-		MSG1    = "RtVectorBot() found model for %s"
-		MSG2    = "RtVectorBot() skipping %s - only %d lines found"
-		MSG3    = "attempted access to RtVectorBot() by foreign IP: '%s'"
-		MSG4    = "RtVectorBot() building a model for '%s' (%d tables) [maxlines=%d]"
-		MINSIZE = 10000
+		MSG3 = "attempted access to RtVectorBot() by foreign IP: '%s'"
+		MSG4 = "RtVectorBot() building a model for '%s' (%d tables) [maxlines=%d]"
 	)
 
 	// the question is how much time are you saving vs how much space are you wasting
@@ -67,8 +64,18 @@ func RtVectorBot(c echo.Context) error {
 		return nil
 	}
 
-	a := c.Param("au")
+	req := c.Param("typeandselection")
+	ts := strings.Split(req, "/")
+
+	if len(ts) != 2 {
+		return nil
+	}
+
+	vtype := ts[0]
+	a := ts[1]
+
 	s := BuildDefaultSearch(c)
+	AllSearches.InsertSS(s)
 
 	allof := func(db string) []string {
 		allauth := StringMapKeysIntoSlice(AllAuthors)
@@ -94,6 +101,40 @@ func RtVectorBot(c echo.Context) error {
 		s.SearchIn.Authors = []string{a}
 	}
 
+	switch vtype {
+	case "lda":
+		ldamodelbot(c, s, a)
+	default:
+		// "nn"
+		nnmodelbot(c, s, a)
+	}
+	AllSearches.Delete(s.ID)
+	return nil
+}
+
+func ldamodelbot(c echo.Context, s SearchStruct, a string) {
+	// sessionintobulksearch() can't be used because there is no real session...
+	s.CurrentLimit = Config.VectorMaxlines
+	s.Seeking = ""
+	// s.ID = strings.Replace(uuid.New().String(), "-", "", -1)
+	s.ID = "ldamodelbot()"
+	// note that you do not want multiple vectorbots running at once...
+	SSBuildQueries(&s)
+	s.IsActive = true
+	s.TableSize = 1
+	s = HGoSrch(s)
+	e := LDASearch(c, s)
+	if e != nil {
+		msg("ldamodelbot() could not execute LDASearch()", MSGWARN)
+	}
+}
+
+func nnmodelbot(c echo.Context, s SearchStruct, a string) {
+	const (
+		MSG1    = "RtVectorBot() found model for %s"
+		MSG2    = "RtVectorBot() skipping %s - only %d lines found"
+		MINSIZE = 10000
+	)
 	m := Config.VectorModel
 	fp := fingerprintvectorsearch(s, m, Config.VectorTextPrep)
 
@@ -117,8 +158,6 @@ func RtVectorBot(c echo.Context) error {
 			msg(fmt.Sprintf(MSG2, a, len(s.Results)), MSGTMI)
 		}
 	}
-
-	return nil
 }
 
 // activatevectorbot - build a vector model for every author
@@ -127,12 +166,15 @@ func activatevectorbot() {
 		MSG1       = "activatevectorbot(): launching"
 		MSG2       = "(%.1f%%) checking need to model %s (%s)"
 		MSG3       = "The vectorbot has checked all authors and is now shutting down"
-		URL        = "http://%s:%d/vbot/%s"
+		URL        = "http://%s:%d/vbot/%s/%s"
 		COUNTEVERY = 10
 		THROTTLE   = 4
 		SIZEVERY   = 500
 		STARTDELAY = 2
 	)
+
+	// currently only autovectorizes nn
+	// lda unsupported, but a possibility later
 
 	msg(MSG1, MSGNOTE)
 
@@ -179,7 +221,7 @@ func activatevectorbot() {
 			TimeTracker("AV", fmt.Sprintf(MSG2, float32(count)/tot*100, an, a), start, previous)
 			previous = time.Now()
 		}
-		u := fmt.Sprintf(URL, Config.HostIP, Config.HostPort, a)
+		u := fmt.Sprintf(URL, Config.HostIP, Config.HostPort, "nn", a)
 		_, err := http.Get(u)
 		chke(err)
 

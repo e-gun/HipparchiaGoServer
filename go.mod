@@ -3,7 +3,6 @@ module github.com/e-gun/HipparchiaGoServer
 go 1.20
 
 require (
-	github.com/danaugrs/go-tsne/tsne v0.0.0-20220306155740-2250969e057f
 	github.com/e-gun/wego v0.0.11
 	github.com/go-echarts/go-echarts/v2 v2.2.6
 	github.com/google/uuid v1.3.0
@@ -17,31 +16,30 @@ require (
 )
 
 require (
-	github.com/armon/go-radix v1.0.0 // indirect
+	github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310 // indirect
 	github.com/felixge/fgprof v0.9.3 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	github.com/google/pprof v0.0.0-20230406165453-00490a63f317 // indirect
-	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/google/pprof v0.0.0-20211214055906-6f57359322fd // indirect
+	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/puddle/v2 v2.2.0 // indirect
 	github.com/james-bowman/sparse v0.0.0-20210729090128-1e6c7dd483e9 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.18 // indirect
-	github.com/mattn/go-runewidth v0.0.14 // indirect
-	github.com/olekukonko/tablewriter v0.0.5 // indirect
+	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/mattn/go-runewidth v0.0.7 // indirect
+	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/rivo/uniseg v0.4.4 // indirect
-	github.com/spaolacci/murmur3 v1.1.0 // indirect
-	github.com/spf13/cobra v1.7.0 // indirect
+	github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72 // indirect
+	github.com/spf13/cobra v1.1.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
-	golang.org/x/crypto v0.8.0 // indirect
-	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect
-	golang.org/x/net v0.9.0 // indirect
+	golang.org/x/crypto v0.6.0 // indirect
+	golang.org/x/exp v0.0.0-20210220032938-85be41e4509f // indirect
+	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.7.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 )

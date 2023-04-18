@@ -95,6 +95,7 @@ var (
 		ChangeEvalFrq:   LDACHGEVALFRQ,
 		PerplexEvalFrq:  LDAPERPEVALFRQ,
 		PerplexTol:      LDAPERPTOL,
+		MaxLDAGraphSize: LDAMAXGRAPHLINES,
 	}
 )
 
@@ -331,7 +332,13 @@ func vectordbcount(priority int) {
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 	err := dbconn.QueryRow(context.Background(), SZQ).Scan(&size)
-	chke(err)
+	if err != nil {
+		m := err.Error()
+		if strings.Contains(m, "does not exist") {
+			vectordbinit(dbconn)
+		}
+		size = 0
+	}
 	msg(fmt.Sprintf(MSG4, size), priority)
 }
 
@@ -348,6 +355,7 @@ type LDAConfig struct {
 	PerplexEvalFrq  int
 	PerplexTol      float64
 	Goroutines      int
+	MaxLDAGraphSize int
 }
 
 func ldavecconfig() LDAConfig {
@@ -388,6 +396,10 @@ func ldavecconfig() LDAConfig {
 		}
 		msg(MSG2+CONFIGVECTORLDA, MSGTMI)
 		cfg = vc
+	}
+
+	if cfg.MaxLDAGraphSize == 0 {
+		cfg.MaxLDAGraphSize = LDAMAXGRAPHLINES
 	}
 	return cfg
 }

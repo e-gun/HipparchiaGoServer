@@ -10,7 +10,7 @@ import "time"
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.2.6"
+	VERSION                  = "1.2.7"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	BLACKANDWHITE            = false
 	CHARSPERLINE             = 60 // used by vector to preallocate memory: set it closer to a max than a real average
@@ -56,6 +56,7 @@ const (
 	LDACHGEVALFRQ            = 15
 	LDAPERPEVALFRQ           = 15
 	LDAPERPTOL               = 1e-2
+	LDAMAXGRAPHLINES         = 30000
 	MAXBROWSERCONTEXT        = 60
 	MAXDATE                  = 1500
 	MAXDATESTR               = "1500"

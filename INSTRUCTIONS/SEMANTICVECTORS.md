@@ -290,7 +290,8 @@ You can set how many topics to track via the `Configuration options` panel. The 
 
 ![inst02](../gitimg/lda_model.png)
 
-You can also request a graph of your model. This can be slow to generate. 
+You can also request a graph of your model. This can be slow to generate. The time increases significantly as the
+selection size increases: O(*n*^2), I think. Expect to wait more than 45m to see a graph of all of Livy to appear, if your system can manage it at all. Adjust `MaxLDAGraphSize` in `hgs-vector-conf-lda.json` if you dare.
 
 ![inst02](../gitimg/lda_tsne_scattergraph.png)
 
@@ -313,7 +314,8 @@ There is a configuration file for LDA queries: `hgs-vector-conf-lda.json`.
     "ChangeEvalFrq": 15,
     "PerplexEvalFrq": 15,
     "PerplexTol": 0.01,
-    "Goroutines": 20
+    "Goroutines": 20, 
+    "MaxLDAGraphSize": 30000,
   }
 ```
 
@@ -324,4 +326,3 @@ In fact `100` as an iterations value still tends to produce this effect to some 
 
 The defaults seem to be OK. But there is a lot of room for experimentation given that LDA results are not as
 clearly good/bad as are nearest neighbor search results.
-

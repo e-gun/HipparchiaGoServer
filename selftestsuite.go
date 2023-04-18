@@ -54,8 +54,9 @@ func selftest() {
 		MSG11 = "look up %d specific words"
 		MSG12 = "look up %d word substrings"
 		MSG13 = "reverse lookup for %d word substrings"
-		MSG14 = "vector model test: %s (%d authors with %d text preparation modes each)"
-		URL   = "http://%s:%d/vbot/%s"
+		MSG14 = "semantic vector model test: %s - %d author(s) with %d text preparation modes per author"
+		MSG15 = "lda vector model test - %d author(s) with %d text preparation modes per author"
+		URL   = "http://%s:%d/vbot/%s/%s"
 	)
 
 	printbuildinfo()
@@ -186,27 +187,27 @@ func selftest() {
 	}
 
 	// vector selftest
-	msg("[IV] vectorization tests", MSGWARN)
+	msg("[IV] nearest neighbor vectorization tests", MSGWARN)
 	vectordbreset()
 	ovm := Config.VectorModel
 	otx := Config.VectorTextPrep
 
 	vmod := []string{"w2v", "lexvec", "glove"}
 	vtxp := []string{"winner", "unparsed", "yoked", "montecarlo"}
-	vauu := []string{"lt0472", "gr0011"} // catullus and sophocles
+	vauu := []string{"gr0011"} // sophocles
 
-	au := func() {
+	au := func(v string) {
 		for _, a := range vauu {
-			url := fmt.Sprintf(URL, Config.HostIP, Config.HostPort, a)
+			url := fmt.Sprintf(URL, Config.HostIP, Config.HostPort, v, a)
 			_, ee := http.Get(url)
 			chke(ee)
 		}
 	}
 
-	tx := func() {
+	tx := func(v string) {
 		for _, t := range vtxp {
 			Config.VectorTextPrep = t
-			au()
+			au(v)
 		}
 	}
 
@@ -215,7 +216,7 @@ func selftest() {
 		for _, m := range vmod {
 			count += 1
 			Config.VectorModel = m
-			tx()
+			tx("nn")
 			nb := fmt.Sprintf(MSG14, m, len(vauu), len(vtxp))
 			TimeTracker(fmt.Sprintf("E%d", count), nb, start, previous)
 			previous = time.Now()
@@ -223,6 +224,14 @@ func selftest() {
 	}
 
 	md()
+
+	msg("[V] lda vectorization tests", MSGWARN)
+	vauu = []string{"lt0472"} // catullus
+
+	tx("lda")
+	nb := fmt.Sprintf(MSG15, len(vauu), len(vtxp))
+	TimeTracker("F", nb, start, previous)
+	previous = time.Now()
 
 	msg("exiting selftest mode", MSGMAND)
 	Config.LogLevel = oldloglevel
