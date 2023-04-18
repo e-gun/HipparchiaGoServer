@@ -1,6 +1,6 @@
 # HipparchiaGoServer
 
-### STATUS (v1.2.7):
+### STATUS (v1.2.8):
 
 * 25%-700% faster than HipparchiaServer depending on the function. Uses c. 60% as much RAM.
 * monolithic binary: no need for extra files/folders

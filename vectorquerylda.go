@@ -7,7 +7,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/james-bowman/nlp"
+	"github.com/e-gun/nlp"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
