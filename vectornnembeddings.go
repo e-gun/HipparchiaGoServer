@@ -88,7 +88,7 @@ func generateneighborsdata(c echo.Context, s SearchStruct) map[string]search.Nei
 		searcher = func() *search.Searcher { return &search.Searcher{} }()
 	}
 
-	se := AllSessions.GetSess(readUUIDCookie(c))
+	se := s.StoredSession
 	ncount := se.VecNeighbCt // how many neighbors to output; min is 1
 	if ncount < VECTORNEIGHBORSMIN || ncount > VECTORNEIGHBORSMAX {
 		ncount = VECTORNEIGHBORS

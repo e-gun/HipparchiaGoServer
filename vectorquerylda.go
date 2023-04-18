@@ -78,8 +78,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	)
 	c.Response().After(func() { SelfStats("LDASearch()") })
 
-	user := readUUIDCookie(c)
-	se := AllSessions.GetSess(user)
+	se := srch.StoredSession
 	ntopics := se.LDAtopics
 	if ntopics < 1 {
 		ntopics = LDATOPICS

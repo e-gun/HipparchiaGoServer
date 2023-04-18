@@ -55,6 +55,7 @@ type SearchStruct struct {
 	ExtraMsg      string
 	Hits          *SrchCounter
 	Remain        *SrchCounter
+	StoredSession ServerSession
 }
 
 // CleanInput - remove bad chars, etc. from the submitted data

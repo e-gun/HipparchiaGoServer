@@ -132,7 +132,9 @@ func InitializeSearch(c echo.Context, user string) SearchStruct {
 	srch.Seeking = whitespacer(srch.Seeking, &srch)
 	srch.Proximate = whitespacer(srch.Proximate, &srch)
 
-	sl := SessionIntoSearchlist(AllSessions.GetSess(user))
+	se := AllSessions.GetSess(user)
+	srch.StoredSession = se
+	sl := SessionIntoSearchlist(se)
 
 	srch.SearchIn = sl.Inc
 	srch.SearchEx = sl.Excl
@@ -179,6 +181,7 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
 	s.AcqHitCounter()
 	s.AcqRemainCounter()
+	s.StoredSession = sess
 
 	if sess.NearOrNot == "notnear" {
 		s.NotNear = true
@@ -232,6 +235,7 @@ func BuildHollowSearch() SearchStruct {
 	}
 	s.AcqHitCounter()
 	s.AcqRemainCounter()
+	s.StoredSession = MakeDefaultSession(s.ID)
 	return s
 }
 

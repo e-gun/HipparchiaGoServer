@@ -3,6 +3,10 @@
 
 // Package tsne implements t-Distributed Stochastic Neighbor Embedding (t-SNE), a prize-winning technique for
 // dimensionality reduction particularly well suited for visualizing high-dimensional datasets.
+
+// for original see https://github.com/danaugrs/go-tsne
+// e-gun modifications re. NewMPTSNE() and profiling notes
+
 package main
 
 import (

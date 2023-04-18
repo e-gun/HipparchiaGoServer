@@ -22,7 +22,7 @@ func main() {
 	// 	"go tool pprof --pdf ./HipparchiaGoServer /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1075644045/cpu.pprof > ./fyi/CPUProfile.pdf"
 	//	"cp /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1075644045/cpu.pprof ./default.pgo"
 
-	if 1 == 1 {
+	if 1 == 0 {
 		defer profile.Start().Stop()
 	}
 

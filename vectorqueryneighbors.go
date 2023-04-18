@@ -55,7 +55,7 @@ func NeighborsSearch(c echo.Context, srch SearchStruct) error {
 	)
 
 	c.Response().After(func() { SelfStats("NeighborsSearch()") })
-	se := AllSessions.GetSess(readUUIDCookie(c))
+	se := srch.StoredSession
 
 	term := srch.LemmaOne
 	if term == "" {
