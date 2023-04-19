@@ -778,31 +778,3 @@ func splitonpunctuaton(thetext string) []string {
 // LDA for Cic, Ep. ad Att. will routinely grab Greek sentences. I.e., Greek is one of the consistent "topics".
 // LDA for Plato is very interested in the spuria; it seems to note that the as-if plato is especially on the nose...
 // LDA for Sophocles is extremely likely to turn up Philoctetes 739: ἆ ἆ ἆ ἆ; "lament" being a "topic"... [also v. interested in φεῦ φεῦ δύϲταν]
-
-// python
-// from sklearn.decomposition import NMF, LatentDirichletAllocation, TruncatedSVD
-
-//     ldamodel = LatentDirichletAllocation(n_components=settings['components'],
-//                                         max_iter=settings['iterations'],
-//                                         learning_method='online',
-//                                         learning_offset=50.,
-//                                         random_state=0)
-//
-//    ldamodel.fit(ldavectorized)
-//
-//    visualisation = ldavis.prepare(ldamodel, ldavectorized, ldavectorizer)
-//    # pyLDAvis.save_html(visualisation, 'ldavis.html')
-//
-//    ldavishtmlandjs = pyLDAvis.prepared_data_to_html(visualisation)
-//    storevectorindatabase(so, ldavishtmlandjs)
-
-// https://pyldavis.readthedocs.io/en/latest/_modules/pyLDAvis/_prepare.html
-// def prepare(topic_term_dists, doc_topic_dists, doc_lengths, vocab, term_frequency, \
-//            R=30, lambda_step=0.01, mds=js_PCoA, n_jobs=-1, \
-//            plot_opts={'xlab': 'PC1', 'ylab': 'PC2'}, sort_topics=True):
-//   """Transforms the topic model distributions and related corpus data into
-//   the data structures needed for the visualization.
-
-// https://towardsdatascience.com/visualizing-topic-models-with-scatterpies-and-t-sne-f21f228f7b02
-
-// https://www.machinelearningplus.com/nlp/topic-modeling-visualization-how-to-present-results-lda-models/
