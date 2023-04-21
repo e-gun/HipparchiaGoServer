@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# go get -u ./...
-# go mod tidy
+go get -u ./...
+go mod tidy
 
 # CopyInstructions() wants these PDFs, but it can survive without them
 # RtEmbPDFHelp() really wants these too; awkward to 404 help files...

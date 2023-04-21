@@ -3,7 +3,7 @@ go.sum
 .DS_Store
 hgs-conf*
 hgs_sqlite.db
-z_*
+z*
 bin/HipparchiaGoServer*
 Hipparchia*
 HGS_*

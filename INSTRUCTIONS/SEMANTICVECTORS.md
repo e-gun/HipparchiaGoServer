@@ -291,7 +291,7 @@ You can set how many topics to track via the `Configuration options` panel. The 
 ![inst02](../gitimg/lda_model.png)
 
 You can also request a graph of your model. This can be slow to generate. The time increases significantly as the
-selection size increases: O(*n*^2), I think. Expect to wait more than 45m to see a graph of all of Livy to appear, if your system can manage it at all. Adjust `MaxLDAGraphSize` in `hgs-vector-conf-lda.json` if you dare.
+selection size increases: `O(n^2)`, I think. Expect to wait more than 45m to see a graph of all of Livy to appear, if your system can manage it at all. Adjust `MaxLDAGraphSize` in `hgs-vector-conf-lda.json` if you dare.
 
 ![inst02](../gitimg/lda_tsne_scattergraph.png)
 
