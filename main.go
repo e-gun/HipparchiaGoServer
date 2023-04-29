@@ -43,7 +43,11 @@ func main() {
 
 	LookForConfigFile()
 	ConfigAtLaunch()
-	ResetScreen()
+
+	messenger.Cfg = Config
+	messenger.Lnc.LaunchTime = LaunchTime
+	messenger.Ctr = StatCounter
+	messenger.ResetScreen()
 
 	printversion()
 
@@ -53,7 +57,7 @@ func main() {
 
 	SQLPool = FillPSQLPoool()
 	go WebsocketPool.WSPoolStartListening()
-	go UptimeTicker(TICKERDELAY)
+	go messenger.Ticker(TICKERDELAY)
 
 	// concurrent launching
 	var awaiting sync.WaitGroup
@@ -65,11 +69,11 @@ func main() {
 		previous := time.Now()
 
 		AllWorks = workmapper()
-		TimeTracker("A1", fmt.Sprintf(MSG1, len(AllWorks)), start, previous)
+		messenger.Timer("A1", fmt.Sprintf(MSG1, len(AllWorks)), start, previous)
 
 		previous = time.Now()
 		AllAuthors = authormapper(AllWorks)
-		TimeTracker("A2", fmt.Sprintf(MSG2, len(AllAuthors)), start, previous)
+		messenger.Timer("A2", fmt.Sprintf(MSG2, len(AllAuthors)), start, previous)
 
 		previous = time.Now()
 		WkCorpusMap = buildwkcorpusmap()
@@ -78,7 +82,7 @@ func main() {
 		WkGenres = buildwkgenresmap()
 		AuLocs = buildaulocationmap()
 		WkLocs = buildwklocationmap()
-		TimeTracker("A3", MSG3, start, previous)
+		messenger.Timer("A3", MSG3, start, previous)
 	}(&awaiting)
 
 	awaiting.Add(1)
@@ -89,11 +93,11 @@ func main() {
 		previous := time.Now()
 
 		AllLemm = lemmamapper()
-		TimeTracker("B1", fmt.Sprintf(MSG4, len(AllLemm)), start, previous)
+		messenger.Timer("B1", fmt.Sprintf(MSG4, len(AllLemm)), start, previous)
 
 		previous = time.Now()
 		NestedLemm = nestedlemmamapper(AllLemm)
-		TimeTracker("B2", MSG5, start, previous)
+		messenger.Timer("B2", MSG5, start, previous)
 	}(&awaiting)
 
 	awaiting.Wait()
@@ -104,7 +108,7 @@ func main() {
 		vectordbcount(MSGNOTE)
 	}
 
-	SelfStats("main() post-initialization")
+	messenger.Stats("main() post-initialization")
 	msg(fmt.Sprintf(SUMM, time.Now().Sub(LaunchTime).Seconds()), MSGWARN)
 
 	StartEchoServer()
@@ -129,16 +133,16 @@ func printversion() {
 	ll := fmt.Sprintf(" [C6gl=%d; el=%dC0]", Config.LogLevel, Config.EchoLog)
 	versioninfo := fmt.Sprintf("C5%sC0 (C2v%sC0)", MYNAME, VERSION+VersSuppl)
 	versioninfo = sn + versioninfo + gc + ll
-	versioninfo = styleoutput(coloroutput(versioninfo))
+	versioninfo = messenger.ColStyle(versioninfo)
 	fmt.Println(versioninfo)
 }
 
 func printbuildinfo() {
 	bi := ""
 	if BuildDate != "" {
-		bi = styleoutput(coloroutput(fmt.Sprintf("\tS1Built:S0\tC3%sC0\n", BuildDate)))
+		bi = messenger.ColStyle(fmt.Sprintf("\tS1Built:S0\tC3%sC0\n", BuildDate))
 
 	}
-	bi += styleoutput(coloroutput(fmt.Sprintf("\tS1Go:S0\tC3%sC0", runtime.Version())))
+	bi += messenger.ColStyle(fmt.Sprintf("\tS1Go:S0\tC3%sC0", runtime.Version()))
 	fmt.Println(bi)
 }

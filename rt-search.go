@@ -62,7 +62,7 @@ func RtSearch(c echo.Context) error {
 		return LDASearch(c, srch)
 	}
 
-	c.Response().After(func() { SelfStats("RtSearch()") })
+	c.Response().After(func() { messenger.Stats("RtSearch()") })
 
 	// HasPhrase makes us use a fake limit temporarily
 	reallimit := srch.CurrentLimit

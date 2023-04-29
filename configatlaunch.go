@@ -30,7 +30,7 @@ type CurrentConfiguration struct {
 	LdaGraph        bool
 	LdaTopics       int
 	LogLevel        int
-	ManualGC        bool // see SelfStats()
+	ManualGC        bool // see messenger.Stats()
 	MaxText         int
 	PGLogin         PostgresLogin
 	ResetVectors    bool
@@ -311,7 +311,9 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.WorkerCount = runtime.NumCPU()
 	c.ZapLunates = false
 	e := json.Unmarshal([]byte(DEFAULTCORPORA), &c.DefCorp)
-	chke(e)
+	if e != nil {
+		fmt.Println("BuildDefaultConfig() could not json.Unmarshal DEFAULTCORPORA: " + DEFAULTCORPORA)
+	}
 
 	pl := PostgresLogin{
 		Host:   DEFAULTPSQLHOST,
@@ -380,7 +382,7 @@ func SetConfigPass(cfg CurrentConfiguration, cf string) {
 			msg(fmt.Sprintf(FAIL3, cf, acf, fmt.Sprintf("%s/%s", h, CONFIGPROLIX)), MSGCRIT)
 			msg(fmt.Sprintf(FAIL4), MSGCRIT)
 			fmt.Printf(MINCONFIG)
-			exitorhang(0)
+			messenger.ExitOrHang(0)
 		}
 		conf := ConfigFile{}
 		if erra == nil {

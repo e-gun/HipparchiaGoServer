@@ -33,7 +33,7 @@ type WordInfo struct {
 	Wk         string
 }
 
-type VocInf struct {
+type VocInfo struct {
 	Word         string
 	C            int
 	TR           string
@@ -49,7 +49,7 @@ type VocInf struct {
 
 // RtTextMaker - make a text of whatever collection of lines you would be searching
 func RtTextMaker(c echo.Context) error {
-	c.Response().After(func() { SelfStats("RtTextMaker()") })
+	c.Response().After(func() { messenger.Stats("RtTextMaker()") })
 	// text generation works like a simple search for "anything" in each line of the selected texts
 	// the results then gett output as a big "browser table"...
 
@@ -178,7 +178,7 @@ func RtTextMaker(c echo.Context) error {
 
 // RtVocabMaker - get the vocabulary for whatever collection of lines you would be searching
 func RtVocabMaker(c echo.Context) error {
-	c.Response().After(func() { SelfStats("RtVocabMaker()") })
+	c.Response().After(func() { messenger.Stats("RtVocabMaker()") })
 
 	// grab lines via a simple search for "anything" in each line of the selection made and stored in the session
 	// todo: worry about γ' for γε
@@ -350,7 +350,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
 
-	vim := make(map[string]VocInf)
+	vim := make(map[string]VocInfo)
 	for k, v := range vic {
 		m := scansion[k]
 		if len(m) == 0 {
@@ -359,7 +359,7 @@ func RtVocabMaker(c echo.Context) error {
 			m = scansion[cases.Title(language.Und).String(k)]
 		}
 
-		vim[k] = VocInf{
+		vim[k] = VocInfo{
 			Word:  k,
 			C:     v,
 			TR:    polishtrans(vit[k], pat),
@@ -380,7 +380,7 @@ func RtVocabMaker(c echo.Context) error {
 		return strings.Replace(StripaccentsSTR(onlyhere[i]), "ϲ", "σ", -1) < strings.Replace(StripaccentsSTR(onlyhere[j]), "ϲ", "σ", -1)
 	})
 
-	vis := make([]VocInf, len(vim))
+	vis := make([]VocInfo, len(vim))
 	ct := 0
 	for _, v := range vim {
 		vis[ct] = v
@@ -392,10 +392,10 @@ func RtVocabMaker(c echo.Context) error {
 
 	// [f2] sort the results
 	if se.VocByCount {
-		countDecreasing := func(one, two *VocInf) bool {
+		countDecreasing := func(one, two *VocInfo) bool {
 			return one.C > two.C
 		}
-		wordIncreasing := func(one, two *VocInf) bool {
+		wordIncreasing := func(one, two *VocInfo) bool {
 			return one.Strip < two.Strip
 		}
 		VIOrderedBy(countDecreasing, wordIncreasing).Sort(vis)
@@ -483,7 +483,7 @@ func RtVocabMaker(c echo.Context) error {
 
 // RtIndexMaker - build an index for whatever collection of lines you would be searching
 func RtIndexMaker(c echo.Context) error {
-	c.Response().After(func() { SelfStats("RtIndexMaker()") })
+	c.Response().After(func() { messenger.Stats("RtIndexMaker()") })
 
 	// note that templates + bytes.Buffer is more legible than '%s' time and again BUT it is also slightly slower
 	// this was tested via a rewrite of RtIndexMaker() and other rt-textindicesandvocab functions

@@ -18,6 +18,11 @@ import (
 	"time"
 )
 
+var (
+	// have the option to return/generate some sort of fail message...
+	emptyjsreturn = func(c echo.Context) error { return c.JSONPretty(http.StatusOK, "", JSONINDENT) }
+)
+
 //
 // ROUTING
 //

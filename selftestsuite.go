@@ -59,6 +59,15 @@ func selftest() {
 		URL   = "http://%s:%d/vbot/%s/%s"
 	)
 
+	mm := NewMessageMaker(Config, StatCounter, LaunchStruct{
+		Name:       "",
+		Version:    "",
+		Shortname:  "HGS-SELFTEST",
+		LaunchTime: time.Now(),
+	})
+
+	mm.Cfg.LogLevel = MSGFYI
+
 	printbuildinfo()
 
 	st := []SrchTest{
@@ -106,49 +115,44 @@ func selftest() {
 		},
 	}
 
-	oldloglevel := Config.LogLevel
-	if Config.LogLevel < MSGFYI {
-		Config.LogLevel = MSGFYI
-	}
-
 	time.Sleep(WSPOLLINGPAUSE * 3)
-	msg("entering selftest mode (3 segments)", MSGMAND)
+	mm.Emit("entering selftest mode (3 segments)", MSGMAND)
 
 	start := time.Now()
 	previous := time.Now()
 
-	msg("[I] 6 search tests", MSGWARN)
+	mm.Emit("[I] 6 search tests", MSGWARN)
 	for i := 0; i < len(st); i++ {
 		_, err := http.Get(st[i].Url())
 		chke(err)
-		TimeTracker(st[i].id, st[i].Msg(), start, previous)
+		mm.Timer(st[i].id, st[i].Msg(), start, previous)
 		previous = time.Now()
 	}
 
-	msg("[II] 3 text, index, and vocab maker tests", MSGWARN)
+	mm.Emit("[II] 3 text, index, and vocab maker tests", MSGWARN)
 	u := fmt.Sprintf("http://%s:%d/", Config.HostIP, Config.HostPort)
 	_, err := http.Get(u + TXT)
 	chke(err)
-	TimeTracker("C1", fmt.Sprintf(MSG7, Config.MaxText), start, previous)
+	mm.Timer("C1", fmt.Sprintf(MSG7, Config.MaxText), start, previous)
 	previous = time.Now()
 
 	_, err = http.Get(u + IDX)
 	chke(err)
-	TimeTracker("C2", fmt.Sprintf(MSG8, Config.MaxText), start, previous)
+	mm.Timer("C2", fmt.Sprintf(MSG8, Config.MaxText), start, previous)
 	previous = time.Now()
 
 	_, err = http.Get(u + VOC)
 	chke(err)
-	TimeTracker("C3", fmt.Sprintf(MSG9, Config.MaxText), start, previous)
+	mm.Timer("C3", fmt.Sprintf(MSG9, Config.MaxText), start, previous)
 	previous = time.Now()
 
-	msg("[III] 4 browsing and lexical tests", MSGWARN)
+	mm.Emit("[III] 4 browsing and lexical tests", MSGWARN)
 
 	br := "browse/index/gr00%d/001/%d"
 	for i := 0; i < 50; i++ {
 		_, err = http.Get(u + fmt.Sprintf(br, i+10, 100))
 	}
-	TimeTracker("D1", MSG10, start, previous)
+	mm.Timer("D1", MSG10, start, previous)
 	previous = time.Now()
 
 	wds := "ob eiusdem hominis consulatum una cum salute obtinendum et ut vestrae mentes atque sententiae cum populi "
@@ -160,7 +164,7 @@ func selftest() {
 	for i := 0; i < len(lex); i++ {
 		_, err = http.Get(u + "lex/findbyform/" + lex[i] + "/test")
 	}
-	TimeTracker("D2", fmt.Sprintf(MSG11, len(lex)), start, previous)
+	mm.Timer("D2", fmt.Sprintf(MSG11, len(lex)), start, previous)
 	previous = time.Now()
 
 	wds = "pud sud obse αφροδ γραμ ποικιλ"
@@ -169,7 +173,7 @@ func selftest() {
 	for i := 0; i < len(lex); i++ {
 		_, err = http.Get(u + "lex/lookup/" + lex[i])
 	}
-	TimeTracker("D3", fmt.Sprintf(MSG12, len(lex)), start, previous)
+	mm.Timer("D3", fmt.Sprintf(MSG12, len(lex)), start, previous)
 	previous = time.Now()
 
 	wds = "love hate plague desire soldier horse"
@@ -179,7 +183,7 @@ func selftest() {
 		_, err = http.Get(u + "lex/reverselookup/testing/" + lex[i])
 	}
 
-	TimeTracker("D4", fmt.Sprintf(MSG13, len(lex)), start, previous)
+	mm.Timer("D4", fmt.Sprintf(MSG13, len(lex)), start, previous)
 	previous = time.Now()
 
 	if Config.VectorsDisabled {
@@ -187,7 +191,7 @@ func selftest() {
 	}
 
 	// vector selftest
-	msg("[IV] nearest neighbor vectorization tests", MSGWARN)
+	mm.Emit("[IV] nearest neighbor vectorization tests", MSGWARN)
 	vectordbreset()
 	ovm := Config.VectorModel
 	otx := Config.VectorTextPrep
@@ -218,23 +222,23 @@ func selftest() {
 			Config.VectorModel = m
 			tx("nn")
 			nb := fmt.Sprintf(MSG14, m, len(vauu), len(vtxp))
-			TimeTracker(fmt.Sprintf("E%d", count), nb, start, previous)
+			mm.Timer(fmt.Sprintf("E%d", count), nb, start, previous)
 			previous = time.Now()
 		}
 	}
 
 	md()
 
-	msg("[V] lda vectorization tests", MSGWARN)
+	mm.Emit("[V] lda vectorization tests", MSGWARN)
 	vauu = []string{"lt0472"} // catullus
 
 	tx("lda")
 	nb := fmt.Sprintf(MSG15, len(vauu), len(vtxp))
-	TimeTracker("F", nb, start, previous)
+	mm.Timer("F", nb, start, previous)
 	previous = time.Now()
 
-	msg("exiting selftest mode", MSGMAND)
-	Config.LogLevel = oldloglevel
+	mm.Emit("exiting selftest mode", MSGMAND)
+
 	Config.VectorModel = ovm
 	Config.VectorTextPrep = otx
 }

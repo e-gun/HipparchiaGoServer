@@ -75,13 +75,6 @@ const (
 	MINDATE                  = -850
 	MINDATESTR               = "-850"
 	MINORGENREWTCAP          = 250
-	MSGMAND                  = -1
-	MSGCRIT                  = 0
-	MSGWARN                  = 1
-	MSGNOTE                  = 2
-	MSGFYI                   = 3
-	MSGPEEK                  = 4
-	MSGTMI                   = 5
 	NESTEDLEMMASIZE          = 543
 	ORDERBY                  = "index"
 	POLLEVERYNTABLES         = 50 // 3455 is the max number of tables in a search...
@@ -96,7 +89,6 @@ const (
 	TICKERDELAY              = 60 * time.Second
 	TIMEOUTRD                = 15 * time.Second  // only set if Config.Authenticate is true (and so in a "serve the net" situation)
 	TIMEOUTWR                = 120 * time.Second // this is *very* generous, but some searches are slow/long
-	TIMETRACKERMSGTHRESH     = MSGFYI
 	USEGZIP                  = false
 	VARIADATE                = 2000
 	VECTORNEIGHBORS          = 16

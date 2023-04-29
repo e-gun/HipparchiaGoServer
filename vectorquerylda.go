@@ -78,7 +78,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	const (
 		LDAMSG = `Building LDA model for the current selections`
 	)
-	c.Response().After(func() { SelfStats("LDASearch()") })
+	c.Response().After(func() { messenger.Stats("LDASearch()") })
 
 	se := srch.StoredSession
 	ntopics := se.LDAtopics

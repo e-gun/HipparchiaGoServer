@@ -228,7 +228,7 @@ func activatevectorbot() {
 
 		count += 1
 		if count%COUNTEVERY == 0 || mustnotify {
-			TimeTracker("AV", fmt.Sprintf(MSG2, float32(count)/tot*100, an, a), start, previous)
+			messenger.Timer("AV", fmt.Sprintf(MSG2, float32(count)/tot*100, an, a), start, previous)
 			previous = time.Now()
 		}
 		u := fmt.Sprintf(URL, Config.HostIP, Config.HostPort, "nn", a)
@@ -243,7 +243,7 @@ func activatevectorbot() {
 		}
 	}
 
-	TimeTracker("VB", MSG3, start, previous)
+	messenger.Timer("VB", MSG3, start, previous)
 	vectordbsize(MSGNOTE)
 	vectordbcount(MSGNOTE)
 }

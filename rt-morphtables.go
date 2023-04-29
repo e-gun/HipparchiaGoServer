@@ -68,7 +68,7 @@ func RtMorphchart(c echo.Context) error {
 	//    "greek_morphology_idx" btree (observed_form)
 
 	// should reach this route exclusively via a click from rt-lexica.go
-	c.Response().After(func() { SelfStats("RtMorphchart()") })
+	c.Response().After(func() { messenger.Stats("RtMorphchart()") })
 	user := readUUIDCookie(c)
 	if !AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, SearchOutputJSON{JS: VALIDATIONBOX}, JSONINDENT)

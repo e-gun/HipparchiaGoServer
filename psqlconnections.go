@@ -72,7 +72,7 @@ func FillPSQLPoool() *pgxpool.Pool {
 			parts := strings.Split(e.Error(), ERRSRV)
 			msg(parts[1], MSGCRIT)
 		}
-		exitorhang(0)
+		messenger.ExitOrHang(0)
 	}
 	return thepool
 }
@@ -96,7 +96,7 @@ func GetPSQLconnection() *pgxpool.Conn {
 			chke(err)
 			err = os.Remove(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGBASIC)
 			chke(err)
-			exitorhang(0)
+			messenger.ExitOrHang(0)
 		}
 
 		msg(fmt.Sprintf(FAIL1), MSGMAND)
@@ -105,7 +105,7 @@ func GetPSQLconnection() *pgxpool.Conn {
 		} else {
 			msg(fmt.Sprintf(FAIL2, CONFIGBASIC), MSGMAND)
 		}
-		exitorhang(0)
+		messenger.ExitOrHang(0)
 	}
 	return dbc
 }
