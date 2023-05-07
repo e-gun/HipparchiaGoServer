@@ -94,7 +94,8 @@ const (
 	VECTORNEIGHBORS          = 16
 	VECTORNEIGHBORSMAX       = 40
 	VECTORNEIGHBORSMIN       = 4
-	VECTORTABLENAME          = "semantic_vectors"
+	VECTORTABLENAMENN        = "semantic_vectors_nn"
+	VECTORTABLENAMELDA       = "semantic_vectors_lda"
 	VECTORMAXLINES           = 1000000 // 964403 lines will get you all of Latin
 	VECTORMODELDEFAULT       = "w2v"
 	VECTORTEXTPREPDEFAULT    = "winner"

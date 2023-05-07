@@ -236,7 +236,7 @@ func ArchiveDB() {
 
 	workers := fmt.Sprintf("%d", WRK)
 
-	cmd := exec.Command(binary, "-v", "-T", VECTORTABLENAME, "-F", "d", "-j", workers, "-f", HDBFOLDER, url)
+	cmd := exec.Command(binary, "-v", "-T", VECTORTABLENAMENN, "-F", "d", "-j", workers, "-f", HDBFOLDER, url)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 

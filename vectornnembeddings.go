@@ -63,18 +63,18 @@ func generateneighborsdata(c echo.Context, s SearchStruct) map[string]search.Nei
 	)
 
 	fp := fingerprintnnvectorsearch(s)
-	isstored := vectordbcheck(fp)
+	isstored := vectordbchecknn(fp)
 	var embs embedding.Embeddings
 	if isstored {
 		s.ExtraMsg = FMSG
 		AllSearches.InsertSS(s)
-		embs = vectordbfetch(fp)
+		embs = vectordbfetchnn(fp)
 	} else {
 		s.ExtraMsg = GMSG
 		AllSearches.InsertSS(s)
 		embs = generateembeddings(c, s.VecModeler, s)
-		vectordbadd(fp, embs)
-		vectordbsize(MSGPEEK)
+		vectordbaddnn(fp, embs)
+		vectordbsizenn(MSGPEEK)
 	}
 
 	// [b] make a query against the model
@@ -242,7 +242,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	s.ExtraMsg = DBMSG
 	AllSearches.InsertSS(s)
 
-	// use buffers; skip the disk; psql used for storage: vectordbadd() & vectordbfetch()
+	// use buffers; skip the disk; psql used for storage: vectordbaddnn() & vectordbfetchnn()
 	var buf bytes.Buffer
 	w := io.Writer(&buf)
 	err := vmodel.Save(w, vector.Agg)

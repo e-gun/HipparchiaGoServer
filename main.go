@@ -105,7 +105,7 @@ func main() {
 	if Config.ResetVectors {
 		vectordbreset()
 	} else {
-		vectordbcount(MSGNOTE)
+		vectordbcountnn(MSGNOTE)
 	}
 
 	messenger.Stats("main() post-initialization")

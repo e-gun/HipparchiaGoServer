@@ -32,6 +32,10 @@ const (
 	DOTSHIFT   = 0
 )
 
+var (
+	vgrm = NewFncMessageMaker("vectorgraphing.go")
+)
+
 //
 // NEAREST NEIGHBORS FORCE GRAPHS
 //
@@ -243,7 +247,7 @@ func customnngraphhtmlandjs(g *charts.Graph) string {
 	// [d] render the chart and get the html+js for it
 	var buf bytes.Buffer
 	err := p.Render(&buf)
-	chke(err)
+	vgrm.EC(err)
 
 	htmlandjs := string(buf.Bytes())
 
@@ -466,7 +470,7 @@ func lda2dscatter(ntopics int, incl string, bagger string, Y, labels mat.Matrix,
 	//	panic(err)
 	//}
 	//err = page.Render(io.MultiWriter(f))
-	//chke(err)
+	//vgrm.EC(err)
 
 	htmlandjs := customscatterhtmlandjs(scatter)
 	return htmlandjs
@@ -541,7 +545,7 @@ func lda3dscatter(ntopics int, incl string, bagger string, Y, labels mat.Matrix,
 	//	panic(err)
 	//}
 	//err = page.Render(io.MultiWriter(f))
-	//chke(err)
+	//vgrm.EC(err)
 
 	// TODO? - custom3dscatterhtmlandjs() will panic...
 	// htmlandjs := custom3dscatterhtmlandjs(scatter)
@@ -558,12 +562,12 @@ func pagerendertojscriptblock(page *components.Page) string {
 	var buf bytes.Buffer
 	w := io.Writer(&buf)
 	err := page.Render(io.MultiWriter(w))
-	chke(err)
+	vgrm.EC(err)
 
 	r := io.Reader(&buf)
 	sb := new(strings.Builder)
 	_, err = io.Copy(sb, r)
-	chke(err)
+	vgrm.EC(err)
 
 	// now you have " <html><head>...</head><body>STUFF</body></html>" ; you want to grab STUFF
 	one := strings.Split(sb.String(), "<body>")

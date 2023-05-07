@@ -69,6 +69,7 @@ func RtAuthorHints(c echo.Context) error {
 
 // RtLemmaHints - /hints/lemmata/_?term=dol --> [{"value": "dolabella\u00b9"}, {"value": "dolabra"}, {"value": "dolamen"}, ... ]
 func RtLemmaHints(c echo.Context) error {
+	// note that this hates "προ" and "προτ": so many come back that you will lag the system
 	term := c.QueryParam("term")
 	// can't slice a unicode string...
 	skg := []rune(term)
@@ -84,7 +85,14 @@ func RtLemmaHints(c echo.Context) error {
 	if _, ok := NestedLemm[nl]; ok {
 		for _, l := range NestedLemm[nl] {
 			er := l.EntryRune()
-			potential := StripaccentsRUNE(er[0:len(skg)])
+
+			// do not overshoot "er"...: "slice bounds out of range"
+			lim := len(skg)
+			if lim > len(er) {
+				lim = len(er)
+			}
+
+			potential := StripaccentsRUNE(er[0:lim])
 			if len(er) >= len(skg) && string(potential) == string(skg) {
 				// need to filter ab-cedo¹ --> abcedo
 				match = append(match, JSStruct{l.Entry})

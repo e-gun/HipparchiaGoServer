@@ -148,7 +148,7 @@ func nnmodelbot(c echo.Context, s SearchStruct, a string) {
 	m := Config.VectorModel
 	fp := fingerprintnnvectorsearch(s)
 
-	isstored := vectordbcheck(fp)
+	isstored := vectordbchecknn(fp)
 
 	if isstored {
 		msg(fmt.Sprintf(MSG1, AllAuthors[a].Name), MSGPEEK)
@@ -163,7 +163,7 @@ func nnmodelbot(c echo.Context, s SearchStruct, a string) {
 		s = HGoSrch(s)
 		if len(s.Results) > MINSIZE {
 			embs := generateembeddings(c, m, s)
-			vectordbadd(fp, embs)
+			vectordbaddnn(fp, embs)
 		} else {
 			msg(fmt.Sprintf(MSG2, a, len(s.Results)), MSGTMI)
 		}
@@ -239,11 +239,11 @@ func activatevectorbot() {
 		time.Sleep(THROTTLE * time.Millisecond)
 
 		if count%SIZEVERY == 0 {
-			vectordbsize(MSGNOTE)
+			vectordbsizenn(MSGNOTE)
 		}
 	}
 
 	messenger.Timer("VB", MSG3, start, previous)
-	vectordbsize(MSGNOTE)
-	vectordbcount(MSGNOTE)
+	vectordbsizenn(MSGNOTE)
+	vectordbcountnn(MSGNOTE)
 }

@@ -39,10 +39,11 @@ const (
 	WHITE                = "\033[38;5;255m" // Grey93
 	BLINK                = "\033[30;0;5m"
 	PANIC                = "[%s%s v.%s%s] %sUNRECOVERABLE ERROR%s\n"
+	PANIC2               = "[%s%s v.%s%s] (%s%s%s) %sUNRECOVERABLE ERROR%s\n"
 )
 
 var (
-	messenger = NewMessageMaker(BuildDefaultConfig(), nil, LaunchStruct{
+	messenger = NewGenericMessageMaker(BuildDefaultConfig(), nil, LaunchStruct{
 		Name:       MYNAME,
 		Version:    VERSION,
 		Shortname:  SHORTNAME,
@@ -58,6 +59,10 @@ func chke(e error) {
 	messenger.Error(e)
 }
 
+func chkf(e error, s string) {
+	messenger.EF(e, s)
+}
+
 func coloroutput(s string) string {
 	return messenger.Color(s)
 }
@@ -66,7 +71,19 @@ func styleoutput(s string) string {
 	return messenger.Styled(s)
 }
 
-func NewMessageMaker(cc CurrentConfiguration, ct map[string]*atomic.Int32, ls LaunchStruct) *MessageMaker {
+func NewGenericMessageMaker(cc CurrentConfiguration, ct map[string]*atomic.Int32, ls LaunchStruct) *MessageMaker {
+	return &MessageMaker{
+		Cfg: cc,
+		Ctr: ct,
+		Lnc: ls,
+	}
+}
+
+func NewFncMessageMaker(c string) *MessageMaker {
+	cc := messenger.Cfg
+	ct := messenger.Ctr
+	ls := messenger.Lnc
+	ls.Caller = c
 	return &MessageMaker{
 		Cfg: cc,
 		Ctr: ct,
@@ -78,6 +95,7 @@ type MessageMaker struct {
 	Cfg CurrentConfiguration
 	Ctr map[string]*atomic.Int32
 	Lnc LaunchStruct
+	Pgn string
 }
 
 type LaunchStruct struct {
@@ -85,6 +103,7 @@ type LaunchStruct struct {
 	Version    string
 	Shortname  string
 	LaunchTime time.Time
+	Caller     string
 }
 
 func (m *MessageMaker) Emit(message string, threshold int) {
@@ -154,9 +173,33 @@ func (m *MessageMaker) ColStyle(tagged string) string {
 	return m.Styled(m.Color(tagged))
 }
 
+// Error - just panic...
 func (m *MessageMaker) Error(err error) {
 	if err != nil {
 		fmt.Printf(PANIC, YELLOW2, m.Lnc.Name, m.Lnc.Version, RESET, RED1, RESET)
+		fmt.Println(err)
+		m.ExitOrHang(1)
+	}
+}
+
+// EF - report error and function
+func (m *MessageMaker) EF(err error, fn string) {
+	if err != nil {
+		fmt.Printf(PANIC2, YELLOW2, m.Lnc.Name, m.Lnc.Version, RESET, CYAN2, fn, RESET, RED1, RESET)
+		fmt.Println(err)
+		m.ExitOrHang(1)
+	}
+}
+
+// EC - report error and page that called function
+func (m *MessageMaker) EC(err error) {
+	fmt.Println("EC")
+	var c string
+	if m.Lnc.Caller != "" {
+		c = m.Lnc.Caller
+	}
+	if err != nil {
+		fmt.Printf(PANIC2, YELLOW2, m.Lnc.Name, m.Lnc.Version, RESET, CYAN2, c, RESET, RED1, RESET)
 		fmt.Println(err)
 		m.ExitOrHang(1)
 	}

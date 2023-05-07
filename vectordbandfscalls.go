@@ -103,6 +103,10 @@ var (
 // DB INTERACTION
 //
 
+var (
+	dbi = NewFncMessageMaker("vectordbandfscalls.go")
+)
+
 // fetchheadwordcounts - map a list of headwords to their corpus counts
 func fetchheadwordcounts(headwordset map[string]bool) map[string]int {
 	const (
@@ -133,18 +137,18 @@ func fetchheadwordcounts(headwordset map[string]bool) map[string]int {
 
 	tt = fmt.Sprintf(tt, rndid, arr)
 	_, err := dbconn.Exec(context.Background(), tt)
-	chke(err)
+	dbi.EC(err)
 
 	qt = fmt.Sprintf(qt, rndid)
 	foundrows, e := dbconn.Query(context.Background(), qt)
-	chke(e)
+	dbi.EC(e)
 
 	returnmap := make(map[string]int)
 	defer foundrows.Close()
 	for foundrows.Next() {
 		var thehit WeightedHeadword
 		err = foundrows.Scan(&thehit.Word, &thehit.Count)
-		chke(err)
+		dbi.EC(err)
 		returnmap[thehit.Word] = thehit.Count
 	}
 
@@ -163,8 +167,8 @@ func fetchheadwordcounts(headwordset map[string]bool) map[string]int {
 	return returnmap
 }
 
-// vectordbinit - initialize VECTORTABLENAME
-func vectordbinit(dbconn *pgxpool.Conn) {
+// vectordbinitnn - initialize VECTORTABLENAMENN
+func vectordbinitnn(dbconn *pgxpool.Conn) {
 	const (
 		CREATE = `
 			CREATE TABLE %s
@@ -174,37 +178,37 @@ func vectordbinit(dbconn *pgxpool.Conn) {
 			  vectordata  bytea
 			)`
 	)
-	ex := fmt.Sprintf(CREATE, VECTORTABLENAME)
+	ex := fmt.Sprintf(CREATE, VECTORTABLENAMENN)
 	_, err := dbconn.Exec(context.Background(), ex)
-	chke(err)
-	msg("vectordbinit(): success", 3)
+	dbi.EC(err)
+	msg("vectordbinitnn(): success", MSGFYI)
 }
 
-// vectordbcheck - has a search with this fingerprint already been stored?
-func vectordbcheck(fp string) bool {
+// vectordbchecknn - has a search with this fingerprint already been stored?
+func vectordbchecknn(fp string) bool {
 	const (
 		Q = `SELECT fingerprint FROM %s WHERE fingerprint = '%s' LIMIT 1`
 	)
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 
-	q := fmt.Sprintf(Q, VECTORTABLENAME, fp)
+	q := fmt.Sprintf(Q, VECTORTABLENAMENN, fp)
 	foundrow, err := dbconn.Query(context.Background(), q)
 	if err != nil {
 		m := err.Error()
 		if strings.Contains(m, "does not exist") {
-			vectordbinit(dbconn)
+			vectordbinitnn(dbconn)
 		}
 	}
 	return foundrow.Next()
 }
 
-// vectordbadd - add a set of embeddings to VECTORTABLENAME
-func vectordbadd(fp string, embs embedding.Embeddings) {
+// vectordbaddnn - add a set of embeddings to VECTORTABLENAMENN
+func vectordbaddnn(fp string, embs embedding.Embeddings) {
 	const (
-		MSG1 = "vectordbadd(): "
+		MSG1 = "vectordbaddnn(): "
 		MSG2 = "%s compression: %dM -> %dM (%.1f percent)"
-		FAIL = "vectordbadd() failed when calling json.Marshal(embs): nothing stored"
+		FAIL = "vectordbaddnn() failed when calling json.Marshal(embs): nothing stored"
 		INS  = `
 			INSERT INTO %s
 				(fingerprint, vectorsize, vectordata)
@@ -223,47 +227,47 @@ func vectordbadd(fp string, embs embedding.Embeddings) {
 	// https://stackoverflow.com/questions/61077668/how-to-gzip-string-and-return-byte-array-in-golang
 	var buf bytes.Buffer
 	zw, err := gzip.NewWriterLevel(&buf, GZ)
-	chke(err)
+	dbi.EC(err)
 	_, err = zw.Write(eb)
-	chke(err)
+	dbi.EC(err)
 	err = zw.Close()
-	chke(err)
+	dbi.EC(err)
 
 	b := buf.Bytes()
 	l2 := len(b)
 
-	ex := fmt.Sprintf(INS, VECTORTABLENAME, fp)
+	ex := fmt.Sprintf(INS, VECTORTABLENAMENN, fp)
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 
 	_, err = dbconn.Exec(context.Background(), ex, l2, b)
-	chke(err)
+	dbi.EC(err)
 	msg(MSG1+fp, MSGPEEK)
 
 	// compressed is c. 28% of original
 	msg(fmt.Sprintf(MSG2, fp, l1/1024/1024, l2/1024/1024, (float32(l2)/float32(l1))*100), MSGPEEK)
 }
 
-// vectordbfetch - get a set of embeddings from VECTORTABLENAME
-func vectordbfetch(fp string) embedding.Embeddings {
+// vectordbfetchnn - get a set of embeddings from VECTORTABLENAMENN
+func vectordbfetchnn(fp string) embedding.Embeddings {
 	const (
-		MSG1 = "vectordbfetch(): "
-		MSG2 = "vectordbfetch() pulled empty set of embeddings for %s"
+		MSG1 = "vectordbfetchnn(): "
+		MSG2 = "vectordbfetchnn() pulled empty set of embeddings for %s"
 		Q    = `SELECT vectordata FROM %s WHERE fingerprint = '%s' LIMIT 1`
 	)
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 
-	q := fmt.Sprintf(Q, VECTORTABLENAME, fp)
+	q := fmt.Sprintf(Q, VECTORTABLENAMENN, fp)
 	var vect []byte
 	foundrow, err := dbconn.Query(context.Background(), q)
-	chke(err)
+	dbi.EC(err)
 
 	defer foundrow.Close()
 	for foundrow.Next() {
 		err = foundrow.Scan(&vect)
-		chke(err)
+		dbi.EC(err)
 	}
 
 	var buf bytes.Buffer
@@ -271,15 +275,15 @@ func vectordbfetch(fp string) embedding.Embeddings {
 
 	// the data in the tables is zipped and needs unzipping
 	zr, err := gzip.NewReader(&buf)
-	chke(err)
+	dbi.EC(err)
 	err = zr.Close()
-	chke(err)
+	dbi.EC(err)
 	decompr, err := io.ReadAll(zr)
-	chke(err)
+	dbi.EC(err)
 
 	var emb embedding.Embeddings
 	err = json.Unmarshal(decompr, &emb)
-	chke(err)
+	dbi.EC(err)
 
 	if emb.Empty() {
 		msg(fmt.Sprintf(MSG2, fp), MSGNOTE)
@@ -290,27 +294,27 @@ func vectordbfetch(fp string) embedding.Embeddings {
 	return emb
 }
 
-// vectordbreset - drop VECTORTABLENAME
+// vectordbreset - drop VECTORTABLENAMENN
 func vectordbreset() {
 	const (
 		MSG1 = "vectordbreset() dropped "
 		MSG2 = "vectordbreset(): 'DROP TABLE %s' returned an (ignored) error"
 		E    = `DROP TABLE %s`
 	)
-	ex := fmt.Sprintf(E, VECTORTABLENAME)
+	ex := fmt.Sprintf(E, VECTORTABLENAMENN)
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 
 	_, err := dbconn.Exec(context.Background(), ex)
 	if err != nil {
-		msg(fmt.Sprintf(MSG2, VECTORTABLENAME), MSGFYI)
+		msg(fmt.Sprintf(MSG2, VECTORTABLENAMENN), MSGFYI)
 	} else {
-		msg(MSG1+VECTORTABLENAME, MSGFYI)
+		msg(MSG1+VECTORTABLENAMENN, MSGFYI)
 	}
 }
 
-// vectordbsize - how much space is the vectordb using?
-func vectordbsize(priority int) {
+// vectordbsizenn - how much space is the vectordb using?
+func vectordbsizenn(priority int) {
 	const (
 		SZQ  = "SELECT SUM(vectorsize) AS total FROM semantic_vectors"
 		MSG4 = "Disk space used by stored vectors is currently %dMB"
@@ -319,11 +323,11 @@ func vectordbsize(priority int) {
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
 	err := dbconn.QueryRow(context.Background(), SZQ).Scan(&size)
-	chke(err)
+	dbi.EC(err)
 	msg(fmt.Sprintf(MSG4, size/1024/1024), priority)
 }
 
-func vectordbcount(priority int) {
+func vectordbcountnn(priority int) {
 	const (
 		SZQ  = "SELECT COUNT(vectorsize) AS total FROM semantic_vectors"
 		MSG4 = "Number of stored vector models: %d"
@@ -335,7 +339,7 @@ func vectordbcount(priority int) {
 	if err != nil {
 		m := err.Error()
 		if strings.Contains(m, "does not exist") {
-			vectordbinit(dbconn)
+			vectordbinitnn(dbconn)
 		}
 		size = 0
 	}
@@ -379,10 +383,10 @@ func ldavecconfig() LDAConfig {
 
 	if yes != nil {
 		content, err := json.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
-		chke(err)
+		dbi.EC(err)
 
 		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTORLDA, content, WRITEPERMS)
-		chke(err)
+		dbi.EC(err)
 		msg(MSG1+CONFIGVECTORLDA, MSGPEEK)
 	} else {
 		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORLDA)
@@ -431,10 +435,10 @@ func w2vvectorconfig() word2vec.Options {
 
 	if yes != nil {
 		content, err := json.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
-		chke(err)
+		dbi.EC(err)
 
 		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTORW2V, content, WRITEPERMS)
-		chke(err)
+		dbi.EC(err)
 		msg(MSG1+CONFIGVECTORW2V, MSGPEEK)
 	} else {
 		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORW2V)
@@ -476,10 +480,10 @@ func lexvecvectorconfig() lexvec.Options {
 
 	if yes != nil {
 		content, err := json.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
-		chke(err)
+		dbi.EC(err)
 
 		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTORLEXVEC, content, WRITEPERMS)
-		chke(err)
+		dbi.EC(err)
 		msg(MSG1+CONFIGVECTORLEXVEC, MSGPEEK)
 	} else {
 		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORLEXVEC)
@@ -520,10 +524,10 @@ func glovevectorconfig() glove.Options {
 
 	if yes != nil {
 		content, err := json.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
-		chke(err)
+		dbi.EC(err)
 
 		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTORGLOVE, content, WRITEPERMS)
-		chke(err)
+		dbi.EC(err)
 		msg(MSG1+CONFIGVECTORGLOVE, MSGPEEK)
 	} else {
 		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORGLOVE)

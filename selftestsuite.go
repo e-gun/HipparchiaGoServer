@@ -59,9 +59,7 @@ func selftest() {
 		URL   = "http://%s:%d/vbot/%s/%s"
 	)
 
-	mm := NewMessageMaker(Config, StatCounter, LaunchStruct{
-		Name:       "",
-		Version:    "",
+	mm := NewGenericMessageMaker(Config, StatCounter, LaunchStruct{
 		Shortname:  "HGS-SELFTEST",
 		LaunchTime: time.Now(),
 	})
