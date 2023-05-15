@@ -120,7 +120,7 @@ running indefinitely. It does not consume many resources if not active: 0% CPU, 
    ![inst01](../gitimg/macos_homebrew/01_terminal.png)
 
 2. If you want to zap everything and start over, then open `Terminal.app` and enter the following:
-- `rm ~/.config/hgs-conf.json`
+- `rm ~/.config/hgs-*.json`
 - `/Applications/Postgres.app/Contents/Versions/15/bin/psql postgres` [note that `15` might change at some date]
 - - inside of `psql` enter the following
 - - `DROP DATABASE "hipparchiaDB";`

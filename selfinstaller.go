@@ -228,6 +228,9 @@ func ArchiveDB() {
 	// pg_dump --clean "hipparchiaDB" --user hippa_wr | split -b 100m - out/hipparchiaDB-
 	// pg_dump -U postgres -F d -j 5 db1 -f db1_backup
 
+	// don't want an extra 1GB...
+	vectordbreset()
+
 	// highly likely that you do not have a value for Config.PGLogin.Pass yet, but you need one...
 	SetConfigPass(Config, "")
 

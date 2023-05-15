@@ -121,7 +121,19 @@ PSQL administrator password you entered at `A.4` above.
 
 #### [E2] less easy
 
-1. Delete `hgs-conf.json` in the `.config` folder of your home folder.
+1. Delete the `hgs-*.json` files in the `.config` folder of your home folder.
+
+```
+.config/hgs-prolix-conf.json
+.config/hgs-users.json
+.config/hgs-vector-conf-glove.json
+.config/hgs-vector-conf-lda.json
+.config/hgs-vector-conf-lexvec.json
+.config/hgs-vector-conf-w2v.json
+.config/hgs-vector-stops-greek.json
+.config/hgs-vector-stops-latin.json
+
+```
 
 ![inst13](../gitimg/windows/21_configfile.png)
 

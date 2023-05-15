@@ -109,7 +109,7 @@ func LookForConfigFile() {
 
 		fmt.Println(coloroutput(fmt.Sprintf(FWR, fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGPROLIX)))
 
-		// do we need to head over to psqlselfloading.go and to initialize the database?
+		// do we need to head over to selfinstaller.go and to initialize the database?
 
 		if !HipparchiaDBexists(pgpw) {
 			msg(NODB, MSGCRIT)
