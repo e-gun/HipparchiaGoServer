@@ -117,37 +117,21 @@ func addresponsehead(f string) string {
 	// c.Response().Header().Add("Content-Type", "text/css")
 	add := ""
 
-	if strings.HasSuffix(f, ".css") {
-		// jquery-ui.css
-		add = "text/css"
+	kvp := map[string]string{
+		".css":   "text/css",
+		".ico":   "image/vnd.microsoft.icon",
+		".js":    "text/javascript",
+		".otf":   "font/opentype",
+		".png":   "image/png",
+		".ttf":   "font/ttf",
+		".woff2": "font/woff2",
+		".pdf":   "application/pdf",
 	}
 
-	if strings.HasSuffix(f, ".ico") {
-		add = "image/vnd.microsoft.icon"
-	}
-
-	if strings.HasSuffix(f, ".js") {
-		add = "text/javascript"
-	}
-
-	if strings.HasSuffix(f, ".png") {
-		add = "image/png"
-	}
-
-	if strings.HasSuffix(f, ".ttf") {
-		add = "font/ttf"
-	}
-
-	if strings.HasSuffix(f, ".otf") {
-		add = "font/opentype"
-	}
-
-	if strings.HasSuffix(f, ".woff2") {
-		add = "font/woff2"
-	}
-
-	if strings.HasSuffix(f, ".pdf") {
-		add = "application/pdf"
+	for k, v := range kvp {
+		if strings.HasSuffix(f, k) {
+			add = v
+		}
 	}
 
 	return add

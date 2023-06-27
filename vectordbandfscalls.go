@@ -331,6 +331,7 @@ func vectordbcountnn(priority int) {
 	const (
 		SZQ  = "SELECT COUNT(vectorsize) AS total FROM semantic_vectors"
 		MSG4 = "Number of stored vector models: %d"
+		DNE  = "does not exist"
 	)
 	var size int64
 	dbconn := GetPSQLconnection()
@@ -338,7 +339,7 @@ func vectordbcountnn(priority int) {
 	err := dbconn.QueryRow(context.Background(), SZQ).Scan(&size)
 	if err != nil {
 		m := err.Error()
-		if strings.Contains(m, "does not exist") {
+		if strings.Contains(m, DNE) {
 			vectordbinitnn(dbconn)
 		}
 		size = 0

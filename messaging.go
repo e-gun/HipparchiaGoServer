@@ -193,7 +193,6 @@ func (m *MessageMaker) EF(err error, fn string) {
 
 // EC - report error and page that called function
 func (m *MessageMaker) EC(err error) {
-	fmt.Println("EC")
 	var c string
 	if m.Lnc.Caller != "" {
 		c = m.Lnc.Caller

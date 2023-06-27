@@ -612,7 +612,6 @@ func gethighlighter(ss *SearchStruct) *regexp.Regexp {
 	// "s", "sp", "spa", ... will mean html gets highlighting: `<span class="xyz" ...>`
 	// there has to be a more clever way to do this...
 	const (
-		FAIL   = "gethighlighter() cannot find anything to highlight\n\t%ss"
 		FAILRE = "MATCH_NOTHING"
 		SKIP1  = "^s$|^sp$|^spa$|^span$|^hmu$"
 		SKIP2  = "|^c$|^cl$|^cla$|^clas$|^class$"
@@ -649,7 +648,8 @@ func gethighlighter(ss *SearchStruct) *regexp.Regexp {
 	} else if len(ss.LemmaTwo) != 0 {
 		re = lemmahighlighter(ss.LemmaTwo)
 	} else {
-		msg(fmt.Sprintf(FAIL, ss.InitSum), MSGFYI)
+		// FAIL = "gethighlighter() cannot find anything to highlight\n\t%ss"
+		// msg(fmt.Sprintf(FAIL, ss.InitSum), MSGFYI)
 		re = regexp.MustCompile(FAILRE)
 	}
 	return re

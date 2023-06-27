@@ -316,7 +316,6 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	// verse          | poem           | book           |                |                |
 
 	const (
-		FAIL   = "findvalidlevelvalues() sent negative levels"
 		SEL    = SELECTFROM + ` WHERE wkuniversalid='%s' %s %s ORDER BY index ASC`
 		ANDNOT = `AND %s NOT IN ('t')`
 	)
@@ -339,7 +338,8 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 
 	if atlvl < 0 || need < 0 {
 		// logic bug in here somewhere...
-		msg(FAIL, MSGWARN)
+		// FAIL = "findvalidlevelvalues() sent negative levels"
+		// msg(FAIL, MSGWARN)
 		return LevelValues{}
 	}
 
