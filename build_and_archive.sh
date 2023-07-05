@@ -60,5 +60,3 @@ do
 	  rm ${P}${SUFF}
 	done
 done
-
-

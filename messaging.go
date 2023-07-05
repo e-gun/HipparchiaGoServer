@@ -72,10 +72,15 @@ func styleoutput(s string) string {
 }
 
 func NewGenericMessageMaker(cc CurrentConfiguration, ct map[string]*atomic.Int32, ls LaunchStruct) *MessageMaker {
+	w := false
+	if runtime.GOOS == "windows" {
+		w = true
+	}
 	return &MessageMaker{
 		Cfg: cc,
 		Ctr: ct,
 		Lnc: ls,
+		Win: w,
 	}
 }
 
@@ -96,6 +101,7 @@ type MessageMaker struct {
 	Ctr map[string]*atomic.Int32
 	Lnc LaunchStruct
 	Pgn string
+	Win bool
 }
 
 type LaunchStruct struct {
@@ -111,7 +117,7 @@ func (m *MessageMaker) Emit(message string, threshold int) {
 		return
 	}
 
-	if runtime.GOOS != "windows" && !m.Cfg.BlackAndWhite {
+	if !m.Win && !m.Cfg.BlackAndWhite {
 		var color string
 
 		switch threshold {
@@ -143,7 +149,7 @@ func (m *MessageMaker) Color(tagged string) string {
 	// "[git: C4%sC0]" ==> green text for the %s
 	swap := strings.NewReplacer("C1", "", "C2", "", "C3", "", "C4", "", "C5", "", "C6", "", "C7", "", "C0", "")
 
-	if runtime.GOOS != "windows" && !m.Cfg.BlackAndWhite {
+	if !m.Win && !m.Cfg.BlackAndWhite {
 		swap = strings.NewReplacer("C1", YELLOW1, "C2", CYAN2, "C3", BLUE1, "C4", GREEN, "C5", RED1,
 			"C6", GREY3, "C7", BLINK, "C0", RESET)
 	}
@@ -161,7 +167,7 @@ func (m *MessageMaker) Styled(tagged string) string {
 	)
 	swap := strings.NewReplacer("S1", "", "S2", "", "S3", "", "S4", "", "S5", "", "S0", "")
 
-	if runtime.GOOS != "windows" && !m.Cfg.BlackAndWhite {
+	if !m.Win && !m.Cfg.BlackAndWhite {
 		swap = strings.NewReplacer("S1", BOLD, "S2", ITAL, "S3", UNDER, "S4", STRIKE, "S5", REVERSE,
 			"S0", RESET)
 	}
@@ -210,7 +216,7 @@ func (m *MessageMaker) ExitOrHang(e int) {
 		HANG = `Execution suspended. %s is now frozen. Note any errors above. Execution will halt after %d seconds.`
 		SUSP = 60
 	)
-	if runtime.GOOS != "windows" {
+	if !m.Win {
 		os.Exit(e)
 	} else {
 		m.Emit(fmt.Sprintf(HANG, m.Lnc.Name, SUSP), -1)
@@ -225,7 +231,7 @@ func (m *MessageMaker) ResetScreen() {
 		CURSHOME  = "\033[1;1H"
 		DOWNONE   = "\033[1B"
 	)
-	if !m.Cfg.TickerActive || runtime.GOOS == "windows" {
+	if !m.Cfg.TickerActive || m.Win {
 		return
 	}
 	fmt.Println(ERASESCRN + CURSHOME + DOWNONE + DOWNONE)
@@ -281,7 +287,7 @@ func (m *MessageMaker) Ticker(wait time.Duration) {
 		STATTMPL  = "%s: C2%dC0"
 	)
 	// ANSI escape codes do not work in windows
-	if !m.Cfg.TickerActive || runtime.GOOS == "windows" {
+	if !m.Cfg.TickerActive || m.Win {
 		return
 	}
 

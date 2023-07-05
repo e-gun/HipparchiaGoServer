@@ -33,6 +33,8 @@ type CurrentConfiguration struct {
 	ManualGC        bool // see messenger.Stats()
 	MaxText         int
 	PGLogin         PostgresLogin
+	ProfileCPU      bool
+	ProfileMEM      bool
 	ResetVectors    bool
 	QuietStart      bool
 	SelfTest        int
@@ -221,6 +223,8 @@ func ConfigAtLaunch() {
 			help()
 		case "-md":
 			Config.VectorModel = args[i+1]
+		case "-pc":
+			Config.ProfileCPU = true
 		case "-pd":
 			CopyInstructions()
 		case "-pg":
@@ -232,6 +236,8 @@ func ConfigAtLaunch() {
 				msg(FAIL2, MSGCRIT)
 			}
 			Config.PGLogin = pl
+		case "-pm":
+			Config.ProfileMEM = true
 		case "-q":
 			Config.QuietStart = true
 		case "-rv":
@@ -295,6 +301,8 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.LdaGraph = false
 	c.ManualGC = true
 	c.MaxText = MAXTEXTLINEGENERATION
+	c.ProfileCPU = false
+	c.ProfileMEM = false
 	c.QuietStart = false
 	c.ResetVectors = false
 	c.SelfTest = 0
