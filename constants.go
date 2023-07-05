@@ -19,6 +19,7 @@ const (
 	CONFIGAUTH               = "hgs-users.json"
 	CONFIGBASIC              = "hgs-conf.json"
 	CONFIGPROLIX             = "hgs-prolix-conf.json"
+	CONFIGSESSION            = "hgs-default-session.json"
 	CONFIGVECTORW2V          = "hgs-vector-conf-w2v.json"
 	CONFIGVECTORGLOVE        = "hgs-vector-conf-glove.json"
 	CONFIGVECTORLEXVEC       = "hgs-vector-conf-lexvec.json"
