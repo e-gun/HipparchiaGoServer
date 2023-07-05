@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -103,13 +102,15 @@ func (sv *SessionVault) GetSess(id string) ServerSession {
 	defer sv.mutex.Unlock()
 	s, e := sv.SessionMap[id]
 	if e != true {
-		s = FetchDefaultSession(id)
+		s = MakeDefaultSession(id)
 	}
 	return s
 }
 
+// MakeDefaultSession - fill in the blanks when setting up a new session
 func MakeDefaultSession(id string) ServerSession {
 	// note that SessionMap clears every time the server restarts
+
 	var s ServerSession
 	s.ID = id
 	s.ActiveCorp = Config.DefCorp
@@ -161,69 +162,6 @@ func MakeDefaultSession(id string) ServerSession {
 	//s.SearchScope = "words"
 	//s.Inclusions.BuildPsgByName()
 
-	return s
-}
-
-// FetchDefaultSession - grab the local default session template from the disk; fallback to MakeDefaultSession()
-func FetchDefaultSession(id string) ServerSession {
-	// note that SessionMap clears every time the server restarts
-	const (
-		ERR1  = "FetchDefaultSession() cannot find UserHomeDir"
-		ERR2  = "FetchDefaultSession() failed to parse "
-		ERR3  = "FetchDefaultSession() could not write to "
-		MSG1  = "wrote default ServerSession configuration file "
-		MSG2  = "read ServerSession configuration from "
-		EMPTY = "UNSET"
-	)
-
-	s := MakeDefaultSession(EMPTY)
-
-	// look for UserHomeDir()
-	h, e := os.UserHomeDir()
-
-	if e != nil {
-		msg(ERR1, 0)
-		s.ID = id
-		return s
-	}
-
-	writeconfig := func() {
-		// only need the return in case of ERR3
-		content, err := json.MarshalIndent(s, JSONINDENT, JSONINDENT)
-		dbi.EC(err)
-
-		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGSESSION, content, WRITEPERMS)
-		if err != nil {
-			msg(ERR3+CONFIGSESSION, MSGWARN)
-		}
-		msg(MSG1+CONFIGSESSION, MSGPEEK)
-	}
-
-	// look for CONFIGSESSION
-	_, yes := os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGSESSION)
-
-	if yes != nil {
-		// need to generate CONFIGSESSION
-		writeconfig()
-	} else {
-		// try to read CONFIGSESSION
-		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGSESSION)
-		decodess := json.NewDecoder(loadedcfg)
-		ss := ServerSession{}
-		errc := decodess.Decode(&ss)
-		_ = loadedcfg.Close()
-		if errc != nil {
-			// failed; use a blank and write a file with defaults in it
-			msg(ERR2+CONFIGSESSION, MSGCRIT)
-			writeconfig()
-			ss = MakeDefaultSession(EMPTY)
-		} else {
-			msg(MSG2+CONFIGSESSION, MSGTMI)
-		}
-		s = ss
-	}
-
-	s.ID = id
 	return s
 }
 

@@ -235,7 +235,7 @@ func BuildHollowSearch() SearchStruct {
 	}
 	s.AcqHitCounter()
 	s.AcqRemainCounter()
-	s.StoredSession = FetchDefaultSession(s.ID)
+	s.StoredSession = MakeDefaultSession(s.ID)
 	return s
 }
 
