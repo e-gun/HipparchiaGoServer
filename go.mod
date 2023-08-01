@@ -6,11 +6,11 @@ require (
 	github.com/e-gun/nlp v0.0.0-20230418221101-577c2209ffcc
 	github.com/e-gun/tsnemp v0.0.0
 	github.com/e-gun/wego v0.0.11
-	github.com/go-echarts/go-echarts/v2 v2.2.6
+	github.com/go-echarts/go-echarts/v2 v2.2.7
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0
-	github.com/jackc/pgx/v5 v5.4.1
-	github.com/labstack/echo/v4 v4.10.2
+	github.com/jackc/pgx/v5 v5.4.2
+	github.com/labstack/echo/v4 v4.11.1
 	github.com/pkg/profile v1.7.0
 	golang.org/x/text v0.11.0
 	gonum.org/v1/gonum v0.13.0
@@ -21,15 +21,15 @@ require (
 	github.com/e-gun/sparse v0.0.0-20230418220937-07063da15582 // indirect
 	github.com/felixge/fgprof v0.9.3 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	github.com/google/pprof v0.0.0-20230602150820-91b7bce49751 // indirect
+	github.com/google/pprof v0.0.0-20230728192033-2ba5b33183c6 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
-	github.com/jackc/puddle/v2 v2.2.0 // indirect
+	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
-	github.com/mattn/go-runewidth v0.0.14 // indirect
+	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
@@ -39,7 +39,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	golang.org/x/crypto v0.11.0 // indirect
-	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df // indirect
+	golang.org/x/exp v0.0.0-20230801115018-d63ba01acd4b // indirect
 	golang.org/x/net v0.12.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.10.0 // indirect
