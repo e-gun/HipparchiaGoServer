@@ -7,6 +7,7 @@ package main
 
 import (
 	"context"
+	"crypto/md5"
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
@@ -117,13 +118,12 @@ func RtSelectionMake(c echo.Context) error {
 
 // RtSelectionClear - remove a selection from the session
 func RtSelectionClear(c echo.Context) error {
-	// sample item in the "selectionstable"; the js that activates it is inside the "selectionscriptholder" div
-	// <span class="wkselections selection" id="wkselections_00" title="Double-click to remove this item">Antigonus, <i>Historiarum mirabilium collectio</i></span>
-
 	const (
 		FAIL1 = "RtSelectionClear() was given bad input: %s"
 		FAIL2 = "RtSelectionClear() was given bad category: %s"
 	)
+
+	// NB: restarting the server with an open browser can leave an impossible JS click; not really a bug, but...
 
 	user := readUUIDCookie(c)
 
@@ -136,74 +136,113 @@ func RtSelectionClear(c echo.Context) error {
 	}
 
 	cat := which[0]
-	id, e := strconv.Atoi(which[1])
-	if e != nil {
-		msg(fmt.Sprintf(FAIL1, locus), MSGWARN)
-		return emptyjsreturn(c)
-	}
+	id := which[1]
 
 	newsess := AllSessions.GetSess(user)
+	newsess.BuildSelectionOverview()
 	newincl := newsess.Inclusions
 	newexcl := newsess.Exclusions
 
 	// sliceprinter("ListedPBN", newincl.ListedPBN)
 
-	findkey := func(n int, ixl SearchIncExl) string {
-		// issue: newincl.Passages is a []string that is built by order of arrival, but the display is ordered by AU & LINE
-		// this means that if "book 1" and "book 3" are on the list, but you added "book 3" first, clicking "book 1" will
-		// remove item #0 from the list, and drop... "book 3"
-
-		// ListedPBN is the page order and name
-		// its index value is the click id value
-		// so, fetch the string from ListedPBN[id]
-		// then search for that string in the values of MappedPsgByName
-
-		ixl.BuildPsgByName()
-		citation := ixl.ListedPBN[n]
-		thekey := ""
-		for k, v := range ixl.MappedPsgByName {
-			if v == citation {
-				thekey = k
-				break
+	// kvpairmdkey - if the md5 of a v is in a k,v map, return the k
+	kvpairmdkey := func(m string, kvp map[string]string) string {
+		targetkey := ""
+		for k, v := range kvp {
+			mv := fmt.Sprintf("%x", md5.Sum([]byte(v)))
+			if mv == m {
+				targetkey = k
 			}
 		}
-		return thekey
+		return targetkey
 	}
 
+	// kvpairmd - if the md5 of a v is in a k,v map, return the v {
+	kvpairmdval := func(m string, kvp map[string]string) string {
+		targetval := ""
+		for _, v := range kvp {
+			mv := fmt.Sprintf("%x", md5.Sum([]byte(v)))
+			if mv == m {
+				targetval = v
+			}
+		}
+		return targetval
+	}
+
+	// removemd - remove item from a []string if its md5sum matches
+	removemd := func(ss []string, drop string) []string {
+		ret := make([]string, 0)
+		for i := 0; i < len(ss); i++ {
+			md := fmt.Sprintf("%x", md5.Sum([]byte(ss[i])))
+			if md != drop {
+				ret = append(ret, ss[i])
+			}
+		}
+		return ret
+	}
+
+	// u: /selection/clear/agnselections/a825ca922ccd8c8427edd2dfa4ac8aa6
+	// 51b9ec70f5659ee042d6ee610b74887e is the md5sum of 'Epici'
+
+	// u: /selection/clear/auselections/f6de296b2941374db110d2d3683e8ca9
+	// f6de296b2941374db110d2d3683e8ca9 is the md5sum of 'Cicero - Cicero, Marcus Tullius'
+
+	// u: /selection/clear/wkselections/73c1352631d6293a867de7dc77eb2360
+	// 73c1352631d6293a867de7dc77eb2360: 'Cicero, Cato Maior de Senectute'
+
+	// u: /selection/clear/psgselections/7a27ab72793be0bd038c77661cc606d9
+	// 7a27ab72793be0bd038c77661cc606d9: 'Cicero, Cato Maior de Senectute, 13 - 20'
+
 	switch cat {
+	// PART ONE: INCLUSIONS
 	case "agnselections":
-		newincl.AuGenres = RemoveIndex(newincl.AuGenres, id)
+		newincl.AuGenres = removemd(newincl.AuGenres, id)
 	case "wgnselections":
-		newincl.WkGenres = RemoveIndex(newincl.WkGenres, id)
+		newincl.WkGenres = removemd(newincl.WkGenres, id)
 	case "alocselections":
-		newincl.AuLocations = RemoveIndex(newincl.AuLocations, id)
+		newincl.AuLocations = removemd(newincl.AuLocations, id)
 	case "wlocselections":
-		newincl.WkLocations = RemoveIndex(newincl.WkLocations, id)
+		newincl.WkLocations = removemd(newincl.WkLocations, id)
 	case "auselections":
-		newincl.Authors = RemoveIndex(newincl.Authors, id)
+		// auselections + wkselections + psgselections + ...
+		// direction: MappedAuthByName --> Authors
+		// MappedAuthByName: lt0474:Cicero - Cicero, Marcus Tullius
+		// Authors: lt0474
+		// id is the md5 for "Cicero - Cicero, Marcus Tullius"
+		foundkey := kvpairmdkey(id, newincl.MappedAuthByName)
+		newincl.Authors = SetSubtraction(newincl.Authors, []string{foundkey})
 	case "wkselections":
-		newincl.Works = RemoveIndex(newincl.Works, id)
+		foundkey := kvpairmdkey(id, newincl.MappedWkByName)
+		newincl.Works = SetSubtraction(newincl.Works, []string{foundkey})
 	case "psgselections":
-		// NB: restarting the server with an open browser can leave an impossible click; not really a bug, but...
-		del := findkey(id, newincl)
-		newincl.Passages = SetSubtraction(newincl.Passages, []string{del})
-		delete(newincl.MappedPsgByName, del)
+		foundkey := kvpairmdkey(id, newincl.MappedPsgByName)
+		// msg(foundkey, 1)
+		newincl.Passages = SetSubtraction(newincl.Passages, []string{foundkey})
+		foundbval := kvpairmdval(id, newincl.MappedPsgByName)
+		// msg(foundbval, 1)
+		newincl.ListedPBN = SetSubtraction(newincl.ListedPBN, []string{foundbval})
+		delete(newincl.MappedPsgByName, foundkey)
+	// PART TWO: EXCLUSIONS
 	case "agnexclusions":
-		newexcl.AuGenres = RemoveIndex(newexcl.AuGenres, id)
+		newexcl.AuGenres = removemd(newexcl.AuGenres, id)
 	case "wgnexclusions":
-		newexcl.WkGenres = RemoveIndex(newexcl.WkGenres, id)
+		newexcl.WkGenres = removemd(newexcl.WkGenres, id)
 	case "alocexclusions":
-		newexcl.AuLocations = RemoveIndex(newexcl.AuLocations, id)
+		newexcl.AuLocations = removemd(newexcl.AuLocations, id)
 	case "wlocexclusions":
-		newexcl.WkLocations = RemoveIndex(newexcl.WkLocations, id)
+		newexcl.WkLocations = removemd(newexcl.WkLocations, id)
 	case "auexclusions":
-		newexcl.Authors = RemoveIndex(newexcl.Authors, id)
+		foundkey := kvpairmdkey(id, newexcl.MappedAuthByName)
+		newexcl.Authors = SetSubtraction(newexcl.Authors, []string{foundkey})
 	case "wkexclusions":
-		newexcl.Works = RemoveIndex(newexcl.Works, id)
+		foundkey := kvpairmdkey(id, newexcl.MappedWkByName)
+		newexcl.Works = SetSubtraction(newexcl.Works, []string{foundkey})
 	case "psgexclusions":
-		del := findkey(id, newexcl)
-		newexcl.Passages = SetSubtraction(newexcl.Passages, []string{del})
-		delete(newexcl.MappedPsgByName, del)
+		foundkey := kvpairmdkey(id, newexcl.MappedPsgByName)
+		newexcl.Passages = SetSubtraction(newexcl.Passages, []string{foundkey})
+		foundbval := kvpairmdval(id, newexcl.MappedPsgByName)
+		newexcl.ListedPBN = SetSubtraction(newexcl.ListedPBN, []string{foundbval})
+		delete(newexcl.MappedPsgByName, foundkey)
 	default:
 		msg(fmt.Sprintf(FAIL2, cat), MSGWARN)
 	}
@@ -768,13 +807,13 @@ func reportcurrentselections(c echo.Context) SelectionData {
 
 	const (
 		PL    = `<span class="picklabel">%s</span><br>`
-		SL    = `<span class="%sselections selection" id="%sselections_%02d" title="Double-click to remove this item">%s</span><br>`
-		EL    = `<span class="%ssexclusions selection" id="%sexclusions_%02d" title="Double-click to remove this item">%s</span><br>`
+		SL    = `<span class="%sselections selection" id="%sselections_%s" title="Double-click to remove this item">%s</span><br>`
+		EL    = `<span class="%ssexclusions selection" id="%sexclusions_%s" title="Double-click to remove this item">%s</span><br>`
 		TL    = `Unless specifically listed, authors/works must come from %s to %s`
-		JSIN  = `%sselections_%02d`
-		JSINU = `/selection/clear/%sselections/%d`
-		JSEX  = `%sexclusions_%02d`
-		JSEXU = `/selection/clear/%sexclusions/%d`
+		JSIN  = `%sselections_%s`
+		JSINU = `/selection/clear/%sselections/%s`
+		JSEX  = `%sexclusions_%s`
+		JSEXU = `/selection/clear/%sexclusions/%s`
 	)
 
 	user := readUUIDCookie(c)
@@ -800,6 +839,23 @@ func reportcurrentselections(c echo.Context) SelectionData {
 
 	var sd SelectionData
 
+	// note that there can be a problem coordinating the selections with the add/drop clicks
+	// this is a list + order-of-arrival problem at its core: was #1 on the reported list #1 to be selected?
+	// use md5 fingerprints to circumvent this sort of bookkeeping (by adding a different kind...)
+
+	// problem: is it possible to get two matching values on these lists: 'A... A... B...'?
+	// probably: there are multiple 'Diodorus' entries; by AU you will get 'Diodours (Eleg.)'; by WK you will get 'Diodorus'
+	// there is the possibility of a collision between 'Diodorus, Fragmenta' and 'Diodorus, Fragmenta' (with somebody or other...)
+	// kind of hard to produce this; and the code will let you click-kill one of them, but maybe the wrong one...
+
+	// just cicero selected:
+	// {[] [] [] [] [lt0474] [] [] map[] map[lt0474:Cicero - Cicero, Marcus Tullius] map[] [] [Cicero - Cicero, Marcus Tullius] []}
+	// 'Cicero - Cicero, Marcus Tullius' --> f6de296b2941374db110d2d3683e8ca9
+
+	// one passage:
+	// {[] [] [] [] [] [] [lt0959_FROM_26820_TO_27569] map[lt0959_FROM_26820_TO_27569:Ovidius, Publius Naso, Tristia, 1] map[] map[] [Ovidius, Publius Naso, Tristia, 1] [] []}
+	// 'Ovidius, Publius Naso, Tristia, 1' --> 118ecd1993e1d5316cc3ed2bfb3d486a
+
 	// run inclusions, then exclusions
 	var rows [2][]string
 	swap := [2]string{SL, EL}
@@ -813,16 +869,19 @@ func reportcurrentselections(c echo.Context) SelectionData {
 			slc := val.Interface().([]string)
 			if len(slc) > 0 {
 				rows[idx] = append(rows[idx], fmt.Sprintf(PL, label))
-				for n, g := range slc {
-					st := fmt.Sprintf(swap[idx], ct, ct, n, g)
+				for _, g := range slc {
+					// fingerprint the selection so the JS can click to drop "f6de296b2941374db110d2d3683e8ca9", vel sim
+					md := fmt.Sprintf("%x", md5.Sum([]byte(g)))
+					// msg(fmt.Sprintf("g: %s\tmd: %s", g, md), 1)
+					st := fmt.Sprintf(swap[idx], ct, ct, md, g)
 					rows[idx] = append(rows[idx], st)
 					if swap[idx] == SL {
-						a := fmt.Sprintf(JSIN, ct, n)
-						b := fmt.Sprintf(JSINU, ct, n)
+						a := fmt.Sprintf(JSIN, ct, md)
+						b := fmt.Sprintf(JSINU, ct, md)
 						jsinfo = append(jsinfo, JSData{a, b})
 					} else {
-						a := fmt.Sprintf(JSEX, ct, n)
-						b := fmt.Sprintf(JSEXU, ct, n)
+						a := fmt.Sprintf(JSEX, ct, md)
+						b := fmt.Sprintf(JSEXU, ct, md)
 						jsinfo = append(jsinfo, JSData{a, b})
 					}
 				}
