@@ -83,6 +83,7 @@ func RtSelectionMake(c echo.Context) error {
 	// GET http://localhost:8000/selection/make/_?auth=lt0474&work=073&locus=3|10&endpoint=
 
 	// note that you need to return JSON: reportcurrentselections() to fill #selectionstable on the page
+	// see bottom of this file for a sample list and the html of the table that goes with it
 
 	user := readUUIDCookie(c)
 
@@ -806,9 +807,9 @@ func reportcurrentselections(c echo.Context) SelectionData {
 	//    $('#selectionscriptholder').html(selectiondata['newjs']);
 
 	const (
-		PL    = `<span class="picklabel">%s</span><br>`
-		SL    = `<span class="%sselections selection" id="%sselections_%s" title="Double-click to remove this item">%s</span><br>`
-		EL    = `<span class="%ssexclusions selection" id="%sexclusions_%s" title="Double-click to remove this item">%s</span><br>`
+		PL    = "<span class=\"picklabel\">%s</span><br>\n"
+		SL    = "\t\t\t\t\t<span class=\"%sselections selection\" id=\"%sselections_%s\" title=\"Double-click to remove this item\">%s</span><br>\n"
+		EL    = "\t\t\t\t\t<span class=\"%ssexclusions selection\" id=\"%sexclusions_%s\" title=\"Double-click to remove this item\">%s</span><br>\n"
 		TL    = `Unless specifically listed, authors/works must come from %s to %s`
 		JSIN  = `%sselections_%s`
 		JSINU = `/selection/clear/%sselections/%s`
@@ -935,3 +936,54 @@ func formatnewselectionjs(jsinfo []JSData) string {
 	script := fmt.Sprintf(SCR, strings.Join(info, ""))
 	return script
 }
+
+// A LIST
+
+//Author categories
+//	Epici
+//	Medici
+//Work genres
+//	Epist.
+//	Eleg.
+//Authors
+//	Cicero - Cicero, Marcus Tullius
+//	Ovidius, Publius Naso
+//Passages
+//	Caesar, De Bello Gallico, 3
+//	Livy, Ab Urbe Condita, 6.10 - 8.15
+//
+//
+
+// THE TABLE
+
+//<table id="selectionstable" style="">
+//            <tbody>
+//            <tr>
+//                <th colspan="5" id="timerestrictions"></th>
+//            </tr>
+//            <tr>
+//                <td class="infocells" id="selectioninfocell" width="44%" title="Selection list"><span class="picklabel">Author categories</span><br>
+//                    <span class="agnselections selection" id="agnselections_51b9ec70f5659ee042d6ee610b74887e" title="Double-click to remove this item">Epici</span><br>
+//                    <span class="agnselections selection" id="agnselections_4c1401171d5425c227b8eb7f0ab46440" title="Double-click to remove this item">Medici</span><br>
+//<span class="picklabel">Work genres</span><br>
+//                    <span class="wgnselections selection" id="wgnselections_682242d3e04f7dc5d887171dfd4ba7cf" title="Double-click to remove this item">Epist.</span><br>
+//                    <span class="wgnselections selection" id="wgnselections_b1e0ecef33ae5441b6c9047396ef48fb" title="Double-click to remove this item">Eleg.</span><br>
+//<span class="picklabel">Authors</span><br>
+//                    <span class="auselections selection" id="auselections_f6de296b2941374db110d2d3683e8ca9" title="Double-click to remove this item">Cicero - Cicero, Marcus Tullius</span><br>
+//                    <span class="auselections selection" id="auselections_a3312f035444f5c879c0322519c9d094" title="Double-click to remove this item">Ovidius, Publius Naso</span><br>
+//<span class="picklabel">Passages</span><br>
+//                    <span class="psgselections selection" id="psgselections_6c55264a3d6e8c2fc715e92e61a5af4e" title="Double-click to remove this item">Caesar, De Bello Gallico, 3</span><br>
+//                    <span class="psgselections selection" id="psgselections_558de47b1b32c56600041134858b48fc" title="Double-click to remove this item">Livy, Ab Urbe Condita, 6.10 - 8.15</span><br>
+//</td>
+//                <td style="text-align: center;" id="jscriptwigetcell" width="6%">
+//                    <p id="searchinfo"><span class="material-icons md-mid" title="Show/hide details of the current search list">info</span></p>
+//                </td>
+//                <td class="infocellx" id="exclusioninfocell" width="44%" title="Exclusion list"></td>
+//                <td style="text-align: center;" width="6%">
+//                    <p id="textofthis"><span class="material-icons md-mid" title="Generate a simple text of this selection">library_books</span></p>
+//                    <p id="makeanindex"><span class="material-icons md-mid" title="Build an index to this selection">subject</span></p>
+//                    <p id="makevocablist"><span class="material-icons md-mid" title="Build a vocabulary list for this selection">format_list_numbered</span></p>
+//                </td>
+//            </tr>
+//            </tbody>
+//        </table>

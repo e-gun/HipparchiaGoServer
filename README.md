@@ -8,7 +8,7 @@
 ### FEATURES
 
 * self-configuration first run
-* self-installation on first run 
+* database self-installation on first run 
 * searching
   * search scope selections 
   * search scope exclusions 
