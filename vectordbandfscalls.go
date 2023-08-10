@@ -177,10 +177,17 @@ func vectordbinitnn(dbconn *pgxpool.Conn) {
 			  vectorsize  int,
 			  vectordata  bytea
 			)`
+		EXISTS = "already exists"
 	)
 	ex := fmt.Sprintf(CREATE, VECTORTABLENAMENN)
 	_, err := dbconn.Exec(context.Background(), ex)
-	dbi.EC(err)
+	if err != nil {
+		m := err.Error()
+		if !strings.Contains(m, EXISTS) {
+			dbi.EC(err)
+		}
+	}
+
 	msg("vectordbinitnn(): success", MSGFYI)
 }
 
