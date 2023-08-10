@@ -186,9 +186,9 @@ func vectordbinitnn(dbconn *pgxpool.Conn) {
 		if !strings.Contains(m, EXISTS) {
 			dbi.EC(err)
 		}
+	} else {
+		msg("vectordbinitnn(): success", MSGFYI)
 	}
-
-	msg("vectordbinitnn(): success", MSGFYI)
 }
 
 // vectordbchecknn - has a search with this fingerprint already been stored?
