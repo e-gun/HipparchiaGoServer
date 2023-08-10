@@ -305,7 +305,7 @@ func vectordbfetchnn(fp string) embedding.Embeddings {
 func vectordbreset() {
 	const (
 		MSG1 = "vectordbreset() dropped "
-		MSG2 = "vectordbreset(): 'DROP TABLE %s' returned an (ignored) error"
+		MSG2 = "vectordbreset(): 'DROP TABLE %s' returned an (ignored) error: \n\t%s"
 		E    = `DROP TABLE %s`
 	)
 	ex := fmt.Sprintf(E, VECTORTABLENAMENN)
@@ -314,7 +314,8 @@ func vectordbreset() {
 
 	_, err := dbconn.Exec(context.Background(), ex)
 	if err != nil {
-		msg(fmt.Sprintf(MSG2, VECTORTABLENAMENN), MSGFYI)
+		m := err.Error()
+		msg(fmt.Sprintf(MSG2, VECTORTABLENAMENN, m), MSGFYI)
 	} else {
 		msg(MSG1+VECTORTABLENAMENN, MSGFYI)
 	}
@@ -323,7 +324,7 @@ func vectordbreset() {
 // vectordbsizenn - how much space is the vectordb using?
 func vectordbsizenn(priority int) {
 	const (
-		SZQ  = "SELECT SUM(vectorsize) AS total FROM semantic_vectors"
+		SZQ  = "SELECT SUM(vectorsize) AS total FROM " + VECTORTABLENAMENN
 		MSG4 = "Disk space used by stored vectors is currently %dMB"
 	)
 	var size int64
@@ -336,7 +337,7 @@ func vectordbsizenn(priority int) {
 
 func vectordbcountnn(priority int) {
 	const (
-		SZQ  = "SELECT COUNT(vectorsize) AS total FROM semantic_vectors"
+		SZQ  = "SELECT COUNT(vectorsize) AS total FROM " + VECTORTABLENAMENN
 		MSG4 = "Number of stored vector models: %d"
 		DNE  = "does not exist"
 	)
