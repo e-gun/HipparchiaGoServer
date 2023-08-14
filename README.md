@@ -1,14 +1,21 @@
 # HipparchiaGoServer
 
-### STATUS (v1.2.8):
+### STATUS (v1.2.10):
 
 * 25%-700% faster than HipparchiaServer depending on the function. Uses c. 60% as much RAM.
 * monolithic binary: no need for extra files/folders
 
 ### FEATURES
 
-* self-configuration first run
-* database self-installation on first run 
+* default configuration files generated on first run
+* database self-installation on first run
+* embedded help files
+* text browsing
+* text maker
+* indexing (+ flag unique forms)
+* vocabulary list generation (+ flag unique headwords)
+* morphology tables
+* dictionaries
 * searching
   * search scope selections 
   * search scope exclusions 
@@ -27,13 +34,6 @@
   * topic models
     * configure number of topics to track
     * option to build an interactive graph the LDA model via t-SNE reduction (graphs can be 2d or 3d)
-* text browsing
-* text maker
-* indexing (+ flag unique forms)
-* vocabulary list generation (+ flag unique headwords)
-* morphology tables
-* dictionaries
-* embedded help files
 
 ### INSTRUCTIONS
 * for installation, see the `INSTRUCTIONS` folder
