@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -90,7 +91,7 @@ func RtVectorBot(c echo.Context) error {
 
 	dbs := []string{"lt", "gr", "in", "dp", "ch"}
 
-	if IsInSlice(a, dbs) {
+	if slices.Contains(dbs, a) {
 		s.SearchIn.Authors = allof(a)
 		m := fmt.Sprintf(MSG4, a, len(s.SearchIn.Authors), Config.VectorMaxlines)
 		msg(m, MSGFYI)
@@ -221,7 +222,7 @@ func activatevectorbot() {
 	for _, a := range auu {
 		mustnotify := false
 		an := AllAuthors[a].Name
-		if IsInSlice(a, dbs) {
+		if slices.Contains(dbs, a) {
 			mustnotify = true
 			an = a
 		}

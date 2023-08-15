@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"slices"
 	"strings"
 	"text/template"
 )
@@ -20,7 +21,7 @@ func RtEmbHCSS(c echo.Context) error {
 	sdf := "var(--systemdefaultfont), "
 
 	// if the font is being served, then blank out "--systemdefaultfont" and get ready to map the font files into the CSS
-	if IsInSlice(Config.Font, StringMapKeysIntoSlice(ServableFonts)) {
+	if slices.Contains(StringMapKeysIntoSlice(ServableFonts), Config.Font) {
 		fsub = ""
 		sdf = ""
 	}
@@ -47,7 +48,7 @@ func RtEmbHCSS(c echo.Context) error {
 	css := b.String()
 
 	// if the font is not being served, then replace font names with explicit style directives
-	if !IsInSlice(Config.Font, StringMapKeysIntoSlice(ServableFonts)) {
+	if !slices.Contains(StringMapKeysIntoSlice(ServableFonts), Config.Font) {
 		css = cssmanualfontstyling(css)
 	}
 
@@ -193,19 +194,19 @@ func cssmanualfontstyling(css string) string {
 	}
 
 	swaps := map[string]FontSwap{
-		"hipparchiasansstatic":                FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "normal", "normal"},
-		"hipparchiamonostatic":                FontSwap{"monospace", "normal", "normal", "normal"},
-		"hipparchialightstatic":               FontSwap{"var(--systemdefaultfont), sans-serif", "200", "normal", "normal"},
-		"hipparchiaboldstatic":                FontSwap{"var(--systemdefaultfont), sans-serif", "bold", "normal", "normal"},
-		"hipparchiaobliquestatic":             FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "oblique", "normal"},
-		"hipparchiabolditalicstatic":          FontSwap{"var(--systemdefaultfont), sans-serif", "bold", "oblique", "normal"},
-		"hipparchiasemicondensedstatic":       FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "normal", "condensed"},
-		"hipparchiasemicondenseditalicstatic": FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "oblique", "condensed"},
-		"hipparchiacondensedstatic":           FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "normal", "condensed"},
-		"hipparchiacondensedboldstatic":       FontSwap{"var(--systemdefaultfont), sans-serif", "bold", "normal", "condensed"},
-		"hipparchiacondenseditalicstatic":     FontSwap{"var(--systemdefaultfont), sans-serif", "normal", "oblique", "condensed"},
-		"hipparchiasemiboldstatic":            FontSwap{"var(--systemdefaultfont), sans-serif", "600", "normal", "normal"},
-		"hipparchiathinstatic":                FontSwap{"var(--systemdefaultfont), sans-serif", "100", "normal", "normal"},
+		"hipparchiasansstatic":                {"var(--systemdefaultfont), sans-serif", "normal", "normal", "normal"},
+		"hipparchiamonostatic":                {"monospace", "normal", "normal", "normal"},
+		"hipparchialightstatic":               {"var(--systemdefaultfont), sans-serif", "200", "normal", "normal"},
+		"hipparchiaboldstatic":                {"var(--systemdefaultfont), sans-serif", "bold", "normal", "normal"},
+		"hipparchiaobliquestatic":             {"var(--systemdefaultfont), sans-serif", "normal", "oblique", "normal"},
+		"hipparchiabolditalicstatic":          {"var(--systemdefaultfont), sans-serif", "bold", "oblique", "normal"},
+		"hipparchiasemicondensedstatic":       {"var(--systemdefaultfont), sans-serif", "normal", "normal", "condensed"},
+		"hipparchiasemicondenseditalicstatic": {"var(--systemdefaultfont), sans-serif", "normal", "oblique", "condensed"},
+		"hipparchiacondensedstatic":           {"var(--systemdefaultfont), sans-serif", "normal", "normal", "condensed"},
+		"hipparchiacondensedboldstatic":       {"var(--systemdefaultfont), sans-serif", "bold", "normal", "condensed"},
+		"hipparchiacondenseditalicstatic":     {"var(--systemdefaultfont), sans-serif", "normal", "oblique", "condensed"},
+		"hipparchiasemiboldstatic":            {"var(--systemdefaultfont), sans-serif", "600", "normal", "normal"},
+		"hipparchiathinstatic":                {"var(--systemdefaultfont), sans-serif", "100", "normal", "normal"},
 	}
 
 	// swap out: "font-family: 'hipparchiabolditalicstatic', sans-serif;" for explicit style directives

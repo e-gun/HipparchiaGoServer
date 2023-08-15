@@ -1,6 +1,6 @@
 module github.com/e-gun/HipparchiaGoServer
 
-go 1.20
+go 1.21
 
 require (
 	github.com/e-gun/nlp v0.0.0-20230418221101-577c2209ffcc
@@ -12,6 +12,7 @@ require (
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/pkg/profile v1.7.0
+	golang.org/x/exp v0.0.0-20230811145659-89c5cff77bcb
 	golang.org/x/text v0.12.0
 	gonum.org/v1/gonum v0.13.0
 )
@@ -39,7 +40,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	golang.org/x/crypto v0.12.0 // indirect
-	golang.org/x/exp v0.0.0-20230811145659-89c5cff77bcb // indirect
 	golang.org/x/net v0.14.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect

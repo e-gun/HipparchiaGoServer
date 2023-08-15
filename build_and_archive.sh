@@ -3,6 +3,23 @@
 go get -u ./...
 go mod tidy
 
+VS=""
+if [ `git branch --show-current` != "stable" ]; then
+  VS="-pre"
+fi
+
+DT=$(date "+%Y-%m-%d@%H:%M:%S")
+GC=$(git rev-list -1 HEAD | cut -c-8)
+
+LDF="-s -w -X main.GitCommit=${GC} -X main.BuildDate=${DT} -X main.VersSuppl=${VS}"
+
+# i.e., call with anything at all after the script name and you will just stop here: one and done
+# but note that INSTRUCTIONS will not have been generated
+if test -n "$1"; then
+  go build -pgo=default.pgo -ldflags "${LDF}"
+  exit
+fi
+
 # CopyInstructions() wants these PDFs, but it can survive without them
 # RtEmbPDFHelp() really wants these too; awkward to 404 help files...
 # $ pip install mdpdf
@@ -34,15 +51,6 @@ P="HipparchiaGoServer"
 SUFF=""
 OUT="./bin"
 
-VS=""
-if [ `git branch --show-current` != "stable" ]; then
-  VS="-pre"
-fi
-
-DT=$(date "+%Y-%m-%d@%H:%M:%S")
-GC=$(git rev-list -1 HEAD | cut -c-8)
-
-go build -pgo=default.pgo -ldflags "-s -w -X main.GitCommit=${GC} -X main.BuildDate=${DT} -X main.VersSuppl=${VS}"
 V=$(./${P} -v)
 
 if [ ! -d "${OUT}" ]; then
@@ -62,7 +70,7 @@ do
       SUFF=""
     fi
     EXE=${P}-${V}-${os}-${arch}${SUFF}
-	  env GOOS=${os} GOARCH=${arch} go build -pgo=default.pgo -ldflags "-s -w -X main.GitCommit=${GC} -X main.BuildDate=${DT}" -o ${P}${SUFF}
+	  env GOOS=${os} GOARCH=${arch} go build -pgo=default.pgo -ldflags "${LDF}" -o ${P}${SUFF}
 	  zip -q ${EXE}.zip ${P}${SUFF}
 	  mv ${EXE}.zip ${OUT}/
 	  rm ${P}${SUFF}

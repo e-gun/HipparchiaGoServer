@@ -7,7 +7,7 @@ package main
 
 import (
 	"fmt"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -59,7 +59,7 @@ func (i *SearchIncExl) BuildAuByName() {
 		nn = append(nn, v)
 	}
 
-	sort.Slice(nn, func(i, j int) bool { return nn[i] < nn[j] })
+	slices.Sort(nn)
 	i.ListedABN = nn
 }
 
@@ -81,7 +81,7 @@ func (i *SearchIncExl) BuildWkByName() {
 		nn = append(nn, v)
 	}
 
-	sort.Slice(nn, func(i, j int) bool { return nn[i] < nn[j] })
+	slices.Sort(nn)
 	i.ListedWBN = nn
 }
 
@@ -90,7 +90,8 @@ func (i *SearchIncExl) BuildPsgByName() {
 	for _, v := range i.MappedPsgByName {
 		nn = append(nn, v)
 	}
-	sort.Slice(nn, func(i, j int) bool { return nn[i] < nn[j] })
+
+	slices.Sort(nn)
 	i.ListedPBN = nn
 }
 

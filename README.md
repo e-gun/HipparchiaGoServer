@@ -1,6 +1,6 @@
 # HipparchiaGoServer
 
-### STATUS (v1.2.10):
+### STATUS (v1.2.11):
 
 * 25%-700% faster than HipparchiaServer depending on the function. Uses c. 60% as much RAM.
 * monolithic binary: no need for extra files/folders
@@ -48,4 +48,4 @@
 * a very heavy search like "all forms of πόλιϲ near..." can kick you up into 660MB
 
 ### MINIMUM VERSION OF GOLANG REQUIRED TO BUILD
-* go 1.19 because `atomic.Int32` and `atomic.Int64` are called
+* go 1.21 because `slices` package is called

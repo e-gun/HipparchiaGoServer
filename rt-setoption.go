@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -37,9 +38,9 @@ func RtSetOption(c echo.Context) error {
 
 	s := AllSessions.GetSess(user)
 
-	if IsInSlice(opt, ynoptionlist) {
+	if slices.Contains(ynoptionlist, opt) {
 		valid := []string{"yes", "no"}
-		if IsInSlice(val, valid) {
+		if slices.Contains(valid, val) {
 			var b bool
 			if val == "yes" {
 				b = true
@@ -92,31 +93,31 @@ func RtSetOption(c echo.Context) error {
 	}
 
 	valoptionlist := []string{"nearornot", "searchscope", "sortorder", "modeler", "vtextprep"}
-	if IsInSlice(opt, valoptionlist) {
+	if slices.Contains(valoptionlist, opt) {
 		switch opt {
 		case "nearornot":
 			valid := []string{"near", "notnear"}
-			if IsInSlice(val, valid) {
+			if slices.Contains(valid, val) {
 				s.NearOrNot = val
 			}
 		case "searchscope":
 			valid := []string{"lines", "words"}
-			if IsInSlice(val, valid) {
+			if slices.Contains(valid, val) {
 				s.SearchScope = val
 			}
 		case "sortorder":
 			valid := []string{"shortname", "converted_date", "provenance", "universalid"}
-			if IsInSlice(val, valid) {
+			if slices.Contains(valid, val) {
 				s.SortHitsBy = val
 			}
 		case "modeler":
 			valid := []string{"w2v", "glove", "lexvec"}
-			if IsInSlice(val, valid) {
+			if slices.Contains(valid, val) {
 				s.VecModeler = val
 			}
 		case "vtextprep":
 			valid := []string{"winner", "unparsed", "yoked", "montecarlo"}
-			if IsInSlice(val, valid) {
+			if slices.Contains(valid, val) {
 				s.VecTextPrep = val
 			}
 		default:
@@ -125,7 +126,7 @@ func RtSetOption(c echo.Context) error {
 	}
 
 	spinoptionlist := []string{"maxresults", "linesofcontext", "browsercontext", "proximity", "neighborcount", "ldatopiccount"}
-	if IsInSlice(opt, spinoptionlist) {
+	if slices.Contains(spinoptionlist, opt) {
 		intval, e := strconv.Atoi(val)
 		if e == nil {
 			switch opt {
@@ -178,7 +179,7 @@ func RtSetOption(c echo.Context) error {
 	}
 
 	dateoptionlist := []string{"earliestdate", "latestdate"}
-	if IsInSlice(opt, dateoptionlist) {
+	if slices.Contains(dateoptionlist, opt) {
 		intval, e := strconv.Atoi(val)
 		if e == nil {
 			switch opt {

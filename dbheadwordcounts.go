@@ -6,13 +6,14 @@
 package main
 
 import (
+	"cmp"
 	"context"
 	"fmt"
+	"golang.org/x/exp/slices"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"math"
 	"reflect"
-	"sort"
 	"strings"
 )
 
@@ -362,12 +363,13 @@ func headworddistrib(wc DbHeadwordCount) string {
 		cv[i].count = int(float32(c.count) * CORPUSWEIGTING[c.name])
 	}
 
-	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })
+	// descending order
+	slices.SortFunc(cv, func(a, b HWData) int { return cmp.Compare(b.count, a.count) })
 
-	max := cv[0].count
+	mx := cv[0].count
 
 	p := ""
-	if max != 0 {
+	if mx != 0 {
 		pd := weightedpdslice(cv, true)
 		p = DIST + strings.Join(pd, "; ")
 	}
@@ -386,12 +388,13 @@ func headwordchronology(wc DbHeadwordCount) string {
 		cv[i].count = int(float32(c.count) * ERAWEIGHTING[c.name])
 	}
 
-	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })
+	// descending order
+	slices.SortFunc(cv, func(a, b HWData) int { return cmp.Compare(b.count, a.count) })
 
-	max := cv[0].count
+	mx := cv[0].count
 
 	p := ""
-	if max != 0 {
+	if mx != 0 {
 		pd := weightedpdslice(cv, true)
 		p = DIST + strings.Join(pd, "; ")
 
@@ -423,12 +426,13 @@ func headwordgenres(wc DbHeadwordCount) string {
 		cv[i].count = int(float32(c.count) * w)
 	}
 
-	sort.Slice(cv, func(i, j int) bool { return cv[i].count > cv[j].count })
+	// descending order
+	slices.SortFunc(cv, func(a, b HWData) int { return cmp.Compare(b.count, a.count) })
 
-	max := cv[0].count
+	mx := cv[0].count
 
 	p := ""
-	if max != 0 {
+	if mx != 0 {
 		pd := weightedpdslice(cv, false)
 		lim := math.Min(GENRESTOCOUNT, float64(len(pd)))
 		pd = pd[0:int(lim)]
@@ -451,10 +455,10 @@ func weightedpdslice(cv []HWData, rare bool) []string {
 		ps = PREVSPANB
 	}
 
-	max := cv[0].count
+	mx := cv[0].count
 	var pd []string
 	for _, c := range cv {
-		cpt := (float32(c.count) / float32(max)) * 100
+		cpt := (float32(c.count) / float32(mx)) * 100
 		if int(cpt) > 0 {
 			pd = append(pd, fmt.Sprintf(ps, c.name, int(cpt)))
 		}

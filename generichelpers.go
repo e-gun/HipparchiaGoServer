@@ -7,6 +7,7 @@ package main
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 )
 
@@ -50,32 +51,14 @@ func sliceprinter[T any](n string, s []T) {
 
 // RemoveIndex - remove item #N from a slice
 func RemoveIndex[T any](s []T, index int) []T {
-	// https://stackoverflow.com/questions/37334119/how-to-delete-an-element-from-a-slice-in-golang
 	if len(s) == 0 || len(s) < index {
 		msg("RemoveIndex() tried to drop an out of range element", MSGFYI)
 		return s
 	}
-
-	ret := make([]T, 0)
-	ret = append(ret, s[:index]...)
-	return append(ret, s[index+1:]...)
+	return slices.Delete(s, index, index+1)
 }
 
-// Unique - return only the unique items from a slice
-func Unique[T comparable](s []T) []T {
-	// https://gosamples.dev/generics-remove-duplicates-slice/
-	dedup := make(map[T]bool)
-	var result []T
-	for i := 0; i < len(s); i++ {
-		if _, ok := dedup[s[i]]; !ok {
-			dedup[s[i]] = true
-			result = append(result, s[i])
-		}
-	}
-	return result
-}
-
-// ToSet - returns a map of a slice
+// ToSet - returns a blank map of a slice
 func ToSet[T comparable](sl []T) map[T]struct{} {
 	m := make(map[T]struct{})
 	for i := 0; i < len(sl); i++ {
@@ -84,44 +67,35 @@ func ToSet[T comparable](sl []T) map[T]struct{} {
 	return m
 }
 
-// SetSubtraction - returns [](set(aa) - set(bb))
-func SetSubtraction[T comparable](aa []T, bb []T) []T {
-	//  NB this is SLOW: be careful looping it 10k times
-	// 	aa := []string{"a", "b", "c", "d"}
-	//	bb := []string{"a", "b", "e", "f"}
-	//	dd := SetSubtraction(aa, bb)
-	//	fmt.Println(dd)
-	//  [c d]
+// Unique - return only the unique items from a slice
+func Unique[T comparable](s []T) []T {
+	// can't use slices.Compact because that only looks as consecutive repeats: [a, a, b, a] -> [a, b, a]
 
-	// might be faster: https://github.com/emirpasic/gods
+	set := ToSet(s)
 
-	pruner := make(map[T]bool)
-	for i := 0; i < len(bb); i++ {
-		pruner[bb[i]] = true
+	var result []T
+	for k := range set {
+		result = append(result, k)
 	}
 
-	remain := make(map[T]bool)
-	for i := 0; i < len(aa); i++ {
-		if _, y := pruner[aa[i]]; !y {
-			remain[aa[i]] = true
-		}
-	}
-
-	result := make([]T, 0, len(remain))
-	for r := range remain {
-		result = append(result, r)
-	}
 	return result
 }
 
-// IsInSlice - is item X an element of slice A?
-func IsInSlice[T comparable](seek T, sl []T) bool {
-	for _, v := range sl {
-		if v == seek {
-			return true
-		}
-	}
-	return false
+func SetSubtraction[T comparable](aa []T, bb []T) []T {
+	//  NB this is likely SLOW: be careful looping it 10k times
+	// 	aa := []string{"a", "b", "c", "d", "g", "h"}
+	//	bb := []string{"a", "b", "e", "f", "g"}
+	//	dd := SetSubtraction(aa, bb)
+	//  [c d h]
+
+	// this makes more sense in some other context where bb is big and amorphous...
+	bb = Unique(bb)
+
+	aa = slices.DeleteFunc(aa, func(c T) bool {
+		return slices.Contains(bb, c)
+	})
+
+	return aa
 }
 
 // ContainsN - how many Xs in slice A?

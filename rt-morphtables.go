@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -298,7 +299,7 @@ func RtMorphchart(c echo.Context) error {
 				parts := strings.Split(k, "(")
 				diall := strings.Split(parts[1], JOINER)
 				for _, d := range diall {
-					if IsInSlice(d, GKDIALECT) {
+					if slices.Contains(GKDIALECT, d) {
 						newkey := parts[0] + JOINER + d
 						newkey = strings.Replace(newkey, JOINER+JOINER, JOINER, 1)
 						newpdm[newkey] = v

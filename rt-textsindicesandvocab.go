@@ -259,8 +259,8 @@ func RtVocabMaker(c echo.Context) error {
 	AllSearches.SetRemain(si.ID, 1)
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
-	max := Config.MaxText * MAXVOCABLINEGENERATION
-	vocabsrch := sessionintobulksearch(c, max) // allow vocab lists to ingest more lines that text & index makers
+	mx := Config.MaxText * MAXVOCABLINEGENERATION
+	vocabsrch := sessionintobulksearch(c, mx) // allow vocab lists to ingest more lines that text & index makers
 
 	if len(vocabsrch.Results) == 0 {
 		return emptyjsreturn(c)
@@ -456,8 +456,8 @@ func RtVocabMaker(c echo.Context) error {
 	ky := multiworkkeymaker(mp, &vocabsrch)
 
 	cp := ""
-	if len(vocabsrch.Results) == max {
-		cp = m.Sprintf(HITCAP, max)
+	if len(vocabsrch.Results) == mx {
+		cp = m.Sprintf(HITCAP, mx)
 	}
 
 	u := len(onlyhere)
@@ -1135,7 +1135,7 @@ func convertwordinfototablerow(ww []WordInfo) string {
 
 		// get all passages related to this word
 		var pp []string
-		dedup := make(map[string]bool) // this is hacky: why are their duplicates to begin with?
+		dedup := make(map[string]bool) // this is hacky: why duplicates to begin with?
 		for j := 0; j < len(wii); j++ {
 			if _, ok := dedup[wii[j].Loc]; !ok {
 				pp = append(pp, fmt.Sprintf(IDXLOC, wii[j].Loc, wii[j].Cit))
