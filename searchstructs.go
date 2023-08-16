@@ -380,7 +380,7 @@ func (sv *SearchVault) InsertSS(s SearchStruct) {
 
 // UpdateSS - just InsertSS; makes the code logic more legible: typically we are just updating messages for ws delivery
 func (sv *SearchVault) UpdateSS(s SearchStruct) {
-	msg("SearchVault updating "+s.ID, 2)
+	// msg("SearchVault updating "+s.ID, 2)
 	sv.InsertSS(s)
 }
 
@@ -415,7 +415,7 @@ func (sv *SearchVault) SimpleGetSS(id string) SearchStruct {
 
 // Delete - get rid of a search (probably for good, but see "Purge")
 func (sv *SearchVault) Delete(id string) {
-	msg("SearchVault deleting "+id, 0)
+	// msg("SearchVault deleting "+id, 1)
 	sv.mutex.Lock()
 	defer sv.mutex.Unlock()
 	delete(sv.SearchMap, id)
@@ -423,7 +423,7 @@ func (sv *SearchVault) Delete(id string) {
 
 // Purge is just delete; makes the code logic more legible; "Purge" implies that this search is likely to reappear with an "Update"
 func (sv *SearchVault) Purge(id string) {
-	msg("SearchVault purging "+id, 3)
+	// msg("SearchVault purging "+id, 3)
 	sv.Delete(id)
 }
 

@@ -112,7 +112,6 @@ func NeighborsSearch(c echo.Context, srch SearchStruct) error {
 	}
 
 	AllSearches.Delete(srch.ID)
-
 	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
 }
 

@@ -129,7 +129,10 @@ func ldamodelbot(c echo.Context, s SearchStruct, a string) {
 	s.CurrentLimit = Config.VectorMaxlines
 	s.Seeking = ""
 
-	// note that you do not want multiple vectorbots running at once...
+	// do not edit the next variable without appreciating that there are "if srch.ID == "ldamodelbot()" checks elsewhere
+	// note also that you REALLY do not want multiple vectorbots running at once...
+	s.ID = "ldamodelbot()"
+
 	SSBuildQueries(&s)
 	s.IsActive = true
 	s.TableSize = 1

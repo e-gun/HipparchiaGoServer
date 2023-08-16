@@ -266,8 +266,6 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 
 	// msg(MSG3, MSGTMI)
 
-	// note that this search will "reappear" shortly with an UpdateSS, but all we are doing is messages
-	AllSearches.Purge(s.ID)
 	return embs
 }
 
