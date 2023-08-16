@@ -454,10 +454,12 @@ func (sv *SearchVault) CountIP(ip string) int {
 }
 
 //
-// FOR DEBUGGING
+// FOR DEBUGGING ONLY
 //
 
+// svreport - report the # and names of the registered searches every 5 seconds
 func svreport() {
+	// add the following to main.go: "go svreport()"
 	// it would be possible to "garbage collect" all searches where IsActive is "false" for too long
 	// but these really are not supposed to be a problem
 	for {

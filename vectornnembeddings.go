@@ -112,6 +112,7 @@ func generateneighborsdata(c echo.Context, s SearchStruct) map[string]search.Nei
 		}
 	}
 
+	AllSearches.Delete(s.ID)
 	return nn
 }
 
@@ -260,6 +261,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	}
 
 	// msg(MSG3, MSGTMI)
+	AllSearches.Delete(s.ID)
 	return embs
 }
 

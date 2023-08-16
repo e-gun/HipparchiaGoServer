@@ -51,6 +51,8 @@ P="HipparchiaGoServer"
 SUFF=""
 OUT="./bin"
 
+# need this build just to set ${V} in the next line
+go build -pgo=default.pgo -ldflags "${LDF}"
 V=$(./${P} -v)
 
 if [ ! -d "${OUT}" ]; then

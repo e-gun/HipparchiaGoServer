@@ -10,32 +10,34 @@
 self-test without vectors is now `HipparchiaGoServer -st -dv`
 
 ``` 
-[HGS] Hipparchia Golang Server (v1.1.6-pre) [git: 3cc8a3df] [gl=0; el=0]
-[HGS] Running Selftest 1 of 1
-	Built:	2023-03-07@12:43:44
-	Go:	go1.20.1
+HipparchiaGoServer -dv -st -st -st
+[HGS] Hipparchia Golang Server (v1.2.11-pre) [git: 5ac0df41] [gl=0; el=0]
+[HGS] Running Selftest 1 of 3
 ⇨ http server started on 127.0.0.1:8000
-[HGS] entering selftest mode (3 segments)
-[HGS] [I] 6 search tests
-[HGS] [A1: 0.222s][Δ: 0.222s] single word in corpus: 'vervex'
-[HGS] [A2: 1.459s][Δ: 1.237s] phrase in corpus: 'plato omnem'
-[HGS] [A3: 3.325s][Δ: 1.865s] phrase near phrase: 'καὶ δὴ καὶ' near 'εἴ που καὶ'
-[HGS] [B1: 4.385s][Δ: 1.061s] lemma in corpus: 'φθορώδηϲ'
-[HGS] [B2: 9.051s][Δ: 4.666s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
-[HGS] [B3: 33.214s][Δ: 24.163s] lemma near lemma in corpus: 'Πόλιϲ' near 'ὁπλίζω
-[HGS] [II] 3 text, index, and vocab maker tests
-[HGS] [C1: 33.451s][Δ: 0.237s] build a text for 35000 arbitrary lines
-[HGS] [C2: 36.849s][Δ: 3.397s] build an index to 35000 arbitrary lines
-[HGS] [C3: 39.330s][Δ: 2.481s] build vocabulary list for 35000 arbitrary lines
-[HGS] [III] 4 browsing and lexical tests
+	Built:	2023-08-15@21:19:49
+	Go:	go1.21.0
+[HGS-SELFTEST] entering selftest mode (3 segments)
+[HGS-SELFTEST] [I] 6 search tests
+[HGS-SELFTEST] [A1: 0.271s][Δ: 0.271s] single word in corpus: 'vervex'
+[HGS-SELFTEST] [A2: 1.688s][Δ: 1.417s] phrase in corpus: 'plato omnem'
+[HGS-SELFTEST] [A3: 3.563s][Δ: 1.875s] phrase near phrase: 'καὶ δὴ καὶ' near 'εἴ που καὶ'
+[HGS-SELFTEST] [B1: 5.004s][Δ: 1.441s] lemma in corpus: 'φθορώδηϲ'
+[HGS-SELFTEST] [B2: 10.299s][Δ: 5.295s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
+[HGS] lemmaintoregexslice() could not find 'Πόλιϲ'
+[HGS-SELFTEST] [B3: 10.492s][Δ: 0.193s] lemma near lemma in corpus: 'Πόλιϲ' near 'ὁπλίζω
+[HGS-SELFTEST] [II] 3 text, index, and vocab maker tests
+[HGS-SELFTEST] [C1: 10.756s][Δ: 0.264s] build a text for 35000 arbitrary lines
+[HGS-SELFTEST] [C2: 17.533s][Δ: 6.777s] build an index to 35000 arbitrary lines
+[HGS-SELFTEST] [C3: 20.864s][Δ: 3.331s] build vocabulary list for 35000 arbitrary lines
+[HGS-SELFTEST] [III] 4 browsing and lexical tests
 [HGS] could not find a work for gr0021w001
 [HGS] could not find a work for gr0025w001
-[HGS] [D1: 39.544s][Δ: 0.215s] browse 50 passages
+[HGS-SELFTEST] [D1: 23.293s][Δ: 2.429s] browse 50 passages
 [HGS] findbyform() found no results for 'Romani'
-[HGS] [D2: 44.120s][Δ: 4.576s] look up 48 specific words
-[HGS] [D3: 49.347s][Δ: 5.227s] look up 6 word substrings
-[HGS] [D4: 64.088s][Δ: 14.741s] reverse lookup for 6 word substrings
-[HGS] exiting selftest mode
+[HGS-SELFTEST] [D2: 30.453s][Δ: 7.160s] look up 48 specific words
+[HGS-SELFTEST] [D3: 36.271s][Δ: 5.818s] look up 6 word substrings
+[HGS-SELFTEST] [D4: 53.002s][Δ: 16.732s] reverse lookup for 6 word substrings
+...
 ```
 
 self-test with vectors can be deceptive because `-wc` flag will not override config json.

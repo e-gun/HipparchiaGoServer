@@ -284,10 +284,12 @@ func WSFillNewPool() *WSPool {
 }
 
 //
-// FOR DEBUGGING
+// FOR DEBUGGING ONLY
 //
 
+// wsclientreport - report the # and names of the active wsclients every 5 seconds
 func wsclientreport() {
+	// add the following to main.go: "go wsclientreport()"
 	for {
 		cl := WebsocketPool.ClientMap
 		var cc []string

@@ -76,6 +76,8 @@ func RtVectorBot(c echo.Context) error {
 	a := ts[1]
 
 	s := BuildDefaultSearch(c)
+	s.ID = strings.Replace(uuid.New().String(), "-", "", -1)
+
 	AllSearches.InsertSS(s)
 
 	allof := func(db string) []string {
@@ -157,7 +159,8 @@ func nnmodelbot(c echo.Context, s SearchStruct, a string) {
 		// sessionintobulksearch() can't be used because there is no real session...
 		s.CurrentLimit = Config.VectorMaxlines
 		s.Seeking = ""
-		s.ID = strings.Replace(uuid.New().String(), "-", "", -1)
+		// s.ID = strings.Replace(uuid.New().String(), "-", "", -1)
+		s.ID = fp
 		SSBuildQueries(&s)
 		s.IsActive = true
 		s.TableSize = 1
