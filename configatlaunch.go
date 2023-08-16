@@ -32,6 +32,8 @@ type CurrentConfiguration struct {
 	LogLevel        int
 	ManualGC        bool // see messenger.Stats()
 	MaxText         int
+	MaxSrchIP       int
+	MaxSrchTot      int
 	PGLogin         PostgresLogin
 	ProfileCPU      bool
 	ProfileMEM      bool
@@ -160,6 +162,16 @@ func ConfigAtLaunch() {
 		msg(fmt.Sprintf(FAIL3, prolixcfg), MSGCRIT)
 	}
 
+	// on old CONFIGPROLIX might mean you set the following to zero; that is very bad...
+	if Config.MaxSrchTot == 0 {
+		// "HipparchiaGoServer -ms 1" is a perfectly sensible setting...
+		Config.MaxSrchTot = MAXSEARCHTOTAL
+	}
+
+	if Config.MaxSrchIP == 0 {
+		Config.MaxSrchIP = MAXSEARCHPERIPADDR
+	}
+
 	var cf string
 
 	args := os.Args[1:len(os.Args)]
@@ -170,7 +182,8 @@ func ConfigAtLaunch() {
 		ht := styleoutput(coloroutput(HELPTEXT))
 		fmt.Println(fmt.Sprintf(ht, pwf, DEFAULTBROWSERCTX, CONFIGLOCATION, CONFIGBASIC, h, CONFIGBASIC,
 			DEFAULTECHOLOGLEVEL, HDBFOLDER, DEFAULTGOLOGLEVEL, "glove", "lexvec", "w2v", VECTORMODELDEFAULT,
-			SERVEDFROMHOST, SERVEDFROMPORT, UNACCEPTABLEINPUT, runtime.NumCPU(), CONFIGPROLIX, h, PROJURL))
+			MAXSEARCHPERIPADDR, MAXSEARCHTOTAL, SERVEDFROMHOST, SERVEDFROMPORT, UNACCEPTABLEINPUT, runtime.NumCPU(),
+			CONFIGPROLIX, h, PROJURL))
 		os.Exit(0)
 	}
 
@@ -223,6 +236,14 @@ func ConfigAtLaunch() {
 			help()
 		case "-md":
 			Config.VectorModel = args[i+1]
+		case "-mi":
+			mi, err := strconv.Atoi(args[i+1])
+			chke(err)
+			Config.MaxSrchIP = mi
+		case "-ms":
+			ms, err := strconv.Atoi(args[i+1])
+			chke(err)
+			Config.MaxSrchTot = ms
 		case "-pc":
 			Config.ProfileCPU = true
 		case "-pd":
@@ -301,6 +322,8 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.LdaGraph = false
 	c.ManualGC = true
 	c.MaxText = MAXTEXTLINEGENERATION
+	c.MaxSrchIP = MAXSEARCHPERIPADDR
+	c.MaxSrchTot = MAXSEARCHTOTAL
 	c.ProfileCPU = false
 	c.ProfileMEM = false
 	c.QuietStart = false

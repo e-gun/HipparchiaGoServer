@@ -68,6 +68,8 @@ const (
 	MAXLEMMACHUNKSIZE        = 20
 	MAXLINESHITCONTEXT       = 30
 	MAXSEARCHINFOLISTLEN     = 100
+	MAXSEARCHPERIPADDR       = 2
+	MAXSEARCHTOTAL           = 4
 	MAXTEXTLINEGENERATION    = 35000 // euripides is 33517 lines, sophocles is 15729, cicero is 149570, e.g.; jQuery slows exponentially as lines increase
 	MAXVOCABLINEGENERATION   = 1     // this is a multiplier for Config.MaxText; the browser does not get overwhelmed by these lists
 	MAXTITLELENGTH           = 110
@@ -145,6 +147,8 @@ const (
    C1-gzC0          enable gzip compression of the server's output
    C1-hC0           print this help information
    C1-mdC0 C2{string}C0 set the vector model type; available: C3%sC0, C3%sC0, & C3%sC0 [default: C3%sC0]
+   C1-miC0 C2{num}C0    maximum number of concurrent searches per IP address [default: C3%dC0]
+   C1-msC0 C2{num}C0    maximum total number of concurrent searches [default: C3%dC0]
    C1-pcC0          enable CPU profiling run
    C1-pdC0          write a copy of the embedded PDF instructions to the current directory
    C1-pmC0          enable MEM profiling run

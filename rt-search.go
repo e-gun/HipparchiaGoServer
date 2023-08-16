@@ -43,12 +43,28 @@ func RtSearch(c echo.Context) error {
 	// [8] phrase + lemma
 	// [9] phrase + phrase
 
+	const (
+		TOOMANYIP    = "<code>Cannot execute this search. Your ip address (%s) is already running the maximum number of simultaneous searches allowed: %d.</code>"
+		TOOMANYTOTAL = "<code>Cannot execute this search. The server is already running the maximum number of simultaneous searches allowed: %d.</code>"
+	)
+
 	user := readUUIDCookie(c)
 	if !AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, SearchOutputJSON{JS: VALIDATIONBOX}, JSONINDENT)
 	}
 
+	if AllSearches.CountIP(c.RealIP()) >= Config.MaxSrchIP {
+		m := fmt.Sprintf(TOOMANYIP, c.RealIP(), AllSearches.CountIP(c.RealIP()))
+		return c.JSONPretty(http.StatusOK, SearchOutputJSON{Searchsummary: m}, JSONINDENT)
+	}
+
+	if AllSearches.CountTotal() >= Config.MaxSrchTot {
+		m := fmt.Sprintf(TOOMANYTOTAL, AllSearches.CountTotal())
+		return c.JSONPretty(http.StatusOK, SearchOutputJSON{Searchsummary: m}, JSONINDENT)
+	}
+
 	srch := InitializeSearch(c, user)
+
 	AllSearches.InsertSS(srch)
 
 	se := AllSessions.GetSess(user)
@@ -118,6 +134,7 @@ func InitializeSearch(c echo.Context, user string) SearchStruct {
 	srch.LemmaOne = c.QueryParam("lem")
 	srch.LemmaTwo = c.QueryParam("plm")
 	srch.ID = c.Param("id")
+	srch.IPAddr = c.RealIP()
 
 	srch.CleanInput()
 	srch.SetType() // must happen before SSBuildQueries()

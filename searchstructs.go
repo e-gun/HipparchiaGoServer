@@ -16,6 +16,7 @@ import (
 
 type SearchStruct struct {
 	User          string
+	IPAddr        string
 	ID            string
 	Seeking       string
 	Proximate     string
@@ -414,4 +415,24 @@ func (sv *SearchVault) SetRemain(id string, r int) {
 	sv.mutex.Lock()
 	defer sv.mutex.Unlock()
 	sv.SearchMap[id].Remain.Set(r)
+}
+
+// CountIP - how many searches is the server already running?
+func (sv *SearchVault) CountTotal() int {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
+	return len(sv.SearchMap)
+}
+
+// CountIP - how many searches is this IP address already running?
+func (sv *SearchVault) CountIP(ip string) int {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
+	count := 0
+	for _, v := range sv.SearchMap {
+		if v.IPAddr == ip {
+			count += 1
+		}
+	}
+	return count
 }
