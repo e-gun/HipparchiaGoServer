@@ -377,6 +377,7 @@ func (sv *SearchVault) InsertSS(s SearchStruct) {
 	sv.SearchMap[s.ID] = s
 }
 
+// GetSS will fetch a SearchStruct; if it does not find one, it makes and registers a hollow search
 func (sv *SearchVault) GetSS(id string) SearchStruct {
 	sv.mutex.Lock()
 	defer sv.mutex.Unlock()
@@ -386,6 +387,21 @@ func (sv *SearchVault) GetSS(id string) SearchStruct {
 		s.ID = id
 		s.IsActive = false
 		sv.SearchMap[id] = s
+	}
+	return s
+}
+
+// SimpleGetSS will fetch a SearchStruct; if it does not find one, it makes but does not register a hollow search
+func (sv *SearchVault) SimpleGetSS(id string) SearchStruct {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
+	s, e := sv.SearchMap[id]
+	if e != true {
+		s = BuildHollowSearch()
+		s.ID = id
+		s.IsActive = false
+		// do not let WSMessageLoop() register searches in the SearchMap. This wreaks havoc with the MAXSEARCHTOTAL code
+		// sv.SearchMap[id] = s
 	}
 	return s
 }
@@ -435,4 +451,22 @@ func (sv *SearchVault) CountIP(ip string) int {
 		}
 	}
 	return count
+}
+
+//
+// FOR DEBUGGING
+//
+
+func svreport() {
+	// it would be possible to "garbage collect" all searches where IsActive is "false" for too long
+	// but these really are not supposed to be a problem
+	for {
+		as := AllSearches.SearchMap
+		var ss []string
+		for k := range as {
+			ss = append(ss, k)
+		}
+		msg(fmt.Sprintf("%d in AllSearches: %s", len(as), strings.Join(ss, ", ")), MSGNOTE)
+		time.Sleep(5 * time.Second)
+	}
 }

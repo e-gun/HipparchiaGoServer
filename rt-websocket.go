@@ -192,11 +192,12 @@ func (c *WSClient) WSMessageLoop() {
 
 		if time.Now().After(quit) {
 			msg(fmt.Sprintf(FAIL, c.ID), MSGFYI)
+			WebsocketPool.Remove <- c
 			break
 		}
 	}
 
-	srch := AllSearches.GetSS(c.ID)
+	srch := AllSearches.SimpleGetSS(c.ID)
 
 	var pd PollData
 	pd.TwoBox = srch.Twobox
@@ -279,5 +280,21 @@ func WSFillNewPool() *WSPool {
 		ClientMap: make(map[*WSClient]bool),
 		JSO:       make(chan *WSJSOut),
 		ReadID:    make(chan string),
+	}
+}
+
+//
+// FOR DEBUGGING
+//
+
+func wsclientreport() {
+	for {
+		cl := WebsocketPool.ClientMap
+		var cc []string
+		for k := range cl {
+			cc = append(cc, k.ID)
+		}
+		msg(fmt.Sprintf("%d WebsocketPool clients: %s", len(cl), strings.Join(cc, ", ")), MSGNOTE)
+		time.Sleep(5 * time.Second)
 	}
 }
