@@ -198,7 +198,7 @@ func selftest() {
 	vtxp := []string{"winner", "unparsed", "yoked", "montecarlo"}
 	vauu := []string{"gr0011"} // sophocles
 
-	au := func(v string) {
+	httpgetauthor := func(v string) {
 		for _, a := range vauu {
 			url := fmt.Sprintf(URL, Config.HostIP, Config.HostPort, v, a)
 			_, ee := http.Get(url)
@@ -206,31 +206,31 @@ func selftest() {
 		}
 	}
 
-	tx := func(v string) {
+	preptext := func(v string) {
 		for _, t := range vtxp {
 			Config.VectorTextPrep = t
-			au(v)
+			httpgetauthor(v)
 		}
 	}
 
-	md := func() {
+	buildmodels := func() {
 		count := 0
 		for _, m := range vmod {
 			count += 1
 			Config.VectorModel = m
-			tx("nn")
+			preptext("nn")
 			nb := fmt.Sprintf(MSG14, m, len(vauu), len(vtxp))
 			mm.Timer(fmt.Sprintf("E%d", count), nb, start, previous)
 			previous = time.Now()
 		}
 	}
 
-	md()
+	buildmodels()
 
 	mm.Emit("[V] lda vectorization tests", MSGWARN)
 	vauu = []string{"lt0472"} // catullus
 
-	tx("lda")
+	preptext("lda")
 	nb := fmt.Sprintf(MSG15, len(vauu), len(vtxp))
 	mm.Timer("F", nb, start, previous)
 	previous = time.Now()

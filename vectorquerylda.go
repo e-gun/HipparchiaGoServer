@@ -91,7 +91,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 		AllSearches.SetRemain(srch.ID, 1)
 		srch.InitSum = LDAMSG
 		srch.ExtraMsg = fmt.Sprintf("<br>preparing the text for modeling")
-		AllSearches.InsertSS(srch)
+		AllSearches.UpdateSS(srch)
 		vs = sessionintobulksearch(c, Config.VectorMaxlines)
 	} else {
 		vs = srch
@@ -108,7 +108,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	vectoriser := nlp.NewCountVectoriser(stops...)
 
 	srch.ExtraMsg = fmt.Sprintf("<br>building topic models")
-	AllSearches.InsertSS(srch)
+	AllSearches.UpdateSS(srch)
 
 	// consider building TESTITERATIONS models and making a table for each
 	var dot mat.Matrix
@@ -126,7 +126,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	var img string
 	if se.LDAgraph || srch.ID == "ldamodelbot()" {
 		srch.ExtraMsg = fmt.Sprintf("<br>using t-Distributed Stochastic Neighbor Embedding to build graph")
-		AllSearches.InsertSS(srch)
+		AllSearches.UpdateSS(srch)
 		img = ldaplot(se.LDA2D, ntopics, incl, se.VecTextPrep, dot, bags)
 	}
 
@@ -382,18 +382,18 @@ func ldatopsentences(ntopics int, thebags []BagWithLocus, corpus []string, docsO
 	// note that "i" is referring to the same item across slices; need this to be true...
 	winners := make([]BagWithLocus, ntopics)
 	for topic := 0; topic < rows; topic++ {
-		max := float64(0)
+		mx := float64(0)
 		winner := 0
 		for i := 0; i < len(thedocs); i++ {
 			ff := thedocs[i].ff
-			if ff[topic] > max {
+			if ff[topic] > mx {
 				winner = i
-				max = ff[topic]
+				mx = ff[topic]
 			}
 			// fmt.Printf("(Topic #%d)(max=%f) Sentence #%d:\t%f - %s\n", topic, max, i, ff[topic], thedocs[i].d)
 		}
 		winners[topic] = thebags[winner]
-		winners[topic].LDAScore = max
+		winners[topic].LDAScore = mx
 		winners[topic].GetWL()
 	}
 
@@ -546,14 +546,14 @@ func ldadocpertopic(ntopics int, docsOverTopics mat.Matrix) []int {
 	counter := make([]int, ntopics)
 	dr, dc := docsOverTopics.Dims()
 	for doc := 0; doc < dc; doc++ {
-		max := float64(0)
+		mx := float64(0)
 		winner := 0
 		for topic := 0; topic < dr; topic++ {
 			// any given corpus[doc] will look like
 			// Topic #0=0.006009, Topic #1=0.006915, Topic #2=0.000688, Topic #3=0.449514, Topic #4=0.536875
-			if docsOverTopics.At(topic, doc) > max {
+			if docsOverTopics.At(topic, doc) > mx {
 				winner = topic
-				max = docsOverTopics.At(topic, doc)
+				mx = docsOverTopics.At(topic, doc)
 			}
 		}
 		counter[winner] += 1
@@ -606,14 +606,14 @@ func ldaplot(graph2d bool, ntopics int, incl string, bagger string, docsOverTopi
 	dr, dc := docsOverTopics.Dims()
 	doclabels := make([]float64, dc)
 	for doc := 0; doc < dc; doc++ {
-		max := float64(0)
+		mx := float64(0)
 		winner := 0
 		for topic := 0; topic < dr; topic++ {
 			// any given corpus[doc] will look like
 			// Topic #0=0.006009, Topic #1=0.006915, Topic #2=0.000688, Topic #3=0.449514, Topic #4=0.536875
-			if docsOverTopics.At(topic, doc) > max {
+			if docsOverTopics.At(topic, doc) > mx {
 				winner = topic
-				max = docsOverTopics.At(topic, doc)
+				mx = docsOverTopics.At(topic, doc)
 			}
 
 		}

@@ -69,7 +69,7 @@ const (
 	MAXLINESHITCONTEXT       = 30
 	MAXSEARCHINFOLISTLEN     = 100
 	MAXSEARCHPERIPADDR       = 2
-	MAXSEARCHTOTAL           = 4     // note that two-part searches can kick your total active search count over the number of "clicked" searches from RtSearch()
+	MAXSEARCHTOTAL           = 4     // note that vectors and two-part searches generate subsearches and kick your total active search count over the number of "clicked" searches from RtSearch()
 	MAXTEXTLINEGENERATION    = 35000 // euripides is 33517 lines, sophocles is 15729, cicero is 149570, e.g.; jQuery slows exponentially as lines increase
 	MAXVOCABLINEGENERATION   = 1     // this is a multiplier for Config.MaxText; the browser does not get overwhelmed by these lists
 	MAXTITLELENGTH           = 110

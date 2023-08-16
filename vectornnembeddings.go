@@ -67,11 +67,11 @@ func generateneighborsdata(c echo.Context, s SearchStruct) map[string]search.Nei
 	var embs embedding.Embeddings
 	if isstored {
 		s.ExtraMsg = FMSG
-		AllSearches.InsertSS(s)
+		AllSearches.UpdateSS(s)
 		embs = vectordbfetchnn(fp)
 	} else {
 		s.ExtraMsg = GMSG
-		AllSearches.InsertSS(s)
+		AllSearches.UpdateSS(s)
 		embs = generateembeddings(c, s.VecModeler, s)
 		vectordbaddnn(fp, embs)
 		vectordbsizenn(MSGPEEK)
@@ -80,7 +80,7 @@ func generateneighborsdata(c echo.Context, s SearchStruct) map[string]search.Nei
 	// [b] make a query against the model
 
 	s.ExtraMsg = MQMEG
-	AllSearches.InsertSS(s)
+	AllSearches.UpdateSS(s)
 
 	searcher, err := search.New(embs...)
 	if err != nil {
@@ -112,7 +112,7 @@ func generateneighborsdata(c echo.Context, s SearchStruct) map[string]search.Nei
 		}
 	}
 
-	AllSearches.Delete(s.ID)
+	AllSearches.Purge(s.ID)
 	return nn
 }
 
@@ -137,7 +137,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	start := time.Now()
 
 	s.ExtraMsg = PRLMSG
-	AllSearches.InsertSS(s)
+	AllSearches.UpdateSS(s)
 	var vs SearchStruct
 	p := message.NewPrinter(language.English)
 
@@ -150,7 +150,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 		vs.Results = []DbWorkline{}
 	}
 
-	AllSearches.InsertSS(s)
+	AllSearches.UpdateSS(s)
 
 	thetext := buildtextblock(s.VecTextPrep, s.Results)
 	s.Results = []DbWorkline{}
@@ -231,8 +231,11 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 				}
 			}
 			s.ExtraMsg = fmt.Sprintf(VMSG, in, ti)
-			AllSearches.InsertSS(s)
+			AllSearches.UpdateSS(s)
 			time.Sleep(WSPOLLINGPAUSE)
+			if !s.IsActive {
+				break
+			}
 		}
 	}
 
@@ -241,7 +244,8 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	_ = <-finished
 
 	s.ExtraMsg = DBMSG
-	AllSearches.InsertSS(s)
+	s.IsActive = false
+	AllSearches.UpdateSS(s)
 
 	// use buffers; skip the disk; psql used for storage: vectordbaddnn() & vectordbfetchnn()
 	var buf bytes.Buffer
@@ -261,7 +265,9 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	}
 
 	// msg(MSG3, MSGTMI)
-	AllSearches.Delete(s.ID)
+
+	// note that this search will "reappear" shortly with an UpdateSS, but all we are doing is messages
+	AllSearches.Purge(s.ID)
 	return embs
 }
 

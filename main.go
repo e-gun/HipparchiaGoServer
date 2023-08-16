@@ -113,7 +113,9 @@ func main() {
 	messenger.Stats("main() post-initialization")
 	msg(fmt.Sprintf(SUMM, time.Now().Sub(LaunchTime).Seconds()), MSGWARN)
 
-	// go svreport()
+	// uncomment next if debugging
+	go svreport()
+	// go wsclientreport()
 
 	StartEchoServer()
 }

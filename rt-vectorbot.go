@@ -54,7 +54,7 @@ func RtVectorBot(c echo.Context) error {
 	// [HGS] [VB: 7602.934s][Δ: 877.251s] The vectorbot has checked all authors and is now shutting down
 
 	// testable via:
-	// curl localhost:8000/vbot/ch0d09
+	// curl localhost:8000/vbot/nn/gr0011
 
 	if Config.VectorsDisabled {
 		return nil
@@ -76,7 +76,7 @@ func RtVectorBot(c echo.Context) error {
 	a := ts[1]
 
 	s := BuildDefaultSearch(c)
-	s.ID = strings.Replace(uuid.New().String(), "-", "", -1)
+	s.ID = "RtVectorBot-" + strings.Replace(uuid.New().String(), "-", "", -1)
 
 	AllSearches.InsertSS(s)
 
@@ -128,8 +128,7 @@ func ldamodelbot(c echo.Context, s SearchStruct, a string) {
 
 	s.CurrentLimit = Config.VectorMaxlines
 	s.Seeking = ""
-	// s.ID = strings.Replace(uuid.New().String(), "-", "", -1)
-	s.ID = "ldamodelbot()"
+
 	// note that you do not want multiple vectorbots running at once...
 	SSBuildQueries(&s)
 	s.IsActive = true
@@ -159,8 +158,8 @@ func nnmodelbot(c echo.Context, s SearchStruct, a string) {
 		// sessionintobulksearch() can't be used because there is no real session...
 		s.CurrentLimit = Config.VectorMaxlines
 		s.Seeking = ""
-		// s.ID = strings.Replace(uuid.New().String(), "-", "", -1)
-		s.ID = fp
+		// s.ID = fp
+
 		SSBuildQueries(&s)
 		s.IsActive = true
 		s.TableSize = 1

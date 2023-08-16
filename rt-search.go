@@ -70,11 +70,13 @@ func RtSearch(c echo.Context) error {
 	se := AllSessions.GetSess(user)
 
 	if se.VecNNSearch && !Config.VectorsDisabled {
-		// not a normal search: we grab all lines; build a model; query against the model
+		// not a normal search: jump to "vectorqueryneighbors.go" where we grab all lines; build a model; query against the model; return html
+		// note that "AllSearches.Delete(srch.ID)" is now another function's responsibility
 		return NeighborsSearch(c, srch)
 	}
 
 	if se.VecLDASearch && !Config.VectorsDisabled {
+		// not a normal search: jump to "vectorquerylda.go"
 		return LDASearch(c, srch)
 	}
 

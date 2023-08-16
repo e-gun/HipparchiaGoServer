@@ -371,10 +371,17 @@ type SearchVault struct {
 	mutex     sync.RWMutex
 }
 
+// InsertSS - add a search to the vault
 func (sv *SearchVault) InsertSS(s SearchStruct) {
 	sv.mutex.Lock()
 	defer sv.mutex.Unlock()
 	sv.SearchMap[s.ID] = s
+}
+
+// UpdateSS - just InsertSS; makes the code logic more legible: typically we are just updating messages for ws delivery
+func (sv *SearchVault) UpdateSS(s SearchStruct) {
+	msg("SearchVault updating "+s.ID, 2)
+	sv.InsertSS(s)
 }
 
 // GetSS will fetch a SearchStruct; if it does not find one, it makes and registers a hollow search
@@ -406,10 +413,18 @@ func (sv *SearchVault) SimpleGetSS(id string) SearchStruct {
 	return s
 }
 
+// Delete - get rid of a search (probably for good, but see "Purge")
 func (sv *SearchVault) Delete(id string) {
+	msg("SearchVault deleting "+id, 0)
 	sv.mutex.Lock()
 	defer sv.mutex.Unlock()
 	delete(sv.SearchMap, id)
+}
+
+// Purge is just delete; makes the code logic more legible; "Purge" implies that this search is likely to reappear with an "Update"
+func (sv *SearchVault) Purge(id string) {
+	msg("SearchVault purging "+id, 3)
+	sv.Delete(id)
 }
 
 func (sv *SearchVault) GetInfo(id string) SrchInfo {
@@ -457,7 +472,7 @@ func (sv *SearchVault) CountIP(ip string) int {
 // FOR DEBUGGING ONLY
 //
 
-// svreport - report the # and names of the registered searches every 5 seconds
+// svreport - report the # and names of the registered searches every N seconds
 func svreport() {
 	// add the following to main.go: "go svreport()"
 	// it would be possible to "garbage collect" all searches where IsActive is "false" for too long
@@ -469,6 +484,7 @@ func svreport() {
 			ss = append(ss, k)
 		}
 		msg(fmt.Sprintf("%d in AllSearches: %s", len(as), strings.Join(ss, ", ")), MSGNOTE)
-		time.Sleep(5 * time.Second)
+
+		time.Sleep(4 * time.Second)
 	}
 }
