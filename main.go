@@ -53,6 +53,10 @@ func main() {
 
 	printversion()
 
+	if Config.LogLevel > 0 {
+		printbuildinfo()
+	}
+
 	if !Config.QuietStart {
 		msg(fmt.Sprintf(TERMINALTEXT, PROJYEAR, PROJAUTH, PROJMAIL), MSGMAND)
 	}
@@ -147,9 +151,10 @@ func printversion() {
 func printbuildinfo() {
 	bi := ""
 	if BuildDate != "" {
-		bi = messenger.ColStyle(fmt.Sprintf("\tS1Built:S0\tC3%sC0\n", BuildDate))
-
+		bi = messenger.ColStyle(fmt.Sprintf("\tS1Built:S0\tC3%sC0\t", BuildDate))
 	}
-	bi += messenger.ColStyle(fmt.Sprintf("\tS1Go:S0\tC3%sC0", runtime.Version()))
+	bi += messenger.ColStyle(fmt.Sprintf("\tS1Golang:S0\tC3%sC0\n", runtime.Version()))
+	bi += messenger.ColStyle(fmt.Sprintf("\tS1System:S0\tC3%s-%sC0\t", runtime.GOOS, runtime.GOARCH))
+	bi += messenger.ColStyle(fmt.Sprintf("\t\tS1WKvCPU:S0\tC3%dC0/C3%dC0", Config.WorkerCount, runtime.NumCPU()))
 	fmt.Println(bi)
 }

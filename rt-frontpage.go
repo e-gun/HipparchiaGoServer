@@ -55,7 +55,7 @@ func RtFrontpage(c echo.Context) error {
 	if gc == "" {
 		gc = "UNKNOWN"
 	}
-	ver := fmt.Sprintf("Version: %s [git: %s]", VERSION, gc)
+	ver := fmt.Sprintf("Version: %s [git: %s]", VERSION+VersSuppl, gc)
 
 	env := fmt.Sprintf("%s: %s - %s (%d workers)", runtime.Version(), runtime.GOOS, runtime.GOARCH, Config.WorkerCount)
 
