@@ -25,6 +25,7 @@ const (
 	CONFIGVECTORLDA          = "hgs-vector-conf-lda.json"
 	CONFIGVECTORSTOPSLAT     = "hgs-vector-stops-latin.json"
 	CONFIGVECTORSTOPSGRK     = "hgs-vector-stops-greek.json"
+	CUSTOMCSSFILENAME        = "custom-hipparchiastyles.css"
 	DBAUMAPSIZE              = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
 	DBLMMAPSIZE              = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
 	DBWKMAPSIZE              = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
@@ -137,6 +138,7 @@ const (
    C1-bcC0 C2{num}C0    default lines of browser context to display [current: C3%dC0]
    C1-bwC0          disable color output in the console
    C1-cfC0 C2{file}C0   read PSQL password from file [default: looks for "C3%s/%sC0" and "C3%s%sC0"]
+   C1-csC0          use a custom CSS file; will try to read "C3%s%sC0"
    C1-dbC0          debug database: show internal references in browsed passages
    C1-dvC0          disable semantic vector searching
    C1-elC0 C2{num}C0    set echo server log level (C10-3C0) [default: C3%dC0]
@@ -146,7 +148,7 @@ const (
    C1-glC0 C2{num}C0    set golang log level (C10-5C0) [default: C3%dC0]
    C1-gzC0          enable gzip compression of the server's output
    C1-hC0           print this help information
-   C1-mdC0 C2{string}C0 set the vector model type; available: C3%sC0, C3%sC0, & C3%sC0 [default: C3%sC0]
+   C1-mdC0 C2{string}C0 set the default vector model type; available: C3%sC0, C3%sC0, & C3%sC0 [currently: C3%sC0]
    C1-miC0 C2{num}C0    maximum number of concurrent searches per IP address [default: C3%dC0]
    C1-msC0 C2{num}C0    maximum total number of concurrent searches [default: C3%dC0]
    C1-pcC0          enable CPU profiling run

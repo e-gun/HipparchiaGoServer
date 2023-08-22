@@ -28,7 +28,7 @@ CREATE EXTENSION pg_trgm;
 \q
 ```
 4. Depending on your platform, you **might** need to tinker with your postgres configuration. Find `pg_hba.conf`. It will be somewhere like `/var/lib/pgsql/15/data/pg_hba.conf` or `/etc/postgresql/14/main/pg_hba.conf`. [it can be found via executing `SHOW hba_file;` inside the `psql` shell]
-   - Ensure that the `METHOD` in `pg_hba.conf` is `password` and NOT `peer` for `local` connections. 
+   - Ensure that the `METHOD` in `pg_hba.conf` is `password` and NOT `peer` or `ident`. Ensure that this is true for both `local` connections AND for `127.0.0.1/32` connections. 
    - Look at the end of the file and confirm that you see a block that looks like this:
 
 ```
@@ -36,8 +36,10 @@ CREATE EXTENSION pg_trgm;
  # "local" is for Unix domain socket connections only
  local   all             all                                     password
 
+ # IPv4 local connections:
+ host    all             all             127.0.0.1/32            password
 ```
-5. IF you do not see that block, edit `pg_hba.conf`. 
+5. IF you see that block and the `METHOD` is not right, then edit `pg_hba.conf`. 
    - After the edit, you need to and reload the server: `sudo systemctl restart postgresql-15`, vel sim.). 
 
 ---
@@ -54,7 +56,7 @@ CREATE EXTENSION pg_trgm;
 ### [C] launch `HipparchiaGoServer`
 
 0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation. If a working installation executes `HipparchiaGoServer -ex`, it will generate a valid `hDB` folder.]
-   The data needs to be in a folder named `hDB`. This folder has to be in the same folder as `HipparchiaGoServer`.
+   The data *must* reside in a folder named `hDB`. This folder has to be in the same folder as `HipparchiaGoServer`. Note that `hdb` ≠ `hDB`.
    You can (re)move the data folder after you have successfully installed the data into the database.
 1. Launch the binary: `./HipparchiaGoServer`. 
 2. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.

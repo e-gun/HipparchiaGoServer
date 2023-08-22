@@ -77,8 +77,11 @@ func (b *BagWithLocus) GetWL() {
 func LDASearch(c echo.Context, srch SearchStruct) error {
 	const (
 		LDAMSG = `Building LDA model for the current selections`
+		ESM1   = "<br>preparing the text for modeling"
+		ESM2   = "<br>building topic models"
+		ESM3   = "<br>using t-Distributed Stochastic Neighbor Embedding to build graph"
 	)
-	c.Response().After(func() { messenger.Stats("LDASearch()") })
+	c.Response().After(func() { messenger.GCStats("LDASearch()") })
 
 	se := srch.StoredSession
 	ntopics := se.LDAtopics
@@ -90,7 +93,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	if srch.ID != "ldamodelbot()" {
 		AllSearches.SetRemain(srch.ID, 1)
 		srch.InitSum = LDAMSG
-		srch.ExtraMsg = fmt.Sprintf("<br>preparing the text for modeling")
+		srch.ExtraMsg = fmt.Sprintf(ESM1)
 		AllSearches.UpdateSS(srch)
 		vs = sessionintobulksearch(c, Config.VectorMaxlines)
 	} else {
@@ -107,7 +110,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	stops := StringMapKeysIntoSlice(getstopset())
 	vectoriser := nlp.NewCountVectoriser(stops...)
 
-	srch.ExtraMsg = fmt.Sprintf("<br>building topic models")
+	srch.ExtraMsg = fmt.Sprintf(ESM2)
 	AllSearches.UpdateSS(srch)
 
 	// consider building TESTITERATIONS models and making a table for each
@@ -125,7 +128,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 
 	var img string
 	if se.LDAgraph || srch.ID == "ldamodelbot()" {
-		srch.ExtraMsg = fmt.Sprintf("<br>using t-Distributed Stochastic Neighbor Embedding to build graph")
+		srch.ExtraMsg = fmt.Sprintf(ESM3)
 		AllSearches.UpdateSS(srch)
 		img = ldaplot(se.LDA2D, ntopics, incl, se.VecTextPrep, dot, bags)
 	}
@@ -297,6 +300,10 @@ func ldamontecarlobagging(thebags []BagWithLocus, montecarlo map[string]hwguesse
 
 // ldamodel - build the lda model for the corpus
 func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser) (mat.Matrix, mat.Matrix) {
+	const (
+		FAIL = "Failed to model topics for documents"
+	)
+
 	cfg := ldavecconfig()
 	lda := nlp.NewLatentDirichletAllocation(topics)
 	lda.Processes = cfg.Goroutines
@@ -312,7 +319,7 @@ func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser) (mat
 
 	docsOverTopics, err := pipeline.FitTransform(corpus...)
 	if err != nil {
-		fmt.Println("Failed to model topics for documents")
+		fmt.Println(FAIL)
 		panic(err)
 	}
 	topicsOverWords := lda.Components()

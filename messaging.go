@@ -112,7 +112,10 @@ type LaunchStruct struct {
 	Caller     string
 }
 
+// Emit - send a message to the terminal, perhaps adding color and style to it
 func (m *MessageMaker) Emit(message string, threshold int) {
+	// sample output: "[HGS] findbyform() found no results for 'Romani'"
+
 	if m.Cfg.LogLevel < threshold {
 		return
 	}
@@ -145,6 +148,7 @@ func (m *MessageMaker) Emit(message string, threshold int) {
 	}
 }
 
+// Color - color text with ANSI codes by swapping out pseudo-tags
 func (m *MessageMaker) Color(tagged string) string {
 	// "[git: C4%sC0]" ==> green text for the %s
 	swap := strings.NewReplacer("C1", "", "C2", "", "C3", "", "C4", "", "C5", "", "C6", "", "C7", "", "C0", "")
@@ -157,6 +161,7 @@ func (m *MessageMaker) Color(tagged string) string {
 	return tagged
 }
 
+// Styled - style text with ANSI codes by swapping out pseudo-tags
 func (m *MessageMaker) Styled(tagged string) string {
 	const (
 		BOLD    = "\033[1m"
@@ -225,6 +230,7 @@ func (m *MessageMaker) ExitOrHang(e int) {
 	}
 }
 
+// ResetScreen - ANSI reset of console
 func (m *MessageMaker) ResetScreen() {
 	const (
 		ERASESCRN = "\033[2J"
@@ -237,13 +243,18 @@ func (m *MessageMaker) ResetScreen() {
 	fmt.Println(ERASESCRN + CURSHOME + DOWNONE + DOWNONE)
 }
 
-func (m *MessageMaker) Stats(fn string) {
-	//rt-lexica.go:   c.Response().After(func() { messenger.Stats("RtLexLookup()") })
-	//rt-lexica.go:   c.Response().After(func() { messenger.Stats("RtLexReverse()") })
-	//rt-search.go:   c.Response().After(func() { messenger.Stats("RtSearch()") })
-	//rt-textsindicesandvocab.go:     c.Response().After(func() { messenger.Stats("RtTextMaker()") })
-	//rt-textsindicesandvocab.go:     c.Response().After(func() { messenger.Stats("RtVocabMaker()") })
-	//rt-textsindicesandvocab.go:     c.Response().After(func() { messenger.Stats("RtIndexMaker()") })
+// GCStats - report garbage collection info
+func (m *MessageMaker) GCStats(fn string) {
+	// sample output: "RtLexReverse() runtime.GC() 426M --> 408M"
+
+	// users of this function:
+
+	//rt-lexica.go:   c.Response().After(func() { messenger.GCStats("RtLexLookup()") })
+	//rt-lexica.go:   c.Response().After(func() { messenger.GCStats("RtLexReverse()") })
+	//rt-search.go:   c.Response().After(func() { messenger.GCStats("RtSearch()") })
+	//rt-textsindicesandvocab.go:     c.Response().After(func() { messenger.GCStats("RtTextMaker()") })
+	//rt-textsindicesandvocab.go:     c.Response().After(func() { messenger.GCStats("RtVocabMaker()") })
+	//rt-textsindicesandvocab.go:     c.Response().After(func() { messenger.GCStats("RtIndexMaker()") })
 
 	const (
 		MSG = "%s runtime.GC() %s --> %s"
@@ -268,13 +279,21 @@ func (m *MessageMaker) Stats(fn string) {
 	_ = m.Ctr[fn].Add(1)
 }
 
+// Timer - report how much time elapsed between A and B
 func (m *MessageMaker) Timer(letter string, o string, start time.Time, previous time.Time) {
+	// sample output: "[D2: 33.764s][Δ: 8.024s] look up 48 specific words"
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	o = fmt.Sprintf("[%s: %.3fs]", letter, time.Now().Sub(start).Seconds()) + d + o
 	m.Emit(o, TIMETRACKERMSGTHRESH)
 }
 
+// Ticker - requires running with the "-tk" flag; feed basic use states to the console and update them indefinitely
 func (m *MessageMaker) Ticker(wait time.Duration) {
+	// sample output:
+
+	//  ----------------- [10:24:28] HGS uptime: 1m0s -----------------
+	//BrowseLine: 51 * LexFindByForm: 48 * LexLookup: 6 * LexReverse: 6 * NeighborsSearch: 1 * Search: 7
+
 	const (
 		CLEAR     = "\033[2K"
 		CLEARRT   = "\033[0K"
@@ -285,23 +304,26 @@ func (m *MessageMaker) Ticker(wait time.Duration) {
 		CURSREST  = "\033[u"
 		PADDING   = " ----------------- "
 		STATTMPL  = "%s: C2%dC0"
+		UPTIME    = "[S1C6%vC0] C5S1HGS uptime: C1%vC0"
 	)
+
 	// ANSI escape codes do not work in windows
 	if !m.Cfg.TickerActive || m.Win {
 		return
 	}
 
+	// the uptime line
 	t := func(up time.Duration) {
-		tick := fmt.Sprintf("[S1C6%vC0] C5S1HGS uptime: C1%vC0", time.Now().Format(time.TimeOnly), up.Truncate(time.Minute))
+		tick := fmt.Sprintf(UPTIME, time.Now().Format(time.TimeOnly), up.Truncate(time.Minute))
 		tick = m.ColStyle(PADDING + tick + PADDING)
 		fmt.Printf(CURSSAVE + CURSHOME + CLEAR + HEAD + tick + CURSREST)
 	}
 
+	// the searches run line
 	s := func() {
 		exclude := []string{"main() post-initialization"}
 		keys := StringMapKeysIntoSlice(m.Ctr)
 		keys = SetSubtraction(keys, exclude)
-		sort.Strings(keys)
 
 		var pairs []string
 		for k := range keys {
@@ -309,6 +331,9 @@ func (m *MessageMaker) Ticker(wait time.Duration) {
 			this = strings.TrimSuffix(this, "()")
 			pairs = append(pairs, fmt.Sprintf(STATTMPL, this, m.Ctr[keys[k]].Load()))
 		}
+
+		sort.Strings(pairs)
+
 		fmt.Printf(CURSSAVE + FIRSTLINE)
 		out := m.Color(strings.Join(pairs, " C6*C0 "))
 		fmt.Printf(out + CLEARRT)

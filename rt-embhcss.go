@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/labstack/echo/v4"
+	"io"
 	"net/http"
+	"os"
 	"slices"
 	"strings"
 	"text/template"
@@ -15,6 +17,10 @@ func RtEmbHCSS(c echo.Context) error {
 	const (
 		ECSS = "emb/css/hgs.css"
 	)
+
+	if Config.CustomCSS {
+		return CustomCSS(c)
+	}
 
 	// if you asked for a font on the command line, the next two lines will do something about that
 	fsub := Config.Font
@@ -54,6 +60,34 @@ func RtEmbHCSS(c echo.Context) error {
 
 	c.Response().Header().Add("Content-Type", "text/css")
 	return c.String(http.StatusOK, css)
+}
+
+func CustomCSS(c echo.Context) error {
+	const (
+		FAIL1 = "could not open CSS file '%s%s'; using default instead"
+		FAIL2 = "could not read CSS file '%s%s'; using default instead"
+	)
+
+	uh, _ := os.UserHomeDir()
+	h := fmt.Sprintf(CONFIGALTAPTH, uh)
+	f := fmt.Sprintf("%s/%s", h, CUSTOMCSSFILENAME)
+
+	csf, ee := os.Open(f)
+	if ee != nil {
+		msg(fmt.Sprintf(FAIL1, h, CUSTOMCSSFILENAME), MSGCRIT)
+		Config.CustomCSS = false
+		return RtEmbHCSS(c)
+	}
+
+	b, err := io.ReadAll(csf)
+	if err != nil {
+		msg(fmt.Sprintf(FAIL2, h, CUSTOMCSSFILENAME), MSGCRIT)
+		Config.CustomCSS = false
+		return RtEmbHCSS(c)
+	}
+
+	c.Response().Header().Add("Content-Type", "text/css")
+	return c.String(http.StatusOK, string(b))
 }
 
 //

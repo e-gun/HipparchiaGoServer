@@ -114,7 +114,7 @@ func main() {
 		vectordbcountnn(MSGNOTE)
 	}
 
-	messenger.Stats("main() post-initialization")
+	messenger.GCStats("main() post-initialization")
 	msg(fmt.Sprintf(SUMM, time.Now().Sub(LaunchTime).Seconds()), MSGWARN)
 
 	// uncomment one or more of the next if debugging; they are very spammy for the console...

@@ -3,6 +3,7 @@
   "BadChars": "\"'!@:,=_/",
   "BlackAndWhite": false,
   "BrowserCtx": 20,
+  "CustomCSS": false,
   "DbDebug": false,
   "DefCorp":
     {"gr": true, "lt": true, "in": false, "ch": false, "dp": false},

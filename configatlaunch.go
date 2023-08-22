@@ -20,6 +20,7 @@ type CurrentConfiguration struct {
 	BadChars        string
 	BlackAndWhite   bool
 	BrowserCtx      int
+	CustomCSS       bool
 	DbDebug         bool
 	DefCorp         map[string]bool
 	EchoLog         int // 0: "none", 1: "terse", 2: "prolix", 3: "prolix+remoteip"
@@ -30,7 +31,7 @@ type CurrentConfiguration struct {
 	LdaGraph        bool
 	LdaTopics       int
 	LogLevel        int
-	ManualGC        bool // see messenger.Stats()
+	ManualGC        bool // see messenger.GCStats()
 	MaxText         int
 	MaxSrchIP       int
 	MaxSrchTot      int
@@ -180,7 +181,7 @@ func ConfigAtLaunch() {
 		printversion()
 		printbuildinfo()
 		ht := styleoutput(coloroutput(HELPTEXT))
-		fmt.Println(fmt.Sprintf(ht, pwf, DEFAULTBROWSERCTX, CONFIGLOCATION, CONFIGBASIC, h, CONFIGBASIC,
+		fmt.Println(fmt.Sprintf(ht, pwf, DEFAULTBROWSERCTX, CONFIGLOCATION, CONFIGBASIC, h, CONFIGBASIC, h, CUSTOMCSSFILENAME,
 			DEFAULTECHOLOGLEVEL, HDBFOLDER, DEFAULTGOLOGLEVEL, "glove", "lexvec", "w2v", VECTORMODELDEFAULT,
 			MAXSEARCHPERIPADDR, MAXSEARCHTOTAL, SERVEDFROMHOST, SERVEDFROMPORT, UNACCEPTABLEINPUT, runtime.NumCPU(),
 			CONFIGPROLIX, h, PROJURL))
@@ -213,6 +214,8 @@ func ConfigAtLaunch() {
 			Config.BlackAndWhite = true
 		case "-cf":
 			cf = args[i+1]
+		case "-cs":
+			Config.CustomCSS = true
 		case "-db":
 			Config.DbDebug = true
 		case "-dv":
@@ -313,6 +316,7 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.BadChars = UNACCEPTABLEINPUT
 	c.BlackAndWhite = BLACKANDWHITE
 	c.BrowserCtx = DEFAULTBROWSERCTX
+	c.CustomCSS = false
 	c.DbDebug = false
 	c.Font = FONTSETTING
 	c.Gzip = USEGZIP

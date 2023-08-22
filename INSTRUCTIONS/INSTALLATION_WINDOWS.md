@@ -64,7 +64,7 @@ password at `C.2` below.
 
 ### [C] the first launch of `HipparchiaGoServer`: loading `hipparchiaDB` into `PostgreSQL`
 0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation.]
-The data needs to be in a folder named `hDB`. This folder has to be in the same folder as `HipparchiaGoServer`.
+   The data *must* reside in a folder named `hDB`. This folder has to be in the same folder as `HipparchiaGoServer`. Note that `hdb` ≠ `hDB`.
 See the image and note that both are present in the same directory. You can (re)move the data folder after you
 have successfully installed the data into the database.
   

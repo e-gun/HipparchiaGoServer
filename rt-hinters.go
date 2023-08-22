@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -136,6 +137,8 @@ func basichinter(c echo.Context, mastermap map[string]bool) error {
 			ff = append(ff, f)
 		}
 	}
+
+	slices.Sort(ff)
 
 	fs := make([]JSStruct, len(ff))
 	for i, f := range ff {

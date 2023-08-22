@@ -79,6 +79,7 @@ func generateneighborsdata(c echo.Context, s SearchStruct) map[string]search.Nei
 
 	// [b] make a query against the model
 
+	// len(s.Results) is zero, so it is OK to UpdateSS() without copying 500k lines
 	s.ExtraMsg = MQMEG
 	AllSearches.UpdateSS(s)
 

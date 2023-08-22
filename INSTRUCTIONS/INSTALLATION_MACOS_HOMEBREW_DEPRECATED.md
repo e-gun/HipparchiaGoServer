@@ -1,3 +1,6 @@
+[`Postgres.app` is the recommended route, not `postgres` via `homebrew`. 
+But people who already have `homebrew` installed are perhaps interested in going this route.]
+
 ## Installing HipparchiaGoServer
 
 1. first install and configure `PostgreSQL`
@@ -53,7 +56,7 @@ You also want to start the server: `brew services restart postgresql@15`
 ### [C] the first launch of `HipparchiaGoServer`: loading `hipparchiaDB` into `PostgreSQL`
 
 0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation. If a working installation executes `HipparchiaGoServer -ex`, it will generate a valid `hDB` folder.]
-   The data needs to be in a folder named `hDB`. This folder should be in the same folder as `HipparchiaGoServer`.
+   The data *must* reside in a folder named `hDB`. This folder has to be in the same folder as `HipparchiaGoServer`. Note that `hdb` ≠ `hDB`.
    You can (re)move the data folder after you have successfully installed the data into the database.
 
 ![inst02](../gitimg/macos_posgresapp/04_data_is_ready.png)

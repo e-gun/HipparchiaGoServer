@@ -194,7 +194,8 @@ func vectordbinitnn(dbconn *pgxpool.Conn) {
 // vectordbchecknn - has a search with this fingerprint already been stored?
 func vectordbchecknn(fp string) bool {
 	const (
-		Q = `SELECT fingerprint FROM %s WHERE fingerprint = '%s' LIMIT 1`
+		Q   = `SELECT fingerprint FROM %s WHERE fingerprint = '%s' LIMIT 1`
+		DNE = "does not exist"
 	)
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()
@@ -203,7 +204,7 @@ func vectordbchecknn(fp string) bool {
 	foundrow, err := dbconn.Query(context.Background(), q)
 	if err != nil {
 		m := err.Error()
-		if strings.Contains(m, "does not exist") {
+		if strings.Contains(m, DNE) {
 			vectordbinitnn(dbconn)
 		}
 	}

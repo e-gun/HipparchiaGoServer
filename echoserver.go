@@ -158,17 +158,13 @@ func StartEchoServer() {
 	e.GET("/text/vocab/:id", RtVocabMaker) // "u: /text/vocab/ee068d29"
 
 	//
-	// [n] vectors [unneeded/unimplemented ATM]
-	//
-
-	//
-	// [o] websocket ("rt-websocket.go")
+	// [n] websocket ("rt-websocket.go")
 	//
 
 	e.GET("/ws", RtWebsocket)
 
 	//
-	// [p] serve via the embedded FS ("rt-embedding.go")
+	// [o] serve via the embedded FS ("rt-embedding.go")
 	//
 
 	e.GET("/emb/echarts/:file", RtEmbEcharts)
@@ -182,13 +178,14 @@ func StartEchoServer() {
 	e.GET("/apple-touch-icon-precomposed.png", RtEbmTouchIcon)
 	e.GET("/emb/pdf/:file", RtEmbPDFHelp)
 
-	// [q] cookies ("rt-session.go")
+	// [p] cookies ("rt-session.go")
 
 	e.GET("/sc/set/:num", RtSessionSetsCookie)
 	e.GET("/sc/get/:num", RtSessionGetCookie)
 
-	// [r] vectors ("vectorqueryneighbors.go")
-	// pseudo-route RtVectors in vectorqueryneighbors.go is called by rt-search.go if the current session has VecNNSearch set to true
+	// [q] vectors ("vectorqueryneighbors.go")
+	// pseudo-route RtVectors in vectorqueryneighbors.go is called by RtSearch() if the current session has VecNNSearch set to true
+
 	e.GET("/vbot/:typeandselection", RtVectorBot) // only the goroutine running the vectorbot is supposed to request this
 
 	if Config.SelfTest > 0 {

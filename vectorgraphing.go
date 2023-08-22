@@ -84,6 +84,7 @@ func formatnngraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 		LABELFTSIZE   = 12.0
 		LINECURVINESS = 0       // from 0 to 1, but non-zero will double-up the lines...
 		LINETYPE      = "solid" // "solid", "dashed", "dotted"
+		NOTOFONT      = "'hipparchiasemiboldstatic', sans-serif"
 	)
 
 	se := AllSessions.GetSess(readUUIDCookie(c))
@@ -181,7 +182,7 @@ func formatnngraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 
 	ft := Config.Font
 	if ft == "Noto" {
-		ft = "'hipparchiasemiboldstatic', sans-serif"
+		ft = NOTOFONT
 	}
 
 	graph.AddSeries(SERIESNAME, gnn, gll,
@@ -254,7 +255,7 @@ func customnngraphhtmlandjs(g *charts.Graph) string {
 	return htmlandjs
 }
 
-// fmthsl - turn hsl integers into an html hsl string
+// fmthsl - turn hsl integers into html hsl string
 func fmthsl(h int, s int, l int) string {
 	// 0, 0, 0 --> hsla(0, 0%, 0%, 1);
 	st := func(i int) string { return fmt.Sprintf("%d", i) }
@@ -343,10 +344,11 @@ func getcharttitleopts(t string, st string) opts.Title {
 		FONTSIZE  = 14
 		FONTDIFF  = 6
 		TEXTPAD   = "10"
+		NOTOFONT  = "'hipparchiasemiboldstatic', sans-serif"
 	)
 	ft := Config.Font
 	if ft == "Noto" {
-		ft = "'hipparchiasemiboldstatic', sans-serif"
+		ft = NOTOFONT
 	}
 
 	tst := opts.TextStyle{
