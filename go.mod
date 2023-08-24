@@ -7,7 +7,7 @@ require (
 	github.com/e-gun/tsnemp v0.0.0
 	github.com/e-gun/wego v0.0.11
 	github.com/go-echarts/go-echarts/v2 v2.2.7
-	github.com/google/uuid v1.3.0
+	github.com/google/uuid v1.3.1
 	github.com/gorilla/websocket v1.5.0
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/labstack/echo/v4 v4.11.1
