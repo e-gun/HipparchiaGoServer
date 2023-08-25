@@ -592,7 +592,7 @@ func RtIndexMaker(c echo.Context) error {
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
 	si.InitSum = MSG2
-	AllSearches.InsertSS(si)
+	AllSearches.UpdateSS(si)
 
 	var slicedlookups []WordInfo
 	for _, w := range slicedwords {
@@ -641,9 +641,7 @@ func RtIndexMaker(c echo.Context) error {
 		}
 	}
 	onlyhere = Unique(onlyhere)
-	sort.Slice(onlyhere, func(i, j int) bool {
-		return strings.Replace(StripaccentsSTR(onlyhere[i]), "ϲ", "σ", -1) < strings.Replace(StripaccentsSTR(onlyhere[j]), "ϲ", "σ", -1)
-	})
+	onlyhere = PolytonicSort(onlyhere)
 
 	slicedwords = []WordInfo{} // drop after use
 
@@ -693,22 +691,16 @@ func RtIndexMaker(c echo.Context) error {
 	// [d] the final map
 	// [d1] build it
 
-	type SorterStruct struct {
-		sorter string
-		value  string
-		count  int
-	}
-
 	si.InitSum = MSG3
-	AllSearches.InsertSS(si)
+	AllSearches.UpdateSS(si)
 
-	indexmap := make(map[SorterStruct][]WordInfo, len(trimslices))
+	indexmap := make(map[PolytonicSorterStruct][]WordInfo, len(trimslices))
 	for _, w := range trimslices {
 		// lunate sigma sorts after omega
 		sigma := strings.Replace(StripaccentsSTR(w.HeadWd), "ϲ", "σ", -1)
-		ss := SorterStruct{
-			sorter: sigma + w.HeadWd,
-			value:  w.HeadWd,
+		ss := PolytonicSorterStruct{
+			sortstring:     sigma + w.HeadWd,
+			originalstring: w.HeadWd,
 		}
 		indexmap[ss] = append(indexmap[ss], w)
 	}
@@ -719,7 +711,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// [d2] sort the keys
 
-	keys := make([]SorterStruct, len(indexmap))
+	keys := make([]PolytonicSorterStruct, len(indexmap))
 	counter := 0
 	for k, v := range indexmap {
 		k.count = len(v)
@@ -728,26 +720,30 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	// sort can't do polytonic greek: so there is a lot of (slow) extra stuff that has to happen
-	sort.Slice(keys, func(i, j int) bool { return keys[i].sorter < keys[j].sorter })
+	sort.Slice(keys, func(i, j int) bool { return keys[i].sortstring < keys[j].sortstring })
 
-	// now you have a sorted index...; but a SorterStruct does not make for a usable map key...
+	// now you have a sorted index...; but a PolytonicSorterStruct does not make for a usable map key...
 	plainkeys := make([]string, len(keys))
 	for i, k := range keys {
-		plainkeys[i] = k.value
+		plainkeys[i] = k.originalstring
 	}
+
+	// example keys: [ἀβαϲάνιϲτοϲ ἀβουλία ἄβουλοϲ ἁβροδίαιτοϲ ἀγαθόϲ ἀγαθόω ἄγαν ...]
 
 	plainmap := make(map[string][]WordInfo, len(indexmap))
 	for k := range indexmap {
-		plainmap[k.value] = indexmap[k]
+		plainmap[k.originalstring] = indexmap[k]
 	}
 
-	indexmap = make(map[SorterStruct][]WordInfo, 1) // drop after use
+	indexmap = make(map[PolytonicSorterStruct][]WordInfo, 1) // drop after use
 
 	si.InitSum = MSG4
-	AllSearches.InsertSS(si)
+	AllSearches.UpdateSS(si)
 
 	trr := make([]string, len(plainkeys))
 	for i, k := range plainkeys {
+		// example
+		// k: ἀδικέω; plainmap[k]: []WordInfo -> ἀδικεῖτε, ἀδικηϲάντων, ἀδικούμεθα, ...
 		trr[i] = convertwordinfototablerow(plainmap[k])
 	}
 
@@ -1118,7 +1114,10 @@ func convertwordinfototablerow(ww []WordInfo) string {
 		count += 1
 	}
 
-	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+	// TODO: need to polytonic sort this too (otherwise 'unparsed words' is a disaster; should actually generate a new general function...
+
+	keys = PolytonicSort(keys)
+	//sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 
 	trr := make([]string, len(keys))
 	used := make(map[string]bool)

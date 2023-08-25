@@ -6,8 +6,10 @@
 package main
 
 import (
+	"cmp"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -171,6 +173,30 @@ func FormatBCEDate(d string) string {
 // IntToBCE - turn an int into something like "300 B.C.E."
 func IntToBCE(i int) string {
 	return FormatBCEDate(fmt.Sprintf("%d", i))
+}
+
+type PolytonicSorterStruct struct {
+	sortstring     string
+	originalstring string
+	count          int
+}
+
+// PolytonicSort - sort a slice of polytonic words; note that this is going to be relatively costly to execute
+func PolytonicSort(pt []string) []string {
+	ss := make([]PolytonicSorterStruct, len(pt))
+	for i := 0; i < len(pt); i++ {
+		ss[i] = PolytonicSorterStruct{
+			sortstring:     strings.Replace(StripaccentsSTR(pt[i]), "ϲ", "σ", -1) + pt[i],
+			originalstring: pt[i],
+			count:          0,
+		}
+	}
+
+	slices.SortFunc(ss, func(a, b PolytonicSorterStruct) int { return cmp.Compare(a.sortstring, b.sortstring) })
+	for i := 0; i < len(pt); i++ {
+		pt[i] = ss[i].originalstring
+	}
+	return pt
 }
 
 //
