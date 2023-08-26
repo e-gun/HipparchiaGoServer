@@ -130,9 +130,7 @@ const (
 	PROJURL  = "https://github.com/e-gun/HipparchiaGoServer"
 
 	HELPTEXTTEMPLATE = `S3command line optionsS0:
-   C1-acC0 C2{string}C0 set corpora active on startup and reset C4(*)C0
-   C1-auC0          require authentication 
-                   also implies "C3{{.confauth}}C0" exists and has been properly configured C4(**)C0
+   C1-auC0          require authentication; also implies "C3{{.confauth}}C0" exists and has been properly configured
    C1-avC0          automatically generate vector models for every author in the database
                    default settings will consume c. C11.3GBC0 of extra disk space
    C1-bcC0 C2{num}C0    default lines of browser context to display [C6currentC0: C3{{.ctxlines}}C0]
@@ -142,18 +140,18 @@ const (
    C1-dvC0          disable semantic vector searching
    C1-elC0 C2{num}C0    set echo server log level (C10-3C0) [C6currentC0: C3{{.echoll}}C0]
    C1-exC0          extract the data to an archive folder in the same directory as the application; data sent to: "C3{{.cwd}}C0"
-   C1-ftC0 C2{string}C0 force a client-side font instead of serving a font [served font: C3NotoSansC0]
+   C1-ftC0 C2{string}C0 force a client-side font instead of serving a font [C6served font:C0 C3NotoSansC0]
                    names with spaces need quotes around them: "C4Gentium Plus CompactC0"
    C1-glC0 C2{num}C0    set golang log level (C10-5C0) [C6currentC0: C3{{.hgsll}}C0]
    C1-gzC0          enable gzip compression of the server's output
    C1-hC0           print this help information
    C1-mdC0 C2{string}C0 set the default vector model type; available: C3gloveC0, C3lexvecC0, & C3w2vC0 [C6currentC0: C3{{.vmodel}}C0]
-   C1-miC0 C2{num}C0    maximum number of conC6currentC0 searches per IP address [C6currentC0: C3{{.maxipsrch}}C0]
-   C1-msC0 C2{num}C0    maximum total number of conC6currentC0 searches [C6currentC0: C3{{.maxtotscrh}}C0]
+   C1-miC0 C2{num}C0    maximum number of concurrent searches per IP address [C6currentC0: C3{{.maxipsrch}}C0]
+   C1-msC0 C2{num}C0    maximum total number of concurrent searches [C6currentC0: C3{{.maxtotscrh}}C0]
    C1-pcC0          enable CPU profiling run
    C1-pdC0          write a copy of the embedded PDF instructions to the C6currentC0 directory
    C1-pmC0          enable MEM profiling run
-   C1-pgC0 C2{string}C0 supply full PostgreSQL credentials C4(†)C0
+   C1-pgC0 C2{string}C0 supply full PostgreSQL credentials C4(*)C0
    C1-qC0           quiet startup: suppress copyright notice
    C1-rvC0          reset the stored semantic vector table
    C1-saC0 C2{string}C0 server IP address [C6currentC0: C3{{.host}}C0]
@@ -167,18 +165,11 @@ const (
    C1-zlC0          zap lunate sigmas and replace them with C1σ/ςC0
    C1-00C0          completely erase the database and reset the tables
                    the application cannot run again until you restore its data from an archive 
-                   you probably want to run with the "C1-exC0" flag before you try this. 
-     (*) S3exampleS0: 
-         C4"{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"C0
-
-     (**) S3exampleS0:
-         C4[{"User": "user1","Pass": "pass1"}, {"User":"user2","Pass":"pass2"}, ...]C0
-
-     (†) S3exampleS0: 
+                   you probably want to run with the "C1-exC0" flag before you try this.
+     (†*) S3exampleS0: 
          C4"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"C0
      
-     S1NB:S0 place a properly formatted version of "C3{{.conffile}}C0" in "C3{{.home}}C0" 
-         if you want to avoid constantly setting multiple options. 
+     S1NB:S0 a properly formatted version of "C3{{.conffile}}C0" in "C3{{.home}}C0" configures everything for you. 
          See 'C3sample_hgs-prolix-conf.jsonC0' as well as other sample configuration files at
              C3{{.projurl}}C0
 `

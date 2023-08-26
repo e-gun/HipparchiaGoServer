@@ -141,6 +141,7 @@ func ConfigAtLaunch() {
 		FAIL5 = "Improperly formatted corpus list. Using:\n\t%s"
 		FAIL6 = "Could not open '%s'"
 		FAIL7 = "ConfigAtLaunch() failed to execute help text template"
+		FAIL8 = "Cannot find current working directory"
 	)
 
 	Config = BuildDefaultConfig()
@@ -182,24 +183,31 @@ func ConfigAtLaunch() {
 	help := func() {
 		printversion()
 		printbuildinfo()
+		cwd, err := os.Getwd()
+		if err != nil {
+			msg(FAIL8, MSGCRIT)
+			cwd = "(unknown)"
+		}
+
 		m := map[string]interface{}{
+			"badchars":   Config.BadChars,
 			"confauth":   CONFIGAUTH,
-			"ctxlines":   Config.BrowserCtx,
 			"conffile":   CONFIGPROLIX,
-			"home":       h,
+			"cpus":       runtime.NumCPU(),
 			"css":        CUSTOMCSSFILENAME,
+			"cwd":        cwd,
+			"ctxlines":   Config.BrowserCtx,
 			"echoll":     Config.EchoLog,
-			"cwd":        HDBFOLDER,
+			"hdbf":       HDBFOLDER,
 			"hgsll":      Config.LogLevel,
-			"vmodel":     Config.VectorModel,
+			"home":       h,
+			"host":       Config.HostIP,
 			"maxipsrch":  Config.MaxSrchIP,
 			"maxtotscrh": Config.MaxSrchTot,
-			"host":       Config.HostIP,
 			"port":       Config.HostPort,
-			"badchars":   Config.BadChars,
-			"workers":    Config.WorkerCount,
-			"cpus":       runtime.NumCPU(),
-			"projurl":    PROJURL}
+			"projurl":    PROJURL,
+			"vmodel":     Config.VectorModel,
+			"workers":    Config.WorkerCount}
 		t := template.Must(template.New("").Parse(HELPTEXTTEMPLATE))
 		var b bytes.Buffer
 		if err := t.Execute(&b, m); err != nil {
@@ -219,11 +227,6 @@ func ConfigAtLaunch() {
 		case "-v":
 			fmt.Println(VERSION + VersSuppl)
 			os.Exit(1)
-		case "-ac":
-			err := json.Unmarshal([]byte(args[i+1]), &Config.DefCorp)
-			if err != nil {
-				msg(fmt.Sprintf(FAIL5, DEFAULTCORPORA), MSGCRIT)
-			}
 		case "-au":
 			Config.Authenticate = true
 		case "-av":
