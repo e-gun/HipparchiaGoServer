@@ -6,11 +6,13 @@
 package main
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/exp/slices"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
@@ -719,8 +721,7 @@ func RtIndexMaker(c echo.Context) error {
 		counter += 1
 	}
 
-	// sort can't do polytonic greek: so there is a lot of (slow) extra stuff that has to happen
-	sort.Slice(keys, func(i, j int) bool { return keys[i].sortstring < keys[j].sortstring })
+	slices.SortFunc(keys, func(a, b PolytonicSorterStruct) int { return cmp.Compare(a.sortstring, b.sortstring) })
 
 	// now you have a sorted index...; but a PolytonicSorterStruct does not make for a usable map key...
 	plainkeys := make([]string, len(keys))
@@ -1114,10 +1115,7 @@ func convertwordinfototablerow(ww []WordInfo) string {
 		count += 1
 	}
 
-	// TODO: need to polytonic sort this too (otherwise 'unparsed words' is a disaster; should actually generate a new general function...
-
 	keys = PolytonicSort(keys)
-	//sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 
 	trr := make([]string, len(keys))
 	used := make(map[string]bool)

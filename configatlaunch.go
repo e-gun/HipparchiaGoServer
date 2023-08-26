@@ -6,6 +6,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"text/template"
 )
 
 type CurrentConfiguration struct {
@@ -138,6 +140,7 @@ func ConfigAtLaunch() {
 		FAIL3 = `Could not parse the information in '%s'. Skipping and attempting to use built-in defaults instead.`
 		FAIL5 = "Improperly formatted corpus list. Using:\n\t%s"
 		FAIL6 = "Could not open '%s'"
+		FAIL7 = "ConfigAtLaunch() failed to execute help text template"
 	)
 
 	Config = BuildDefaultConfig()
@@ -145,7 +148,6 @@ func ConfigAtLaunch() {
 	uh, _ := os.UserHomeDir()
 	h := fmt.Sprintf(CONFIGALTAPTH, uh)
 	prolixcfg := fmt.Sprintf("%s/%s", h, CONFIGPROLIX)
-	pwf := fmt.Sprintf("%s%s", h, CONFIGAUTH)
 
 	loadedcfg, e := os.Open(prolixcfg)
 	if e != nil {
@@ -180,11 +182,31 @@ func ConfigAtLaunch() {
 	help := func() {
 		printversion()
 		printbuildinfo()
-		ht := styleoutput(coloroutput(HELPTEXT))
-		fmt.Println(fmt.Sprintf(ht, pwf, DEFAULTBROWSERCTX, CONFIGLOCATION, CONFIGBASIC, h, CONFIGBASIC, h, CUSTOMCSSFILENAME,
-			DEFAULTECHOLOGLEVEL, HDBFOLDER, DEFAULTGOLOGLEVEL, "glove", "lexvec", "w2v", VECTORMODELDEFAULT,
-			MAXSEARCHPERIPADDR, MAXSEARCHTOTAL, SERVEDFROMHOST, SERVEDFROMPORT, UNACCEPTABLEINPUT, runtime.NumCPU(),
-			CONFIGPROLIX, h, PROJURL))
+		m := map[string]interface{}{
+			"confauth":   CONFIGAUTH,
+			"ctxlines":   Config.BrowserCtx,
+			"conffile":   CONFIGPROLIX,
+			"home":       h,
+			"css":        CUSTOMCSSFILENAME,
+			"echoll":     Config.EchoLog,
+			"cwd":        HDBFOLDER,
+			"hgsll":      Config.LogLevel,
+			"vmodel":     Config.VectorModel,
+			"maxipsrch":  Config.MaxSrchIP,
+			"maxtotscrh": Config.MaxSrchTot,
+			"host":       Config.HostIP,
+			"port":       Config.HostPort,
+			"badchars":   Config.BadChars,
+			"workers":    Config.WorkerCount,
+			"cpus":       runtime.NumCPU(),
+			"projurl":    PROJURL}
+		t := template.Must(template.New("").Parse(HELPTEXTTEMPLATE))
+		var b bytes.Buffer
+		if err := t.Execute(&b, m); err != nil {
+			msg(FAIL7, MSGCRIT)
+		}
+		fmt.Println(styleoutput(coloroutput(b.String())))
+
 		os.Exit(0)
 	}
 
@@ -212,8 +234,6 @@ func ConfigAtLaunch() {
 			Config.BrowserCtx = bc
 		case "-bw":
 			Config.BlackAndWhite = true
-		case "-cf":
-			cf = args[i+1]
 		case "-cs":
 			Config.CustomCSS = true
 		case "-db":

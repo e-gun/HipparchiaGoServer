@@ -178,7 +178,7 @@ func IntToBCE(i int) string {
 type PolytonicSorterStruct struct {
 	sortstring     string
 	originalstring string
-	count          int
+	count          int // count is needed by RtIndexMaker()
 }
 
 // PolytonicSort - sort a slice of polytonic words; note that this is going to be relatively costly to execute
@@ -193,9 +193,11 @@ func PolytonicSort(pt []string) []string {
 	}
 
 	slices.SortFunc(ss, func(a, b PolytonicSorterStruct) int { return cmp.Compare(a.sortstring, b.sortstring) })
+
 	for i := 0; i < len(pt); i++ {
 		pt[i] = ss[i].originalstring
 	}
+
 	return pt
 }
 

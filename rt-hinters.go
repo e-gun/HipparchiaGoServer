@@ -10,12 +10,15 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"slices"
-	"sort"
 	"strings"
 )
 
 // RtAuthorHints - /hints/author/_?term=auf --> [{'value': 'Aufidius Bassus [lt0809]'}, {'value': 'Aufustius [lt0401]'}]
 func RtAuthorHints(c echo.Context) error {
+	const (
+		TEMPL = "%s [%s]"
+	)
+
 	skg := c.QueryParam("term")
 	if len(skg) < 2 {
 		return emptyjsreturn(c)
@@ -56,16 +59,16 @@ func RtAuthorHints(c echo.Context) error {
 		}
 	}
 
-	var auf []JSStruct
-	for _, t := range trimmed {
-		st := fmt.Sprintf(`%s [%s]`, t[0], t[1])
-		auf = append(auf, JSStruct{st})
+	auf := make([]string, len(trimmed))
+	for i := 0; i < len(trimmed); i++ {
+		t := trimmed[i]
+		auf[i] = fmt.Sprintf(TEMPL, t[0], t[1])
 	}
 
-	// sort since we were working with a map
-	sort.Slice(auf, func(i, j int) bool { return auf[i].V < auf[j].V })
+	slices.Sort(auf)
+	out := tojsstructslice(auf)
 
-	return c.JSONPretty(http.StatusOK, auf, JSONINDENT)
+	return c.JSONPretty(http.StatusOK, out, JSONINDENT)
 }
 
 // RtLemmaHints - /hints/lemmata/_?term=dol --> [{"value": "dolabella\u00b9"}, {"value": "dolabra"}, {"value": "dolamen"}, ... ]
@@ -82,7 +85,7 @@ func RtLemmaHints(c echo.Context) error {
 	skg = StripaccentsRUNE(skg)
 	nl := string(skg[0:2])
 
-	var match []JSStruct
+	var matches []string
 	if _, ok := NestedLemm[nl]; ok {
 		for _, l := range NestedLemm[nl] {
 			er := l.EntryRune()
@@ -96,13 +99,15 @@ func RtLemmaHints(c echo.Context) error {
 			potential := StripaccentsRUNE(er[0:lim])
 			if len(er) >= len(skg) && string(potential) == string(skg) {
 				// need to filter ab-cedo¹ --> abcedo
-				match = append(match, JSStruct{l.Entry})
+				matches = append(matches, l.Entry)
 			}
 		}
 	}
 
-	sort.Slice(match, func(i, j int) bool { return match[i].V < match[j].V })
-	return c.JSONPretty(http.StatusOK, match, JSONINDENT)
+	matches = PolytonicSort(matches)
+	jss := tojsstructslice(matches)
+
+	return c.JSONPretty(http.StatusOK, jss, JSONINDENT)
 }
 
 func RtAuGenreHints(c echo.Context) error {
@@ -138,12 +143,18 @@ func basichinter(c echo.Context, mastermap map[string]bool) error {
 		}
 	}
 
-	slices.Sort(ff)
-
-	fs := make([]JSStruct, len(ff))
-	for i, f := range ff {
-		fs[i] = JSStruct{f}
-	}
+	// not really needed in practice?
+	ff = PolytonicSort(ff)
+	fs := tojsstructslice(ff)
 
 	return c.JSONPretty(http.StatusOK, fs, JSONINDENT)
+}
+
+// tojsstructslice - []string -> []JSStruct for web output
+func tojsstructslice(ss []string) []JSStruct {
+	jss := make([]JSStruct, len(ss))
+	for i := 0; i < len(ss); i++ {
+		jss[i] = JSStruct{ss[i]}
+	}
+	return jss
 }

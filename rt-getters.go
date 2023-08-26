@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/exp/slices"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"net/http"
@@ -115,16 +116,23 @@ func RtGetJSSession(c echo.Context) error {
 
 // RtGetJSWorksOf - /get/json/worksof/lt0972 --> [{"value": "Satyrica (w001)"}, {"value": "Satyrica, fragmenta (w002)"}]
 func RtGetJSWorksOf(c echo.Context) error {
+	const (
+		TEMPL = "%s (%s)"
+	)
+
 	id := c.Param("id")
 	wl := AllAuthors[id].WorkList
-	tp := "%s (%s)"
-	var titles []JSStruct
-	for _, w := range wl {
-		n := fmt.Sprintf(tp, AllWorks[w].Title, w[6:10])
-		titles = append(titles, JSStruct{n})
+
+	wks := make([]string, len(wl))
+	for i := 0; i < len(wl); i++ {
+		w := wl[i]
+		wks[i] = fmt.Sprintf(TEMPL, AllWorks[w].Title, w[6:10])
 	}
 
-	return c.JSONPretty(http.StatusOK, titles, JSONINDENT)
+	slices.Sort(wks)
+	out := tojsstructslice(wks)
+
+	return c.JSONPretty(http.StatusOK, out, JSONINDENT)
 }
 
 // RtGetJSWorksStruct - lt0474/058 --> {"totallevels": 4, "level": 3, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
@@ -288,11 +296,9 @@ func RtGetJSAuthorinfo(c echo.Context) error {
 		chke(err)
 	}
 
-	info := b.String()
+	out := JSStruct{b.String()}
 
-	v := JSStruct{info}
-
-	return c.JSONPretty(http.StatusOK, v, JSONINDENT)
+	return c.JSONPretty(http.StatusOK, out, JSONINDENT)
 }
 
 func RtGetJSSampCit(c echo.Context) error {
