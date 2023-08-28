@@ -197,6 +197,7 @@ func ConfigAtLaunch() {
 			"css":        CUSTOMCSSFILENAME,
 			"cwd":        cwd,
 			"ctxlines":   Config.BrowserCtx,
+			"dbf":        HDBFOLDER,
 			"echoll":     Config.EchoLog,
 			"hdbf":       HDBFOLDER,
 			"hgsll":      Config.LogLevel,
@@ -287,6 +288,8 @@ func ConfigAtLaunch() {
 			Config.ProfileMEM = true
 		case "-q":
 			Config.QuietStart = true
+		case "-rl":
+			ReLoadDBfolder(Config.PGLogin.Pass)
 		case "-rv":
 			Config.ResetVectors = true
 		case "-sa":

@@ -14,15 +14,15 @@ import (
 )
 
 func main() {
-
 	const (
 		MSG1 = "%d works built: map[string]DbWork"
 		MSG2 = "%d authors built: map[string]DbAuthor"
 		MSG3 = "corpus maps built"
 		MSG4 = "unnested lemma map built (%d items)"
 		MSG5 = "nested lemma map built"
-		SUMM = "initialization took %.3fs before reaching StartEchoServer()"
+		SUMM = "initialization took %.3fs"
 	)
+
 	LaunchTime = time.Now()
 
 	LookForConfigFile()
@@ -52,10 +52,7 @@ func main() {
 	messenger.ResetScreen()
 
 	printversion()
-
-	if Config.LogLevel > 0 {
-		printbuildinfo()
-	}
+	printbuildinfo()
 
 	if !Config.QuietStart {
 		msg(fmt.Sprintf(TERMINALTEXT, PROJYEAR, PROJAUTH, PROJMAIL), MSGMAND)
@@ -110,12 +107,12 @@ func main() {
 
 	if Config.ResetVectors {
 		vectordbreset()
-	} else {
+	} else if Config.LogLevel >= MSGNOTE {
 		vectordbcountnn(MSGNOTE)
 	}
 
 	messenger.GCStats("main() post-initialization")
-	msg(fmt.Sprintf(SUMM, time.Now().Sub(LaunchTime).Seconds()), MSGWARN)
+	msg(fmt.Sprintf(SUMM, time.Now().Sub(LaunchTime).Seconds()), -999)
 
 	// uncomment one or more of the next if debugging; they are very spammy for the console...
 

@@ -22,10 +22,6 @@ import (
 // is there a database? does it have data in it? are we able to load data into an empty database?
 //
 
-const (
-	HDBFOLDER = "hDB"
-)
-
 // HipparchiaDBexists - does psql have hipparchiaDB in it yet?
 func HipparchiaDBexists(pgpw string) bool {
 	const (
@@ -97,14 +93,44 @@ func HipparchiaDBHasData(userpw string) bool {
 // InitializeHDB - insert the hipparchiaDB table and its user into postgres
 func InitializeHDB(pgpw string, hdbpw string) {
 	const (
-		C1   = `CREATE ROLE %s LOGIN ENCRYPTED PASSWORD '%s' NOSUPERUSER INHERIT CREATEDB NOCREATEROLE NOREPLICATION;`
-		C2   = `CREATE DATABASE "%s" WITH OWNER = %s ENCODING = 'UTF8';`
-		C3   = `CREATE EXTENSION pg_trgm;`
+		// C1   = `CREATE ROLE %s LOGIN ENCRYPTED PASSWORD '%s' NOSUPERUSER INHERIT CREATEDB NOCREATEROLE NOREPLICATION;`
+		C1 = `
+			DO
+			$do$
+			BEGIN
+			   IF EXISTS (
+				  SELECT FROM pg_catalog.pg_roles
+				  WHERE  rolname = '%s') THEN
+			
+				  RAISE NOTICE 'Role "%s" already exists. Skipping.';
+			   ELSE
+				  CREATE ROLE %s LOGIN ENCRYPTED PASSWORD '%s' NOSUPERUSER INHERIT CREATEDB NOCREATEROLE NOREPLICATION;
+			   END IF;
+			END
+			$do$;`
+		C2 = `CREATE DATABASE "%s" WITH OWNER = %s ENCODING = 'UTF8';`
+		// next is not allowed: "ERROR:  CREATE DATABASE cannot be executed from a function"
+		//		C2 = `
+		//DO
+		//$do$
+		//BEGIN
+		//   IF EXISTS (
+		//	  SELECT FROM pg_database
+		//      WHERE datname = '%s' ) THEN
+		//
+		//      RAISE NOTICE 'DB "%s" already exists. Skipping.';
+		//   ELSE
+		//      CREATE DATABASE "%s" WITH OWNER = %s ENCODING = 'UTF8';
+		//   END IF;
+		//END
+		//$do$;
+		//`
+		C3   = `CREATE EXTENSION IF NOT EXISTS pg_trgm;`
 		DONE = "Initialized the database framework"
 	)
 
 	queries := []string{
-		fmt.Sprintf(C1, DEFAULTPSQLUSER, hdbpw),
+		fmt.Sprintf(C1, DEFAULTPSQLUSER, DEFAULTPSQLUSER, DEFAULTPSQLUSER, hdbpw),
 		fmt.Sprintf(C2, DEFAULTPSQLDB, DEFAULTPSQLUSER),
 		fmt.Sprintf(C3),
 	}
@@ -197,6 +223,39 @@ OR at 'C3%sC0'`
 	fmt.Println()
 }
 
+// ReLoadDBfolder - drop hipparchiaDB; then LoadhDBfolder
+func ReLoadDBfolder(pw string) {
+	const (
+		C1 = `DROP DATABASE "%s";`
+		C2 = `CREATE DATABASE "%s" WITH OWNER = %s ENCODING = 'UTF8';`
+	)
+
+	ok := youhavebeenwarned()
+	if !ok {
+		return
+	}
+
+	queries := []string{
+		fmt.Sprintf(C1, DEFAULTPSQLDB),
+		fmt.Sprintf(C2, DEFAULTPSQLDB, DEFAULTPSQLUSER),
+	}
+
+	for q := range queries {
+		pgpw := SetPostgresAdminPW()
+		binary := GetBinaryPath("psql")
+		url := GetPostgresURI(pgpw)
+		cmd := exec.Command(binary, "-c", queries[q], url)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		if err != nil {
+			// do nothing: "does not exist" error in all likelihood
+		}
+	}
+
+	LoadhDBfolder(pw)
+}
+
 // SetPostgresAdminPW - ask for the password for the postgres admin user
 func SetPostgresAdminPW() string {
 	const (
@@ -256,14 +315,6 @@ func ArchiveDB() {
 // DBSelfDestruct - purge all data and undo everything InitializeHDB and LoadhDBfolder did
 func DBSelfDestruct() {
 	const (
-		CONF = `You are about to C5RESETC0 the database this program uses.
-The application will be C7NON-FUNCTIONALC0 after this unless/until you reload 
-this data. 
-
-In short, this very dangerous. 
-
-Type C6YESC0 to confirm that you want to proceed. --> `
-		NOPE  = "Did not receive confirmation. Aborting..."
 		C1    = `DROP DATABASE "%s";`
 		C2    = `DROP ROLE %s;`
 		C3    = `DROP EXTENSION pg_trgm;`
@@ -271,12 +322,8 @@ Type C6YESC0 to confirm that you want to proceed. --> `
 		DONE2 = "Deleted configuration files inside '%s'"
 	)
 
-	var ok string
-	fmt.Printf(coloroutput(CONF))
-	_, ee := fmt.Scan(&ok)
-	chke(ee)
-	if ok != "YES" {
-		fmt.Println(NOPE)
+	ok := youhavebeenwarned()
+	if !ok {
 		return
 	}
 
@@ -395,4 +442,30 @@ func GetHippaWRURI(pw string) string {
 		U = `postgresql://%s:%s@%s:%d/%s`
 	)
 	return fmt.Sprintf(U, DEFAULTPSQLUSER, pw, DEFAULTPSQLHOST, DEFAULTPSQLPORT, DEFAULTPSQLDB)
+}
+
+func youhavebeenwarned() bool {
+	const (
+		CONF = `You are about to C5RESETC0 the database this program uses.
+The application will be C7NON-FUNCTIONALC0 after this unless/until you reload 
+this data. 
+
+In short, this very dangerous. 
+
+Type C6YESC0 to confirm that you want to proceed. --> `
+		NOPE = "Did not receive confirmation. Aborting..."
+	)
+
+	yes := true
+
+	var ok string
+	fmt.Printf(coloroutput(CONF))
+	_, ee := fmt.Scan(&ok)
+	chke(ee)
+	if ok != "YES" {
+		fmt.Println(NOPE)
+		yes = false
+	}
+
+	return yes
 }

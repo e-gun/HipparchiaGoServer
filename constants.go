@@ -46,6 +46,7 @@ const (
 	FIRSTSEARCHLIM           = 750000 // 149570 lines in Cicero (lt0474); all 485 forms of »δείκνυμι« will pass 50k
 	FONTSETTING              = "Noto"
 	GENRESTOCOUNT            = 5
+	HDBFOLDER                = "hDB"
 	INCERTADATE              = 2500
 	JSONINDENT               = "  "
 	LDATOPICS                = 8
@@ -149,10 +150,11 @@ const (
    C1-miC0 C2{num}C0    maximum number of concurrent searches per IP address [C6currentC0: C3{{.maxipsrch}}C0]
    C1-msC0 C2{num}C0    maximum total number of concurrent searches [C6currentC0: C3{{.maxtotscrh}}C0]
    C1-pcC0          enable CPU profiling run
-   C1-pdC0          write a copy of the embedded PDF instructions to the C6currentC0 directory
+   C1-pdC0          write a copy of the embedded PDF instructions to the current directory
    C1-pmC0          enable MEM profiling run
    C1-pgC0 C2{string}C0 supply full PostgreSQL credentials C4(*)C0
    C1-qC0           quiet startup: suppress copyright notice
+   C1-rlC0          reload the database tables; data will be read from: "C3{{.dbf}}C0" in "C3{{.cwd}}C0"
    C1-rvC0          reset the stored semantic vector table
    C1-saC0 C2{string}C0 server IP address [C6currentC0: C3{{.host}}C0]
    C1-spC0 C2{num}C0    server port [C6currentC0: C3{{.port}}C0]

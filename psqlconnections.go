@@ -82,7 +82,8 @@ func GetPSQLconnection() *pgxpool.Conn {
 	const (
 		FAIL1   = "GetPSQLconnection() could not Acquire() from SQLPool."
 		FAIL2   = `Your password in '%s' is incorrect? Too many connections to the server?`
-		FAIL3   = `The database is empty. Deleting any 'C3%sC0' so you can reset the server.`
+		FAIL3   = `The database is empty. Deleting any configuration files so you can reset the server.`
+		FAIL4   = `Failed to delete %s`
 		ERRRUN  = `dial error`
 		FAILRUN = `'%s': the PostgreSQL server cannot be found; check that it is running and serving on port %d`
 	)
@@ -91,11 +92,17 @@ func GetPSQLconnection() *pgxpool.Conn {
 	if e != nil {
 		if !HipparchiaDBHasData(Config.PGLogin.Pass) {
 			// you need to reset the whole application...
-			msg(coloroutput(fmt.Sprintf(FAIL3, CONFIGBASIC)), MSGMAND)
+			msg(coloroutput(fmt.Sprintf(FAIL3)), MSGMAND)
 			h, err := os.UserHomeDir()
 			chke(err)
 			err = os.Remove(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGBASIC)
-			chke(err)
+			if err != nil {
+				msg(fmt.Sprintf(FAIL4, CONFIGBASIC), MSGCRIT)
+			}
+			err = os.Remove(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGPROLIX)
+			if err != nil {
+				msg(fmt.Sprintf(FAIL4, CONFIGPROLIX), MSGCRIT)
+			}
 			messenger.ExitOrHang(0)
 		}
 
