@@ -168,7 +168,7 @@ const (
    C1-00C0          completely erase the database and reset the tables
                    the application cannot run again until you restore its data from an archive 
                    you probably want to run with the "C1-exC0" flag before you try this.
-     (†*) S3exampleS0: 
+     (*) S3exampleS0: 
          C4"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"C0
      
      S1NB:S0 a properly formatted version of "C3{{.conffile}}C0" in "C3{{.home}}C0" configures everything for you. 
