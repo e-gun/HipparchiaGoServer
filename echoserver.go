@@ -9,6 +9,12 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"net/http"
+	"sync"
+)
+
+var (
+	EchoServerStats = NewStats()
 )
 
 // StartEchoServer - start serving; this blocks and does not return while the program remains alive
@@ -31,6 +37,9 @@ func StartEchoServer() {
 		// assume that anyone who is using authentication is serving via the internet and so set timeouts
 		e.Server.ReadTimeout = TIMEOUTRD
 		e.Server.WriteTimeout = TIMEOUTWR
+
+		// also assume that this server is now exposed to scanning attempts that will spam 404s
+		e.Use(EchoServerStats.CheckResponse)
 	}
 
 	if Config.EchoLog == 3 {
@@ -204,3 +213,91 @@ func StartEchoServer() {
 	e.HideBanner = true
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", Config.HostIP, Config.HostPort)))
 }
+
+//
+// SERVERSTATS
+//
+
+type EchoStats struct {
+	FourOhFour uint64
+	TwoHundred uint64
+	Scanners   map[string]int
+	Blacklist  map[string]struct{}
+	Whitelist  map[string]struct{}
+	mutex      sync.RWMutex
+}
+
+func NewStats() *EchoStats {
+	return &EchoStats{
+		FourOhFour: 0,
+		TwoHundred: 0,
+		Scanners:   make(map[string]int),
+		Blacklist:  make(map[string]struct{}),
+		mutex:      sync.RWMutex{},
+	}
+}
+
+// CheckResponse - track response code counts and block repeat 404 offenders.
+func (s *EchoStats) CheckResponse(next echo.HandlerFunc) echo.HandlerFunc {
+	const (
+		BLACK = `IP address %s was blacklisted after provoking %d StatusNotFound errors`
+	)
+
+	return func(c echo.Context) error {
+		ip := c.RealIP()
+
+		s.mutex.Lock()
+		defer s.mutex.Unlock()
+
+		// see https://echo.labstack.com/docs/error-handling
+		if _, yes := s.Blacklist[ip]; yes {
+			e := echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf(BLACK, c.RealIP(), s.Scanners[ip]))
+			return e
+		}
+
+		if err := next(c); err != nil {
+			c.Error(err)
+		}
+
+		switch c.Response().Status {
+		case 200:
+			s.TwoHundred++
+		case 404:
+			s.FourOhFour++
+			if _, ok := s.Scanners[ip]; !ok {
+				s.Scanners[ip] = 1
+			} else {
+				s.Scanners[ip]++
+			}
+			if s.Scanners[ip] >= MAXFOUROHFOUR {
+				s.Blacklist[ip] = struct{}{}
+			}
+		default:
+			// do nothing
+		}
+		return nil
+	}
+}
+
+// Check200 - return count of status code 200 responses
+//func (s *EchoStats) Check200() uint64 {
+//	s.mutex.Lock()
+//	defer s.mutex.Unlock()
+//	return s.TwoHundred
+//}
+
+// Check404 - return count of status code 404 responses
+//func (s *EchoStats) Check404() uint64 {
+//	s.mutex.Lock()
+//	defer s.mutex.Unlock()
+//	return s.FourOhFour
+//}
+
+// CheckBlacklist - who is on the blacklist?
+//func (s *EchoStats) CheckBlacklist() string {
+//	s.mutex.Lock()
+//	defer s.mutex.Unlock()
+//	keys := StringMapKeysIntoSlice(s.Blacklist)
+//	slices.Sort(keys)
+//	return strings.Join(keys, ", ")
+//}

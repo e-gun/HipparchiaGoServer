@@ -133,25 +133,38 @@ var VersSuppl string
 var BuildDate string
 
 func printversion() {
-	sn := fmt.Sprintf("[C1%sC0] ", SHORTNAME)
+	const (
+		SN = "[C1%sC0] "
+		GC = " [C4git: C4%sC0]"
+		LL = " [C6gl=%d; el=%dC0]"
+		ME = "C5%sC0 (C2v%sC0)"
+	)
+	sn := fmt.Sprintf(SN, SHORTNAME)
 	gc := ""
 	if GitCommit != "" {
-		gc = fmt.Sprintf(" [C4git: C4%sC0]", GitCommit)
+		gc = fmt.Sprintf(GC, GitCommit)
 	}
-	ll := fmt.Sprintf(" [C6gl=%d; el=%dC0]", Config.LogLevel, Config.EchoLog)
-	versioninfo := fmt.Sprintf("C5%sC0 (C2v%sC0)", MYNAME, VERSION+VersSuppl)
+	ll := fmt.Sprintf(LL, Config.LogLevel, Config.EchoLog)
+	versioninfo := fmt.Sprintf(ME, MYNAME, VERSION+VersSuppl)
 	versioninfo = sn + versioninfo + gc + ll
 	versioninfo = messenger.ColStyle(versioninfo)
 	fmt.Println(versioninfo)
 }
 
 func printbuildinfo() {
+	const (
+		BD = "\tS1Built:S0\tC3%sC0\t"
+		GV = "\tS1Golang:S0\tC3%sC0\n"
+		SY = "\tS1System:S0\tC3%s-%sC0\t"
+		WC = "\t\tS1WKvCPU:S0\tC3%dC0/C3%dC0"
+	)
+
 	bi := ""
 	if BuildDate != "" {
-		bi = messenger.ColStyle(fmt.Sprintf("\tS1Built:S0\tC3%sC0\t", BuildDate))
+		bi = messenger.ColStyle(fmt.Sprintf(BD, BuildDate))
 	}
-	bi += messenger.ColStyle(fmt.Sprintf("\tS1Golang:S0\tC3%sC0\n", runtime.Version()))
-	bi += messenger.ColStyle(fmt.Sprintf("\tS1System:S0\tC3%s-%sC0\t", runtime.GOOS, runtime.GOARCH))
-	bi += messenger.ColStyle(fmt.Sprintf("\t\tS1WKvCPU:S0\tC3%dC0/C3%dC0", Config.WorkerCount, runtime.NumCPU()))
+	bi += messenger.ColStyle(fmt.Sprintf(GV, runtime.Version()))
+	bi += messenger.ColStyle(fmt.Sprintf(SY, runtime.GOOS, runtime.GOARCH))
+	bi += messenger.ColStyle(fmt.Sprintf(WC, Config.WorkerCount, runtime.NumCPU()))
 	fmt.Println(bi)
 }

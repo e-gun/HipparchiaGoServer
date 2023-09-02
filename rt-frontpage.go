@@ -59,11 +59,13 @@ func RtFrontpage(c echo.Context) error {
 
 	env := fmt.Sprintf("%s: %s - %s (%d workers)", runtime.Version(), runtime.GOOS, runtime.GOARCH, Config.WorkerCount)
 
+	// t() will give the uptime
 	t := func(up time.Duration) string {
 		tick := fmt.Sprintf(UPSTR, time.Now().Format(time.TimeOnly), up.Truncate(time.Minute))
 		return PADDING + tick + PADDING
 	}
 
+	// svd() will report what requests have been made
 	svd := func() string {
 		exclude := []string{"main() post-initialization"}
 		keys := StringMapKeysIntoSlice(StatCounter)
@@ -83,6 +85,14 @@ func RtFrontpage(c echo.Context) error {
 	if !Config.VectorsDisabled {
 		vec = VECTORS
 	}
+
+	// sample ticker output
+
+	//      ----------------- [13:29:41] HGS uptime: 1m0s -----------------
+	//
+	//    BrowseLine: 5
+	//    LexFindByForm: 2
+	//    Search: 4
 
 	subs := map[string]interface{}{
 		"version":       VERSION + VersSuppl,

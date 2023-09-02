@@ -346,9 +346,9 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 		BETW   = "Searched between %s and %s<br>"
 		DDM    = "<!-- dates did not matter -->"
 		NOCAP  = "<!-- did not hit the results cap -->"
-		YESCAP = "[Search suspended: result cap reached.]"
+		YESCAP = `<span class="smallerthannormal">[Search suspended: result cap reached.]</span>`
 		INFAU  = "<!-- unlimited hits per author -->"
-		ONEAU  = `<br><span class="small">(only one hit allowed per author table)</span>`
+		ONEAU  = `<br><span class="smaller">(only one hit allowed per author table)</span>`
 	)
 
 	m := message.NewPrinter(language.English)

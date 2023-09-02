@@ -10,7 +10,7 @@ import "time"
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.2.11"
+	VERSION                  = "1.2.12"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	BLACKANDWHITE            = false
 	CHARSPERLINE             = 60 // used by vector to preallocate memory: set it closer to a max than a real average
@@ -65,6 +65,7 @@ const (
 	MAXDICTLOOKUP            = 125
 	MAXDISTANCE              = 10
 	MAXECHOREQPERSECONDPERIP = 60 // it takes c. 20 to load the front page for the first time; 40 lets you double-load; selftest needs 60
+	MAXFOUROHFOUR            = 5  // really one is the right number...
 	MAXHITLIMIT              = 2500
 	MAXINPUTLEN              = 50
 	MAXLEMMACHUNKSIZE        = 20

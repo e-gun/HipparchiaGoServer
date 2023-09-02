@@ -350,6 +350,8 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.HostPort = SERVEDFROMPORT
 	c.LdaTopics = LDATOPICS
 	c.LdaGraph = false
+	c.LogLevel = DEFAULTGOLOGLEVEL
+	c.EchoLog = DEFAULTECHOLOGLEVEL
 	c.ManualGC = true
 	c.MaxText = MAXTEXTLINEGENERATION
 	c.MaxSrchIP = MAXSEARCHPERIPADDR
