@@ -50,7 +50,7 @@ var (
 	StatCounter   = make(map[string]*atomic.Int32)
 	TheCorpora    = [5]string{"gr", "lt", "in", "ch", "dp"}
 	TheLanguages  = [2]string{"greek", "latin"}
-	ServableFonts = map[string]FontTempl{"Noto": NotoFont}
+	ServableFonts = map[string]FontTempl{"Noto": NotoFont, "Roboto": RobotoFont, "Fira": FiraFont}
 	LaunchTime    = time.Now()
 	WebsocketPool = WSFillNewPool()
 )

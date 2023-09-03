@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	EchoServerStats = NewStats()
+	EchoServerStats = NewEchoResponseStats()
 )
 
 // StartEchoServer - start serving; this blocks and does not return while the program remains alive
@@ -38,8 +38,8 @@ func StartEchoServer() {
 		e.Server.ReadTimeout = TIMEOUTRD
 		e.Server.WriteTimeout = TIMEOUTWR
 
-		// also assume that this server is now exposed to scanning attempts that will spam 404s
-		e.Use(EchoServerStats.CheckResponse)
+		// also assume that this server is now exposed to scanning attempts that will spam 404s; block IPs that do this
+		e.Use(EchoServerStats.PoliceResponse)
 	}
 
 	if Config.EchoLog == 3 {
@@ -218,86 +218,115 @@ func StartEchoServer() {
 // SERVERSTATS
 //
 
-type EchoStats struct {
-	FourOhFour uint64
-	TwoHundred uint64
-	Scanners   map[string]int
-	Blacklist  map[string]struct{}
-	Whitelist  map[string]struct{}
-	mutex      sync.RWMutex
+type EchoResponseStats struct {
+	TwoHundred  uint64
+	FourOhThree uint64
+	FourOhFour  uint64
+	FiveHundred uint64
+	Scanners    map[string]int
+	Hackers     map[string]int
+	Blacklist   map[string]struct{}
+	// Whitelist  map[string]struct{}
+	mutex sync.RWMutex
 }
 
-func NewStats() *EchoStats {
-	return &EchoStats{
-		FourOhFour: 0,
-		TwoHundred: 0,
-		Scanners:   make(map[string]int),
-		Blacklist:  make(map[string]struct{}),
-		mutex:      sync.RWMutex{},
+func NewEchoResponseStats() *EchoResponseStats {
+	return &EchoResponseStats{
+		TwoHundred:  0,
+		FourOhThree: 0,
+		FourOhFour:  0,
+		FiveHundred: 0,
+		Scanners:    make(map[string]int),
+		Hackers:     make(map[string]int),
+		Blacklist:   make(map[string]struct{}),
+		mutex:       sync.RWMutex{},
 	}
 }
 
-// CheckResponse - track response code counts and block repeat 404 offenders.
-func (s *EchoStats) CheckResponse(next echo.HandlerFunc) echo.HandlerFunc {
+// PoliceResponse - track response code counts and block repeat 404 offenders
+func (ers *EchoResponseStats) PoliceResponse(nextechohandler echo.HandlerFunc) echo.HandlerFunc {
 	const (
-		BLACK = `IP address %s was blacklisted after provoking %d StatusNotFound errors`
+		BLACK0 = `IP address %s was blacklisted: too many previous response code errors`
+		BLACK1 = `IP address %s was blacklisted: %d StatusNotFound errors`
+		BLACK2 = `IP address %s was blacklisted: %d StatusInternalServerError errors`
+		FYI200 = `StatusOK count is %d`
+		FRQ200 = 1000
+		FYI403 = `StatusForbidden count is %d. There are %d IPs currently on the blacklist.`
+		FRQ403 = 100
+		FYI404 = `StatusNotFound count is %d`
+		FRQ404 = 50
+		FYI500 = `StatusInternalServerError count is %d`
+		FRQ500 = 25
 	)
 
 	return func(c echo.Context) error {
 		ip := c.RealIP()
 
-		s.mutex.Lock()
-		defer s.mutex.Unlock()
+		ers.mutex.Lock()
+		defer ers.mutex.Unlock()
 
 		// see https://echo.labstack.com/docs/error-handling
-		if _, yes := s.Blacklist[ip]; yes {
-			e := echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf(BLACK, c.RealIP(), s.Scanners[ip]))
+		if _, yes := ers.Blacklist[ip]; yes {
+			ers.FourOhThree++
+			if ers.FourOhThree%FRQ403 == 0 {
+				msg(fmt.Sprintf(FYI403, ers.FourOhThree, len(ers.Blacklist)), MSGNOTE)
+			}
+
+			e := echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf(BLACK0, c.RealIP()))
 			return e
 		}
 
-		if err := next(c); err != nil {
+		if err := nextechohandler(c); err != nil {
 			c.Error(err)
 		}
 
 		switch c.Response().Status {
 		case 200:
-			s.TwoHundred++
+			ers.TwoHundred++
+			if ers.TwoHundred%FRQ200 == 0 {
+				msg(fmt.Sprintf(FYI200, ers.TwoHundred), MSGNOTE)
+			}
+
 		case 404:
-			s.FourOhFour++
-			if _, ok := s.Scanners[ip]; !ok {
-				s.Scanners[ip] = 1
+			ers.FourOhFour++
+
+			if _, ok := ers.Scanners[ip]; !ok {
+				ers.Scanners[ip] = 1
 			} else {
-				s.Scanners[ip]++
+				ers.Scanners[ip]++
 			}
-			if s.Scanners[ip] >= MAXFOUROHFOUR {
-				s.Blacklist[ip] = struct{}{}
+
+			if ers.Scanners[ip] >= MAXFOUROHFOUR {
+				ers.Blacklist[ip] = struct{}{}
+				msg(fmt.Sprintf(BLACK1, c.RealIP(), ers.Scanners[ip]), MSGWARN)
 			}
+
+			if ers.FourOhFour%FRQ404 == 0 {
+				msg(fmt.Sprintf(FYI404, ers.FourOhFour), MSGNOTE)
+			}
+
+		case 500:
+			ers.FiveHundred++
+
+			if _, ok := ers.Hackers[ip]; !ok {
+				ers.Hackers[ip] = 1
+			} else {
+				ers.Hackers[ip]++
+			}
+
+			if ers.Hackers[ip] >= MAXFIVEHUNDRED {
+				ers.Blacklist[ip] = struct{}{}
+				msg(fmt.Sprintf(BLACK2, c.RealIP(), ers.Scanners[ip]), MSGWARN)
+			}
+
+			if ers.FiveHundred%FRQ500 == 0 {
+				msg(fmt.Sprintf(FYI500, ers.FourOhFour), MSGWARN)
+			}
+
 		default:
 			// do nothing
+			// 302 from "/reset/session" is about the only other code one sees
 		}
 		return nil
 	}
 }
-
-// Check200 - return count of status code 200 responses
-//func (s *EchoStats) Check200() uint64 {
-//	s.mutex.Lock()
-//	defer s.mutex.Unlock()
-//	return s.TwoHundred
-//}
-
-// Check404 - return count of status code 404 responses
-//func (s *EchoStats) Check404() uint64 {
-//	s.mutex.Lock()
-//	defer s.mutex.Unlock()
-//	return s.FourOhFour
-//}
-
-// CheckBlacklist - who is on the blacklist?
-//func (s *EchoStats) CheckBlacklist() string {
-//	s.mutex.Lock()
-//	defer s.mutex.Unlock()
-//	keys := StringMapKeysIntoSlice(s.Blacklist)
-//	slices.Sort(keys)
-//	return strings.Join(keys, ", ")
-//}

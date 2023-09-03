@@ -112,8 +112,8 @@ type FontTempl struct {
 	Thin             string
 }
 
-// the fonts we know how to serve: only one installed ATM
-// NB: Fira, Inter, and Ubuntu have all been toyed with: none are really as good as NotoSans
+// the fonts we know how to serve
+// NB: Inter and Ubuntu have been toyed with: Inter lacks both condensed and semi-condensed
 
 var (
 	NotoFont = FontTempl{
@@ -132,6 +132,40 @@ var (
 		Regular:          "NotoSans-Regular.otf",
 		SemiBold:         "NotoSans-SemiBold.otf",
 		Thin:             "NotoSans-Thin.otf",
+	}
+	FiraFont = FontTempl{
+		Type:             "truetype",
+		ShrtType:         "ttf",
+		Bold:             "FiraSans-Bold.ttf",
+		BoldItalic:       "FiraSans-BoldItalic.ttf",
+		CondensedBold:    "FiraSansCondensed-Bold.ttf",
+		CondensedItalic:  "FiraSansCondensed-Italic.ttf",
+		CondensedRegular: "FiraSansCondensed-Regular.ttf",
+		SemiCondRegular:  "FiraSansCondensed-Regular.ttf", // semi dne
+		SemiCondItalic:   "FiraSansCondensed-Italic.ttf",
+		Italic:           "FiraSans-Italic.ttf",
+		Light:            "FiraSans-Light.ttf",
+		Mono:             "FiraMono-Regular.ttf",
+		Regular:          "FiraSans-Regular.ttf",
+		SemiBold:         "FiraSans-SemiBold.ttf",
+		Thin:             "FiraSans-Thin.ttf",
+	}
+	RobotoFont = FontTempl{
+		Type:             "truetype",
+		ShrtType:         "ttf",
+		Bold:             "Roboto-Bold.ttf",
+		BoldItalic:       "Roboto-BoldItalic.ttf",
+		CondensedBold:    "RobotoCondensed-Bold.ttf",
+		CondensedItalic:  "RobotoCondensed-Italic.ttf",
+		CondensedRegular: "RobotoCondensed-Regular.ttf",
+		SemiCondRegular:  "RobotoCondensed-Regular.ttf", // semi dne
+		SemiCondItalic:   "RobotoCondensed-Italic.ttf",
+		Italic:           "Roboto-Italic.ttf",
+		Light:            "Roboto-Light.ttf",
+		Mono:             "RobotoMono-Regular.ttf",
+		Regular:          "Roboto-Regular.ttf",
+		SemiBold:         "Roboto-Medium.ttf",
+		Thin:             "Roboto-Thin.ttf",
 	}
 )
 
