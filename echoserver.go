@@ -19,9 +19,6 @@ var (
 
 // StartEchoServer - start serving; this blocks and does not return while the program remains alive
 func StartEchoServer() {
-	// https://echo.labstack.com/guide/
-	// cf https://medium.com/cuddle-ai/building-microservice-using-golang-echo-framework-ff10ba06d508
-
 	const (
 		LLOGFMT = "r: ${status}\tt: ${latency_human}\tu: ${uri}\n"
 		RLOGFMT = "i: ${remote_ip}\t r: ${status}\tt: ${latency_human}\tu: ${uri}\n"
@@ -42,12 +39,15 @@ func StartEchoServer() {
 		e.Use(EchoServerStats.PoliceResponse)
 	}
 
-	if Config.EchoLog == 3 {
+	switch Config.EchoLog {
+	case 3:
 		e.Use(middleware.Logger())
-	} else if Config.EchoLog == 2 {
+	case 2:
 		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: RLOGFMT}))
-	} else if Config.EchoLog == 1 {
+	case 1:
 		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: LLOGFMT}))
+	default:
+		// do nothing
 	}
 
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(MAXECHOREQPERSECONDPERIP)))
@@ -79,6 +79,8 @@ func StartEchoServer() {
 	e.GET("/browse/perseus/:locus", RtBrowsePerseus) // '/browse/perseus/lt0550/001/2:717'
 	e.GET("/browse/rawlocus/:locus", RtBrowseRaw)    // '/browse/rawlocus/lt0474/037/2.10.4'
 
+	e.GET("/browse/", RtGetEmptyGet) // dictionary can send an empty string instead of a value
+
 	// [c] css ("rt-embedding.go")
 
 	e.GET("/emb/css/hipparchiastyles.css", RtEmbHCSS)
@@ -97,9 +99,6 @@ func StartEchoServer() {
 	// [f] getters ("rt-getters.go")
 	//
 
-	// [f1b] /get/response/vectorfigure
-	// [f2e] /get/json/genrelistcontents [unneeded/unimplemented ATM]
-	// [f2f] /get/json/vectorranges
 	e.GET("/get/json/sessionvariables", RtGetJSSession)
 	e.GET("/get/json/worksof/:id", RtGetJSWorksOf)
 	e.GET("/get/json/workstructure/:locus", RtGetJSWorksStruct)
@@ -107,6 +106,11 @@ func StartEchoServer() {
 	e.GET("/get/json/authorinfo/:id", RtGetJSAuthorinfo)
 	e.GET("/get/json/searchlistcontents", RtGetJSSearchlist)
 	e.GET("/get/json/helpdata", RtGetJSHelpdata)
+
+	e.GET("/get/json/worksof/", RtGetEmptyGet) // dictionary can send an empty string instead of a value: "/worksof/:id"
+	e.GET("/get/json/workstructure/", RtGetEmptyGet)
+	e.GET("/get/json/samplecitation/", RtGetEmptyGet)
+	e.GET("/get/json/authorinfo/", RtGetEmptyGet)
 
 	//
 	// [g] hinters ("rt-hinters.go")
@@ -134,8 +138,6 @@ func StartEchoServer() {
 	//
 
 	e.GET("/reset/session", RtResetSession) // "u: /reset/session"
-	// [i2] /reset/vectors
-	// [i3] /reset/vectorimages
 
 	//
 	// [j] searching ("rt-search.go")
@@ -197,18 +199,9 @@ func StartEchoServer() {
 
 	e.GET("/vbot/:typeandselection", RtVectorBot) // only the goroutine running the vectorbot is supposed to request this
 
-	if Config.SelfTest > 0 {
-		go func() {
-			for i := 0; i < Config.SelfTest; i++ {
-				msg(fmt.Sprintf("Running Selftest %d of %d", i+1, Config.SelfTest), 0)
-				selftest()
-			}
-		}()
-	}
-
-	if Config.VectorBot {
-		go activatevectorbot()
-	}
+	// next will do nothing if Config is not requesting these
+	go runselftests()
+	go activatevectorbot()
 
 	e.HideBanner = true
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", Config.HostIP, Config.HostPort)))
@@ -320,12 +313,12 @@ func (ers *EchoResponseStats) PoliceResponse(nextechohandler echo.HandlerFunc) e
 			}
 
 			if ers.FiveHundred%FRQ500 == 0 {
-				msg(fmt.Sprintf(FYI500, ers.FourOhFour), MSGWARN)
+				msg(fmt.Sprintf(FYI500, ers.FiveHundred), MSGWARN)
 			}
 
 		default:
 			// do nothing
-			// 302 from "/reset/session" is about the only other code one sees
+			// 302 from "/reset/session" is the only other code one sees
 		}
 		return nil
 	}

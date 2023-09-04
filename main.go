@@ -20,7 +20,8 @@ func main() {
 		MSG3 = "corpus maps built"
 		MSG4 = "unnested lemma map built (%d items)"
 		MSG5 = "nested lemma map built"
-		SUMM = "initialization took %.3fs"
+		SUMM = "C3initialization took %.3fsC0"
+		QUIT = "to stop the server press Control-C or close this window"
 	)
 
 	LaunchTime = time.Now()
@@ -103,22 +104,27 @@ func main() {
 		messenger.Timer("B2", MSG5, start, previous)
 	}(&awaiting)
 
+	awaiting.Add(1)
+	go func(awaiting *sync.WaitGroup) {
+		defer awaiting.Done()
+		if Config.ResetVectors {
+			vectordbreset()
+		} else if Config.LogLevel >= MSGNOTE {
+			vectordbcountnn(MSGNOTE)
+		}
+	}(&awaiting)
+
 	awaiting.Wait()
 
-	if Config.ResetVectors {
-		vectordbreset()
-	} else if Config.LogLevel >= MSGNOTE {
-		vectordbcountnn(MSGNOTE)
-	}
-
 	messenger.GCStats("main() post-initialization")
-	msg(fmt.Sprintf(SUMM, time.Now().Sub(LaunchTime).Seconds()), -999)
+	msg(messenger.ColStyle(fmt.Sprintf(SUMM, time.Now().Sub(LaunchTime).Seconds())), -999)
 
 	// uncomment one or more of the next if debugging; they are very spammy for the console...
 
 	// go svreport()
 	// go wsclientreport()
 
+	msg(QUIT, MSGMAND)
 	StartEchoServer()
 }
 

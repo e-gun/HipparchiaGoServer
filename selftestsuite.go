@@ -31,7 +31,18 @@ func (t *SrchTest) Msg() string {
 	return fmt.Sprintf(t.m, strings.ReplaceAll(t.t1, "%20", " "), strings.ReplaceAll(t.t2, "%20", " "))
 }
 
-func selftest() {
+func runselftests() {
+	if Config.SelfTest > 0 {
+		go func() {
+			for i := 0; i < Config.SelfTest; i++ {
+				msg(fmt.Sprintf("Running Selftest %d of %d", i+1, Config.SelfTest), 0)
+				selftestsuite()
+			}
+		}()
+	}
+}
+
+func selftestsuite() {
 	const (
 		SKG1  = "srch/exec/%s?skg=%s%s"
 		SKG2  = "srch/exec/%s?skg=%s&prx=%s"
@@ -114,7 +125,7 @@ func selftest() {
 	}
 
 	time.Sleep(WSPOLLINGPAUSE * 3)
-	mm.Emit("entering selftest mode (3 segments)", MSGMAND)
+	mm.Emit("entering selftestsuite mode (3 segments)", MSGMAND)
 
 	start := time.Now()
 	previous := time.Now()
@@ -188,7 +199,7 @@ func selftest() {
 		return
 	}
 
-	// vector selftest
+	// vector selftestsuite
 	mm.Emit("[IV] nearest neighbor vectorization tests", MSGWARN)
 	vectordbreset()
 	ovm := Config.VectorModel
@@ -235,7 +246,7 @@ func selftest() {
 	mm.Timer("F", nb, start, previous)
 	previous = time.Now()
 
-	mm.Emit("exiting selftest mode", MSGMAND)
+	mm.Emit("exiting selftestsuite mode", MSGMAND)
 
 	Config.VectorModel = ovm
 	Config.VectorTextPrep = otx

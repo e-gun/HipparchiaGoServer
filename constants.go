@@ -64,7 +64,7 @@ const (
 	MAXDATESTR               = "1500"
 	MAXDICTLOOKUP            = 125
 	MAXDISTANCE              = 10
-	MAXECHOREQPERSECONDPERIP = 60 // it takes c. 20 to load the front page for the first time; 40 lets you double-load; selftest needs 60
+	MAXECHOREQPERSECONDPERIP = 60 // it takes c. 20 to load the front page for the first time; 40 lets you double-load; selftestsuite needs 60
 	MAXFOUROHFOUR            = 5  // one is the right number...
 	MAXFIVEHUNDRED           = 3  // one is the right number...
 	MAXHITLIMIT              = 2500

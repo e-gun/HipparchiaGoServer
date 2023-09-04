@@ -426,3 +426,11 @@ func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
 	ct := m.Sprintf(PSGTEMPL, AllAuthors[au].Cleaname, AllWorks[f.WkUID].Title, f.Citation(), l.Citation(), count)
 	return ct, count
 }
+
+// RtGetEmptyGet - to stave off 404s
+func RtGetEmptyGet(c echo.Context) error {
+	var j JSStruct
+	j.V = "[the request was empty; no data returned]"
+
+	return c.JSONPretty(http.StatusOK, j, JSONINDENT)
+}

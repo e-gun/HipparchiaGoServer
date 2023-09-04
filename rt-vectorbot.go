@@ -117,7 +117,7 @@ func RtVectorBot(c echo.Context) error {
 
 // ldamodelbot - automate the building of lda models
 func ldamodelbot(c echo.Context, s SearchStruct, a string) {
-	// note that only the selftest suite is calling this right now
+	// note that only the selftestsuite suite is calling this right now
 
 	// there is no storage mechanism for lda
 
@@ -188,6 +188,10 @@ func activatevectorbot() {
 		SIZEVERY   = 500
 		STARTDELAY = 2
 	)
+
+	if !Config.VectorBot {
+		return
+	}
 
 	// currently only autovectorizes nn
 	// lda unsupported, but a possibility later
