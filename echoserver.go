@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"net/http"
 )
 
 // StartEchoServer - start serving; this blocks and does not return while the program remains alive
@@ -30,8 +29,9 @@ func StartEchoServer() {
 		e.Server.ReadTimeout = TIMEOUTRD
 		e.Server.WriteTimeout = TIMEOUTWR
 
-		// also assume that this server is now exposed to scanning attempts that will spam 404s; block IPs that do this
-		go IPBlacklistRW()
+		// also assume that internet exposure yields scanning attempts that will spam 404s && 500s; block IPs that do this
+		// see "policeresponses.go" for these functions
+		go IPBlacklistStatus()
 		go ResponseStatsKeeper()
 		e.Use(PoliceResponse)
 	}
@@ -202,189 +202,4 @@ func StartEchoServer() {
 
 	e.HideBanner = true
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", Config.HostIP, Config.HostPort)))
-}
-
-//
-// SERVERSTATS
-//
-
-type EchoResponseStats struct {
-	TwoHundred  uint64
-	FourOhThree uint64
-	FourOhFour  uint64
-	FiveHundred uint64
-}
-
-type BlackListRD struct {
-	key  string
-	resp chan bool
-}
-
-type BlackListWR struct {
-	key  string
-	resp chan bool
-}
-
-type StatListWR struct {
-	key int
-	ip  string
-	uri string
-}
-
-var (
-	BListWR         = make(chan BlackListWR)
-	BListRD         = make(chan BlackListRD)
-	SListWR         = make(chan StatListWR)
-	EchoServerStats = NewEchoResponseStats()
-)
-
-// PoliceResponse - track response code counts and block repeat 404 offenders
-func PoliceResponse(nextechohandler echo.HandlerFunc) echo.HandlerFunc {
-	const (
-		BLACK0 = `IP address %s was blacklisted: too many previous response code errors`
-	)
-
-	return func(c echo.Context) error {
-		blcheck := BlackListRD{
-			key:  c.RealIP(),
-			resp: make(chan bool),
-		}
-
-		// presumed guilty
-		rscheck := StatListWR{
-			key: 403,
-			ip:  c.RealIP(),
-			uri: c.Request().RequestURI,
-		}
-
-		BListRD <- blcheck
-		ok := <-blcheck.resp
-		if !ok {
-			SListWR <- rscheck
-			e := echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf(BLACK0, c.RealIP()))
-			return e
-		} else {
-			// do this before setting c.Response().Status or you will always get "200"
-			if err := nextechohandler(c); err != nil {
-				c.Error(err)
-			}
-			rscheck.key = c.Response().Status
-			SListWR <- rscheck
-			return nil
-		}
-	}
-}
-
-func NewEchoResponseStats() *EchoResponseStats {
-	return &EchoResponseStats{
-		TwoHundred:  0,
-		FourOhThree: 0,
-		FourOhFour:  0,
-		FiveHundred: 0,
-	}
-}
-
-// IPBlacklistRW - blacklist read/write; should have e
-func IPBlacklistRW() {
-	const (
-		CAP    = 4
-		BLACK0 = `IP address %s was blacklisted: too many previous response code errors; %d addresses on the blacklist`
-	)
-
-	strikecount := make(map[string]int)
-	blacklist := make(map[string]struct{})
-
-	for {
-		select {
-		case rcv := <-BListRD:
-			valid := true
-			if _, ok := blacklist[rcv.key]; ok {
-				// you are on the blacklist...
-				valid = false
-			}
-			rcv.resp <- valid
-		case snd := <-BListWR:
-			ret := false
-			if _, ok := strikecount[snd.key]; !ok {
-				strikecount[snd.key] = 1
-			} else if strikecount[snd.key] >= CAP {
-				blacklist[snd.key] = struct{}{}
-				msg(fmt.Sprintf(BLACK0, snd.key, len(blacklist)), MSGNOTE)
-				ret = true
-			} else {
-				strikecount[snd.key]++
-			}
-			snd.resp <- ret
-		}
-	}
-}
-
-// ResponseStatsKeeper - log echo responses; should have exclusive r/w access to EchoServerStats
-func ResponseStatsKeeper() {
-	const (
-		BLACK1 = `IP address %s received a strike: StatusNotFound error for URI "%s"`
-		BLACK2 = `IP address %s received a strike: StatusInternalServerError for URI "%s"`
-		FYI200 = `StatusOK count is %d`
-		FRQ200 = 1000
-		FYI403 = `StatusForbidden count is %d. Last blocked was %s requesting "%s"`
-		FRQ403 = 5
-		FYI404 = `StatusNotFound count is %d`
-		FRQ404 = 100
-		FYI500 = `StatusInternalServerError count is %d.`
-		FRQ500 = 10
-	)
-
-	for {
-		status := <-SListWR
-		switch status.key {
-		case 200:
-			EchoServerStats.TwoHundred++
-			if EchoServerStats.TwoHundred%FRQ200 == 0 {
-				msg(fmt.Sprintf(FYI200, EchoServerStats.TwoHundred), MSGNOTE)
-			}
-		case 403:
-			// you are already on the blacklist...
-			EchoServerStats.FourOhThree++
-			if EchoServerStats.FourOhThree%FRQ403 == 0 {
-				msg(fmt.Sprintf(FYI403, EchoServerStats.FourOhThree, status.ip, status.uri), MSGNOTE)
-			}
-		case 404:
-			// you need to be registered for the blacklist...
-			EchoServerStats.FourOhFour++
-			wr := BlackListWR{
-				key:  status.ip,
-				resp: make(chan bool),
-			}
-
-			BListWR <- wr
-			ok := <-wr.resp
-
-			if !ok {
-				msg(fmt.Sprintf(BLACK1, status.ip, status.uri), MSGWARN)
-			}
-
-			if EchoServerStats.FourOhFour%FRQ404 == 0 {
-				msg(fmt.Sprintf(FYI404, EchoServerStats.FourOhFour), MSGNOTE)
-			}
-		case 500:
-			EchoServerStats.FiveHundred++
-			wr := BlackListWR{
-				key:  status.ip,
-				resp: make(chan bool),
-			}
-
-			BListWR <- wr
-			ok := <-wr.resp
-
-			if !ok {
-				msg(fmt.Sprintf(BLACK2, status.ip, status.uri), MSGWARN)
-			}
-
-			if EchoServerStats.FiveHundred%FRQ500 == 0 {
-				msg(fmt.Sprintf(FYI500, EchoServerStats.FiveHundred), MSGWARN)
-			}
-		default:
-			// 302 from "reset" is the only other code...
-		}
-	}
 }
