@@ -196,6 +196,7 @@ func selftestsuite() {
 	previous = time.Now()
 
 	if Config.VectorsDisabled {
+		mm.Emit("exiting selftestsuite mode", MSGMAND)
 		return
 	}
 

@@ -48,23 +48,20 @@ func PoliceResponse(nextechohandler echo.HandlerFunc) echo.HandlerFunc {
 	)
 
 	return func(c echo.Context) error {
-		blcheck := BlackListRD{
-			ip:   c.RealIP(),
-			resp: make(chan bool),
-		}
+		checkblacklist := BlackListRD{ip: c.RealIP(), resp: make(chan bool)}
+		BListRD <- checkblacklist
+		ok := <-checkblacklist.resp
 
 		// presumed guilty: 403
-		rscheck := StatListWR{
+		registerresult := StatListWR{
 			code: 403,
 			ip:   c.RealIP(),
 			uri:  c.Request().RequestURI,
 		}
 
-		BListRD <- blcheck
-		ok := <-blcheck.resp
 		if !ok {
-			// register guilt
-			SListWR <- rscheck
+			// register a 403
+			SListWR <- registerresult
 			e := echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf(BLACK0, c.RealIP()))
 			return e
 		} else {
@@ -72,16 +69,16 @@ func PoliceResponse(nextechohandler echo.HandlerFunc) echo.HandlerFunc {
 			if err := nextechohandler(c); err != nil {
 				c.Error(err)
 			}
-			// declare innocence
-			rscheck.code = c.Response().Status
-			SListWR <- rscheck
+			// register some other result code
+			registerresult.code = c.Response().Status
+			SListWR <- registerresult
 			return nil
 		}
 	}
 }
 
-// IPBlacklistStatus - blacklist read/write
-func IPBlacklistStatus() {
+// IPBlacklistKeeper - blacklist read/write
+func IPBlacklistKeeper() {
 	const (
 		FAILSALLOWED = 3
 		BLACK0       = `IP address %s was blacklisted: too many previous response code errors; %d address(es) on the blacklist`
@@ -147,39 +144,31 @@ func ResponseStatsKeeper() {
 				msg(fmt.Sprintf(FYI403, EchoServerStats.FourOhThree, status.ip, status.uri), MSGNOTE)
 			}
 		case 404:
-			// you need to be registered for the blacklist...
 			EchoServerStats.FourOhFour++
-			wr := BlackListWR{
-				ip:   status.ip,
-				resp: make(chan bool),
+			if EchoServerStats.FourOhFour%FRQ404 == 0 {
+				msg(fmt.Sprintf(FYI404, EchoServerStats.FourOhFour), MSGNOTE)
 			}
 
+			// you need to be logged on the blacklist...
+			wr := BlackListWR{ip: status.ip, resp: make(chan bool)}
 			BListWR <- wr
 			ok := <-wr.resp
-
 			if !ok {
 				msg(fmt.Sprintf(BLACK1, status.ip, status.uri), MSGWARN)
 			}
 
-			if EchoServerStats.FourOhFour%FRQ404 == 0 {
-				msg(fmt.Sprintf(FYI404, EchoServerStats.FourOhFour), MSGNOTE)
-			}
 		case 500:
 			EchoServerStats.FiveHundred++
-			wr := BlackListWR{
-				ip:   status.ip,
-				resp: make(chan bool),
-			}
-
-			BListWR <- wr
-			ok := <-wr.resp
-
-			if !ok {
-				msg(fmt.Sprintf(BLACK2, status.ip, status.uri), MSGWARN)
-			}
-
 			if EchoServerStats.FiveHundred%FRQ500 == 0 {
 				msg(fmt.Sprintf(FYI500, EchoServerStats.FiveHundred), MSGWARN)
+			}
+
+			// you need to be logged on the blacklist...
+			wr := BlackListWR{ip: status.ip, resp: make(chan bool)}
+			BListWR <- wr
+			ok := <-wr.resp
+			if !ok {
+				msg(fmt.Sprintf(BLACK2, status.ip, status.uri), MSGWARN)
 			}
 		default:
 			// do nothing: not interested

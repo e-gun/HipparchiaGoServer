@@ -31,7 +31,7 @@ func StartEchoServer() {
 
 		// also assume that internet exposure yields scanning attempts that will spam 404s && 500s; block IPs that do this
 		// see "policeresponses.go" for these functions
-		go IPBlacklistStatus()
+		go IPBlacklistKeeper()
 		go ResponseStatsKeeper()
 		e.Use(PoliceResponse)
 	}
