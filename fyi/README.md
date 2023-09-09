@@ -10,75 +10,52 @@
 self-test without vectors is now `HipparchiaGoServer -st -dv`
 
 ``` 
-HipparchiaGoServer -dv -st -st -st
-[HGS] Hipparchia Golang Server (v1.2.11-pre) [git: 5ac0df41] [gl=0; el=0]
-[HGS] Running Selftest 1 of 3
+HipparchiaGoServer -gl 2 -dv -st
+[HGS] Hipparchia Golang Server (v1.2.12-pre) [git: f6e25f93] [gl=2; el=0]
+	Built:	2023-09-07@19:00:28		Golang:	go1.21.1
+	System:	darwin-arm64			WKvCPU:	20/20
+[HGS] Number of stored vector models: 5
+[HGS] initialization took 0.481s
+[HGS] to stop the server press Control-C or close this window
+[HGS] Running Selftest 1 of 1
+	Built:	2023-09-07@19:00:28		Golang:	go1.21.1
+	System:	darwin-arm64			WKvCPU:	20/20
 ⇨ http server started on 127.0.0.1:8000
-	Built:	2023-08-15@21:19:49
-	Go:	go1.21.0
-[HGS-SELFTEST] entering selftest mode (3 segments)
+[HGS-SELFTEST] entering selftestsuite mode (3 segments)
 [HGS-SELFTEST] [I] 6 search tests
-[HGS-SELFTEST] [A1: 0.271s][Δ: 0.271s] single word in corpus: 'vervex'
-[HGS-SELFTEST] [A2: 1.688s][Δ: 1.417s] phrase in corpus: 'plato omnem'
-[HGS-SELFTEST] [A3: 3.563s][Δ: 1.875s] phrase near phrase: 'καὶ δὴ καὶ' near 'εἴ που καὶ'
-[HGS-SELFTEST] [B1: 5.004s][Δ: 1.441s] lemma in corpus: 'φθορώδηϲ'
-[HGS-SELFTEST] [B2: 10.299s][Δ: 5.295s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
-[HGS] lemmaintoregexslice() could not find 'Πόλιϲ'
-[HGS-SELFTEST] [B3: 10.492s][Δ: 0.193s] lemma near lemma in corpus: 'Πόλιϲ' near 'ὁπλίζω
+[HGS-SELFTEST] [A1: 0.234s][Δ: 0.234s] single word in corpus: 'vervex'
+[HGS-SELFTEST] [A2: 1.875s][Δ: 1.641s] phrase in corpus: 'plato omnem'
+[HGS-SELFTEST] [A3: 3.569s][Δ: 1.695s] phrase near phrase: 'καὶ δὴ καὶ' near 'εἴ που καὶ'
+[HGS-SELFTEST] [B1: 4.931s][Δ: 1.362s] lemma in corpus: 'φθορώδηϲ'
+[HGS-SELFTEST] [B2: 9.176s][Δ: 4.245s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
+[HGS-SELFTEST] [B3: 9.380s][Δ: 0.203s] lemma near lemma in corpus: 'Πόλιϲ' near 'ὁπλίζω
 [HGS-SELFTEST] [II] 3 text, index, and vocab maker tests
-[HGS-SELFTEST] [C1: 10.756s][Δ: 0.264s] build a text for 35000 arbitrary lines
-[HGS-SELFTEST] [C2: 17.533s][Δ: 6.777s] build an index to 35000 arbitrary lines
-[HGS-SELFTEST] [C3: 20.864s][Δ: 3.331s] build vocabulary list for 35000 arbitrary lines
+[HGS-SELFTEST] [C1: 9.607s][Δ: 0.227s] build a text for 35000 arbitrary lines
+[HGS-SELFTEST] [C2: 13.466s][Δ: 3.859s] build an index to 35000 arbitrary lines
+[HGS-SELFTEST] [C3: 15.842s][Δ: 2.377s] build vocabulary list for 35000 arbitrary lines
 [HGS-SELFTEST] [III] 4 browsing and lexical tests
-[HGS] could not find a work for gr0021w001
-[HGS] could not find a work for gr0025w001
-[HGS-SELFTEST] [D1: 23.293s][Δ: 2.429s] browse 50 passages
-[HGS] findbyform() found no results for 'Romani'
-[HGS-SELFTEST] [D2: 30.453s][Δ: 7.160s] look up 48 specific words
-[HGS-SELFTEST] [D3: 36.271s][Δ: 5.818s] look up 6 word substrings
-[HGS-SELFTEST] [D4: 53.002s][Δ: 16.732s] reverse lookup for 6 word substrings
-...
+[HGS-SELFTEST] [D1: 16.877s][Δ: 1.035s] browse 50 passages
+[HGS-SELFTEST] [D2: 22.156s][Δ: 5.279s] look up 48 specific words
+[HGS-SELFTEST] [D3: 27.175s][Δ: 5.019s] look up 6 word substrings
+[HGS-SELFTEST] [D4: 41.614s][Δ: 14.440s] reverse lookup for 6 word substrings
+[HGS-SELFTEST] exiting selftestsuite mode
+
 ```
 
 self-test with vectors can be deceptive because `-wc` flag will not override config json.
 
 20 M1 cores
 ```
-[HGS] Hipparchia Golang Server (v1.2.4-pre) [git: 3104b990] [gl=0; el=0]
-[HGS] Running Selftest 1 of 2
-	Built:	2023-04-07@20:12:58
-	Go:	go1.20.3
-⇨ http server started on 127.0.0.1:8000
+[HGS] Hipparchia Golang Server (v1.2.12-pre) [git: 800bf17f] [gl=0; el=0]
+	Built:	2023-09-07@19:45:59		Golang:	go1.21.1
+	System:	darwin-arm64			WKvCPU:	20/20
 ...
-[HGS] [IV] vectorization tests
-[HGS] vectordbreset() dropped semantic_vectors
-[HGS] vectordbinit(): success
-[HGS] [E1: 97.276s][Δ: 26.007s] vector model test: w2v (2 authors with 4 text preparation modes each)
-[HGS] [E2: 123.754s][Δ: 26.478s] vector model test: lexvec (2 authors with 4 text preparation modes each)
-[HGS] [E3: 161.489s][Δ: 37.735s] vector model test: glove (2 authors with 4 text preparation modes each)
-
-```
-6 M1 cores + virtualization
-
-```
-[HGS] [IV] vectorization tests
-[HGS] vectordbreset() dropped semantic_vectors
-[HGS] vectordbinit(): success
-[HGS] [E1: 198.268s][Δ: 43.153s] vector model test: w2v (2 authors with 4 text preparation modes each)
-[HGS] [E2: 245.816s][Δ: 47.548s] vector model test: lexvec (2 authors with 4 text preparation modes each)
-[HGS] [E3: 302.168s][Δ: 56.351s] vector model test: glove (2 authors with 4 text preparation modes each)
-```
-
-6 intel 9900k cores 
-```
-[HGS] [IV] vectorization tests
-[HGS] vectordbreset() dropped semantic_vectors
-[HGS] vectordbinit(): success
-[HGS] [E1: 157.453s][Δ: 41.629s] vector model test: w2v (2 authors with 4 text preparation modes each)
-[HGS] [E2: 213.944s][Δ: 56.491s] vector model test: lexvec (2 authors with 4 text preparation modes each)
-[HGS] [E3: 247.067s][Δ: 33.124s] vector model test: glove (2 authors with 4 text preparation modes each)
-```
-
+[HGS-SELFTEST] [IV] nearest neighbor vectorization tests
+[HGS-SELFTEST] [E1: 62.703s][Δ: 21.434s] semantic vector model test: w2v - 1 author(s) with 4 text preparation modes per author
+[HGS-SELFTEST] [E2: 85.600s][Δ: 22.897s] semantic vector model test: lexvec - 1 author(s) with 4 text preparation modes per author
+[HGS-SELFTEST] [E3: 119.846s][Δ: 34.246s] semantic vector model test: glove - 1 author(s) with 4 text preparation modes per author
+[HGS-SELFTEST] [V] lda vectorization tests
+[HGS-SELFTEST] [F: 140.273s][Δ: 20.427s] lda vector model test - 1 author(s) with 4 text preparation modes per author
 
 ### some vectorless selftest times
 
@@ -86,7 +63,7 @@ self-test with vectors can be deceptive because `-wc` flag will not override con
 * 111s on 6 cores of apple silicon (m1) virtualizing rocky linux
 * 113s on 6 cores of an intel 9900k running a virtualized ubuntu
 * 147s on 6 cores of apple silicon (m1) virtualizing freebsd13 w/ zfs
-* 154s on 6 cores of apple silicon (m1) virtualizing macos
+* 101 on 6 cores of apple silicon (m1) virtualizing macos
 * 232s on 6 cores of an intel 9900k running a virtualized windows 10
 * 349s on a mac mini 2018
 * 483s on 6 cores of apple silicon (m1) virtualizing windows 11 arm

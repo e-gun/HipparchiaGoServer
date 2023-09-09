@@ -121,7 +121,7 @@ func main() {
 
 	// uncomment one or more of the next if debugging; they are very spammy for the console...
 
-	// go svreport()
+	// go searchvaultreport()
 	// go wsclientreport()
 
 	msg(QUIT, MSGMAND)

@@ -245,29 +245,30 @@ func (pool *WSPool) WSPoolStartListening() {
 		MSG2 = "WSPool client failed on WriteMessage()"
 	)
 
+	writemsg := func(jso *WSJSOut) {
+		for cl := range pool.ClientMap {
+			if cl.ID == jso.ID {
+				js, y := json.Marshal(jso)
+				chke(y)
+				e := cl.Conn.WriteMessage(websocket.TextMessage, js)
+				if e != nil {
+					msg(MSG2, MSGWARN)
+					delete(pool.ClientMap, cl)
+				}
+			}
+		}
+	}
+
 	for {
 		select {
 		case id := <-pool.Add:
 			pool.ClientMap[id] = true
-			break
 		case id := <-pool.Remove:
 			delete(pool.ClientMap, id)
-			break
-		case m := <-pool.ReadID:
-			msg(fmt.Sprintf(MSG1, m), MSGPEEK)
-		case jso := <-pool.JSO:
-			for cl := range pool.ClientMap {
-				if cl.ID == jso.ID {
-					js, y := json.Marshal(jso)
-					chke(y)
-					e := cl.Conn.WriteMessage(websocket.TextMessage, js)
-					if e != nil {
-						msg(MSG2, MSGWARN)
-						delete(pool.ClientMap, cl)
-						break
-					}
-				}
-			}
+		case id := <-pool.ReadID:
+			msg(fmt.Sprintf(MSG1, id), MSGPEEK)
+		case wrt := <-pool.JSO:
+			writemsg(wrt)
 		}
 	}
 }

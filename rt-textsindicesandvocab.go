@@ -305,13 +305,15 @@ func RtVocabMaker(c echo.Context) error {
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
 	si.InitSum = MSG2
-	AllSearches.InsertSS(si)
+	AllSearches.UpdateSS(si)
 
 	// [c2] map observed words to possibilities
 	poss := make(map[string][]MorphPossib)
 	for k, v := range morphmap {
 		poss[k] = extractmorphpossibilities(v.RawPossib)
 	}
+
+	morphmap = make(map[string]DbMorphology) // clear after use
 
 	// [c3] build a new slice of seen words with headwords attached
 	var parsedwords []WordInfo
@@ -378,9 +380,7 @@ func RtVocabMaker(c echo.Context) error {
 		}
 	}
 	onlyhere = Unique(onlyhere)
-	sort.Slice(onlyhere, func(i, j int) bool {
-		return strings.Replace(StripaccentsSTR(onlyhere[i]), "ϲ", "σ", -1) < strings.Replace(StripaccentsSTR(onlyhere[j]), "ϲ", "σ", -1)
-	})
+	onlyhere = PolytonicSort(onlyhere)
 
 	vis := make([]VocInfo, len(vim))
 	ct := 0
@@ -390,7 +390,7 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	si.InitSum = MSG3
-	AllSearches.InsertSS(si)
+	AllSearches.UpdateSS(si)
 
 	// [f2] sort the results
 	if se.VocByCount {
@@ -406,7 +406,7 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	si.InitSum = MSG4
-	AllSearches.InsertSS(si)
+	AllSearches.UpdateSS(si)
 
 	// [g] format the output
 
@@ -428,7 +428,11 @@ func RtVocabMaker(c echo.Context) error {
 	}
 	trr[len(trr)-1] = TCL
 
+	// [g1] build the core: jso.HT
+
 	htm := strings.Join(trr, "")
+
+	// [g2] build the summary: jso.SU
 
 	an := vocabsrch.Results[0].MyAu().Cleaname
 	if vocabsrch.TableSize > 1 {
@@ -494,6 +498,15 @@ func RtIndexMaker(c echo.Context) error {
 	// for the bytes.Buffer pattern see FormatNoContextResults() and FormatWithContextResults()
 
 	// a lot of code duplication with RtVocabMaker() but consolidation is not as direct a matter as one might guess
+
+	// THIS HOGS MEMORY: runtime.GC() does not catch jso which is still "around" after the function exits (it seems)
+	// but if you wait and then do a simple search, the memory profile is fine
+
+	//[HGS] main() post-initialization runtime.GC() 249M --> 207M
+	//[HGS] arraytogetrequiredmorphobjects() will search among 86067 words
+	//[HGS] RtIndexMaker() runtime.GC() 394M --> 245M
+	//[HGS] Starting polling loop for b045a683
+	//[HGS] RtSearch() runtime.GC() 240M --> 208M
 
 	const (
 		TBLTMP = `        
@@ -575,6 +588,10 @@ func RtIndexMaker(c echo.Context) error {
 		}
 	}
 
+	firstresult := srch.Results[0]
+	linesingested := len(srch.Results)
+	srch.Results = make([]DbWorkline, 1) // clearing after use
+
 	// [b] find the Unique values
 	distinct := make(map[string]bool, len(slicedwords))
 	for _, w := range slicedwords {
@@ -627,6 +644,8 @@ func RtIndexMaker(c echo.Context) error {
 			}
 		}
 	}
+
+	morphmap = make(map[string]DbMorphology) // drop after use
 
 	// keep track of unique values
 	globalwordcounts := getwordcounts(StringMapKeysIntoSlice(distinct))
@@ -750,17 +769,19 @@ func RtIndexMaker(c echo.Context) error {
 
 	htm := fmt.Sprintf(TBLTMP, strings.Join(trr, ""))
 
-	an := srch.Results[0].MyAu().Cleaname
+	// build the summary info: jso.SU
+
+	an := firstresult.MyAu().Cleaname
 	if srch.TableSize > 1 {
 		an = an + fmt.Sprintf(" and %d more author(s)", srch.TableSize-1)
 	}
 
-	wn := srch.Results[0].MyWk().Title
+	wn := firstresult.MyWk().Title
 	if srch.SearchSize > 1 {
 		wn = wn + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
 	}
 
-	cf := srch.Results[0].MyWk().CitationFormat()
+	cf := firstresult.MyWk().CitationFormat()
 	var tc []string
 	for _, x := range cf {
 		if len(x) != 0 {
@@ -775,7 +796,7 @@ func RtIndexMaker(c echo.Context) error {
 	ky := multiworkkeymaker(mp, &srch)
 
 	cp := ""
-	if len(srch.Results) == MAXTEXTLINEGENERATION {
+	if linesingested == MAXTEXTLINEGENERATION {
 		cp = m.Sprintf(HITCAP, MAXTEXTLINEGENERATION)
 	}
 
@@ -911,6 +932,9 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 		CHUNKSIZE = 999999
 	)
 
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
+
 	// look for the upper case matches too: Ϲωκράτηϲ and not just ϲωκρατέω (!)
 	uppers := make([]string, len(wordlist))
 	for i := 0; i < len(wordlist); i++ {
@@ -929,9 +953,6 @@ func arraytogetrequiredmorphobjects(wordlist []string) map[string]DbMorphology {
 	wordlist = append(wordlist, apo...)
 
 	msg(fmt.Sprintf(MSG1, len(wordlist)), MSGPEEK)
-
-	dbconn := GetPSQLconnection()
-	defer dbconn.Release()
 
 	foundmorph := make(map[string]DbMorphology)
 	var thehit DbMorphology

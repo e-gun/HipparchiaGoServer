@@ -49,11 +49,11 @@ func FillPSQLPoool() *pgxpool.Pool {
 		FAILSRV = `'%s': there is configuration problem; see the following response from PostgreSQL:`
 	)
 
-	min := Config.WorkerCount
-	max := SIMULTANEOUSSEARCHES * Config.WorkerCount
+	mn := Config.WorkerCount
+	mx := SIMULTANEOUSSEARCHES * Config.WorkerCount
 
 	pl := Config.PGLogin
-	url := fmt.Sprintf(UTPL, pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName, min, max)
+	url := fmt.Sprintf(UTPL, pl.User, pl.Pass, pl.Host, pl.Port, pl.DBName, mn, mx)
 
 	config, e := pgxpool.ParseConfig(url)
 	if e != nil {

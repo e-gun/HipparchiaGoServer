@@ -215,7 +215,7 @@ func vectordbchecknn(fp string) bool {
 func vectordbaddnn(fp string, embs embedding.Embeddings) {
 	const (
 		MSG1 = "vectordbaddnn(): "
-		MSG2 = "%s compression: %dM -> %dM (%.1f percent)"
+		MSG2 = "%s compression: %dM -> %dM (-> %.1f%%)"
 		FAIL = "vectordbaddnn() failed when calling json.Marshal(embs): nothing stored"
 		INS  = `
 			INSERT INTO %s

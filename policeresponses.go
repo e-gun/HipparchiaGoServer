@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"time"
 )
 
 //
@@ -45,6 +46,7 @@ var (
 func PoliceResponse(nextechohandler echo.HandlerFunc) echo.HandlerFunc {
 	const (
 		BLACK0 = `IP address %s was blacklisted: too many previous response code errors`
+		SLOWDN = 3
 	)
 
 	return func(c echo.Context) error {
@@ -62,6 +64,7 @@ func PoliceResponse(nextechohandler echo.HandlerFunc) echo.HandlerFunc {
 		if !ok {
 			// register a 403
 			SListWR <- registerresult
+			time.Sleep(SLOWDN * time.Second)
 			e := echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf(BLACK0, c.RealIP()))
 			return e
 		} else {
@@ -90,25 +93,25 @@ func IPBlacklistKeeper() {
 	// NB: this loop will never exit
 	for {
 		select {
-		case rcv := <-BListRD:
+		case rd := <-BListRD:
 			valid := true
-			if _, ok := blacklist[rcv.ip]; ok {
+			if _, ok := blacklist[rd.ip]; ok {
 				// you are on the blacklist...
 				valid = false
 			}
-			rcv.resp <- valid
-		case snd := <-BListWR:
+			rd.resp <- valid
+		case wr := <-BListWR:
 			ret := false
-			if _, ok := strikecount[snd.ip]; !ok {
-				strikecount[snd.ip] = 1
-			} else if strikecount[snd.ip] >= FAILSALLOWED {
-				blacklist[snd.ip] = struct{}{}
-				msg(fmt.Sprintf(BLACK0, snd.ip, len(blacklist)), MSGNOTE)
+			if _, ok := strikecount[wr.ip]; !ok {
+				strikecount[wr.ip] = 1
+			} else if strikecount[wr.ip] >= FAILSALLOWED {
+				blacklist[wr.ip] = struct{}{}
+				msg(fmt.Sprintf(BLACK0, wr.ip, len(blacklist)), MSGNOTE)
 				ret = true
 			} else {
-				strikecount[snd.ip]++
+				strikecount[wr.ip]++
 			}
-			snd.resp <- ret
+			wr.resp <- ret
 		}
 	}
 }
@@ -120,17 +123,18 @@ func ResponseStatsKeeper() {
 		BLACK2 = `IP address %s received a strike: StatusInternalServerError for URI "%s"`
 		FYI200 = `StatusOK count is %d`
 		FRQ200 = 1000
-		FYI403 = `StatusForbidden count is %d. Last blocked was %s requesting "%s"`
+		FYI403 = `[%s] StatusForbidden count is %d. Last blocked was %s requesting "%s"`
 		FRQ403 = 100
-		FYI404 = `StatusNotFound count is %d`
+		FYI404 = `[%s] StatusNotFound count is %d`
 		FRQ404 = 100
-		FYI500 = `StatusInternalServerError count is %d.`
+		FYI500 = `[%s] StatusInternalServerError count is %d.`
 		FRQ500 = 1
 	)
 
 	// NB: this loop will never exit
 	for {
 		status := <-SListWR
+		when := time.Now().Format(time.RFC822)
 		switch status.code {
 		case 200:
 			EchoServerStats.TwoHundred++
@@ -141,12 +145,12 @@ func ResponseStatsKeeper() {
 			// you are already on the blacklist...
 			EchoServerStats.FourOhThree++
 			if EchoServerStats.FourOhThree%FRQ403 == 0 {
-				msg(fmt.Sprintf(FYI403, EchoServerStats.FourOhThree, status.ip, status.uri), MSGNOTE)
+				msg(fmt.Sprintf(FYI403, when, EchoServerStats.FourOhThree, status.ip, status.uri), MSGNOTE)
 			}
 		case 404:
 			EchoServerStats.FourOhFour++
 			if EchoServerStats.FourOhFour%FRQ404 == 0 {
-				msg(fmt.Sprintf(FYI404, EchoServerStats.FourOhFour), MSGNOTE)
+				msg(fmt.Sprintf(FYI404, when, EchoServerStats.FourOhFour), MSGNOTE)
 			}
 
 			// you need to be logged on the blacklist...
@@ -160,7 +164,7 @@ func ResponseStatsKeeper() {
 		case 500:
 			EchoServerStats.FiveHundred++
 			if EchoServerStats.FiveHundred%FRQ500 == 0 {
-				msg(fmt.Sprintf(FYI500, EchoServerStats.FiveHundred), MSGWARN)
+				msg(fmt.Sprintf(FYI500, when, EchoServerStats.FiveHundred), MSGWARN)
 			}
 
 			// you need to be logged on the blacklist...

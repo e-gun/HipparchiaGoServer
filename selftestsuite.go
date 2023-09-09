@@ -70,14 +70,15 @@ func selftestsuite() {
 		URL   = "http://%s:%d/vbot/%s/%s"
 	)
 
+	// TODO: figure out why memory use creeps forever up; looks like rt-search.go is not the issue but instead
+	// TODO(ctd'): rt-lexica.go and/or rt-textsindicesandvocab.go; BUT normal everyday use does not seem to be a problem
+
 	mm := NewGenericMessageMaker(Config, StatCounter, LaunchStruct{
 		Shortname:  "HGS-SELFTEST",
 		LaunchTime: time.Now(),
 	})
 
 	mm.Cfg.LogLevel = MSGFYI
-
-	printbuildinfo()
 
 	st := []SrchTest{
 		{
