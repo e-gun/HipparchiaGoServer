@@ -112,7 +112,8 @@ func NeighborsSearch(c echo.Context, srch SearchStruct) error {
 	}
 
 	AllSearches.Delete(srch.ID)
-	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
+
+	return c.JSON(http.StatusOK, soj)
 }
 
 // fingerprintnnvectorsearch - derive a unique md5 for any given mix of search items & vector settings

@@ -167,12 +167,16 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	var vmodel model.Model
 	var ti int
 
+	// THIS HOGS MEMORY: runtime.GC() does not purge everything; data "around" after the function exits (it seems)
+	// BUT word2vec and lexvec do not do this (much): and glove does: +50MB to model Hdt
+	// bleh. The problem is in imported code?
+
 	switch modeltype {
 	case "glove":
 		cfg := glovevectorconfig()
 		m, err := glove.NewForOptions(cfg)
 		if err != nil {
-			msg(FAIL1, 1)
+			msg(FAIL1, MSGWARN)
 		}
 		vmodel = m
 		ti = cfg.Iter
@@ -180,7 +184,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 		cfg := lexvecvectorconfig()
 		m, err := lexvec.NewForOptions(cfg)
 		if err != nil {
-			msg(FAIL1, 1)
+			msg(FAIL1, MSGWARN)
 		}
 		vmodel = m
 		ti = cfg.Iter
@@ -188,7 +192,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 		cfg := w2vvectorconfig()
 		m, err := word2vec.NewForOptions(cfg)
 		if err != nil {
-			msg(FAIL1, 1)
+			msg(FAIL1, MSGWARN)
 		}
 		vmodel = m
 		ti = cfg.Iter

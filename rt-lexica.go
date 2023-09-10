@@ -149,7 +149,7 @@ func RtLexLookup(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = insertlexicaljs()
 
-	return c.JSONPretty(http.StatusOK, jb, JSONINDENT)
+	return c.JSON(http.StatusOK, jb)
 }
 
 // RtLexFindByForm - search the dictionary for a specific headword
@@ -190,7 +190,7 @@ func RtLexFindByForm(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = js
 
-	return c.JSONPretty(http.StatusOK, jb, JSONINDENT)
+	return c.JSON(http.StatusOK, jb)
 }
 
 // RtLexId - grab a word by its entry value
@@ -228,7 +228,7 @@ func RtLexId(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = js
 
-	return c.JSONPretty(http.StatusOK, jb, JSONINDENT)
+	return c.JSON(http.StatusOK, jb)
 }
 
 // RtLexReverse - look for the headwords that have the sought word in their body
@@ -272,7 +272,7 @@ func RtLexReverse(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = insertlexicaljs()
 
-	return c.JSONPretty(http.StatusOK, jb, JSONINDENT)
+	return c.JSON(http.StatusOK, jb)
 }
 
 //

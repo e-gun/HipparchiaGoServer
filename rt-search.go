@@ -115,7 +115,8 @@ func RtSearch(c echo.Context) error {
 	AllSearches.Delete(srch.ID)
 
 	// note that JSONPretty is strikingly prominent on the profiler: a waste of cycles unless you are debugging
-	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
+	// return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
+	return c.JSON(http.StatusOK, soj)
 }
 
 //

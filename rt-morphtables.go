@@ -391,7 +391,8 @@ func RtMorphchart(c echo.Context) error {
 		jb.HTML = DeLunate(jb.HTML)
 	}
 
-	return c.JSONPretty(http.StatusOK, jb, JSONINDENT)
+	// return c.JSONPretty(http.StatusOK, jb, JSONINDENT)
+	return c.JSON(http.StatusOK, jb)
 }
 
 // generateverbtable - given a map of grammar IDs to words, build a verb table

@@ -34,21 +34,21 @@ type BrowsedPassage struct {
 func RtBrowseLocus(c echo.Context) error {
 	sep := "|"
 	bp := Browse(c, sep)
-	return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
+	return c.JSON(http.StatusOK, bp)
 }
 
 // RtBrowsePerseus - open a browser if sent '/browse/perseus/lt0550/001/2:717'
 func RtBrowsePerseus(c echo.Context) error {
 	sep := ":"
 	bp := Browse(c, sep)
-	return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
+	return c.JSON(http.StatusOK, bp)
 }
 
 // RtBrowseRaw - open a browser if sent '/browse/rawlocus/lt0474/055/1.1.1'
 func RtBrowseRaw(c echo.Context) error {
 	sep := "."
 	bp := Browse(c, sep)
-	return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
+	return c.JSON(http.StatusOK, bp)
 }
 
 // RtBrowseLine - open a browser if sent '/browse/index/lt0550/001/1855'
@@ -77,7 +77,7 @@ func RtBrowseLine(c echo.Context) error {
 		chke(e)
 		ctx := s.BrowseCtx
 		bp := generatebrowsedpassage(au, wk, ln, ctx)
-		return c.JSONPretty(http.StatusOK, bp, JSONINDENT)
+		return c.JSON(http.StatusOK, bp)
 	} else {
 		msg(fmt.Sprintf(FAIL, locus), MSGFYI)
 		return emptyjsreturn(c)

@@ -142,7 +142,8 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	}
 
 	AllSearches.Delete(srch.ID)
-	return c.JSONPretty(http.StatusOK, soj, JSONINDENT)
+
+	return c.JSON(http.StatusOK, soj)
 }
 
 // ldapreptext - prepare a collectio of dblines for lda analysis

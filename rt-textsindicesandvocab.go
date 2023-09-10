@@ -175,7 +175,7 @@ func RtTextMaker(c echo.Context) error {
 	jso.HT = tab
 	jso.JS = ""
 
-	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
+	return c.JSON(http.StatusOK, jso)
 }
 
 // RtVocabMaker - get the vocabulary for whatever collection of lines you would be searching
@@ -484,7 +484,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	AllSearches.Delete(si.ID)
 
-	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
+	return c.JSON(http.StatusOK, jso)
 }
 
 // RtIndexMaker - build an index for whatever collection of lines you would be searching
@@ -505,8 +505,13 @@ func RtIndexMaker(c echo.Context) error {
 	//[HGS] main() post-initialization runtime.GC() 249M --> 207M
 	//[HGS] arraytogetrequiredmorphobjects() will search among 86067 words
 	//[HGS] RtIndexMaker() runtime.GC() 394M --> 245M
+	// ... [wait] ...
 	//[HGS] Starting polling loop for b045a683
 	//[HGS] RtSearch() runtime.GC() 240M --> 208M
+
+	// see https://stackoverflow.com/questions/31748433/go-doesnt-release-memory-after-http-get
+	// "http.Transport saves connections for future reusing in case of request to same host, causing memory bloating"
+	// but "e.Server.SetKeepAlivesEnabled(false)" is not a fix...
 
 	const (
 		TBLTMP = `        
@@ -825,7 +830,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	AllSearches.Delete(si.ID)
 
-	return c.JSONPretty(http.StatusOK, jso, JSONINDENT)
+	return c.JSON(http.StatusOK, jso)
 }
 
 //
