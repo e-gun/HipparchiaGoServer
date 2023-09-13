@@ -212,15 +212,16 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassag
 	ab := fmt.Sprintf(`%s [%s]`, AllAuthors[au].Cleaname, au)
 	wb := fmt.Sprintf(`%s (w%s)`, w.Title, w.WkID())
 
-	var bp BrowsedPassage
-	bp.Browseforwards = fw
-	bp.Browseback = bw
-	bp.Authornumber = au
-	bp.Workid = lines[0].WkUID
-	bp.Authorboxcontents = ab
-	bp.Workboxcontents = wb
-	bp.Browserhtml = ci + tr
-	bp.Worknumber = wk
+	bp := BrowsedPassage{
+		Browseforwards:    fw,
+		Browseback:        bw,
+		Authornumber:      au,
+		Workid:            lines[0].WkUID,
+		Worknumber:        wk,
+		Authorboxcontents: ab,
+		Workboxcontents:   wb,
+		Browserhtml:       ci + tr,
+	}
 
 	return bp
 }

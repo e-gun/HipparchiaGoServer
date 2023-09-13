@@ -499,8 +499,9 @@ func RtIndexMaker(c echo.Context) error {
 
 	// a lot of code duplication with RtVocabMaker() but consolidation is not as direct a matter as one might guess
 
-	// THIS HOGS MEMORY: runtime.GC() does not catch jso which is still "around" after the function exits (it seems)
-	// but if you wait and then do a simple search, the memory profile is fine
+	// THIS HOGS MEMORY DURING SELFTEST(): runtime.GC() does not catch jso data which is still "around" after the function
+	// exits (it seems) textindexvocab and vectors are the places where one sees this; anything with a big JSON payload
+	// seems to be a problem but a lot of this is hard to reproduce outside of the selftest()
 
 	//[HGS] main() post-initialization runtime.GC() 249M --> 207M
 	//[HGS] arraytogetrequiredmorphobjects() will search among 86067 words
@@ -508,10 +509,6 @@ func RtIndexMaker(c echo.Context) error {
 	// ... [wait] ...
 	//[HGS] Starting polling loop for b045a683
 	//[HGS] RtSearch() runtime.GC() 240M --> 208M
-
-	// see https://stackoverflow.com/questions/31748433/go-doesnt-release-memory-after-http-get
-	// "http.Transport saves connections for future reusing in case of request to same host, causing memory bloating"
-	// but "e.Server.SetKeepAlivesEnabled(false)" is not a fix...
 
 	const (
 		TBLTMP = `        

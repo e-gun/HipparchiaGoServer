@@ -31,6 +31,7 @@ func (t *SrchTest) Msg() string {
 	return fmt.Sprintf(t.m, strings.ReplaceAll(t.t1, "%20", " "), strings.ReplaceAll(t.t2, "%20", " "))
 }
 
+// runselftests - loop selftestsuite()
 func runselftests() {
 	if Config.SelfTest > 0 {
 		go func() {
@@ -42,6 +43,7 @@ func runselftests() {
 	}
 }
 
+// selftestsuite - iterate through a list of tests
 func selftestsuite() {
 	const (
 		SKG1  = "srch/exec/%s?skg=%s%s"
@@ -70,8 +72,7 @@ func selftestsuite() {
 		URL   = "http://%s:%d/vbot/%s/%s"
 	)
 
-	// TODO: figure out why memory use creeps forever up; looks like rt-search.go is not the issue but instead
-	// TODO(ctd'): rt-lexica.go and/or rt-textsindicesandvocab.go; BUT normal everyday use does not seem to be a problem
+	// TODO: figure out why memory use creeps forever up; glove vectors are a problem; selftest() is best/worst
 
 	mm := NewGenericMessageMaker(Config, StatCounter, LaunchStruct{
 		Shortname:  "HGS-SELFTEST",
@@ -126,7 +127,7 @@ func selftestsuite() {
 	}
 
 	time.Sleep(WSPOLLINGPAUSE * 3)
-	mm.Emit("entering selftestsuite mode (3 segments)", MSGMAND)
+	mm.Emit("entering selftestsuite mode (4 segments)", MSGMAND)
 
 	start := time.Now()
 	previous := time.Now()
@@ -207,7 +208,9 @@ func selftestsuite() {
 	ovm := Config.VectorModel
 	otx := Config.VectorTextPrep
 
+	// glove seizes scads of memory and never releases it
 	vmod := []string{"w2v", "lexvec", "glove"}
+	// vmod := []string{"w2v", "lexvec"}
 	vtxp := []string{"winner", "unparsed", "yoked", "montecarlo"}
 	vauu := []string{"gr0011"} // sophocles
 

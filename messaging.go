@@ -302,19 +302,23 @@ func (m *MessageMaker) Ticker(wait time.Duration) {
 		FIRSTLINE = "\033[2;1H"
 		CURSSAVE  = "\033[s"
 		CURSREST  = "\033[u"
-		PADDING   = " ----------------- "
+		PADDING   = "  -----------------  "
 		STATTMPL  = "%s: C2%dC0"
-		UPTIME    = "[S1C6%vC0] C5S1HGS uptime: C1%vC0"
+		UPTIME    = "[S1C6%vC0]  C5S1HGS uptime: C1%vC0  [S1C6%sC0]"
 	)
 
 	// ANSI escape codes do not work in windows
 	if !m.Cfg.TickerActive || m.Win {
 		return
 	}
+	var mem runtime.MemStats
 
 	// the uptime line
 	t := func(up time.Duration) {
-		tick := fmt.Sprintf(UPTIME, time.Now().Format(time.TimeOnly), up.Truncate(time.Minute))
+		runtime.ReadMemStats(&mem)
+		heap := fmt.Sprintf("%dM", mem.HeapAlloc/1024/1024)
+		// stack := fmt.Sprintf("%dM", mem.StackInuse/1024/1024)
+		tick := fmt.Sprintf(UPTIME, time.Now().Format(time.TimeOnly), up.Truncate(time.Second), heap)
 		tick = m.ColStyle(PADDING + tick + PADDING)
 		fmt.Printf(CURSSAVE + CURSHOME + CLEAR + HEAD + tick + CURSREST)
 	}
