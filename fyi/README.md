@@ -56,6 +56,7 @@ self-test with vectors can be deceptive because `-wc` flag will not override con
 [HGS-SELFTEST] [E3: 119.846s][Δ: 34.246s] semantic vector model test: glove - 1 author(s) with 4 text preparation modes per author
 [HGS-SELFTEST] [V] lda vectorization tests
 [HGS-SELFTEST] [F: 140.273s][Δ: 20.427s] lda vector model test - 1 author(s) with 4 text preparation modes per author
+```
 
 ### some vectorless selftest times
 
@@ -157,13 +158,13 @@ self-test with vectors can be deceptive because `-wc` flag will not override con
       43 unique files.                              
        0 files ignored.
 
-github.com/AlDanial/cloc v 1.98  T=0.04 s (1033.3 files/s, 450245.4 lines/s)
+github.com/AlDanial/cloc v 1.98  T=0.04 s (984.3 files/s, 429699.6 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                              43           2738           3010          12988
+Go                              43           2747           3034          12990
 -------------------------------------------------------------------------------
-SUM:                            43           2738           3010          12988
+SUM:                            43           2747           3034          12990
 -------------------------------------------------------------------------------
 
 ```
