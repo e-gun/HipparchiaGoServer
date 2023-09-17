@@ -10,11 +10,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
-	"net/http"
 	"os"
 	"sort"
 	"strings"
 )
+
+var ()
 
 // NeighborsSearch - a special case for RtSearch() where you requested vectorization of the results
 func NeighborsSearch(c echo.Context, srch SearchStruct) error {
@@ -113,7 +114,7 @@ func NeighborsSearch(c echo.Context, srch SearchStruct) error {
 
 	AllSearches.Delete(srch.ID)
 
-	return c.JSON(http.StatusOK, soj)
+	return jsonresponse(c, soj)
 }
 
 // fingerprintnnvectorsearch - derive a unique md5 for any given mix of search items & vector settings

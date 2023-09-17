@@ -21,23 +21,23 @@ HipparchiaGoServer -gl 2 -dv -st
 	Built:	2023-09-07@19:00:28		Golang:	go1.21.1
 	System:	darwin-arm64			WKvCPU:	20/20
 ⇨ http server started on 127.0.0.1:8000
-[HGS-SELFTEST] entering selftestsuite mode (3 segments)
+[HGS-SELFTEST] entering selftestsuite mode (4 segments)
 [HGS-SELFTEST] [I] 6 search tests
-[HGS-SELFTEST] [A1: 0.234s][Δ: 0.234s] single word in corpus: 'vervex'
-[HGS-SELFTEST] [A2: 1.875s][Δ: 1.641s] phrase in corpus: 'plato omnem'
-[HGS-SELFTEST] [A3: 3.569s][Δ: 1.695s] phrase near phrase: 'καὶ δὴ καὶ' near 'εἴ που καὶ'
-[HGS-SELFTEST] [B1: 4.931s][Δ: 1.362s] lemma in corpus: 'φθορώδηϲ'
-[HGS-SELFTEST] [B2: 9.176s][Δ: 4.245s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
-[HGS-SELFTEST] [B3: 9.380s][Δ: 0.203s] lemma near lemma in corpus: 'Πόλιϲ' near 'ὁπλίζω
+[HGS-SELFTEST] [A1: 0.222s][Δ: 0.222s] single word in corpus: 'vervex'
+[HGS-SELFTEST] [A2: 1.354s][Δ: 1.132s] phrase in corpus: 'plato omnem'
+[HGS-SELFTEST] [A3: 3.315s][Δ: 1.961s] phrase near phrase: 'καὶ δὴ καὶ' near 'εἴ που καὶ'
+[HGS-SELFTEST] [B1: 4.354s][Δ: 1.039s] lemma in corpus: 'φθορώδηϲ'
+[HGS-SELFTEST] [B2: 8.918s][Δ: 4.564s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
+[HGS-SELFTEST] [B3: 32.503s][Δ: 23.585s] lemma near lemma in corpus: 'πόλιϲ' near 'ὁπλίζω
 [HGS-SELFTEST] [II] 3 text, index, and vocab maker tests
-[HGS-SELFTEST] [C1: 9.607s][Δ: 0.227s] build a text for 35000 arbitrary lines
-[HGS-SELFTEST] [C2: 13.466s][Δ: 3.859s] build an index to 35000 arbitrary lines
-[HGS-SELFTEST] [C3: 15.842s][Δ: 2.377s] build vocabulary list for 35000 arbitrary lines
+[HGS-SELFTEST] [C1: 32.670s][Δ: 0.167s] build a text for 35000 arbitrary lines
+[HGS-SELFTEST] [C2: 35.702s][Δ: 3.032s] build an index to 35000 arbitrary lines
+[HGS-SELFTEST] [C3: 37.750s][Δ: 2.047s] build vocabulary list for 35000 arbitrary lines
 [HGS-SELFTEST] [III] 4 browsing and lexical tests
-[HGS-SELFTEST] [D1: 16.877s][Δ: 1.035s] browse 50 passages
-[HGS-SELFTEST] [D2: 22.156s][Δ: 5.279s] look up 48 specific words
-[HGS-SELFTEST] [D3: 27.175s][Δ: 5.019s] look up 6 word substrings
-[HGS-SELFTEST] [D4: 41.614s][Δ: 14.440s] reverse lookup for 6 word substrings
+[HGS-SELFTEST] [D1: 38.929s][Δ: 1.179s] browse 50 passages
+[HGS-SELFTEST] [D2: 44.182s][Δ: 5.253s] look up 48 specific words
+[HGS-SELFTEST] [D3: 50.161s][Δ: 5.979s] look up 6 word substrings
+[HGS-SELFTEST] [D4: 64.094s][Δ: 13.933s] reverse lookup for 6 word substrings
 [HGS-SELFTEST] exiting selftestsuite mode
 
 ```
@@ -56,6 +56,7 @@ self-test with vectors can be deceptive because `-wc` flag will not override con
 [HGS-SELFTEST] [E3: 119.846s][Δ: 34.246s] semantic vector model test: glove - 1 author(s) with 4 text preparation modes per author
 [HGS-SELFTEST] [V] lda vectorization tests
 [HGS-SELFTEST] [F: 140.273s][Δ: 20.427s] lda vector model test - 1 author(s) with 4 text preparation modes per author
+```
 
 ### some vectorless selftest times
 

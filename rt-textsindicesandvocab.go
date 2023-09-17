@@ -175,7 +175,7 @@ func RtTextMaker(c echo.Context) error {
 	jso.HT = tab
 	jso.JS = ""
 
-	return c.JSON(http.StatusOK, jso)
+	return jsonresponse(c, jso)
 }
 
 // RtVocabMaker - get the vocabulary for whatever collection of lines you would be searching
@@ -484,7 +484,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	AllSearches.Delete(si.ID)
 
-	return c.JSON(http.StatusOK, jso)
+	return jsonresponse(c, jso)
 }
 
 // RtIndexMaker - build an index for whatever collection of lines you would be searching
@@ -827,7 +827,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	AllSearches.Delete(si.ID)
 
-	return c.JSON(http.StatusOK, jso)
+	return jsonresponse(c, jso)
 }
 
 //

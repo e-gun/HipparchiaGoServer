@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	jsoniter "github.com/json-iterator/go"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -53,6 +54,7 @@ var (
 	ServableFonts = map[string]FontTempl{"Noto": NotoFont, "Roboto": RobotoFont, "Fira": FiraFont}
 	LaunchTime    = time.Now()
 	WebsocketPool = WSFillNewPool()
+	jsi           = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 type DbAuthor struct {

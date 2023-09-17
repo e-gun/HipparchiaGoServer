@@ -119,7 +119,7 @@ func selftestsuite() {
 		},
 		{
 			id: "B3",
-			t1: "Πόλιϲ",
+			t1: "πόλιϲ",
 			t2: "ὁπλίζω",
 			s:  LEM3,
 			m:  MSG5,

@@ -6,9 +6,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"net/http"
 )
 
 // StartEchoServer - start serving; this blocks and does not return while the program remains alive
@@ -202,4 +204,44 @@ func StartEchoServer() {
 
 	e.HideBanner = true
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", Config.HostIP, Config.HostPort)))
+}
+
+// jsonresponse - send the JSON; this lets one test and document different strategies
+func jsonresponse(c echo.Context, jso any) error {
+	// note that JSONPretty will end up strikingly prominent on the profiler: a waste of memory and cycles unless you are debugging
+
+	// [a] "vanilla"; and it turns out there is nothing wrong with vanilla
+	opta := func() error { return c.JSON(http.StatusOK, jso) }
+
+	// [b] "costs a lot of RAM in return for what?"
+	optb := func() error { return c.JSONPretty(http.StatusOK, jso, JSONINDENT) }
+
+	// [c] "maybe streaming makes sense..." but this uses slightly more memory than [a] and is slightly slower?
+	optc := func() error {
+		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+		c.Response().WriteHeader(http.StatusOK)
+		return json.NewEncoder(c.Response()).Encode(jso)
+	}
+
+	// [d] jsoniter? import jsoniter "github.com/json-iterator/go"
+	optd := func() error {
+		b, e := jsi.Marshal(&jso)
+		chke(e)
+		return c.JSONBlob(http.StatusOK, b)
+	}
+
+	use := 4
+
+	switch use {
+	case 1:
+		return opta()
+	case 2:
+		return optb()
+	case 3:
+		return optc()
+	case 4:
+		return optd()
+	default:
+		return opta()
+	}
 }

@@ -10,7 +10,7 @@ import "time"
 const (
 	MYNAME                   = "Hipparchia Golang Server"
 	SHORTNAME                = "HGS"
-	VERSION                  = "1.2.12"
+	VERSION                  = "1.2.13"
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	BLACKANDWHITE            = false
 	CHARSPERLINE             = 60 // used by vector to preallocate memory: set it closer to a max than a real average
