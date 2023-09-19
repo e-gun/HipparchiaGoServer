@@ -137,6 +137,7 @@ func main() {
 var GitCommit string
 var VersSuppl string
 var BuildDate string
+var PGOInfo string
 
 func printversion() {
 	const (
@@ -144,15 +145,24 @@ func printversion() {
 		GC = " [C4git: C4%sC0]"
 		LL = " [C6gl=%d; el=%dC0]"
 		ME = "C5%sC0 (C2v%sC0)"
+		PG = " [C3%sC0]"
 	)
 	sn := fmt.Sprintf(SN, SHORTNAME)
 	gc := ""
 	if GitCommit != "" {
 		gc = fmt.Sprintf(GC, GitCommit)
 	}
+
+	pg := ""
+	if PGOInfo != "" {
+		pg = fmt.Sprintf(PG, PGOInfo)
+	} else {
+		pg = fmt.Sprintf(PG, "no pgo")
+	}
+
 	ll := fmt.Sprintf(LL, Config.LogLevel, Config.EchoLog)
 	versioninfo := fmt.Sprintf(ME, MYNAME, VERSION+VersSuppl)
-	versioninfo = sn + versioninfo + gc + ll
+	versioninfo = sn + versioninfo + gc + pg + ll
 	versioninfo = messenger.ColStyle(versioninfo)
 	fmt.Println(versioninfo)
 }

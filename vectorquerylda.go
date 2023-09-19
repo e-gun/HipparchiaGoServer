@@ -12,7 +12,6 @@ import (
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"gonum.org/v1/gonum/mat"
-	"net/http"
 	"regexp"
 	"sort"
 	"strconv"
@@ -143,7 +142,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 
 	AllSearches.Delete(srch.ID)
 
-	return c.JSON(http.StatusOK, soj)
+	return JSONresponse(c, soj)
 }
 
 // ldapreptext - prepare a collectio of dblines for lda analysis

@@ -10,13 +10,14 @@ fi
 
 DT=$(date "+%Y-%m-%d@%H:%M:%S")
 GC=$(git rev-list -1 HEAD | cut -c-8)
+PG="default.pgo"
 
-LDF="-s -w -X main.GitCommit=${GC} -X main.BuildDate=${DT} -X main.VersSuppl=${VS}"
+LDF="-s -w -X main.GitCommit=${GC} -X main.BuildDate=${DT} -X main.VersSuppl=${VS} -X main.PGOInfo=${PG}"
 
 # i.e., call with anything at all after the script name and you will just stop here: one and done
 # but note that INSTRUCTIONS will not have been generated
 if test -n "$1"; then
-  go build -pgo=default.pgo -ldflags "${LDF}"
+  go build -pgo=${PG} -ldflags "${LDF}"
   exit
 fi
 

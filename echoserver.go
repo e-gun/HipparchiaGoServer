@@ -206,42 +206,44 @@ func StartEchoServer() {
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", Config.HostIP, Config.HostPort)))
 }
 
-// jsonresponse - send the JSON; this lets one test and document different strategies
-func jsonresponse(c echo.Context, jso any) error {
+// JSONresponse - send the JSON; this function lets one test and document different strategies; jsr should be a json-ready struct
+func JSONresponse(c echo.Context, jsr any) error {
+	const (
+		RESPONDER = 4
+	)
+
 	// note that JSONPretty will end up strikingly prominent on the profiler: a waste of memory and cycles unless you are debugging
 
-	// [a] "vanilla"; and it turns out there is nothing wrong with vanilla
-	opta := func() error { return c.JSON(http.StatusOK, jso) }
+	// [1] "vanilla"; and it turns out there is nothing wrong with vanilla; perhaps the best choice
+	opt1 := func() error { return c.JSON(http.StatusOK, jsr) }
 
-	// [b] "costs a lot of RAM in return for what?"
-	optb := func() error { return c.JSONPretty(http.StatusOK, jso, JSONINDENT) }
+	// [2] "costs a lot of RAM in return for what?"
+	opt2 := func() error { return c.JSONPretty(http.StatusOK, jsr, JSONINDENT) }
 
-	// [c] "maybe streaming makes sense..." but this uses slightly more memory than [a] and is slightly slower?
-	optc := func() error {
+	// [3] "maybe streaming makes sense..." but this uses slightly more memory than [a] and is slightly slower?
+	opt3 := func() error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		c.Response().WriteHeader(http.StatusOK)
-		return json.NewEncoder(c.Response()).Encode(jso)
+		return json.NewEncoder(c.Response()).Encode(jsr)
 	}
 
-	// [d] jsoniter? import jsoniter "github.com/json-iterator/go"
-	optd := func() error {
-		b, e := jsi.Marshal(&jso)
+	// [4] jsoniter: faster json, but we are one-big and not many-small... import jsoniter "github.com/json-iterator/go"
+	opt4 := func() error {
+		b, e := jsi.Marshal(&jsr)
 		chke(e)
 		return c.JSONBlob(http.StatusOK, b)
 	}
 
-	use := 4
-
-	switch use {
+	switch RESPONDER {
 	case 1:
-		return opta()
+		return opt1()
 	case 2:
-		return optb()
+		return opt2()
 	case 3:
-		return optc()
+		return opt3()
 	case 4:
-		return optd()
+		return opt4()
 	default:
-		return opta()
+		return opt1()
 	}
 }

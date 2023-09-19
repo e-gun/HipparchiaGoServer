@@ -11,7 +11,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
-	"net/http"
 	"slices"
 	"strconv"
 	"strings"
@@ -72,7 +71,7 @@ func RtMorphchart(c echo.Context) error {
 	c.Response().After(func() { messenger.GCStats("RtMorphchart()") })
 	user := readUUIDCookie(c)
 	if !AllAuthorized.Check(user) {
-		return c.JSONPretty(http.StatusOK, SearchOutputJSON{JS: VALIDATIONBOX}, JSONINDENT)
+		return JSONresponse(c, SearchOutputJSON{JS: VALIDATIONBOX})
 	}
 
 	const (
@@ -391,8 +390,7 @@ func RtMorphchart(c echo.Context) error {
 		jb.HTML = DeLunate(jb.HTML)
 	}
 
-	// return c.JSONPretty(http.StatusOK, jb, JSONINDENT)
-	return c.JSON(http.StatusOK, jb)
+	return JSONresponse(c, jb)
 }
 
 // generateverbtable - given a map of grammar IDs to words, build a verb table

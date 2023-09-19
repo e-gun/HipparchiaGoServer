@@ -13,7 +13,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
-	"net/http"
 	"reflect"
 	"regexp"
 	"sort"
@@ -115,7 +114,7 @@ func RtLexLookup(c echo.Context) error {
 
 	user := readUUIDCookie(c)
 	if !AllAuthorized.Check(user) {
-		return c.JSONPretty(http.StatusOK, JSB{JS: JSVALIDATION}, JSONINDENT)
+		return JSONresponse(c, JSB{JS: JSVALIDATION})
 	}
 
 	req := c.Param("wd")
@@ -149,7 +148,7 @@ func RtLexLookup(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = insertlexicaljs()
 
-	return c.JSON(http.StatusOK, jb)
+	return JSONresponse(c, jb)
 }
 
 // RtLexFindByForm - search the dictionary for a specific headword
@@ -157,7 +156,7 @@ func RtLexFindByForm(c echo.Context) error {
 	// be able to respond to "GET /lexica/findbyform/ἀμιϲθὶ/gr0062 HTTP/1.1"
 	user := readUUIDCookie(c)
 	if !AllAuthorized.Check(user) {
-		return c.JSONPretty(http.StatusOK, JSB{JS: JSVALIDATION}, JSONINDENT)
+		return JSONresponse(c, JSB{JS: JSVALIDATION})
 	}
 	c.Response().After(func() { messenger.GCStats("RtLexFindByForm()") })
 
@@ -190,7 +189,7 @@ func RtLexFindByForm(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = js
 
-	return c.JSON(http.StatusOK, jb)
+	return JSONresponse(c, jb)
 }
 
 // RtLexId - grab a word by its entry value
@@ -203,7 +202,7 @@ func RtLexId(c echo.Context) error {
 
 	user := readUUIDCookie(c)
 	if !AllAuthorized.Check(user) {
-		return c.JSONPretty(http.StatusOK, JSB{JS: JSVALIDATION}, JSONINDENT)
+		return JSONresponse(c, JSB{JS: JSVALIDATION})
 	}
 
 	req := c.Param("wd")
@@ -228,7 +227,7 @@ func RtLexId(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = js
 
-	return c.JSON(http.StatusOK, jb)
+	return JSONresponse(c, jb)
 }
 
 // RtLexReverse - look for the headwords that have the sought word in their body
@@ -238,7 +237,7 @@ func RtLexReverse(c echo.Context) error {
 
 	user := readUUIDCookie(c)
 	if !AllAuthorized.Check(user) {
-		return c.JSONPretty(http.StatusOK, JSB{JS: JSVALIDATION}, JSONINDENT)
+		return JSONresponse(c, JSB{JS: JSVALIDATION})
 	}
 
 	req := c.Param("wd")
@@ -272,7 +271,7 @@ func RtLexReverse(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = insertlexicaljs()
 
-	return c.JSON(http.StatusOK, jb)
+	return JSONresponse(c, jb)
 }
 
 //

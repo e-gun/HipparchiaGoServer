@@ -50,17 +50,17 @@ func RtSearch(c echo.Context) error {
 
 	user := readUUIDCookie(c)
 	if !AllAuthorized.Check(user) {
-		return c.JSONPretty(http.StatusOK, SearchOutputJSON{JS: VALIDATIONBOX}, JSONINDENT)
+		return JSONresponse(c, SearchOutputJSON{JS: VALIDATIONBOX})
 	}
 
 	if AllSearches.CountIP(c.RealIP()) >= Config.MaxSrchIP {
 		m := fmt.Sprintf(TOOMANYIP, c.RealIP(), AllSearches.CountIP(c.RealIP()))
-		return c.JSONPretty(http.StatusOK, SearchOutputJSON{Searchsummary: m}, JSONINDENT)
+		return JSONresponse(c, SearchOutputJSON{Searchsummary: m})
 	}
 
 	if AllSearches.CountTotal() >= Config.MaxSrchTot {
 		m := fmt.Sprintf(TOOMANYTOTAL, AllSearches.CountTotal())
-		return c.JSONPretty(http.StatusOK, SearchOutputJSON{Searchsummary: m}, JSONINDENT)
+		return JSONresponse(c, SearchOutputJSON{Searchsummary: m})
 	}
 
 	srch := InitializeSearch(c, user)
@@ -114,7 +114,7 @@ func RtSearch(c echo.Context) error {
 
 	AllSearches.Delete(srch.ID)
 
-	return jsonresponse(c, soj)
+	return JSONresponse(c, soj)
 }
 
 //

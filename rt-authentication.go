@@ -57,8 +57,7 @@ func RtAuthChkuser(c echo.Context) error {
 		ID:   s.LoginName,
 		Auth: a,
 	}
-
-	return c.JSONPretty(http.StatusOK, o, JSONINDENT)
+	return JSONresponse(c, o)
 }
 
 //

@@ -223,6 +223,7 @@ func vectordbaddnn(fp string, embs embedding.Embeddings) {
 		GZ = gzip.BestSpeed
 	)
 
+	// json vs jsi: jsoniter.ConfigFastest, this will marshal the float with 6 digits precision (lossy)
 	eb, err := jsi.Marshal(embs)
 	if err != nil {
 		msg(FAIL, MSGNOTE)

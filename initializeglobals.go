@@ -54,7 +54,7 @@ var (
 	ServableFonts = map[string]FontTempl{"Noto": NotoFont, "Roboto": RobotoFont, "Fira": FiraFont}
 	LaunchTime    = time.Now()
 	WebsocketPool = WSFillNewPool()
-	jsi           = jsoniter.ConfigCompatibleWithStandardLibrary
+	jsi           = jsoniter.ConfigCompatibleWithStandardLibrary // jsoniter.ConfigFastest (fp lossy); https://jsoniter.com/migrate-from-go-std.html;  https://jsoniter.com/go-tips.html;
 )
 
 type DbAuthor struct {
