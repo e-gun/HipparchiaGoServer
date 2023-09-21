@@ -185,7 +185,9 @@ func (c *WSClient) WSMessageLoop() {
 	quit := time.Now().Add(time.Second * 1)
 
 	for {
-		srchinfo := AllSearches.GetInfo(c.ID)
+		// srchinfo := AllSearches.GetInfo(c.ID)
+		SIRequest <- c.ID
+		srchinfo := <-SISend
 		if srchinfo.SrchCount != 0 && srchinfo.Exists {
 			break
 		}
@@ -209,6 +211,7 @@ func (c *WSClient) WSMessageLoop() {
 		// srchinfo := AllSearches.GetInfo(c.ID)
 		SIRequest <- c.ID
 		srchinfo := <-SISend
+
 		if srchinfo.Exists {
 			pd.Remain = srchinfo.Remain
 			pd.Hits = srchinfo.Hits

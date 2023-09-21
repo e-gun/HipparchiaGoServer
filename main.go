@@ -62,7 +62,7 @@ func main() {
 	SQLPool = FillPSQLPoool()
 	go WebsocketPool.WSPoolStartListening()
 	go messenger.Ticker(TICKERDELAY)
-	go SearchInfoKeeper()
+	go SearchInfoHub()
 
 	// concurrent launching
 	var awaiting sync.WaitGroup

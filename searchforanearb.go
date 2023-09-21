@@ -110,6 +110,8 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	msg(fmt.Sprintf(MSG3, d, len(second.Results)), MSGPEEK)
 
+	SIDel <- second.ID
+
 	return second
 }
 
@@ -313,6 +315,8 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	second.LemmaOne = first.LemmaOne
 	second.CurrentLimit = first.OriginalLimit
 
+	SIDel <- second.ID
+
 	return second
 }
 
@@ -339,7 +343,8 @@ func XWordsFeeder(ctx context.Context, kvp *[]KVPair, ss *SearchStruct) (<-chan 
 			default:
 				remainder = len(ss.Queries) - i - 1
 				if remainder%POLLEVERYNTABLES == 0 {
-					ss.Remain.Set(remainder)
+					// ss.Remain.Set(remainder)
+					SIUpdateRemain <- SIKVi{ss.ID, remainder}
 				}
 				emit <- (*kvp)[i]
 			}
@@ -409,7 +414,8 @@ func XWordsCollation(ctx context.Context, ss *SearchStruct, hits <-chan int) []i
 				if h != -1 {
 					// *something* came back from XWordsCheckFinds; a negative result is {-1, ""}
 					allhits = append(allhits, h)
-					ss.Hits.Set(len(allhits))
+					// ss.Hits.Set(len(allhits))
+					SIUpdateHits <- SIKVi{ss.ID, len(allhits)}
 				}
 				if len(allhits) > ss.OriginalLimit {
 					done = true

@@ -175,6 +175,8 @@ func RtTextMaker(c echo.Context) error {
 	jso.HT = tab
 	jso.JS = ""
 
+	AllSearches.Delete(srch.ID)
+
 	return JSONresponse(c, jso)
 }
 
@@ -258,7 +260,8 @@ func RtVocabMaker(c echo.Context) error {
 	si.InitSum = MSG1
 	si.IsActive = true
 	AllSearches.InsertSS(si)
-	AllSearches.SetRemain(si.ID, 1)
+	// AllSearches.SetRemain(si.ID, 1)
+	SIUpdateRemain <- SIKVi{id, 1}
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
 	mx := Config.MaxText * MAXVOCABLINEGENERATION
@@ -304,8 +307,9 @@ func RtVocabMaker(c echo.Context) error {
 	// [c1] get and map all the DbMorphology
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
-	si.InitSum = MSG2
-	AllSearches.UpdateSS(si)
+	//si.InitSum = MSG2
+	//AllSearches.UpdateSS(si)
+	SIUpdateSummMsg <- SIKVs{id, MSG2}
 
 	// [c2] map observed words to possibilities
 	poss := make(map[string][]MorphPossib)
@@ -389,8 +393,9 @@ func RtVocabMaker(c echo.Context) error {
 		ct += 1
 	}
 
-	si.InitSum = MSG3
-	AllSearches.UpdateSS(si)
+	//si.InitSum = MSG3
+	//AllSearches.UpdateSS(si)
+	SIUpdateSummMsg <- SIKVs{id, MSG3}
 
 	// [f2] sort the results
 	if se.VocByCount {
@@ -405,8 +410,9 @@ func RtVocabMaker(c echo.Context) error {
 		sort.Slice(vis, func(i, j int) bool { return vis[i].Strip < vis[j].Strip })
 	}
 
-	si.InitSum = MSG4
-	AllSearches.UpdateSS(si)
+	//si.InitSum = MSG4
+	//AllSearches.UpdateSS(si)
+	SIUpdateSummMsg <- SIKVs{id, MSG4}
 
 	// [g] format the output
 
@@ -483,6 +489,7 @@ func RtVocabMaker(c echo.Context) error {
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
 	AllSearches.Delete(si.ID)
+	AllSearches.Delete(vocabsrch.ID)
 
 	return JSONresponse(c, jso)
 }
@@ -566,7 +573,8 @@ func RtIndexMaker(c echo.Context) error {
 	si.InitSum = MSG1
 	si.IsActive = true
 	AllSearches.InsertSS(si)
-	AllSearches.SetRemain(si.ID, 1)
+	// AllSearches.SetRemain(si.ID, 1)
+	SIUpdateRemain <- SIKVi{id, 1}
 
 	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 
@@ -612,8 +620,9 @@ func RtIndexMaker(c echo.Context) error {
 
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
-	si.InitSum = MSG2
-	AllSearches.UpdateSS(si)
+	//si.InitSum = MSG2
+	//AllSearches.UpdateSS(si)
+	SIUpdateSummMsg <- SIKVs{si.ID, MSG2}
 
 	var slicedlookups []WordInfo
 	for _, w := range slicedwords {
@@ -714,8 +723,9 @@ func RtIndexMaker(c echo.Context) error {
 	// [d] the final map
 	// [d1] build it
 
-	si.InitSum = MSG3
-	AllSearches.UpdateSS(si)
+	//si.InitSum = MSG3
+	//AllSearches.UpdateSS(si)
+	SIUpdateSummMsg <- SIKVs{si.ID, MSG3}
 
 	indexmap := make(map[PolytonicSorterStruct][]WordInfo, len(trimslices))
 	for _, w := range trimslices {
@@ -759,8 +769,9 @@ func RtIndexMaker(c echo.Context) error {
 
 	indexmap = make(map[PolytonicSorterStruct][]WordInfo, 1) // drop after use
 
-	si.InitSum = MSG4
-	AllSearches.UpdateSS(si)
+	//si.InitSum = MSG4
+	//AllSearches.UpdateSS(si)
+	SIUpdateSummMsg <- SIKVs{si.ID, MSG4}
 
 	trr := make([]string, len(plainkeys))
 	for i, k := range plainkeys {
@@ -826,6 +837,7 @@ func RtIndexMaker(c echo.Context) error {
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
 	AllSearches.Delete(si.ID)
+	AllSearches.Delete(srch.ID)
 
 	return JSONresponse(c, jso)
 }

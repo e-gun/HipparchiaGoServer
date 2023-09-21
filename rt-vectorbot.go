@@ -76,7 +76,7 @@ func RtVectorBot(c echo.Context) error {
 	a := ts[1]
 
 	s := BuildDefaultSearch(c)
-	s.ID = "RtVectorBot-" + strings.Replace(uuid.New().String(), "-", "", -1)
+	s.ID = "RtVectorBot-" + vtype + "-" + strings.Replace(uuid.New().String(), "-", "", -1)
 
 	AllSearches.InsertSS(s)
 

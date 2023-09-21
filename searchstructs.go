@@ -55,8 +55,8 @@ type SearchStruct struct {
 	SearchSize    int // # of works searched
 	TableSize     int // # of tables searched
 	ExtraMsg      string
-	Hits          *SrchCounter
-	Remain        *SrchCounter
+	//Hits          *SrchCounter
+	//Remain        *SrchCounter
 	StoredSession ServerSession
 }
 
@@ -311,16 +311,16 @@ func (s *SearchStruct) SortResults() {
 }
 
 // AcqHitCounter - get a SrchCounter for storing Hits values
-func (s *SearchStruct) AcqHitCounter() {
-	h := func() *SrchCounter { return &SrchCounter{} }()
-	s.Hits = h
-}
-
-// AcqRemainCounter - get a SrchCounter for storing Remain values
-func (s *SearchStruct) AcqRemainCounter() {
-	r := func() *SrchCounter { return &SrchCounter{} }()
-	s.Remain = r
-}
+//func (s *SearchStruct) AcqHitCounter() {
+//	h := func() *SrchCounter { return &SrchCounter{} }()
+//	s.Hits = h
+//}
+//
+//// AcqRemainCounter - get a SrchCounter for storing Remain values
+//func (s *SearchStruct) AcqRemainCounter() {
+//	r := func() *SrchCounter { return &SrchCounter{} }()
+//	s.Remain = r
+//}
 
 //
 // SEARCHCOUNTERS
@@ -391,10 +391,10 @@ func (sv *SearchVault) InsertSS(s SearchStruct) {
 }
 
 // UpdateSS - just InsertSS; makes the code logic more legible: typically we are just updating messages for ws delivery
-func (sv *SearchVault) UpdateSS(s SearchStruct) {
-	// msg("SearchVault updating "+s.ID, 2)
-	sv.InsertSS(s)
-}
+//func (sv *SearchVault) UpdateSS(s SearchStruct) {
+//	// msg("SearchVault updating "+s.ID, 2)
+//	sv.InsertSS(s)
+//}
 
 // GetSS will fetch a SearchStruct; if it does not find one, it makes and registers a hollow search
 func (sv *SearchVault) GetSS(id string) SearchStruct {
@@ -441,26 +441,26 @@ func (sv *SearchVault) Purge(id string) {
 	SIDel <- id
 }
 
-func (sv *SearchVault) GetInfo(id string) SrchInfo {
-	sv.mutex.RLock()
-	defer sv.mutex.RUnlock()
-	var m SrchInfo
-	_, m.Exists = sv.SearchMap[id]
-	if m.Exists {
-		m.Remain = sv.SearchMap[id].Remain.Get()
-		m.Hits = sv.SearchMap[id].Hits.Get()
-		m.VProgStrg = sv.SearchMap[id].ExtraMsg
-		m.Summary = sv.SearchMap[id].InitSum
-	}
-	m.SrchCount = len(sv.SearchMap)
-	return m
-}
+//func (sv *SearchVault) GetInfo(id string) SrchInfo {
+//	sv.mutex.RLock()
+//	defer sv.mutex.RUnlock()
+//	var m SrchInfo
+//	_, m.Exists = sv.SearchMap[id]
+//	if m.Exists {
+//		m.Remain = sv.SearchMap[id].Remain.Get()
+//		m.Hits = sv.SearchMap[id].Hits.Get()
+//		m.VProgStrg = sv.SearchMap[id].ExtraMsg
+//		m.Summary = sv.SearchMap[id].InitSum
+//	}
+//	m.SrchCount = len(sv.SearchMap)
+//	return m
+//}
 
-func (sv *SearchVault) SetRemain(id string, r int) {
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
-	sv.SearchMap[id].Remain.Set(r)
-}
+//func (sv *SearchVault) SetRemain(id string, r int) {
+//	sv.mutex.Lock()
+//	defer sv.mutex.Unlock()
+//	sv.SearchMap[id].Remain.Set(r)
+//}
 
 // CountTotal - how many searches is the server already running?
 func (sv *SearchVault) CountTotal() int {
@@ -516,7 +516,8 @@ var (
 	SIDel            = make(chan string, runtime.NumCPU())
 )
 
-func SearchInfoKeeper() {
+// SearchInfoHub - the loop that lets you read/write from/to the searchinfo channels
+func SearchInfoHub() {
 	Allinfo := make(map[string]SrchInfo)
 
 	reporter := func(id string) {
@@ -536,6 +537,26 @@ func SearchInfoKeeper() {
 		}
 	}
 
+	// DOUBLE-CHECK: clear out expired searches
+	// start accumulating old searches here:
+	// [HGS-SELFTEST] [E2: 108.505s][Δ: 22.037s] semantic vector model test: lexvec - 1 author(s) with 4 text preparation modes per author
+
+	stats := func() {
+		var cc []string
+		for k, _ := range Allinfo {
+			cc = append(cc, k)
+		}
+		// msg(fmt.Sprintf("SearchInfoHub(): %d in Allinfo\n\t%s", len(Allinfo), strings.Join(cc, ", ")), MSGNOTE)
+	}
+
+	go func() {
+		for {
+			stats()
+			time.Sleep(3 * time.Second)
+		}
+	}()
+
+	// the main loop; it will never exit
 	for {
 		select {
 		case rq := <-SIRequest:

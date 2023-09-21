@@ -173,6 +173,8 @@ func InitializeSearch(c echo.Context, user string) SearchStruct {
 
 	srch.TableSize = len(srch.Queries)
 	srch.IsActive = true
+
+	SIUpdateRemain <- SIKVi{srch.ID, srch.TableSize}
 	return srch
 }
 
@@ -204,8 +206,8 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	s.VecTextPrep = sess.VecTextPrep
 	s.VecModeler = sess.VecModeler
 	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
-	s.AcqHitCounter()
-	s.AcqRemainCounter()
+	//s.AcqHitCounter()
+	//s.AcqRemainCounter()
 	s.StoredSession = sess
 
 	if sess.NearOrNot == "notnear" {
@@ -258,8 +260,8 @@ func BuildHollowSearch() SearchStruct {
 		SearchSize:    0,
 		TableSize:     0,
 	}
-	s.AcqHitCounter()
-	s.AcqRemainCounter()
+	//s.AcqHitCounter()
+	//s.AcqRemainCounter()
 	s.StoredSession = MakeDefaultSession(s.ID)
 	return s
 }

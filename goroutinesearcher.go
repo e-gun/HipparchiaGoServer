@@ -71,7 +71,7 @@ func SrchFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, e
 	emitone := func(i int) {
 		remainder = len(ss.Queries) - i - 1
 		if remainder%POLLEVERYNTABLES == 0 {
-			ss.Remain.Set(remainder)
+			// ss.Remain.Set(remainder)
 			SIUpdateRemain <- SIKVi{ss.ID, remainder}
 		}
 		emitqueries <- ss.Queries[i]
@@ -156,7 +156,7 @@ func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundli
 		} else {
 			allhits = append(allhits, worklines...)
 		}
-		ss.Hits.Set(len(allhits))
+		// ss.Hits.Set(len(allhits))
 		SIUpdateHits <- SIKVi{ss.ID, len(allhits)}
 	}
 

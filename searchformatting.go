@@ -315,6 +315,8 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 		out.Found = DeLunate(out.Found)
 	}
 
+	SIDel <- res.ID
+
 	return out
 }
 
