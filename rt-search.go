@@ -49,6 +49,9 @@ func RtSearch(c echo.Context) error {
 	)
 
 	user := readUUIDCookie(c)
+
+	// [1] ARE WE GOING TO DO THIS AT ALL?
+
 	if !AllAuthorized.Check(user) {
 		return JSONresponse(c, SearchOutputJSON{JS: VALIDATIONBOX})
 	}
@@ -63,11 +66,13 @@ func RtSearch(c echo.Context) error {
 		return JSONresponse(c, SearchOutputJSON{Searchsummary: m})
 	}
 
+	// [2] OK, WE ARE DOING IT
+
 	srch := InitializeSearch(c, user)
-
 	AllSearches.InsertSS(srch)
-
 	se := AllSessions.GetSess(user)
+
+	// [3] BUT WHAT KIND OF SEARCH IS IT? MAYBE IT IS A VECTOR SEARCH...
 
 	if se.VecNNSearch && !Config.VectorsDisabled {
 		// not a normal search: jump to "vectorqueryneighbors.go" where we grab all lines; build a model; query against the model; return html
@@ -79,6 +84,8 @@ func RtSearch(c echo.Context) error {
 		// not a normal search: jump to "vectorquerylda.go"
 		return LDASearch(c, srch)
 	}
+
+	// [4] OK, IT IS A SEARCH FOR A WORD OR PHRASE
 
 	c.Response().After(func() { messenger.GCStats("RtSearch()") })
 

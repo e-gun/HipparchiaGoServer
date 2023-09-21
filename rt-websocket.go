@@ -206,7 +206,9 @@ func (c *WSClient) WSMessageLoop() {
 
 	// loop until search finishes
 	for {
-		srchinfo := AllSearches.GetInfo(c.ID)
+		// srchinfo := AllSearches.GetInfo(c.ID)
+		SIRequest <- c.ID
+		srchinfo := <-SISend
 		if srchinfo.Exists {
 			pd.Remain = srchinfo.Remain
 			pd.Hits = srchinfo.Hits

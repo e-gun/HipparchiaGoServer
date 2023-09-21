@@ -46,7 +46,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 
 	mx := ss.CurrentLimit
 	if ss.HasPhrase {
-		// windowing double-hits; c. 55% are valid; these get pared via findphrasesacrosslines()
+		// windowing generates double-hits; c. 55% are valid; these get pared via findphrasesacrosslines()
 		mx = ss.CurrentLimit * 3
 	}
 
@@ -72,6 +72,7 @@ func SrchFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, e
 		remainder = len(ss.Queries) - i - 1
 		if remainder%POLLEVERYNTABLES == 0 {
 			ss.Remain.Set(remainder)
+			SIUpdateRemain <- SIKVi{ss.ID, remainder}
 		}
 		emitqueries <- ss.Queries[i]
 	}
@@ -156,6 +157,7 @@ func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundli
 			allhits = append(allhits, worklines...)
 		}
 		ss.Hits.Set(len(allhits))
+		SIUpdateHits <- SIKVi{ss.ID, len(allhits)}
 	}
 
 	done := false

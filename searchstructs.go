@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -155,6 +156,7 @@ func (s *SearchStruct) FormatInitialSummary() {
 	}
 	sum := fmt.Sprintf(TPM, af1, sk, two)
 	s.InitSum = sum
+	SIUpdateSummMsg <- SIKVs{s.ID, sum}
 }
 
 // InclusionOverview - yield a summary of the inclusions; NeighborsSearch will use this when calling buildblanknngraph()
@@ -365,6 +367,16 @@ type SrchInfo struct {
 	Summary   string
 }
 
+type SIKVi struct {
+	key string
+	val int
+}
+
+type SIKVs struct {
+	key string
+	val string
+}
+
 // SearchVault - there should be only one of these; and it contains all the searches
 type SearchVault struct {
 	SearchMap map[string]SearchStruct
@@ -419,12 +431,14 @@ func (sv *SearchVault) Delete(id string) {
 	sv.mutex.Lock()
 	defer sv.mutex.Unlock()
 	delete(sv.SearchMap, id)
+	SIDel <- id
 }
 
 // Purge is just delete; makes the code logic more legible; "Purge" implies that this search is likely to reappear with an "Update"
 func (sv *SearchVault) Purge(id string) {
 	// msg("SearchVault purging "+id, 3)
 	sv.Delete(id)
+	SIDel <- id
 }
 
 func (sv *SearchVault) GetInfo(id string) SrchInfo {
@@ -448,7 +462,7 @@ func (sv *SearchVault) SetRemain(id string, r int) {
 	sv.SearchMap[id].Remain.Set(r)
 }
 
-// CountIP - how many searches is the server already running?
+// CountTotal - how many searches is the server already running?
 func (sv *SearchVault) CountTotal() int {
 	sv.mutex.Lock()
 	defer sv.mutex.Unlock()
@@ -484,7 +498,66 @@ func searchvaultreport() {
 			ss = append(ss, k)
 		}
 		msg(fmt.Sprintf("%d in AllSearches: %s", len(as), strings.Join(ss, ", ")), MSGNOTE)
-
 		time.Sleep(4 * time.Second)
+	}
+}
+
+//
+// CHANNEL-BASED SEARCHINFO REPORTING
+//
+
+var (
+	SIUpdateHits     = make(chan SIKVi, runtime.NumCPU())
+	SIUpdateRemain   = make(chan SIKVi, runtime.NumCPU())
+	SIUpdateVProgMsg = make(chan SIKVs, runtime.NumCPU())
+	SIUpdateSummMsg  = make(chan SIKVs, runtime.NumCPU())
+	SISend           = make(chan SrchInfo, runtime.NumCPU())
+	SIRequest        = make(chan string, runtime.NumCPU())
+	SIDel            = make(chan string, runtime.NumCPU())
+)
+
+func SearchInfoKeeper() {
+	Allinfo := make(map[string]SrchInfo)
+
+	reporter := func(id string) {
+		if _, ok := Allinfo[id]; ok {
+			SISend <- Allinfo[id]
+		} else {
+			SISend <- SrchInfo{Exists: false}
+		}
+	}
+
+	fetchifexists := func(id string) SrchInfo {
+		if _, ok := Allinfo[id]; ok {
+			return Allinfo[id]
+		} else {
+			// any non-zero value for SrchCount is fine; the test in re-websocket.go is just for 0
+			return SrchInfo{Exists: true, SrchCount: 1}
+		}
+	}
+
+	for {
+		select {
+		case rq := <-SIRequest:
+			reporter(rq)
+		case wr := <-SIUpdateHits:
+			x := fetchifexists(wr.key)
+			x.Hits = wr.val
+			Allinfo[wr.key] = x
+		case wr := <-SIUpdateRemain:
+			x := fetchifexists(wr.key)
+			x.Remain = wr.val
+			Allinfo[wr.key] = x
+		case wr := <-SIUpdateVProgMsg:
+			x := fetchifexists(wr.key)
+			x.VProgStrg = wr.val
+			Allinfo[wr.key] = x
+		case wr := <-SIUpdateSummMsg:
+			x := fetchifexists(wr.key)
+			x.Summary = wr.val
+			Allinfo[wr.key] = x
+		case del := <-SIDel:
+			delete(Allinfo, del)
+		}
 	}
 }
