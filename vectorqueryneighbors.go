@@ -15,8 +15,6 @@ import (
 	"strings"
 )
 
-var ()
-
 // NeighborsSearch - a special case for RtSearch() where you requested vectorization of the results
 func NeighborsSearch(c echo.Context, srch SearchStruct) error {
 	const (

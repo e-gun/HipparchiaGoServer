@@ -74,6 +74,11 @@ func RtSearch(c echo.Context) error {
 
 	// [3] BUT WHAT KIND OF SEARCH IS IT? MAYBE IT IS A VECTOR SEARCH...
 
+	// note the races says that there are *many* race candidates in the imported vector code...
+	// "wego@v0.0.11/pkg/model/word2vec/optimizer.go:126"
+	// "wego@v0.0.11/pkg/model/word2vec/model.go:75"
+	// ...
+
 	if se.VecNNSearch && !Config.VectorsDisabled {
 		// not a normal search: jump to "vectorqueryneighbors.go" where we grab all lines; build a model; query against the model; return html
 		// note that "AllSearches.Delete(srch.ID)" is now another function's responsibility
@@ -206,8 +211,6 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	s.VecTextPrep = sess.VecTextPrep
 	s.VecModeler = sess.VecModeler
 	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
-	//s.AcqHitCounter()
-	//s.AcqRemainCounter()
 	s.StoredSession = sess
 
 	if sess.NearOrNot == "notnear" {
@@ -260,8 +263,7 @@ func BuildHollowSearch() SearchStruct {
 		SearchSize:    0,
 		TableSize:     0,
 	}
-	//s.AcqHitCounter()
-	//s.AcqRemainCounter()
+
 	s.StoredSession = MakeDefaultSession(s.ID)
 	return s
 }

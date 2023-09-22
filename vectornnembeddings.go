@@ -66,13 +66,9 @@ func generateneighborsdata(c echo.Context, s SearchStruct) map[string]search.Nei
 	isstored := vectordbchecknn(fp)
 	var embs embedding.Embeddings
 	if isstored {
-		//s.ExtraMsg = FMSG
-		//AllSearches.UpdateSS(s)
 		SIUpdateVProgMsg <- SIKVs{s.ID, FMSG}
 		embs = vectordbfetchnn(fp)
 	} else {
-		//s.ExtraMsg = GMSG
-		//AllSearches.UpdateSS(s)
 		SIUpdateVProgMsg <- SIKVs{s.ID, GMSG}
 		embs = generateembeddings(c, s.VecModeler, s)
 		vectordbaddnn(fp, embs)
@@ -82,8 +78,6 @@ func generateneighborsdata(c echo.Context, s SearchStruct) map[string]search.Nei
 	// [b] make a query against the model
 
 	// len(s.Results) is zero, so it is OK to UpdateSS() without copying 500k lines
-	//s.ExtraMsg = MQMEG
-	//AllSearches.UpdateSS(s)
 	SIUpdateVProgMsg <- SIKVs{s.ID, MQMEG}
 
 	searcher, err := search.New(embs...)
@@ -140,8 +134,6 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	// this also means we need the "modeltype" parameter as well (bot: configtype; surfer: sessiontype)
 	start := time.Now()
 
-	//s.ExtraMsg = PRLMSG
-	//AllSearches.UpdateSS(s)
 	SIUpdateVProgMsg <- SIKVs{s.ID, PRLMSG}
 
 	var vs SearchStruct
@@ -152,7 +144,6 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 		vs = sessionintobulksearch(c, Config.VectorMaxlines)
 		msg(fmt.Sprintf(MSG1, len(vs.Results)), MSGPEEK)
 		s.Results = vs.Results
-		// s.ExtraMsg = p.Sprintf(TBMSG, len(vs.Results))
 		SIUpdateVProgMsg <- SIKVs{s.ID, p.Sprintf(TBMSG, len(vs.Results))}
 		AllSearches.Delete(vs.ID)
 	}
@@ -241,8 +232,6 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 					// tm = coll[3]
 				}
 			}
-			//s.ExtraMsg = fmt.Sprintf(VMSG, in, ti)
-			//AllSearches.UpdateSS(s)
 			SIUpdateVProgMsg <- SIKVs{s.ID, fmt.Sprintf(VMSG, in, ti)}
 			time.Sleep(WSPOLLINGPAUSE)
 			if !s.IsActive {
@@ -255,9 +244,6 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 
 	_ = <-finished
 
-	//s.ExtraMsg = DBMSG
-	//s.IsActive = false
-	//AllSearches.UpdateSS(s)
 	SIUpdateVProgMsg <- SIKVs{s.ID, DBMSG}
 
 	// use buffers; skip the disk; psql used for storage: vectordbaddnn() & vectordbfetchnn()

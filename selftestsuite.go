@@ -7,6 +7,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"net/http"
 	"strings"
 	"time"
@@ -23,8 +24,9 @@ type SrchTest struct {
 }
 
 func (t *SrchTest) Url() string {
-	srch := fmt.Sprintf(t.s, "testing", t.t1, t.t2)
-	return fmt.Sprintf("http://%s:%d/%s", Config.HostIP, Config.HostPort, srch)
+	sid := "selftest-" + strings.Replace(uuid.New().String(), "-", "", -1)
+	uri := fmt.Sprintf(t.s, sid, t.t1, t.t2)
+	return fmt.Sprintf("http://%s:%d/%s", Config.HostIP, Config.HostPort, uri)
 }
 
 func (t *SrchTest) Msg() string {
@@ -210,9 +212,7 @@ func selftestsuite() {
 
 	// glove seizes scads of memory and never releases it
 	vmod := []string{"w2v", "lexvec", "glove"}
-	// vmod := []string{"w2v", "lexvec"}
 	vtxp := []string{"winner", "unparsed", "yoked", "montecarlo"}
-	// vtxp := []string{"winner"}
 	vauu := []string{"gr0011"} // sophocles
 
 	// [3]

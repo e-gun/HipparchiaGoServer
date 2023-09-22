@@ -90,10 +90,6 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 
 	var vs SearchStruct
 	if srch.ID != "ldamodelbot()" {
-		// AllSearches.SetRemain(srch.ID, 1)
-		//srch.InitSum = LDAMSG
-		//srch.ExtraMsg = fmt.Sprintf(ESM1)
-		//AllSearches.UpdateSS(srch)
 		SIUpdateRemain <- SIKVi{srch.ID, 1}
 		SIUpdateSummMsg <- SIKVs{srch.ID, LDAMSG}
 		SIUpdateVProgMsg <- SIKVs{srch.ID, fmt.Sprintf(ESM1)}
@@ -112,8 +108,6 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	stops := StringMapKeysIntoSlice(getstopset())
 	vectoriser := nlp.NewCountVectoriser(stops...)
 
-	//srch.ExtraMsg = fmt.Sprintf(ESM2)
-	//AllSearches.UpdateSS(srch)
 	SIUpdateVProgMsg <- SIKVs{srch.ID, fmt.Sprintf(ESM2)}
 
 	// consider building TESTITERATIONS models and making a table for each
@@ -131,8 +125,6 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 
 	var img string
 	if se.LDAgraph || srch.ID == "ldamodelbot()" {
-		//srch.ExtraMsg = fmt.Sprintf(ESM3)
-		//AllSearches.UpdateSS(srch)
 		SIUpdateVProgMsg <- SIKVs{srch.ID, fmt.Sprintf(ESM3)}
 		img = ldaplot(se.LDA2D, ntopics, incl, se.VecTextPrep, dot, bags)
 	}

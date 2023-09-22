@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -93,6 +94,7 @@ func NewFncMessageMaker(c string) *MessageMaker {
 		Cfg: cc,
 		Ctr: ct,
 		Lnc: ls,
+		mtx: sync.RWMutex{},
 	}
 }
 
@@ -102,6 +104,7 @@ type MessageMaker struct {
 	Lnc LaunchStruct
 	Pgn string
 	Win bool
+	mtx sync.RWMutex
 }
 
 type LaunchStruct struct {
@@ -261,6 +264,19 @@ func (m *MessageMaker) GCStats(fn string) {
 		MPR = MSGPEEK
 	)
 
+	// GENERAL STATS
+
+	// racer says there is a problem if there is no mutex: specifically access to "m.Ctr[fn]"
+	m.mtx.Lock()
+	_, ok := m.Ctr[fn]
+	if !ok {
+		m.Ctr[fn] = &atomic.Int32{}
+	}
+	_ = m.Ctr[fn].Add(1)
+	m.mtx.Unlock()
+
+	// GC INFO
+
 	if !m.Cfg.ManualGC {
 		return
 	}
@@ -272,11 +288,6 @@ func (m *MessageMaker) GCStats(fn string) {
 	a := fmt.Sprintf("%dM", mem.HeapAlloc/1024/1024)
 	m.Emit(fmt.Sprintf(MSG, fn, b, a), MPR)
 
-	_, ok := m.Ctr[fn]
-	if !ok {
-		m.Ctr[fn] = &atomic.Int32{}
-	}
-	_ = m.Ctr[fn].Add(1)
 }
 
 // Timer - report how much time elapsed between A and B
@@ -325,6 +336,7 @@ func (m *MessageMaker) Ticker(wait time.Duration) {
 
 	// the searches run line
 	s := func() {
+		m.mtx.Lock()
 		exclude := []string{"main() post-initialization"}
 		keys := StringMapKeysIntoSlice(m.Ctr)
 		keys = SetSubtraction(keys, exclude)
@@ -343,6 +355,7 @@ func (m *MessageMaker) Ticker(wait time.Duration) {
 		fmt.Printf(out + CLEARRT)
 		fmt.Println()
 		fmt.Printf(CLEAR + CURSREST)
+		m.mtx.Unlock()
 	}
 
 	for {

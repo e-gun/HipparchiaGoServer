@@ -76,8 +76,6 @@ func RtVectorBot(c echo.Context) error {
 	a := ts[1]
 
 	s := BuildDefaultSearch(c)
-	// fp := fingerprintnnvectorsearch(s)
-	// s.ID = "RtVectorBot-" + fp
 	s.ID = "RtVectorBot-" + vtype + "-" + strings.Replace(uuid.New().String(), "-", "", -1)
 
 	AllSearches.InsertSS(s)

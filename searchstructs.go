@@ -54,8 +54,6 @@ type SearchStruct struct {
 	SearchSize    int // # of works searched
 	TableSize     int // # of tables searched
 	ExtraMsg      string
-	//Hits          *SrchCounter
-	//Remain        *SrchCounter
 	StoredSession ServerSession
 }
 
@@ -309,39 +307,6 @@ func (s *SearchStruct) SortResults() {
 	}
 }
 
-// AcqHitCounter - get a SrchCounter for storing Hits values
-//func (s *SearchStruct) AcqHitCounter() {
-//	h := func() *SrchCounter { return &SrchCounter{} }()
-//	s.Hits = h
-//}
-//
-//// AcqRemainCounter - get a SrchCounter for storing Remain values
-//func (s *SearchStruct) AcqRemainCounter() {
-//	r := func() *SrchCounter { return &SrchCounter{} }()
-//	s.Remain = r
-//}
-
-//
-// SEARCHCOUNTERS
-//
-
-//type SrchCounter struct {
-//	// atomic package is faster and mutext architecture is more robust/flexible in the long term
-//	// OR can do a counter via channels (Count int; Reply chan int; Fetch chan bool; Mod chan int)...
-//	// but that version is slightly slower than mutex: c. 5%
-//	count atomic.Int64
-//}
-//
-//// Get - concurrency aware way to read a SrchCounter
-//func (c *SrchCounter) Get() int {
-//	return int(c.count.Load())
-//}
-//
-//// Set - concurrency aware way to write to a SrchCounter
-//func (c *SrchCounter) Set(v int) {
-//	c.count.Store(int64(v))
-//}
-
 //
 // THREAD SAFE INFRASTRUCTURE: MUTEX
 // (and not channel: https://github.com/golang/go/wiki/MutexOrChannel)
@@ -368,12 +333,6 @@ func (sv *SearchVault) InsertSS(s SearchStruct) {
 	sv.SearchMap[s.ID] = s
 	SIUpdateHits <- SIKVi{s.ID, 0}
 }
-
-// UpdateSS - just InsertSS; makes the code logic more legible: typically we are just updating messages for ws delivery
-//func (sv *SearchVault) UpdateSS(s SearchStruct) {
-//	// msg("SearchVault updating "+s.ID, 2)
-//	sv.InsertSS(s)
-//}
 
 // GetSS will fetch a SearchStruct; if it does not find one, it makes and registers a hollow search
 func (sv *SearchVault) GetSS(id string) SearchStruct {
@@ -422,27 +381,6 @@ func (sv *SearchVault) Purge(id string) {
 	sv.Delete(id)
 }
 
-//func (sv *SearchVault) GetInfo(id string) SrchInfo {
-//	sv.mutex.RLock()
-//	defer sv.mutex.RUnlock()
-//	var m SrchInfo
-//	_, m.Exists = sv.SearchMap[id]
-//	if m.Exists {
-//		m.Remain = sv.SearchMap[id].Remain.Get()
-//		m.Hits = sv.SearchMap[id].Hits.Get()
-//		m.VProgStrg = sv.SearchMap[id].ExtraMsg
-//		m.Summary = sv.SearchMap[id].InitSum
-//	}
-//	m.SrchCount = len(sv.SearchMap)
-//	return m
-//}
-
-//func (sv *SearchVault) SetRemain(id string, r int) {
-//	sv.mutex.Lock()
-//	defer sv.mutex.Unlock()
-//	sv.SearchMap[id].Remain.Set(r)
-//}
-
 // CountTotal - how many searches is the server already running?
 func (sv *SearchVault) CountTotal() int {
 	sv.mutex.Lock()
@@ -461,26 +399,6 @@ func (sv *SearchVault) CountIP(ip string) int {
 		}
 	}
 	return count
-}
-
-//
-// FOR DEBUGGING ONLY
-//
-
-// searchvaultreport - report the # and names of the registered searches every N seconds
-func searchvaultreport() {
-	// add the following to main.go: "go searchvaultreport()"
-	// it would be possible to "garbage collect" all searches where IsActive is "false" for too long
-	// but these really are not supposed to be a problem
-	for {
-		as := AllSearches.SearchMap
-		var ss []string
-		for k := range as {
-			ss = append(ss, k)
-		}
-		msg(fmt.Sprintf("%d in AllSearches: %s", len(as), strings.Join(ss, ", ")), MSGNOTE)
-		time.Sleep(4 * time.Second)
-	}
 }
 
 //
@@ -553,27 +471,6 @@ func SearchInfoHub() {
 		}
 	}
 
-	// DOUBLE-CHECK: clear out expired searches
-	// start accumulating old searches here:
-	// [HGS-SELFTEST] [E2: 108.505s][Δ: 22.037s] semantic vector model test: lexvec - 1 author(s) with 4 text preparation modes per author
-
-	//stats := func() {
-	//	var cc []string
-	//	for k, _ := range Allinfo {
-	//		cc = append(cc, k)
-	//	}
-	//	if len(cc) > 0 {
-	//		msg(fmt.Sprintf("SearchInfoHub(): %d in Allinfo\n\t%s", len(Allinfo), strings.Join(cc, ", ")), MSGNOTE)
-	//	}
-	//}
-	//
-	//go func() {
-	//	for {
-	//		stats()
-	//		time.Sleep(3 * time.Second)
-	//	}
-	//}()
-
 	// the main loop; it will never exit
 	for {
 		select {
@@ -600,5 +497,25 @@ func SearchInfoHub() {
 			delete(Allinfo, del)
 
 		}
+	}
+}
+
+//
+// FOR DEBUGGING ONLY
+//
+
+// searchvaultreport - report the # and names of the registered searches every N seconds
+func searchvaultreport() {
+	// add the following to main.go: "go searchvaultreport()"
+	// it would be possible to "garbage collect" all searches where IsActive is "false" for too long
+	// but these really are not supposed to be a problem
+	for {
+		as := AllSearches.SearchMap
+		var ss []string
+		for k := range as {
+			ss = append(ss, k)
+		}
+		msg(fmt.Sprintf("%d in AllSearches: %s", len(as), strings.Join(ss, ", ")), MSGNOTE)
+		time.Sleep(4 * time.Second)
 	}
 }

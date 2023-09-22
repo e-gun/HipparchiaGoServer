@@ -185,7 +185,6 @@ func (c *WSClient) WSMessageLoop() {
 	quit := time.Now().Add(time.Second * 1)
 
 	for {
-		// srchinfo := AllSearches.GetInfo(c.ID)
 		responder := SIReply{key: c.ID, response: make(chan SrchInfo)}
 		SIRequest <- responder
 		srchinfo := <-responder.response
@@ -209,7 +208,6 @@ func (c *WSClient) WSMessageLoop() {
 
 	// loop until search finishes
 	for {
-		// srchinfo := AllSearches.GetInfo(c.ID)
 		responder := SIReply{key: c.ID, response: make(chan SrchInfo)}
 		SIRequest <- responder
 		srchinfo := <-responder.response

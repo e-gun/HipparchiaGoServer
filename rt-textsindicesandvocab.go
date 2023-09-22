@@ -307,8 +307,6 @@ func RtVocabMaker(c echo.Context) error {
 	// [c1] get and map all the DbMorphology
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
-	//si.InitSum = MSG2
-	//AllSearches.UpdateSS(si)
 	SIUpdateSummMsg <- SIKVs{id, MSG2}
 
 	// [c2] map observed words to possibilities
@@ -393,8 +391,6 @@ func RtVocabMaker(c echo.Context) error {
 		ct += 1
 	}
 
-	//si.InitSum = MSG3
-	//AllSearches.UpdateSS(si)
 	SIUpdateSummMsg <- SIKVs{id, MSG3}
 
 	// [f2] sort the results
@@ -410,8 +406,6 @@ func RtVocabMaker(c echo.Context) error {
 		sort.Slice(vis, func(i, j int) bool { return vis[i].Strip < vis[j].Strip })
 	}
 
-	//si.InitSum = MSG4
-	//AllSearches.UpdateSS(si)
 	SIUpdateSummMsg <- SIKVs{id, MSG4}
 
 	// [g] format the output
@@ -620,8 +614,6 @@ func RtIndexMaker(c echo.Context) error {
 
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
-	//si.InitSum = MSG2
-	//AllSearches.UpdateSS(si)
 	SIUpdateSummMsg <- SIKVs{si.ID, MSG2}
 
 	var slicedlookups []WordInfo
@@ -723,8 +715,6 @@ func RtIndexMaker(c echo.Context) error {
 	// [d] the final map
 	// [d1] build it
 
-	//si.InitSum = MSG3
-	//AllSearches.UpdateSS(si)
 	SIUpdateSummMsg <- SIKVs{si.ID, MSG3}
 
 	indexmap := make(map[PolytonicSorterStruct][]WordInfo, len(trimslices))
@@ -769,8 +759,6 @@ func RtIndexMaker(c echo.Context) error {
 
 	indexmap = make(map[PolytonicSorterStruct][]WordInfo, 1) // drop after use
 
-	//si.InitSum = MSG4
-	//AllSearches.UpdateSS(si)
 	SIUpdateSummMsg <- SIKVs{si.ID, MSG4}
 
 	trr := make([]string, len(plainkeys))
