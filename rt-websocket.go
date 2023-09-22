@@ -186,8 +186,9 @@ func (c *WSClient) WSMessageLoop() {
 
 	for {
 		// srchinfo := AllSearches.GetInfo(c.ID)
-		SIRequest <- c.ID
-		srchinfo := <-SISend
+		responder := SIReply{key: c.ID, response: make(chan SrchInfo)}
+		SIRequest <- responder
+		srchinfo := <-responder.response
 		if srchinfo.SrchCount != 0 && srchinfo.Exists {
 			break
 		}
@@ -209,8 +210,9 @@ func (c *WSClient) WSMessageLoop() {
 	// loop until search finishes
 	for {
 		// srchinfo := AllSearches.GetInfo(c.ID)
-		SIRequest <- c.ID
-		srchinfo := <-SISend
+		responder := SIReply{key: c.ID, response: make(chan SrchInfo)}
+		SIRequest <- responder
+		srchinfo := <-responder.response
 
 		if srchinfo.Exists {
 			pd.Remain = srchinfo.Remain

@@ -76,6 +76,8 @@ func RtVectorBot(c echo.Context) error {
 	a := ts[1]
 
 	s := BuildDefaultSearch(c)
+	// fp := fingerprintnnvectorsearch(s)
+	// s.ID = "RtVectorBot-" + fp
 	s.ID = "RtVectorBot-" + vtype + "-" + strings.Replace(uuid.New().String(), "-", "", -1)
 
 	AllSearches.InsertSS(s)
@@ -111,6 +113,7 @@ func RtVectorBot(c echo.Context) error {
 		// "nn"
 		nnmodelbot(c, s, a)
 	}
+
 	AllSearches.Delete(s.ID)
 	return nil
 }
@@ -161,7 +164,6 @@ func nnmodelbot(c echo.Context, s SearchStruct, a string) {
 		// sessionintobulksearch() can't be used because there is no real session...
 		s.CurrentLimit = Config.VectorMaxlines
 		s.Seeking = ""
-		// s.ID = fp
 
 		SSBuildQueries(&s)
 		s.IsActive = true

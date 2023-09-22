@@ -154,7 +154,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 		s.Results = vs.Results
 		// s.ExtraMsg = p.Sprintf(TBMSG, len(vs.Results))
 		SIUpdateVProgMsg <- SIKVs{s.ID, p.Sprintf(TBMSG, len(vs.Results))}
-		vs.Results = []DbWorkline{}
+		AllSearches.Delete(vs.ID)
 	}
 
 	// AllSearches.UpdateSS(s)
@@ -322,7 +322,9 @@ func buildtextblock(method string, lines []DbWorkline) string {
 	var sb strings.Builder
 	preallocate := CHARSPERLINE * len(lines) // NB: a long line has 60 chars
 	sb.Grow(preallocate)
+
 	stops := getstopset()
+
 	switch method {
 	case "unparsed":
 		flatstring(&sb, slicedwords)

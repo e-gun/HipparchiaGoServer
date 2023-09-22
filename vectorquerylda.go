@@ -146,6 +146,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	}
 
 	AllSearches.Delete(srch.ID)
+	AllSearches.Delete(vs.ID)
 
 	return JSONresponse(c, soj)
 }

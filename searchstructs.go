@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -326,22 +325,22 @@ func (s *SearchStruct) SortResults() {
 // SEARCHCOUNTERS
 //
 
-type SrchCounter struct {
-	// atomic package is faster and mutext architecture is more robust/flexible in the long term
-	// OR can do a counter via channels (Count int; Reply chan int; Fetch chan bool; Mod chan int)...
-	// but that version is slightly slower than mutex: c. 5%
-	count atomic.Int64
-}
-
-// Get - concurrency aware way to read a SrchCounter
-func (c *SrchCounter) Get() int {
-	return int(c.count.Load())
-}
-
-// Set - concurrency aware way to write to a SrchCounter
-func (c *SrchCounter) Set(v int) {
-	c.count.Store(int64(v))
-}
+//type SrchCounter struct {
+//	// atomic package is faster and mutext architecture is more robust/flexible in the long term
+//	// OR can do a counter via channels (Count int; Reply chan int; Fetch chan bool; Mod chan int)...
+//	// but that version is slightly slower than mutex: c. 5%
+//	count atomic.Int64
+//}
+//
+//// Get - concurrency aware way to read a SrchCounter
+//func (c *SrchCounter) Get() int {
+//	return int(c.count.Load())
+//}
+//
+//// Set - concurrency aware way to write to a SrchCounter
+//func (c *SrchCounter) Set(v int) {
+//	c.count.Store(int64(v))
+//}
 
 //
 // THREAD SAFE INFRASTRUCTURE: MUTEX
@@ -356,27 +355,6 @@ func MakeSearchVault() SearchVault {
 	}
 }
 
-// SrchInfo - struct used to deliver info about searches in progress
-type SrchInfo struct {
-	ID        string
-	Exists    bool
-	Hits      int
-	Remain    int
-	SrchCount int
-	VProgStrg string
-	Summary   string
-}
-
-type SIKVi struct {
-	key string
-	val int
-}
-
-type SIKVs struct {
-	key string
-	val string
-}
-
 // SearchVault - there should be only one of these; and it contains all the searches
 type SearchVault struct {
 	SearchMap map[string]SearchStruct
@@ -388,6 +366,7 @@ func (sv *SearchVault) InsertSS(s SearchStruct) {
 	sv.mutex.Lock()
 	defer sv.mutex.Unlock()
 	sv.SearchMap[s.ID] = s
+	SIUpdateHits <- SIKVi{s.ID, 0}
 }
 
 // UpdateSS - just InsertSS; makes the code logic more legible: typically we are just updating messages for ws delivery
@@ -406,6 +385,7 @@ func (sv *SearchVault) GetSS(id string) SearchStruct {
 		s.ID = id
 		s.IsActive = false
 		sv.SearchMap[id] = s
+		SIUpdateHits <- SIKVi{s.ID, 0}
 	}
 	return s
 }
@@ -421,6 +401,7 @@ func (sv *SearchVault) SimpleGetSS(id string) SearchStruct {
 		s.IsActive = false
 		// do not let WSMessageLoop() register searches in the SearchMap. This wreaks havoc with the MAXSEARCHTOTAL code
 		// sv.SearchMap[id] = s
+		SIUpdateHits <- SIKVi{s.ID, 0}
 	}
 	return s
 }
@@ -428,17 +409,17 @@ func (sv *SearchVault) SimpleGetSS(id string) SearchStruct {
 // Delete - get rid of a search (probably for good, but see "Purge")
 func (sv *SearchVault) Delete(id string) {
 	// msg("SearchVault deleting "+id, 1)
+	SIDel <- id
 	sv.mutex.Lock()
 	defer sv.mutex.Unlock()
 	delete(sv.SearchMap, id)
-	SIDel <- id
 }
 
 // Purge is just delete; makes the code logic more legible; "Purge" implies that this search is likely to reappear with an "Update"
 func (sv *SearchVault) Purge(id string) {
 	// msg("SearchVault purging "+id, 3)
-	sv.Delete(id)
 	SIDel <- id
+	sv.Delete(id)
 }
 
 //func (sv *SearchVault) GetInfo(id string) SrchInfo {
@@ -506,25 +487,53 @@ func searchvaultreport() {
 // CHANNEL-BASED SEARCHINFO REPORTING
 //
 
+// SrchInfo - struct used to deliver info about searches in progress
+type SrchInfo struct {
+	ID        string
+	Exists    bool
+	Hits      int
+	Remain    int
+	SrchCount int
+	VProgStrg string
+	Summary   string
+}
+
+type SIKVi struct {
+	key string
+	val int
+}
+
+type SIKVs struct {
+	key string
+	val string
+}
+
+type SIReply struct {
+	key      string
+	response chan SrchInfo
+}
+
 var (
 	SIUpdateHits     = make(chan SIKVi, runtime.NumCPU())
 	SIUpdateRemain   = make(chan SIKVi, runtime.NumCPU())
 	SIUpdateVProgMsg = make(chan SIKVs, runtime.NumCPU())
 	SIUpdateSummMsg  = make(chan SIKVs, runtime.NumCPU())
-	SISend           = make(chan SrchInfo, runtime.NumCPU())
-	SIRequest        = make(chan string, runtime.NumCPU())
-	SIDel            = make(chan string, runtime.NumCPU())
+	SIRequest        = make(chan SIReply, runtime.NumCPU())
+	SIDel            = make(chan string)
 )
 
 // SearchInfoHub - the loop that lets you read/write from/to the searchinfo channels
 func SearchInfoHub() {
-	Allinfo := make(map[string]SrchInfo)
+	var (
+		Allinfo  = make(map[string]SrchInfo)
+		Finished = make(map[string]bool)
+	)
 
-	reporter := func(id string) {
-		if _, ok := Allinfo[id]; ok {
-			SISend <- Allinfo[id]
+	reporter := func(r SIReply) {
+		if _, ok := Allinfo[r.key]; ok {
+			r.response <- Allinfo[r.key]
 		} else {
-			SISend <- SrchInfo{Exists: false}
+			r.response <- SrchInfo{Exists: false}
 		}
 	}
 
@@ -533,7 +542,14 @@ func SearchInfoHub() {
 			return Allinfo[id]
 		} else {
 			// any non-zero value for SrchCount is fine; the test in re-websocket.go is just for 0
-			return SrchInfo{Exists: true, SrchCount: 1}
+			return SrchInfo{ID: id, Exists: true, SrchCount: 1}
+		}
+	}
+
+	// this silly mechanism because selftest had 2nd round of nn vector tests respawning after deletion; rare, but...
+	storeunlessfinished := func(si SrchInfo) {
+		if _, ok := Finished[si.ID]; !ok {
+			Allinfo[si.ID] = si
 		}
 	}
 
@@ -541,20 +557,22 @@ func SearchInfoHub() {
 	// start accumulating old searches here:
 	// [HGS-SELFTEST] [E2: 108.505s][Δ: 22.037s] semantic vector model test: lexvec - 1 author(s) with 4 text preparation modes per author
 
-	stats := func() {
-		var cc []string
-		for k, _ := range Allinfo {
-			cc = append(cc, k)
-		}
-		// msg(fmt.Sprintf("SearchInfoHub(): %d in Allinfo\n\t%s", len(Allinfo), strings.Join(cc, ", ")), MSGNOTE)
-	}
-
-	go func() {
-		for {
-			stats()
-			time.Sleep(3 * time.Second)
-		}
-	}()
+	//stats := func() {
+	//	var cc []string
+	//	for k, _ := range Allinfo {
+	//		cc = append(cc, k)
+	//	}
+	//	if len(cc) > 0 {
+	//		msg(fmt.Sprintf("SearchInfoHub(): %d in Allinfo\n\t%s", len(Allinfo), strings.Join(cc, ", ")), MSGNOTE)
+	//	}
+	//}
+	//
+	//go func() {
+	//	for {
+	//		stats()
+	//		time.Sleep(3 * time.Second)
+	//	}
+	//}()
 
 	// the main loop; it will never exit
 	for {
@@ -564,21 +582,23 @@ func SearchInfoHub() {
 		case wr := <-SIUpdateHits:
 			x := fetchifexists(wr.key)
 			x.Hits = wr.val
-			Allinfo[wr.key] = x
+			storeunlessfinished(x)
 		case wr := <-SIUpdateRemain:
 			x := fetchifexists(wr.key)
 			x.Remain = wr.val
-			Allinfo[wr.key] = x
+			storeunlessfinished(x)
 		case wr := <-SIUpdateVProgMsg:
 			x := fetchifexists(wr.key)
 			x.VProgStrg = wr.val
-			Allinfo[wr.key] = x
+			storeunlessfinished(x)
 		case wr := <-SIUpdateSummMsg:
 			x := fetchifexists(wr.key)
 			x.Summary = wr.val
-			Allinfo[wr.key] = x
+			storeunlessfinished(x)
 		case del := <-SIDel:
+			Finished[del] = true
 			delete(Allinfo, del)
+
 		}
 	}
 }

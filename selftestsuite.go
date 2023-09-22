@@ -212,8 +212,10 @@ func selftestsuite() {
 	vmod := []string{"w2v", "lexvec", "glove"}
 	// vmod := []string{"w2v", "lexvec"}
 	vtxp := []string{"winner", "unparsed", "yoked", "montecarlo"}
+	// vtxp := []string{"winner"}
 	vauu := []string{"gr0011"} // sophocles
 
+	// [3]
 	httpgetauthor := func(v string) {
 		for _, a := range vauu {
 			url := fmt.Sprintf(URL, Config.HostIP, Config.HostPort, v, a)
@@ -222,6 +224,7 @@ func selftestsuite() {
 		}
 	}
 
+	// [2]
 	preptext := func(v string) {
 		for _, t := range vtxp {
 			Config.VectorTextPrep = t
@@ -229,19 +232,21 @@ func selftestsuite() {
 		}
 	}
 
-	buildmodels := func() {
-		count := 0
-		for _, m := range vmod {
-			count += 1
-			Config.VectorModel = m
-			preptext("nn")
-			nb := fmt.Sprintf(MSG14, m, len(vauu), len(vtxp))
-			mm.Timer(fmt.Sprintf("E%d", count), nb, start, previous)
-			previous = time.Now()
-		}
+	// [1]
+	buildmodel := func(m string, count int) {
+		Config.VectorModel = m
+		preptext("nn")
+		nb := fmt.Sprintf(MSG14, m, len(vauu), len(vtxp))
+		mm.Timer(fmt.Sprintf("E%d", count), nb, start, previous)
+		previous = time.Now()
 	}
 
-	buildmodels()
+	// loop 1 -> 2 -> 3
+	count := 1
+	for _, m := range vmod {
+		buildmodel(m, count)
+		count++
+	}
 
 	mm.Emit("[V] lda vectorization tests", MSGWARN)
 	vauu = []string{"lt0472"} // catullus
