@@ -30,7 +30,7 @@ var (
 // RtFrontpage - send the html for "/"
 func RtFrontpage(c echo.Context) error {
 	const (
-		UPSTR    = "[%v] HGS uptime: %v"
+		UPSTR    = "[%v] HGS uptime: %v [%s]"
 		PADDING  = " ----------------- "
 		STATTMPL = "%s: %d"
 		SPACER   = "    "
@@ -60,15 +60,23 @@ func RtFrontpage(c echo.Context) error {
 	env := fmt.Sprintf("%s: %s - %s (%d workers)", runtime.Version(), runtime.GOOS, runtime.GOARCH, Config.WorkerCount)
 
 	// t() will give the uptime
+	var mem runtime.MemStats
+
 	t := func(up time.Duration) string {
-		tick := fmt.Sprintf(UPSTR, time.Now().Format(time.TimeOnly), up.Truncate(time.Minute))
+		runtime.ReadMemStats(&mem)
+		heap := fmt.Sprintf("%dM", mem.HeapAlloc/1024/1024)
+		tick := fmt.Sprintf(UPSTR, time.Now().Format(time.TimeOnly), up.Truncate(time.Minute), heap)
 		return PADDING + tick + PADDING
 	}
 
 	// svd() will report what requests have been made
 	svd := func() string {
+		responder := PIReply{req: true, response: make(chan map[string]int)}
+		PIRequest <- responder
+		ctr := <-responder.response
+
 		exclude := []string{"main() post-initialization"}
-		keys := StringMapKeysIntoSlice(StatCounter)
+		keys := StringMapKeysIntoSlice(ctr)
 		keys = SetSubtraction(keys, exclude)
 		sort.Strings(keys)
 
@@ -76,7 +84,7 @@ func RtFrontpage(c echo.Context) error {
 		for k := range keys {
 			this := strings.TrimPrefix(keys[k], "Rt")
 			this = strings.TrimSuffix(this, "()")
-			pairs = append(pairs, fmt.Sprintf(SPACER+STATTMPL, this, StatCounter[keys[k]].Load()))
+			pairs = append(pairs, fmt.Sprintf(SPACER+STATTMPL, this, ctr[keys[k]]))
 		}
 		return strings.Join(pairs, "\n")
 	}

@@ -110,7 +110,7 @@ type JSB struct {
 
 // RtLexLookup - search the dictionary for a headword substring
 func RtLexLookup(c echo.Context) error {
-	c.Response().After(func() { messenger.GCStats("RtLexLookup()") })
+	c.Response().After(func() { messenger.LogPaths("RtLexLookup()") })
 
 	user := readUUIDCookie(c)
 	if !AllAuthorized.Check(user) {
@@ -158,7 +158,7 @@ func RtLexFindByForm(c echo.Context) error {
 	if !AllAuthorized.Check(user) {
 		return JSONresponse(c, JSB{JS: JSVALIDATION})
 	}
-	c.Response().After(func() { messenger.GCStats("RtLexFindByForm()") })
+	c.Response().After(func() { messenger.LogPaths("RtLexFindByForm()") })
 
 	req := c.Param("wd")
 	elem := strings.Split(req, "/")
@@ -233,7 +233,7 @@ func RtLexId(c echo.Context) error {
 // RtLexReverse - look for the headwords that have the sought word in their body
 func RtLexReverse(c echo.Context) error {
 	// be able to respond to "/lexica/reverselookup/0ae94619/sorrow"
-	c.Response().After(func() { messenger.GCStats("RtLexReverse()") })
+	c.Response().After(func() { messenger.LogPaths("RtLexReverse()") })
 
 	user := readUUIDCookie(c)
 	if !AllAuthorized.Check(user) {

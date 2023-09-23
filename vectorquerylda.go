@@ -80,7 +80,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 		ESM2   = "<br>building topic models"
 		ESM3   = "<br>using t-Distributed Stochastic Neighbor Embedding to build graph"
 	)
-	c.Response().After(func() { messenger.GCStats("LDASearch()") })
+	c.Response().After(func() { messenger.LogPaths("LDASearch()") })
 
 	se := srch.StoredSession
 	ntopics := se.LDAtopics

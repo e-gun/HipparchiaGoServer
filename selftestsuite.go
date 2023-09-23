@@ -76,6 +76,20 @@ func selftestsuite() {
 
 	// TODO: figure out why memory use creeps forever up; glove vectors are a problem; selftest() is best/worst
 
+	// does not appear outside of selftest()?
+
+	//go tool pprof heap.4.pprof
+	//Type: inuse_space
+	//Time: Sep 22, 2023 at 3:59pm (EDT)
+	//Entering interactive mode (type "help" for commands, "o" for options)
+	//(pprof) top20
+	//Showing nodes accounting for 491.94MB, 97.80% of 503.01MB total
+	//Dropped 87 nodes (cum <= 2.52MB)
+	//Showing top 20 nodes out of 72
+	//      flat  flat%   sum%        cum   cum%
+	//  131.08MB 26.06% 26.06%   131.08MB 26.06%  github.com/e-gun/wego/pkg/model/modelutil/matrix.New
+	//   62.62MB 12.45% 38.51%    62.62MB 12.45%  main.JSONresponse.func4
+
 	mm := NewGenericMessageMaker(Config, StatCounter, LaunchStruct{
 		Shortname:  "HGS-SELFTEST",
 		LaunchTime: time.Now(),

@@ -79,7 +79,7 @@ func NewGenericMessageMaker(cc CurrentConfiguration, ct map[string]*atomic.Int32
 	}
 	return &MessageMaker{
 		Cfg: cc,
-		Ctr: ct,
+		// Ctr: ct,
 		Lnc: ls,
 		Win: w,
 	}
@@ -87,20 +87,19 @@ func NewGenericMessageMaker(cc CurrentConfiguration, ct map[string]*atomic.Int32
 
 func NewFncMessageMaker(c string) *MessageMaker {
 	cc := messenger.Cfg
-	ct := messenger.Ctr
+	// ct := messenger.Ctr
 	ls := messenger.Lnc
 	ls.Caller = c
 	return &MessageMaker{
 		Cfg: cc,
-		Ctr: ct,
+		// Ctr: ct,
 		Lnc: ls,
-		mtx: sync.RWMutex{},
 	}
 }
 
 type MessageMaker struct {
 	Cfg CurrentConfiguration
-	Ctr map[string]*atomic.Int32
+	// Ctr map[string]*atomic.Int32
 	Lnc LaunchStruct
 	Pgn string
 	Win bool
@@ -246,48 +245,49 @@ func (m *MessageMaker) ResetScreen() {
 	fmt.Println(ERASESCRN + CURSHOME + DOWNONE + DOWNONE)
 }
 
-// GCStats - report garbage collection info
-func (m *MessageMaker) GCStats(fn string) {
+// LogPaths - report garbage collection info
+func (m *MessageMaker) LogPaths(fn string) {
 	// sample output: "RtLexReverse() runtime.GC() 426M --> 408M"
 
-	// users of this function:
+	// users of this service:
 
-	//rt-lexica.go:   c.Response().After(func() { messenger.GCStats("RtLexLookup()") })
-	//rt-lexica.go:   c.Response().After(func() { messenger.GCStats("RtLexReverse()") })
-	//rt-search.go:   c.Response().After(func() { messenger.GCStats("RtSearch()") })
-	//rt-textsindicesandvocab.go:     c.Response().After(func() { messenger.GCStats("RtTextMaker()") })
-	//rt-textsindicesandvocab.go:     c.Response().After(func() { messenger.GCStats("RtVocabMaker()") })
-	//rt-textsindicesandvocab.go:     c.Response().After(func() { messenger.GCStats("RtIndexMaker()") })
+	//rt-browser.go:	c.Response().After(func() { messenger.LogPaths("RtBrowseLine()") })
+	//rt-lexica.go:	c.Response().After(func() { messenger.LogPaths("RtLexLookup()") })
+	//rt-lexica.go:	c.Response().After(func() { messenger.LogPaths("RtLexFindByForm()") })
+	//rt-lexica.go:	c.Response().After(func() { messenger.LogPaths("RtLexReverse()") })
+	//rt-morphtables.go:	c.Response().After(func() { messenger.LogPaths("RtMorphchart()") })
+	//rt-search.go:	c.Response().After(func() { messenger.LogPaths("RtSearch()") })
+	//rt-textsindicesandvocab.go:	c.Response().After(func() { messenger.LogPaths("RtTextMaker()") })
+	//rt-textsindicesandvocab.go:	c.Response().After(func() { messenger.LogPaths("RtVocabMaker()") })
+	//rt-textsindicesandvocab.go:	c.Response().After(func() { messenger.LogPaths("RtIndexMaker()") })
+	//vectorquerylda.go:	c.Response().After(func() { messenger.LogPaths("LDASearch()") })
+	//vectorqueryneighbors.go:	c.Response().After(func() { messenger.LogPaths("NeighborsSearch()") })
 
 	const (
-		MSG = "%s runtime.GC() %s --> %s"
-		MPR = MSGPEEK
+		MSG  = "%s runtime.GC() %s --> %s"
+		HEAP = "%s current heap: %s"
+		MPR  = MSGPEEK
 	)
 
 	// GENERAL STATS
-
-	// racer says there is a problem if there is no mutex: specifically access to "m.Ctr[fn]"
-	m.mtx.Lock()
-	_, ok := m.Ctr[fn]
-	if !ok {
-		m.Ctr[fn] = &atomic.Int32{}
-	}
-	_ = m.Ctr[fn].Add(1)
-	m.mtx.Unlock()
+	PIUpdate <- fn
 
 	// GC INFO
 
-	if !m.Cfg.ManualGC {
-		return
-	}
 	var mem runtime.MemStats
 	runtime.ReadMemStats(&mem)
 	b := fmt.Sprintf("%dM", mem.HeapAlloc/1024/1024)
-	runtime.GC()
-	runtime.ReadMemStats(&mem)
-	a := fmt.Sprintf("%dM", mem.HeapAlloc/1024/1024)
-	m.Emit(fmt.Sprintf(MSG, fn, b, a), MPR)
 
+	if !m.Cfg.ManualGC {
+		m.Emit(fmt.Sprintf(HEAP, fn, b), MPR)
+	} else {
+		runtime.GC()
+		runtime.ReadMemStats(&mem)
+		a := fmt.Sprintf("%dM", mem.HeapAlloc/1024/1024)
+		m.Emit(fmt.Sprintf(MSG, fn, b, a), MPR)
+	}
+
+	return
 }
 
 // Timer - report how much time elapsed between A and B
@@ -336,16 +336,19 @@ func (m *MessageMaker) Ticker(wait time.Duration) {
 
 	// the searches run line
 	s := func() {
-		m.mtx.Lock()
+		responder := PIReply{req: true, response: make(chan map[string]int)}
+		PIRequest <- responder
+		ctr := <-responder.response
+
 		exclude := []string{"main() post-initialization"}
-		keys := StringMapKeysIntoSlice(m.Ctr)
+		keys := StringMapKeysIntoSlice(ctr)
 		keys = SetSubtraction(keys, exclude)
 
 		var pairs []string
 		for k := range keys {
 			this := strings.TrimPrefix(keys[k], "Rt")
 			this = strings.TrimSuffix(this, "()")
-			pairs = append(pairs, fmt.Sprintf(STATTMPL, this, m.Ctr[keys[k]].Load()))
+			pairs = append(pairs, fmt.Sprintf(STATTMPL, this, ctr[keys[k]]))
 		}
 
 		sort.Strings(pairs)
@@ -355,7 +358,6 @@ func (m *MessageMaker) Ticker(wait time.Duration) {
 		fmt.Printf(out + CLEARRT)
 		fmt.Println()
 		fmt.Printf(CLEAR + CURSREST)
-		m.mtx.Unlock()
 	}
 
 	for {
@@ -363,5 +365,45 @@ func (m *MessageMaker) Ticker(wait time.Duration) {
 		t(up)
 		s()
 		time.Sleep(wait)
+	}
+}
+
+//
+// CHANNEL-BASED PATHINFO REPORTING TO COMMUNICATE STATS BETWEEN ROUTINES
+//
+
+// PIReply - PathInfoHub helper struct for returning the PathInfo
+type PIReply struct {
+	req      bool
+	response chan map[string]int
+}
+
+var (
+	PIUpdate  = make(chan string, 2*runtime.NumCPU())
+	PIRequest = make(chan PIReply)
+)
+
+// PathInfoHub - log paths that pass through MessageMaker.LogPaths; note that we are assuming only one mm is logging
+func PathInfoHub() {
+	var (
+		PathsCalled = make(map[string]int)
+	)
+
+	increm := func(p string) {
+		if _, ok := PathsCalled[p]; ok {
+			PathsCalled[p]++
+		} else {
+			PathsCalled[p] = 1
+		}
+	}
+
+	// the main loop; it will never exit
+	for {
+		select {
+		case upd := <-PIUpdate:
+			increm(upd)
+		case req := <-PIRequest:
+			req.response <- PathsCalled
+		}
 	}
 }

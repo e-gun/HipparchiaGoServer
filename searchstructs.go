@@ -308,7 +308,7 @@ func (s *SearchStruct) SortResults() {
 }
 
 //
-// THREAD SAFE INFRASTRUCTURE: MUTEX
+// THREAD SAFE INFRASTRUCTURE: MUTEX FOR STATE
 // (and not channel: https://github.com/golang/go/wiki/MutexOrChannel)
 //
 
@@ -402,7 +402,7 @@ func (sv *SearchVault) CountIP(ip string) int {
 }
 
 //
-// CHANNEL-BASED SEARCHINFO REPORTING
+// CHANNEL-BASED SEARCHINFO REPORTING TO COMMUNICATE RESULTS BETWEEN ROUTINES
 //
 
 // SrchInfo - struct used to deliver info about searches in progress
@@ -411,32 +411,37 @@ type SrchInfo struct {
 	Exists    bool
 	Hits      int
 	Remain    int
+	TableCt   int
 	SrchCount int
 	VProgStrg string
 	Summary   string
 }
 
+// SIKVi - SearchInfoHub helper struct for setting an int val on the item at map[key]
 type SIKVi struct {
 	key string
 	val int
 }
 
+// SIKVs - SearchInfoHub helper struct for setting a string val on the item at map[key]
 type SIKVs struct {
 	key string
 	val string
 }
 
+// SIReply - SearchInfoHub helper struct for returning the SrchInfo stored at map[key]
 type SIReply struct {
 	key      string
 	response chan SrchInfo
 }
 
 var (
-	SIUpdateHits     = make(chan SIKVi, runtime.NumCPU())
-	SIUpdateRemain   = make(chan SIKVi, runtime.NumCPU())
-	SIUpdateVProgMsg = make(chan SIKVs, runtime.NumCPU())
-	SIUpdateSummMsg  = make(chan SIKVs, runtime.NumCPU())
-	SIRequest        = make(chan SIReply, runtime.NumCPU())
+	SIUpdateHits     = make(chan SIKVi, 2*runtime.NumCPU())
+	SIUpdateRemain   = make(chan SIKVi, 2*runtime.NumCPU())
+	SIUpdateVProgMsg = make(chan SIKVs, 2*runtime.NumCPU())
+	SIUpdateSummMsg  = make(chan SIKVs, 2*runtime.NumCPU())
+	SIUpdateTW       = make(chan SIKVi)
+	SIRequest        = make(chan SIReply)
 	SIDel            = make(chan string)
 )
 
@@ -451,6 +456,7 @@ func SearchInfoHub() {
 		if _, ok := Allinfo[r.key]; ok {
 			r.response <- Allinfo[r.key]
 		} else {
+			// "false" triggers a break in rt-websocket.go
 			r.response <- SrchInfo{Exists: false}
 		}
 	}
@@ -476,6 +482,10 @@ func SearchInfoHub() {
 		select {
 		case rq := <-SIRequest:
 			reporter(rq)
+		case tw := <-SIUpdateTW:
+			x := fetchifexists(tw.key)
+			x.TableCt = tw.val
+			storeunlessfinished(x)
 		case wr := <-SIUpdateHits:
 			x := fetchifexists(wr.key)
 			x.Hits = wr.val

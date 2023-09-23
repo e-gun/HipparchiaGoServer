@@ -203,7 +203,6 @@ func (c *WSClient) WSMessageLoop() {
 
 	var pd PollData
 	pd.TwoBox = srch.Twobox
-	pd.TotalWrk = srch.TableSize
 	pd.IsVect = srch.IsVector
 
 	// loop until search finishes
@@ -215,6 +214,7 @@ func (c *WSClient) WSMessageLoop() {
 		if srchinfo.Exists {
 			pd.Remain = srchinfo.Remain
 			pd.Hits = srchinfo.Hits
+			pd.TotalWrk = srchinfo.TableCt
 			pd.Msg = strings.Replace(srchinfo.Summary, "Sought", "Seeking", -1)
 		} else {
 			break

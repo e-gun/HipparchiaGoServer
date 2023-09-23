@@ -53,7 +53,7 @@ func NeighborsSearch(c echo.Context, srch SearchStruct) error {
 		SETTINGS = `model type: %s; text prep: %s`
 	)
 
-	c.Response().After(func() { messenger.GCStats("NeighborsSearch()") })
+	c.Response().After(func() { messenger.LogPaths("NeighborsSearch()") })
 	se := srch.StoredSession
 
 	term := srch.LemmaOne

@@ -92,7 +92,7 @@ func RtSearch(c echo.Context) error {
 
 	// [4] OK, IT IS A SEARCH FOR A WORD OR PHRASE
 
-	c.Response().After(func() { messenger.GCStats("RtSearch()") })
+	c.Response().After(func() { messenger.LogPaths("RtSearch()") })
 
 	// HasPhrase makes us use a fake limit temporarily
 	reallimit := srch.CurrentLimit

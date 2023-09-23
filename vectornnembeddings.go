@@ -221,12 +221,12 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 		in := 0
 		for {
 			select {
-			case m := <-ct:
-				in = m
-			case m := <-rep:
+			case iv := <-ct:
+				in = iv
+			case st := <-rep:
 				// msg(m, 2)
 				// [HGS] trained 100062 words 529.0315ms
-				coll := strings.Split(m, " ")
+				coll := strings.Split(st, " ")
 				if len(coll) == 4 {
 					// wd = coll[1]
 					// tm = coll[3]
@@ -262,8 +262,6 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 		msg(FAIL4, MSGNOTE)
 		embs = embedding.Embeddings{}
 	}
-
-	// msg(MSG3, MSGTMI)
 
 	AllSearches.Delete(s.ID)
 

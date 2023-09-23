@@ -33,7 +33,7 @@ type CurrentConfiguration struct {
 	LdaGraph        bool
 	LdaTopics       int
 	LogLevel        int
-	ManualGC        bool // see messenger.GCStats()
+	ManualGC        bool // see messenger.LogPaths()
 	MaxText         int
 	MaxSrchIP       int
 	MaxSrchTot      int

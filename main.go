@@ -8,6 +8,7 @@ package main
 import (
 	"fmt"
 	"github.com/pkg/profile"
+	_ "net/http/pprof"
 	"runtime"
 	"sync"
 	"time"
@@ -29,7 +30,12 @@ func main() {
 	LookForConfigFile()
 	ConfigAtLaunch()
 
-	// profiling runs...
+	// [a] memory debugging runs...
+	// uncomment next and then: "curl http://localhost:8080/debug/pprof/heap > heap.0.pprof"
+
+	// go func() { http.ListenAndServe("localhost:8080", nil) }()
+
+	// [b] profiling runs...
 
 	// e.g. running: ./HipparchiaGoServer -pc -st
 	// vectorless: ./HipparchiaGoServer -pc -st -dv
@@ -49,7 +55,7 @@ func main() {
 
 	messenger.Cfg = Config
 	messenger.Lnc.LaunchTime = LaunchTime
-	messenger.Ctr = StatCounter
+	// messenger.Ctr = StatCounter
 	messenger.ResetScreen()
 
 	printversion()
@@ -61,8 +67,11 @@ func main() {
 
 	SQLPool = FillPSQLPoool()
 	go WebsocketPool.WSPoolStartListening()
-	go messenger.Ticker(TICKERDELAY)
+
 	go SearchInfoHub()
+	go PathInfoHub()
+
+	go messenger.Ticker(TICKERDELAY)
 
 	// concurrent launching
 	var awaiting sync.WaitGroup
@@ -117,7 +126,7 @@ func main() {
 
 	awaiting.Wait()
 
-	messenger.GCStats("main() post-initialization")
+	messenger.LogPaths("main() post-initialization")
 	msg(messenger.ColStyle(fmt.Sprintf(SUMM, time.Now().Sub(LaunchTime).Seconds())), -999)
 
 	// uncomment one or more of the next if debugging; they are very spammy for the console...

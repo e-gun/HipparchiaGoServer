@@ -7,7 +7,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"sync"
 )
 
@@ -15,10 +14,9 @@ import (
 // THE MANAGER
 //
 
-// HGoSrch - the core of a search: coordingates the dispatch of queries and collection of results
+// HGoSrch - the core of a search: coordinates the dispatch of queries and collection of results
 func HGoSrch(ss SearchStruct) SearchStruct {
 	// NOTE: this is all much more "go-like" than HipparchiaGolangSearcher() in grabber.go,
-	// BUT python + redis + HipparchiaGolangSearcher() is marginally faster than what follows [channels produce overhead?]
 
 	// see https://go.dev/blog/pipelines : see Parallel digestion & Fan-out, fan-in & Explicit cancellation
 	// https://medium.com/amboss/applying-modern-go-concurrency-patterns-to-data-pipelines-b3b5327908d4
@@ -165,7 +163,7 @@ func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundli
 		}
 		select {
 		case <-ctx.Done():
-			log.Print(ctx.Err().Error())
+			// log.Print(ctx.Err().Error())
 			done = true
 		case ll, ok := <-foundlines:
 			if ok {
