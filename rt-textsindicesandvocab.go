@@ -479,7 +479,7 @@ func RtVocabMaker(c echo.Context) error {
 	jso.SU = sum
 	jso.HT = htm
 
-	j := fmt.Sprintf(LEXFINDJS, "vocabobserved") + fmt.Sprintf(BROWSERJS, "vocabobserved")
+	j := fmt.Sprintf(LEXFINDJS, "vocabobserved")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
 	AllSearches.Delete(si.ID)
@@ -822,6 +822,7 @@ func RtIndexMaker(c echo.Context) error {
 	jso.HT = htm
 
 	j := fmt.Sprintf(LEXFINDJS, "indexobserved") + fmt.Sprintf(BROWSERJS, "indexedlocation")
+
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
 	AllSearches.Delete(si.ID)

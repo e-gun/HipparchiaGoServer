@@ -195,12 +195,9 @@ func workmapper() map[string]DbWork {
 		QT = `SELECT %s FROM works`
 	)
 
-	dbconn := GetPSQLconnection()
-	defer dbconn.Release()
-
 	q := fmt.Sprintf(QT, WORKTEMPLATE)
 
-	foundrows, err := dbconn.Query(context.Background(), q)
+	foundrows, err := SQLPool.Query(context.Background(), q)
 	chke(err)
 
 	workmap := make(map[string]DbWork, DBWKMAPSIZE)
@@ -257,11 +254,9 @@ func authormapper(ww map[string]DbWork) map[string]DbAuthor {
 		}
 	}
 
-	dbconn := GetPSQLconnection()
-	defer dbconn.Release()
 	q := fmt.Sprintf(QT, AUTHORTEMPLATE)
 
-	foundrows, err := dbconn.Query(context.Background(), q)
+	foundrows, err := SQLPool.Query(context.Background(), q)
 	chke(err)
 
 	authormap := make(map[string]DbAuthor, DBAUMAPSIZE)
@@ -306,9 +301,6 @@ func lemmamapper() map[string]DbLemma {
 		THEQUERY = `SELECT dictionary_entry, xref_number, derivative_forms FROM %s_lemmata`
 	)
 
-	dbconn := GetPSQLconnection()
-	defer dbconn.Release()
-
 	// note that the v --> u here will push us to stripped_line SearchMap instead of accented_line
 	// clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "", "j", "i", "v", "u")
 	clean := strings.NewReplacer("-", "", "j", "i", "v", "u")
@@ -325,7 +317,7 @@ func lemmamapper() map[string]DbLemma {
 
 	for _, lg := range TheLanguages {
 		q := fmt.Sprintf(THEQUERY, lg)
-		foundrows, err := dbconn.Query(context.Background(), q)
+		foundrows, err := SQLPool.Query(context.Background(), q)
 		chke(err)
 		_, e := pgx.ForEachRow(foundrows, foreach, rfnc)
 		chke(e)

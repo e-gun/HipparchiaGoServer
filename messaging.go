@@ -245,9 +245,11 @@ func (m *MessageMaker) ResetScreen() {
 	fmt.Println(ERASESCRN + CURSHOME + DOWNONE + DOWNONE)
 }
 
-// LogPaths - report garbage collection info
+// LogPaths - increment path counter for this path; optionally do runtime.GC as well
 func (m *MessageMaker) LogPaths(fn string) {
-	// sample output: "RtLexReverse() runtime.GC() 426M --> 408M"
+	// sample output:
+	// [a] "[HGS] RtLexReverse() runtime.GC() 426M --> 408M"
+	// [b] "[HGS] RtLexLookup() current heap: 340M"
 
 	// users of this service:
 

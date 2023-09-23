@@ -242,6 +242,9 @@ func (dbw *DbWorkline) LvlVal(lvl int) string {
 
 // WorklineQuery - use a PrerolledQuery to acquire []DbWorkline
 func WorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
+	// NB: you have to use a dbconn.Exec() and can't use SQLPool.Exex() because with the latter
+	// the temp table will get separated from the main query: ERROR: relation "{ttname}" does not exist (SQLSTATE 42P01)
+
 	// [a] build a temp table if needed
 
 	if prq.TempTable != "" {

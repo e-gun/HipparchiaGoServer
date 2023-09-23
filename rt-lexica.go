@@ -497,15 +497,26 @@ func dictgrabber(seeking string, dict string, col string, syntax string) []DbLex
 	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
 	q := fmt.Sprintf(PSQQ, FLDS, dict, col, syntax, seeking, MAXDICTLOOKUP)
 
+	var lexicalfinds []DbLexicon
+	var thehit DbLexicon
+	dedup := make(map[float32]bool)
+
+	foreach := []any{&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry}
+	rwfnc := func() error {
+		thehit.lang = dict
+		if _, dup := dedup[thehit.ID]; !dup {
+			// use ID and not Lex because καρπόϲ.53442 is not καρπόϲ.53443
+			dedup[thehit.ID] = true
+			lexicalfinds = append(lexicalfinds, thehit)
+		}
+		return nil
+	}
+
 	foundrows, err := dbconn.Query(context.Background(), q)
 	chke(err)
 
-	lexicalfinds, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[DbLexicon])
-	chke(err)
-
-	for i := 0; i < len(lexicalfinds); i++ {
-		lexicalfinds[i].lang = dict
-	}
+	_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
+	chke(e)
 
 	return lexicalfinds
 }

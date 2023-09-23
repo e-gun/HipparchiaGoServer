@@ -31,9 +31,14 @@ func main() {
 	ConfigAtLaunch()
 
 	// [a] memory debugging runs...
-	// uncomment next and then: "curl http://localhost:8080/debug/pprof/heap > heap.0.pprof"
 
-	// go func() { http.ListenAndServe("localhost:8080", nil) }()
+	// uncomment next and then: "curl http://localhost:8080/debug/pprof/heap > heap.0.pprof"
+	// "go tool pprof heap.0.pprof" -> "top 20"
+
+	//go func() {
+	//	msg("**THIS BUILD IS NOT FOR RELEASE** PPROF server is active", MSGCRIT)
+	//	http.ListenAndServe("localhost:8080", nil)
+	//}()
 
 	// [b] profiling runs...
 
