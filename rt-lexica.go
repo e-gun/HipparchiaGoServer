@@ -318,10 +318,8 @@ func findbyform(word string, author string) string {
 	c := []rune(word)
 	q := fmt.Sprintf(PSQQ, FLDS, StripaccentsSTR(string(c[0])), word)
 
-	dbconn := GetPSQLconnection()
-	defer dbconn.Release()
 	var wc DbWordCount
-	ct := dbconn.QueryRow(context.Background(), q)
+	ct := SQLPool.QueryRow(context.Background(), q)
 	e := ct.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
 	if e != nil {
 		msg(fmt.Sprintf(NOTH, word), MSGFYI)
@@ -491,8 +489,6 @@ func dictgrabber(seeking string, dict string, col string, syntax string) []DbLex
 		FLDS = `entry_name, metrical_entry, id_number, pos, translations, html_body`
 		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s %s '%s' ORDER BY id_number ASC LIMIT %d`
 	)
-	dbconn := GetPSQLconnection()
-	defer dbconn.Release()
 
 	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
 	q := fmt.Sprintf(PSQQ, FLDS, dict, col, syntax, seeking, MAXDICTLOOKUP)
@@ -512,7 +508,7 @@ func dictgrabber(seeking string, dict string, col string, syntax string) []DbLex
 		return nil
 	}
 
-	foundrows, err := dbconn.Query(context.Background(), q)
+	foundrows, err := SQLPool.Query(context.Background(), q)
 	chke(err)
 
 	_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
@@ -528,12 +524,9 @@ func getmorphmatch(word string, lang string) []DbMorphology {
 		PSQQ = "SELECT %s FROM %s_morphology WHERE observed_form = '%s'"
 	)
 
-	dbconn := GetPSQLconnection()
-	defer dbconn.Release()
-
 	psq := fmt.Sprintf(PSQQ, FLDS, lang, word)
 
-	foundrows, err := dbconn.Query(context.Background(), psq)
+	foundrows, err := SQLPool.Query(context.Background(), psq)
 	chke(err)
 
 	thesefinds, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[DbMorphology])
@@ -600,8 +593,7 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 	hwm = Unique(hwm)
 
 	// [d] get the wordobjects for each Unique headword: probedictionary()
-	dbconn := GetPSQLconnection()
-	defer dbconn.Release()
+
 	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
 
 	var lexicalfinds []DbLexicon
@@ -622,7 +614,7 @@ func morphpossibintolexpossib(d string, mpp []MorphPossib) []DbLexicon {
 
 	for _, w := range hwm {
 		q := fmt.Sprintf(PSQQ, FLDS, d, COLM, w)
-		foundrows, err := dbconn.Query(context.Background(), q)
+		foundrows, err := SQLPool.Query(context.Background(), q)
 		chke(err)
 
 		_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
@@ -670,8 +662,6 @@ func paralleldictformatter(lexicalfinds []DbLexicon) map[float32]string {
 		j := i
 		go func(lexlist []DbLexicon, workerid int) {
 			defer wg.Done()
-			dbconn := GetPSQLconnection()
-			defer dbconn.Release()
 			outputchannels <- multipleentriesashtml(entrymap[j])
 		}(entrymap[i], i)
 	}
@@ -899,18 +889,15 @@ func formatlexicaloutput(w DbLexicon) string {
 
 	// [h5] previous & next entry
 
-	dbconn := GetPSQLconnection()
-	defer dbconn.Release()
-
 	var prev DbLexicon
-	p := dbconn.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.lang, "<", w.ID, "DESC"))
+	p := SQLPool.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.lang, "<", w.ID, "DESC"))
 	e := p.Scan(&prev.Entry, &prev.ID)
 	if e != nil {
 		msg(fmt.Sprintf(NOTH, "before", w.Entry), MSGFYI)
 	}
 
 	var nxt DbLexicon
-	n := dbconn.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.lang, ">", w.ID, "ASC"))
+	n := SQLPool.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.lang, ">", w.ID, "ASC"))
 	e = n.Scan(&nxt.Entry, &nxt.ID)
 	if e != nil {
 		msg(fmt.Sprintf(NOTH, "after", w.Entry), MSGFYI)

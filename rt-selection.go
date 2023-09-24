@@ -765,13 +765,10 @@ func endpointer(wuid string, locus string, sep string) ([2]int, bool) {
 
 	tb := wk.AuID()
 
-	dbconn := GetPSQLconnection()
-	defer dbconn.Release()
-
 	a := strings.Join(use, " AND ")
 	q := fmt.Sprintf(QTMP, tb, wuid, a)
 
-	foundrows, err := dbconn.Query(context.Background(), q)
+	foundrows, err := SQLPool.Query(context.Background(), q)
 	chke(err)
 
 	idx, err := pgx.CollectRows(foundrows, pgx.RowTo[int])

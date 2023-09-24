@@ -257,10 +257,9 @@ func RtVocabMaker(c echo.Context) error {
 	// "si" is a blank search struct used for progress reporting
 	si := BuildDefaultSearch(c)
 	si.ID = id
-	si.InitSum = MSG1
-	si.IsActive = true
 	AllSearches.InsertSS(si)
-	// AllSearches.SetRemain(si.ID, 1)
+
+	SIUpdateSummMsg <- SIKVs{si.ID, MSG1}
 	SIUpdateRemain <- SIKVi{id, 1}
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
@@ -564,10 +563,9 @@ func RtIndexMaker(c echo.Context) error {
 	// "si" is a blank search struct used for progress reporting
 	si := BuildDefaultSearch(c)
 	si.ID = id
-	si.InitSum = MSG1
-	si.IsActive = true
 	AllSearches.InsertSS(si)
-	// AllSearches.SetRemain(si.ID, 1)
+
+	SIUpdateSummMsg <- SIKVs{si.ID, MSG1}
 	SIUpdateRemain <- SIKVi{id, 1}
 
 	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)

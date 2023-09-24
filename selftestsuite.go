@@ -75,9 +75,10 @@ func selftestsuite() {
 		URL   = "http://%s:%d/vbot/%s/%s"
 	)
 
-	// TODO: figure out why memory use creeps forever up; glove vectors are a problem; selftest() is best/worst
+	// TODO: figure out why memory use creeps forever up; vectors are the problem; the wego code itself seems to be to blame
 
-	// does not appear outside of selftest()?
+	// currently a non-vector selftest() will go from 210M post-initialization to 263M at the end; this final figure will
+	// drop after a while; you will make it back down to 218M. the non-vector code is not leaking, it would seem
 
 	//go tool pprof heap.4.pprof
 	//Type: inuse_space
@@ -89,7 +90,6 @@ func selftestsuite() {
 	//Showing top 20 nodes out of 72
 	//      flat  flat%   sum%        cum   cum%
 	//  131.08MB 26.06% 26.06%   131.08MB 26.06%  github.com/e-gun/wego/pkg/model/modelutil/matrix.New
-	//   62.62MB 12.45% 38.51%    62.62MB 12.45%  main.JSONresponse.func4
 
 	mm := NewGenericMessageMaker(Config, StatCounter, LaunchStruct{
 		Shortname:  "HGS-SELFTEST",
@@ -148,7 +148,6 @@ func selftestsuite() {
 
 	mm.Emit("entering selftestsuite mode (4 segments)", MSGMAND)
 
-	var err error
 	u := fmt.Sprintf("http://%s:%d/", Config.HostIP, Config.HostPort)
 
 	tt := [5]bool{true, true, true, true, true}
@@ -163,16 +162,17 @@ func selftestsuite() {
 		chke(e)
 	}
 
+	// [I] 6 search tests
 	if tt[0] {
 		mm.Emit("[I] 6 search tests", MSGWARN)
 		for i := 0; i < len(st); i++ {
 			getter(st[i].Url())
-			chke(err)
 			mm.Timer(st[i].id, st[i].Msg(), start, previous)
 			previous = time.Now()
 		}
 	}
 
+	// [II] 3 text, index, and vocab maker tests
 	if tt[1] {
 		mm.Emit("[II] 3 text, index, and vocab maker tests", MSGWARN)
 
@@ -189,6 +189,7 @@ func selftestsuite() {
 		previous = time.Now()
 	}
 
+	// [III] 4 browsing and lexical tests
 	if tt[2] {
 		mm.Emit("[III] 4 browsing and lexical tests", MSGWARN)
 
@@ -262,6 +263,7 @@ func selftestsuite() {
 		}
 	}
 
+	// [IV] nearest neighbor vectorization tests
 	if tt[3] {
 		mm.Emit("[IV] nearest neighbor vectorization tests", MSGWARN)
 
@@ -282,6 +284,7 @@ func selftestsuite() {
 		}
 	}
 
+	// [V] lda vectorization tests
 	if tt[4] {
 		mm.Emit("[V] lda vectorization tests", MSGWARN)
 		vauu = []string{"lt0472"} // catullus
@@ -296,6 +299,4 @@ func selftestsuite() {
 
 	Config.VectorModel = ovm
 	Config.VectorTextPrep = otx
-
-	SQLPool.Reset()
 }
