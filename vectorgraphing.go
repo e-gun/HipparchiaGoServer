@@ -23,13 +23,11 @@ import (
 )
 
 const (
-	CHRTWIDTH  = "1500px"
-	CHRTHEIGHT = "1200px"
-	DOTHUE     = 236
-	DOTSAT     = 33
-	DOTLUM     = 45
-	DOTLUMPER  = DOTLUM + 25
-	DOTSHIFT   = 0
+	DOTHUE    = 236
+	DOTSAT    = 33
+	DOTLUM    = 45
+	DOTLUMPER = DOTLUM + 25
+	DOTSHIFT  = 0
 )
 
 var (
@@ -49,12 +47,13 @@ func buildblanknngraph(settings string, coreword string, incl string) *charts.Gr
 
 	// FYI: https://echarts.apache.org/en/theme-builder.html, but there is not much room for "theming" ATM
 
+	wd, ht := getvecchrtwdht()
 	t := fmt.Sprintf(TITLESTR, coreword, incl)
 	sf := fmt.Sprintf(SAVEFILE, StripaccentsSTR(coreword))
 
 	graph := charts.NewGraph()
 	graph.SetGlobalOptions(
-		charts.WithInitializationOpts(opts.Initialization{Width: CHRTWIDTH, Height: CHRTHEIGHT}),
+		charts.WithInitializationOpts(opts.Initialization{Width: wd, Height: ht}),
 		charts.WithTitleOpts(getcharttitleopts(t, settings)),
 		charts.WithToolboxOpts(getcharttoolboxopts(sf)),
 		// charts.WithLegendOpts(opts.Legend{}),
@@ -424,13 +423,15 @@ func lda2dscatter(ntopics int, incl string, bagger string, Y, labels mat.Matrix,
 		SAVEFILE = "lda_tsne_2d_scattergraph"
 	)
 
+	wd, ht := getvecchrtwdht()
+
 	t := fmt.Sprintf(TITLE, incl)
 	st := "text prep: " + bagger
 
 	scatter := charts.NewScatter()
 	scatter.SetGlobalOptions(
 		charts.WithTitleOpts(getcharttitleopts(t, st)),
-		charts.WithInitializationOpts(opts.Initialization{Width: CHRTHEIGHT, Height: CHRTHEIGHT}), // square
+		charts.WithInitializationOpts(opts.Initialization{Width: wd, Height: ht}), // square
 		charts.WithTooltipOpts(getcharttooltip()),
 		charts.WithToolboxOpts(getcharttoolboxopts(SAVEFILE)),
 	)
@@ -484,6 +485,8 @@ func lda3dscatter(ntopics int, incl string, bagger string, Y, labels mat.Matrix,
 		SAVEFILE = "lda_tsne_3d_scattergraph"
 	)
 
+	wd, ht := getvecchrtwdht()
+
 	scatter := charts.NewScatter3D()
 	scatter.SetGlobalOptions(
 		charts.WithXAxis3DOpts(opts.XAxis3D{Name: "X-AXIS", Show: true}),
@@ -496,7 +499,7 @@ func lda3dscatter(ntopics int, incl string, bagger string, Y, labels mat.Matrix,
 
 	scatter.SetGlobalOptions(
 		charts.WithTitleOpts(getcharttitleopts(t, st)),
-		charts.WithInitializationOpts(opts.Initialization{Width: CHRTHEIGHT, Height: CHRTHEIGHT}), // square
+		charts.WithInitializationOpts(opts.Initialization{Width: wd, Height: ht}), // square
 		charts.WithTooltipOpts(getcharttooltip()),
 		charts.WithToolboxOpts(getcharttoolboxopts(SAVEFILE)),
 	)
@@ -651,6 +654,16 @@ func custom3dscatterhtmlandjs(s *charts.Scatter3D) string {
 	htmlandjs := string(buf.Bytes())
 
 	return htmlandjs
+}
+
+func getvecchrtwdht() (string, string) {
+	wd := Config.VectorChtWd
+	ht := Config.VectorChtHt
+	if wd == "" || ht == "" {
+		wd = DEFAULTCHRTWIDTH
+		ht = DEFAULTCHRTHEIGHT
+	}
+	return wd, ht
 }
 
 //

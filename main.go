@@ -25,22 +25,30 @@ func main() {
 		QUIT = "to stop the server press Control-C or close this window"
 	)
 
-	LaunchTime = time.Now()
+	//
+	// [0] debugging code block #1
+	//
 
-	LookForConfigFile()
-	ConfigAtLaunch()
-
-	// [a] memory debugging runs...
+	// memory use debugging runs have to be custom-built
 
 	// uncomment next and then: "curl http://localhost:8080/debug/pprof/heap > heap.0.pprof"
-	// "go tool pprof heap.0.pprof" -> "top 20"
+	// "go tool pprof heap.0.pprof" -> "top 20", etc.
 
 	//go func() {
 	//	msg("**THIS BUILD IS NOT FOR RELEASE** PPROF server is active", MSGCRIT)
 	//	http.ListenAndServe("localhost:8080", nil)
 	//}()
 
-	// [b] profiling runs...
+	LaunchTime = time.Now()
+
+	//
+	// [1] set up the runtime configuration
+	//
+
+	LookForConfigFile()
+	ConfigAtLaunch()
+
+	// profiling runs are requested from the command line
 
 	// e.g. running: ./HipparchiaGoServer -pc -st
 	// vectorless: ./HipparchiaGoServer -pc -st -dv
@@ -60,7 +68,6 @@ func main() {
 
 	messenger.Cfg = Config
 	messenger.Lnc.LaunchTime = LaunchTime
-	// messenger.Ctr = StatCounter
 	messenger.ResetScreen()
 
 	printversion()
@@ -70,6 +77,10 @@ func main() {
 		msg(fmt.Sprintf(TERMINALTEXT, PROJYEAR, PROJAUTH, PROJMAIL), MSGMAND)
 	}
 
+	//
+	// [2] set up things that will run forever in the background
+	//
+
 	SQLPool = FillPSQLPoool()
 	go WebsocketPool.WSPoolStartListening()
 
@@ -78,7 +89,10 @@ func main() {
 
 	go messenger.Ticker(TICKERDELAY)
 
-	// concurrent launching
+	//
+	// [3] concurrent loading of the core data
+	//
+
 	var awaiting sync.WaitGroup
 	awaiting.Add(1)
 	go func(awaiting *sync.WaitGroup) {
@@ -87,7 +101,12 @@ func main() {
 		start := time.Now()
 		previous := time.Now()
 
+		// would save 100MB or RAM if you only load 'gr' and 'lt' instead of everything; but dynamic loading is a PITA.
+		// a lazyworkmapper() vs workmapper() is easy enough; but a loadworksifneeded() at RtSetOption() will not fix the
+		// buildwkcorpusmap()+ problem that will remain; too many other globals are in play
+
 		AllWorks = workmapper()
+
 		messenger.Timer("A1", fmt.Sprintf(MSG1, len(AllWorks)), start, previous)
 
 		previous = time.Now()
@@ -134,12 +153,20 @@ func main() {
 	messenger.LogPaths("main() post-initialization")
 	msg(messenger.ColStyle(fmt.Sprintf(SUMM, time.Now().Sub(LaunchTime).Seconds())), -999)
 
-	// uncomment one or more of the next if debugging; they are very spammy for the console...
+	//
+	// [4] debugging code block #2
+	// uncomment one or more; they are very spammy in the console...
+	//
 
-	// go searchvaultreport()
-	// go wsclientreport()
+	// go searchvaultreport(2 * time.Second)
+	// go wsclientreport(2 * time.Second)
 
 	msg(QUIT, MSGMAND)
+
+	//
+	// [5] done: start the server (which will never return)
+	//
+
 	StartEchoServer()
 }
 

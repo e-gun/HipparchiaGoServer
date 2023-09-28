@@ -294,7 +294,7 @@ func WSFillNewPool() *WSPool {
 //
 
 // wsclientreport - report the # and names of the active wsclients every N seconds
-func wsclientreport() {
+func wsclientreport(d time.Duration) {
 	// add the following to main.go: "go wsclientreport()"
 	for {
 		cl := WebsocketPool.ClientMap
@@ -303,6 +303,6 @@ func wsclientreport() {
 			cc = append(cc, k.ID)
 		}
 		msg(fmt.Sprintf("%d WebsocketPool clients: %s", len(cl), strings.Join(cc, ", ")), MSGNOTE)
-		time.Sleep(4 * time.Second)
+		time.Sleep(d)
 	}
 }

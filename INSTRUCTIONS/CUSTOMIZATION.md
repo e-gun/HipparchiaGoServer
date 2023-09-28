@@ -12,8 +12,9 @@ Items of most interest in the configuration file:
 * `DefCorp` sets which corpora are active on a reset. So if you almost never search Greek, you can set `gr` to `false`, for example. On a slow machine, this would significantly speed up `in every active author` searches.
 * `Font` sets the interface font. `Noto`, `Fira`, and `Roboto` are embedded in the program. If you pick another name, you need to have it installed on your machine. 
 * `QuietStart` spares you the copyright notice.
-* `WorkerCount` sets the number of cores of your CPU to use when searching. You will be sorry if you pick a number that is larger than what the machine actually has installed. `WorkerCount` = `CoreCount` is probably the best choice unless you know why it is not.
+* `VectorChtHt` and `VectorChWd` will set the height and width of the vector charts. Note that `px` is required as are the quotation marks: `"1000px"`, e.g.
 * `VectorMaxlines` sets the maximum scope of a vector search. `1000000` will let you model all of Latin. All of Greek is about 10x larger.
+* `WorkerCount` sets the number of cores of your CPU to use when searching. You will be sorry if you pick a number that is larger than what the machine actually has installed. `WorkerCount` = `CoreCount` is probably the best choice unless you know why it is not.
 * `ZapLunates` lets you see σ/ς instead of lunate sigmas. But why would you want that?
 
 
@@ -37,32 +38,38 @@ Items of most interest in the configuration file:
     "Gzip": false,
     "HostIP": "127.0.0.1",
     "HostPort": 8000,
+    "LdaGraph": false,
+    "LdaTopics": 8,
     "LogLevel": 0,
     "ManualGC": true,
+    "MaxText": 35000,
     "MaxSrchIP": 2,
     "MaxSrchTot": 4,
-    "MaxText": 35000,
     "PGLogin": {
       "Host": "127.0.0.1",
       "Port": 5432,
       "User": "hippa_wr",
-      "Pass": "mypass",
+      "Pass": "myrandompassword",
       "DBName": "hipparchiaDB"
     },
+    "ProfileCPU": false,
+    "ProfileMEM": false,
     "ResetVectors": false,
     "QuietStart": false,
     "SelfTest": 0,
     "TickerActive": false,
     "VectorsDisabled": false,
     "VectorBot": false,
+    "VectorChtHt": "1200px",
+    "VectorChtWd": "1500px",
     "VectorMaxlines": 1000000,
     "VectorModel": "w2v",
-    "VectorNeighb": 18,
+    "VectorNeighb": 16,
     "VectorTextPrep": "winner",
     "VectorWebExt": false,
     "VocabByCt": false,
     "VocabScans": false,
-    "WorkerCount": 6,
+    "WorkerCount": 20,
     "ZapLunates": false
   }
 ```

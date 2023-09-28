@@ -515,10 +515,11 @@ func SearchInfoHub() {
 //
 
 // searchvaultreport - report the # and names of the registered searches every N seconds
-func searchvaultreport() {
+func searchvaultreport(d time.Duration) {
 	// add the following to main.go: "go searchvaultreport()"
 	// it would be possible to "garbage collect" all searches where IsActive is "false" for too long
 	// but these really are not supposed to be a problem
+
 	for {
 		as := AllSearches.SearchMap
 		var ss []string
@@ -526,6 +527,6 @@ func searchvaultreport() {
 			ss = append(ss, k)
 		}
 		msg(fmt.Sprintf("%d in AllSearches: %s", len(as), strings.Join(ss, ", ")), MSGNOTE)
-		time.Sleep(4 * time.Second)
+		time.Sleep(d)
 	}
 }

@@ -46,6 +46,8 @@ type CurrentConfiguration struct {
 	TickerActive    bool
 	VectorsDisabled bool
 	VectorBot       bool
+	VectorChtHt     string
+	VectorChtWd     string
 	VectorMaxlines  int
 	VectorModel     string
 	VectorNeighb    int
@@ -138,7 +140,7 @@ func ConfigAtLaunch() {
 		FAIL1 = "Could not parse your information as a valid collection of credentials. Use the following template:"
 		FAIL2 = `"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"`
 		FAIL3 = `Could not parse the information in '%s'. Skipping and attempting to use built-in defaults instead.`
-		FAIL5 = "Improperly formatted corpus list. Using:\n\t%s"
+		FAIL5 = "Refusing to set a workercount greater than NumCPU: %d > %d ---> setting workercount value to NumCPU: %d"
 		FAIL6 = "Could not open '%s'"
 		FAIL7 = "ConfigAtLaunch() failed to execute help text template"
 		FAIL8 = "Cannot find current working directory"
@@ -333,6 +335,11 @@ func ConfigAtLaunch() {
 	if Config.VectorMaxlines == 0 {
 		Config.VectorMaxlines = VECTORMAXLINES
 	}
+
+	if Config.WorkerCount > runtime.NumCPU() {
+		msg(fmt.Sprintf(FAIL5, Config.WorkerCount, runtime.NumCPU(), runtime.NumCPU()), MSGCRIT)
+		Config.WorkerCount = runtime.NumCPU()
+	}
 }
 
 // BuildDefaultConfig - return a CurrentConfiguration filled out with various default values
@@ -363,6 +370,8 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.SelfTest = 0
 	c.TickerActive = TICKERISACTIVE
 	c.VectorBot = false
+	c.VectorChtHt = DEFAULTCHRTHEIGHT
+	c.VectorChtWd = DEFAULTCHRTWIDTH
 	c.VectorMaxlines = VECTORMAXLINES
 	c.VectorModel = VECTORMODELDEFAULT
 	c.VectorNeighb = VECTORNEIGHBORS
