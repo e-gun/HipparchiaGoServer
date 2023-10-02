@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"os"
-	"sort"
+	"slices"
 	"strings"
 )
 
@@ -54,7 +54,7 @@ func NeighborsSearch(c echo.Context, srch SearchStruct) error {
 	)
 
 	c.Response().After(func() { messenger.LogPaths("NeighborsSearch()") })
-	se := srch.StoredSession
+	sess := srch.StoredSession
 
 	term := srch.LemmaOne
 	if term == "" {
@@ -68,10 +68,10 @@ func NeighborsSearch(c echo.Context, srch SearchStruct) error {
 	srch.LemmaOne = term
 
 	nn := generateneighborsdata(c, srch)
-	set := fmt.Sprintf(SETTINGS, se.VecModeler, se.VecTextPrep)
+	set := fmt.Sprintf(SETTINGS, sess.VecModeler, sess.VecTextPrep)
 
 	// [a] prepare the image output
-	blank := buildblanknngraph(set, term, srch.InclusionOverview(se.Inclusions))
+	blank := buildblanknngraph(set, term, srch.InclusionOverview(sess.Inclusions))
 	graph := formatnngraph(c, blank, term, nn)
 	img := customnngraphhtmlandjs(graph)
 
@@ -100,7 +100,7 @@ func NeighborsSearch(c echo.Context, srch SearchStruct) error {
 		tablerows = append(tablerows, fmt.Sprintf(TABLEROW, rn, columnone[i], columntwo[i]))
 	}
 
-	out := fmt.Sprintf(THETABLE, term, strings.Join(tablerows, "\n"), se.VecModeler, se.VecTextPrep)
+	out := fmt.Sprintf(THETABLE, term, strings.Join(tablerows, "\n"), sess.VecModeler, sess.VecTextPrep)
 
 	soj := SearchOutputJSON{
 		Title:         fmt.Sprintf("Neighbors of '%s'", term),
@@ -126,74 +126,68 @@ func fingerprintnnvectorsearch(srch SearchStruct) string {
 
 	// unless you sort, you do not get repeatable results with a md5sum of srch.SearchIn if you look at "all latin"
 
-	var inc []string
-	sort.Strings(srch.SearchIn.AuGenres)
-	sort.Strings(srch.SearchIn.WkGenres)
-	sort.Strings(srch.SearchIn.AuLocations)
-	sort.Strings(srch.SearchIn.WkLocations)
-	sort.Strings(srch.SearchIn.Authors)
-	sort.Strings(srch.SearchIn.Works)
-	sort.Strings(srch.SearchIn.Passages)
-	inc = append(inc, srch.SearchIn.AuGenres...)
-	inc = append(inc, srch.SearchIn.WkGenres...)
-	inc = append(inc, srch.SearchIn.AuLocations...)
-	inc = append(inc, srch.SearchIn.WkLocations...)
-	inc = append(inc, srch.SearchIn.Authors...)
-	inc = append(inc, srch.SearchIn.Works...)
-	inc = append(inc, srch.SearchIn.Passages...)
+	var fp []string
 
-	var exc []string
-	sort.Strings(srch.SearchEx.AuGenres)
-	sort.Strings(srch.SearchEx.WkGenres)
-	sort.Strings(srch.SearchEx.AuLocations)
-	sort.Strings(srch.SearchEx.WkLocations)
-	sort.Strings(srch.SearchEx.Authors)
-	sort.Strings(srch.SearchEx.Works)
-	sort.Strings(srch.SearchEx.Passages)
-	exc = append(exc, srch.SearchEx.AuGenres...)
-	exc = append(exc, srch.SearchEx.WkGenres...)
-	exc = append(exc, srch.SearchEx.AuLocations...)
-	exc = append(exc, srch.SearchEx.WkLocations...)
-	exc = append(exc, srch.SearchEx.Authors...)
-	exc = append(exc, srch.SearchEx.Works...)
-	exc = append(exc, srch.SearchEx.Passages...)
+	// [1] start with the searchlist + the stoplists + VecTextPrep (which are all collections of strings + one string)
 
-	var stops []string
-	stops = readstopconfig("latin")
-	stops = append(stops, readstopconfig("greek")...)
-	sort.Strings(stops)
+	// includes
+	fp = append(fp, srch.SearchIn.AuGenres...)
+	fp = append(fp, srch.SearchIn.WkGenres...)
+	fp = append(fp, srch.SearchIn.AuLocations...)
+	fp = append(fp, srch.SearchIn.WkLocations...)
+	fp = append(fp, srch.SearchIn.Authors...)
+	fp = append(fp, srch.SearchIn.Works...)
+	fp = append(fp, srch.SearchIn.Passages...)
 
-	f1, e1 := json.Marshal(inc)
-	f2, e2 := json.Marshal(exc)
-	f3, e3 := json.Marshal(stops)
+	// excludes
+	fp = append(fp, srch.SearchEx.AuGenres...)
+	fp = append(fp, srch.SearchEx.WkGenres...)
+	fp = append(fp, srch.SearchEx.AuLocations...)
+	fp = append(fp, srch.SearchEx.WkLocations...)
+	fp = append(fp, srch.SearchEx.Authors...)
+	fp = append(fp, srch.SearchEx.Works...)
+	fp = append(fp, srch.SearchEx.Passages...)
 
-	var f4 []byte
-	var e4 error
+	// stops
+	fp = append(fp, readstopconfig("greek")...)
+	fp = append(fp, readstopconfig("latin")...)
+
+	// one last item...
+	fp = append(fp, srch.VecTextPrep)
+	slices.Sort(fp)
+
+	f1, e1 := json.Marshal(fp)
+
+	// [2] now add in the vector settings (which have an underlying Options struct)
+
+	var f2 []byte
+	var e2 error
 
 	switch srch.VecModeler {
 	case "glove":
 		ff, ee := json.Marshal(glovevectorconfig())
-		f4 = ff
-		e4 = ee
+		f2 = ff
+		e2 = ee
 	case "lexvec":
 		ff, ee := json.Marshal(lexvecvectorconfig())
-		f4 = ff
-		e4 = ee
+		f2 = ff
+		e2 = ee
 	default: // w2v
 		ff, ee := json.Marshal(w2vvectorconfig())
-		f4 = ff
-		e4 = ee
+		f2 = ff
+		e2 = ee
 	}
 
-	if e1 != nil || e2 != nil || e3 != nil || e4 != nil {
+	if e1 != nil || e2 != nil {
 		msg(FAIL, 0)
 		os.Exit(1)
 	}
 
+	// [3] merge the previous two into a single byte array
+
 	f1 = append(f1, f2...)
-	f1 = append(f1, f3...)
-	f1 = append(f1, f4...)
-	f1 = append(f1, []byte(srch.VecTextPrep)...)
+
+	// [4] generate the md5 fingerprint from this
 
 	m := fmt.Sprintf("%x", md5.Sum(f1))
 	msg(MSG1+m, MSGTMI)

@@ -178,7 +178,7 @@ func (c *WSClient) ReceiveID() {
 func (c *WSClient) WSMessageLoop() {
 	const (
 		FAIL      = `WSClient.WSMessageLoop() never found '%s' in the SearchMap`
-		VECAPPEND = `<span class="smallerthannormal">%s</span>`
+		VECAPPEND = `<br><span class="smallerthannormal">%s</span>`
 	)
 
 	// wait for the search to exist
