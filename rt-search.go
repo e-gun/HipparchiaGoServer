@@ -50,7 +50,7 @@ func RtSearch(c echo.Context) error {
 
 	user := readUUIDCookie(c)
 
-	// [1] ARE WE GOING TO DO THIS AT ALL?
+	// [A] ARE WE GOING TO DO THIS AT ALL?
 
 	if !AllAuthorized.Check(user) {
 		return JSONresponse(c, SearchOutputJSON{JS: VALIDATIONBOX})
@@ -66,13 +66,13 @@ func RtSearch(c echo.Context) error {
 		return JSONresponse(c, SearchOutputJSON{Searchsummary: m})
 	}
 
-	// [2] OK, WE ARE DOING IT
+	// [B] OK, WE ARE DOING IT
 
 	srch := InitializeSearch(c, user)
 	AllSearches.InsertSS(srch)
 	se := AllSessions.GetSess(user)
 
-	// [3] BUT WHAT KIND OF SEARCH IS IT? MAYBE IT IS A VECTOR SEARCH...
+	// [C] BUT WHAT KIND OF SEARCH IS IT? MAYBE IT IS A VECTOR SEARCH...
 
 	// note the races says that there are *many* race candidates in the imported vector code...
 	// "wego@v0.0.11/pkg/model/word2vec/optimizer.go:126"
@@ -90,11 +90,11 @@ func RtSearch(c echo.Context) error {
 		return LDASearch(c, srch)
 	}
 
-	// [4] OK, IT IS A SEARCH FOR A WORD OR PHRASE
+	// [E] OK, IT IS A SEARCH FOR A WORD OR PHRASE
 
 	c.Response().After(func() { messenger.LogPaths("RtSearch()") })
 
-	// HasPhrase makes us use a fake limit temporarily
+	// HasPhraseBoxA makes us use a fake limit temporarily
 	reallimit := srch.CurrentLimit
 
 	var completed SearchStruct
@@ -106,7 +106,7 @@ func RtSearch(c echo.Context) error {
 		}
 	} else {
 		completed = HGoSrch(AllSearches.GetSS(srch.ID))
-		if completed.HasPhrase {
+		if completed.HasPhraseBoxA {
 			findphrasesacrosslines(&completed)
 		}
 	}
@@ -151,6 +151,12 @@ func InitializeSearch(c echo.Context, user string) SearchStruct {
 
 	srch.CleanInput()
 	srch.SetType() // must happen before SSBuildQueries()
+
+	// if BoxA has a lemma and BoxB has a phrase, it is almost certainly faster to search B, then A...
+	if srch.HasLemmaBoxA && srch.HasPhraseBoxB {
+		searchphrasethenlemma(&srch)
+	}
+
 	srch.FormatInitialSummary()
 
 	if srch.IsVector {
@@ -202,8 +208,8 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	s.ProxScope = sess.SearchScope
 	s.NotNear = false
 	s.Twobox = false
-	s.HasPhrase = false
-	s.HasLemma = false
+	s.HasPhraseBoxA = false
+	s.HasLemmaBoxA = false
 	s.SkgRewritten = false
 	s.OneHit = sess.OneHit
 	s.PhaseNum = 1
@@ -236,8 +242,8 @@ func BuildHollowSearch() SearchStruct {
 		ProxScope:     "",
 		ProxType:      "",
 		ProxDist:      0,
-		HasLemma:      false,
-		HasPhrase:     false,
+		HasLemmaBoxA:  false,
+		HasPhraseBoxA: false,
 		IsVector:      false,
 		IsActive:      false,
 		OneHit:        false,
@@ -412,7 +418,6 @@ func findphrasesacrosslines(ss *SearchStruct) {
 	re := find.ReplaceAllString(skg, "(^|\\s)")
 	find = regexp.MustCompile(` $`)
 	re = find.ReplaceAllString(re, "(\\s|$)")
-
 	fp, e := regexp.Compile(re)
 	if e != nil {
 		// Καῖϲα[ρ can be requested, but it will cause big problems
@@ -492,6 +497,7 @@ func findphrasesacrosslines(ss *SearchStruct) {
 				f = fp2.MatchString(li)
 				s := sp.MatchString(nl)
 				if f && s && r.WkUID == nxt.WkUID {
+					// yes! actually record a valid hit...
 					valid[r.BuildHyperlink()] = r
 				}
 			}
@@ -506,6 +512,65 @@ func findphrasesacrosslines(ss *SearchStruct) {
 	}
 
 	ss.Results = slc
+}
+
+// pruneresultsbylemma - take a collection of results and make sure some form of X is in them
+func pruneresultsbylemma(hdwd string, ss *SearchStruct) {
+	rgx := lemmaintoregexslice(hdwd)
+	pat, e := regexp.Compile(strings.Join(rgx, "|"))
+	if e != nil {
+		pat = regexp.MustCompile("FAILED_FIND_NOTHING")
+		msg(fmt.Sprintf("pruneresultsbylemma() could not compile the following: %s", strings.Join(rgx, "|")), MSGWARN)
+	}
+
+	var valid = make(map[string]DbWorkline, len(ss.Results))
+
+	for i := 0; i < len(ss.Results); i++ {
+		r := ss.Results[i]
+		// do the "it's all on this line" case separately
+		li := ColumnPicker(ss.SrchColumn, r)
+		if pat.MatchString(li) {
+			valid[r.BuildHyperlink()] = r
+		}
+	}
+
+	slc := make([]DbWorkline, len(valid))
+	counter := 0
+	for _, r := range valid {
+		slc[counter] = r
+		counter += 1
+	}
+
+	ss.Results = slc
+
+}
+
+// searchphrasethenlemma -  if BoxA has a lemma and BoxB has a phrase, it is almost certainly faster to search B, then A...
+func searchphrasethenlemma(s *SearchStruct) {
+	// we will swap elements and reset the relevant elements of the SearchStruct
+	s.IsLemmAndPhr = true
+
+	boxa := s.LemmaOne
+	boxb := s.Proximate
+	s.Seeking = boxb
+	s.LemmaOne = ""
+	s.LemmaTwo = boxa
+	s.Proximate = ""
+
+	if hasAccent.MatchString(boxb) {
+		s.SrchColumn = "accented_line"
+	} else {
+		s.SrchColumn = DEFAULTCOLUMN
+	}
+
+	// zap some bools
+	s.HasPhraseBoxA = false
+	s.HasLemmaBoxA = false
+	s.HasPhraseBoxB = false
+	s.HasLemmaBoxB = false
+
+	// reset the type and the bools...
+	s.SetType()
 }
 
 // ColumnPicker - convert from db column name into struct name

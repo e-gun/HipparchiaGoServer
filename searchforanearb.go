@@ -40,7 +40,7 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	previous := time.Now()
 	first := HGoSrch(originalsrch)
 
-	if first.HasPhrase {
+	if first.HasPhraseBoxA {
 		findphrasesacrosslines(&first)
 	}
 	// this was toggled just before the queries were written; it needs to be reset now
@@ -79,9 +79,18 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	msg(fmt.Sprintf(MSG2, d), MSGPEEK)
 	previous = time.Now()
 
+	//fmt.Println("----")
+	//fmt.Println("second.Seeking:" + second.Seeking)
+	//fmt.Println("second.Proximate:" + second.Proximate)
+	//fmt.Println("second.LemmaOne:" + second.LemmaOne)
+	//fmt.Println("second.LemmaTwo" + second.LemmaTwo)
+	//fmt.Println("----")
+
 	second = HGoSrch(second)
-	if second.HasPhrase {
+	if second.HasPhraseBoxA && !second.IsLemmAndPhr {
 		findphrasesacrosslines(&second)
+	} else if second.IsLemmAndPhr {
+		pruneresultsbylemma(second.LemmaOne, &second)
 	}
 
 	if first.NotNear {
@@ -145,7 +154,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	previous := time.Now()
 	first := HGoSrch(originalsrch)
 
-	if first.HasPhrase {
+	if first.HasPhraseBoxA {
 		findphrasesacrosslines(&first)
 	}
 	// this was toggled just before the queries were written; it needs to be reset now
@@ -278,11 +287,11 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	// if X is a very common word like "πόλιϲ" (125,274 forms)
 
 	// [PARALLEL]
-	// Sought all 50 forms of »Πόλιϲ« within 5 words of all 16 forms of »τοξότηϲ«
+	// Sought all 50 forms of »πόλιϲ« within 5 words of all 16 forms of »τοξότηϲ«
 	// Searched 7,461 works and found 14 passages (8.89s)
 
 	// [MONO]
-	// Sought all 50 forms of »Πόλιϲ« within 5 words of all 16 forms of »τοξότηϲ«
+	// Sought all 50 forms of »πόλιϲ« within 5 words of all 16 forms of »τοξότηϲ«
 	// Searched 7,461 works and found 14 passages (20.19s)
 
 	ctx, cancel := context.WithCancel(context.Background())

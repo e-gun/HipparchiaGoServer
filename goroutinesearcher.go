@@ -43,7 +43,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	}
 
 	mx := ss.CurrentLimit
-	if ss.HasPhrase {
+	if ss.HasPhraseBoxA {
 		// windowing generates double-hits; c. 55% are valid; these get pared via findphrasesacrosslines()
 		mx = ss.CurrentLimit * 3
 	}

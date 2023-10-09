@@ -202,8 +202,8 @@ func SSBuildQueries(s *SearchStruct) {
 
 			nott := len(prq.TempTable) == 0
 			yestt := len(prq.TempTable) != 0
-			noph := !s.HasPhrase
-			yesphr := s.HasPhrase
+			noph := !s.HasPhraseBoxA
+			yesphr := s.HasPhraseBoxA
 			noidx := len(qb.WhrIdxExc) == 0 && len(qb.WhrIdxInc) == 0
 			yesidx := len(qb.WhrIdxExc) != 0 || len(qb.WhrIdxInc) != 0
 

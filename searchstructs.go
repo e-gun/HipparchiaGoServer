@@ -27,10 +27,13 @@ type SearchStruct struct {
 	ProxScope     string // "lines" or "words"
 	ProxType      string // "near" or "not near"
 	ProxDist      int
-	HasLemma      bool
-	HasPhrase     bool
+	HasLemmaBoxA  bool
+	HasLemmaBoxB  bool
+	HasPhraseBoxA bool
+	HasPhraseBoxB bool
 	IsVector      bool
 	IsActive      bool
+	IsLemmAndPhr  bool
 	OneHit        bool
 	Twobox        bool
 	NotNear       bool
@@ -90,7 +93,6 @@ func (s *SearchStruct) CleanInput() {
 
 // SetType - set internal values via self-probe
 func (s *SearchStruct) SetType() {
-	// skip detailed proximate checks because second pass search just feeds all of that into the primary fields
 	const (
 		ACC = `ϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ`
 		REG = `a-zα-ω`
@@ -106,16 +108,25 @@ func (s *SearchStruct) SetType() {
 	twowords := regexp.MustCompile(comp)
 
 	if twowords.MatchString(s.Seeking) {
-		s.HasPhrase = true
+		s.HasPhraseBoxA = true
+	}
+
+	if twowords.MatchString(s.Proximate) {
+		s.HasPhraseBoxB = true
 	}
 
 	if len(s.LemmaOne) != 0 {
-		s.HasLemma = true
+		s.HasLemmaBoxA = true
 		// accented line has "volat" in latin; and "uolo" will not find it
 		if isGreek.MatchString(s.LemmaOne) {
 			s.SrchColumn = "accented_line"
 		}
 	}
+
+	if len(s.LemmaTwo) != 0 {
+		s.HasLemmaBoxB = true
+	}
+
 	return
 }
 
