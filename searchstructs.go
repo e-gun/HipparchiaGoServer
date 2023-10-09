@@ -127,6 +127,10 @@ func (s *SearchStruct) SetType() {
 		s.HasLemmaBoxB = true
 	}
 
+	if (s.HasLemmaBoxA && s.HasPhraseBoxB) || (s.HasLemmaBoxB && s.HasPhraseBoxA) {
+		s.IsLemmAndPhr = true
+	}
+
 	return
 }
 

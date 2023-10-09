@@ -79,13 +79,6 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	msg(fmt.Sprintf(MSG2, d), MSGPEEK)
 	previous = time.Now()
 
-	//fmt.Println("----")
-	//fmt.Println("second.Seeking:" + second.Seeking)
-	//fmt.Println("second.Proximate:" + second.Proximate)
-	//fmt.Println("second.LemmaOne:" + second.LemmaOne)
-	//fmt.Println("second.LemmaTwo" + second.LemmaTwo)
-	//fmt.Println("----")
-
 	second = HGoSrch(second)
 	if second.HasPhraseBoxA && !second.IsLemmAndPhr {
 		findphrasesacrosslines(&second)
@@ -141,6 +134,10 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	// profiling will show that all your time is spent on "if basicprxfinder.MatchString(str) && !first.NotNear"
 	// as one would guess...
 
+	// TODO: Sought »ἐϲχάτη χθονόϲ« within 18 words of all 41 forms of »γαῖα« GETS all 4
+	// TODO: Sought »ἐϲχάτη χθονόϲ« within 8 words of all 41 forms of »γαῖα« MISSES all but one
+	// TODO: but 3 of 4 are within 9 words
+
 	const (
 		PSGT = `%s_FROM_%d_TO_%d`
 		LNK  = `index/%s/%s/%d`
@@ -157,6 +154,9 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	if first.HasPhraseBoxA {
 		findphrasesacrosslines(&first)
 	}
+
+	// showinterimresults(&first)
+
 	// this was toggled just before the queries were written; it needs to be reset now
 	first.CurrentLimit = first.OriginalLimit
 
@@ -209,6 +209,8 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 	ss := HGoSrch(second)
 
+	// showinterimresults(&ss)
+
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	msg(fmt.Sprintf(MSG2, d, len(first.Results)), MSGPEEK)
 	previous = time.Now()
@@ -242,6 +244,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 	// [c3] grab the head and tail of each
 	// Sought »ἀδύνατον γὰρ« within 4 words of all 19 forms of »φύϲιϲ«...
+
 	var re string
 	if len(slem) != 0 {
 		re = strings.Join(lemmaintoregexslice(slem), "|")
@@ -482,6 +485,14 @@ func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinde
 	}
 	tail = strings.Join(tt, " ") + " "
 
+	// Sought »ἐϲχάτη χθονόϲ« within 9 words of all 41 forms of »γαῖα«
+	// in the following we pick up the first »ἐϲχάτη χθονόϲ«, but should look after the second...
+	// [9]     ὁ ποιητὴϲ ἐνταῦθά φηϲιν οὐ τὰ πρὸϲ ὠκεανὸν ἀλλὰ τὰ ἐκεῖ πρὸϲ τῇ κατὰ νεῖλον θαλάϲϲῃ καθὰ καὶ αἰϲχύλοϲ εἰπών ἔϲτιν πόλιϲ κάνωβοϲ ἐϲχάτη χθονόϲ πᾶϲα γὰρ ἀγχίαλοϲ ἐϲχάτη χθονόϲ διὸ καὶ μενελαϊ/τηϲ νομὸϲ ἐκεῖ ὡϲ τοιαύτηϲ γῆϲ ὑπὸ μενελάῳ ποτὲ γενομένηϲ  steph byz ἀπόλλωνοϲ πόλιϲ ἐν αἰγύπτῳ πρὸϲ
+	//        false    νεῖλον θαλάϲϲῃ καθὰ καὶ αἰϲχύλοϲ εἰπών ἔϲτιν πόλιϲ κάνωβοϲ
+	//        false    πᾶϲα γὰρ ἀγχίαλοϲ ἐϲχάτη χθονόϲ διὸ καὶ μενελαϊ/τηϲ
+	// this is baked in via RGX above: `^(?P<head>.*?)%s(?P<tail>.*?)$`
+	// TODO: RGX should be redefined....
+
 	if notnear {
 		// toss hits
 		if !basicprxfinder.MatchString(head) && !basicprxfinder.MatchString(tail) {
@@ -489,6 +500,12 @@ func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinde
 		}
 	} else {
 		// collect hits
+
+		// pf := fmt.Sprintf("\n\treg\t%s", basicprxfinder.String())
+		// pf := ""
+		// htv := "[%d]\t%s%s\n\t%t\t%s\n\t%t\t%s"
+		// msg(fmt.Sprintf(htv, p.K, p.V, pf, basicprxfinder.MatchString(head), head, basicprxfinder.MatchString(tail), tail), MSGNOTE)
+
 		if basicprxfinder.MatchString(head) || basicprxfinder.MatchString(tail) {
 			result = p.K
 		}

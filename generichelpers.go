@@ -45,6 +45,33 @@ func sliceprinter[T any](n string, s []T) {
 	}
 }
 
+// showinterimresults - print out the current results
+func showinterimresults(s *SearchStruct) {
+	const (
+		NB  = "showinterimresults()"
+		FMT = "[%d] %s\t%s\t%s"
+	)
+
+	msg(NB, MSGWARN)
+
+	mp := make(map[string]DbWorkline, len(s.Results))
+	kk := make([]string, len(s.Results))
+
+	for i := 0; i < len(s.Results); i++ {
+		r := s.Results[i]
+		mp[r.BuildHyperlink()] = r
+		kk[i] = r.BuildHyperlink()
+	}
+
+	slices.Sort(kk)
+
+	for i, k := range kk {
+		r := mp[k]
+		v := fmt.Sprintf(FMT, i, r.BuildHyperlink(), s.Seeking, r.MarkedUp)
+		msg(v, MSGNOTE)
+	}
+}
+
 //
 // SETS AND SLICES
 //

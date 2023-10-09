@@ -548,7 +548,9 @@ func pruneresultsbylemma(hdwd string, ss *SearchStruct) {
 // searchphrasethenlemma -  if BoxA has a lemma and BoxB has a phrase, it is almost certainly faster to search B, then A...
 func searchphrasethenlemma(s *SearchStruct) {
 	// we will swap elements and reset the relevant elements of the SearchStruct
-	s.IsLemmAndPhr = true
+
+	// no  searchphrasethenlemma(): [Δ: 4.564s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
+	// yes searchphrasethenlemma(): [Δ: 1.276s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
 
 	boxa := s.LemmaOne
 	boxb := s.Proximate
