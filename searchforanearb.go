@@ -134,10 +134,6 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	// profiling will show that all your time is spent on "if basicprxfinder.MatchString(str) && !first.NotNear"
 	// as one would guess...
 
-	// TODO: Sought »ἐϲχάτη χθονόϲ« within 18 words of all 41 forms of »γαῖα« GETS all 4
-	// TODO: Sought »ἐϲχάτη χθονόϲ« within 8 words of all 41 forms of »γαῖα« MISSES all but one
-	// TODO: but 3 of 4 are within 9 words
-
 	const (
 		PSGT = `%s_FROM_%d_TO_%d`
 		LNK  = `index/%s/%s/%d`
@@ -488,7 +484,7 @@ func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinde
 	// but we can't build the tail without making another check...
 
 	// Sought »ἐϲχάτη χθονόϲ« within 9 words of all 41 forms of »γαῖα«
-	// in the following we pick up the first »ἐϲχάτη χθονόϲ« and set it as the border, but miss a hit if you do not look after the second...
+	// in the following we pick up the first »ἐϲχάτη χθονόϲ« of two copies of and set it as the border, but miss a hit if you do not look after the second...
 	// [9]     ὁ ποιητὴϲ ἐνταῦθά φηϲιν οὐ τὰ πρὸϲ ὠκεανὸν ἀλλὰ τὰ ἐκεῖ πρὸϲ τῇ κατὰ νεῖλον θαλάϲϲῃ καθὰ καὶ αἰϲχύλοϲ εἰπών ἔϲτιν πόλιϲ κάνωβοϲ ἐϲχάτη χθονόϲ πᾶϲα γὰρ ἀγχίαλοϲ ἐϲχάτη χθονόϲ διὸ καὶ μενελαϊ/τηϲ νομὸϲ ἐκεῖ ὡϲ τοιαύτηϲ γῆϲ ὑπὸ μενελάῳ ποτὲ γενομένηϲ  steph byz ἀπόλλωνοϲ πόλιϲ ἐν αἰγύπτῳ πρὸϲ
 	//        h	false    νεῖλον θαλάϲϲῃ καθὰ καὶ αἰϲχύλοϲ εἰπών ἔϲτιν πόλιϲ κάνωβοϲ
 	//        t	false    πᾶϲα γὰρ ἀγχίαλοϲ ἐϲχάτη χθονόϲ διὸ καὶ μενελαϊ/τηϲ
@@ -497,24 +493,19 @@ func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinde
 	checkfordupes := submatchsrchfinder.FindStringSubmatch(tail)
 
 	if len(checkfordupes) == 0 {
-		// ok, just build the tail...
+		// only one copy of the search term is in here; just build the tail...
 		if len(tt) >= proximity {
-			// "tt[0:proximity+1]" is wrong; "within 5" will find τοξότηϲ within 5 words of πόλιν in S. Ant.; but it comes 6 words later
 			tt = tt[0:proximity]
 		}
 	} else {
 		// no, you have two+ copies of the initial search item in here; recalculate the tail...
-		// TODO: alas, this should be recursive too: what if »ἐϲχάτη χθονόϲ« appeared 3+ times...? only works with 2x ATM
-
-		headinsidethetail := checkfordupes[submatchsrchfinder.SubexpIndex("head")]
-		// tail2 := checkfordupes[submatchsrchfinder.SubexpIndex("tail")]
 
 		// recover the word/phrase we were looking for
 		srchtrm, _ := strings.CutPrefix(submatchsrchfinder.String(), CUTPRE)
 		srchtrm, _ = strings.CutSuffix(srchtrm, CUTSUF)
 
 		// calculate the new tail
-		tt = recursiveproxwordmatching(headinsidethetail, srchtrm, proximity, tt)
+		tt = IterativeProxWordsMatching(tail, srchtrm, proximity)
 	}
 
 	tail = strings.Join(tt, " ") + " "
@@ -539,52 +530,78 @@ func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinde
 	return result
 }
 
-// recursiveproxwordmatching - two hits for a search term are right on top of one another...
-func recursiveproxwordmatching(headinsidethetail string, sought string, proximity int, tt []string) []string {
-	// [HGS] headinsidethetail:     πᾶϲα γὰρ ἀγχίαλοϲ
+// IterativeProxWordsMatching - multiple hits for a search term are right on top of one another...
+func IterativeProxWordsMatching(text string, sought string, proximity int) []string {
 	// [HGS] phr:       ἐϲχάτη χθονόϲ
+	// [HGS] headinsidethetail:     πᾶϲα γὰρ ἀγχίαλοϲ
 	// [HGS] tail2:     διὸ καὶ μενελαϊ/τηϲ νομὸϲ ἐκεῖ ὡϲ τοιαύτηϲ γῆϲ ὑπὸ μενελάῳ ποτὲ γενομένηϲ  steph byz ἀπόλλωνοϲ πόλιϲ ἐν αἰγύπτῳ πρὸϲ
 	// "tail" needs to be longer: proximity = proximity + len(headinsidethetail) + len(searchphrase)
 
+	// the caveat: imagine you have »ἐϲχάτη χθονόϲ« + word1 + word2 + word3 + word4 + word5 + »ἐϲχάτη χθονόϲ« + tail1 + tail2 AND your distance is 2
+	// you can't just add everything after  »ἐϲχάτη χθονόϲ« #1 since word3 is not within range of either copy of »ἐϲχάτη χθονόϲ«
+	// the rewritten tail should be "word1 word2 word4 word5 ἐϲχάτη χθονόϲ tail1 tail2" [i.e., skip word3]
+
 	// for testing...
-	// tail := `word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 ἐϲχάτη χθονόϲ tail0 tail1 tail2 tail3 tail4 tail5`
+	// text := `zero one two ἐϲχάτη χθονόϲ word0 word1 word2 word3 word4 word5 word6 word7 word8 word9 ἐϲχάτη χθονόϲ tail0 tail1 tail2 tail3 tail4 tail5 ἐϲχάτη χθονόϲ rec0 rec1 rec2 rec3`
 
-	if len(headinsidethetail) != 0 {
-		// recover the word/phrase we were looking for
-		ssize := len(strings.Split(sought, " "))
-		embeddedheadsize := len(strings.Split(headinsidethetail, " "))
+	var tail []string
 
-		// caveat: imagine you have »ἐϲχάτη χθονόϲ« + word1 + word2 + word3 + word4 + word5 + »ἐϲχάτη χθονόϲ« AND your distance is 2
-		// you can't just add len(headinsidethetail) + len(searchphrase) since word3 is not within range of either »ἐϲχάτη χθονόϲ«
-		// the tail should be "word1 word2 word4 word5 ἐϲχάτη χθονόϲ tail1 tail2" [i.e., skip word3]
+	// if "sought" is fancy regex, strings.Split() is not going to work right...
+	// segments := strings.Split(text, sought)
 
-		if embeddedheadsize <= proximity {
-			// caveat is irrelevant; free to grab everything
+	// this is the right way to split... should be hard to get a compile error since this is a recompilation
+	re, e := regexp.Compile(sought)
+	chke(e)
 
-			supplem := embeddedheadsize + ssize
-			// msg(fmt.Sprintf("new proximity = %d + %d", proximity, supplem), 1)
+	segments := re.Split(text, -1)
 
-			proximity = proximity + supplem
-			if len(tt) >= proximity { // superfluous? but don't want to figure out the corner case...
-				tt = tt[0:proximity]
-			}
+	// helper functions
+
+	appenduptoxitems := func(first []string, second []string, items int) []string {
+		if len(second) >= items {
+			return append(first, second[0:items]...)
 		} else {
-			// caveat in play; need to bracket off some material
-			supplem := embeddedheadsize + ssize
-			pt1 := tt[0:proximity]
-			pt2 := []string{}
-			if len(tt) <= proximity+supplem {
-				pt2 = tt[embeddedheadsize-proximity:]
-			} else {
-				pt2 = tt[embeddedheadsize-proximity : embeddedheadsize+proximity+ssize-1]
-			}
-			tt = append(pt1, pt2...)
-		}
-	} else {
-		// just build the tail...
-		if len(tt) >= proximity {
-			tt = tt[0:proximity]
+			return append(first, second[0:]...)
 		}
 	}
-	return tt
+
+	selectivebuilder := func(split []string) []string {
+		embeddedheadsize := len(split)
+		if embeddedheadsize <= proximity {
+			// caveat is irrelevant; free to grab anything in the tail as we have it
+			tail = append(tail, split...)
+			tail = append(tail, sought)
+		} else {
+			// caveat in play; need to bracket off some material
+			var pt1 []string
+			var pt2 []string
+			if embeddedheadsize-proximity > proximity {
+				// add prx from the start and prx from the end of the series
+				pt1 = split[0:proximity]
+				pt2 = split[embeddedheadsize-proximity : embeddedheadsize]
+				tail = append(tail, pt1...)
+				tail = append(tail, pt2...)
+			} else {
+				// "zero one two" and not "zero one one two" @ proximity = 2
+				tail = append(tail, split...)
+			}
+			tail = append(tail, sought)
+		}
+		return tail
+	}
+
+	// main loop
+
+	last := len(segments) - 1
+
+	for i := 0; i < len(segments); i++ {
+		splt := strings.Split(strings.TrimSpace(segments[i]), " ")
+		if i != last {
+			tail = selectivebuilder(splt)
+		} else {
+			tail = appenduptoxitems(tail, splt, proximity)
+		}
+	}
+
+	return tail
 }
