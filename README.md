@@ -3,7 +3,7 @@
 ### STATUS (v1.2.14):
 
 * 25%-700% faster than HipparchiaServer depending on the function. Uses c. 60% as much RAM.
-* monolithic binary: no need for extra files/folders
+* monolithic binary: no need for extra files/folders; no need to chase dependencies
 
 ### FEATURES
 
@@ -21,6 +21,7 @@
   * search scope exclusions 
   * near/not-near syntax
   * progress polling
+  * automatic rewrites of searches to optimize for speed
 * semantic vectors 
   * general
     * configurable model parameters

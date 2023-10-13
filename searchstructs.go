@@ -258,6 +258,26 @@ func (s *SearchStruct) InclusionOverview(sessincl SearchIncExl) string {
 	return r
 }
 
+// Optimize - consider rewriting the search to make it faster
+func (s *SearchStruct) Optimize() {
+	// if BoxA has a lemma and BoxB has a phrase, it is almost certainly faster to search B, then A...
+	if s.HasLemmaBoxA && s.HasPhraseBoxB {
+		s.SwapPhraseAndLemma()
+		return
+	}
+
+	// all forms of an uncommon word should (usually) be sought before all forms of a common word...
+	if s.HasLemmaBoxA && s.HasLemmaBoxB {
+		s.PickFastestLemma()
+		return
+	}
+
+	// consider looking for the string with more characters in it first
+	if len(s.Seeking) > 0 && len(s.Proximate) > 0 {
+		s.SearchQuickestFirst()
+	}
+}
+
 // PickFastestLemma - all forms of an uncommon word should (usually) be sought before all forms of a common word
 func (s *SearchStruct) PickFastestLemma() {
 	// Sought all 65 forms of »δημηγορέω« within 1 lines of all 386 forms of »γιγνώϲκω«
@@ -281,14 +301,9 @@ func (s *SearchStruct) PickFastestLemma() {
 	// the penalty for being wrong is relatively low; the savings when you get this right can be significant
 
 	const (
-		FAIL  = "PickFastestLemma() called even though this is not a two-lemma search. Aborting."
-		NOTE1 = "PickFastestLemma() is swapping %s for %s: possible hits %d < %d && known forms %d < %d"
+		NOTE1 = "PickFastestLemma() is swapping %s for %s: possible hits %d < %d; known forms %d < %d"
 		NOTE2 = "PickFastestLemma() is NOT swapping %s for %s: possible hits %d vs %d; known forms %d vs %d"
 	)
-
-	if !s.HasLemmaBoxA || !s.HasLemmaBoxB {
-		msg(FAIL, MSGWARN)
-	}
 
 	hw1 := headwordlookup(s.LemmaOne)
 	hw2 := headwordlookup(s.LemmaTwo)
@@ -314,6 +329,8 @@ func (s *SearchStruct) SwapPhraseAndLemma() {
 	// no  SwapPhraseAndLemma(): [Δ: 4.564s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
 	// yes SwapPhraseAndLemma(): [Δ: 1.276s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
 
+	msg("SwapPhraseAndLemma() was called", MSGPEEK)
+
 	boxa := s.LemmaOne
 	boxb := s.Proximate
 	s.Seeking = boxb
@@ -335,6 +352,60 @@ func (s *SearchStruct) SwapPhraseAndLemma() {
 
 	// reset the type and the bools...
 	s.SetType()
+}
+
+// SearchQuickestFirst - look for the string with more characters in it first; it will typically generate fewer initial hits
+func (s *SearchStruct) SearchQuickestFirst() {
+	const (
+		NOTE = "SearchQuickestFirst() swapping '%s' and '%s'"
+	)
+
+	// a long phrase is slower than a single word:
+	// faster: Sought »ἡδονήν« within 1 lines of »τέλουϲ τῆϲ φιλοϲοφίαϲ«
+	// slower: Sought »τέλουϲ τῆϲ φιλοϲοφίαϲ« within 1 lines of »ἡδονήν«
+
+	isphraseskg := strings.Split(strings.TrimSpace(s.Seeking), " ")
+	isphraseprx := strings.Split(strings.TrimSpace(s.Proximate), " ")
+
+	test1 := len(s.Seeking) < len(s.Proximate)
+	test2 := len(isphraseskg) == 1 && len(isphraseprx) == 1
+	test3 := len(isphraseskg) != 1 && len(isphraseprx) != 1
+	test4 := len(isphraseskg) != 1 || len(isphraseprx) != 1
+
+	skg := s.Seeking
+	prx := s.Proximate
+
+	swap := func() {
+		s.Proximate = skg
+		s.Seeking = prx
+		msg(fmt.Sprintf(NOTE, skg, prx), MSGPEEK)
+	}
+
+	// sequence of checks matters... test4 logic can't come until test3 has been cleared
+
+	if test1 && test2 {
+		// two single words
+		swap()
+		return
+	}
+
+	if test1 && test3 {
+		// two phrases
+		swap()
+		return
+	}
+
+	if test4 {
+		// there is a phrase in here somewhere; the other term is a single word because "two phrase" was already tested
+		if len(isphraseprx) != 1 {
+			// single word + a phrase
+			// fastest to do nothing
+		} else {
+			// phrase + single word
+			// quicker to swap because single words beat phrases
+			swap()
+		}
+	}
 }
 
 // SortResults - sort the search results by the session's registerselection criterion
@@ -461,7 +532,6 @@ func (sv *SearchVault) SimpleGetSS(id string) SearchStruct {
 
 // Delete - get rid of a search (probably for good, but see "Purge")
 func (sv *SearchVault) Delete(id string) {
-	// msg("SearchVault deleting "+id, 1)
 	SIDel <- id
 	sv.mutex.Lock()
 	defer sv.mutex.Unlock()
@@ -470,7 +540,6 @@ func (sv *SearchVault) Delete(id string) {
 
 // Purge is just delete; makes the code logic more legible; "Purge" implies that this search is likely to reappear with an "Update"
 func (sv *SearchVault) Purge(id string) {
-	// msg("SearchVault purging "+id, 3)
 	SIDel <- id
 	sv.Delete(id)
 }

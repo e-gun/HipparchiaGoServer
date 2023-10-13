@@ -150,18 +150,8 @@ func InitializeSearch(c echo.Context, user string) SearchStruct {
 	srch.IPAddr = c.RealIP()
 
 	srch.CleanInput()
-	srch.SetType() // must happen before SSBuildQueries()
-
-	// if BoxA has a lemma and BoxB has a phrase, it is almost certainly faster to search B, then A...
-	if srch.HasLemmaBoxA && srch.HasPhraseBoxB {
-		srch.SwapPhraseAndLemma()
-	}
-
-	// all forms of an uncommon word should be sought before all forms of a common word...
-	if srch.HasLemmaBoxA && srch.HasLemmaBoxB {
-		srch.PickFastestLemma()
-	}
-
+	srch.SetType()  // must happen before SSBuildQueries()
+	srch.Optimize() // maybe rewrite the search to make it faster
 	srch.FormatInitialSummary()
 
 	if srch.IsVector {

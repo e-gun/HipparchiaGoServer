@@ -351,7 +351,6 @@ func XWordsFeeder(ctx context.Context, kvp *[]KVPair, ss *SearchStruct) (<-chan 
 			default:
 				remainder = len(ss.Queries) - i - 1
 				if remainder%POLLEVERYNTABLES == 0 {
-					// ss.Remain.Set(remainder)
 					SIUpdateRemain <- SIKVi{ss.ID, remainder}
 				}
 				emit <- (*kvp)[i]
@@ -446,11 +445,6 @@ func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinde
 	// the default return is "not a hit"
 	result := -1
 
-	// now we have a new problem: Sought all 19 forms of »φύϲιϲ« within 4 words of »ἀδύνατον γὰρ«
-	// what if the string contains multiple valid values for term #1?
-	// [291]	ϲτερεῶν ἅψηται ὁ πυρετόϲ ἐπειδὴ μὴ ὁμαλῶϲ θερμαίνεται ἀλλὰ ἀνωμάλωϲ εἰϲὶ γάρ τινα μόρια κατὰ φύϲιν ἔχοντα τινὰ δὲ παρὰ φύϲιν ϲυμβαίνει τὰ κατὰ φύϲιν ἔχοντα ἀντιλαμβάνεϲθαι τῶν παρὰ φύϲιν διακειμένων ἀδύνατον γὰρ ὁμαλὴν γενέϲθαι τὴν δυϲκραϲίαν οἱ δὲ ἑκτικῷ κατεϲχημένοι πυρετῷ τοῦτο δέ ἐϲτιν οἱ τὰ ϲτερεὰ πυρέττοντεϲ
-	//
-
 	// quick preliminary test (which does seem to shave 5-10% from your time...)
 	possible := false
 	if basicprxfinder.MatchString(p.V) && !notnear {
@@ -483,12 +477,17 @@ func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinde
 
 	// but we can't build the tail without making another check...
 
-	// Sought »ἐϲχάτη χθονόϲ« within 9 words of all 41 forms of »γαῖα«
-	// in the following we pick up the first »ἐϲχάτη χθονόϲ« of two copies of and set it as the border, but miss a hit if you do not look after the second...
+	// Example: Sought »ἐϲχάτη χθονόϲ« within 9 words of all 41 forms of »γαῖα«
+	// with the following "initial hit" we pick up the first of two copies of »ἐϲχάτη χθονόϲ« and set it as the border,
+	// but you will miss a final hit if you do not continue to look after the second copy since γῆϲ comes after #2
+	// and therefore >9 wds after the initial hit...
+
 	// [9]     ὁ ποιητὴϲ ἐνταῦθά φηϲιν οὐ τὰ πρὸϲ ὠκεανὸν ἀλλὰ τὰ ἐκεῖ πρὸϲ τῇ κατὰ νεῖλον θαλάϲϲῃ καθὰ καὶ αἰϲχύλοϲ εἰπών ἔϲτιν πόλιϲ κάνωβοϲ ἐϲχάτη χθονόϲ πᾶϲα γὰρ ἀγχίαλοϲ ἐϲχάτη χθονόϲ διὸ καὶ μενελαϊ/τηϲ νομὸϲ ἐκεῖ ὡϲ τοιαύτηϲ γῆϲ ὑπὸ μενελάῳ ποτὲ γενομένηϲ  steph byz ἀπόλλωνοϲ πόλιϲ ἐν αἰγύπτῳ πρὸϲ
 	//        h	false    νεῖλον θαλάϲϲῃ καθὰ καὶ αἰϲχύλοϲ εἰπών ἔϲτιν πόλιϲ κάνωβοϲ
 	//        t	false    πᾶϲα γὰρ ἀγχίαλοϲ ἐϲχάτη χθονόϲ διὸ καὶ μενελαϊ/τηϲ
-	// this split is baked in via RGX above: `^(?P<head>.*?)%s(?P<tail>.*?)$`
+
+	// IterativeProxWordsMatching() constructs the solution: if there are N versions of the initial term, build and merge
+	// N mini environs and return this as the "tail"
 
 	checkfordupes := submatchsrchfinder.FindStringSubmatch(tail)
 
@@ -517,12 +516,6 @@ func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinde
 		}
 	} else {
 		// collect hits
-
-		// pf := fmt.Sprintf("\n\treg\t%s", basicprxfinder.String())
-		// pf := ""
-		// htv := "[%d]\t%s%s\n\t%t\t%s\n\t%t\t%s"
-		// msg(fmt.Sprintf(htv, p.K, p.V, pf, basicprxfinder.MatchString(head), head, basicprxfinder.MatchString(tail), tail), MSGNOTE)
-
 		if basicprxfinder.MatchString(head) || basicprxfinder.MatchString(tail) {
 			result = p.K
 		}
