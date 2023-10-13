@@ -154,7 +154,12 @@ func InitializeSearch(c echo.Context, user string) SearchStruct {
 
 	// if BoxA has a lemma and BoxB has a phrase, it is almost certainly faster to search B, then A...
 	if srch.HasLemmaBoxA && srch.HasPhraseBoxB {
-		searchphrasethenlemma(&srch)
+		srch.SwapPhraseAndLemma()
+	}
+
+	// all forms of an uncommon word should be sought before all forms of a common word...
+	if srch.HasLemmaBoxA && srch.HasLemmaBoxB {
+		srch.PickFastestLemma()
 	}
 
 	srch.FormatInitialSummary()
@@ -543,36 +548,6 @@ func pruneresultsbylemma(hdwd string, ss *SearchStruct) {
 
 	ss.Results = slc
 
-}
-
-// searchphrasethenlemma -  if BoxA has a lemma and BoxB has a phrase, it very likely faster to search B, then A...
-func searchphrasethenlemma(s *SearchStruct) {
-	// we will swap elements and reset the relevant elements of the SearchStruct
-
-	// no  searchphrasethenlemma(): [Δ: 4.564s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
-	// yes searchphrasethenlemma(): [Δ: 1.276s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
-
-	boxa := s.LemmaOne
-	boxb := s.Proximate
-	s.Seeking = boxb
-	s.LemmaOne = ""
-	s.LemmaTwo = boxa
-	s.Proximate = ""
-
-	if hasAccent.MatchString(boxb) {
-		s.SrchColumn = "accented_line"
-	} else {
-		s.SrchColumn = DEFAULTCOLUMN
-	}
-
-	// zap some bools
-	s.HasPhraseBoxA = false
-	s.HasLemmaBoxA = false
-	s.HasPhraseBoxB = false
-	s.HasLemmaBoxB = false
-
-	// reset the type and the bools...
-	s.SetType()
 }
 
 // ColumnPicker - convert from db column name into struct name

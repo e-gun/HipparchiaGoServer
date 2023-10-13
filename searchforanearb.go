@@ -549,7 +549,7 @@ func IterativeProxWordsMatching(text string, sought string, proximity int) []str
 	// if "sought" is fancy regex, strings.Split() is not going to work right...
 	// segments := strings.Split(text, sought)
 
-	// this is the right way to split... should be hard to get a compile error since this is a recompilation
+	// this is the right way to split; it should be hard to get a compile error since this is a recompilation
 	re, e := regexp.Compile(sought)
 	chke(e)
 
