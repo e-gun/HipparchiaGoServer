@@ -272,6 +272,11 @@ func (s *SearchStruct) Optimize() {
 		return
 	}
 
+	// a single word should be faster than a lemma
+	if s.HasLemmaBoxA && !s.HasPhraseBoxB {
+		s.SwapWordAndLemma()
+	}
+
 	// consider looking for the string with more characters in it first
 	if len(s.Seeking) > 0 && len(s.Proximate) > 0 {
 		s.SearchQuickestFirst()
@@ -322,15 +327,8 @@ func (s *SearchStruct) PickFastestLemma() {
 	}
 }
 
-// SwapPhraseAndLemma -  if BoxA has a lemma and BoxB has a phrase, it very likely faster to search B, then A...
-func (s *SearchStruct) SwapPhraseAndLemma() {
-	// we will swap elements and reset the relevant elements of the SearchStruct
-
-	// no  SwapPhraseAndLemma(): [Δ: 4.564s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
-	// yes SwapPhraseAndLemma(): [Δ: 1.276s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
-
-	msg("SwapPhraseAndLemma() was called", MSGPEEK)
-
+// LemmaBoxSwap - swap 'seeking' and 'proximate' to do a lemma as the second search (in the name of speed)
+func (s *SearchStruct) LemmaBoxSwap() {
 	boxa := s.LemmaOne
 	boxb := s.Proximate
 	s.Seeking = boxb
@@ -352,6 +350,39 @@ func (s *SearchStruct) SwapPhraseAndLemma() {
 
 	// reset the type and the bools...
 	s.SetType()
+}
+
+// SwapPhraseAndLemma -  if BoxA has a lemma and BoxB has a phrase, it very likely faster to search B, then A...
+func (s *SearchStruct) SwapPhraseAndLemma() {
+	// we will swap elements and reset the relevant elements of the SearchStruct
+
+	// no  SwapPhraseAndLemma(): [Δ: 4.564s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
+	// yes SwapPhraseAndLemma(): [Δ: 1.276s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
+
+	const (
+		CALLED = `SwapPhraseAndLemma() was called: lemmatized '%s' swapped with '%s'`
+	)
+
+	msg(fmt.Sprintf(CALLED, s.LemmaOne, s.Proximate), MSGPEEK)
+	s.LemmaBoxSwap()
+}
+
+// SwapWordAndLemma - if BoxA has a lemma and BoxB has a single word, it very likely faster to search B, then A...
+func (s *SearchStruct) SwapWordAndLemma() {
+	// [swapped]
+	// Sought »χρηματα« within 1 lines of all 45 forms of »ἄνθρωποϲ«
+	// Searched 7,461 works and found 298 passages (2.86s)
+
+	// [unswapped]
+	// Sought all 45 forms of »ἄνθρωποϲ« within 1 lines of »χρηματα«
+	// Searched 7,461 works and found 1 passages (8.89s)
+
+	const (
+		CALLED = `SwapWordAndLemma() was called: lemmatized '%s' swapped with '%s'`
+	)
+
+	msg(fmt.Sprintf(CALLED, s.LemmaOne, s.Proximate), MSGPEEK)
+	s.LemmaBoxSwap()
 }
 
 // SearchQuickestFirst - look for the string with more characters in it first; it will typically generate fewer initial hits

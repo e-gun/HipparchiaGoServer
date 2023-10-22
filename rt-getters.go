@@ -27,7 +27,7 @@ type JSStruct struct {
 
 // RtGetJSSession - return the JSON for the session values for parsing by client JS
 func RtGetJSSession(c echo.Context) error {
-	// see hipparchiajs/coreinterfaceclicks_go.js
+	// see hipparchiajs/coreinterfaceclicks.js
 
 	user := readUUIDCookie(c)
 	s := AllSessions.GetSess(user)
@@ -161,7 +161,7 @@ func RtGetJSWorksStruct(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, lvls, JSONINDENT)
 }
 
-// RtGetJSHelpdata - populate <div id="helptabs"> on frontpage.html via $('#helpbutton').click in documentready_go.js
+// RtGetJSHelpdata - populate <div id="helptabs"> on frontpage.html via $('#helpbutton').click in documentready.js
 func RtGetJSHelpdata(c echo.Context) error {
 	cat := []string{"Interface", "Browsing", "Dictionaries", "MakingSearchLists", "BasicSyntax", "RegexSearching",
 		"LemmaSearching", "Oddities", "Extending", "IncludedMaterials", "PDFFiles"}

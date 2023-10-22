@@ -123,7 +123,7 @@ $(document).ready( function () {
       return Array.from(arr, dec2hex).join('');
     }
 
-    // setoptions() defined in coreinterfaceclicks_go.js
+    // setoptions() defined in coreinterfaceclicks.js
     $('#searchlines').click( function(){ setoptions('searchscope', 'lines'); });
     $('#searchwords').click( function(){ setoptions('searchscope', 'words'); });
 
