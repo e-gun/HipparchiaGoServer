@@ -211,9 +211,11 @@ func ConfigAtLaunch() {
 			"projurl":    PROJURL,
 			"vmodel":     Config.VectorModel,
 			"workers":    Config.WorkerCount}
+
 		t := template.Must(template.New("").Parse(HELPTEXTTEMPLATE))
+
 		var b bytes.Buffer
-		if err := t.Execute(&b, m); err != nil {
+		if ee := t.Execute(&b, m); ee != nil {
 			msg(FAIL7, MSGCRIT)
 		}
 		fmt.Println(styleoutput(coloroutput(b.String())))

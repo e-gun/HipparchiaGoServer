@@ -6,8 +6,8 @@ require (
 	github.com/e-gun/nlp v0.0.0-20230418221101-577c2209ffcc
 	github.com/e-gun/tsnemp v0.0.0
 	github.com/e-gun/wego v0.0.11
-	github.com/go-echarts/go-echarts/v2 v2.3.1
-	github.com/google/uuid v1.3.1
+	github.com/go-echarts/go-echarts/v2 v2.3.2
+	github.com/google/uuid v1.4.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/json-iterator/go v1.1.12
@@ -23,7 +23,7 @@ require (
 	github.com/e-gun/sparse v0.0.0-20230418220937-07063da15582 // indirect
 	github.com/felixge/fgprof v0.9.3 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	github.com/google/pprof v0.0.0-20230926050212-f7f687d19a98 // indirect
+	github.com/google/pprof v0.0.0-20231101202521-4ca4178f5c7a // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect

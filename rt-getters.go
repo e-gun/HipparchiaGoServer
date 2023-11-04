@@ -355,7 +355,8 @@ func RtGetJSSearchlist(c echo.Context) error {
 
 	m := message.NewPrinter(language.English)
 	sl := SessionIntoSearchlist(sess)
-	tw := 0
+
+	totalwords := 0
 
 	var wkk []string
 	for _, a := range sl.Inc.Authors {
@@ -363,7 +364,7 @@ func RtGetJSSearchlist(c echo.Context) error {
 			ct := WORKTMPL
 			cf := m.Sprintf(ct, AllAuthors[a].Cleaname, AllWorks[w].Title, AllWorks[w].WdCount)
 			wkk = append(wkk, cf)
-			tw += AllWorks[w].WdCount
+			totalwords += AllWorks[w].WdCount
 		}
 	}
 
@@ -372,20 +373,20 @@ func RtGetJSSearchlist(c echo.Context) error {
 		ct := WORKTMPL
 		cf := m.Sprintf(ct, thiswk.MyAu().Cleaname, thiswk.Title, thiswk.WdCount)
 		wkk = append(wkk, cf)
-		tw += thiswk.WdCount
+		totalwords += thiswk.WdCount
 	}
 
 	pattern := regexp.MustCompile(REG)
 	for _, p := range sl.Inc.Passages {
 		cit, count := searchlistpassages(pattern, p)
 		wkk = append(wkk, cit)
-		tw += count
+		totalwords += count
 	}
 
 	for _, p := range sl.Excl.Passages {
 		cit, count := searchlistpassages(pattern, p)
 		wkk = append(wkk, cit+"[EXCLUDED]")
-		tw -= count
+		totalwords -= count
 	}
 
 	if len(wkk) > MAXSEARCHINFOLISTLEN {
@@ -394,7 +395,7 @@ func RtGetJSSearchlist(c echo.Context) error {
 		wkk = append(wkk, m.Sprintf(SPILLOVER, diff))
 	}
 
-	wkk = append(wkk, m.Sprintf(SUMMARY, tw))
+	wkk = append(wkk, m.Sprintf(SUMMARY, totalwords))
 
 	ht := strings.Join(wkk, "<br>\n")
 	var j JSStruct

@@ -78,7 +78,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 		LDAMSG = `Building LDA model for the current selections`
 		ESM1   = "<br>preparing the text for modeling"
 		ESM2   = "<br>building topic models"
-		ESM3   = "<br>using t-Distributed Stochastic Neighbor Embedding to build graph"
+		ESM3   = "<br>using t-Distributed Stochastic Neighbor Embedding to build graph (please be patient...)"
 	)
 	c.Response().After(func() { messenger.LogPaths("LDASearch()") })
 

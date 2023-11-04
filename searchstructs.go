@@ -89,6 +89,21 @@ func (s *SearchStruct) CleanInput() {
 
 	s.Seeking = Purgechars(dropping, s.Seeking)
 	s.Proximate = Purgechars(dropping, s.Proximate)
+
+	// don't let BoxA be blank if BoxB is not
+	BoxA := s.Seeking == "" && s.LemmaOne == ""
+	NotBoxB := s.Proximate != "" || s.LemmaTwo != ""
+
+	if BoxA && NotBoxB {
+		if s.Proximate != "" {
+			s.Seeking = s.Proximate
+			s.Proximate = ""
+		}
+		if s.LemmaTwo != "" {
+			s.LemmaOne = s.LemmaTwo
+			s.LemmaTwo = ""
+		}
+	}
 }
 
 // SetType - set internal values via self-probe
@@ -115,7 +130,7 @@ func (s *SearchStruct) SetType() {
 		s.HasPhraseBoxB = true
 	}
 
-	if len(s.LemmaOne) != 0 {
+	if s.LemmaOne != "" {
 		s.HasLemmaBoxA = true
 		// accented line has "volat" in latin; and "uolo" will not find it
 		if isGreek.MatchString(s.LemmaOne) {
@@ -123,7 +138,7 @@ func (s *SearchStruct) SetType() {
 		}
 	}
 
-	if len(s.LemmaTwo) != 0 {
+	if s.LemmaTwo != "" {
 		s.HasLemmaBoxB = true
 	}
 
@@ -258,8 +273,10 @@ func (s *SearchStruct) InclusionOverview(sessincl SearchIncExl) string {
 	return r
 }
 
-// Optimize - consider rewriting the search to make it faster
+// Optimize - think about rewriting the search to make it faster
 func (s *SearchStruct) Optimize() {
+	// only zero or one of the following should be true
+
 	// if BoxA has a lemma and BoxB has a phrase, it is almost certainly faster to search B, then A...
 	if s.HasLemmaBoxA && s.HasPhraseBoxB {
 		s.SwapPhraseAndLemma()
@@ -272,14 +289,16 @@ func (s *SearchStruct) Optimize() {
 		return
 	}
 
-	// a single word should be faster than a lemma
-	if s.HasLemmaBoxA && !s.HasPhraseBoxB {
+	// a single word should be faster than a lemma; but do not swap an empty string
+	if s.HasLemmaBoxA && !s.HasPhraseBoxB && s.Proximate != "" {
 		s.SwapWordAndLemma()
+		return
 	}
 
 	// consider looking for the string with more characters in it first
 	if len(s.Seeking) > 0 && len(s.Proximate) > 0 {
 		s.SearchQuickestFirst()
+		return
 	}
 }
 
