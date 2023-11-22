@@ -10,53 +10,40 @@
 self-test without vectors is now `HipparchiaGoServer -st -dv`
 
 ``` 
-HipparchiaGoServer -gl 2 -dv -st
-[HGS] Hipparchia Golang Server (v1.2.12-pre) [git: f6e25f93] [gl=2; el=0]
-	Built:	2023-09-07@19:00:28		Golang:	go1.21.1
+[HGS] Hipparchia Golang Server (v1.2.16) [git: 64974732] [default.pgo] [gl=0; el=0]
+	Built:	2023-11-03@20:35:01		Golang:	go1.21.3
 	System:	darwin-arm64			WKvCPU:	20/20
-[HGS] Number of stored vector models: 5
-[HGS] initialization took 0.481s
+[HGS] initialization took 0.489s
 [HGS] to stop the server press Control-C or close this window
 [HGS] Running Selftest 1 of 1
-	Built:	2023-09-07@19:00:28		Golang:	go1.21.1
-	System:	darwin-arm64			WKvCPU:	20/20
-⇨ http server started on 127.0.0.1:8000
 [HGS-SELFTEST] entering selftestsuite mode (4 segments)
 [HGS-SELFTEST] [I] 6 search tests
-[HGS-SELFTEST] [A1: 0.222s][Δ: 0.222s] single word in corpus: 'vervex'
-[HGS-SELFTEST] [A2: 1.354s][Δ: 1.132s] phrase in corpus: 'plato omnem'
-[HGS-SELFTEST] [A3: 3.315s][Δ: 1.961s] phrase near phrase: 'καὶ δὴ καὶ' near 'εἴ που καὶ'
-[HGS-SELFTEST] [B1: 4.354s][Δ: 1.039s] lemma in corpus: 'φθορώδηϲ'
-[HGS-SELFTEST] [B2: 8.918s][Δ: 4.564s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
-[HGS-SELFTEST] [B3: 32.503s][Δ: 23.585s] lemma near lemma in corpus: 'πόλιϲ' near 'ὁπλίζω
+⇨ http server started on 127.0.0.1:8000
+[HGS-SELFTEST] [A1: 0.280s][Δ: 0.280s] single word in corpus: 'vervex'
+[HGS-SELFTEST] [A2: 1.525s][Δ: 1.245s] phrase in corpus: 'plato omnem'
+[HGS-SELFTEST] [A3: 3.135s][Δ: 1.610s] phrase near phrase: 'καὶ δὴ καὶ' near 'εἴ που καὶ'
+[HGS-SELFTEST] [B1: 4.623s][Δ: 1.488s] lemma in corpus: 'φθορώδηϲ'
+[HGS-SELFTEST] [B2: 6.068s][Δ: 1.445s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
+[HGS-SELFTEST] [B3: 29.022s][Δ: 22.954s] lemma near lemma in corpus: 'πόλιϲ' near 'ὁπλίζω
 [HGS-SELFTEST] [II] 3 text, index, and vocab maker tests
-[HGS-SELFTEST] [C1: 32.670s][Δ: 0.167s] build a text for 35000 arbitrary lines
-[HGS-SELFTEST] [C2: 35.702s][Δ: 3.032s] build an index to 35000 arbitrary lines
-[HGS-SELFTEST] [C3: 37.750s][Δ: 2.047s] build vocabulary list for 35000 arbitrary lines
+[HGS-SELFTEST] [C1: 29.221s][Δ: 0.199s] build a text for 35000 arbitrary lines
+[HGS-SELFTEST] [C2: 33.425s][Δ: 4.204s] build an index to 35000 arbitrary lines
+[HGS-SELFTEST] [C3: 35.637s][Δ: 2.212s] build vocabulary list for 35000 arbitrary lines
 [HGS-SELFTEST] [III] 4 browsing and lexical tests
-[HGS-SELFTEST] [D1: 38.929s][Δ: 1.179s] browse 50 passages
-[HGS-SELFTEST] [D2: 44.182s][Δ: 5.253s] look up 48 specific words
-[HGS-SELFTEST] [D3: 50.161s][Δ: 5.979s] look up 6 word substrings
-[HGS-SELFTEST] [D4: 64.094s][Δ: 13.933s] reverse lookup for 6 word substrings
-[HGS-SELFTEST] exiting selftestsuite mode
+[HGS-SELFTEST] [D1: 37.761s][Δ: 2.123s] browse 50 passages
+[HGS-SELFTEST] [D2: 44.571s][Δ: 6.810s] look up 48 specific words
+[HGS-SELFTEST] [D3: 61.236s][Δ: 16.666s] look up 18 word substrings
+[HGS-SELFTEST] [D4: 75.117s][Δ: 13.880s] reverse lookup for 6 word substrings
+[HGS-SELFTEST] [IV] nearest neighbor vectorization tests
+[HGS-SELFTEST] [E1: 96.957s][Δ: 21.840s] semantic vector model test: w2v - 1 author(s) with 4 text preparation modes per author
+[HGS-SELFTEST] [E2: 119.770s][Δ: 22.813s] semantic vector model test: lexvec - 1 author(s) with 4 text preparation modes per author
+[HGS-SELFTEST] [E3: 157.027s][Δ: 37.257s] semantic vector model test: glove - 1 author(s) with 4 text preparation modes per author
+[HGS-SELFTEST] [V] lda vectorization tests
+[HGS-SELFTEST] [F: 177.714s][Δ: 20.686s] lda vector model test - 1 author(s) with 4 text preparation modes per author
 
 ```
 
 self-test with vectors can be deceptive because `-wc` flag will not override config json.
-
-20 M1 cores
-```
-[HGS] Hipparchia Golang Server (v1.2.12-pre) [git: 800bf17f] [gl=0; el=0]
-	Built:	2023-09-07@19:45:59		Golang:	go1.21.1
-	System:	darwin-arm64			WKvCPU:	20/20
-...
-[HGS-SELFTEST] [IV] nearest neighbor vectorization tests
-[HGS-SELFTEST] [E1: 62.703s][Δ: 21.434s] semantic vector model test: w2v - 1 author(s) with 4 text preparation modes per author
-[HGS-SELFTEST] [E2: 85.600s][Δ: 22.897s] semantic vector model test: lexvec - 1 author(s) with 4 text preparation modes per author
-[HGS-SELFTEST] [E3: 119.846s][Δ: 34.246s] semantic vector model test: glove - 1 author(s) with 4 text preparation modes per author
-[HGS-SELFTEST] [V] lda vectorization tests
-[HGS-SELFTEST] [F: 140.273s][Δ: 20.427s] lda vector model test - 1 author(s) with 4 text preparation modes per author
-```
 
 ### some vectorless selftest times
 
@@ -79,7 +66,7 @@ self-test with vectors can be deceptive because `-wc` flag will not override con
 `HipparchiaGoServer -st -st -st` called to generate
 * `default.pgo`
 * `MEMProfile.pdf`
-* `CPUProfile.pdf` 
+* `CPUProfile.pdf`
 
 ## memory use during self-test
 

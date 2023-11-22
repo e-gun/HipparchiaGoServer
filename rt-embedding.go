@@ -81,11 +81,25 @@ func RtEmbEcharts(c echo.Context) error {
 
 // pathembedder - read and send file at path
 func pathembedder(c echo.Context, d string) error {
+	const (
+		FNF      = "pathembedder() can't find '%s'"
+		OOPSFILE = "emb/pdf/oops.pdf"
+	)
+
 	f := c.Param("file")
 	j, e := efs.ReadFile(d + f)
 	if e != nil {
-		msg(fmt.Sprintf("can't find %s", d+f), MSGWARN)
-		return c.String(http.StatusNotFound, "")
+		msg(fmt.Sprintf(FNF, d+f), MSGWARN)
+		if !strings.HasSuffix(f, ".pdf") {
+			// a normal 404 error
+			return c.String(http.StatusNotFound, "")
+		} else {
+			// the documentation was not build in...
+			// omit checking the error if OOPSFILE itself is not found: an empty string will be sent; no harm in that
+			k, _ := efs.ReadFile(OOPSFILE)
+			c.Response().Header().Add("Content-Type", "application/pdf")
+			return c.String(http.StatusOK, string(k))
+		}
 	}
 
 	add := addresponsehead(f)

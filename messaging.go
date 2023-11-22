@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -44,7 +43,7 @@ const (
 )
 
 var (
-	messenger = NewGenericMessageMaker(BuildDefaultConfig(), nil, LaunchStruct{
+	messenger = NewGenericMessageMaker(BuildDefaultConfig(), LaunchStruct{
 		Name:       MYNAME,
 		Version:    VERSION,
 		Shortname:  SHORTNAME,
@@ -52,10 +51,12 @@ var (
 	})
 )
 
+// msg - send a message to the terminal; alias for "messenger.Emit(s, i)"
 func msg(s string, i int) {
 	messenger.Emit(s, i)
 }
 
+// chke - check an error; alias for messenger.Error(e)
 func chke(e error) {
 	messenger.Error(e)
 }
@@ -72,14 +73,13 @@ func styleoutput(s string) string {
 	return messenger.Styled(s)
 }
 
-func NewGenericMessageMaker(cc CurrentConfiguration, ct map[string]*atomic.Int32, ls LaunchStruct) *MessageMaker {
+func NewGenericMessageMaker(cc CurrentConfiguration, ls LaunchStruct) *MessageMaker {
 	w := false
 	if runtime.GOOS == "windows" {
 		w = true
 	}
 	return &MessageMaker{
 		Cfg: cc,
-		// Ctr: ct,
 		Lnc: ls,
 		Win: w,
 	}
@@ -87,19 +87,16 @@ func NewGenericMessageMaker(cc CurrentConfiguration, ct map[string]*atomic.Int32
 
 func NewFncMessageMaker(c string) *MessageMaker {
 	cc := messenger.Cfg
-	// ct := messenger.Ctr
 	ls := messenger.Lnc
 	ls.Caller = c
 	return &MessageMaker{
 		Cfg: cc,
-		// Ctr: ct,
 		Lnc: ls,
 	}
 }
 
 type MessageMaker struct {
 	Cfg CurrentConfiguration
-	// Ctr map[string]*atomic.Int32
 	Lnc LaunchStruct
 	Pgn string
 	Win bool

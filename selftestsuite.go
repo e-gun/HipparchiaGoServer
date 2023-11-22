@@ -91,7 +91,7 @@ func selftestsuite() {
 	//      flat  flat%   sum%        cum   cum%
 	//  131.08MB 26.06% 26.06%   131.08MB 26.06%  github.com/e-gun/wego/pkg/model/modelutil/matrix.New
 
-	mm := NewGenericMessageMaker(Config, StatCounter, LaunchStruct{
+	mm := NewGenericMessageMaker(Config, LaunchStruct{
 		Shortname:  "HGS-SELFTEST",
 		LaunchTime: time.Now(),
 	})

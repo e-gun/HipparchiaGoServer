@@ -26,12 +26,12 @@ func main() {
 	)
 
 	//
-	// [0] debugging code block #1
+	// [0] debugging code block #1 of 2
 	//
 
 	// memory use debugging runs have to be custom-built
 
-	// uncomment next and then: "curl http://localhost:8080/debug/pprof/heap > heap.0.pprof"
+	// UNCOMMENT next and then: "curl http://localhost:8080/debug/pprof/heap > heap.0.pprof"
 	// "go tool pprof heap.0.pprof" -> "top 20", etc.
 
 	//go func() {
@@ -154,7 +154,7 @@ func main() {
 	msg(messenger.ColStyle(fmt.Sprintf(SUMM, time.Now().Sub(LaunchTime).Seconds())), -999)
 
 	//
-	// [4] debugging code block #2
+	// [4] debugging code block #2 of 2
 	// uncomment one or more; they are very spammy in the console...
 	//
 
@@ -182,6 +182,8 @@ var BuildDate string
 var PGOInfo string
 
 func printversion() {
+	// example:
+	// [HGS] Hipparchia Golang Server (v1.2.16-pre) [git: 64974732] [default.pgo] [gl=3; el=0]
 	const (
 		SN = "[C1%sC0] "
 		GC = " [C4git: C4%sC0]"
@@ -210,6 +212,9 @@ func printversion() {
 }
 
 func printbuildinfo() {
+	// example:
+	// 	Built:	2023-11-14@19:02:51		Golang:	go1.21.4
+	//	System:	darwin-arm64			WKvCPU:	20/20
 	const (
 		BD = "\tS1Built:S0\tC3%sC0\t"
 		GV = "\tS1Golang:S0\tC3%sC0\n"

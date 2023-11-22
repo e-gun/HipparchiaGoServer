@@ -42,7 +42,7 @@ var (
 	EchoServerStats = NewEchoResponseStats()
 )
 
-// PoliceResponse - track response code counts and block repeat 404 offenders
+// PoliceResponse - track response code counts + block repeat 404 offenders; this is custom middleware for an *echo.Echo
 func PoliceResponse(nextechohandler echo.HandlerFunc) echo.HandlerFunc {
 	const (
 		BLACK0 = `IP address %s was blacklisted: too many previous response code errors`
@@ -152,7 +152,6 @@ func ResponseStatsKeeper() {
 			if EchoServerStats.FourOhFour%FRQ404 == 0 {
 				msg(fmt.Sprintf(FYI404, when, EchoServerStats.FourOhFour), MSGNOTE)
 			}
-
 			// you need to be logged on the blacklist...
 			wr := BlackListWR{ip: status.ip, resp: make(chan bool)}
 			BListWR <- wr
