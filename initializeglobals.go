@@ -38,18 +38,19 @@ var (
 	AllSessions   = MakeSessionVault()
 	AllAuthorized = MakeAuthorizedVault()
 	UserPassPairs = make(map[string]string)
-	AllWorks      = make(map[string]DbWork)
+	AllWorks      = make(map[string]*DbWork)
 	AllAuthors    = make(map[string]DbAuthor)
 	AllLemm       = make(map[string]*DbLemma)
 	NestedLemm    = make(map[string]map[string]*DbLemma)
 	WkCorpusMap   = make(map[string][]string)
 	AuCorpusMap   = make(map[string][]string)
+	LoadedCorp    = make(map[string]bool)
 	AuGenres      = make(map[string]bool)
 	WkGenres      = make(map[string]bool)
 	AuLocs        = make(map[string]bool)
 	WkLocs        = make(map[string]bool)
 	StatCounter   = make(map[string]*atomic.Int32)
-	TheCorpora    = []string{"gr", "lt", "in", "ch", "dp"}
+	TheCorpora    = []string{GREEKCORP, LATINCORP, INSCRIPTCORP, CHRISTINSC, PAPYRUSCORP}
 	TheLanguages  = []string{"greek", "latin"}
 	ServableFonts = map[string]FontTempl{"Noto": NotoFont, "Roboto": RobotoFont, "Fira": FiraFont}
 	LaunchTime    = time.Now()
@@ -157,14 +158,50 @@ func (dbl DbLemma) EntryRune() []rune {
 	return []rune(dbl.Entry)
 }
 
-// all functions in here should be run in order to prepare the core data
+// these functions should be run in order to initialize/reinitialize the core data
 
-// workmapper - build a map of all works keyed to the authorUID: map[string]DbWork
-func workmapper() map[string]DbWork {
-	// this is far and away the "heaviest" bit of the whole program:
+// [1] WORKMAPPING
+
+// activeworkmapper - build a map of all works in the *active* corpora; keyed to the authorUID: map[string]DbWork
+func activeworkmapper() map[string]*DbWork {
+	// note that you are still on the hook for adding to the global workmap when someone cals "/setoption/papyruscorpus/yes"
+	// AND you should never drop from the map because that is only session-specific: "no" is only "no for me"
+	// so the memory footprint can only grow: but G&L is an 82M launch vs an 189M launch for everything
+
+	// the bookkeeping is handled by modifyglobalmapsifneeded() inside of RtSetOption()
+
+	workmap := make(map[string]*DbWork)
+
+	for k, b := range Config.DefCorp {
+		if b {
+			workmap = mapnewcorpus(k, workmap)
+		}
+	}
+	return workmap
+}
+
+// mapnewcorpus - add a corpus to a workmap
+func mapnewcorpus(corpus string, workmap map[string]*DbWork) map[string]*DbWork {
+	const (
+		MSG = "mapnewcorpus() added %d works from '%s'"
+	)
+	toadd := slicecorpus(corpus)
+	for i := 0; i < len(toadd); i++ {
+		w := toadd[i]
+		workmap[w.UID] = &w
+	}
+
+	LoadedCorp[corpus] = true
+
+	msg(fmt.Sprintf(MSG, len(toadd), corpus), MSGPEEK)
+	return workmap
+}
+
+// slicecorpus - fetch all relevant works from the db as a DbWork slice
+func slicecorpus(corpus string) []DbWork {
+	// this is far and away the "heaviest" bit of the whole program if you grab every known work
 	// Total: 204MB
 	// 65.35MB (flat, cum) 32.03% of Total
-	// "pgx.ForEachRow()" shaves about 12MB off of this function vs. "for foundrows.Next()"
 
 	// hipparchiaDB-# \d works
 	//                            Table "public.works"
@@ -192,33 +229,47 @@ func workmapper() map[string]DbWork {
 	// authentic        | boolean                |           |          |
 
 	const (
-		QT = `SELECT %s FROM works`
+		CT = `SELECT count(*) FROM works WHERE universalid ~* '^%s'`
+		QT = `SELECT %s FROM works WHERE universalid ~* '^%s'`
 	)
 
-	q := fmt.Sprintf(QT, WORKTEMPLATE)
+	var cc int
+	cq := fmt.Sprintf(CT, corpus)
+	qq := fmt.Sprintf(QT, WORKTEMPLATE, corpus)
 
-	foundrows, err := SQLPool.Query(context.Background(), q)
+	countrow := SQLPool.QueryRow(context.Background(), cq)
+	err := countrow.Scan(&cc)
+
+	foundrows, err := SQLPool.Query(context.Background(), qq)
 	chke(err)
 
-	workmap := make(map[string]DbWork, DBWKMAPSIZE)
+	workslice := make([]DbWork, cc)
 	var w DbWork
 
 	foreach := []any{&w.UID, &w.Title, &w.Language, &w.Pub, &w.LL0, &w.LL1, &w.LL2, &w.LL3, &w.LL4, &w.LL5, &w.Genre,
 		&w.Xmit, &w.Type, &w.Prov, &w.RecDate, &w.ConvDate, &w.WdCount, &w.FirstLine, &w.LastLine, &w.Authentic}
 
+	index := 0
 	rwfnc := func() error {
-		workmap[w.UID] = w
+		workslice[index] = w
+		index++
 		return nil
 	}
 
 	_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
 	chke(e)
 
-	return workmap
+	return workslice
 }
 
+// [2] AUTHORS AND CORPUS DATA
+
 // authormapper - build a map of all authors keyed to the authorUID: map[string]DbAuthor
-func authormapper(ww map[string]DbWork) map[string]DbAuthor {
+func authormapper(ww map[string]*DbWork) map[string]DbAuthor {
+	// note that this is potentially incomplete at launch and needs updating when corpora are added
+	// specifically, all authors are always known, but not all works will be loaded into the list
+	// and an author without works is "broken" and will produce strange / empty results
+
 	//  5.26MB     5.80MB (flat, cum)  2.19% of Total
 
 	// hipparchiaDB-# \d authors
@@ -273,76 +324,6 @@ func authormapper(ww map[string]DbWork) map[string]DbAuthor {
 	chke(e)
 
 	return authormap
-}
-
-// lemmamapper - map[string]DbLemma for all lemmata
-func lemmamapper() map[string]*DbLemma {
-	// example: {dorsum 24563373 [dorsum dorsone dorsa dorsoque dorso dorsoue dorsis dorsi dorsisque dorsumque]}
-
-	// hipparchiaDB=# \d greek_lemmata
-	//                       Table "public.greek_lemmata"
-	//      Column      |         Type          | Collation | Nullable | Default
-	//------------------+-----------------------+-----------+----------+---------
-	// dictionary_entry | character varying(64) |           |          |
-	// xref_number      | integer               |           |          |
-	// derivative_forms | text[]                |           |          |
-	//Indexes:
-	//    "greek_lemmata_idx" btree (dictionary_entry)
-
-	// a list of 152k words is too long to send to 'getlemmahint' without offering quicker access
-	// [HGS] [B1: 0.167s][Δ: 0.167s] unnested lemma map built (152382 items)
-
-	// move to pgx v5 slows this function down (and will add .1s to startup time...):
-	// [HGS] [B1: 0.436s][Δ: 0.436s] unnested lemma map built (152382 items)
-	// see devel-mutex 1.0.7 at e841c135f22ffaae26cb5cc29e20be58bf4801d7 vs 9457ace03e048c0e367d132cef595ed1661a8c12
-	// but pgx v5 does seem faster and more memory efficient in general: must not like returning huge lists
-
-	const (
-		THEQUERY = `SELECT dictionary_entry, xref_number, derivative_forms FROM %s_lemmata`
-	)
-
-	// note that the v --> u here will push us to stripped_line SearchMap instead of accented_line
-	// clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "", "j", "i", "v", "u")
-	clean := strings.NewReplacer("-", "", "j", "i", "v", "u")
-
-	unnested := make(map[string]*DbLemma, DBLMMAPSIZE)
-
-	// use the older iterative idiom to facilitate working with pointers: "foreach" idiom will fight you...
-	for _, lg := range TheLanguages {
-		q := fmt.Sprintf(THEQUERY, lg)
-		foundrows, err := SQLPool.Query(context.Background(), q)
-		chke(err)
-		for foundrows.Next() {
-			thehit := &DbLemma{}
-			e := foundrows.Scan(&thehit.Entry, &thehit.Xref, &thehit.Deriv)
-			chke(e)
-			thehit.Entry = clean.Replace(thehit.Entry)
-			unnested[thehit.Entry] = thehit
-		}
-		foundrows.Close()
-	}
-
-	return unnested
-}
-
-// nestedlemmamapper - map[string]map[string]DbLemma for the hinter
-func nestedlemmamapper(unnested map[string]*DbLemma) map[string]map[string]*DbLemma {
-	// 20.96MB    20.96MB (flat, cum)  7.91% of Total
-	// you need both a nested and the unnested version; nested is for the hinter
-
-	nested := make(map[string]map[string]*DbLemma, NESTEDLEMMASIZE)
-	swap := strings.NewReplacer("j", "i", "v", "u")
-	for k, v := range unnested {
-		rbag := []rune(v.Entry)[0:2]
-		rbag = StripaccentsRUNE(rbag)
-		bag := strings.ToLower(string(rbag))
-		bag = swap.Replace(bag)
-		if _, y := nested[bag]; !y {
-			nested[bag] = make(map[string]*DbLemma)
-		}
-		nested[bag][k] = v
-	}
-	return nested
 }
 
 // buildaucorpusmap - populate global variable used by SessionIntoSearchlist()
@@ -413,4 +394,86 @@ func buildwklocationmap() map[string]bool {
 		locations[w.Prov] = true
 	}
 	return locations
+}
+
+// populateglobalmaps - full up WkCorpusMap, AuCorpusMap, ...
+func populateglobalmaps() {
+	WkCorpusMap = buildwkcorpusmap()
+	AuCorpusMap = buildaucorpusmap()
+	AuGenres = buildaugenresmap()
+	WkGenres = buildwkgenresmap()
+	AuLocs = buildaulocationmap()
+	WkLocs = buildwklocationmap()
+}
+
+// [3] LEMMATA
+
+// lemmamapper - map[string]DbLemma for all lemmata
+func lemmamapper() map[string]*DbLemma {
+	// example: {dorsum 24563373 [dorsum dorsone dorsa dorsoque dorso dorsoue dorsis dorsi dorsisque dorsumque]}
+
+	// hipparchiaDB=# \d greek_lemmata
+	//                       Table "public.greek_lemmata"
+	//      Column      |         Type          | Collation | Nullable | Default
+	//------------------+-----------------------+-----------+----------+---------
+	// dictionary_entry | character varying(64) |           |          |
+	// xref_number      | integer               |           |          |
+	// derivative_forms | text[]                |           |          |
+	//Indexes:
+	//    "greek_lemmata_idx" btree (dictionary_entry)
+
+	// a list of 152k words is too long to send to 'getlemmahint' without offering quicker access
+	// [HGS] [B1: 0.167s][Δ: 0.167s] unnested lemma map built (152382 items)
+
+	// move to pgx v5 slows this function down (and will add .1s to startup time...):
+	// [HGS] [B1: 0.436s][Δ: 0.436s] unnested lemma map built (152382 items)
+	// see devel-mutex 1.0.7 at e841c135f22ffaae26cb5cc29e20be58bf4801d7 vs 9457ace03e048c0e367d132cef595ed1661a8c12
+	// but pgx v5 does seem faster and more memory efficient in general: must not like returning huge lists
+
+	const (
+		THEQUERY = `SELECT dictionary_entry, xref_number, derivative_forms FROM %s_lemmata`
+	)
+
+	// note that the v --> u here will push us to stripped_line SearchMap instead of accented_line
+	// clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "", "j", "i", "v", "u")
+	clean := strings.NewReplacer("-", "", "j", "i", "v", "u")
+
+	unnested := make(map[string]*DbLemma, DBLMMAPSIZE)
+
+	// use the older iterative idiom to facilitate working with pointers: "foreach" idiom will fight you...
+	for _, lg := range TheLanguages {
+		q := fmt.Sprintf(THEQUERY, lg)
+		foundrows, err := SQLPool.Query(context.Background(), q)
+		chke(err)
+		for foundrows.Next() {
+			thehit := &DbLemma{}
+			e := foundrows.Scan(&thehit.Entry, &thehit.Xref, &thehit.Deriv)
+			chke(e)
+			thehit.Entry = clean.Replace(thehit.Entry)
+			unnested[thehit.Entry] = thehit
+		}
+		foundrows.Close()
+	}
+
+	return unnested
+}
+
+// nestedlemmamapper - map[string]map[string]DbLemma for the hinter
+func nestedlemmamapper(unnested map[string]*DbLemma) map[string]map[string]*DbLemma {
+	// 20.96MB    20.96MB (flat, cum)  7.91% of Total
+	// you need both a nested and the unnested version; nested is for the hinter
+
+	nested := make(map[string]map[string]*DbLemma, NESTEDLEMMASIZE)
+	swap := strings.NewReplacer("j", "i", "v", "u")
+	for k, v := range unnested {
+		rbag := []rune(v.Entry)[0:2]
+		rbag = StripaccentsRUNE(rbag)
+		bag := strings.ToLower(string(rbag))
+		bag = swap.Replace(bag)
+		if _, y := nested[bag]; !y {
+			nested[bag] = make(map[string]*DbLemma)
+		}
+		nested[bag][k] = v
+	}
+	return nested
 }

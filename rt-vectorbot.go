@@ -91,7 +91,7 @@ func RtVectorBot(c echo.Context) error {
 		return dbauth
 	}
 
-	dbs := []string{"lt", "gr", "in", "dp", "ch"}
+	dbs := TheCorpora
 
 	if slices.Contains(dbs, a) {
 		s.SearchIn.Authors = allof(a)
@@ -206,7 +206,7 @@ func activatevectorbot() {
 	auu := StringMapKeysIntoSlice(AllAuthors)
 	sort.Strings(auu)
 
-	// dbs := []string{"lt", "gr", "in", "dp", "ch"}
+	// dbs := TheCorpora
 
 	// only model the ones you actually use regularly
 	var trimmedauu []string

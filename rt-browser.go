@@ -136,7 +136,7 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassag
 	k := fmt.Sprintf("%sw%s", au, wk)
 
 	// [a] validate
-	w := DbWork{}
+	w := &DbWork{}
 	w.UID = "null"
 	if _, ok := AllWorks[k]; ok {
 		w = AllWorks[k]
@@ -322,7 +322,7 @@ func formatbrowsercitationinfo(f DbWorkline, l DbWorkline) string {
 	dt := `<br>(Assigned date of %s)`
 	beg := basiccitation(f)
 	end := basiccitation(l)
-	pi := formatpublicationinfo(w)
+	pi := formatpublicationinfo(*w)
 	id := formatinscriptiondates(dt, &f)
 
 	cv := fmt.Sprintf(CV, ci, beg, end, pi, id)

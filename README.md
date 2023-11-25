@@ -44,7 +44,7 @@
 
 ### NOTES
 
-* c. 207MB resident RAM on launch (note that a simple application like iTerm2 uses 354MB and Firefox uses 855MB)
+* c. 189MB resident RAM on launch (note that a simple application like iTerm2 uses 354MB and Firefox uses 855MB)
 * add about 125MB of RAM per postgres client connection in the pool
 * a very heavy search like "all forms of πόλιϲ near..." can kick you up into 660MB
 

@@ -12,6 +12,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // RtSetOption - modify the session in light of the selection made
@@ -38,6 +39,21 @@ func RtSetOption(c echo.Context) error {
 
 	s := AllSessions.GetSess(user)
 
+	modifyglobalmapsifneeded := func(c string, y bool) {
+		// this is a "laggy" click: something comparable to the launch initialization time
+		if y && !LoadedCorp[c] {
+			start := time.Now()
+			// append to the master work map
+			AllWorks = mapnewcorpus(c, AllWorks)
+			// reload the master author map
+			AllAuthors = authormapper(AllWorks)
+			// re-populateglobalmaps
+			populateglobalmaps()
+			d := fmt.Sprintf("modifyglobalmapsifneeded(): %.3fs", time.Now().Sub(start).Seconds())
+			msg(d, MSGPEEK)
+		}
+	}
+
 	if slices.Contains(ynoptionlist, opt) {
 		valid := []string{"yes", "no"}
 		if slices.Contains(valid, val) {
@@ -49,15 +65,20 @@ func RtSetOption(c echo.Context) error {
 			}
 			switch opt {
 			case "greekcorpus":
-				s.ActiveCorp["gr"] = b
+				s.ActiveCorp[GREEKCORP] = b
+				modifyglobalmapsifneeded(GREEKCORP, b)
 			case "latincorpus":
-				s.ActiveCorp["lt"] = b
+				s.ActiveCorp[LATINCORP] = b
+				modifyglobalmapsifneeded(LATINCORP, b)
 			case "papyruscorpus":
-				s.ActiveCorp["dp"] = b
+				s.ActiveCorp[PAPYRUSCORP] = b
+				modifyglobalmapsifneeded(PAPYRUSCORP, b)
 			case "inscriptioncorpus":
-				s.ActiveCorp["in"] = b
+				s.ActiveCorp[INSCRIPTCORP] = b
+				modifyglobalmapsifneeded(INSCRIPTCORP, b)
 			case "christiancorpus":
-				s.ActiveCorp["ch"] = b
+				s.ActiveCorp[CHRISTINSC] = b
+				modifyglobalmapsifneeded(CHRISTINSC, b)
 			case "rawinputstyle":
 				s.RawInput = b
 			case "onehit":

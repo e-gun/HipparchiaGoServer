@@ -123,11 +123,11 @@ func (dbw *DbWorkline) WkID() string {
 }
 
 // MyWk - get the DbWork for this line
-func (dbw *DbWorkline) MyWk() DbWork {
+func (dbw *DbWorkline) MyWk() *DbWork {
 	w, ok := AllWorks[dbw.WkUID]
 	if !ok {
 		msg(fmt.Sprintf("MyAu() failed to find '%s'", dbw.AuID()), MSGWARN)
-		w = DbWork{}
+		w = &DbWork{}
 	}
 	return w
 }
@@ -279,6 +279,7 @@ func GrabOneLine(table string, line int) DbWorkline {
 	prq.PsqlQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, line)
 	foundlines := WorklineQuery(prq, dbconn)
 	if len(foundlines) != 0 {
+		// "index = %d" in QTMPL ought to mean you can never have len(foundlines) > 1 because index values are unique
 		return foundlines[0]
 	} else {
 		return DbWorkline{}

@@ -274,7 +274,7 @@ func RtGetJSAuthorinfo(c echo.Context) error {
 		wt.Title = ws.Title
 		wt.Genre = ws.Genre
 		wt.WdCount = p.Sprintf("%d", ws.WdCount)
-		wt.PubInfo = formatpublicationinfo(ws)
+		wt.PubInfo = formatpublicationinfo(*ws)
 		ww = append(ww, wt)
 		twc += ws.WdCount
 	}

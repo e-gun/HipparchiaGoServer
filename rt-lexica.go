@@ -253,11 +253,11 @@ func RtLexReverse(c echo.Context) error {
 
 	var dd []string
 	// map[string]bool{"gr": true, "lt": true, "in": false, "ch": false, "dp": false}
-	if s.ActiveCorp["lt"] || s.ActiveCorp["ch"] {
+	if s.ActiveCorp[LATINCORP] || s.ActiveCorp[CHRISTINSC] {
 		dd = append(dd, "latin")
 	}
 
-	if s.ActiveCorp["gr"] || s.ActiveCorp["in"] || s.ActiveCorp["dp"] {
+	if s.ActiveCorp[GREEKCORP] || s.ActiveCorp[INSCRIPTCORP] || s.ActiveCorp[PAPYRUSCORP] {
 		dd = append(dd, "greek")
 	}
 

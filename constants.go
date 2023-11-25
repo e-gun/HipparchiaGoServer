@@ -8,9 +8,17 @@ package main
 import "time"
 
 const (
-	MYNAME                   = "Hipparchia Golang Server"
-	SHORTNAME                = "HGS"
-	VERSION                  = "1.2.16"
+	MYNAME    = "Hipparchia Golang Server"
+	SHORTNAME = "HGS"
+	VERSION   = "1.2.16"
+
+	GREEKCORP      = "gr"
+	LATINCORP      = "lt"
+	PAPYRUSCORP    = "dp"
+	INSCRIPTCORP   = "in"
+	CHRISTINSC     = "ch"
+	DEFAULTCORPORA = "{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"
+
 	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
 	BLACKANDWHITE            = false
 	CHARSPERLINE             = 60 // used by vector to preallocate memory: set it closer to a max than a real average
@@ -33,7 +41,6 @@ const (
 	DEFAULTCHRTWIDTH         = "1500px"
 	DEFAULTCHRTHEIGHT        = "1200px"
 	DEFAULTCOLUMN            = "stripped_line"
-	DEFAULTCORPORA           = "{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"
 	DEFAULTECHOLOGLEVEL      = 0
 	DEFAULTGOLOGLEVEL        = 0
 	DEFAULTHITLIMIT          = 250

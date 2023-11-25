@@ -105,7 +105,7 @@ func main() {
 		// a lazyworkmapper() vs workmapper() is easy enough; but a loadworksifneeded() at RtSetOption() will not fix the
 		// buildwkcorpusmap()+ problem that will remain; too many other globals are in play
 
-		AllWorks = workmapper()
+		AllWorks = activeworkmapper()
 
 		messenger.Timer("A1", fmt.Sprintf(MSG1, len(AllWorks)), start, previous)
 
@@ -114,12 +114,10 @@ func main() {
 		messenger.Timer("A2", fmt.Sprintf(MSG2, len(AllAuthors)), start, previous)
 
 		previous = time.Now()
-		WkCorpusMap = buildwkcorpusmap()
-		AuCorpusMap = buildaucorpusmap()
-		AuGenres = buildaugenresmap()
-		WkGenres = buildwkgenresmap()
-		AuLocs = buildaulocationmap()
-		WkLocs = buildwklocationmap()
+
+		// full up WkCorpusMap, AuCorpusMap, ...
+		populateglobalmaps()
+
 		messenger.Timer("A3", MSG3, start, previous)
 	}(&awaiting)
 
