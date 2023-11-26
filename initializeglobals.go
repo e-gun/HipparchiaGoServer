@@ -160,7 +160,7 @@ func (dbl DbLemma) EntryRune() []rune {
 
 // [1] WORKMAPPING
 
-// activeworkmapper - build a map of all works in the *active* corpora; keyed to the authorUID: map[string]DbWork
+// activeworkmapper - build a map of all works in the *active* corpora; keyed to the authorUID: map[string]*DbWork
 func activeworkmapper() map[string]*DbWork {
 	// note that you are still on the hook for adding to the global workmap when someone cals "/setoption/papyruscorpus/yes"
 	// AND you should never drop from the map because that is only session-specific: "no" is only "no for me"
@@ -262,7 +262,9 @@ func sliceworkcorpus(corpus string) []DbWork {
 
 // [2] AUTHORS AND CORPUS DATA (DO NOT RUN THESE AS UPDATES BEFORE UPDATING AllWorks)
 
-// activeauthormapper
+// [2a] AUTHORS
+
+// activeauthormapper - build a map of all authors in the *active* corpora; keyed to the authorUID: map[string]*DbAuthor
 func activeauthormapper() map[string]*DbAuthor {
 	// see comments at top of activeworkmapper(): they apply here too
 	authmap := make(map[string]*DbAuthor)
@@ -293,6 +295,7 @@ func mapnewauthorcorpus(corpus string, authmap map[string]*DbAuthor) map[string]
 	return authmap
 }
 
+// sliceauthorcorpus - fetch all relevant works from the db as a DbAuthor slice
 func sliceauthorcorpus(corpus string) []DbAuthor {
 	// hipparchiaDB-# \d authors
 	//                          Table "public.authors"
@@ -355,6 +358,8 @@ func sliceauthorcorpus(corpus string) []DbAuthor {
 
 	return authslice
 }
+
+// [2b] CORPUSMAPS
 
 // buildaucorpusmap - populate global variable used by SessionIntoSearchlist()
 func buildwkcorpusmap() map[string][]string {

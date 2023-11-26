@@ -19,24 +19,24 @@ const (
 	CHRISTINSC     = "ch"
 	DEFAULTCORPORA = "{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"
 
-	AVGWORDSPERLINE          = 8 // hard coding a suspect assumption
-	BLACKANDWHITE            = false
-	CHARSPERLINE             = 60 // used by vector to preallocate memory: set it closer to a max than a real average
-	CONFIGLOCATION           = "."
-	CONFIGALTAPTH            = "%s/.config/" // %s = os.UserHomeDir()
-	CONFIGAUTH               = "hgs-users.json"
-	CONFIGBASIC              = "hgs-conf.json"
-	CONFIGPROLIX             = "hgs-prolix-conf.json"
-	CONFIGVECTORW2V          = "hgs-vector-conf-w2v.json"
-	CONFIGVECTORGLOVE        = "hgs-vector-conf-glove.json"
-	CONFIGVECTORLEXVEC       = "hgs-vector-conf-lexvec.json"
-	CONFIGVECTORLDA          = "hgs-vector-conf-lda.json"
-	CONFIGVECTORSTOPSLAT     = "hgs-vector-stops-latin.json"
-	CONFIGVECTORSTOPSGRK     = "hgs-vector-stops-greek.json"
-	CUSTOMCSSFILENAME        = "custom-hipparchiastyles.css"
-	DBAUMAPSIZE              = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
-	DBLMMAPSIZE              = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
-	DBWKMAPSIZE              = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
+	AVGWORDSPERLINE      = 8 // hard coding a suspect assumption
+	BLACKANDWHITE        = false
+	CHARSPERLINE         = 60 // used by vector to preallocate memory: set it closer to a max than a real average
+	CONFIGLOCATION       = "."
+	CONFIGALTAPTH        = "%s/.config/" // %s = os.UserHomeDir()
+	CONFIGAUTH           = "hgs-users.json"
+	CONFIGBASIC          = "hgs-conf.json"
+	CONFIGPROLIX         = "hgs-prolix-conf.json"
+	CONFIGVECTORW2V      = "hgs-vector-conf-w2v.json"
+	CONFIGVECTORGLOVE    = "hgs-vector-conf-glove.json"
+	CONFIGVECTORLEXVEC   = "hgs-vector-conf-lexvec.json"
+	CONFIGVECTORLDA      = "hgs-vector-conf-lda.json"
+	CONFIGVECTORSTOPSLAT = "hgs-vector-stops-latin.json"
+	CONFIGVECTORSTOPSGRK = "hgs-vector-stops-greek.json"
+	CUSTOMCSSFILENAME    = "custom-hipparchiastyles.css"
+	// DBAUMAPSIZE              = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
+	DBLMMAPSIZE = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
+	// DBWKMAPSIZE              = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
 	DEFAULTBROWSERCTX        = 14
 	DEFAULTCHRTWIDTH         = "1500px"
 	DEFAULTCHRTHEIGHT        = "1200px"

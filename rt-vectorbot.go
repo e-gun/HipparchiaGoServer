@@ -231,7 +231,15 @@ func activatevectorbot() {
 
 	for _, a := range auu {
 		mustnotify := false
-		an := AllAuthors[a].Name
+
+		var an string
+		if _, ok := AllAuthors[a]; ok {
+			// full corpora "gr", "lt", etc. can be in here too; AllAuthors[a].Name will not find  AllAuthors["gr"]
+			an = AllAuthors[a].Name
+		} else {
+			an = a
+		}
+
 		if slices.Contains(dbs, a) {
 			mustnotify = true
 			an = a

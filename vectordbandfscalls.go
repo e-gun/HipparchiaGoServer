@@ -310,7 +310,7 @@ func vectordbreset() {
 		m := err.Error()
 		msg(fmt.Sprintf(MSG2, VECTORTABLENAMENN, m), MSGFYI)
 	} else {
-		msg(MSG1+VECTORTABLENAMENN, MSGFYI)
+		msg(MSG1+VECTORTABLENAMENN, MSGNOTE)
 	}
 }
 
