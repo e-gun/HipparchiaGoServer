@@ -13,7 +13,7 @@
   "HostIP": "localhost",
   "HostPort": 8000,
   "LogLevel": 3,
-  "ManualGC": true,
+  "ManualGC": false,
   "MaxText": 25000,
   "MaxSrchIP": 2,
   "MaxSrchTot": 4,

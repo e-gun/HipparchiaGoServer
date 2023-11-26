@@ -108,11 +108,11 @@ func (dbw *DbWorkline) AuID() string {
 }
 
 // MyAu - get the DbAuthor for this line
-func (dbw *DbWorkline) MyAu() DbAuthor {
+func (dbw *DbWorkline) MyAu() *DbAuthor {
 	a, ok := AllAuthors[dbw.AuID()]
 	if !ok {
 		msg(fmt.Sprintf("DbWorkline.MyAu() failed to find '%s'", dbw.AuID()), MSGWARN)
-		a = DbAuthor{}
+		a = &DbAuthor{}
 	}
 	return a
 }

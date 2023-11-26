@@ -101,23 +101,16 @@ func main() {
 		start := time.Now()
 		previous := time.Now()
 
-		// would save 100MB or RAM if you only load 'gr' and 'lt' instead of everything; but dynamic loading is a PITA.
-		// a lazyworkmapper() vs workmapper() is easy enough; but a loadworksifneeded() at RtSetOption() will not fix the
-		// buildwkcorpusmap()+ problem that will remain; too many other globals are in play
-
 		AllWorks = activeworkmapper()
-
 		messenger.Timer("A1", fmt.Sprintf(MSG1, len(AllWorks)), start, previous)
-
 		previous = time.Now()
-		AllAuthors = authormapper(AllWorks)
-		messenger.Timer("A2", fmt.Sprintf(MSG2, len(AllAuthors)), start, previous)
 
+		AllAuthors = activeauthormapper()
+		messenger.Timer("A2", fmt.Sprintf(MSG2, len(AllAuthors)), start, previous)
 		previous = time.Now()
 
 		// full up WkCorpusMap, AuCorpusMap, ...
 		populateglobalmaps()
-
 		messenger.Timer("A3", MSG3, start, previous)
 	}(&awaiting)
 

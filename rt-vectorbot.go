@@ -91,7 +91,10 @@ func RtVectorBot(c echo.Context) error {
 		return dbauth
 	}
 
-	dbs := TheCorpora
+	var dbs []string
+	for db := range LoadedCorp {
+		dbs = append(dbs, db)
+	}
 
 	if slices.Contains(dbs, a) {
 		s.SearchIn.Authors = allof(a)
@@ -206,20 +209,18 @@ func activatevectorbot() {
 	auu := StringMapKeysIntoSlice(AllAuthors)
 	sort.Strings(auu)
 
-	// dbs := TheCorpora
-
-	// only model the ones you actually use regularly
-	var trimmedauu []string
 	var dbs []string
+	for db := range LoadedCorp {
+		dbs = append(dbs, db)
+	}
 
-	for k, v := range Config.DefCorp {
-		if v {
-			for _, a := range auu {
-				if strings.HasPrefix(a, k) {
-					trimmedauu = append(trimmedauu, a)
-				}
+	var trimmedauu []string
+
+	for _, k := range dbs {
+		for _, a := range auu {
+			if strings.HasPrefix(a, k) {
+				trimmedauu = append(trimmedauu, a)
 			}
-			dbs = append(dbs, k)
 		}
 	}
 

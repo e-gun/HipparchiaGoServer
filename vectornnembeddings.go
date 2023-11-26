@@ -263,6 +263,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 		embs = embedding.Embeddings{}
 	}
 
+	buf.Reset()
 	AllSearches.Delete(s.ID)
 
 	return embs

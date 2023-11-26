@@ -12,7 +12,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	jsoniter "github.com/json-iterator/go"
 	"strings"
-	"sync/atomic"
 	"time"
 )
 
@@ -39,7 +38,7 @@ var (
 	AllAuthorized = MakeAuthorizedVault()
 	UserPassPairs = make(map[string]string)
 	AllWorks      = make(map[string]*DbWork)
-	AllAuthors    = make(map[string]DbAuthor)
+	AllAuthors    = make(map[string]*DbAuthor)
 	AllLemm       = make(map[string]*DbLemma)
 	NestedLemm    = make(map[string]map[string]*DbLemma)
 	WkCorpusMap   = make(map[string][]string)
@@ -49,7 +48,6 @@ var (
 	WkGenres      = make(map[string]bool)
 	AuLocs        = make(map[string]bool)
 	WkLocs        = make(map[string]bool)
-	StatCounter   = make(map[string]*atomic.Int32)
 	TheCorpora    = []string{GREEKCORP, LATINCORP, INSCRIPTCORP, CHRISTINSC, PAPYRUSCORP}
 	TheLanguages  = []string{"greek", "latin"}
 	ServableFonts = map[string]FontTempl{"Noto": NotoFont, "Roboto": RobotoFont, "Fira": FiraFont}
@@ -111,11 +109,11 @@ func (dbw DbWork) AuID() string {
 }
 
 // MyAu - return the work's DbAuthor
-func (dbw DbWork) MyAu() DbAuthor {
+func (dbw DbWork) MyAu() *DbAuthor {
 	a, ok := AllAuthors[dbw.AuID()]
 	if !ok {
 		msg(fmt.Sprintf("DbWork.MyAu() failed to find '%s'", dbw.AuID()), MSGWARN)
-		a = DbAuthor{}
+		a = &DbAuthor{}
 	}
 	return a
 }
@@ -174,18 +172,18 @@ func activeworkmapper() map[string]*DbWork {
 
 	for k, b := range Config.DefCorp {
 		if b {
-			workmap = mapnewcorpus(k, workmap)
+			workmap = mapnewworkcorpus(k, workmap)
 		}
 	}
 	return workmap
 }
 
-// mapnewcorpus - add a corpus to a workmap
-func mapnewcorpus(corpus string, workmap map[string]*DbWork) map[string]*DbWork {
+// mapnewworkcorpus - add a corpus to a workmap
+func mapnewworkcorpus(corpus string, workmap map[string]*DbWork) map[string]*DbWork {
 	const (
-		MSG = "mapnewcorpus() added %d works from '%s'"
+		MSG = "mapnewworkcorpus() added %d works from '%s'"
 	)
-	toadd := slicecorpus(corpus)
+	toadd := sliceworkcorpus(corpus)
 	for i := 0; i < len(toadd); i++ {
 		w := toadd[i]
 		workmap[w.UID] = &w
@@ -197,8 +195,8 @@ func mapnewcorpus(corpus string, workmap map[string]*DbWork) map[string]*DbWork 
 	return workmap
 }
 
-// slicecorpus - fetch all relevant works from the db as a DbWork slice
-func slicecorpus(corpus string) []DbWork {
+// sliceworkcorpus - fetch all relevant works from the db as a DbWork slice
+func sliceworkcorpus(corpus string) []DbWork {
 	// this is far and away the "heaviest" bit of the whole program if you grab every known work
 	// Total: 204MB
 	// 65.35MB (flat, cum) 32.03% of Total
@@ -262,16 +260,40 @@ func slicecorpus(corpus string) []DbWork {
 	return workslice
 }
 
-// [2] AUTHORS AND CORPUS DATA
+// [2] AUTHORS AND CORPUS DATA (DO NOT RUN THESE AS UPDATES BEFORE UPDATING AllWorks)
 
-// authormapper - build a map of all authors keyed to the authorUID: map[string]DbAuthor
-func authormapper(ww map[string]*DbWork) map[string]DbAuthor {
-	// note that this is potentially incomplete at launch and needs updating when corpora are added
-	// specifically, all authors are always known, but not all works will be loaded into the list
-	// and an author without works is "broken" and will produce strange / empty results
+// activeauthormapper
+func activeauthormapper() map[string]*DbAuthor {
+	// see comments at top of activeworkmapper(): they apply here too
+	authmap := make(map[string]*DbAuthor)
+	for k, b := range Config.DefCorp {
+		if b {
+			authmap = mapnewauthorcorpus(k, authmap)
+		}
+	}
+	return authmap
+}
 
-	//  5.26MB     5.80MB (flat, cum)  2.19% of Total
+// mapnewauthorcorpus - add a corpus to an authormap
+func mapnewauthorcorpus(corpus string, authmap map[string]*DbAuthor) map[string]*DbAuthor {
+	const (
+		MSG = "mapnewauthorcorpus() added %d authors from '%s'"
+	)
 
+	toadd := sliceauthorcorpus(corpus)
+	for i := 0; i < len(toadd); i++ {
+		a := toadd[i]
+		authmap[a.UID] = &a
+	}
+
+	LoadedCorp[corpus] = true
+
+	msg(fmt.Sprintf(MSG, len(toadd), corpus), MSGPEEK)
+
+	return authmap
+}
+
+func sliceauthorcorpus(corpus string) []DbAuthor {
 	// hipparchiaDB-# \d authors
 	//                          Table "public.authors"
 	//     Column     |          Type          | Collation | Nullable | Default
@@ -287,15 +309,16 @@ func authormapper(ww map[string]*DbWork) map[string]DbAuthor {
 	// converted_date | integer                |           |          |
 	// location       | character varying(128) |           |          |
 
-	// need to be ready to load the worklists into the authors
-	// so: build a map of {UID: WORKLIST...}
-
 	const (
-		QT = `SELECT %s FROM authors`
+		CT = `SELECT count(*) FROM authors WHERE universalid ~* '^%s'`
+		QT = `SELECT %s FROM authors WHERE universalid ~* '^%s'`
 	)
 
+	// need to be ready to load the worklists into the authors
+	// so: build a map of {UID: WORKLIST...}; map called by rfnc()
+
 	worklists := make(map[string][]string)
-	for _, w := range ww {
+	for _, w := range AllWorks {
 		wk := w.UID
 		au := wk[0:6]
 		if _, y := worklists[au]; !y {
@@ -305,25 +328,32 @@ func authormapper(ww map[string]*DbWork) map[string]DbAuthor {
 		}
 	}
 
-	q := fmt.Sprintf(QT, AUTHORTEMPLATE)
+	var cc int
+	cq := fmt.Sprintf(CT, corpus)
+	qq := fmt.Sprintf(QT, AUTHORTEMPLATE, corpus)
 
-	foundrows, err := SQLPool.Query(context.Background(), q)
+	countrow := SQLPool.QueryRow(context.Background(), cq)
+	err := countrow.Scan(&cc)
+
+	foundrows, err := SQLPool.Query(context.Background(), qq)
 	chke(err)
 
-	authormap := make(map[string]DbAuthor, DBAUMAPSIZE)
+	authslice := make([]DbAuthor, cc)
 	var a DbAuthor
 	foreach := []any{&a.UID, &a.Language, &a.IDXname, &a.Name, &a.Shortname, &a.Cleaname, &a.Genres, &a.RecDate, &a.ConvDate, &a.Location}
 
+	index := 0
 	rfnc := func() error {
 		a.WorkList = worklists[a.UID]
-		authormap[a.UID] = a
+		authslice[index] = a
+		index++
 		return nil
 	}
 
 	_, e := pgx.ForEachRow(foundrows, foreach, rfnc)
 	chke(e)
 
-	return authormap
+	return authslice
 }
 
 // buildaucorpusmap - populate global variable used by SessionIntoSearchlist()

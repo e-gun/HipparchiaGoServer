@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/e-gun/nlp v0.0.0-20230418221101-577c2209ffcc
 	github.com/e-gun/tsnemp v0.0.0
-	github.com/e-gun/wego v0.0.11
+	github.com/e-gun/wego v0.0.12
 	github.com/go-echarts/go-echarts/v2 v2.3.2
 	github.com/google/uuid v1.4.0
 	github.com/gorilla/websocket v1.5.1

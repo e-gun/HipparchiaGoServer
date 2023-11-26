@@ -249,6 +249,7 @@ func vectordbaddnn(fp string, embs embedding.Embeddings) {
 
 	// compressed is c. 28% of original
 	msg(fmt.Sprintf(MSG2, fp, l1/1024/1024, l2/1024/1024, (float32(l2)/float32(l1))*100), MSGPEEK)
+	buf.Reset()
 }
 
 // vectordbfetchnn - get a set of embeddings from VECTORTABLENAMENN
@@ -284,6 +285,7 @@ func vectordbfetchnn(fp string) embedding.Embeddings {
 	var emb embedding.Embeddings
 	err = jsi.Unmarshal(decompr, &emb)
 	dbi.EC(err)
+	buf.Reset()
 
 	if emb.Empty() {
 		msg(fmt.Sprintf(MSG2, fp), MSGNOTE)

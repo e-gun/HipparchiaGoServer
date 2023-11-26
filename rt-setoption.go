@@ -44,9 +44,9 @@ func RtSetOption(c echo.Context) error {
 		if y && !LoadedCorp[c] {
 			start := time.Now()
 			// append to the master work map
-			AllWorks = mapnewcorpus(c, AllWorks)
-			// reload the master author map
-			AllAuthors = authormapper(AllWorks)
+			AllWorks = mapnewworkcorpus(c, AllWorks)
+			// append to the master author map
+			AllAuthors = mapnewauthorcorpus(c, AllAuthors)
 			// re-populateglobalmaps
 			populateglobalmaps()
 			d := fmt.Sprintf("modifyglobalmapsifneeded(): %.3fs", time.Now().Sub(start).Seconds())

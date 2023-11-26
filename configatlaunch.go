@@ -361,7 +361,7 @@ func BuildDefaultConfig() CurrentConfiguration {
 	c.LdaGraph = false
 	c.LogLevel = DEFAULTGOLOGLEVEL
 	c.EchoLog = DEFAULTECHOLOGLEVEL
-	c.ManualGC = true
+	c.ManualGC = false
 	c.MaxText = MAXTEXTLINEGENERATION
 	c.MaxSrchIP = MAXSEARCHPERIPADDR
 	c.MaxSrchTot = MAXSEARCHTOTAL
