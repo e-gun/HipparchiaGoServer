@@ -157,6 +157,7 @@ func nnmodelbot(c echo.Context, s SearchStruct, a string) {
 	m := Config.VectorModel
 	fp := fingerprintnnvectorsearch(s)
 
+	// bot hangs here on gr0063 (Dionysius Thrax)
 	isstored := vectordbchecknn(fp)
 
 	if isstored {
@@ -187,7 +188,7 @@ func activatevectorbot() {
 		MSG3       = "The vectorbot has checked all authors and is now shutting down"
 		URL        = "http://%s:%d/vbot/%s/%s"
 		COUNTEVERY = 10
-		THROTTLE   = 4
+		THROTTLE   = 25
 		SIZEVERY   = 500
 		STARTDELAY = 2
 	)

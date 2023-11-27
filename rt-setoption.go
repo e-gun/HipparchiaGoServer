@@ -41,6 +41,7 @@ func RtSetOption(c echo.Context) error {
 
 	modifyglobalmapsifneeded := func(c string, y bool) {
 		// this is a "laggy" click: something comparable to the launch initialization time
+		// if you call it via "go modifyglobalmapsifneeded()" the lag vanishes: nobody will search <.5s later, right?
 		if y && !LoadedCorp[c] {
 			start := time.Now()
 			// append to the master work map
@@ -66,19 +67,19 @@ func RtSetOption(c echo.Context) error {
 			switch opt {
 			case "greekcorpus":
 				s.ActiveCorp[GREEKCORP] = b
-				modifyglobalmapsifneeded(GREEKCORP, b)
+				go modifyglobalmapsifneeded(GREEKCORP, b)
 			case "latincorpus":
 				s.ActiveCorp[LATINCORP] = b
-				modifyglobalmapsifneeded(LATINCORP, b)
+				go modifyglobalmapsifneeded(LATINCORP, b)
 			case "papyruscorpus":
 				s.ActiveCorp[PAPYRUSCORP] = b
-				modifyglobalmapsifneeded(PAPYRUSCORP, b)
+				go modifyglobalmapsifneeded(PAPYRUSCORP, b)
 			case "inscriptioncorpus":
 				s.ActiveCorp[INSCRIPTCORP] = b
-				modifyglobalmapsifneeded(INSCRIPTCORP, b)
+				go modifyglobalmapsifneeded(INSCRIPTCORP, b)
 			case "christiancorpus":
 				s.ActiveCorp[CHRISTINSC] = b
-				modifyglobalmapsifneeded(CHRISTINSC, b)
+				go modifyglobalmapsifneeded(CHRISTINSC, b)
 			case "rawinputstyle":
 				s.RawInput = b
 			case "onehit":

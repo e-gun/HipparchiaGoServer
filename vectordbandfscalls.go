@@ -15,6 +15,7 @@ import (
 	"github.com/e-gun/wego/pkg/model/lexvec"
 	"github.com/e-gun/wego/pkg/model/word2vec"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"io"
 	"os"
 	"runtime"
@@ -193,6 +194,7 @@ func vectordbinitnn() {
 func vectordbchecknn(fp string) bool {
 	const (
 		Q   = `SELECT fingerprint FROM %s WHERE fingerprint = '%s' LIMIT 1`
+		F   = `vectordbchecknn() found %s`
 		DNE = "does not exist"
 	)
 
@@ -203,8 +205,22 @@ func vectordbchecknn(fp string) bool {
 		if strings.Contains(m, DNE) {
 			vectordbinitnn()
 		}
+		return false
 	}
-	return foundrow.Next()
+
+	type simplestring struct {
+		S string
+	}
+
+	ss, err := pgx.CollectOneRow(foundrow, pgx.RowToStructByPos[simplestring])
+	if err != nil {
+		// m := err.Error()
+		// m will be "no rows in result set" if you did not find the fingerprint
+		return false
+	} else {
+		msg(fmt.Sprintf(F, ss.S), MSGTMI)
+		return true
+	}
 }
 
 // vectordbaddnn - add a set of embeddings to VECTORTABLENAMENN
