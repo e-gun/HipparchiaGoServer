@@ -48,6 +48,7 @@ func StripaccentsRUNE(u []rune) []rune {
 	return stripped
 }
 
+// SwapAcuteForGrave - ὰ --> ά
 func SwapAcuteForGrave(thetext string) string {
 	swap := strings.NewReplacer("ὰ", "ά", "ὲ", "έ", "ὶ", "ί", "ὸ", "ό", "ὺ", "ύ", "ὴ", "ή", "ὼ", "ώ",
 		"ἂ", "ἄ", "ἃ", "ἅ", "ᾲ", "ᾴ", "ᾂ", "ᾄ", "ᾃ", "ᾅ", "ἒ", "ἔ", "ἲ", "ἴ", "ὂ", "ὄ", "ὃ", "ὅ", "ὒ", "ὔ", "ὓ", "ὕ",
@@ -56,6 +57,7 @@ func SwapAcuteForGrave(thetext string) string {
 	return swap.Replace(thetext)
 }
 
+// SwapGraveForAcute - ά --> ὰ
 func SwapGraveForAcute(thetext string) string {
 	swap := strings.NewReplacer("ά", "ὰ", "έ", "ὲ", "ί", "ὶ", "ό", "ὸ", "ύ", "ὺ", "ή", "ὴ", "ώ", "ὼ",
 		"ἄ", "ἂ", "ἅ", "ἃ", "ᾴ", "ᾲ", "ᾄ", "ᾂ", "ᾅ", "ᾃ", "ἔ", "ἒ", "ἴ", "ἲ", "ὄ", "ὂ", "ὅ", "ὃ", "ὔ", "ὒ", "ὕ", "ὓ",

@@ -734,11 +734,21 @@ func endpointer(wuid string, locus string, sep string) ([2]int, bool) {
 	const (
 		QTMP = `SELECT index FROM %s WHERE wkuniversalid='%s' AND %s ORDER BY index ASC`
 		FAIL = "endpointer() failed to find the following inside of %s: '%s'"
+		WNFD = "endpointer() failed to find a work: %2"
 	)
 
-	success := false
 	fl := [2]int{0, 0}
-	wk := AllWorks[wuid]
+	success := false
+
+	// dictionary click inside 'τάλαντον' at end of first segment: "...δίκαϲ ῥέπει τάλαντον Bacchylides 17.25."
+	// error 500: /browse/perseus/gr0199/002/17:25
+	// but there is no work 002; the numbers start at 010
+
+	wk := validateworkselection(wuid)
+	if wk.UID == "work_not_found" {
+		msg(fmt.Sprintf(WNFD, wuid), MSGFYI)
+		return fl, false
+	}
 
 	wl := wk.CountLevels()
 	ll := strings.Split(locus, sep)
@@ -932,6 +942,22 @@ func formatnewselectionjs(jsinfo []JSData) string {
 
 	script := fmt.Sprintf(SCR, strings.Join(info, ""))
 	return script
+}
+
+// validateworkselection - what if you request a work that does not exist? return something...
+func validateworkselection(uid string) *DbWork {
+	w := &DbWork{}
+	w.UID = "work_not_found"
+	au := uid[0:6]
+	if _, ok := AllWorks[uid]; ok {
+		w = AllWorks[uid]
+	} else {
+		if _, y := AllAuthors[au]; y {
+			// firstwork; otherwise we are still set to "null"
+			w = AllWorks[AllAuthors[au].WorkList[0]]
+		}
+	}
+	return w
 }
 
 // A LIST

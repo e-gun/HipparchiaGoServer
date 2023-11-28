@@ -136,18 +136,9 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassag
 	k := fmt.Sprintf("%sw%s", au, wk)
 
 	// [a] validate
-	w := &DbWork{}
-	w.UID = "null"
-	if _, ok := AllWorks[k]; ok {
-		w = AllWorks[k]
-	} else {
-		if _, y := AllAuthors[au]; y {
-			// firstwork; otherwise we are still set to "null"
-			w = AllWorks[AllAuthors[au].WorkList[0]]
-		}
-	}
+	w := validateworkselection(k)
 
-	if w.UID == "null" {
+	if w.UID == "work_not_found" {
 		// some problem cases (that arise via rt-lexica.go and the bad clicks embedded in teh lexical data):
 		// gr0161w001
 		msg(fmt.Sprintf(FAIL1, k), MSGFYI)
