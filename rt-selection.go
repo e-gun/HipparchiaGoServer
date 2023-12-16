@@ -217,10 +217,8 @@ func RtSelectionClear(c echo.Context) error {
 		newincl.Works = SetSubtraction(newincl.Works, []string{foundkey})
 	case "psgselections":
 		foundkey := kvpairmdkey(id, newincl.MappedPsgByName)
-		// msg(foundkey, 1)
 		newincl.Passages = SetSubtraction(newincl.Passages, []string{foundkey})
 		foundbval := kvpairmdval(id, newincl.MappedPsgByName)
-		// msg(foundbval, 1)
 		newincl.ListedPBN = SetSubtraction(newincl.ListedPBN, []string{foundbval})
 		delete(newincl.MappedPsgByName, foundkey)
 	// PART TWO: EXCLUSIONS
@@ -734,7 +732,7 @@ func endpointer(wuid string, locus string, sep string) ([2]int, bool) {
 	const (
 		QTMP = `SELECT index FROM %s WHERE wkuniversalid='%s' AND %s ORDER BY index ASC`
 		FAIL = "endpointer() failed to find the following inside of %s: '%s'"
-		WNFD = "endpointer() failed to find a work: %2"
+		WNFD = "endpointer() failed to find a work: %s"
 	)
 
 	fl := [2]int{0, 0}

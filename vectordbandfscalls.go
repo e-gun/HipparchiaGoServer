@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/e-gun/wego/pkg/embedding"
 	"github.com/e-gun/wego/pkg/model/glove"
@@ -398,7 +399,7 @@ func ldavecconfig() LDAConfig {
 	_, yes := os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORLDA)
 
 	if yes != nil {
-		content, err := jsi.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
+		content, err := json.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
 		dbi.EC(err)
 
 		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTORLDA, content, WRITEPERMS)
@@ -450,7 +451,7 @@ func w2vvectorconfig() word2vec.Options {
 	_, yes := os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORW2V)
 
 	if yes != nil {
-		content, err := jsi.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
+		content, err := json.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
 		dbi.EC(err)
 
 		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTORW2V, content, WRITEPERMS)
@@ -495,7 +496,7 @@ func lexvecvectorconfig() lexvec.Options {
 	_, yes := os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORLEXVEC)
 
 	if yes != nil {
-		content, err := jsi.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
+		content, err := json.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
 		dbi.EC(err)
 
 		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTORLEXVEC, content, WRITEPERMS)
@@ -539,7 +540,7 @@ func glovevectorconfig() glove.Options {
 	_, yes := os.Stat(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORGLOVE)
 
 	if yes != nil {
-		content, err := jsi.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
+		content, err := json.MarshalIndent(cfg, JSONINDENT, JSONINDENT)
 		dbi.EC(err)
 
 		err = os.WriteFile(fmt.Sprintf(CONFIGALTAPTH, h)+CONFIGVECTORGLOVE, content, WRITEPERMS)
