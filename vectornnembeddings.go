@@ -366,7 +366,7 @@ func buildmorphmapstrslc(slicedwords []string, morphmapdbm map[string]DbMorpholo
 		morphmapstrslc[m] = make(map[string]bool)
 		// first pass: {"1": bytes1, "2": bytes2, ...}
 		var objmap map[string]json.RawMessage
-		err := jsi.Unmarshal([]byte(morphmapdbm[m].RawPossib), &objmap)
+		err := json.Unmarshal([]byte(morphmapdbm[m].RawPossib), &objmap)
 		if err != nil {
 			fmt.Printf(FAIL1, morphmapdbm[m].Observed)
 		}
@@ -374,7 +374,7 @@ func buildmorphmapstrslc(slicedwords []string, morphmapdbm map[string]DbMorpholo
 		newmap := make(map[string]possib)
 		for key, v := range objmap {
 			var pp possib
-			e := jsi.Unmarshal(v, &pp)
+			e := json.Unmarshal(v, &pp)
 			if e != nil {
 				fmt.Printf(FAIL2, morphmapdbm[m].Observed)
 			}

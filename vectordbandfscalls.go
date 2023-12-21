@@ -229,7 +229,7 @@ func vectordbaddnn(fp string, embs embedding.Embeddings) {
 	const (
 		MSG1 = "vectordbaddnn(): "
 		MSG2 = "%s compression: %dM -> %dM (-> %.1f%%)"
-		FAIL = "vectordbaddnn() failed when calling jsi.Marshal(embs): nothing stored"
+		FAIL = "vectordbaddnn() failed when calling json.Marshal(embs): nothing stored"
 		INS  = `
 			INSERT INTO %s
 				(fingerprint, vectorsize, vectordata)
@@ -238,7 +238,7 @@ func vectordbaddnn(fp string, embs embedding.Embeddings) {
 	)
 
 	// json vs jsi: jsoniter.ConfigFastest, this will marshal the float with 6 digits precision (lossy)
-	eb, err := jsi.Marshal(embs)
+	eb, err := json.Marshal(embs)
 	if err != nil {
 		msg(FAIL, MSGNOTE)
 		eb = []byte{}
@@ -300,7 +300,7 @@ func vectordbfetchnn(fp string) embedding.Embeddings {
 	dbi.EC(err)
 
 	var emb embedding.Embeddings
-	err = jsi.Unmarshal(decompr, &emb)
+	err = json.Unmarshal(decompr, &emb)
 	dbi.EC(err)
 	buf.Reset()
 
@@ -407,7 +407,7 @@ func ldavecconfig() LDAConfig {
 		msg(MSG1+CONFIGVECTORLDA, MSGPEEK)
 	} else {
 		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORLDA)
-		decoderc := jsi.NewDecoder(loadedcfg)
+		decoderc := json.NewDecoder(loadedcfg)
 		vc := LDAConfig{}
 		errc := decoderc.Decode(&vc)
 		_ = loadedcfg.Close()
@@ -459,7 +459,7 @@ func w2vvectorconfig() word2vec.Options {
 		msg(MSG1+CONFIGVECTORW2V, MSGPEEK)
 	} else {
 		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORW2V)
-		decoderc := jsi.NewDecoder(loadedcfg)
+		decoderc := json.NewDecoder(loadedcfg)
 		vc := word2vec.Options{}
 		errc := decoderc.Decode(&vc)
 		_ = loadedcfg.Close()
@@ -504,7 +504,7 @@ func lexvecvectorconfig() lexvec.Options {
 		msg(MSG1+CONFIGVECTORLEXVEC, MSGPEEK)
 	} else {
 		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORLEXVEC)
-		decoderc := jsi.NewDecoder(loadedcfg)
+		decoderc := json.NewDecoder(loadedcfg)
 		vc := lexvec.Options{}
 		errc := decoderc.Decode(&vc)
 		_ = loadedcfg.Close()
@@ -548,7 +548,7 @@ func glovevectorconfig() glove.Options {
 		msg(MSG1+CONFIGVECTORGLOVE, MSGPEEK)
 	} else {
 		loadedcfg, _ := os.Open(fmt.Sprintf(CONFIGALTAPTH, h) + CONFIGVECTORGLOVE)
-		decoderc := jsi.NewDecoder(loadedcfg)
+		decoderc := json.NewDecoder(loadedcfg)
 		vc := glove.Options{}
 		errc := decoderc.Decode(&vc)
 		_ = loadedcfg.Close()

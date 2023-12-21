@@ -10,7 +10,7 @@ import "time"
 const (
 	MYNAME    = "Hipparchia Golang Server"
 	SHORTNAME = "HGS"
-	VERSION   = "1.2.17"
+	VERSION   = "1.2.18"
 
 	GREEKCORP      = "gr"
 	LATINCORP      = "lt"

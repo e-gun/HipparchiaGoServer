@@ -436,7 +436,7 @@ func GetPostgresURI(pgpw string) string {
 	return url
 }
 
-// GetHippaWRURI - return a URI to connect to postgres as hippa_wr
+// GetHippaWRURI - return a URI to connect to postgres as DEFAULTPSQLUSER
 func GetHippaWRURI(pw string) string {
 	const (
 		U = `postgresql://%s:%s@%s:%d/%s`

@@ -143,7 +143,11 @@ func (m *MessageMaker) Emit(message string, threshold int) {
 		fmt.Printf("[%s%s%s] %s%s%s\n", YELLOW1, m.Lnc.Shortname, RESET, color, message, RESET)
 	} else {
 		// terminal color codes not w's friend
-		fmt.Printf("[%s] %s\n", m.Lnc.Shortname, message)
+		if threshold < 0 {
+			fmt.Printf("[%s] %s\n", m.Lnc.Shortname, message)
+		} else {
+			fmt.Printf("[%s] [LL%d] %s\n", m.Lnc.Shortname, threshold, message)
+		}
 	}
 }
 

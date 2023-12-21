@@ -209,7 +209,7 @@ func StartEchoServer() {
 // JSONresponse - send the JSON; this function lets one test and document different strategies; jsr should be a json-ready struct
 func JSONresponse(c echo.Context, jsr any) error {
 	const (
-		RESPONDER = 4
+		RESPONDER = 1
 	)
 
 	// note that JSONPretty will end up strikingly prominent on the profiler: a waste of memory and cycles unless you are debugging
@@ -227,12 +227,16 @@ func JSONresponse(c echo.Context, jsr any) error {
 		return json.NewEncoder(c.Response()).Encode(jsr)
 	}
 
-	// [4] jsoniter: faster json, but we are one-big and not many-small... import jsoniter "github.com/json-iterator/go"
-	opt4 := func() error {
-		b, e := jsi.Marshal(&jsr)
-		chke(e)
-		return c.JSONBlob(http.StatusOK, b)
-	}
+	// [4] jsoniter: faster json, but we are one-big and not many-small...
+	// requires: import jsoniter "github.com/json-iterator/go"
+	// nb: not fully "ConfigCompatibleWithStandardLibrary" as it cannot do "JSONPretty"
+	//
+
+	//opt4 := func() error {
+	//	b, e := jsoniter.ConfigCompatibleWithStandardLibrary.Marshal(&jsr)
+	//	chke(e)
+	//	return c.JSONBlob(http.StatusOK, b)
+	//}
 
 	switch RESPONDER {
 	case 1:
@@ -241,8 +245,8 @@ func JSONresponse(c echo.Context, jsr any) error {
 		return opt2()
 	case 3:
 		return opt3()
-	case 4:
-		return opt4()
+	//case 4:
+	//	return opt4()
 	default:
 		return opt1()
 	}

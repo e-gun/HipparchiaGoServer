@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	jsoniter "github.com/json-iterator/go"
 	"strings"
 	"time"
 )
@@ -53,7 +52,10 @@ var (
 	ServableFonts = map[string]FontTempl{"Noto": NotoFont, "Roboto": RobotoFont, "Fira": FiraFont}
 	LaunchTime    = time.Now()
 	WebsocketPool = WSFillNewPool()
-	jsi           = jsoniter.ConfigCompatibleWithStandardLibrary // jsoniter.ConfigFastest (fp lossy); https://jsoniter.com/migrate-from-go-std.html;  https://jsoniter.com/go-tips.html; not in fact 100% compatability because jsi.MarshalIndent will panic
+	// abandoned option where "jsi" can be used instead of "json" in vectordbandfscalls.go and vectornnembeddings.go and with JSONresponse()
+	// not in fact 100% compatible because "jsi.MarshalIndent" will panic if used for "json.MarshalIndent"
+	// cf. https://jsoniter.com/migrate-from-go-std.html;  https://jsoniter.com/go-tips.html;
+	// jsi           = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 type DbAuthor struct {
