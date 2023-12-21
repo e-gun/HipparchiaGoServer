@@ -188,13 +188,13 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassag
 
 	// [d] fill out the JSON-ready struct
 	p := fc - ctx
-	if p < AllWorks[k].FirstLine {
-		p = AllWorks[k].FirstLine
+	if p < w.FirstLine {
+		p = w.FirstLine
 	}
 
 	n := fc + ctx
-	if n > AllWorks[k].LastLine {
-		n = AllWorks[k].LastLine
+	if n > w.LastLine {
+		n = w.LastLine
 	}
 
 	bw := fmt.Sprintf(`index/%s/%s/%d`, au, wk, p)

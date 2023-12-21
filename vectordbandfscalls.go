@@ -42,7 +42,7 @@ var (
 		SubsampleThreshold: 0.001,
 		ToLower:            false,
 		UpdateLRBatch:      100000,
-		Verbose:            true,
+		Verbose:            false,
 		Window:             8,
 	}
 	DefaultLexVecVectors = lexvec.Options{
@@ -62,7 +62,7 @@ var (
 		SubsampleThreshold: 1.0e-3,
 		ToLower:            false,
 		UpdateLRBatch:      100000,
-		Verbose:            true,
+		Verbose:            false,
 		Window:             8,
 	}
 	// DefaultGloveVectors - wego's default: {0.75 10000 inc 10 false 20 0.025 15 100000 -1 5 sgd 0.001 false false 5 100}
@@ -82,7 +82,7 @@ var (
 		SolverType:         "adagrad", // "sdg", "adagrad" available
 		SubsampleThreshold: 0.001,
 		ToLower:            false,
-		Verbose:            true,
+		Verbose:            false,
 		Window:             8,
 		Xmax:               90,
 	}

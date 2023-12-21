@@ -203,6 +203,9 @@ func StartEchoServer() {
 	go activatevectorbot()
 
 	e.HideBanner = true
+	e.HidePort = false
+	e.Debug = false
+	e.DisableHTTP2 = true
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", Config.HostIP, Config.HostPort)))
 }
 
@@ -212,9 +215,10 @@ func JSONresponse(c echo.Context, jsr any) error {
 		RESPONDER = 1
 	)
 
-	// note that JSONPretty will end up strikingly prominent on the profiler: a waste of memory and cycles unless you are debugging
+	// note that JSONPretty will end up strikingly prominent on the profiler: a waste of memory and cycles unless
+	// you are debugging and want to be able to inspect the json manually
 
-	// [1] "vanilla"; and it turns out there is nothing wrong with vanilla; perhaps the best choice
+	// [1] "vanilla"; and it turns out there is nothing wrong with vanilla; seems like the best choice
 	opt1 := func() error { return c.JSON(http.StatusOK, jsr) }
 
 	// [2] "costs a lot of RAM in return for what?"
@@ -227,7 +231,7 @@ func JSONresponse(c echo.Context, jsr any) error {
 		return json.NewEncoder(c.Response()).Encode(jsr)
 	}
 
-	// [4] jsoniter: faster json, but we are one-big and not many-small...
+	// [4] jsoniter: purportedly faster json, but we are one-big and not many-small...
 	// requires: import jsoniter "github.com/json-iterator/go"
 	// nb: not fully "ConfigCompatibleWithStandardLibrary" as it cannot do "JSONPretty"
 	//
