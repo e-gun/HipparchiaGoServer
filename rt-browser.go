@@ -139,7 +139,7 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassag
 	w := validateworkselection(k)
 
 	if w.UID == "work_not_found" {
-		// some problem cases (that arise via rt-lexica.go and the bad clicks embedded in teh lexical data):
+		// some problem cases (that arise via rt-lexica.go and the bad clicks embedded in the lexical data):
 		// gr0161w001
 		msg(fmt.Sprintf(FAIL1, k), MSGFYI)
 		return BrowsedPassage{}

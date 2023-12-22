@@ -6,19 +6,32 @@
 package main
 
 import (
-	"encoding/json"
+	"bytes"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
+	"strings"
 )
 
 // StartEchoServer - start serving; this blocks and does not return while the program remains alive
 func StartEchoServer() {
 	const (
 		LLOGFMT = "r: ${status}\tt: ${latency_human}\tu: ${uri}\n"
-		RLOGFMT = "i: ${remote_ip}\t r: ${status}\tt: ${latency_human}\tu: ${uri}\n"
+		RLOGFMT = "${remote_ip}\t${custom}\t${status}\t${bytes_out}\t${uri}\n"
 	)
+
+	// ctf - a CustomTagFunc return a short user agent
+	ctf := func(c echo.Context, buf *bytes.Buffer) (int, error) {
+		ua := strings.Split(c.Request().UserAgent(), " ")
+		if len(ua) == 0 {
+			return 0, nil
+		} else {
+			last := ua[len(ua)-1]
+			buf.Write([]byte(last))
+			return 1, nil
+		}
+	}
 
 	//
 	// SETUP
@@ -42,7 +55,7 @@ func StartEchoServer() {
 	case 3:
 		e.Use(middleware.Logger())
 	case 2:
-		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: RLOGFMT}))
+		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: RLOGFMT, CustomTagFunc: ctf}))
 	case 1:
 		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: LLOGFMT}))
 	default:
@@ -222,14 +235,14 @@ func JSONresponse(c echo.Context, jsr any) error {
 	opt1 := func() error { return c.JSON(http.StatusOK, jsr) }
 
 	// [2] "costs a lot of RAM in return for what?"
-	opt2 := func() error { return c.JSONPretty(http.StatusOK, jsr, JSONINDENT) }
+	//opt2 := func() error { return c.JSONPretty(http.StatusOK, jsr, JSONINDENT) }
 
 	// [3] "maybe streaming makes sense..." but this uses slightly more memory than [a] and is slightly slower?
-	opt3 := func() error {
-		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
-		c.Response().WriteHeader(http.StatusOK)
-		return json.NewEncoder(c.Response()).Encode(jsr)
-	}
+	//opt3 := func() error {
+	//	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+	//	c.Response().WriteHeader(http.StatusOK)
+	//	return json.NewEncoder(c.Response()).Encode(jsr)
+	//}
 
 	// [4] jsoniter: purportedly faster json, but we are one-big and not many-small...
 	// requires: import jsoniter "github.com/json-iterator/go"
@@ -242,16 +255,18 @@ func JSONresponse(c echo.Context, jsr any) error {
 	//	return c.JSONBlob(http.StatusOK, b)
 	//}
 
-	switch RESPONDER {
-	case 1:
-		return opt1()
-	case 2:
-		return opt2()
-	case 3:
-		return opt3()
+	//switch RESPONDER {
+	//case 1:
+	//	return opt1()
+	//case 2:
+	//	return opt2()
+	//case 3:
+	//	return opt3()
 	//case 4:
 	//	return opt4()
-	default:
-		return opt1()
-	}
+	//default:
+	//	return opt1()
+	//}
+
+	return opt1()
 }
