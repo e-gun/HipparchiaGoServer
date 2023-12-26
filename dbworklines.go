@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"log"
 	"regexp"
 	"sort"
 	"strings"
@@ -38,7 +39,7 @@ import (
 //    "gr0001_st_trgm_idx" gin (stripped_line gin_trgm_ops)
 
 const (
-	WORLINETEMPLATE = `wkuniversalid, index,
+	WORLINETEMPLATE = `wkuniversalid, "index",
 			level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
 			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations`
 	WKLNHYPERLNKTEMPL = `index/%s/%s/%d`
@@ -240,8 +241,39 @@ func (dbw *DbWorkline) LvlVal(lvl int) string {
 	}
 }
 
-// WorklineQuery - use a PrerolledQuery to acquire []DbWorkline
 func WorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
+	if SQLProvider == "pgsql" {
+		return PGXWorklineQuery(prq, dbconn)
+	} else {
+		return SQLITEWorklineQuery(prq, dbconn)
+	}
+
+}
+
+// SQLITEWorklineQuery - use a PrerolledQuery to acquire []DbWorkline
+func SQLITEWorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
+
+	// todo: prq.TempTable
+
+	rows, err := SQLITEConn.Query(prq.PsqlQuery)
+	msg(prq.PsqlQuery, 3)
+	chke(err)
+
+	defer rows.Close()
+	var rr []DbWorkline
+	for rows.Next() {
+		var rw DbWorkline
+		if e := rows.Scan(&rw.TbIndex, &rw.WkUID, &rw.Lvl5Value, &rw.Lvl4Value, &rw.Lvl3Value, &rw.Lvl2Value, &rw.Lvl1Value, &rw.Lvl0Value, &rw.MarkedUp, &rw.Accented, &rw.Stripped, &rw.Hyphenated, &rw.Annotations); err != nil {
+			log.Fatal(e)
+		}
+		rr = append(rr, rw)
+	}
+	fmt.Println(fmt.Sprintf("SQLITEWorklineQuery() found %d rows", len(rr)))
+	return rr
+}
+
+// PGXWorklineQuery - use a PrerolledQuery to acquire []DbWorkline
+func PGXWorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
 	// NB: you have to use a dbconn.Exec() and can't use SQLPool.Exex() because with the latter
 	// the temp table will get separated from the main query: ERROR: relation "{ttname}" does not exist (SQLSTATE 42P01)
 
@@ -268,7 +300,7 @@ func WorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
 // GrabOneLine - return a single DbWorkline from a table
 func GrabOneLine(table string, line int) DbWorkline {
 	const (
-		QTMPL = "SELECT %s FROM %s WHERE index = %d"
+		QTMPL = `SELECT %s FROM %s WHERE "index" = %d`
 	)
 
 	dbconn := GetPSQLconnection()
@@ -289,7 +321,7 @@ func GrabOneLine(table string, line int) DbWorkline {
 // SimpleContextGrabber - grab a pile of lines centered around the focusline
 func SimpleContextGrabber(table string, focus int, context int) []DbWorkline {
 	const (
-		QTMPL = "SELECT %s FROM %s WHERE (index BETWEEN %d AND %d) ORDER by index"
+		QTMPL = `SELECT %s FROM %s WHERE ("index" BETWEEN %d AND %d) ORDER by "index"`
 	)
 
 	dbconn := GetPSQLconnection()
@@ -301,9 +333,11 @@ func SimpleContextGrabber(table string, focus int, context int) []DbWorkline {
 	var prq PrerolledQuery
 	prq.TempTable = ""
 	prq.PsqlQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, low, high)
-
 	foundlines := WorklineQuery(prq, dbconn)
 
+	for _, ln := range foundlines {
+		fmt.Println(ln.BuildHyperlink())
+	}
 	return foundlines
 }
 
@@ -320,7 +354,7 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	// verse          | poem           | book           |                |                |
 
 	const (
-		SEL    = SELECTFROM + ` WHERE wkuniversalid='%s' %s %s ORDER BY index ASC`
+		SEL    = SELECTFROM + ` WHERE wkuniversalid='%s' %s %s ORDER BY "index" ASC`
 		ANDNOT = `AND %s NOT IN ('t')`
 	)
 

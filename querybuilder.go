@@ -38,25 +38,25 @@ type PRQTemplate struct {
 
 const (
 	SELECTFROM = `
-		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, 
+		SELECT wkuniversalid, "index", level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, 
 			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM %s`
 	PRFXSELFRM = `
-		SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value, 
+		SELECT second.wkuniversalid, second."index", second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value, 
 			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM`
 	ASLINEBUNDLE = `
 		( SELECT * FROM
-			( SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
-				concat(%s, ' ', lead(%s) OVER (ORDER BY index ASC) ) AS linebundle`
-	TAILBASIC  = `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
-	TAILBASIDX = `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' AND ({{ .IDX }}) ORDER BY index ASC LIMIT {{ .LIM }}`
+			( SELECT wkuniversalid, "index"", level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
+				concat(%s, ' ', lead(%s) OVER (ORDER BY "index"" ASC) ) AS linebundle`
+	TAILBASIC  = `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' ORDER BY "index" ASC LIMIT {{ .LIM }}`
+	TAILBASIDX = `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' AND ({{ .IDX }}) ORDER BY "index" ASC LIMIT {{ .LIM }}`
 	TAILBASWIN = ` FROM {{ .AU }} ) first
-			) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
+			) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY "index" ASC LIMIT {{ .LIM }}`
 	TAILWINIDX = ` FROM {{ .AU }} WHERE {{ .IDX }} ) first 
-			) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY index ASC LIMIT {{ .LIM }}`
+			) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' ORDER BY "index" ASC LIMIT {{ .LIM }}`
 	TAILTT = ` {{ .AU }} WHERE EXISTS
-		(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}.index AND {{ .COL }} {{ .SYN }} '{{ .SK }}') LIMIT {{ .LIM }}`
+		(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}."index" AND {{ .COL }} {{ .SYN }} '{{ .SK }}') LIMIT {{ .LIM }}`
 	TAILWINTT = ` FROM {{ .AU }} WHERE EXISTS
-			(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}.index ) 
+			(SELECT 1 FROM {{ .AU }}_includelist_{{ .TTN }} incl WHERE incl.includeindex = {{ .AU }}."index" ) 
 			) first
 		) second WHERE second.linebundle {{ .SYN }} '{{ .SK }}' LIMIT {{ .LIM }}`
 )
@@ -77,7 +77,7 @@ const (
 func SSBuildQueries(s *SearchStruct) {
 	const (
 		REG = `(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
-		IDX = `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
+		IDX = `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "; note that index ultimately needs to be "index" instead
 	)
 	// modifies the SearchStruct in place
 	inc := s.SearchIn
@@ -89,6 +89,7 @@ func SSBuildQueries(s *SearchStruct) {
 		s.SkgSlice = append(s.SkgSlice, s.Seeking)
 	}
 
+	// TODO: fix this so sqlite can negate...
 	syn := s.SrchSyntax
 	if s.PhaseNum == 2 && s.NotNear {
 		syn = "!~"
@@ -212,6 +213,11 @@ func SSBuildQueries(s *SearchStruct) {
 			ntt := fmt.Sprintf("%s_%d", s.TTName, i)
 			sprq.TempTable = strings.Replace(prq.TempTable, s.TTName, ntt, -1)
 
+			// pgsql looks for "~ ''"; but "regexp ''" is not the equivalent of that; "!= ''" is.
+			if SQLProvider == "sqlite" && skg == "" {
+				syn = "!="
+			}
+
 			var t PRQTemplate
 			t.AU = au
 			t.COL = s.SrchColumn
@@ -235,12 +241,15 @@ func SSBuildQueries(s *SearchStruct) {
 				// word in work(s)/passage(s): AND ( (index BETWEEN 481 AND 483) OR (index BETWEEN 501 AND 503) ... )
 				t.Tail = tails["basic_and_indices"]
 				sprq = basicidxprq(t, sprq)
+				// "index" before this point turns into: "AND ((&#34;index&#34; BETWEEN 1 AND 5))"
+				sprq.PsqlQuery = strings.Replace(sprq.PsqlQuery, `(index `, `("index" `, -1)
 			} else if nott && yesphr && noidx {
 				t.Tail = tails["basic_window"]
 				sprq = basicwindowprq(t, sprq)
 			} else if nott && yesphr && yesidx {
 				t.Tail = tails["window_with_indices"]
 				sprq = windandidxprq(t, sprq)
+				sprq.PsqlQuery = strings.Replace(sprq.PsqlQuery, `(index `, `("index" `, -1)
 			} else if yestt && noph {
 				t.Tail = tails["simple_tt"]
 				sprq = simplettprq(t, sprq)

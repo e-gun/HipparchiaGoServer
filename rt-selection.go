@@ -730,7 +730,7 @@ func endpointer(wuid string, locus string, sep string) ([2]int, bool) {
 	// [HGS] wuid: 'lt0474w049'; locus: '4:8:18'; sep: ':'
 
 	const (
-		QTMP = `SELECT index FROM %s WHERE wkuniversalid='%s' AND %s ORDER BY index ASC`
+		QTMP = `SELECT index FROM %s WHERE wkuniversalid='%s' AND %s ORDER BY "index" ASC`
 		FAIL = "endpointer() failed to find the following inside of %s: '%s'"
 		WNFD = "endpointer() failed to find a work: %s"
 	)

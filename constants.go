@@ -10,7 +10,7 @@ import "time"
 const (
 	MYNAME    = "Hipparchia Golang Server"
 	SHORTNAME = "HGS"
-	VERSION   = "1.2.18"
+	VERSION   = "0.0.0"
 
 	GREEKCORP      = "gr"
 	LATINCORP      = "lt"
@@ -51,7 +51,6 @@ const (
 	DEFAULTPSQLUSER          = "hippa_wr"
 	DEFAULTPSQLPORT          = 5432
 	DEFAULTPSQLDB            = "hipparchiaDB"
-	DEFAULTQUERYSYNTAX       = "~"
 	FIRSTSEARCHLIM           = 750000 // 149570 lines in Cicero (lt0474); all 485 forms of »δείκνυμι« will pass 50k
 	FONTSETTING              = "Noto"
 	GENRESTOCOUNT            = 5
@@ -91,6 +90,8 @@ const (
 	NESTEDLEMMASIZE          = 543
 	ORDERBY                  = "index"
 	POLLEVERYNTABLES         = 34 // 3455 is the max number of tables in a search...
+	QUERYSYNTAXPGSQL         = "~"
+	QUERYSYNTAXSQLITE        = "regexp"
 	SERVEDFROMHOST           = "127.0.0.1"
 	SERVEDFROMPORT           = 8000
 	SIMULTANEOUSSEARCHES     = 3 // cap on the number of db connections at (S * Config.WorkerCount)

@@ -1,4 +1,5 @@
 .idea
+emb/sql/*.sql
 go.sum
 .DS_Store
 hgs-conf*

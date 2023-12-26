@@ -271,6 +271,42 @@ func SetPostgresAdminPW() string {
 	return pgpw
 }
 
+// DBtoCSV - dump the database to the filesystem as CSV
+func DBtoCSV() {
+	const (
+		DQ     = `\COPY %s TO '%s/%s/%s.csv' DELIMITER ',' CSV HEADER;` // COPY lt2000 TO '/Users/erik/tmp/lt2000.csv' DELIMITER ',' CSV HEADER;
+		OUTDIR = `csv_db`
+		STOPAT = 10
+	)
+
+	b := GetBinaryPath("psql")
+
+	h, e := os.UserHomeDir()
+	chke(e)
+	// h := "/tmp"
+
+	e = os.Mkdir(h+"/"+OUTDIR, 0755)
+	if strings.Contains(e.Error(), "exists") {
+		msg(h+"/"+OUTDIR+" already exists", MSGFYI)
+	} else {
+		chke(e)
+	}
+
+	allauthortables := StringMapKeysIntoSlice(AllAuthors)
+
+	// psql -d hipparchiaDB -c "\COPY lt0881 TO '/Users/erik/csv_db/lt0881.csv' DELIMITER ',' CSV HEADER;"
+	for i := 0; i < len(allauthortables); i++ {
+		q := fmt.Sprintf(DQ, allauthortables[i], h, OUTDIR, allauthortables[i])
+		cmd := exec.Command(b, "-d", "hipparchiaDB", "-c", q)
+		// cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		chke(err)
+		msg(q, MSGFYI)
+	}
+
+}
+
 // ArchiveDB - dump the database to the filesystem
 func ArchiveDB() {
 	const (
