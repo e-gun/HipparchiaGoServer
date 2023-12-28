@@ -40,7 +40,7 @@ func main() {
 	//}()
 
 	// testing sqlite...
-	msg("**THIS BUILD IS NOT FOR RELEASE** and will not build via git since sql_tests.go is being called", MSGCRIT)
+	msg("**THIS BUILD IS NOT FOR RELEASE AND IS CERTAIN TO BREAK**", MSGCRIT)
 
 	LaunchTime = time.Now()
 
@@ -149,17 +149,15 @@ func main() {
 
 	// sqlite...
 	start := time.Now()
-	sqliteloadactiveauthors(SQLITEConn)
+	sqliteloadactiveauthors()
 	previous := time.Now()
 	messenger.Timer("C", "sqliteloadactiveauthors()", start, previous)
 
 	messenger.LogPaths("main() post-initialization")
 	msg(messenger.ColStyle(fmt.Sprintf(SUMM, time.Now().Sub(LaunchTime).Seconds())), -999)
 
-	q := `                SELECT wkuniversalid, "index", level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, 
-                        marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt0959 WHERE wkuniversalid='lt0959w004'  AND level_01_value NOT IN ('t') ORDER BY "index" ASC
-`
-	sqlitetestquery(SQLITEConn, q)
+	postinitializationsqlitetest()
+
 	//
 	// [4] debugging code block #2 of 2
 	// uncomment one or more; they are very spammy in the console...

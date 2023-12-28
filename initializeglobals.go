@@ -52,7 +52,7 @@ var (
 	ServableFonts = map[string]FontTempl{"Noto": NotoFont, "Roboto": RobotoFont, "Fira": FiraFont}
 	LaunchTime    = time.Now()
 	WebsocketPool = WSFillNewPool()
-	SQLProvider   = "sqlite" // temporary use only; alternative to "pgsql" is the test setup: "sqlite"
+	SQLProvider   = "pgsql" // temporary use only; alternative to "pgsql" is the test setup: "sqlite"
 	SQLITEConn    = opensqlite()
 	// abandoned option where "jsi" can be used instead of "json" in vectordbandfscalls.go and vectornnembeddings.go and with JSONresponse()
 	// not in fact 100% compatible because "jsi.MarshalIndent" will panic if used for "json.MarshalIndent"

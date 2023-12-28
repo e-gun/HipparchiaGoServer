@@ -265,6 +265,8 @@ func ConfigAtLaunch() {
 			Config.Gzip = true
 		case "-h":
 			help()
+		case "-lt":
+			SQLProvider = "sqlite"
 		case "-md":
 			Config.VectorModel = args[i+1]
 		case "-mi":

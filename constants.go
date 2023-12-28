@@ -156,6 +156,7 @@ const (
    C1-glC0 C2{num}C0    set golang log level (C10-5C0) [C6currentC0: C3{{.hgsll}}C0]
    C1-gzC0          enable gzip compression of the server's output
    C1-hC0           print this help information
+   C1-ltC0          force C3SQLiteC0 and disable C3postgreSQLC0
    C1-mdC0 C2{string}C0 set the default vector model type; available: C3gloveC0, C3lexvecC0, & C3w2vC0 [C6currentC0: C3{{.vmodel}}C0]
    C1-miC0 C2{num}C0    maximum number of concurrent searches per IP address [C6currentC0: C3{{.maxipsrch}}C0]
    C1-msC0 C2{num}C0    maximum total number of concurrent searches [C6currentC0: C3{{.maxtotscrh}}C0]
