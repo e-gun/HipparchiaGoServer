@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"log"
 	"regexp"
 	"sort"
 	"strings"
@@ -245,27 +244,29 @@ func WorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
 	if SQLProvider == "pgsql" {
 		return PGXWorklineQuery(prq, dbconn)
 	} else {
-		return SQLITEWorklineQuery(prq, dbconn)
+		return SQLITEWorklineQuery(prq)
 	}
 
 }
 
 // SQLITEWorklineQuery - use a PrerolledQuery to acquire []DbWorkline
-func SQLITEWorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
+func SQLITEWorklineQuery(prq PrerolledQuery) []DbWorkline {
+	ltconn := GetSQLiteConn()
+	defer ltconn.Close()
 
 	// todo: prq.TempTable
 
-	rows, err := SQLITEConn.Query(prq.PsqlQuery)
-	msg(prq.PsqlQuery, 3)
+	rows, err := ltconn.QueryContext(context.Background(), prq.PsqlQuery)
+	//msg(prq.PsqlQuery, 3)
 	chke(err)
 
 	defer rows.Close()
 	var rr []DbWorkline
 	for rows.Next() {
 		var rw DbWorkline
-		if e := rows.Scan(&rw.TbIndex, &rw.WkUID, &rw.Lvl5Value, &rw.Lvl4Value, &rw.Lvl3Value, &rw.Lvl2Value, &rw.Lvl1Value, &rw.Lvl0Value, &rw.MarkedUp, &rw.Accented, &rw.Stripped, &rw.Hyphenated, &rw.Annotations); err != nil {
-			log.Fatal(e)
-		}
+		// note the order: [1] WkUID, [2] TbIndex and not [1] TbIndex, [2] WkUID
+		e := rows.Scan(&rw.WkUID, &rw.TbIndex, &rw.Lvl5Value, &rw.Lvl4Value, &rw.Lvl3Value, &rw.Lvl2Value, &rw.Lvl1Value, &rw.Lvl0Value, &rw.MarkedUp, &rw.Accented, &rw.Stripped, &rw.Hyphenated, &rw.Annotations)
+		chke(e)
 		rr = append(rr, rw)
 	}
 	fmt.Println(fmt.Sprintf("SQLITEWorklineQuery() found %d rows", len(rr)))

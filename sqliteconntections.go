@@ -88,7 +88,7 @@ func createandloadsqliteauthor(memdb *sql.DB, au string) {
 		FAIL1    = `failed to create author table "%s": %s`
 		SUCCESS1 = `created author table "%s"`
 		EMB      = "emb/db/%s/%s.csv.gz"
-		QT       = `insert into %s(wkuniversalid, "index", 
+		QT       = `insert into %s("index", wkuniversalid, 
 					   level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, 
 					   marked_up_line, accented_line, stripped_line, hyphenated_words, annotations) 
 					   values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
@@ -153,16 +153,6 @@ func createandloadsqliteauthor(memdb *sql.DB, au string) {
 		}
 	}
 
-	// [d] check the table
-	//q = fmt.Sprintf("SELECT COUNT(*) FROM %s", au)
-	//row := tx.QueryRow(q)
-	//var ct int
-	//err = row.Scan(&ct)
-	//if err != nil {
-	//	log.Fatalf(e.Error())
-	//}
-	//msg(fmt.Sprintf("%s: %d rows", au, ct), 1)
-
 	err = tx.Commit()
 	chke(err)
 
@@ -191,6 +181,28 @@ func txsqlitetestquery(tx *sql.Tx, tq string) {
 	}
 }
 
+func connsqlitetestquery(ltconn *sql.Conn, tq string) {
+	rows, err := ltconn.QueryContext(context.Background(), tq)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("connsqlitetestquery()-ed")
+
+	defer rows.Close()
+	var rr []DbWorkline
+	for rows.Next() {
+		var rw DbWorkline
+		if e := rows.Scan(&rw.TbIndex, &rw.WkUID, &rw.Lvl5Value, &rw.Lvl4Value, &rw.Lvl3Value, &rw.Lvl2Value, &rw.Lvl1Value, &rw.Lvl0Value, &rw.MarkedUp, &rw.Accented, &rw.Stripped, &rw.Hyphenated, &rw.Annotations); err != nil {
+			log.Fatal(e)
+		}
+		rr = append(rr, rw)
+	}
+
+	for i := 0; i < len(rr); i++ {
+		fmt.Println(rr[i].BuildHyperlink() + ": " + rr[i].Stripped)
+	}
+}
+
 func GetSQLiteConn() *sql.Conn {
 	conn, e := SQLITEConn.Conn(context.Background())
 	chke(e)
@@ -198,8 +210,9 @@ func GetSQLiteConn() *sql.Conn {
 }
 
 func postinitializationsqlitetest() {
+	msg("postinitializationsqlitetest()", 2)
 	au := "lt0016"
-	tq := fmt.Sprintf(`select wkuniversalid, "index", 
+	tq := fmt.Sprintf(`select "index", wkuniversalid,
                level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, 
                marked_up_line, accented_line, stripped_line, hyphenated_words, annotations from %s where stripped_line regexp 'est'`, au)
 
@@ -213,15 +226,24 @@ func postinitializationsqlitetest() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	ltconn := GetSQLiteConn()
+	defer ltconn.Close()
+	tq = fmt.Sprintf(`select "index", wkuniversalid,
+               level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, 
+               marked_up_line, accented_line, stripped_line, hyphenated_words, annotations from %s where "index" BETWEEN 10 and 15`, au)
+	connsqlitetestquery(ltconn, tq)
 }
 
-// premanentconnection - hold the db open forever so it does not vanish
-func premanentconnection(memdb *sql.DB) {
-	c, e := memdb.Conn(context.Background())
-	if e != nil {
-		log.Fatal(e)
-	}
-	defer c.Close()
+// premanentconnection - hold the db open forever
+func premanentconnection() {
+	//c, e := memdb.Conn(context.Background())
+	//if e != nil {
+	//	log.Fatal(e)
+	//}
+	//defer c.Close()
+	ltconn := GetSQLiteConn()
+	defer ltconn.Close()
 	for {
 		// run forever
 	}

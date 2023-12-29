@@ -149,7 +149,7 @@ func main() {
 
 	// sqlite...
 	start := time.Now()
-	go premanentconnection(SQLITEConn)
+	go premanentconnection()
 	sqliteloadactiveauthors()
 	previous := time.Now()
 	messenger.Timer("C", "sqliteloadactiveauthors()", start, previous)
