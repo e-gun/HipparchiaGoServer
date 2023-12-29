@@ -60,14 +60,14 @@ func sqliteloadactiveauthors() {
 
 	auu := StringMapKeysIntoSlice(AllAuthors)
 	for i := 0; i < len(auu); i++ {
-		createandloadsqliteauthor(SQLITEConn, auu[i])
+		createandloadsqliteauthor(auu[i])
 		if i%FRQ == 0 {
 			msg(fmt.Sprintf(UPDATE, i, len(auu)), MSGFYI)
 		}
 	}
 }
 
-func createandloadsqliteauthor(memdb *sql.DB, au string) {
+func createandloadsqliteauthor(au string) {
 	const (
 		CREATE = `
 					CREATE TABLE %s (
@@ -116,10 +116,13 @@ func createandloadsqliteauthor(memdb *sql.DB, au string) {
 
 	// create the author
 
-	tx, err := memdb.Begin()
+	ltconn := GetSQLiteConn()
+	defer ltconn.Close()
+
+	// tx, err := memdb.Begin()
 
 	q := fmt.Sprintf(CREATE, au)
-	_, err = tx.Exec(q)
+	_, err := ltconn.ExecContext(context.Background(), q)
 	authfail(err)
 
 	// load the table
@@ -138,7 +141,7 @@ func createandloadsqliteauthor(memdb *sql.DB, au string) {
 
 	// [b] prepare the statement
 	q = fmt.Sprintf(QT, au)
-	stmt, e := tx.Prepare(q)
+	stmt, e := ltconn.PrepareContext(context.Background(), q)
 	sqlfail(e, FAIL3)
 
 	// [c] iterate over the records and insert
@@ -153,7 +156,6 @@ func createandloadsqliteauthor(memdb *sql.DB, au string) {
 		}
 	}
 
-	err = tx.Commit()
 	chke(err)
 
 	msg(fmt.Sprintf(SUCCESS2, au), MSGPEEK)
@@ -233,6 +235,8 @@ func postinitializationsqlitetest() {
                level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, 
                marked_up_line, accented_line, stripped_line, hyphenated_words, annotations from %s where "index" BETWEEN 10 and 15`, au)
 	connsqlitetestquery(ltconn, tq)
+
+	chke(err)
 }
 
 // premanentconnection - hold the db open forever

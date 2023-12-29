@@ -15,8 +15,58 @@ import (
 )
 
 type PrerolledQuery struct {
-	TempTable string
-	PsqlQuery string
+	TTName      string // set by setttname()
+	TTVals      []int
+	PGTempTable string
+	PGQuery     string
+	Bounds      []QueryBounds
+	Auth        string
+	SSTTName    string
+}
+
+func (prq *PrerolledQuery) setttindexvals() {
+	var required []int
+	for _, b := range prq.Bounds {
+		for i := b.Start; i <= b.Stop; i++ {
+			required = append(required, i)
+		}
+	}
+	prq.TTVals = required
+}
+
+func (prq *PrerolledQuery) setttname() {
+	const (
+		TN = `%s_includelist_%s`
+	)
+	prq.TTName = fmt.Sprintf(TN, prq.Auth, prq.SSTTName)
+}
+
+// ttinitialize - populate tt version of a prq; should have "Auth", "Bounds", and "SSTTName" set before calling this
+func (prq *PrerolledQuery) ttinitialize() {
+	prq.setttname()
+	prq.setttindexvals()
+	prq.setpostgresttcreationquery()
+}
+
+// setpostgresttcreationquery - build a postgres tt query: "CREATE TEMPORARY TABLE tt AS ..."
+func (prq *PrerolledQuery) setpostgresttcreationquery() {
+	const (
+		MSG = "%s getpostgresttcreationquery(): %d []QueryBounds"
+		CTT = `
+		CREATE TEMPORARY TABLE %s AS 
+			SELECT values AS includeindex FROM 
+				unnest(ARRAY[%s])
+			values`
+	)
+
+	msg(fmt.Sprintf(MSG, prq.Auth, len(prq.Bounds)), MSGTMI)
+
+	var arr []string
+	for _, r := range prq.TTVals {
+		arr = append(arr, fmt.Sprintf("%d", r))
+	}
+	a := strings.Join(arr, ",")
+	prq.PGTempTable = fmt.Sprintf(CTT, prq.TTName, a)
 }
 
 type QueryBounds struct {
@@ -95,7 +145,7 @@ func SSBuildQueries(s *SearchStruct) {
 		syn = "!~"
 	}
 
-	// if there are too many "in0001wXXX" type entries: requiresindextemptable()
+	// if there are too many "in0001wXXX" type entries: getpostgresttcreationquery()
 
 	// au query looks like: SELECTFROM + WHERETERM + WHEREINDEX + ORDERBY&LIMIT
 
@@ -176,7 +226,10 @@ func SSBuildQueries(s *SearchStruct) {
 		// [b2a] check to see if bounded by inclusions
 		if bb, found := boundedincl[au]; found {
 			if len(bb) > TEMPTABLETHRESHOLD {
-				prq.TempTable = requiresindextemptable(au, bb, s)
+				prq.Auth = au
+				prq.Bounds = bb
+				prq.SSTTName = s.TTName
+				prq.ttinitialize()
 			} else {
 				qb.WhrIdxInc = andorwhereclause(bb, IDX, "", " OR ")
 			}
@@ -186,7 +239,10 @@ func SSBuildQueries(s *SearchStruct) {
 		if bb, found := boundedexcl[au]; found {
 			if len(bb) > TEMPTABLETHRESHOLD {
 				// note that 200 incl + 200 excl will produce garbage; in practice you have only au ton of one of them
-				prq.TempTable = requiresindextemptable(au, bb, s)
+				prq.Auth = au
+				prq.Bounds = bb
+				prq.SSTTName = s.TTName
+				prq.ttinitialize()
 			} else {
 				qb.WhrIdxExc = andorwhereclause(bb, IDX, "NOT ", " AND ")
 			}
@@ -201,8 +257,8 @@ func SSBuildQueries(s *SearchStruct) {
 			// map to the %s items in the qtmpl below:
 			// SELECTFROM + WHERETERM + WHEREINDEXINCL + WHEREINDEXEXCL + (either) ORDERBY&LIMIT (or) SECOND
 
-			nott := len(prq.TempTable) == 0
-			yestt := len(prq.TempTable) != 0
+			nott := len(prq.PGTempTable) == 0
+			yestt := len(prq.PGTempTable) != 0
 			noph := !s.HasPhraseBoxA
 			yesphr := s.HasPhraseBoxA
 			noidx := len(qb.WhrIdxExc) == 0 && len(qb.WhrIdxInc) == 0
@@ -211,7 +267,8 @@ func SSBuildQueries(s *SearchStruct) {
 			// lemmata need unique tt names otherwise "ERROR: relation "gr5002_includelist_e83674d70344428bbb1feab0919bc2c6" already exists"
 			// cbf6f9746f2a46d080aa988c8c6bfd16_0, cbf6f9746f2a46d080aa988c8c6bfd16_1, ...
 			ntt := fmt.Sprintf("%s_%d", s.TTName, i)
-			sprq.TempTable = strings.Replace(prq.TempTable, s.TTName, ntt, -1)
+			sprq.TTName = ntt
+			sprq.PGTempTable = strings.Replace(prq.PGTempTable, s.TTName, ntt, -1)
 
 			// pgsql looks for "~ ''"; but "regexp ''" is not the equivalent of that; "!= ''" is.
 			if SQLProvider == "sqlite" && skg == "" {
@@ -242,14 +299,14 @@ func SSBuildQueries(s *SearchStruct) {
 				t.Tail = tails["basic_and_indices"]
 				sprq = basicidxprq(t, sprq)
 				// "index" before this point turns into: "AND ((&#34;index&#34; BETWEEN 1 AND 5))"
-				sprq.PsqlQuery = strings.Replace(sprq.PsqlQuery, `(index `, `("index" `, -1)
+				sprq.PGQuery = strings.Replace(sprq.PGQuery, `(index `, `("index" `, -1)
 			} else if nott && yesphr && noidx {
 				t.Tail = tails["basic_window"]
 				sprq = basicwindowprq(t, sprq)
 			} else if nott && yesphr && yesidx {
 				t.Tail = tails["window_with_indices"]
 				sprq = windandidxprq(t, sprq)
-				sprq.PsqlQuery = strings.Replace(sprq.PsqlQuery, `(index `, `("index" `, -1)
+				sprq.PGQuery = strings.Replace(sprq.PGQuery, `(index `, `("index" `, -1)
 			} else if yestt && noph {
 				t.Tail = tails["simple_tt"]
 				sprq = simplettprq(t, sprq)
@@ -302,7 +359,7 @@ func basicprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	e := t.Tail.Execute(&b, t)
 	chke(e)
 
-	prq.PsqlQuery = fmt.Sprintf(SELECTFROM, b.String())
+	prq.PGQuery = fmt.Sprintf(SELECTFROM, b.String())
 	return prq
 }
 
@@ -318,7 +375,7 @@ func basicidxprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	e := t.Tail.Execute(&b, t)
 	chke(e)
 
-	prq.PsqlQuery = fmt.Sprintf(SELECTFROM, b.String())
+	prq.PGQuery = fmt.Sprintf(SELECTFROM, b.String())
 	return prq
 
 }
@@ -342,7 +399,7 @@ func basicwindowprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 
 	alb := fmt.Sprintf(ASLINEBUNDLE, t.PSCol, t.PSCol)
 
-	prq.PsqlQuery = fmt.Sprintf(PRFXSELFRM + alb + b.String())
+	prq.PGQuery = fmt.Sprintf(PRFXSELFRM + alb + b.String())
 	return prq
 }
 
@@ -365,7 +422,7 @@ func windandidxprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 
 	alb := fmt.Sprintf(ASLINEBUNDLE, t.PSCol, t.PSCol)
 
-	prq.PsqlQuery = fmt.Sprintf(PRFXSELFRM + alb + b.String())
+	prq.PGQuery = fmt.Sprintf(PRFXSELFRM + alb + b.String())
 
 	return prq
 }
@@ -388,7 +445,7 @@ func simplettprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	e := t.Tail.Execute(&b, t)
 	chke(e)
 
-	prq.PsqlQuery = fmt.Sprintf(SELECTFROM, b.String())
+	prq.PGQuery = fmt.Sprintf(SELECTFROM, b.String())
 	return prq
 }
 
@@ -419,36 +476,8 @@ func windowandttprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 
 	alb := fmt.Sprintf(ASLINEBUNDLE, t.PSCol, t.PSCol)
 
-	prq.PsqlQuery = fmt.Sprintf(PRFXSELFRM + alb + b.String())
+	prq.PGQuery = fmt.Sprintf(PRFXSELFRM + alb + b.String())
 	return prq
-}
-
-func requiresindextemptable(au string, bb []QueryBounds, ss *SearchStruct) string {
-	const (
-		MSG = "%s requiresindextemptable(): %d []QueryBounds"
-		CTT = `
-		CREATE TEMPORARY TABLE %s_includelist_%s AS 
-			SELECT values AS includeindex FROM 
-				unnest(ARRAY[%s])
-			values`
-	)
-
-	msg(fmt.Sprintf(MSG, au, len(bb)), MSGTMI)
-	var required []int
-	for _, b := range bb {
-		for i := b.Start; i <= b.Stop; i++ {
-			required = append(required, i)
-		}
-	}
-
-	var arr []string
-	for _, r := range required {
-		arr = append(arr, fmt.Sprintf("%d", r))
-	}
-	a := strings.Join(arr, ",")
-	ttsq := fmt.Sprintf(CTT, au, ss.TTName, a)
-
-	return ttsq
 }
 
 func andorwhereclause(bounds []QueryBounds, templ string, negation string, syntax string) string {

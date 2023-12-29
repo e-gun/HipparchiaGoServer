@@ -251,13 +251,35 @@ func WorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
 
 // SQLITEWorklineQuery - use a PrerolledQuery to acquire []DbWorkline
 func SQLITEWorklineQuery(prq PrerolledQuery) []DbWorkline {
+	const (
+		MAKETT   = `CREATE TEMPORARY TABLE "%s_includelist_%s"(includeindex);`
+		INSERTTT = `INSERT INTO "%s_includelist_%s"(includeindex) VALUES (?)`
+	)
+
 	ltconn := GetSQLiteConn()
 	defer ltconn.Close()
 
-	// todo: prq.TempTable
+	// sqlite cannot unnest an array like postgres can
+	if len(prq.TTVals) != 0 {
+		q := fmt.Sprintf(MAKETT, prq.Auth, prq.TTName)
+		msg("SQLITEWorklineQuery() ttq: "+q, 1)
+		_, err := ltconn.ExecContext(context.Background(), q)
+		chke(err)
 
-	rows, err := ltconn.QueryContext(context.Background(), prq.PsqlQuery)
-	//msg(prq.PsqlQuery, 3)
+		itt := fmt.Sprintf(INSERTTT, prq.Auth, prq.TTName)
+		msg("SQLITEWorklineQuery() ttq: "+itt, 1)
+		stmt, err := ltconn.PrepareContext(context.Background(), itt)
+		chke(err)
+
+		for i := 0; i < len(prq.TTVals); i++ {
+			_, e := stmt.Exec(prq.TTVals[i])
+			chke(e)
+		}
+	}
+	msg("SQLITEWorklineQuery() tt populated", 1)
+
+	rows, err := ltconn.QueryContext(context.Background(), prq.PGQuery)
+	msg("SQLITEWorklineQuery() prq.PGQuery: "+prq.PGQuery, 1)
 	chke(err)
 
 	defer rows.Close()
@@ -280,14 +302,14 @@ func PGXWorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
 
 	// [a] build a temp table if needed
 
-	if prq.TempTable != "" {
-		_, err := dbconn.Exec(context.Background(), prq.TempTable)
+	if prq.TTName != "" {
+		_, err := dbconn.Exec(context.Background(), prq.PGTempTable)
 		chke(err)
 	}
 
 	// [b] execute the main query (nb: query needs to satisfy needs of RowToStructByPos in [c])
 
-	foundrows, err := dbconn.Query(context.Background(), prq.PsqlQuery)
+	foundrows, err := dbconn.Query(context.Background(), prq.PGQuery)
 	chke(err)
 
 	// [c] convert the finds into []DbWorkline
@@ -308,8 +330,8 @@ func GrabOneLine(table string, line int) DbWorkline {
 	defer dbconn.Release()
 
 	var prq PrerolledQuery
-	prq.TempTable = ""
-	prq.PsqlQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, line)
+	prq.PGTempTable = ""
+	prq.PGQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, line)
 	foundlines := WorklineQuery(prq, dbconn)
 	if len(foundlines) != 0 {
 		// "index = %d" in QTMPL ought to mean you can never have len(foundlines) > 1 because index values are unique
@@ -332,8 +354,8 @@ func SimpleContextGrabber(table string, focus int, context int) []DbWorkline {
 	high := focus + context
 
 	var prq PrerolledQuery
-	prq.TempTable = ""
-	prq.PsqlQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, low, high)
+	prq.PGTempTable = ""
+	prq.PGQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, low, high)
 	foundlines := WorklineQuery(prq, dbconn)
 
 	for _, ln := range foundlines {
@@ -406,7 +428,7 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	andnot := fmt.Sprintf(ANDNOT, qmap[atlvl])
 
 	var prq PrerolledQuery
-	prq.PsqlQuery = fmt.Sprintf(SEL, w.AuID(), wkid, and, andnot)
+	prq.PGQuery = fmt.Sprintf(SEL, w.AuID(), wkid, and, andnot)
 
 	dbconn := GetPSQLconnection()
 	defer dbconn.Release()

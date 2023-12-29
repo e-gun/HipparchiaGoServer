@@ -149,15 +149,17 @@ func main() {
 
 	// sqlite...
 	start := time.Now()
-	go premanentconnection()
-	sqliteloadactiveauthors()
-	previous := time.Now()
-	messenger.Timer("C", "sqliteloadactiveauthors()", start, previous)
+
+	if SQLProvider == "sqlite" {
+		go premanentconnection()
+		sqliteloadactiveauthors()
+		previous := time.Now()
+		messenger.Timer("C", "sqliteloadactiveauthors()", start, previous)
+		postinitializationsqlitetest()
+	}
 
 	messenger.LogPaths("main() post-initialization")
 	msg(messenger.ColStyle(fmt.Sprintf(SUMM, time.Now().Sub(LaunchTime).Seconds())), -999)
-
-	postinitializationsqlitetest()
 
 	//
 	// [4] debugging code block #2 of 2
