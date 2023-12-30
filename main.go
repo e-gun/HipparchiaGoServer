@@ -154,7 +154,6 @@ func main() {
 		sqliteloadactiveauthors()
 		previous := time.Now()
 		messenger.Timer("C", "sqliteloadactiveauthors()", start, previous)
-		// postinitializationsqlitetest()
 	}
 
 	messenger.LogPaths("main() post-initialization")

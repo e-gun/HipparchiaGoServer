@@ -7,8 +7,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"sync"
 )
 
@@ -180,40 +178,4 @@ func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundli
 		}
 	}
 	return allhits
-}
-
-//
-// HANDLING HETEROGENOUS DATABASE CONNECTIONS
-//
-
-type ConnectionHolder struct {
-	Postgres *pgxpool.Conn
-	Lite     *sql.Conn
-}
-
-func (ch *ConnectionHolder) Release() {
-	if SQLProvider == "sqlite" {
-		ch.Lite.Close()
-	}
-	if SQLProvider == "pgsql" {
-		ch.Postgres.Release()
-	}
-}
-
-func GrabConnection() *ConnectionHolder {
-	lt := func() *sql.Conn { return &sql.Conn{} }()
-	pg := func() *pgxpool.Conn { return &pgxpool.Conn{} }()
-
-	if SQLProvider == "sqlite" {
-		lt = GetSQLiteConn()
-	}
-
-	if SQLProvider == "pgsql" {
-		pg = GetPSQLconnection()
-	}
-
-	return &ConnectionHolder{
-		Postgres: pg,
-		Lite:     lt,
-	}
 }

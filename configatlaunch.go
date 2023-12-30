@@ -266,6 +266,7 @@ func ConfigAtLaunch() {
 		case "-h":
 			help()
 		case "-lt":
+			// this is an invisible option: sqlite is not a real option for release builds
 			SQLProvider = "sqlite"
 		case "-md":
 			Config.VectorModel = args[i+1]

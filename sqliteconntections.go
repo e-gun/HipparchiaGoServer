@@ -9,6 +9,14 @@ package main
 // the syntax swap is not simple; you need to build a SQLITE extension to recover regexp
 // see https://pkg.go.dev/github.com/mattn/go-sqlite3#readme-extensions
 
+// SLOW
+// [HGS-SELFTEST] [A1: 1.855s][Δ: 1.855s] single word in corpus: 'vervex'
+// [HGS-SELFTEST] [A2: 6.140s][Δ: 4.285s] phrase in corpus: 'plato omnem'
+
+// vs Postgres
+// [HGS-SELFTEST] [A1: 0.280s][Δ: 0.280s] single word in corpus: 'vervex'
+// [HGS-SELFTEST] [A2: 1.525s][Δ: 1.245s] phrase in corpus: 'plato omnem'
+
 import (
 	"bytes"
 	"compress/gzip"
@@ -22,7 +30,14 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"sync"
 )
+
+func GetSQLiteConn() *sql.Conn {
+	conn, e := SQLITEConn.Conn(context.Background())
+	chke(e)
+	return conn
+}
 
 func opensqlite() *sql.DB {
 	// ultimately need a connection pool?
@@ -50,7 +65,6 @@ func opensqlite() *sql.DB {
 	//memdb.SetConnMaxIdleTime(300 * time.Second)
 	//memdb.SetConnMaxLifetime(300000 * time.Second)
 
-	// breaks if you uncomment the next
 	//memdb.SetMaxOpenConns(Config.WorkerCount * 4)
 	//memdb.SetMaxIdleConns(Config.WorkerCount * 4)
 
@@ -74,54 +88,32 @@ func sqliteloadactiveauthors() {
 			msg(fmt.Sprintf(UPDATE, i, len(auu)), MSGFYI)
 		}
 	}
+
+	// these parallel versions are in fact slightly slower....
+
+	// iter.ForEach(StringMapKeysIntoSlice(AllAuthors), createandloadsqliteauthor)
+	// sqliteprocessauu(StringMapKeysIntoSlice(AllAuthors))
 }
 
-func auproducer() <-chan string {
-	auu := StringMapKeysIntoSlice(AllAuthors)
-	c := make(chan string)
-	go func() {
-		for i := 0; i < len(auu); i++ {
-			c <- auu[i]
-		}
-		close(c)
-	}()
-	return c
-}
+func sqliteprocessauu(values []string) {
+	feeder := make(chan string, Config.WorkerCount)
 
-func auconsumer(auin <-chan string) {
-	for au := range auin {
-		fmt.Println(au)
-		createandloadsqliteauthor(au)
-	}
-}
-
-func aufanOutUnbuffered(ch <-chan string) []chan string {
-	cs := make([]chan string, Config.WorkerCount)
-	for i, _ := range cs {
-		// The size of the channels buffer controls how far behind the recievers
-		// of the fanOut channels can lag the other channels.
-		cs[i] = make(chan string)
-	}
-	go func() {
-		for au := range ch {
-			for _, c := range cs {
-				c <- au
-			}
-		}
-		for _, c := range cs {
-			// close all our fanOut channels when the input channel is exhausted.
-			close(c)
-		}
-	}()
-	return cs
-}
-
-func fosqliteloadactiveauthors() {
-	c := auproducer()
-	chans := aufanOutUnbuffered(c)
+	var wg sync.WaitGroup
 	for i := 0; i < Config.WorkerCount; i++ {
-		go auconsumer(chans[i])
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for elem := range feeder {
+				createandloadsqliteauthor(elem)
+			}
+		}()
 	}
+
+	for _, value := range values {
+		feeder <- value
+	}
+	close(feeder)
+	wg.Wait()
 }
 
 func createandloadsqliteauthor(au string) {
@@ -172,8 +164,6 @@ func createandloadsqliteauthor(au string) {
 	ltconn := GetSQLiteConn()
 	defer ltconn.Close()
 
-	// tx, err := memdb.Begin()
-
 	q := fmt.Sprintf(CREATE, au)
 	_, err := ltconn.ExecContext(context.Background(), q)
 	authfail(err)
@@ -214,28 +204,6 @@ func createandloadsqliteauthor(au string) {
 	msg(fmt.Sprintf(SUCCESS2, au), MSGPEEK)
 }
 
-func txsqlitetestquery(tx *sql.Tx, tq string) {
-	rows, err := tx.Query(tq)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("TQ-ed")
-
-	defer rows.Close()
-	var rr []DbWorkline
-	for rows.Next() {
-		var rw DbWorkline
-		if e := rows.Scan(&rw.TbIndex, &rw.WkUID, &rw.Lvl5Value, &rw.Lvl4Value, &rw.Lvl3Value, &rw.Lvl2Value, &rw.Lvl1Value, &rw.Lvl0Value, &rw.MarkedUp, &rw.Accented, &rw.Stripped, &rw.Hyphenated, &rw.Annotations); err != nil {
-			log.Fatal(e)
-		}
-		rr = append(rr, rw)
-	}
-
-	for i := 0; i < len(rr); i++ {
-		fmt.Println(rr[i].BuildHyperlink() + ": " + rr[i].Stripped)
-	}
-}
-
 func connsqlitetestquery(ltconn *sql.Conn, tq string) {
 	rows, err := ltconn.QueryContext(context.Background(), tq)
 	if err != nil {
@@ -258,12 +226,6 @@ func connsqlitetestquery(ltconn *sql.Conn, tq string) {
 	}
 }
 
-func GetSQLiteConn() *sql.Conn {
-	conn, e := SQLITEConn.Conn(context.Background())
-	chke(e)
-	return conn
-}
-
 func postinitializationsqlitetest() {
 	msg("postinitializationsqlitetest()", 2)
 	au := "lt0016"
@@ -271,23 +233,10 @@ func postinitializationsqlitetest() {
                level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, 
                marked_up_line, accented_line, stripped_line, hyphenated_words, annotations from %s where stripped_line regexp 'est'`, au)
 
-	tx, err := SQLITEConn.Begin()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	txsqlitetestquery(tx, tq)
-	err = tx.Commit()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	ltconn := GetSQLiteConn()
 	defer ltconn.Close()
 	tq = fmt.Sprintf(`select "index", wkuniversalid,
                level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, 
                marked_up_line, accented_line, stripped_line, hyphenated_words, annotations from %s where "index" BETWEEN 10 and 15`, au)
 	connsqlitetestquery(ltconn, tq)
-
-	chke(err)
 }

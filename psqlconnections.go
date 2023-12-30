@@ -7,17 +7,12 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"os"
 	"strings"
 )
-
-//
-// Note that SQLite will not really work. It is 10% as fast on a single word search, does not like concat(),
-// cannot readily do regex, etc. This makes SQLite way too costly even if the vision of a serverless solution with only
-// a "hgs_sqlite.db" file is enticing.
-//
 
 type PostgresLogin struct {
 	Host   string
@@ -77,7 +72,7 @@ func FillPSQLPoool() *pgxpool.Pool {
 	return thepool
 }
 
-// GetPSQLconnection - Acquire() a connection from the main pgxpool
+// GetPSQLconnection - Acquire() a connection from the main pgxpool; include tests for the status of the installation
 func GetPSQLconnection() *pgxpool.Conn {
 	const (
 		FAIL1   = "GetPSQLconnection() could not Acquire() from SQLPool."
@@ -115,4 +110,41 @@ func GetPSQLconnection() *pgxpool.Conn {
 		messenger.ExitOrHang(0)
 	}
 	return dbc
+}
+
+//
+// ABILITY TO HANDLE HETEROGENOUS DATABASE CONNECTIONS: postgres and sqlite
+//
+
+type ConnectionHolder struct {
+	Postgres *pgxpool.Conn
+	Lite     *sql.Conn
+}
+
+func (ch *ConnectionHolder) Release() {
+	if SQLProvider == "sqlite" {
+		ch.Lite.Close()
+	}
+	if SQLProvider == "pgsql" {
+		ch.Postgres.Release()
+	}
+}
+
+func GrabConnection() *ConnectionHolder {
+	var lt *sql.Conn
+	var pg *pgxpool.Conn
+
+	if SQLProvider == "sqlite" {
+		lt = GetSQLiteConn()
+		// fmt.Println(SQLITEConn.Stats())
+	}
+
+	if SQLProvider == "pgsql" {
+		pg = GetPSQLconnection()
+	}
+
+	return &ConnectionHolder{
+		Postgres: pg,
+		Lite:     lt,
+	}
 }

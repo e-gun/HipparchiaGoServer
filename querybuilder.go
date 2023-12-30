@@ -95,8 +95,8 @@ const (
 			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM`
 	ASLINEBUNDLE = `
 		( SELECT * FROM
-			( SELECT wkuniversalid, "index"", level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
-				concat(%s, ' ', lead(%s) OVER (ORDER BY "index"" ASC) ) AS linebundle`
+			( SELECT wkuniversalid, "index", level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, marked_up_line, accented_line, stripped_line, hyphenated_words, annotations,
+				concat(%s, ' ', lead(%s) OVER (ORDER BY "index" ASC) ) AS linebundle`
 	TAILBASIC  = `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' ORDER BY "index" ASC LIMIT {{ .LIM }}`
 	TAILBASIDX = `{{ .AU }} WHERE {{ .COL }} {{ .SYN }} '{{ .SK }}' AND ({{ .IDX }}) ORDER BY "index" ASC LIMIT {{ .LIM }}`
 	TAILBASWIN = ` FROM {{ .AU }} ) first
@@ -298,15 +298,12 @@ func SSBuildQueries(s *SearchStruct) {
 				// word in work(s)/passage(s): AND ( (index BETWEEN 481 AND 483) OR (index BETWEEN 501 AND 503) ... )
 				t.Tail = tails["basic_and_indices"]
 				sprq = basicidxprq(t, sprq)
-				// "index" before this point turns into: "AND ((&#34;index&#34; BETWEEN 1 AND 5))"
-				sprq.PGQuery = strings.Replace(sprq.PGQuery, `(index `, `("index" `, -1)
 			} else if nott && yesphr && noidx {
 				t.Tail = tails["basic_window"]
 				sprq = basicwindowprq(t, sprq)
 			} else if nott && yesphr && yesidx {
 				t.Tail = tails["window_with_indices"]
 				sprq = windandidxprq(t, sprq)
-				sprq.PGQuery = strings.Replace(sprq.PGQuery, `(index `, `("index" `, -1)
 			} else if yestt && noph {
 				t.Tail = tails["simple_tt"]
 				sprq = simplettprq(t, sprq)
@@ -314,6 +311,8 @@ func SSBuildQueries(s *SearchStruct) {
 				t.Tail = tails["window_with_tt"]
 				sprq = windowandttprq(t, sprq)
 			}
+			// "index" before this point turns into: "AND ((&#34;index&#34; BETWEEN 1 AND 5))"
+			sprq.PGQuery = strings.Replace(sprq.PGQuery, `(index `, `("index" `, -1)
 			prqq[count] = sprq
 			count += 1
 		}
