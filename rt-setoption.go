@@ -42,7 +42,7 @@ func RtSetOption(c echo.Context) error {
 	modifyglobalmapsifneeded := func(c string, y bool) {
 		// this is a "laggy" click: something comparable to the launch initialization time
 		// if you call it via "go modifyglobalmapsifneeded()" the lag vanishes: nobody will search <.5s later, right?
-		if y && !LoadedCorp[c] {
+		if y && !LoadedCorp[c] && SQLProvider == "pgsql" {
 			start := time.Now()
 			// append to the master work map
 			AllWorks = mapnewworkcorpus(c, AllWorks)
@@ -52,6 +52,9 @@ func RtSetOption(c echo.Context) error {
 			populateglobalmaps()
 			d := fmt.Sprintf("modifyglobalmapsifneeded(): %.3fs", time.Now().Sub(start).Seconds())
 			msg(d, MSGPEEK)
+		}
+		if SQLProvider != "pgsql" {
+			msg("modifyglobalmapsifneeded(): SQLite cannot toggle databases (yet...)", MSGMAND)
 		}
 	}
 

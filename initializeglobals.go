@@ -53,7 +53,7 @@ var (
 	LaunchTime    = time.Now()
 	WebsocketPool = WSFillNewPool()
 	SQLProvider   = "pgsql" // alternative to "pgsql" is the not-for-release test value: "sqlite"
-	SQLITEConn    = opensqlite()
+	SQLITEConn    = OpenSQLite()
 	// abandoned option where "jsi" can be used instead of "json" in vectordbandfscalls.go and vectornnembeddings.go and with JSONresponse()
 	// not in fact 100% compatible because "jsi.MarshalIndent" will panic if used for "json.MarshalIndent"
 	// cf. https://jsoniter.com/migrate-from-go-std.html;  https://jsoniter.com/go-tips.html;

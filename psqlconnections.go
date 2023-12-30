@@ -116,34 +116,36 @@ func GetPSQLconnection() *pgxpool.Conn {
 // ABILITY TO HANDLE HETEROGENOUS DATABASE CONNECTIONS: postgres and sqlite
 //
 
-type ConnectionHolder struct {
+type DBConnectionHolder struct {
 	Postgres *pgxpool.Conn
 	Lite     *sql.Conn
 }
 
-func (ch *ConnectionHolder) Release() {
-	if SQLProvider == "sqlite" {
+func (ch *DBConnectionHolder) Release() {
+	switch SQLProvider {
+	case "sqlite":
 		ch.Lite.Close()
-	}
-	if SQLProvider == "pgsql" {
+	case "pgsql":
+		ch.Postgres.Release()
+	default:
 		ch.Postgres.Release()
 	}
 }
 
-func GrabConnection() *ConnectionHolder {
+func GrabDBConnection() *DBConnectionHolder {
 	var lt *sql.Conn
 	var pg *pgxpool.Conn
 
-	if SQLProvider == "sqlite" {
+	switch SQLProvider {
+	case "sqlite":
 		lt = GetSQLiteConn()
-		// fmt.Println(SQLITEConn.Stats())
-	}
-
-	if SQLProvider == "pgsql" {
+	case "pgsql":
+		pg = GetPSQLconnection()
+	default:
 		pg = GetPSQLconnection()
 	}
 
-	return &ConnectionHolder{
+	return &DBConnectionHolder{
 		Postgres: pg,
 		Lite:     lt,
 	}

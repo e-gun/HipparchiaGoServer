@@ -239,7 +239,7 @@ func (dbw *DbWorkline) LvlVal(lvl int) string {
 	}
 }
 
-func WorklineQuery(prq PrerolledQuery, dbconn *ConnectionHolder) []DbWorkline {
+func WorklineQuery(prq PrerolledQuery, dbconn *DBConnectionHolder) []DbWorkline {
 	if SQLProvider == "pgsql" {
 		return PGXWorklineQuery(prq, dbconn)
 	} else {
@@ -249,7 +249,7 @@ func WorklineQuery(prq PrerolledQuery, dbconn *ConnectionHolder) []DbWorkline {
 }
 
 // SQLITEWorklineQuery - use a PrerolledQuery to acquire []DbWorkline
-func SQLITEWorklineQuery(prq PrerolledQuery, ch *ConnectionHolder) []DbWorkline {
+func SQLITEWorklineQuery(prq PrerolledQuery, ch *DBConnectionHolder) []DbWorkline {
 	const (
 		MAKETT   = `CREATE TEMPORARY TABLE "%s_includelist_%s"(includeindex);`
 		INSERTTT = `INSERT INTO "%s_includelist_%s"(includeindex) VALUES (?)`
@@ -273,7 +273,7 @@ func SQLITEWorklineQuery(prq PrerolledQuery, ch *ConnectionHolder) []DbWorkline 
 		}
 	}
 
-	rows, err := ltconn.QueryContext(context.Background(), prq.PGQuery)
+	rows, err := ltconn.QueryContext(context.Background(), prq.SQLQuery)
 	chke(err)
 
 	defer rows.Close()
@@ -292,7 +292,7 @@ func SQLITEWorklineQuery(prq PrerolledQuery, ch *ConnectionHolder) []DbWorkline 
 }
 
 // PGXWorklineQuery - use a PrerolledQuery to acquire []DbWorkline
-func PGXWorklineQuery(prq PrerolledQuery, ch *ConnectionHolder) []DbWorkline {
+func PGXWorklineQuery(prq PrerolledQuery, ch *DBConnectionHolder) []DbWorkline {
 	// NB: you have to use a dbconn.Exec() and can't use SQLPool.Exex() because with the latter
 	// the temp table will get separated from the main query: ERROR: relation "{ttname}" does not exist (SQLSTATE 42P01)
 
@@ -306,7 +306,7 @@ func PGXWorklineQuery(prq PrerolledQuery, ch *ConnectionHolder) []DbWorkline {
 
 	// [b] execute the main query (nb: query needs to satisfy needs of RowToStructByPos in [c])
 
-	foundrows, err := dbconn.Query(context.Background(), prq.PGQuery)
+	foundrows, err := dbconn.Query(context.Background(), prq.SQLQuery)
 	chke(err)
 
 	// [c] convert the finds into []DbWorkline
@@ -323,12 +323,12 @@ func GrabOneLine(table string, line int) DbWorkline {
 		QTMPL = `SELECT %s FROM %s WHERE "index" = %d`
 	)
 
-	ch := GrabConnection()
+	ch := GrabDBConnection()
 	defer ch.Release()
 
 	var prq PrerolledQuery
 	prq.PGTempTable = ""
-	prq.PGQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, line)
+	prq.SQLQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, line)
 	foundlines := WorklineQuery(prq, ch)
 	if len(foundlines) != 0 {
 		// "index = %d" in QTMPL ought to mean you can never have len(foundlines) > 1 because index values are unique
@@ -344,7 +344,7 @@ func SimpleContextGrabber(table string, focus int, context int) []DbWorkline {
 		QTMPL = `SELECT %s FROM %s WHERE ("index" BETWEEN %d AND %d) ORDER by "index"`
 	)
 
-	ch := GrabConnection()
+	ch := GrabDBConnection()
 	defer ch.Release()
 
 	low := focus - context
@@ -352,7 +352,7 @@ func SimpleContextGrabber(table string, focus int, context int) []DbWorkline {
 
 	var prq PrerolledQuery
 	prq.PGTempTable = ""
-	prq.PGQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, low, high)
+	prq.SQLQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, low, high)
 	foundlines := WorklineQuery(prq, ch)
 
 	return foundlines
@@ -422,9 +422,9 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	andnot := fmt.Sprintf(ANDNOT, qmap[atlvl])
 
 	var prq PrerolledQuery
-	prq.PGQuery = fmt.Sprintf(SEL, w.AuID(), wkid, and, andnot)
+	prq.SQLQuery = fmt.Sprintf(SEL, w.AuID(), wkid, and, andnot)
 
-	ch := GrabConnection()
+	ch := GrabDBConnection()
 	defer ch.Release()
 
 	lines := WorklineQuery(prq, ch)

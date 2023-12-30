@@ -18,7 +18,7 @@ type PrerolledQuery struct {
 	TTName      string // set by setttname()
 	TTVals      []int
 	PGTempTable string
-	PGQuery     string
+	SQLQuery    string
 	Bounds      []QueryBounds
 	Auth        string
 	SSTTName    string
@@ -312,7 +312,7 @@ func SSBuildQueries(s *SearchStruct) {
 				sprq = windowandttprq(t, sprq)
 			}
 			// "index" before this point turns into: "AND ((&#34;index&#34; BETWEEN 1 AND 5))"
-			sprq.PGQuery = strings.Replace(sprq.PGQuery, `(index `, `("index" `, -1)
+			sprq.SQLQuery = strings.Replace(sprq.SQLQuery, `(index `, `("index" `, -1)
 			prqq[count] = sprq
 			count += 1
 		}
@@ -358,7 +358,7 @@ func basicprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	e := t.Tail.Execute(&b, t)
 	chke(e)
 
-	prq.PGQuery = fmt.Sprintf(SELECTFROM, b.String())
+	prq.SQLQuery = fmt.Sprintf(SELECTFROM, b.String())
 	return prq
 }
 
@@ -374,7 +374,7 @@ func basicidxprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	e := t.Tail.Execute(&b, t)
 	chke(e)
 
-	prq.PGQuery = fmt.Sprintf(SELECTFROM, b.String())
+	prq.SQLQuery = fmt.Sprintf(SELECTFROM, b.String())
 	return prq
 
 }
@@ -398,7 +398,7 @@ func basicwindowprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 
 	alb := fmt.Sprintf(ASLINEBUNDLE, t.PSCol, t.PSCol)
 
-	prq.PGQuery = fmt.Sprintf(PRFXSELFRM + alb + b.String())
+	prq.SQLQuery = fmt.Sprintf(PRFXSELFRM + alb + b.String())
 	return prq
 }
 
@@ -421,7 +421,7 @@ func windandidxprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 
 	alb := fmt.Sprintf(ASLINEBUNDLE, t.PSCol, t.PSCol)
 
-	prq.PGQuery = fmt.Sprintf(PRFXSELFRM + alb + b.String())
+	prq.SQLQuery = fmt.Sprintf(PRFXSELFRM + alb + b.String())
 
 	return prq
 }
@@ -444,7 +444,7 @@ func simplettprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 	e := t.Tail.Execute(&b, t)
 	chke(e)
 
-	prq.PGQuery = fmt.Sprintf(SELECTFROM, b.String())
+	prq.SQLQuery = fmt.Sprintf(SELECTFROM, b.String())
 	return prq
 }
 
@@ -475,7 +475,7 @@ func windowandttprq(t PRQTemplate, prq PrerolledQuery) PrerolledQuery {
 
 	alb := fmt.Sprintf(ASLINEBUNDLE, t.PSCol, t.PSCol)
 
-	prq.PGQuery = fmt.Sprintf(PRFXSELFRM + alb + b.String())
+	prq.SQLQuery = fmt.Sprintf(PRFXSELFRM + alb + b.String())
 	return prq
 }
 

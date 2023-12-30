@@ -28,18 +28,29 @@ import (
 	"github.com/mattn/go-sqlite3"
 	"io"
 	"log"
-	"os"
 	"regexp"
 	"sync"
+	"time"
 )
 
+func InitializeSQLite() {
+	msg("**SQLITE IS NOT FOR RELEASE AND IS CERTAIN TO BREAK**", MSGCRIT)
+	start := time.Now()
+	SQLiteLoadActiveAuthors()
+	// note that authors, works, and lemmata were loaded via postgres and that there is no stand-alone sqlite yet (ever?)
+	previous := time.Now()
+	messenger.Timer("C", "SQLiteLoadActiveAuthors()", start, previous)
+}
+
+// GetSQLiteConn - return a connection to the in-memory SQLite database
 func GetSQLiteConn() *sql.Conn {
 	conn, e := SQLITEConn.Conn(context.Background())
 	chke(e)
 	return conn
 }
 
-func opensqlite() *sql.DB {
+// OpenSQLite - initialize a ":memory:" SQLite database
+func OpenSQLite() *sql.DB {
 	// ultimately need a connection pool?
 	// https://turriate.com/articles/making-sqlite-faster-in-go
 
@@ -71,11 +82,15 @@ func opensqlite() *sql.DB {
 	return memdb
 }
 
-func sqliteloadactiveauthors() {
+// SQLiteLoadActiveAuthors - load all active authors into SQLite
+func SQLiteLoadActiveAuthors() {
 	const (
 		UPDATE = `author #%d of %d loaded`
 		FRQ    = 100
 	)
+
+	// note that this version is not ready to load/unload databases post-launch: modifyglobalmapsifneeded() will barf
+	// and "hgs-prolix-conf.json" had better have "true" next to everything you will use....
 
 	if SQLProvider == "pgsql" {
 		return
@@ -83,19 +98,18 @@ func sqliteloadactiveauthors() {
 
 	auu := StringMapKeysIntoSlice(AllAuthors)
 	for i := 0; i < len(auu); i++ {
-		createandloadsqliteauthor(auu[i])
+		CreateAndLoadSQLiteAuthor(auu[i])
 		if i%FRQ == 0 {
 			msg(fmt.Sprintf(UPDATE, i, len(auu)), MSGFYI)
 		}
 	}
 
-	// these parallel versions are in fact slightly slower....
-
-	// iter.ForEach(StringMapKeysIntoSlice(AllAuthors), createandloadsqliteauthor)
-	// sqliteprocessauu(StringMapKeysIntoSlice(AllAuthors))
+	// parallel version in fact slightly slower....
+	// SQLiteProcessAuthors(StringMapKeysIntoSlice(AllAuthors))
 }
 
-func sqliteprocessauu(values []string) {
+// SQLiteProcessAuthors - load a slice of authors into SQLite
+func SQLiteProcessAuthors(values []string) {
 	feeder := make(chan string, Config.WorkerCount)
 
 	var wg sync.WaitGroup
@@ -104,7 +118,7 @@ func sqliteprocessauu(values []string) {
 		go func() {
 			defer wg.Done()
 			for elem := range feeder {
-				createandloadsqliteauthor(elem)
+				CreateAndLoadSQLiteAuthor(elem)
 			}
 		}()
 	}
@@ -116,7 +130,8 @@ func sqliteprocessauu(values []string) {
 	wg.Wait()
 }
 
-func createandloadsqliteauthor(au string) {
+// CreateAndLoadSQLiteAuthor - load a single author table into SQLite via CSV
+func CreateAndLoadSQLiteAuthor(au string) {
 	const (
 		CREATE = `
 					CREATE TABLE %s (
@@ -134,17 +149,17 @@ func createandloadsqliteauthor(au string) {
 					hyphenated_words character varying(128),
 					annotations character varying(256)
 				);`
-		FAIL1 = `failed to create author table "%s": %s`
+		FAIL1 = `CreateAndLoadSQLiteAuthor() failed to create author table "%s": %s`
 		EMB   = "emb/db/%s/%s.csv.gz"
 		QT    = `insert into %s("index", wkuniversalid, 
 					   level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, 
 					   marked_up_line, accented_line, stripped_line, hyphenated_words, annotations) 
 					   values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-		FAIL5    = `ReadFile failed: %s`
+		FAIL5    = `CreateAndLoadSQLiteAuthor(): ReadFile failed: %s`
 		FAIL2    = `missing header row(?): %s`
 		FAIL3    = `insert prepare failed: %s`
 		FAIL4    = `[%s] gzip.NewReader failed`
-		SUCCESS2 = `loaded author table "%s"`
+		SUCCESS2 = `CreateAndLoadSQLiteAuthor() loaded author table "%s"`
 	)
 
 	authfail := func(e error) {
@@ -173,7 +188,7 @@ func createandloadsqliteauthor(au string) {
 	// [a] decompress the sql data
 	dump := fmt.Sprintf(EMB, au[0:2], au)
 
-	compressed, err := os.ReadFile(dump)
+	compressed, err := efs.ReadFile(dump)
 	sqlfail(err, FAIL5)
 	decompressed, err := gzip.NewReader(bytes.NewReader(compressed))
 	sqlfail(err, FAIL4)
@@ -204,12 +219,31 @@ func createandloadsqliteauthor(au string) {
 	msg(fmt.Sprintf(SUCCESS2, au), MSGPEEK)
 }
 
-func connsqlitetestquery(ltconn *sql.Conn, tq string) {
+//
+// FOR TESTING
+//
+
+func postinitializationsqlitetest() {
+	msg("postinitializationsqlitetest()", 2)
+	au := "lt0016"
+	tq := fmt.Sprintf(`select "index", wkuniversalid,
+               level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, 
+               marked_up_line, accented_line, stripped_line, hyphenated_words, annotations from %s where stripped_line regexp 'est'`, au)
+
+	ltconn := GetSQLiteConn()
+	defer ltconn.Close()
+	tq = fmt.Sprintf(`select "index", wkuniversalid,
+               level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, 
+               marked_up_line, accented_line, stripped_line, hyphenated_words, annotations from %s where "index" BETWEEN 10 and 15`, au)
+	sqlitetestquery(ltconn, tq)
+}
+
+func sqlitetestquery(ltconn *sql.Conn, tq string) {
 	rows, err := ltconn.QueryContext(context.Background(), tq)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("connsqlitetestquery()-ed")
+	fmt.Println("sqlitetestquery()-ed")
 
 	defer rows.Close()
 	var rr []DbWorkline
@@ -224,19 +258,4 @@ func connsqlitetestquery(ltconn *sql.Conn, tq string) {
 	for i := 0; i < len(rr); i++ {
 		fmt.Println(rr[i].BuildHyperlink() + ": " + rr[i].Stripped)
 	}
-}
-
-func postinitializationsqlitetest() {
-	msg("postinitializationsqlitetest()", 2)
-	au := "lt0016"
-	tq := fmt.Sprintf(`select "index", wkuniversalid,
-               level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, 
-               marked_up_line, accented_line, stripped_line, hyphenated_words, annotations from %s where stripped_line regexp 'est'`, au)
-
-	ltconn := GetSQLiteConn()
-	defer ltconn.Close()
-	tq = fmt.Sprintf(`select "index", wkuniversalid,
-               level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, 
-               marked_up_line, accented_line, stripped_line, hyphenated_words, annotations from %s where "index" BETWEEN 10 and 15`, au)
-	connsqlitetestquery(ltconn, tq)
 }

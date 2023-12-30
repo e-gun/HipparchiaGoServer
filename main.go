@@ -39,9 +39,6 @@ func main() {
 	//	http.ListenAndServe("localhost:8080", nil)
 	//}()
 
-	// testing sqlite...
-	msg("**THIS BUILD IS NOT FOR RELEASE AND IS CERTAIN TO BREAK**", MSGCRIT)
-
 	LaunchTime = time.Now()
 
 	//
@@ -144,16 +141,12 @@ func main() {
 
 	awaiting.Wait()
 
-	// developer only fnc: extract pgsql DB to filesystem
+	// developer only fnc: extract pgsql DB to filesystem; need if you want to embed sqlite-loadable tables in a build
 	// DBtoCSV()
 
-	// sqlite...
-	start := time.Now()
-
+	// SQLite requires you to pre-load the data into memory via CSV files
 	if SQLProvider == "sqlite" {
-		sqliteloadactiveauthors()
-		previous := time.Now()
-		messenger.Timer("C", "sqliteloadactiveauthors()", start, previous)
+		InitializeSQLite()
 	}
 
 	messenger.LogPaths("main() post-initialization")

@@ -96,8 +96,8 @@ func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWo
 	emitfinds := make(chan []DbWorkline)
 
 	consume := func() {
-		ch := GrabConnection()
-		defer ch.Release()
+		conn := GrabDBConnection()
+		defer conn.Release()
 
 		defer close(emitfinds)
 		for q := range prq {
@@ -105,7 +105,7 @@ func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWo
 			case <-ctx.Done():
 				return
 			default:
-				emitfinds <- WorklineQuery(q, ch)
+				emitfinds <- WorklineQuery(q, conn)
 			}
 		}
 	}
