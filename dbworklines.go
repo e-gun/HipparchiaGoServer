@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"regexp"
 	"sort"
 	"strings"
@@ -240,34 +239,31 @@ func (dbw *DbWorkline) LvlVal(lvl int) string {
 	}
 }
 
-func WorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
+func WorklineQuery(prq PrerolledQuery, dbconn *ConnectionHolder) []DbWorkline {
 	if SQLProvider == "pgsql" {
 		return PGXWorklineQuery(prq, dbconn)
 	} else {
-		return SQLITEWorklineQuery(prq)
+		return SQLITEWorklineQuery(prq, dbconn)
 	}
 
 }
 
 // SQLITEWorklineQuery - use a PrerolledQuery to acquire []DbWorkline
-func SQLITEWorklineQuery(prq PrerolledQuery) []DbWorkline {
+func SQLITEWorklineQuery(prq PrerolledQuery, ch *ConnectionHolder) []DbWorkline {
 	const (
 		MAKETT   = `CREATE TEMPORARY TABLE "%s_includelist_%s"(includeindex);`
 		INSERTTT = `INSERT INTO "%s_includelist_%s"(includeindex) VALUES (?)`
 	)
 
-	ltconn := GetSQLiteConn()
-	defer ltconn.Close()
+	ltconn := ch.Lite
 
 	// sqlite cannot unnest an array like postgres can
 	if len(prq.TTVals) != 0 {
 		q := fmt.Sprintf(MAKETT, prq.Auth, prq.TTName)
-		msg("SQLITEWorklineQuery() ttq: "+q, 1)
 		_, err := ltconn.ExecContext(context.Background(), q)
 		chke(err)
 
 		itt := fmt.Sprintf(INSERTTT, prq.Auth, prq.TTName)
-		msg("SQLITEWorklineQuery() ttq: "+itt, 1)
 		stmt, err := ltconn.PrepareContext(context.Background(), itt)
 		chke(err)
 
@@ -276,10 +272,8 @@ func SQLITEWorklineQuery(prq PrerolledQuery) []DbWorkline {
 			chke(e)
 		}
 	}
-	msg("SQLITEWorklineQuery() tt populated", 1)
 
 	rows, err := ltconn.QueryContext(context.Background(), prq.PGQuery)
-	msg("SQLITEWorklineQuery() prq.PGQuery: "+prq.PGQuery, 1)
 	chke(err)
 
 	defer rows.Close()
@@ -291,17 +285,20 @@ func SQLITEWorklineQuery(prq PrerolledQuery) []DbWorkline {
 		chke(e)
 		rr = append(rr, rw)
 	}
-	fmt.Println(fmt.Sprintf("SQLITEWorklineQuery() found %d rows", len(rr)))
+
+	// msg(fmt.Sprintf("SQLITEWorklineQuery() found %d rows", len(rr)), MSGTMI)
+
 	return rr
 }
 
 // PGXWorklineQuery - use a PrerolledQuery to acquire []DbWorkline
-func PGXWorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
+func PGXWorklineQuery(prq PrerolledQuery, ch *ConnectionHolder) []DbWorkline {
 	// NB: you have to use a dbconn.Exec() and can't use SQLPool.Exex() because with the latter
 	// the temp table will get separated from the main query: ERROR: relation "{ttname}" does not exist (SQLSTATE 42P01)
 
 	// [a] build a temp table if needed
 
+	dbconn := ch.Postgres
 	if prq.TTName != "" {
 		_, err := dbconn.Exec(context.Background(), prq.PGTempTable)
 		chke(err)
@@ -326,13 +323,13 @@ func GrabOneLine(table string, line int) DbWorkline {
 		QTMPL = `SELECT %s FROM %s WHERE "index" = %d`
 	)
 
-	dbconn := GetPSQLconnection()
-	defer dbconn.Release()
+	ch := GrabConnection()
+	defer ch.Release()
 
 	var prq PrerolledQuery
 	prq.PGTempTable = ""
 	prq.PGQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, line)
-	foundlines := WorklineQuery(prq, dbconn)
+	foundlines := WorklineQuery(prq, ch)
 	if len(foundlines) != 0 {
 		// "index = %d" in QTMPL ought to mean you can never have len(foundlines) > 1 because index values are unique
 		return foundlines[0]
@@ -347,8 +344,8 @@ func SimpleContextGrabber(table string, focus int, context int) []DbWorkline {
 		QTMPL = `SELECT %s FROM %s WHERE ("index" BETWEEN %d AND %d) ORDER by "index"`
 	)
 
-	dbconn := GetPSQLconnection()
-	defer dbconn.Release()
+	ch := GrabConnection()
+	defer ch.Release()
 
 	low := focus - context
 	high := focus + context
@@ -356,11 +353,8 @@ func SimpleContextGrabber(table string, focus int, context int) []DbWorkline {
 	var prq PrerolledQuery
 	prq.PGTempTable = ""
 	prq.PGQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, low, high)
-	foundlines := WorklineQuery(prq, dbconn)
+	foundlines := WorklineQuery(prq, ch)
 
-	for _, ln := range foundlines {
-		fmt.Println(ln.BuildHyperlink())
-	}
 	return foundlines
 }
 
@@ -430,9 +424,10 @@ func findvalidlevelvalues(wkid string, locc []string) LevelValues {
 	var prq PrerolledQuery
 	prq.PGQuery = fmt.Sprintf(SEL, w.AuID(), wkid, and, andnot)
 
-	dbconn := GetPSQLconnection()
-	defer dbconn.Release()
-	lines := WorklineQuery(prq, dbconn)
+	ch := GrabConnection()
+	defer ch.Release()
+
+	lines := WorklineQuery(prq, ch)
 
 	// [c] extract info from the hitlines returned
 	var vals LevelValues

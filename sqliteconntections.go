@@ -4,7 +4,7 @@ package main
 
 // https://pkg.go.dev/modernc.org/sqlite
 
-// to fully implement sqlite you would need to rewrite "querybuilder.go"
+// to fully implement sqlite you need to rewrite "querybuilder.go"
 // the chief problem with that is that sqlite uses "LIKE '%string%'" instead of "~ 'string'"
 // the syntax swap is not simple; you need to build a SQLITE extension to recover regexp
 // see https://pkg.go.dev/github.com/mattn/go-sqlite3#readme-extensions
@@ -40,10 +40,19 @@ func opensqlite() *sql.DB {
 			},
 		})
 
-	memdb, err := sql.Open("sqlite3_with_regex", ":memory:")
+	// "file::memory:?cache=shared" because next will close soon after first uses: sql.Open("sqlite3_with_regex", ":memory:")
+
+	memdb, err := sql.Open("sqlite3_with_regex", "file::memory:?cache=shared")
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	//memdb.SetConnMaxIdleTime(300 * time.Second)
+	//memdb.SetConnMaxLifetime(300000 * time.Second)
+
+	// breaks if you uncomment the next
+	//memdb.SetMaxOpenConns(Config.WorkerCount * 4)
+	//memdb.SetMaxIdleConns(Config.WorkerCount * 4)
 
 	return memdb
 }
@@ -67,6 +76,54 @@ func sqliteloadactiveauthors() {
 	}
 }
 
+func auproducer() <-chan string {
+	auu := StringMapKeysIntoSlice(AllAuthors)
+	c := make(chan string)
+	go func() {
+		for i := 0; i < len(auu); i++ {
+			c <- auu[i]
+		}
+		close(c)
+	}()
+	return c
+}
+
+func auconsumer(auin <-chan string) {
+	for au := range auin {
+		fmt.Println(au)
+		createandloadsqliteauthor(au)
+	}
+}
+
+func aufanOutUnbuffered(ch <-chan string) []chan string {
+	cs := make([]chan string, Config.WorkerCount)
+	for i, _ := range cs {
+		// The size of the channels buffer controls how far behind the recievers
+		// of the fanOut channels can lag the other channels.
+		cs[i] = make(chan string)
+	}
+	go func() {
+		for au := range ch {
+			for _, c := range cs {
+				c <- au
+			}
+		}
+		for _, c := range cs {
+			// close all our fanOut channels when the input channel is exhausted.
+			close(c)
+		}
+	}()
+	return cs
+}
+
+func fosqliteloadactiveauthors() {
+	c := auproducer()
+	chans := aufanOutUnbuffered(c)
+	for i := 0; i < Config.WorkerCount; i++ {
+		go auconsumer(chans[i])
+	}
+}
+
 func createandloadsqliteauthor(au string) {
 	const (
 		CREATE = `
@@ -85,10 +142,9 @@ func createandloadsqliteauthor(au string) {
 					hyphenated_words character varying(128),
 					annotations character varying(256)
 				);`
-		FAIL1    = `failed to create author table "%s": %s`
-		SUCCESS1 = `created author table "%s"`
-		EMB      = "emb/db/%s/%s.csv.gz"
-		QT       = `insert into %s("index", wkuniversalid, 
+		FAIL1 = `failed to create author table "%s": %s`
+		EMB   = "emb/db/%s/%s.csv.gz"
+		QT    = `insert into %s("index", wkuniversalid, 
 					   level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, 
 					   marked_up_line, accented_line, stripped_line, hyphenated_words, annotations) 
 					   values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
@@ -96,15 +152,12 @@ func createandloadsqliteauthor(au string) {
 		FAIL2    = `missing header row(?): %s`
 		FAIL3    = `insert prepare failed: %s`
 		FAIL4    = `[%s] gzip.NewReader failed`
-		FAIL6    = `createandloadsqliteauthor() insert failed(%s): %s`
 		SUCCESS2 = `loaded author table "%s"`
 	)
 
 	authfail := func(e error) {
 		if e != nil {
 			msg(fmt.Sprintf(FAIL1, au, e.Error()), MSGWARN)
-		} else {
-			// msg(fmt.Sprintf(SUCCESS1, au), MSGPEEK)
 		}
 	}
 
@@ -222,7 +275,7 @@ func postinitializationsqlitetest() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("new tx...")
+
 	txsqlitetestquery(tx, tq)
 	err = tx.Commit()
 	if err != nil {
@@ -237,18 +290,4 @@ func postinitializationsqlitetest() {
 	connsqlitetestquery(ltconn, tq)
 
 	chke(err)
-}
-
-// premanentconnection - hold the db open forever
-func premanentconnection() {
-	//c, e := memdb.Conn(context.Background())
-	//if e != nil {
-	//	log.Fatal(e)
-	//}
-	//defer c.Close()
-	ltconn := GetSQLiteConn()
-	defer ltconn.Close()
-	for {
-		// run forever
-	}
 }

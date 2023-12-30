@@ -7,6 +7,8 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"sync"
 )
 
@@ -96,15 +98,16 @@ func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWo
 	emitfinds := make(chan []DbWorkline)
 
 	consume := func() {
-		dbconn := GetPSQLconnection()
-		defer dbconn.Release()
+		ch := GrabConnection()
+		defer ch.Release()
+
 		defer close(emitfinds)
 		for q := range prq {
 			select {
 			case <-ctx.Done():
 				return
 			default:
-				emitfinds <- WorklineQuery(q, dbconn)
+				emitfinds <- WorklineQuery(q, ch)
 			}
 		}
 	}
@@ -177,4 +180,40 @@ func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundli
 		}
 	}
 	return allhits
+}
+
+//
+// HANDLING HETEROGENOUS DATABASE CONNECTIONS
+//
+
+type ConnectionHolder struct {
+	Postgres *pgxpool.Conn
+	Lite     *sql.Conn
+}
+
+func (ch *ConnectionHolder) Release() {
+	if SQLProvider == "sqlite" {
+		ch.Lite.Close()
+	}
+	if SQLProvider == "pgsql" {
+		ch.Postgres.Release()
+	}
+}
+
+func GrabConnection() *ConnectionHolder {
+	lt := func() *sql.Conn { return &sql.Conn{} }()
+	pg := func() *pgxpool.Conn { return &pgxpool.Conn{} }()
+
+	if SQLProvider == "sqlite" {
+		lt = GetSQLiteConn()
+	}
+
+	if SQLProvider == "pgsql" {
+		pg = GetPSQLconnection()
+	}
+
+	return &ConnectionHolder{
+		Postgres: pg,
+		Lite:     lt,
+	}
 }

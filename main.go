@@ -144,18 +144,17 @@ func main() {
 
 	awaiting.Wait()
 
-	// testing...
+	// developer only fnc: extract pgsql DB to filesystem
 	// DBtoCSV()
 
 	// sqlite...
 	start := time.Now()
 
 	if SQLProvider == "sqlite" {
-		go premanentconnection()
 		sqliteloadactiveauthors()
 		previous := time.Now()
 		messenger.Timer("C", "sqliteloadactiveauthors()", start, previous)
-		postinitializationsqlitetest()
+		// postinitializationsqlitetest()
 	}
 
 	messenger.LogPaths("main() post-initialization")
