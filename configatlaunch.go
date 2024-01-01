@@ -249,7 +249,7 @@ func ConfigAtLaunch() {
 		case "-dv":
 			Config.VectorsDisabled = true
 		case "-ex":
-			ArchiveDB()
+			PostgresDumpDB()
 			os.Exit(0)
 		case "-el":
 			ll, err := strconv.Atoi(args[i+1])
@@ -265,8 +265,8 @@ func ConfigAtLaunch() {
 			Config.Gzip = true
 		case "-h":
 			help()
-		case "-lt":
-			// this is an invisible option: sqlite is not a real option for release builds
+		case "-sqlite":
+			// this is an invisible development option: sqlite is not a real option for release builds
 			SQLProvider = "sqlite"
 		case "-md":
 			Config.VectorModel = args[i+1]

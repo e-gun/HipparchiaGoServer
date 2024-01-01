@@ -11,7 +11,9 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"os"
+	"os/exec"
 	"strings"
+	"time"
 )
 
 type PostgresLogin struct {
@@ -112,8 +114,101 @@ func GetPSQLconnection() *pgxpool.Conn {
 	return dbc
 }
 
+// PostgresDumpDB - dump the database to the filesystem as a pgdump
+func PostgresDumpDB() {
+	const (
+		MSG   = "Extracting the database.."
+		ERR   = "PostgresDumpDB(): pg_dump failed. You should NOT trust this archive. Deleting it..."
+		WRK   = 1 // problem (on virtualized machine): "server closed the connection unexpectedly" if WRK > 1
+		WARN  = "The database will start archiving in %d seconds. C7This will take several minutesC0"
+		DELAY = 5
+	)
+
+	fmt.Println(coloroutput(fmt.Sprintf(WARN, DELAY)))
+	time.Sleep(DELAY * time.Second)
+
+	// pg_dump --clean "hipparchiaDB" --user hippa_wr | split -b 100m - out/hipparchiaDB-
+	// pg_dump -U postgres -F d -j 5 db1 -f db1_backup
+
+	// don't want an extra 1GB... should run with "-rv" flag before doing "-ex", but maybe you didn't
+	// unable to call "vectordbreset()" at this juncture
+	// panic: runtime error: invalid memory address or nil pointer dereference
+
+	// highly likely that you do not have a value for Config.PGLogin.Pass yet, but you need one...
+	SetConfigPass(Config, "")
+
+	binary := GetBinaryPath("pg_dump")
+	url := GetHippaWRURI(Config.PGLogin.Pass)
+
+	workers := fmt.Sprintf("%d", WRK)
+
+	cmd := exec.Command(binary, "-v", "-T", VECTORTABLENAMENN, "-F", "d", "-j", workers, "-f", HDBFOLDER, url)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	msg(MSG, MSGCRIT)
+	err := cmd.Run()
+	if err != nil {
+		msg(ERR, MSGCRIT)
+		e := os.RemoveAll(HDBFOLDER)
+		chke(e)
+	}
+}
+
+// PostgresDBtoCSV - dump the database to the filesystem as CSV
+func PostgresDBtoCSV() {
+	const (
+		DQ     = `\COPY %s TO '%s/%s/%s.csv' DELIMITER ',' CSV HEADER;` // COPY lt2000 TO '/Users/erik/tmp/lt2000.csv' DELIMITER ',' CSV HEADER;
+		OUTDIR = `csv_db`
+	)
+	b := GetBinaryPath("psql")
+
+	support := []string{"authors", "works", "latin_morphology", "greek_morphology", "latin_dictionary",
+		"greek_dictionary", "greek_lemmata", "latin_lemmata", "dictionary_headword_wordcounts"}
+	counts := strings.Split("abcdefghijklmnopqrstuvwxyz0αβψδεφγηιξκλμνοπρϲτυω", "")
+
+	allauthortables := StringMapKeysIntoSlice(AllAuthors)
+
+	writeout := func(q string) {
+		cmd := exec.Command(b, "-d", "hipparchiaDB", "-c", q)
+		// cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		chke(err)
+		msg(q, MSGFYI)
+	}
+
+	h, e := os.UserHomeDir()
+	chke(e)
+	// h := "/tmp"
+
+	e = os.Mkdir(h+"/"+OUTDIR, 0755)
+	if strings.Contains(e.Error(), "exists") {
+		msg(h+"/"+OUTDIR+" already exists", MSGFYI)
+	} else {
+		chke(e)
+	}
+
+	// psql -d hipparchiaDB -c "\COPY lt0881 TO '/Users/erik/csv_db/lt0881.csv' DELIMITER ',' CSV HEADER;"
+	for i := 0; i < len(allauthortables); i++ {
+		q := fmt.Sprintf(DQ, allauthortables[i], h, OUTDIR, allauthortables[i])
+		writeout(q)
+	}
+
+	for i := 0; i < len(support); i++ {
+		q := fmt.Sprintf(DQ, support[i], h, OUTDIR, support[i])
+		writeout(q)
+	}
+
+	for i := 0; i < len(counts); i++ {
+		q := fmt.Sprintf(DQ, "wordcounts_"+counts[i], h, OUTDIR, "wordcounts_"+counts[i])
+		writeout(q)
+	}
+
+}
+
 //
-// ABILITY TO HANDLE HETEROGENOUS DATABASE CONNECTIONS: postgres and sqlite
+// DBConnectionHolder, etc. YIELD ABILITY TO HANDLE HETEROGENEOUS DATABASE CONNECTIONS: postgres and sqlite
 //
 
 type DBConnectionHolder struct {
@@ -125,8 +220,6 @@ func (ch *DBConnectionHolder) Release() {
 	switch SQLProvider {
 	case "sqlite":
 		ch.Lite.Close()
-	case "pgsql":
-		ch.Postgres.Release()
 	default:
 		ch.Postgres.Release()
 	}
@@ -139,8 +232,6 @@ func GrabDBConnection() *DBConnectionHolder {
 	switch SQLProvider {
 	case "sqlite":
 		lt = GetSQLiteConn()
-	case "pgsql":
-		pg = GetPSQLconnection()
 	default:
 		pg = GetPSQLconnection()
 	}

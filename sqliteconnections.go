@@ -1,22 +1,5 @@
 package main
 
-// pg_dump hipparchiaDB --table=gr0007 --format plain > x.sql
-
-// https://pkg.go.dev/modernc.org/sqlite
-
-// to fully implement sqlite you need to rewrite "querybuilder.go"
-// the chief problem with that is that sqlite uses "LIKE '%string%'" instead of "~ 'string'"
-// the syntax swap is not simple; you need to build a SQLITE extension to recover regexp
-// see https://pkg.go.dev/github.com/mattn/go-sqlite3#readme-extensions
-
-// SLOW
-// [HGS-SELFTEST] [A1: 1.855s][Δ: 1.855s] single word in corpus: 'vervex'
-// [HGS-SELFTEST] [A2: 6.140s][Δ: 4.285s] phrase in corpus: 'plato omnem'
-
-// vs Postgres
-// [HGS-SELFTEST] [A1: 0.280s][Δ: 0.280s] single word in corpus: 'vervex'
-// [HGS-SELFTEST] [A2: 1.525s][Δ: 1.245s] phrase in corpus: 'plato omnem'
-
 import (
 	"bytes"
 	"compress/gzip"
@@ -32,6 +15,43 @@ import (
 	"sync"
 	"time"
 )
+
+//
+// GENERAL NOTES re SQLITE
+//
+
+// pg_dump hipparchiaDB --table=gr0007 --format plain > x.sql
+
+// https://pkg.go.dev/modernc.org/sqlite
+
+// to fully implement sqlite you need to rewrite "querybuilder.go"
+// the chief problem with that is that sqlite uses "LIKE '%string%'" instead of "~ 'string'"
+// the syntax swap is not simple; you need to build a SQLITE extension to recover regexp
+// see https://pkg.go.dev/github.com/mattn/go-sqlite3#readme-extensions
+
+// FAT: c. 1GB HipparchiaGoServer binary if the data is embedded
+
+// SLOW vs Postgres
+// (lt)
+// [HGS-SELFTEST] [A1: 1.855s][Δ: 1.855s] single word in corpus: 'vervex'
+// [HGS-SELFTEST] [A2: 6.140s][Δ: 4.285s] phrase in corpus: 'plato omnem'
+
+// (pg)
+// [HGS-SELFTEST] [A1: 0.280s][Δ: 0.280s] single word in corpus: 'vervex'
+// [HGS-SELFTEST] [A2: 1.525s][Δ: 1.245s] phrase in corpus: 'plato omnem'
+
+// NOT the best tool for the job: full text search
+
+// https://www.sqlitetutorial.net/sqlite-full-text-search/
+// https://www.sqlite.org/fts5.html
+
+// the problem is you have to create a table and a derivative virtual table with only text values in the columns
+// queries would need to be much, more complicated this way...
+// "WHERE INDEX BETWEEN 10 AND 20" is now a nightmare
+
+// CREATE VIRTUAL TABLE tb USING FTS5(a, b, c, ...);
+
+// also requires building the fts5 module: "go build --tags "fts5" && ./HipparchiaGoServer -gl 4 -lt"
 
 func InitializeSQLite() {
 	msg("**SQLITE IS NOT FOR RELEASE AND IS CERTAIN TO BREAK**", MSGCRIT)
@@ -79,10 +99,25 @@ func OpenSQLite() *sql.DB {
 	//memdb.SetMaxOpenConns(Config.WorkerCount * 4)
 	//memdb.SetMaxIdleConns(Config.WorkerCount * 4)
 
+	//DB is a database handle representing a pool of zero or more underlying connections. It's safe for concurrent use by multiple goroutines.
+	//The sql package creates and frees connections automatically; it also maintains a free pool of idle connections.
+	//If the database has a concept of per-connection state, such state can be reliably observed within a transaction (Tx)
+	//or connection (Conn). Once DB.Begin is called, the returned Tx is bound to a single connection. Once Commit or
+	//Rollback is called on the transaction, that transaction's connection is returned to DB's idle connection pool.
+	//The pool size can be controlled with SetMaxIdleConns.
+
 	return memdb
 }
 
-// SQLiteLoadActiveAuthors - load all active authors into SQLite
+// SQLilteLoadSupportDBs - load the support DBs into SQLite via the embedded filesystem
+func SQLilteLoadSupportDBs() {
+	//support := []string{"authors", "works", "latin_morphology", "greek_morphology", "latin_dictionary",
+	//	"greek_dictionary", "greek_lemmata", "latin_lemmata", "dictionary_headword_wordcounts"}
+	//counts := strings.Split("abcdefghijklmnopqrstuvwxyz0αβψδεφγηιξκλμνοπρϲτυω", "")
+
+}
+
+// SQLiteLoadActiveAuthors - load all active authors into SQLite via the embedded filesystem
 func SQLiteLoadActiveAuthors() {
 	const (
 		UPDATE = `author #%d of %d loaded`
@@ -105,11 +140,11 @@ func SQLiteLoadActiveAuthors() {
 	}
 
 	// parallel version in fact slightly slower....
-	// SQLiteProcessAuthors(StringMapKeysIntoSlice(AllAuthors))
+	// SQLiteParallelProcessAuthors(StringMapKeysIntoSlice(AllAuthors))
 }
 
-// SQLiteProcessAuthors - load a slice of authors into SQLite
-func SQLiteProcessAuthors(values []string) {
+// SQLiteParallelProcessAuthors - load a slice of authors into SQLite
+func SQLiteParallelProcessAuthors(values []string) {
 	feeder := make(chan string, Config.WorkerCount)
 
 	var wg sync.WaitGroup
@@ -135,7 +170,7 @@ func CreateAndLoadSQLiteAuthor(au string) {
 	const (
 		CREATE = `
 					CREATE TABLE %s (
-					"index" integer,
+					"index" integer UNIQUE,
 					wkuniversalid character varying(10),
 					level_05_value character varying(64),
 					level_04_value character varying(64),
@@ -149,6 +184,7 @@ func CreateAndLoadSQLiteAuthor(au string) {
 					hyphenated_words character varying(128),
 					annotations character varying(256)
 				);`
+		IDX   = `CREATE INDEX %s_%s_index ON %s ("%s")`
 		FAIL1 = `CreateAndLoadSQLiteAuthor() failed to create author table "%s": %s`
 		EMB   = "emb/db/%s/%s.csv.gz"
 		QT    = `insert into %s("index", wkuniversalid, 
@@ -182,6 +218,15 @@ func CreateAndLoadSQLiteAuthor(au string) {
 	q := fmt.Sprintf(CREATE, au)
 	_, err := ltconn.ExecContext(context.Background(), q)
 	authfail(err)
+
+	// this substantially slows down the launch time...AND it does not obviously make things faster
+	//q = fmt.Sprintf(IDX, au, "accented_line", au, "accented_line")
+	//_, err = ltconn.ExecContext(context.Background(), q)
+	//chke(err)
+	//
+	//q = fmt.Sprintf(IDX, au, "stripped_line", au, "stripped_line")
+	//_, err = ltconn.ExecContext(context.Background(), q)
+	//chke(err)
 
 	// load the table
 

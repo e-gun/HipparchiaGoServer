@@ -142,7 +142,8 @@ func main() {
 	awaiting.Wait()
 
 	// developer only fnc: extract pgsql DB to filesystem; need if you want to embed sqlite-loadable tables in a build
-	// DBtoCSV()
+	// must be run after AllAuthors is available
+	// PostgresDBtoCSV()
 
 	// SQLite requires you to pre-load the data into memory via CSV files
 	if SQLProvider == "sqlite" {
