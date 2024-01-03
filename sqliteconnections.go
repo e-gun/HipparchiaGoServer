@@ -31,14 +31,19 @@ import (
 
 // FAT: c. 1GB HipparchiaGoServer binary if the data is embedded
 
-// SLOW vs Postgres
-// (lt)
+// the 'regex' function is very SLOW vs Postgres; 'LIKE' is fine...
+// (lt regex)
 // [HGS-SELFTEST] [A1: 1.855s][Δ: 1.855s] single word in corpus: 'vervex'
 // [HGS-SELFTEST] [A2: 6.140s][Δ: 4.285s] phrase in corpus: 'plato omnem'
 
 // (pg)
 // [HGS-SELFTEST] [A1: 0.280s][Δ: 0.280s] single word in corpus: 'vervex'
 // [HGS-SELFTEST] [A2: 1.525s][Δ: 1.245s] phrase in corpus: 'plato omnem'
+
+// (lt regex vs lt LIKE)
+// 2.28s for 'plato' w/in 1 line of 'omnem' vs .33s
+
+// the issue here is that *a lot* of searches use regex behind the scenes: "(\s|$)" is how we handle line ends...
 
 // NOT the best tool for the job: full text search
 

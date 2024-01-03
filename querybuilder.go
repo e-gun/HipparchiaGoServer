@@ -270,10 +270,7 @@ func SSBuildQueries(s *SearchStruct) {
 			sprq.TTName = ntt
 			sprq.PGTempTable = strings.Replace(prq.PGTempTable, s.TTName, ntt, -1)
 
-			// pgsql looks for "~ ''"; but "regexp ''" is not the equivalent of that; "!= ''" is.
-			if SQLProvider == "sqlite" && skg == "" {
-				syn = "!="
-			}
+			syn, skg = rewritesyntaxandskgdependingondbserver(skg)
 
 			var t PRQTemplate
 			t.AU = au
@@ -488,4 +485,58 @@ func andorwhereclause(bounds []QueryBounds, templ string, negation string, synta
 	}
 
 	return strings.Join(in, syntax)
+}
+
+// rewritesyntaxandskgdependingondbserver - pgsql and sqlite need to send different queries
+func rewritesyntaxandskgdependingondbserver(skg string) (string, string) {
+	const (
+		QUERYSYNTAXPGSQL    = "~"
+		QUERYSYNTAXSQLITERG = "regexp"
+		QUERYSYNTAXSQLITELK = "LIKE"
+	)
+
+	// check for: digits; [], (), .*, <>, ...
+	usesregex := regexp.MustCompile("[0-9.*()<>?|+{}^$[]")
+
+	// [1] no change to skg and use QUERYSYNTAXPGSQL as the syntax
+	if SQLProvider != "sqlite" {
+		return QUERYSYNTAXPGSQL, skg
+	}
+
+	syn := QUERYSYNTAXSQLITELK
+
+	// [2a] find everything: don't change syn; change skg
+	if skg == "" {
+		skg = "%"
+		return syn, skg
+	}
+
+	// [2b] find something that has regex: change syn; don't change skg
+
+	// "(^|\s)" and "(\s|$)" are for line heads and tails; if that is all we have, then "%" is ok...
+	justheadortail := strings.Replace(skg, `(^|\s)`, "", -1)
+	justheadortail = strings.Replace(justheadortail, `(\s|$)`, "", -1)
+
+	if usesregex.MatchString(justheadortail) {
+		fmt.Println("usesregex: " + justheadortail)
+		return QUERYSYNTAXSQLITERG, skg
+	}
+
+	// [2c] maybe just doing a whitespace check...: don't change syn; conditionally rewrite skg
+	if justheadortail != skg {
+		justhead := strings.Replace(skg, `(^|\s)`, "", -1)
+		justtail := strings.Replace(justheadortail, `(\s|$)`, "", -1)
+		if justhead != skg && justtail != skg {
+			skg = "% " + justheadortail + " %"
+		} else if justhead != skg {
+			skg = "% " + justheadortail + "%"
+		} else if justtail != skg {
+			skg = "%" + justheadortail + " %"
+		}
+		return syn, skg
+	}
+
+	// [2d] find something via a basic "LIKE" search: don't change syn; change skg
+	skg = "%" + justheadortail + "%"
+	return syn, skg
 }

@@ -189,18 +189,13 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	user := readUUIDCookie(c)
 	sess := AllSessions.GetSess(user)
 
-	syntax := QUERYSYNTAXPGSQL
-	if SQLProvider != "pgsql" {
-		syntax = QUERYSYNTAXSQLITE
-	}
-
 	var s SearchStruct
 	s.User = user
 	s.Launched = time.Now()
 	s.CurrentLimit = sess.HitLimit
 	s.OriginalLimit = sess.HitLimit
 	s.SrchColumn = DEFAULTCOLUMN
-	s.SrchSyntax = syntax
+	s.SrchSyntax = "set_by_rewritesyntaxfordbserver()_in_querybuilder.go"
 	s.OrderBy = ORDERBY
 	s.SearchIn = sess.Inclusions
 	s.SearchEx = sess.Exclusions
@@ -230,11 +225,6 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 
 // BuildHollowSearch - is really a way to grab line collections via synthetic searchlists
 func BuildHollowSearch() SearchStruct {
-	syntax := QUERYSYNTAXPGSQL
-	if SQLProvider != "pgsql" {
-		syntax = QUERYSYNTAXSQLITE
-	}
-
 	s := SearchStruct{
 		User:          "",
 		ID:            strings.Replace(uuid.New().String(), "-", "", -1),
@@ -257,7 +247,7 @@ func BuildHollowSearch() SearchStruct {
 		SkgRewritten:  false,
 		PhaseNum:      0,
 		SrchColumn:    DEFAULTCOLUMN,
-		SrchSyntax:    syntax,
+		SrchSyntax:    "set_by_rewritesyntaxandskgfordbserver()_in_querybuilder.go",
 		OrderBy:       ORDERBY,
 		VecTextPrep:   VECTORTEXTPREPDEFAULT,
 		VecModeler:    VECTORMODELDEFAULT,

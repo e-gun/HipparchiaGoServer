@@ -90,8 +90,6 @@ const (
 	NESTEDLEMMASIZE          = 543
 	ORDERBY                  = "index"
 	POLLEVERYNTABLES         = 34 // 3455 is the max number of tables in a search...
-	QUERYSYNTAXPGSQL         = "~"
-	QUERYSYNTAXSQLITE        = "regexp"
 	SERVEDFROMHOST           = "127.0.0.1"
 	SERVEDFROMPORT           = 8000
 	SIMULTANEOUSSEARCHES     = 3 // cap on the number of db connections at (S * Config.WorkerCount)

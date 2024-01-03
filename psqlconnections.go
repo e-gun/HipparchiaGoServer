@@ -183,11 +183,11 @@ func PostgresDBtoCSV() {
 	// h := "/tmp"
 
 	e = os.Mkdir(h+"/"+OUTDIR, 0755)
-	if strings.Contains(e.Error(), "exists") {
-		msg(h+"/"+OUTDIR+" already exists", MSGFYI)
-	} else {
-		chke(e)
-	}
+	//if strings.Contains(e.Error(), "exists") {
+	//	msg(h+"/"+OUTDIR+" already exists", MSGFYI)
+	//} else {
+	//	chke(e)
+	//}
 
 	// psql -d hipparchiaDB -c "\COPY lt0881 TO '/Users/erik/csv_db/lt0881.csv' DELIMITER ',' CSV HEADER;"
 	for i := 0; i < len(allauthortables); i++ {
