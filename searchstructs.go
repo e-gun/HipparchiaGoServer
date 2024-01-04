@@ -51,7 +51,7 @@ type SearchStruct struct {
 	SearchIn      SearchIncExl
 	SearchEx      SearchIncExl
 	Queries       []PrerolledQuery
-	Results       []DbWorkline
+	Results       WorkLineBundle // pointer problem: sometimes you need to compare S1 & S2 where S2 is a modified copy
 	Launched      time.Time
 	TTName        string
 	SearchSize    int // # of works searched
@@ -508,17 +508,17 @@ func (s *SearchStruct) SortResults() {
 
 	switch {
 	case crit == "shortname":
-		WLOrderedBy(nameIncreasing, titleIncreasing, increasingLines).Sort(s.Results)
+		WLOrderedBy(nameIncreasing, titleIncreasing, increasingLines).Sort(s.Results.Lines)
 	case crit == "converted_date":
-		WLOrderedBy(dateIncreasing, nameIncreasing, titleIncreasing, increasingLines).Sort(s.Results)
+		WLOrderedBy(dateIncreasing, nameIncreasing, titleIncreasing, increasingLines).Sort(s.Results.Lines)
 	case crit == "universalid":
-		WLOrderedBy(increasingID).Sort(s.Results)
+		WLOrderedBy(increasingID).Sort(s.Results.Lines)
 	case crit == "provenance":
 		// as this is likely an inscription search, why not sort next by date?
-		WLOrderedBy(increasingWLOC, dateIncreasing).Sort(s.Results)
+		WLOrderedBy(increasingWLOC, dateIncreasing).Sort(s.Results.Lines)
 	default:
 		// author nameIncreasing
-		WLOrderedBy(nameIncreasing, increasingLines).Sort(s.Results)
+		WLOrderedBy(nameIncreasing, increasingLines).Sort(s.Results.Lines)
 	}
 }
 

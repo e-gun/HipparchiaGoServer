@@ -418,11 +418,13 @@ func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
 	s := BuildHollowSearch()
 	s.SearchIn.Passages = []string{p}
 	SSBuildQueries(&s)
-	lines := HGoSrch(s)
+	s = HGoSrch(s)
 	count := 0
-	for _, ln := range lines.Results {
+	lnn := s.Results.Generate()
+	for ln := range lnn {
 		count += len(strings.Split(ln.Stripped, " "))
 	}
+
 	ct := m.Sprintf(PSGTEMPL, AllAuthors[au].Cleaname, AllWorks[f.WkUID].Title, f.Citation(), l.Citation(), count)
 	return ct, count
 }

@@ -85,55 +85,82 @@ func RtTextMaker(c echo.Context) error {
 	sess := AllSessions.GetSess(user)
 	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 
-	if len(srch.Results) == 0 {
+	if srch.Results.Len() == 0 {
 		return emptyjsreturn(c)
 	}
 
 	// now we have the lines we need....
-	firstline := srch.Results[0]
+	firstline := srch.Results.Lines[0]
 	firstwork := firstline.MyWk()
 	firstauth := firstline.MyAu()
 
-	lines := srch.Results
-	block := make([]string, len(srch.Results))
-	for i, l := range lines {
+	lines := srch.Results.Generate()
+	block := make([]string, srch.Results.Len())
+
+	j := 0
+	for l := range lines {
 		l.PurgeMetadata()
-		block[i] = l.MarkedUp
+		block[j] = l.MarkedUp
+		j++
 	}
+
+	//lines := srch.Results
+	//block := make([]string, srch.Results.Len())
+	//for i, l := range lines {
+	//	l.PurgeMetadata()
+	//	block[i] = l.MarkedUp
+	//}
 
 	whole := strings.Join(block, SNIP)
 	whole = textblockcleaner(whole)
 	block = strings.Split(whole, SNIP)
 
 	for i := 0; i < len(block); i++ {
-		lines[i].MarkedUp = block[i]
+		srch.Results.Lines[i].MarkedUp = block[i]
 	}
 
 	// delete after use...
 	whole = ""
 	block = []string{""}
 
-	trr := make([]string, len(lines))
-	previous := lines[0]
+	trr := make([]string, srch.Results.Len())
+	previous := srch.Results.Lines[0]
 	workcount := 1
 
-	for i := 0; i < len(lines); i++ {
-		cit := selectivelydisplaycitations(lines[i], previous, -1)
-		trr[i] = fmt.Sprintf(TBLRW, lines[i].Annotations, lines[i].MarkedUp, cit)
-		if lines[i].WkUID != previous.WkUID {
+	k := 0
+	lines = srch.Results.Generate()
+	for l := range lines {
+		cit := selectivelydisplaycitations(l, previous, -1)
+		trr[k] = fmt.Sprintf(TBLRW, l.Annotations, l.MarkedUp, cit)
+		if l.WkUID != previous.WkUID {
 			// you were doing multi-text generation
 			workcount += 1
-			aw := lines[i].MyAu().Name + fmt.Sprintf(`, <span class="italic">%s</span>`, lines[i].MyWk().Title)
+			aw := l.MyAu().Name + fmt.Sprintf(`, <span class="italic">%s</span>`, l.MyWk().Title)
 			aw = fmt.Sprintf(`<hr><span class="emph">[%d] %s</span>`, workcount, aw)
 			extra := fmt.Sprintf(TBLRW, "", aw, "")
-			trr[i] = extra + trr[i]
+			trr[k] = extra + trr[k]
 		}
-		previous = lines[i]
+		previous = l
+		k++
 	}
+
+	//for i := 0; i < srch.Results.Len(); i++ {
+	//	cit := selectivelydisplaycitations(lines[i], previous, -1)
+	//	trr[i] = fmt.Sprintf(TBLRW, lines[i].Annotations, lines[i].MarkedUp, cit)
+	//	if lines[i].WkUID != previous.WkUID {
+	//		// you were doing multi-text generation
+	//		workcount += 1
+	//		aw := lines[i].MyAu().Name + fmt.Sprintf(`, <span class="italic">%s</span>`, lines[i].MyWk().Title)
+	//		aw = fmt.Sprintf(`<hr><span class="emph">[%d] %s</span>`, workcount, aw)
+	//		extra := fmt.Sprintf(TBLRW, "", aw, "")
+	//		trr[i] = extra + trr[i]
+	//	}
+	//	previous = lines[i]
+	//}
 
 	tab := strings.Join(trr, "")
 	// that was the body, now do the head and tail
-	top := fmt.Sprintf(`<div id="browsertableuid" uid="%s"></div>`, lines[0].AuID())
+	top := fmt.Sprintf(`<div id="browsertableuid" uid="%s"></div>`, srch.Results.Lines[0].AuID())
 	top += `<table><tbody>`
 	top += `<tr class="spacing">` + strings.Repeat("&nbsp;", MINBROWSERWIDTH) + `</tr>`
 
@@ -160,7 +187,7 @@ func RtTextMaker(c echo.Context) error {
 	sum := fmt.Sprintf(SUMM, au, ti, ct)
 
 	cp := ""
-	if len(srch.Results) == MAXTEXTLINEGENERATION {
+	if srch.Results.Len() == MAXTEXTLINEGENERATION {
 		m := message.NewPrinter(language.English)
 		cp = m.Sprintf(HITCAP, MAXTEXTLINEGENERATION)
 	}
@@ -266,25 +293,41 @@ func RtVocabMaker(c echo.Context) error {
 	mx := Config.MaxText * MAXVOCABLINEGENERATION
 	vocabsrch := sessionintobulksearch(c, mx) // allow vocab lists to ingest more lines that text & index makers
 
-	if len(vocabsrch.Results) == 0 {
+	if vocabsrch.Results.Len() == 0 {
 		return emptyjsreturn(c)
 	}
 
 	var slicedwords []WordInfo
-	for i := 0; i < len(vocabsrch.Results); i++ {
-		wds := vocabsrch.Results[i].AccentedSlice()
+	rr := vocabsrch.Results.Generate()
+	for r := range rr {
+		wds := r.AccentedSlice()
 		for _, w := range wds {
 			this := WordInfo{
 				HeadWd:     "",
 				Word:       UVσςϲ(SwapAcuteForGrave(w)),
-				Loc:        vocabsrch.Results[i].BuildHyperlink(),
-				Cit:        vocabsrch.Results[i].Citation(),
+				Loc:        r.BuildHyperlink(),
+				Cit:        r.Citation(),
 				IsHomonymn: false,
-				Wk:         vocabsrch.Results[i].WkUID,
+				Wk:         r.WkUID,
 			}
 			slicedwords = append(slicedwords, this)
 		}
 	}
+
+	//for i := 0; i < len(vocabsrch.Results); i++ {
+	//	wds := vocabsrch.Results[i].AccentedSlice()
+	//	for _, w := range wds {
+	//		this := WordInfo{
+	//			HeadWd:     "",
+	//			Word:       UVσςϲ(SwapAcuteForGrave(w)),
+	//			Loc:        vocabsrch.Results[i].BuildHyperlink(),
+	//			Cit:        vocabsrch.Results[i].Citation(),
+	//			IsHomonymn: false,
+	//			Wk:         vocabsrch.Results[i].WkUID,
+	//		}
+	//		slicedwords = append(slicedwords, this)
+	//	}
+	//}
 
 	// [b] find the Unique values we are working with
 	distinct := make(map[string]bool, len(slicedwords))
@@ -433,17 +476,17 @@ func RtVocabMaker(c echo.Context) error {
 
 	// [g2] build the summary: jso.SU
 
-	an := vocabsrch.Results[0].MyAu().Cleaname
+	an := vocabsrch.Results.Lines[0].MyAu().Cleaname
 	if vocabsrch.TableSize > 1 {
 		an = an + fmt.Sprintf(" and %d more author(s)", vocabsrch.TableSize-1)
 	}
 
-	wn := vocabsrch.Results[0].MyWk().Title
+	wn := vocabsrch.Results.Lines[0].MyWk().Title
 	if vocabsrch.SearchSize > 1 {
 		wn = wn + fmt.Sprintf(" and %d more works(s)", vocabsrch.SearchSize-1)
 	}
 
-	cf := vocabsrch.Results[0].MyWk().CitationFormat()
+	cf := vocabsrch.Results.Lines[0].MyWk().CitationFormat()
 	var tc []string
 	for _, x := range cf {
 		if len(x) != 0 {
@@ -461,7 +504,7 @@ func RtVocabMaker(c echo.Context) error {
 	ky := multiworkkeymaker(mp, &vocabsrch)
 
 	cp := ""
-	if len(vocabsrch.Results) == mx {
+	if vocabsrch.Results.Len() == mx {
 		cp = m.Sprintf(HITCAP, mx)
 	}
 
@@ -570,29 +613,47 @@ func RtIndexMaker(c echo.Context) error {
 
 	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 
-	if len(srch.Results) == 0 {
+	if srch.Results.IsEmpty() {
 		return emptyjsreturn(c)
 	}
 
 	var slicedwords []WordInfo
-	for i := 0; i < len(srch.Results); i++ {
-		wds := srch.Results[i].AccentedSlice()
+
+	rr := srch.Results.Generate()
+
+	for r := range rr {
+		wds := r.AccentedSlice()
 		for _, w := range wds {
 			this := WordInfo{
 				HeadWd:     "",
 				Word:       UVσςϲ(SwapAcuteForGrave(w)),
-				Loc:        srch.Results[i].BuildHyperlink(),
-				Cit:        srch.Results[i].Citation(),
+				Loc:        r.BuildHyperlink(),
+				Cit:        r.Citation(),
 				IsHomonymn: false,
-				Wk:         srch.Results[i].WkUID,
+				Wk:         r.WkUID,
 			}
 			slicedwords = append(slicedwords, this)
 		}
 	}
 
-	firstresult := srch.Results[0]
-	linesingested := len(srch.Results)
-	srch.Results = make([]DbWorkline, 1) // clearing after use
+	//for i := 0; i < len(srch.Results); i++ {
+	//	wds := srch.Results[i].AccentedSlice()
+	//	for _, w := range wds {
+	//		this := WordInfo{
+	//			HeadWd:     "",
+	//			Word:       UVσςϲ(SwapAcuteForGrave(w)),
+	//			Loc:        srch.Results[i].BuildHyperlink(),
+	//			Cit:        srch.Results[i].Citation(),
+	//			IsHomonymn: false,
+	//			Wk:         srch.Results[i].WkUID,
+	//		}
+	//		slicedwords = append(slicedwords, this)
+	//	}
+	//}
+
+	firstresult := srch.Results.FirstLine()
+	linesingested := srch.Results.Len()
+	srch.Results.Lines = make([]DbWorkline, 1) // clearing after use
 
 	// [b] find the Unique values
 	distinct := make(map[string]bool, len(slicedwords))

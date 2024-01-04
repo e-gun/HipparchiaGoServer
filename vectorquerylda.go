@@ -98,7 +98,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 		vs = srch
 	}
 
-	bags := ldapreptext(se.VecTextPrep, vs.Results)
+	bags := ldapreptext(se.VecTextPrep, vs.Results.Lines)
 
 	corpus := make([]string, len(bags))
 	for i := 0; i < len(bags); i++ {

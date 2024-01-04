@@ -48,12 +48,12 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 		mx = ss.CurrentLimit * 3
 	}
 
-	results := ResultCollation(ctx, &ss, mx, ResultAggregator(ctx, findchannels...))
-	if len(results) > mx {
-		results = results[0:mx]
-	}
+	foundlines := ResultCollation(ctx, &ss, mx, ResultAggregator(ctx, findchannels...))
 
-	ss.Results = results
+	wlb := WorkLineBundle{Lines: foundlines}
+	wlb.ResizeTo(mx)
+
+	ss.Results = wlb
 	return ss
 }
 

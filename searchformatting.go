@@ -63,7 +63,9 @@ func FormatNoContextResults(ss *SearchStruct) SearchOutputJSON {
 
 	var b bytes.Buffer
 
-	for i, r := range ss.Results {
+	rr := ss.Results.Generate()
+	i := 0
+	for r := range rr {
 		r.PurgeMetadata()
 		// highlight search term; should be folded into a single function w/ highlightsearchterm() below [type problem now]
 		if searchterm.MatchString(r.MarkedUp) {
@@ -107,8 +109,55 @@ func FormatNoContextResults(ss *SearchStruct) SearchOutputJSON {
 
 		err := trt.Execute(&b, tr)
 		chke(err)
-
+		i++
 	}
+
+	//for i, r := range ss.Results {
+	//	r.PurgeMetadata()
+	//	// highlight search term; should be folded into a single function w/ highlightsearchterm() below [type problem now]
+	//	if searchterm.MatchString(r.MarkedUp) {
+	//		r.MarkedUp = searchterm.ReplaceAllString(r.MarkedUp, MUREPLACE)
+	//	} else {
+	//		// might be in the hyphenated line
+	//		if searchterm.MatchString(r.Hyphenated) {
+	//			// needs more fiddling
+	//			r.MarkedUp += fmt.Sprintf(HYPHREPLACE, r.Hyphenated)
+	//		}
+	//	}
+	//
+	//	mu := formateditorialbrackets(r.MarkedUp)
+	//
+	//	rc := ""
+	//	if i%3 == 2 {
+	//		rc = "nthrow"
+	//	} else {
+	//		rc = "regular"
+	//	}
+	//
+	//	au := r.MyAu().Shortname
+	//	wk := r.MyWk().Title
+	//	lk := r.BuildHyperlink()
+	//	lc := strings.Join(r.FindLocus(), ".")
+	//
+	//	// <span class="foundauthor">%s</span>,&nbsp;<span class="foundwork">%s</span>: <browser id="%s"><span class="foundlocus">%s</span></browser>
+	//	ci := fmt.Sprintf(SPSUBBER, au, wk, lk, lc)
+	//	ci = avoidlonglines(ci, MAXTITLELENGTH)
+	//	ci = strings.Replace(ci, "<spc", `<span class="found`, -1)
+	//	ci = strings.Replace(ci, `browser_id`, `browser id`, -1)
+	//
+	//	tr := TRTempl{
+	//		TRClass:    rc,
+	//		FindNumber: i + 1,
+	//		FindDate:   formatinscriptiondates(DATES, &r),
+	//		FindCity:   formatinscriptionplaces(&r),
+	//		FindLocus:  ci,
+	//		TheLine:    mu,
+	//	}
+	//
+	//	err := trt.Execute(&b, tr)
+	//	chke(err)
+	//
+	//}
 
 	var out SearchOutputJSON
 	out.JS = fmt.Sprintf(BROWSERJS, "browser")
@@ -182,33 +231,46 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 
 	context := thesession.HitContext / 2
 
-	res.SearchIn.Passages = make([]string, len(res.Results))
-	for i, r := range res.Results {
+	res.SearchIn.Passages = make([]string, res.Results.Len())
+	ii := 0
+	rr := res.Results.Generate()
+	for r := range rr {
 		low := r.TbIndex - context
 		high := r.TbIndex + context
 		if low < 1 {
 			// avoid "gr0258_FROM_-1_TO_3"
 			low = 1
 		}
-		res.SearchIn.Passages[i] = fmt.Sprintf(PSGTEMPL, r.AuID(), low, high)
+		res.SearchIn.Passages[ii] = fmt.Sprintf(PSGTEMPL, r.AuID(), low, high)
+		ii++
 	}
 
-	res.Results = []DbWorkline{}
+	res.Results.Lines = []DbWorkline{}
 	SSBuildQueries(&res)
 	res = HGoSrch(res)
 
 	// now you have all the lines you will ever need
 	linemap := make(map[string]DbWorkline)
-	for _, r := range res.Results {
+
+	rr = res.Results.Generate()
+	for r := range rr {
 		linemap[r.BuildHyperlink()] = r
 	}
 
+	//for _, r := range res.Results {
+	//	linemap[r.BuildHyperlink()] = r
+	//}
+
 	// iterate over the results to build the raw core data
 
-	allpassages := make([]PsgFormattingTemplate, len(thesearch.Results))
-	for i, r := range thesearch.Results {
+	allpassages := make([]PsgFormattingTemplate, thesearch.Results.Len())
+	// fmt.Println(thesearch.Results.Len())
+	// 0
+	rr = thesearch.Results.Generate()
+	kk := 0
+	for r := range rr {
 		var psg PsgFormattingTemplate
-		psg.Findnumber = i + 1
+		psg.Findnumber = kk + 1
 		psg.Foundauthor = r.MyAu().Name
 		psg.Foundwork = r.MyWk().Title
 		psg.FindURL = r.BuildHyperlink()
@@ -236,8 +298,42 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 			c.Hyphenated = psg.RawCTX[j].Hyphenated
 			psg.CookedCTX[j] = c
 		}
-		allpassages[i] = psg
+		allpassages[kk] = psg
+		kk++
 	}
+
+	//for i, r := range thesearch.Results {
+	//	var psg PsgFormattingTemplate
+	//	psg.Findnumber = i + 1
+	//	psg.Foundauthor = r.MyAu().Name
+	//	psg.Foundwork = r.MyWk().Title
+	//	psg.FindURL = r.BuildHyperlink()
+	//	psg.FindLocus = strings.Join(r.FindLocus(), ".")
+	//	psg.FindDate = formatinscriptiondates(DTT, &r)
+	//	psg.FindCity = formatinscriptionplaces(&r)
+	//
+	//	for j := r.TbIndex - context; j <= r.TbIndex+context; j++ {
+	//		url := fmt.Sprintf(URT, r.AuID(), r.WkID(), j)
+	//		psg.RawCTX = append(psg.RawCTX, linemap[url])
+	//	}
+	//
+	//	psg.CookedCTX = make([]ResultPassageLine, len(psg.RawCTX))
+	//	for j := 0; j < len(psg.RawCTX); j++ {
+	//		c := ResultPassageLine{}
+	//		c.Locus = strings.Join(psg.RawCTX[j].FindLocus(), ".")
+	//
+	//		if psg.RawCTX[j].BuildHyperlink() == psg.FindURL {
+	//			c.IsHighlight = true
+	//		} else {
+	//			c.IsHighlight = false
+	//		}
+	//		psg.RawCTX[j].PurgeMetadata()
+	//		c.Contents = psg.RawCTX[j].MarkedUp
+	//		c.Hyphenated = psg.RawCTX[j].Hyphenated
+	//		psg.CookedCTX[j] = c
+	//	}
+	//	allpassages[i] = psg
+	//}
 
 	// fix the unmattched spans
 	for _, p := range allpassages {
@@ -316,7 +412,6 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 	}
 
 	SIDel <- res.ID
-
 	return out
 }
 
@@ -365,7 +460,7 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 	}
 
 	var hitcap string
-	if len(s.Results) == s.CurrentLimit {
+	if s.Results.Len() == s.CurrentLimit {
 		hitcap = YESCAP
 	} else {
 		hitcap = NOCAP
@@ -391,7 +486,7 @@ func formatfinalsearchsummary(s *SearchStruct) string {
 
 	el := fmt.Sprintf("%.2f", time.Now().Sub(s.Launched).Seconds())
 	// need to record # of works and not # of tables somewhere & at the right moment...
-	sum := m.Sprintf(TEMPL, s.ExtraMsg, s.InitSum, s.SearchSize, len(s.Results), el, so, oh, dr, hitcap)
+	sum := m.Sprintf(TEMPL, s.ExtraMsg, s.InitSum, s.SearchSize, s.Results.Len(), el, so, oh, dr, hitcap)
 	return sum
 }
 

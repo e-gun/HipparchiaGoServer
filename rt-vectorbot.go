@@ -171,11 +171,11 @@ func nnmodelbot(c echo.Context, s SearchStruct, a string) {
 		s.IsActive = true
 		s.TableSize = 1
 		s = HGoSrch(s)
-		if len(s.Results) > MINSIZE {
+		if s.Results.Len() > MINSIZE {
 			embs := generateembeddings(c, m, s)
 			vectordbaddnn(fp, embs)
 		} else {
-			msg(fmt.Sprintf(MSG2, a, len(s.Results)), MSGTMI)
+			msg(fmt.Sprintf(MSG2, a, s.Results.Len()), MSGTMI)
 		}
 	}
 }

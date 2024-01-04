@@ -140,18 +140,18 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	p := message.NewPrinter(language.English)
 
 	// vectorbot already has s.Results vs normal user who does not
-	if len(s.Results) == 0 {
+	if s.Results.IsEmpty() {
 		vs = sessionintobulksearch(c, Config.VectorMaxlines)
-		msg(fmt.Sprintf(MSG1, len(vs.Results)), MSGPEEK)
+		msg(fmt.Sprintf(MSG1, vs.Results.Len()), MSGPEEK)
 		s.Results = vs.Results
-		SIUpdateVProgMsg <- SIKVs{s.ID, p.Sprintf(TBMSG, len(vs.Results))}
+		SIUpdateVProgMsg <- SIKVs{s.ID, p.Sprintf(TBMSG, vs.Results.Len())}
 		AllSearches.Delete(vs.ID)
 	}
 
 	// AllSearches.UpdateSS(s)
 
-	thetext := buildtextblock(s.VecTextPrep, s.Results)
-	s.Results = []DbWorkline{}
+	thetext := buildtextblock(s.VecTextPrep, s.Results.Lines)
+	s.Results.Lines = []DbWorkline{}
 
 	// "thetext" for Albinus , poet. [lt2002]
 	// res romanus liber⁴ eo¹ ille qui¹ terni capitolium celsus¹ triumphus sponte deus pateo qui¹ fretus¹ nullus re-pono abscondo sinus¹ non tueor moenia¹ urbs de metrum †uilem spondeus totus¹ concludo verro possum fio jungo sed dactylus aptus

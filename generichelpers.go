@@ -54,11 +54,11 @@ func showinterimresults(s *SearchStruct) {
 
 	msg(NB, MSGWARN)
 
-	mp := make(map[string]DbWorkline, len(s.Results))
-	kk := make([]string, len(s.Results))
+	mp := make(map[string]DbWorkline, s.Results.Len())
+	kk := make([]string, s.Results.Len())
 
-	for i := 0; i < len(s.Results); i++ {
-		r := s.Results[i]
+	for i := 0; i < s.Results.Len(); i++ {
+		r := s.Results.Lines[i]
 		mp[r.BuildHyperlink()] = r
 		kk[i] = r.BuildHyperlink()
 	}

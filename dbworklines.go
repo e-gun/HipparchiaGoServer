@@ -240,33 +240,48 @@ type LevelValues struct {
 }
 
 type WorkLineBundle struct {
-	Lines       []DbWorkline
-	Sender      chan DbWorkline
-	ReceiveOne  chan DbWorkline
-	RecieveMany chan []DbWorkline
+	Lines []DbWorkline
 }
 
+// Generate - don't copy everything at once; send it over a channel
 func (wlb *WorkLineBundle) Generate() chan DbWorkline {
-	c := make(chan DbWorkline)
+	const (
+		BUFFERSIZE = 10
+	)
+
+	c := make(chan DbWorkline, BUFFERSIZE)
 	go func() {
 		for i := 0; i < len(wlb.Lines); i++ {
 			c <- wlb.Lines[i]
 		}
+		close(c)
 	}()
 	return c
-}
-
-func (wlb *WorkLineBundle) AddOne(wl DbWorkline) {
-	wlb.Lines = append(wlb.Lines, wl)
-}
-
-func (wlb *WorkLineBundle) AddMany(wll []DbWorkline) {
-	wlb.Lines = append(wlb.Lines, wll...)
 }
 
 func (wlb *WorkLineBundle) ResizeTo(i int) {
 	if i < len(wlb.Lines) {
 		wlb.Lines = wlb.Lines[0:i]
+	}
+}
+
+func (wlb *WorkLineBundle) Len() int {
+	return len(wlb.Lines)
+}
+
+func (wlb *WorkLineBundle) IsEmpty() bool {
+	if len(wlb.Lines) == 0 {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (wlb *WorkLineBundle) FirstLine() DbWorkline {
+	if len(wlb.Lines) != 0 {
+		return wlb.Lines[0]
+	} else {
+		return DbWorkline{}
 	}
 }
 
