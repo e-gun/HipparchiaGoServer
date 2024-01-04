@@ -151,14 +151,13 @@ func RtGetJSWorksStruct(c echo.Context) error {
 		parsed = append(parsed, "")
 	}
 
-	if _, ok := AllWorks[wkid]; !ok {
+	if w, ok := AllWorks[wkid]; !ok {
 		return emptyjsreturn(c)
+	} else {
+		locc := strings.Split(parsed[2], "|")
+		lvls := w.FindValidLevelValues(locc)
+		return c.JSONPretty(http.StatusOK, lvls, JSONINDENT)
 	}
-
-	locc := strings.Split(parsed[2], "|")
-	lvls := findvalidlevelvalues(wkid, locc)
-
-	return c.JSONPretty(http.StatusOK, lvls, JSONINDENT)
 }
 
 // RtGetJSHelpdata - populate <div id="helptabs"> on frontpage.html via $('#helpbutton').click in documentready.js

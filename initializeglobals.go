@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"sort"
 	"strings"
 	"time"
 )
@@ -97,12 +98,12 @@ type DbWork struct {
 }
 
 // WkID - ex: gr2017w068 --> 068
-func (dbw DbWork) WkID() string {
+func (dbw *DbWork) WkID() string {
 	return dbw.UID[7:]
 }
 
 // AuID - ex: gr2017w068 --> gr2017
-func (dbw DbWork) AuID() string {
+func (dbw *DbWork) AuID() string {
 	if len(dbw.UID) < 6 {
 		return ""
 	} else {
@@ -111,7 +112,7 @@ func (dbw DbWork) AuID() string {
 }
 
 // MyAu - return the work's DbAuthor
-func (dbw DbWork) MyAu() *DbAuthor {
+func (dbw *DbWork) MyAu() *DbAuthor {
 	a, ok := AllAuthors[dbw.AuID()]
 	if !ok {
 		msg(fmt.Sprintf("DbWork.MyAu() failed to find '%s'", dbw.AuID()), MSGWARN)
@@ -120,7 +121,7 @@ func (dbw DbWork) MyAu() *DbAuthor {
 	return a
 }
 
-func (dbw DbWork) CitationFormat() []string {
+func (dbw *DbWork) CitationFormat() []string {
 	cf := []string{
 		dbw.LL5, dbw.LL4, dbw.LL3, dbw.LL2, dbw.LL1, dbw.LL0,
 	}
@@ -128,7 +129,7 @@ func (dbw DbWork) CitationFormat() []string {
 }
 
 // CountLevels - the work structure employs how many levels?
-func (dbw DbWork) CountLevels() int {
+func (dbw *DbWork) CountLevels() int {
 	ll := 0
 	for _, l := range []string{dbw.LL5, dbw.LL4, dbw.LL3, dbw.LL2, dbw.LL1, dbw.LL0} {
 		if len(l) > 0 {
@@ -145,6 +146,98 @@ func (dbw DbWork) DateInRange(earliest int, latest int) bool {
 	} else {
 		return false
 	}
+}
+
+// FindValidLevelValues - tell me some of a citation and I can tell you what is a valid choice at the next step
+func (dbw *DbWork) FindValidLevelValues(locc []string) LevelValues {
+	// curl localhost:5000/get/json/workstructure/lt0959/001
+	// {"totallevels": 3, "level": 2, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
+	// curl localhost:5000/get/json/workstructure/lt0959/001/2
+	// {"totallevels": 3, "level": 1, "label": "poem", "low": "1", "high": "19", "range": ["1", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "2", "3", "4", "5", "6", "7", "8", "9a", "9b"]}
+
+	// select levellabels_00, levellabels_01, levellabels_02, levellabels_03, levellabels_04, levellabels_05 from works where universalid = 'lt0959w001';
+	// levellabels_00 | levellabels_01 | levellabels_02 | levellabels_03 | levellabels_04 | levellabels_05
+	//----------------+----------------+----------------+----------------+----------------+----------------
+	// verse          | poem           | book           |                |                |
+
+	const (
+		SEL    = SELECTFROM + ` WHERE wkuniversalid='%s' %s %s ORDER BY index ASC`
+		ANDNOT = `AND %s NOT IN ('t')`
+	)
+
+	// [a] what do we need?
+
+	lmap := map[int]string{0: dbw.LL0, 1: dbw.LL1, 2: dbw.LL2, 3: dbw.LL3, 4: dbw.LL4, 5: dbw.LL5}
+
+	lvls := dbw.CountLevels() - 1 // count vs indexing adjustment
+	atlvl := 0
+	if locc[0] == "" {
+		// at top
+		atlvl = lvls
+	} else {
+		atlvl = lvls - len(locc)
+	}
+
+	need := lvls - atlvl
+
+	if atlvl < 0 || need < 0 {
+		// logic bug in here somewhere...
+		// FAIL = "FindValidLevelValues() sent negative levels"
+		// msg(FAIL, MSGWARN)
+		return LevelValues{}
+	}
+
+	// [b] make a query
+
+	qmap := map[int]string{0: "level_00_value", 1: "level_01_value", 2: "level_02_value", 3: "level_03_value",
+		4: "level_04_value", 5: "level_05_value"}
+
+	var ands []string
+	for i := 0; i < need; i++ {
+		// example: xen's anabasis (gr0032w006) has 4 levels
+		// top is 3; need just all vals @ 3; so no ands
+		// next is 2; need "level_03_value='X'" (ie, qmap[3] and locc[0])
+		// next is 1; need "level_03_value='X' AND level_02_value='Y'" (ie, qmap[3] and locc[0] + qmap[2] and locc[1])
+		// next is 0; need "level_03_value='X' AND level_02_value='Y' AND level_01_value='Z'"
+		q := lvls - i
+		a := fmt.Sprintf(`%s='%s'`, qmap[q], locc[i])
+		ands = append(ands, a)
+	}
+
+	var and string
+	if len(ands) > 0 {
+		and = " AND " + strings.Join(ands, " AND ")
+	}
+	andnot := fmt.Sprintf(ANDNOT, qmap[atlvl])
+
+	var prq PrerolledQuery
+	prq.PsqlQuery = fmt.Sprintf(SEL, dbw.AuID(), dbw.UID, and, andnot)
+
+	dbconn := GetPSQLconnection()
+	defer dbconn.Release()
+	lines := WorklineQuery(prq, dbconn)
+
+	// [c] extract info from the hitlines returned
+	var vals LevelValues
+	vals.AtLvl = atlvl
+	vals.Label = lmap[atlvl]
+
+	if len(lines) == 0 {
+		return vals
+	}
+
+	vals.Total = lines[0].Lvls()
+	vals.Low = lines[0].LvlVal(atlvl)
+	vals.High = lines[len(lines)-1].LvlVal(atlvl)
+	var r []string
+	for i := range lines {
+		r = append(r, lines[i].LvlVal(atlvl))
+	}
+	r = Unique(r)
+	sort.Strings(r)
+	vals.Range = r
+
+	return vals
 }
 
 type DbLemma struct {

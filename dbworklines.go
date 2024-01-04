@@ -11,7 +11,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"regexp"
-	"sort"
 	"strings"
 )
 
@@ -53,17 +52,6 @@ var (
 	MDRemap = map[string]string{"provenance": "loc:", "documentnumber": "#", "publicationinfo": "pub:", "notes": "",
 		"city": "c:", "region": "r:", "date": "d:"}
 )
-
-type LevelValues struct {
-	// for JSON output...
-	// {"totallevels": 3, "level": 2, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
-	Total int      `json:"totallevels"`
-	AtLvl int      `json:"level"`
-	Label string   `json:"label"`
-	Low   string   `json:"low"`
-	High  string   `json:"high"`
-	Range []string `json:"range"`
-}
 
 type DbWorkline struct {
 	WkUID       string
@@ -240,6 +228,52 @@ func (dbw *DbWorkline) LvlVal(lvl int) string {
 	}
 }
 
+type LevelValues struct {
+	// for JSON output...
+	// {"totallevels": 3, "level": 2, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
+	Total int      `json:"totallevels"`
+	AtLvl int      `json:"level"`
+	Label string   `json:"label"`
+	Low   string   `json:"low"`
+	High  string   `json:"high"`
+	Range []string `json:"range"`
+}
+
+type WorkLineBundle struct {
+	Lines       []DbWorkline
+	Sender      chan DbWorkline
+	ReceiveOne  chan DbWorkline
+	RecieveMany chan []DbWorkline
+}
+
+func (wlb *WorkLineBundle) Generate() chan DbWorkline {
+	c := make(chan DbWorkline)
+	go func() {
+		for i := 0; i < len(wlb.Lines); i++ {
+			c <- wlb.Lines[i]
+		}
+	}()
+	return c
+}
+
+func (wlb *WorkLineBundle) AddOne(wl DbWorkline) {
+	wlb.Lines = append(wlb.Lines, wl)
+}
+
+func (wlb *WorkLineBundle) AddMany(wll []DbWorkline) {
+	wlb.Lines = append(wlb.Lines, wll...)
+}
+
+func (wlb *WorkLineBundle) ResizeTo(i int) {
+	if i < len(wlb.Lines) {
+		wlb.Lines = wlb.Lines[0:i]
+	}
+}
+
+//
+// QUERY FUNCTIONS
+//
+
 // WorklineQuery - use a PrerolledQuery to acquire []DbWorkline
 func WorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
 	// NB: you have to use a dbconn.Exec() and can't use SQLPool.Exex() because with the latter
@@ -286,7 +320,7 @@ func GrabOneLine(table string, line int) DbWorkline {
 	}
 }
 
-// SimpleContextGrabber - grab a pile of lines centered around the focusline
+// SimpleContextGrabber - grab a pile of Lines centered around the focusline
 func SimpleContextGrabber(table string, focus int, context int) []DbWorkline {
 	const (
 		QTMPL = "SELECT %s FROM %s WHERE (index BETWEEN %d AND %d) ORDER by index"
@@ -305,97 +339,4 @@ func SimpleContextGrabber(table string, focus int, context int) []DbWorkline {
 	foundlines := WorklineQuery(prq, dbconn)
 
 	return foundlines
-}
-
-// findvalidlevelvalues - tell me some of a citation and I can tell you what is a valid choice at the next step
-func findvalidlevelvalues(wkid string, locc []string) LevelValues {
-	// curl localhost:5000/get/json/workstructure/lt0959/001
-	// {"totallevels": 3, "level": 2, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
-	// curl localhost:5000/get/json/workstructure/lt0959/001/2
-	// {"totallevels": 3, "level": 1, "label": "poem", "low": "1", "high": "19", "range": ["1", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "2", "3", "4", "5", "6", "7", "8", "9a", "9b"]}
-
-	// select levellabels_00, levellabels_01, levellabels_02, levellabels_03, levellabels_04, levellabels_05 from works where universalid = 'lt0959w001';
-	// levellabels_00 | levellabels_01 | levellabels_02 | levellabels_03 | levellabels_04 | levellabels_05
-	//----------------+----------------+----------------+----------------+----------------+----------------
-	// verse          | poem           | book           |                |                |
-
-	const (
-		SEL    = SELECTFROM + ` WHERE wkuniversalid='%s' %s %s ORDER BY index ASC`
-		ANDNOT = `AND %s NOT IN ('t')`
-	)
-
-	// [a] what do we need?
-
-	w := AllWorks[wkid]
-	lmap := map[int]string{0: w.LL0, 1: w.LL1, 2: w.LL2, 3: w.LL3, 4: w.LL4, 5: w.LL5}
-
-	lvls := w.CountLevels() - 1 // count vs indexing adjustment
-	atlvl := 0
-	if locc[0] == "" {
-		// at top
-		atlvl = lvls
-	} else {
-		atlvl = lvls - len(locc)
-	}
-
-	need := lvls - atlvl
-
-	if atlvl < 0 || need < 0 {
-		// logic bug in here somewhere...
-		// FAIL = "findvalidlevelvalues() sent negative levels"
-		// msg(FAIL, MSGWARN)
-		return LevelValues{}
-	}
-
-	// [b] make a query
-
-	qmap := map[int]string{0: "level_00_value", 1: "level_01_value", 2: "level_02_value", 3: "level_03_value",
-		4: "level_04_value", 5: "level_05_value"}
-
-	var ands []string
-	for i := 0; i < need; i++ {
-		// example: xen's anabasis (gr0032w006) has 4 levels
-		// top is 3; need just all vals @ 3; so no ands
-		// next is 2; need "level_03_value='X'" (ie, qmap[3] and locc[0])
-		// next is 1; need "level_03_value='X' AND level_02_value='Y'" (ie, qmap[3] and locc[0] + qmap[2] and locc[1])
-		// next is 0; need "level_03_value='X' AND level_02_value='Y' AND level_01_value='Z'"
-		q := lvls - i
-		a := fmt.Sprintf(`%s='%s'`, qmap[q], locc[i])
-		ands = append(ands, a)
-	}
-
-	var and string
-	if len(ands) > 0 {
-		and = " AND " + strings.Join(ands, " AND ")
-	}
-	andnot := fmt.Sprintf(ANDNOT, qmap[atlvl])
-
-	var prq PrerolledQuery
-	prq.PsqlQuery = fmt.Sprintf(SEL, w.AuID(), wkid, and, andnot)
-
-	dbconn := GetPSQLconnection()
-	defer dbconn.Release()
-	lines := WorklineQuery(prq, dbconn)
-
-	// [c] extract info from the hitlines returned
-	var vals LevelValues
-	vals.AtLvl = atlvl
-	vals.Label = lmap[atlvl]
-
-	if len(lines) == 0 {
-		return vals
-	}
-
-	vals.Total = lines[0].Lvls()
-	vals.Low = lines[0].LvlVal(atlvl)
-	vals.High = lines[len(lines)-1].LvlVal(atlvl)
-	var r []string
-	for i := range lines {
-		r = append(r, lines[i].LvlVal(atlvl))
-	}
-	r = Unique(r)
-	sort.Strings(r)
-	vals.Range = r
-
-	return vals
 }
