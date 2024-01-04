@@ -239,13 +239,13 @@ func (dbw *DbWorkline) LvlVal(lvl int) string {
 	}
 }
 
+// WorklineQuery - select proper code route; then use a PrerolledQuery to acquire []DbWorkline
 func WorklineQuery(prq PrerolledQuery, dbconn *DBConnectionHolder) []DbWorkline {
-	if SQLProvider == "pgsql" {
-		return PGXWorklineQuery(prq, dbconn)
-	} else {
+	if SQLProvider == "sqlite" {
 		return SQLITEWorklineQuery(prq, dbconn)
+	} else {
+		return PGXWorklineQuery(prq, dbconn)
 	}
-
 }
 
 // SQLITEWorklineQuery - use a PrerolledQuery to acquire []DbWorkline

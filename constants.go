@@ -8,10 +8,9 @@ package main
 import "time"
 
 const (
-	MYNAME    = "Hipparchia Golang Server"
-	SHORTNAME = "HGS"
-	VERSION   = "0.0.0"
-
+	MYNAME         = "Hipparchia Golang Server"
+	SHORTNAME      = "HGS"
+	VERSION        = "1.2.18sqlite"
 	GREEKCORP      = "gr"
 	LATINCORP      = "lt"
 	PAPYRUSCORP    = "dp"

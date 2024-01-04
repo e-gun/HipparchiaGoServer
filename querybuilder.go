@@ -185,7 +185,6 @@ func SSBuildQueries(s *SearchStruct) {
 		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
 		b := QueryBounds{st, sp}
 		boundedincl[au] = append(boundedincl[au], b)
-		// fmt.Printf("%s: %d - %d\n", au, st, sp)
 	}
 
 	for _, p := range exc.Passages {
@@ -238,7 +237,7 @@ func SSBuildQueries(s *SearchStruct) {
 		// [b2b] check to see if bounded by exclusions
 		if bb, found := boundedexcl[au]; found {
 			if len(bb) > TEMPTABLETHRESHOLD {
-				// note that 200 incl + 200 excl will produce garbage; in practice you have only au ton of one of them
+				// note that 200 incl + 200 excl will produce garbage; in practice you have only au on of one of them
 				prq.Auth = au
 				prq.Bounds = bb
 				prq.SSTTName = s.TTName
@@ -310,6 +309,8 @@ func SSBuildQueries(s *SearchStruct) {
 			}
 			// "index" before this point turns into: "AND ((&#34;index&#34; BETWEEN 1 AND 5))"
 			sprq.SQLQuery = strings.Replace(sprq.SQLQuery, `(index `, `("index" `, -1)
+			// template hates %, so current ٪ (arabic percent sign) --> %
+			sprq.SQLQuery = strings.Replace(sprq.SQLQuery, `٪`, `%`, -1)
 			prqq[count] = sprq
 			count += 1
 		}
@@ -489,6 +490,8 @@ func andorwhereclause(bounds []QueryBounds, templ string, negation string, synta
 
 // rewritesyntaxandskgdependingondbserver - pgsql and sqlite need to send different queries
 func rewritesyntaxandskgdependingondbserver(skg string) (string, string) {
+	// note that the template function hates "%"; so we are going to dodge it here
+	// % --> ٪ (arabic percent sign)
 	const (
 		QUERYSYNTAXPGSQL    = "~"
 		QUERYSYNTAXSQLITERG = "regexp"
@@ -507,7 +510,7 @@ func rewritesyntaxandskgdependingondbserver(skg string) (string, string) {
 
 	// [2a] find everything: don't change syn; change skg
 	if skg == "" {
-		skg = "%"
+		skg = "٪"
 		return syn, skg
 	}
 
@@ -518,7 +521,7 @@ func rewritesyntaxandskgdependingondbserver(skg string) (string, string) {
 	justheadortail = strings.Replace(justheadortail, `(\s|$)`, "", -1)
 
 	if usesregex.MatchString(justheadortail) {
-		fmt.Println("usesregex: " + justheadortail)
+		// fmt.Println("usesregex: " + justheadortail)
 		return QUERYSYNTAXSQLITERG, skg
 	}
 
@@ -527,16 +530,16 @@ func rewritesyntaxandskgdependingondbserver(skg string) (string, string) {
 		justhead := strings.Replace(skg, `(^|\s)`, "", -1)
 		justtail := strings.Replace(justheadortail, `(\s|$)`, "", -1)
 		if justhead != skg && justtail != skg {
-			skg = "% " + justheadortail + " %"
+			skg = "٪ " + justheadortail + " ٪"
 		} else if justhead != skg {
-			skg = "% " + justheadortail + "%"
+			skg = "٪ " + justheadortail + "٪"
 		} else if justtail != skg {
-			skg = "%" + justheadortail + " %"
+			skg = "٪" + justheadortail + " ٪"
 		}
 		return syn, skg
 	}
 
 	// [2d] find something via a basic "LIKE" search: don't change syn; change skg
-	skg = "%" + justheadortail + "%"
+	skg = "٪" + justheadortail + "٪"
 	return syn, skg
 }

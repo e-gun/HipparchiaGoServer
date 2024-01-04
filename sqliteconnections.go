@@ -20,18 +20,36 @@ import (
 // GENERAL NOTES re SQLITE
 //
 
+// [A] almost certainly NOT the best tool for the job of full text search
+
+// https://www.sqlitetutorial.net/sqlite-full-text-search/
+// https://www.sqlite.org/fts5.html
+
+// the problem is you have to create a table and a derivative virtual table with only text values in the columns
+// queries would need to be much, more complicated this way...
+// "WHERE INDEX BETWEEN 10 AND 20" is now a nightmare
+
+// CREATE VIRTUAL TABLE tb USING FTS5(a, b, c, ...);
+// also requires building the fts5 module: "go build --tags "fts5" && ./HipparchiaGoServer -gl 4 -lt"
+
+// [B] BUT, if we are pushing forward anyway...
+
+// [B1]
 // pg_dump hipparchiaDB --table=gr0007 --format plain > x.sql
 
 // https://pkg.go.dev/modernc.org/sqlite
 
+// [B2]
 // to fully implement sqlite you need to rewrite "querybuilder.go"
 // the chief problem with that is that sqlite uses "LIKE '%string%'" instead of "~ 'string'"
 // the syntax swap is not simple; you need to build a SQLITE extension to recover regexp
 // see https://pkg.go.dev/github.com/mattn/go-sqlite3#readme-extensions
 
+// [B3]
 // FAT: c. 1GB HipparchiaGoServer binary if the data is embedded
 
-// the 'regex' function is very SLOW vs Postgres; 'LIKE' is fine...
+// [B4]
+// the 'regex' function is very SLOW vs Postgres; 'LIKE' is fine... [nb: only corpus is lt here]
 // (lt regex)
 // [HGS-SELFTEST] [A1: 1.855s][Δ: 1.855s] single word in corpus: 'vervex'
 // [HGS-SELFTEST] [A2: 6.140s][Δ: 4.285s] phrase in corpus: 'plato omnem'
@@ -43,20 +61,26 @@ import (
 // (lt regex vs lt LIKE)
 // 2.28s for 'plato' w/in 1 line of 'omnem' vs .33s
 
-// the issue here is that *a lot* of searches use regex behind the scenes: "(\s|$)" is how we handle line ends...
+// disaster with selftest and both greek and latin active (in addition to the 60s launch time...) [not pegging system: how many workers are really working?]
+//[HGS-SELFTEST] [A1: 1.554s][Δ: 1.554s] single word in corpus: 'vervex'
+//[HGS-SELFTEST] [A2: 20.451s][Δ: 18.896s] phrase in corpus: 'plato omnem'
+//[HGS-SELFTEST] [A3: 55.458s][Δ: 35.007s] phrase near phrase: 'καὶ δὴ καὶ' near 'εἴ που καὶ'
+//[HGS-SELFTEST] [B1: 57.718s][Δ: 2.260s] lemma in corpus: 'φθορώδηϲ'
+//[HGS-SELFTEST] [B2: 77.519s][Δ: 19.801s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
+//[HGS-SELFTEST] [B3: 4767.590s][Δ: 4690.070s] lemma near lemma in corpus: 'πόλιϲ' near 'ὁπλίζω
 
-// NOT the best tool for the job: full text search
+// contrast postgres
+//[HGS-SELFTEST] [A1: 0.280s][Δ: 0.280s] single word in corpus: 'vervex'
+//[HGS-SELFTEST] [A2: 1.525s][Δ: 1.245s] phrase in corpus: 'plato omnem'
+//[HGS-SELFTEST] [A3: 3.135s][Δ: 1.610s] phrase near phrase: 'καὶ δὴ καὶ' near 'εἴ που καὶ'
+//[HGS-SELFTEST] [B1: 4.623s][Δ: 1.488s] lemma in corpus: 'φθορώδηϲ'
+//[HGS-SELFTEST] [B2: 6.068s][Δ: 1.445s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
+//[HGS-SELFTEST] [B3: 29.022s][Δ: 22.954s] lemma near lemma in corpus: 'πόλιϲ' near 'ὁπλίζω
 
-// https://www.sqlitetutorial.net/sqlite-full-text-search/
-// https://www.sqlite.org/fts5.html
+// *a lot* of searches use regex behind the scenes: "(\s|$)" is how we handle line ends...
+// so you can check and use LIKE as often as possible...
 
-// the problem is you have to create a table and a derivative virtual table with only text values in the columns
-// queries would need to be much, more complicated this way...
-// "WHERE INDEX BETWEEN 10 AND 20" is now a nightmare
-
-// CREATE VIRTUAL TABLE tb USING FTS5(a, b, c, ...);
-
-// also requires building the fts5 module: "go build --tags "fts5" && ./HipparchiaGoServer -gl 4 -lt"
+// a question arises: for lemmata is it faster to do 100 single-form searches or to do bundled regex searches?
 
 func InitializeSQLite() {
 	msg("**SQLITE IS NOT FOR RELEASE AND IS CERTAIN TO BREAK**", MSGCRIT)
@@ -116,10 +140,12 @@ func OpenSQLite() *sql.DB {
 
 // SQLilteLoadSupportDBs - load the support DBs into SQLite via the embedded filesystem
 func SQLilteLoadSupportDBs() {
-	//support := []string{"authors", "works", "latin_morphology", "greek_morphology", "latin_dictionary",
-	//	"greek_dictionary", "greek_lemmata", "latin_lemmata", "dictionary_headword_wordcounts"}
-	//counts := strings.Split("abcdefghijklmnopqrstuvwxyz0αβψδεφγηιξκλμνοπρϲτυω", "")
 
+	// no need to put "authors", "works", and "*_lemmata" into SQLite: they should go directly into AllWorks, etc.
+	// directload := []string{"authors", "works", "greek_lemmata", "latin_lemmata"}
+
+	//support := []string{ "latin_morphology", "greek_morphology", "latin_dictionary", "greek_dictionary",  "dictionary_headword_wordcounts"}
+	//counts := strings.Split("abcdefghijklmnopqrstuvwxyz0αβψδεφγηιξκλμνοπρϲτυω", "")
 }
 
 // SQLiteLoadActiveAuthors - load all active authors into SQLite via the embedded filesystem

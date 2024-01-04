@@ -315,7 +315,7 @@ func badsearch(msg string) SearchStruct {
 }
 
 func lemmaintoregexslice(hdwd string) []string {
-	// rather than do one word per query, bundle things up: some words have >100 forms
+	// rather than do one word per query, think about bundling things up: some words have >100 forms
 	// ...(^|\\s)ἐδηλώϲαντο(\\s|$)|(^|\\s)δεδηλωμένοϲ(\\s|$)|(^|\\s)δήλουϲ(\\s|$)|(^|\\s)δηλούϲαϲ(\\s|$)...
 	const (
 		FAILMSG = "lemmaintoregexslice() could not find '%s'"
@@ -328,7 +328,17 @@ func lemmaintoregexslice(hdwd string) []string {
 		return []string{FAILSLC}
 	}
 
-	tp := `(^|\s)%s(\s|$)`
+	tmpl := `(^|\s)%s(\s|$)`
+	mlcsz := MAXLEMMACHUNKSIZE
+
+	// `(^|\s)%s(\s|$)` kicks sqlite into the *ver slow* regex function
+	// so cross your fingers and just do lots of searches instead...
+	// "Sought »ciuitatis« within 1 lines of all 21 forms of »lex«": 15.8s vs 4.1s (vs .22s for postgres)
+	// todo: still have a "γα[ὶί]ην" problem...
+	if SQLProvider == "sqlite" {
+		tmpl = `%s`
+		mlcsz = 1
+	}
 
 	// there is a problem: unless you do something, "(^|\s)ἁλιεύϲ(\s|$)" will be a search term but this will not find "ἁλιεὺϲ"
 	var lemm []string
@@ -339,11 +349,11 @@ func lemmaintoregexslice(hdwd string) []string {
 	ct := 0
 	for true {
 		var bnd []string
-		for i := 0; i < MAXLEMMACHUNKSIZE; i++ {
+		for i := 0; i < mlcsz; i++ {
 			if ct > len(lemm)-1 {
 				break
 			}
-			re := fmt.Sprintf(tp, lemm[ct])
+			re := fmt.Sprintf(tmpl, lemm[ct])
 			bnd = append(bnd, re)
 			ct += 1
 		}
