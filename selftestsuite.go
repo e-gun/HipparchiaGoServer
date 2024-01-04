@@ -1,5 +1,5 @@
 //    HipparchiaGoServer
-//    Copyright: E Gunderson 2022-23
+//    Copyright: E Gunderson 2022-24
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //
 
