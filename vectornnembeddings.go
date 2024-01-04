@@ -150,7 +150,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 
 	// AllSearches.UpdateSS(s)
 
-	thetext := buildtextblock(s.VecTextPrep, s.Results.Lines)
+	thetext := buildtextblock(&s)
 	s.Results.Lines = []DbWorkline{}
 
 	// "thetext" for Albinus , poet. [lt2002]
@@ -270,15 +270,15 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 }
 
 // buildtextblock - turn []DbWorkline into a single long string
-func buildtextblock(method string, lines []DbWorkline) string {
-	const (
-		FAIL1 = "failed to unmarshal %s into objmap\n"
-		FAIL2 = "failed second pass unmarshal of %s into newmap\n"
-	)
+func buildtextblock(s *SearchStruct) string {
+
 	// [a] get all the words we need
 	var slicedwords []string
-	for i := 0; i < len(lines); i++ {
-		wds := lines[i].AccentedSlice()
+
+	rr := s.Results.Generate()
+
+	for r := range rr {
+		wds := r.AccentedSlice()
 		for _, w := range wds {
 			slicedwords = append(slicedwords, UVσςϲ(SwapAcuteForGrave(w)))
 		}
@@ -305,12 +305,12 @@ func buildtextblock(method string, lines []DbWorkline) string {
 	// with strings.Builder we only need .1s to build the text...
 
 	var sb strings.Builder
-	preallocate := CHARSPERLINE * len(lines) // NB: a long line has 60 chars
+	preallocate := CHARSPERLINE * s.Results.Len() // NB: a long line has 60 chars
 	sb.Grow(preallocate)
 
 	stops := getstopset()
 
-	switch method {
+	switch s.VecTextPrep {
 	case "unparsed":
 		flatstring(&sb, slicedwords)
 	case "montecarlo":

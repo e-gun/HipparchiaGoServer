@@ -71,66 +71,69 @@ self-test with vectors can be deceptive because `-wc` flag will not override con
 ## memory use during self-test
 
 ``` 
-[HGS] Hipparchia Golang Server (v1.1.6-pre) [git: 3cc8a3df] [gl=4; el=0]
-[HGS] [B1: 0.198s][Δ: 0.198s] unnested lemma map built (152382 items)
-[HGS] [A1: 0.264s][Δ: 0.264s] 236835 works built: map[string]DbWork
-[HGS] [B2: 0.273s][Δ: 0.075s] nested lemma map built
-[HGS] [A2: 0.302s][Δ: 0.037s] 3455 authors built: map[string]DbAuthor
-[HGS] [A3: 0.374s][Δ: 0.073s] corpus maps built
-[HGS] main() post-initialization runtime.GC() 239M --> 206M
-[HGS] initialization took 0.395s before reaching StartEchoServer()
+[HGS] Hipparchia Golang Server (v1.2.18-pre) [git: ff28002d] [default.pgo] [gl=4; el=0]
+	Built:	2024-01-04@17:29:21		Golang:	go1.21.5
+	System:	darwin-arm64			WKvCPU:	20/20
+[HGS] Number of stored vector models: 9
+[HGS] [A1: 0.164s][Δ: 0.164s] 7461 works built: map[string]DbWork
+[HGS] [A2: 0.171s][Δ: 0.007s] 2185 authors built: map[string]DbAuthor
+[HGS] [A3: 0.173s][Δ: 0.002s] corpus maps built
+[HGS] [B1: 0.217s][Δ: 0.217s] unnested lemma map built (158817 items)
+[HGS] [B2: 0.276s][Δ: 0.059s] nested lemma map built
+[HGS] main() post-initialization current heap: 94M
+[HGS] initialization took 0.277s
+[HGS] to stop the server press Control-C or close this window
 [HGS] Running Selftest 1 of 1
+[HGS-SELFTEST] entering selftestsuite mode (4 segments)
+[HGS-SELFTEST] [I] 6 search tests
 ⇨ http server started on 127.0.0.1:8000
-	Built:	2023-03-07@12:33:40
-	Go:	devel go1.21-84609d874e Mon Mar 6 23:46:08 2023 +0000
-[HGS] entering selftest mode (3 segments)
-[HGS] [I] 6 search tests
-[HGS] RtSearch() runtime.GC() 217M --> 210M
-[HGS] [A1: 0.308s][Δ: 0.308s] single word in corpus: 'vervex'
-[HGS] RtSearch() runtime.GC() 224M --> 215M
-[HGS] [A2: 1.598s][Δ: 1.290s] phrase in corpus: 'plato omnem'
-[HGS] [Δ: 1.360s]  WithinXLinesSearch(): 2307 initial hits
-[HGS] [Δ: 0.003s]  SSBuildQueries() rerun
-[HGS] [Δ: 0.023s]  WithinXLinesSearch(): 3 subsequent hits
-[HGS] RtSearch() runtime.GC() 261M --> 219M
-[HGS] [A3: 3.105s][Δ: 1.507s] phrase near phrase: 'καὶ δὴ καὶ' near 'εἴ που καὶ'
-[HGS] RtSearch() runtime.GC() 231M --> 222M
-[HGS] [B1: 4.504s][Δ: 1.399s] lemma in corpus: 'φθορώδηϲ'
-[HGS] [Δ: 3.800s]  WithinXLinesSearch(): 86256 initial hits
-[HGS] [Δ: 0.084s]  SSBuildQueries() rerun
-[HGS] [Δ: 0.263s]  WithinXLinesSearch(): 4 subsequent hits
-[HGS] RtSearch() runtime.GC() 386M --> 232M
-[HGS] [B2: 8.799s][Δ: 4.295s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
-[HGS] [Δ: 7.254s]  WithinXLinesSearch(): 99300 initial hits
-[HGS] [Δ: 0.164s]  SSBuildQueries() rerun
-[HGS] [Δ: 16.444s]  WithinXLinesSearch(): 101 subsequent hits
-[HGS] RtSearch() runtime.GC() 535M --> 267M
-[HGS] [B3: 33.207s][Δ: 24.409s] lemma near lemma in corpus: 'Πόλιϲ' near 'ὁπλίζω
-[HGS] [II] 3 text, index, and vocab maker tests
-[HGS] [C1: 33.474s][Δ: 0.267s] build a text for 35000 arbitrary lines
-[HGS] [C2: 40.796s][Δ: 7.322s] build an index to 35000 arbitrary lines
-[HGS] [C3: 43.873s][Δ: 3.077s] build vocabulary list for 35000 arbitrary lines
-[HGS] [III] 4 browsing and lexical tests
-[HGS] could not find a work for gr0021w001
-[HGS] could not find a work for gr0025w001
-[HGS] [D1: 44.085s][Δ: 0.212s] browse 50 passages
-[HGS] findbyform() found no results for 'Romani'
-[HGS] [D2: 48.748s][Δ: 4.663s] look up 48 specific words
-[HGS] RtLexLookup() runtime.GC() 805M --> 398M
-[HGS] RtLexLookup() runtime.GC() 403M --> 394M
-[HGS] RtLexLookup() runtime.GC() 401M --> 394M
-[HGS] RtLexLookup() runtime.GC() 398M --> 395M
-[HGS] RtLexLookup() runtime.GC() 415M --> 400M
-[HGS] [D3: 54.151s][Δ: 5.403s] look up 6 word substrings
-[HGS] RtLexLookup() runtime.GC() 411M --> 399M
-[HGS] RtLexReverse() runtime.GC() 458M --> 406M
-[HGS] RtLexReverse() runtime.GC() 464M --> 413M
-[HGS] RtLexReverse() runtime.GC() 426M --> 408M
-[HGS] RtLexReverse() runtime.GC() 487M --> 417M
-[HGS] RtLexReverse() runtime.GC() 463M --> 419M
-[HGS] [D4: 69.234s][Δ: 15.083s] reverse lookup for 6 word substrings
-[HGS] exiting selftest mode
-[HGS] RtLexReverse() runtime.GC() 452M --> 414M
+[HGS] RtSearch() current heap: 87M
+[HGS-SELFTEST] [A1: 0.767s][Δ: 0.767s] single word in corpus: 'vervex'
+[HGS] RtSearch() current heap: 102M
+[HGS-SELFTEST] [A2: 1.873s][Δ: 1.105s] phrase in corpus: 'plato omnem'
+[HGS] [Δ: 1.789s]  WithinXLinesSearch(): 2307 initial hits
+[HGS] [Δ: 0.004s]  SSBuildQueries() rerun
+[HGS] [Δ: 0.045s]  WithinXLinesSearch(): 3 subsequent hits
+[HGS] RtSearch() current heap: 107M
+[HGS-SELFTEST] [A3: 3.746s][Δ: 1.873s] phrase near phrase: 'καὶ δὴ καὶ' near 'εἴ που καὶ'
+[HGS] RtSearch() current heap: 119M
+[HGS-SELFTEST] [B1: 4.807s][Δ: 1.061s] lemma in corpus: 'φθορώδηϲ'
+[HGS] SwapPhraseAndLemma() was called: lemmatized 'γαῖα' swapped with 'ἐϲχάτη χθονόϲ'
+[HGS] [Δ: 1.542s]  WithinXLinesSearch(): 11 initial hits
+[HGS] [Δ: 0.002s]  SSBuildQueries() rerun
+[HGS] [Δ: 0.005s]  WithinXLinesSearch(): 4 subsequent hits
+[HGS] RtSearch() current heap: 136M
+[HGS-SELFTEST] [B2: 6.398s][Δ: 1.591s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
+[HGS] PickFastestLemma() is NOT swapping πόλιϲ for ὁπλίζω: possible hits 125274 vs 2547; known forms 50 vs 191
+[HGS] [Δ: 6.794s]  WithinXLinesSearch(): 99350 initial hits
+[HGS] [Δ: 0.179s]  SSBuildQueries() rerun
+[HGS] [Δ: 14.837s]  WithinXLinesSearch(): 101 subsequent hits
+[HGS] RtSearch() current heap: 174M
+[HGS-SELFTEST] [B3: 28.665s][Δ: 22.266s] lemma near lemma in corpus: 'πόλιϲ' near 'ὁπλίζω
+[HGS-SELFTEST] [II] 3 text, index, and vocab maker tests
+[HGS] RtTextMaker() current heap: 240M
+[HGS-SELFTEST] [C1: 28.867s][Δ: 0.202s] build a text for 35000 arbitrary lines
+[HGS] arraytogetrequiredmorphobjects() will search among 164670 words
+[HGS] RtIndexMaker() current heap: 393M
+[HGS-SELFTEST] [C2: 32.985s][Δ: 4.118s] build an index to 35000 arbitrary lines
+[HGS] arraytogetrequiredmorphobjects() will search among 165384 words
+[HGS] RtVocabMaker() current heap: 429M
+[HGS-SELFTEST] [C3: 35.539s][Δ: 2.554s] build vocabulary list for 35000 arbitrary lines
+[HGS-SELFTEST] [III] 4 browsing and lexical tests
+[HGS] RtBrowseLine() current heap: 450M
+...
+[HGS] RtBrowseLine() current heap: 492M
+[HGS-SELFTEST] [D1: 35.734s][Δ: 0.195s] browse 50 passages
+[HGS] RtLexFindByForm() current heap: 492M
+... 
+[HGS] RtLexFindByForm() current heap: 532M
+[HGS-SELFTEST] [D2: 40.006s][Δ: 4.271s] look up 48 specific words
+[HGS] RtLexLookup() current heap: 539M
+...
+[HGS] RtLexLookup() current heap: 152M
+[HGS-SELFTEST] [D3: 55.451s][Δ: 15.445s] look up 18 word substrings
+[HGS] RtLexReverse() current heap: 208M
+...
 ```
 
 ## workflow
