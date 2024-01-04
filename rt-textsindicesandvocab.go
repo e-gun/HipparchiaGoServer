@@ -104,13 +104,6 @@ func RtTextMaker(c echo.Context) error {
 		j++
 	}
 
-	//lines := srch.Results
-	//block := make([]string, srch.Results.Len())
-	//for i, l := range lines {
-	//	l.PurgeMetadata()
-	//	block[i] = l.MarkedUp
-	//}
-
 	whole := strings.Join(block, SNIP)
 	whole = textblockcleaner(whole)
 	block = strings.Split(whole, SNIP)
@@ -143,20 +136,6 @@ func RtTextMaker(c echo.Context) error {
 		previous = l
 		k++
 	}
-
-	//for i := 0; i < srch.Results.Len(); i++ {
-	//	cit := selectivelydisplaycitations(lines[i], previous, -1)
-	//	trr[i] = fmt.Sprintf(TBLRW, lines[i].Annotations, lines[i].MarkedUp, cit)
-	//	if lines[i].WkUID != previous.WkUID {
-	//		// you were doing multi-text generation
-	//		workcount += 1
-	//		aw := lines[i].MyAu().Name + fmt.Sprintf(`, <span class="italic">%s</span>`, lines[i].MyWk().Title)
-	//		aw = fmt.Sprintf(`<hr><span class="emph">[%d] %s</span>`, workcount, aw)
-	//		extra := fmt.Sprintf(TBLRW, "", aw, "")
-	//		trr[i] = extra + trr[i]
-	//	}
-	//	previous = lines[i]
-	//}
 
 	tab := strings.Join(trr, "")
 	// that was the body, now do the head and tail
@@ -313,21 +292,6 @@ func RtVocabMaker(c echo.Context) error {
 			slicedwords = append(slicedwords, this)
 		}
 	}
-
-	//for i := 0; i < len(vocabsrch.Results); i++ {
-	//	wds := vocabsrch.Results[i].AccentedSlice()
-	//	for _, w := range wds {
-	//		this := WordInfo{
-	//			HeadWd:     "",
-	//			Word:       UVσςϲ(SwapAcuteForGrave(w)),
-	//			Loc:        vocabsrch.Results[i].BuildHyperlink(),
-	//			Cit:        vocabsrch.Results[i].Citation(),
-	//			IsHomonymn: false,
-	//			Wk:         vocabsrch.Results[i].WkUID,
-	//		}
-	//		slicedwords = append(slicedwords, this)
-	//	}
-	//}
 
 	// [b] find the Unique values we are working with
 	distinct := make(map[string]bool, len(slicedwords))
@@ -635,21 +599,6 @@ func RtIndexMaker(c echo.Context) error {
 			slicedwords = append(slicedwords, this)
 		}
 	}
-
-	//for i := 0; i < len(srch.Results); i++ {
-	//	wds := srch.Results[i].AccentedSlice()
-	//	for _, w := range wds {
-	//		this := WordInfo{
-	//			HeadWd:     "",
-	//			Word:       UVσςϲ(SwapAcuteForGrave(w)),
-	//			Loc:        srch.Results[i].BuildHyperlink(),
-	//			Cit:        srch.Results[i].Citation(),
-	//			IsHomonymn: false,
-	//			Wk:         srch.Results[i].WkUID,
-	//		}
-	//		slicedwords = append(slicedwords, this)
-	//	}
-	//}
 
 	firstresult := srch.Results.FirstLine()
 	linesingested := srch.Results.Len()

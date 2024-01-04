@@ -500,78 +500,6 @@ func findphrasesacrosslines(ss *SearchStruct) {
 		i++
 	}
 
-	//for i := 0; i < len(ss.Results); i++ {
-	//	r := ss.Results[i]
-	//	// do the "it's all on this line" case separately
-	//	li := ColumnPicker(ss.SrchColumn, r)
-	//	f := fp.MatchString(li)
-	//	if f {
-	//		valid[r.BuildHyperlink()] = r
-	//	} else if ss.SkgRewritten && altfp.MatchString(li) {
-	//		// i.e. "it's all on this line" (second try)
-	//		valid[r.BuildHyperlink()] = r
-	//	} else if ss.OneHit {
-	//		// problem with onehit + phrase: unless you do something the next yields ZERO results if OneHit is turned on
-	//		// Sought »αρετα παϲα«
-	//		// Searched 7,461 works and found 2 passages (1.80s)
-	//
-	//		// the first pass will find the wrong lines. OneHit means ResultCollation() will register only the first
-	//		// of a yet untested pair; but the real hit is in [b], not [a]; this is a 'linebundle' windowing problem from PSQL
-	//
-	//		// [1.a] διανοίαϲ καὶ ὀρέξιοϲ ὧν ἁ μὲν διάνοια τῶ λόγον ἔχοντόϲ
-	//		// [1.b] ἐντι ἁ δ ὄρεξιϲ τῶ ἀλόγω διὸ καὶ ἀρετὰ πᾶϲα ἐν
-	//
-	//		// [2.a] καὶ τῷ ἀλόγῳ ϲύγκειται γὰρ ἐκ διανοίαϲ καὶ ὀρέξιοϲ ὧν ἁ μὲν διάνοια
-	//		// [2.b] τῶ λόγον ἔχοντόϲ ἐντι ἁ δ ὄρεξιϲ τῶ ἀλόγω διὸ καὶ ἀρετὰ πᾶϲα ἐν
-	//		nxt := GrabOneLine(r.AuID(), r.TbIndex+1)
-	//		if nxt.WkUID == r.WkUID {
-	//			n := ColumnPicker(ss.SrchColumn, nxt)
-	//			if fp.MatchString(n) {
-	//				valid[nxt.BuildHyperlink()] = nxt
-	//			}
-	//		}
-	//	} else {
-	//		var nxt DbWorkline
-	//		if i+1 < len(ss.Results) {
-	//			nxt = ss.Results[i+1]
-	//			if r.TbIndex+1 > AllWorks[r.WkUID].LastLine {
-	//				nxt = DbWorkline{}
-	//			} else if r.WkUID != nxt.WkUID || r.TbIndex+1 != nxt.TbIndex {
-	//				// grab the actual next line (i.e. index = 101)
-	//				nxt = GrabOneLine(r.AuID(), r.TbIndex+1)
-	//			}
-	//		} else {
-	//			// grab the actual next line (i.e. index = 101)
-	//			nxt = GrabOneLine(r.AuID(), r.TbIndex+1)
-	//			if r.WkUID != nxt.WkUID {
-	//				nxt = DbWorkline{}
-	//			}
-	//		}
-	//
-	//		// combinator dodges double-register of hits
-	//		nl := ColumnPicker(ss.SrchColumn, nxt)
-	//		comb := getcombinations(re)
-	//		for _, c := range comb {
-	//			fp2, e1 := regexp.Compile(c[0])
-	//			if e1 != nil {
-	//				recordfailure()
-	//				return
-	//			}
-	//			sp, e2 := regexp.Compile(c[1])
-	//			if e2 != nil {
-	//				recordfailure()
-	//				return
-	//			}
-	//			f = fp2.MatchString(li)
-	//			s := sp.MatchString(nl)
-	//			if f && s && r.WkUID == nxt.WkUID {
-	//				// yes! actually record a valid hit...
-	//				valid[r.BuildHyperlink()] = r
-	//			}
-	//		}
-	//	}
-	//}
-
 	slc := make([]DbWorkline, len(valid))
 	counter := 0
 	for _, r := range valid {
@@ -601,15 +529,6 @@ func pruneresultsbylemma(hdwd string, ss *SearchStruct) {
 			valid[r.BuildHyperlink()] = r
 		}
 	}
-
-	//for i := 0; i < len(ss.Results); i++ {
-	//	r := ss.Results[i]
-	//	// do the "it's all on this line" case separately
-	//	li := ColumnPicker(ss.SrchColumn, r)
-	//	if pat.MatchString(li) {
-	//		valid[r.BuildHyperlink()] = r
-	//	}
-	//}
 
 	slc := make([]DbWorkline, len(valid))
 	counter := 0

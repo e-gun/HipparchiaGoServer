@@ -112,53 +112,6 @@ func FormatNoContextResults(ss *SearchStruct) SearchOutputJSON {
 		i++
 	}
 
-	//for i, r := range ss.Results {
-	//	r.PurgeMetadata()
-	//	// highlight search term; should be folded into a single function w/ highlightsearchterm() below [type problem now]
-	//	if searchterm.MatchString(r.MarkedUp) {
-	//		r.MarkedUp = searchterm.ReplaceAllString(r.MarkedUp, MUREPLACE)
-	//	} else {
-	//		// might be in the hyphenated line
-	//		if searchterm.MatchString(r.Hyphenated) {
-	//			// needs more fiddling
-	//			r.MarkedUp += fmt.Sprintf(HYPHREPLACE, r.Hyphenated)
-	//		}
-	//	}
-	//
-	//	mu := formateditorialbrackets(r.MarkedUp)
-	//
-	//	rc := ""
-	//	if i%3 == 2 {
-	//		rc = "nthrow"
-	//	} else {
-	//		rc = "regular"
-	//	}
-	//
-	//	au := r.MyAu().Shortname
-	//	wk := r.MyWk().Title
-	//	lk := r.BuildHyperlink()
-	//	lc := strings.Join(r.FindLocus(), ".")
-	//
-	//	// <span class="foundauthor">%s</span>,&nbsp;<span class="foundwork">%s</span>: <browser id="%s"><span class="foundlocus">%s</span></browser>
-	//	ci := fmt.Sprintf(SPSUBBER, au, wk, lk, lc)
-	//	ci = avoidlonglines(ci, MAXTITLELENGTH)
-	//	ci = strings.Replace(ci, "<spc", `<span class="found`, -1)
-	//	ci = strings.Replace(ci, `browser_id`, `browser id`, -1)
-	//
-	//	tr := TRTempl{
-	//		TRClass:    rc,
-	//		FindNumber: i + 1,
-	//		FindDate:   formatinscriptiondates(DATES, &r),
-	//		FindCity:   formatinscriptionplaces(&r),
-	//		FindLocus:  ci,
-	//		TheLine:    mu,
-	//	}
-	//
-	//	err := trt.Execute(&b, tr)
-	//	chke(err)
-	//
-	//}
-
 	var out SearchOutputJSON
 	out.JS = fmt.Sprintf(BROWSERJS, "browser")
 	out.Title = ss.Seeking
@@ -257,15 +210,10 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 		linemap[r.BuildHyperlink()] = r
 	}
 
-	//for _, r := range res.Results {
-	//	linemap[r.BuildHyperlink()] = r
-	//}
-
 	// iterate over the results to build the raw core data
 
 	allpassages := make([]PsgFormattingTemplate, thesearch.Results.Len())
-	// fmt.Println(thesearch.Results.Len())
-	// 0
+
 	rr = thesearch.Results.Generate()
 	kk := 0
 	for r := range rr {
@@ -301,39 +249,6 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 		allpassages[kk] = psg
 		kk++
 	}
-
-	//for i, r := range thesearch.Results {
-	//	var psg PsgFormattingTemplate
-	//	psg.Findnumber = i + 1
-	//	psg.Foundauthor = r.MyAu().Name
-	//	psg.Foundwork = r.MyWk().Title
-	//	psg.FindURL = r.BuildHyperlink()
-	//	psg.FindLocus = strings.Join(r.FindLocus(), ".")
-	//	psg.FindDate = formatinscriptiondates(DTT, &r)
-	//	psg.FindCity = formatinscriptionplaces(&r)
-	//
-	//	for j := r.TbIndex - context; j <= r.TbIndex+context; j++ {
-	//		url := fmt.Sprintf(URT, r.AuID(), r.WkID(), j)
-	//		psg.RawCTX = append(psg.RawCTX, linemap[url])
-	//	}
-	//
-	//	psg.CookedCTX = make([]ResultPassageLine, len(psg.RawCTX))
-	//	for j := 0; j < len(psg.RawCTX); j++ {
-	//		c := ResultPassageLine{}
-	//		c.Locus = strings.Join(psg.RawCTX[j].FindLocus(), ".")
-	//
-	//		if psg.RawCTX[j].BuildHyperlink() == psg.FindURL {
-	//			c.IsHighlight = true
-	//		} else {
-	//			c.IsHighlight = false
-	//		}
-	//		psg.RawCTX[j].PurgeMetadata()
-	//		c.Contents = psg.RawCTX[j].MarkedUp
-	//		c.Hyphenated = psg.RawCTX[j].Hyphenated
-	//		psg.CookedCTX[j] = c
-	//	}
-	//	allpassages[i] = psg
-	//}
 
 	// fix the unmattched spans
 	for _, p := range allpassages {

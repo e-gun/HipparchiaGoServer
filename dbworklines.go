@@ -245,11 +245,7 @@ type WorkLineBundle struct {
 
 // Generate - don't copy everything at once; send it over a channel
 func (wlb *WorkLineBundle) Generate() chan DbWorkline {
-	const (
-		BUFFERSIZE = 10
-	)
-
-	c := make(chan DbWorkline, BUFFERSIZE)
+	c := make(chan DbWorkline)
 	go func() {
 		for i := 0; i < len(wlb.Lines); i++ {
 			c <- wlb.Lines[i]

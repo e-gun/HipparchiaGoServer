@@ -72,16 +72,6 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 		k++
 	}
 
-	//for i := 0; i < len(first.Results); i++ {
-	//	// avoid "gr0028_FROM_-1_TO_5"
-	//	low := first.Results[i].TbIndex - first.ProxDist
-	//	if low < 1 {
-	//		low = 1
-	//	}
-	//	np := fmt.Sprintf(PSGT, first.Results[i].AuID(), low, first.Results[i].TbIndex+first.ProxDist)
-	//	newpsg[i] = np
-	//}
-
 	second.CurrentLimit = originalsrch.OriginalLimit
 	second.SearchIn.Passages = newpsg
 	second.NotNear = false
@@ -122,29 +112,6 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 		}
 		second.Results.Lines = StringMapIntoSlice(hitmapper)
 	}
-
-	//if first.NotNear {
-	//	hitmapper := make(map[string]DbWorkline)
-	//
-	//	// all the original hits start as "good"
-	//	for i := 0; i < len(first.Results); i++ {
-	//		hitmapper[first.Results[i].BuildHyperlink()] = first.Results[i]
-	//	}
-	//
-	//	// delete any hit that is within N-lines of any second hit
-	//	// hence "second.NotNear = false" above vs "first.NotNear" to get here: need matches, not misses
-	//	for i := 0; i < len(second.Results); i++ {
-	//		low := second.Results[i].TbIndex - first.ProxDist
-	//		high := second.Results[i].TbIndex + first.ProxDist
-	//		for j := low; j <= high; j++ {
-	//			hlk := fmt.Sprintf(WKLNHYPERLNKTEMPL, second.Results[i].AuID(), second.Results[i].WkID(), j)
-	//			if _, ok := hitmapper[hlk]; ok {
-	//				delete(hitmapper, hlk)
-	//			}
-	//		}
-	//	}
-	//	second.Results = StringMapIntoSlice(hitmapper)
-	//}
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	msg(fmt.Sprintf(MSG3, d, second.Results.Len()), MSGPEEK)
@@ -238,19 +205,6 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 		k++
 	}
 
-	//for i := 0; i < len(first.Results); i++ {
-	//	low := first.Results[i].TbIndex - need
-	//	if low < 1 {
-	//		low = 1
-	//	}
-	//	np := fmt.Sprintf(PSGT, first.Results[i].AuID(), low, first.Results[i].TbIndex+need)
-	//	newpsg[i] = np
-	//	for j := first.Results[i].TbIndex - need; j <= first.Results[i].TbIndex+need; j++ {
-	//		m := fmt.Sprintf(LNK, first.Results[i].AuID(), first.Results[i].WkID(), j)
-	//		resultmapper[m] = i
-	//	}
-	//}
-
 	second.CurrentLimit = FIRSTSEARCHLIM
 	second.SearchIn.Passages = newpsg
 	SSBuildQueries(&second)
@@ -275,12 +229,6 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 		bun := resultmapper[url]
 		bundlemapper[bun] = append(bundlemapper[bun], r)
 	}
-
-	//for i := 0; i < len(ss.Results); i++ {
-	//	url := ss.Results[i].BuildHyperlink()
-	//	bun := resultmapper[url]
-	//	bundlemapper[bun] = append(bundlemapper[bun], ss.Results[i])
-	//}
 
 	for i, b := range bundlemapper {
 		sort.Slice(b, func(i, j int) bool { return b[i].TbIndex < b[j].TbIndex })
