@@ -827,7 +827,7 @@ func CloneSearch(f *SearchStruct, iteration int) SearchStruct {
 		SearchEx:      SearchIncExl{},
 		Queries:       []PrerolledQuery{},
 		Results:       WorkLineBundle{},
-		Launched:      time.Now(),
+		Launched:      f.Launched,
 		TTName:        strings.Replace(uuid.New().String(), "-", "", -1),
 		SearchSize:    f.SearchSize,
 		TableSize:     f.TableSize,
