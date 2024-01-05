@@ -724,6 +724,52 @@ func SearchInfoHub() {
 	}
 }
 
+// BuildHollowSearch - is really a way to grab line collections via synthetic searchlists
+func BuildHollowSearch() SearchStruct {
+	s := SearchStruct{
+		User:          "",
+		ID:            strings.Replace(uuid.New().String(), "-", "", -1),
+		Seeking:       "",
+		Proximate:     "",
+		LemmaOne:      "",
+		LemmaTwo:      "",
+		InitSum:       "",
+		Summary:       "",
+		ProxScope:     "",
+		ProxType:      "",
+		ProxDist:      0,
+		HasLemmaBoxA:  false,
+		HasPhraseBoxA: false,
+		IsVector:      false,
+		IsActive:      false,
+		OneHit:        false,
+		Twobox:        false,
+		NotNear:       false,
+		SkgRewritten:  false,
+		PhaseNum:      0,
+		SrchColumn:    DEFAULTCOLUMN,
+		SrchSyntax:    DEFAULTQUERYSYNTAX,
+		OrderBy:       ORDERBY,
+		VecTextPrep:   VECTORTEXTPREPDEFAULT,
+		VecModeler:    VECTORMODELDEFAULT,
+		CurrentLimit:  FIRSTSEARCHLIM,
+		OriginalLimit: FIRSTSEARCHLIM,
+		SkgSlice:      nil,
+		PrxSlice:      nil,
+		SearchIn:      SearchIncExl{},
+		SearchEx:      SearchIncExl{},
+		Queries:       nil,
+		Results:       WorkLineBundle{},
+		Launched:      time.Now(),
+		TTName:        strings.Replace(uuid.New().String(), "-", "", -1),
+		SearchSize:    0,
+		TableSize:     0,
+	}
+
+	s.StoredSession = MakeDefaultSession(s.ID)
+	return s
+}
+
 // CloneSearch - make a copy of a search with results and queries, inter alia, ripped out
 func CloneSearch(f *SearchStruct, iteration int) SearchStruct {
 	// note that the clone is not accessible to RtWebsocket() because it never gets registered in the global SearchMap

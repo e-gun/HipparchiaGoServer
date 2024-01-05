@@ -223,52 +223,6 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	return s
 }
 
-// BuildHollowSearch - is really a way to grab line collections via synthetic searchlists
-func BuildHollowSearch() SearchStruct {
-	s := SearchStruct{
-		User:          "",
-		ID:            strings.Replace(uuid.New().String(), "-", "", -1),
-		Seeking:       "",
-		Proximate:     "",
-		LemmaOne:      "",
-		LemmaTwo:      "",
-		InitSum:       "",
-		Summary:       "",
-		ProxScope:     "",
-		ProxType:      "",
-		ProxDist:      0,
-		HasLemmaBoxA:  false,
-		HasPhraseBoxA: false,
-		IsVector:      false,
-		IsActive:      false,
-		OneHit:        false,
-		Twobox:        false,
-		NotNear:       false,
-		SkgRewritten:  false,
-		PhaseNum:      0,
-		SrchColumn:    DEFAULTCOLUMN,
-		SrchSyntax:    DEFAULTQUERYSYNTAX,
-		OrderBy:       ORDERBY,
-		VecTextPrep:   VECTORTEXTPREPDEFAULT,
-		VecModeler:    VECTORMODELDEFAULT,
-		CurrentLimit:  FIRSTSEARCHLIM,
-		OriginalLimit: FIRSTSEARCHLIM,
-		SkgSlice:      nil,
-		PrxSlice:      nil,
-		SearchIn:      SearchIncExl{},
-		SearchEx:      SearchIncExl{},
-		Queries:       nil,
-		Results:       WorkLineBundle{},
-		Launched:      time.Now(),
-		TTName:        strings.Replace(uuid.New().String(), "-", "", -1),
-		SearchSize:    0,
-		TableSize:     0,
-	}
-
-	s.StoredSession = MakeDefaultSession(s.ID)
-	return s
-}
-
 // whitespacer - massage search string to let regex accept start/end of a line as whitespace
 func whitespacer(skg string, ss *SearchStruct) string {
 	// whitespace issue: " ἐν Ὀρέϲτῃ " cannot be found at the start of a line where it is "ἐν Ὀρέϲτῃ "
