@@ -174,19 +174,19 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 
 	// gather all the lines you need: this is much faster than SimpleContextGrabber() 200x in a single threaded loop
 	// turn it into a new search where we accept any character as enough to yield a hit: ""
-	res := CloneSearch(*thesearch, 3)
-	res.Results = thesearch.Results
-	res.Seeking = ""
-	res.LemmaOne = ""
-	res.Proximate = ""
-	res.LemmaTwo = ""
-	res.CurrentLimit = (thesearch.CurrentLimit * thesession.HitContext) * 3
+	surroundingcontextsearch := CloneSearch(*thesearch, 3)
+	surroundingcontextsearch.Results = thesearch.Results
+	surroundingcontextsearch.Seeking = ""
+	surroundingcontextsearch.LemmaOne = ""
+	surroundingcontextsearch.Proximate = ""
+	surroundingcontextsearch.LemmaTwo = ""
+	surroundingcontextsearch.CurrentLimit = (thesearch.CurrentLimit * thesession.HitContext) * 3
 
 	context := thesession.HitContext / 2
 
-	res.SearchIn.Passages = make([]string, res.Results.Len())
+	surroundingcontextsearch.SearchIn.Passages = make([]string, surroundingcontextsearch.Results.Len())
 	ii := 0
-	rr := res.Results.Generate()
+	rr := surroundingcontextsearch.Results.Generate()
 	for r := range rr {
 		low := r.TbIndex - context
 		high := r.TbIndex + context
@@ -194,18 +194,18 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 			// avoid "gr0258_FROM_-1_TO_3"
 			low = 1
 		}
-		res.SearchIn.Passages[ii] = fmt.Sprintf(PSGTEMPL, r.AuID(), low, high)
+		surroundingcontextsearch.SearchIn.Passages[ii] = fmt.Sprintf(PSGTEMPL, r.AuID(), low, high)
 		ii++
 	}
 
-	res.Results.Lines = []DbWorkline{}
-	SSBuildQueries(&res)
-	res = HGoSrch(res)
+	surroundingcontextsearch.Results.Lines = []DbWorkline{}
+	SSBuildQueries(&surroundingcontextsearch)
+	SearchAndInsertResults(&surroundingcontextsearch)
 
 	// now you have all the lines you will ever need
 	linemap := make(map[string]DbWorkline)
 
-	rr = res.Results.Generate()
+	rr = surroundingcontextsearch.Results.Generate()
 	for r := range rr {
 		linemap[r.BuildHyperlink()] = r
 	}
@@ -326,7 +326,7 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 		out.Found = DeLunate(out.Found)
 	}
 
-	SIDel <- res.ID
+	SIDel <- surroundingcontextsearch.ID
 	return out
 }
 

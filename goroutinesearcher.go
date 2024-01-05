@@ -14,9 +14,10 @@ import (
 // THE MANAGER
 //
 
-// HGoSrch - the core of a search: coordinates the dispatch of queries and collection of results
-func HGoSrch(ss SearchStruct) SearchStruct {
-	// NOTE: this is all much more "go-like" than HipparchiaGolangSearcher() in grabber.go,
+// SearchAndInsertResults - the core of a search: coordinates the dispatch of queries and collection of results
+func SearchAndInsertResults(ss *SearchStruct) {
+	// not using *SearchStruct because of "first := HGoSrch(originalsrch)" in WithinXWordsSearch()
+	//
 
 	// see https://go.dev/blog/pipelines : see Parallel digestion & Fan-out, fan-in & Explicit cancellation
 	// https://medium.com/amboss/applying-modern-go-concurrency-patterns-to-data-pipelines-b3b5327908d4
@@ -29,7 +30,7 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	emitqueries, err := SrchFeeder(ctx, &ss)
+	emitqueries, err := SrchFeeder(ctx, ss)
 	chke(err)
 
 	workers := Config.WorkerCount
@@ -48,13 +49,12 @@ func HGoSrch(ss SearchStruct) SearchStruct {
 		mx = ss.CurrentLimit * 3
 	}
 
-	foundlines := ResultCollation(ctx, &ss, mx, ResultAggregator(ctx, findchannels...))
+	foundlines := ResultCollation(ctx, ss, mx, ResultAggregator(ctx, findchannels...))
 
 	wlb := WorkLineBundle{Lines: foundlines}
 	wlb.ResizeTo(mx)
 
 	ss.Results = wlb
-	return ss
 }
 
 //

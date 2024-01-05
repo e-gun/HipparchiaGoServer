@@ -418,7 +418,7 @@ func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
 	s := BuildHollowSearch()
 	s.SearchIn.Passages = []string{p}
 	SSBuildQueries(&s)
-	s = HGoSrch(s)
+	SearchAndInsertResults(&s)
 	count := 0
 	lnn := s.Results.Generate()
 	for ln := range lnn {

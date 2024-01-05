@@ -105,7 +105,8 @@ func RtSearch(c echo.Context) error {
 			completed = WithinXLinesSearch(AllSearches.GetSS(srch.ID))
 		}
 	} else {
-		completed = HGoSrch(AllSearches.GetSS(srch.ID))
+		completed = AllSearches.GetSS(srch.ID)
+		SearchAndInsertResults(&completed)
 		if completed.HasPhraseBoxA {
 			findphrasesacrosslines(&completed)
 		}

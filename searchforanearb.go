@@ -20,15 +20,15 @@ import (
 //
 
 // WithinXLinesSearch - find A within N lines of B
-func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
+func WithinXLinesSearch(first SearchStruct) SearchStruct {
 	// after finding A, look for B within N lines of A
 
 	// (part 1)
-	//		HGoSrch(first)
+	//		SearchAndInsertResults(first)
 	//
 	// (part 2)
 	// 		populate a new search list with a ton of passages via the first results
-	//		HGoSrch(second)
+	//		SearchAndInsertResults(second)
 
 	const (
 		PSGT = `%s_FROM_%d_TO_%d`
@@ -38,7 +38,7 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	)
 
 	previous := time.Now()
-	first := HGoSrch(originalsrch)
+	SearchAndInsertResults(&first)
 
 	if first.HasPhraseBoxA {
 		findphrasesacrosslines(&first)
@@ -72,7 +72,7 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 		k++
 	}
 
-	second.CurrentLimit = originalsrch.OriginalLimit
+	second.CurrentLimit = first.OriginalLimit
 	second.SearchIn.Passages = newpsg
 	second.NotNear = false
 
@@ -82,7 +82,7 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 	msg(fmt.Sprintf(MSG2, d), MSGPEEK)
 	previous = time.Now()
 
-	second = HGoSrch(second)
+	SearchAndInsertResults(&second)
 	if second.HasPhraseBoxA && !second.IsLemmAndPhr {
 		findphrasesacrosslines(&second)
 	} else if second.IsLemmAndPhr {
@@ -122,11 +122,11 @@ func WithinXLinesSearch(originalsrch SearchStruct) SearchStruct {
 }
 
 // WithinXWordsSearch - find A within N words of B
-func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
+func WithinXWordsSearch(first SearchStruct) SearchStruct {
 	// after finding A, look for B within N words of A
 
 	// (part 1)
-	//		HGoSrch(first)
+	//		SearchAndInsertResults(first)
 	//
 	// (part 2)
 	// 		grab the neighborhoods of these hits
@@ -149,7 +149,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	)
 
 	previous := time.Now()
-	first := HGoSrch(originalsrch)
+	SearchAndInsertResults(&first)
 
 	if first.HasPhraseBoxA {
 		findphrasesacrosslines(&first)
@@ -211,7 +211,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 
 	// [b] run the second "search" for anything/everything: ""
 
-	ss := HGoSrch(second)
+	SearchAndInsertResults(&second)
 
 	// showinterimresults(&ss)
 
@@ -223,7 +223,7 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	// [c1] build bundles of lines
 	bundlemapper := make(map[int][]DbWorkline)
 
-	rr = ss.Results.Generate()
+	rr = second.Results.Generate()
 	for r := range rr {
 		url := r.BuildHyperlink()
 		bun := resultmapper[url]
@@ -306,21 +306,21 @@ func WithinXWordsSearch(originalsrch SearchStruct) SearchStruct {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	emit, err := XWordsFeeder(ctx, &kvp, &ss)
+	emit, err := XWordsFeeder(ctx, &kvp, &second)
 	chke(err)
 
 	workers := Config.WorkerCount
 	findchannels := make([]<-chan int, workers)
 
 	for i := 0; i < workers; i++ {
-		fc, ee := XWordsConsumer(ctx, emit, basicprxfinder, submatchsrchfinder, pd, originalsrch.NotNear)
+		fc, ee := XWordsConsumer(ctx, emit, basicprxfinder, submatchsrchfinder, pd, first.NotNear)
 		chke(ee)
 		findchannels[i] = fc
 	}
 
-	results := XWordsCollation(ctx, &ss, XWordsAggregator(ctx, findchannels...))
-	if len(results) > ss.CurrentLimit {
-		results = results[0:ss.CurrentLimit]
+	results := XWordsCollation(ctx, &second, XWordsAggregator(ctx, findchannels...))
+	if len(results) > second.CurrentLimit {
+		results = results[0:second.CurrentLimit]
 	}
 
 	res := make([]DbWorkline, len(results))

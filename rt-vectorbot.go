@@ -140,7 +140,7 @@ func ldamodelbot(c echo.Context, s SearchStruct, a string) {
 	SSBuildQueries(&s)
 	s.IsActive = true
 	s.TableSize = 1
-	s = HGoSrch(s)
+	SearchAndInsertResults(&s)
 	e := LDASearch(c, s)
 	if e != nil {
 		msg("ldamodelbot() could not execute LDASearch()", MSGWARN)
@@ -170,7 +170,7 @@ func nnmodelbot(c echo.Context, s SearchStruct, a string) {
 		SSBuildQueries(&s)
 		s.IsActive = true
 		s.TableSize = 1
-		s = HGoSrch(s)
+		SearchAndInsertResults(&s)
 		if s.Results.Len() > MINSIZE {
 			embs := generateembeddings(c, m, s)
 			vectordbaddnn(fp, embs)
