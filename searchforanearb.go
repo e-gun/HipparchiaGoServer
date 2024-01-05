@@ -50,7 +50,7 @@ func WithinXLinesSearch(first SearchStruct) SearchStruct {
 	msg(fmt.Sprintf(MSG1, d, first.Results.Len()), MSGPEEK)
 	previous = time.Now()
 
-	second := CloneSearch(first, 2)
+	second := CloneSearch(&first, 2)
 	second.Seeking = second.Proximate
 	second.LemmaOne = second.LemmaTwo
 	second.Proximate = first.Seeking
@@ -100,11 +100,12 @@ func WithinXLinesSearch(first SearchStruct) SearchStruct {
 
 		// delete any hit that is within N-lines of any second hit
 		// hence "second.NotNear = false" above vs "first.NotNear" to get here: need matches, not misses
-		for i := 0; i < len(second.Results.Lines); i++ {
-			low := second.Results.Lines[i].TbIndex - first.ProxDist
-			high := second.Results.Lines[i].TbIndex + first.ProxDist
-			for j := low; j <= high; j++ {
-				hlk := fmt.Sprintf(WKLNHYPERLNKTEMPL, second.Results.Lines[i].AuID(), second.Results.Lines[i].WkID(), j)
+		rr = second.Results.Generate()
+		for r := range rr {
+			low := r.TbIndex - first.ProxDist
+			high := r.TbIndex + first.ProxDist
+			for i := low; i <= high; i++ {
+				hlk := fmt.Sprintf(WKLNHYPERLNKTEMPL, r.AuID(), r.WkID(), i)
 				if _, ok := hitmapper[hlk]; ok {
 					delete(hitmapper, hlk)
 				}
@@ -168,7 +169,7 @@ func WithinXWordsSearch(first SearchStruct) SearchStruct {
 	// so the second search is "anything nearby"
 
 	// [a] build the second search
-	second := CloneSearch(first, 2)
+	second := CloneSearch(&first, 2)
 	sskg := second.Proximate
 	slem := second.LemmaTwo
 	second.Seeking = ""
@@ -212,8 +213,6 @@ func WithinXWordsSearch(first SearchStruct) SearchStruct {
 	// [b] run the second "search" for anything/everything: ""
 
 	SearchAndInsertResults(&second)
-
-	// showinterimresults(&ss)
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	msg(fmt.Sprintf(MSG2, d, first.Results.Len()), MSGPEEK)
@@ -318,14 +317,14 @@ func WithinXWordsSearch(first SearchStruct) SearchStruct {
 		findchannels[i] = fc
 	}
 
-	results := XWordsCollation(ctx, &second, XWordsAggregator(ctx, findchannels...))
-	if len(results) > second.CurrentLimit {
-		results = results[0:second.CurrentLimit]
+	resultindex := XWordsCollation(ctx, &second, XWordsAggregator(ctx, findchannels...))
+	if len(resultindex) > second.CurrentLimit {
+		resultindex = resultindex[0:second.CurrentLimit]
 	}
 
-	res := make([]DbWorkline, len(results))
-	for i := 0; i < len(results); i++ {
-		res[i] = first.Results.Lines[results[i]]
+	res := make([]DbWorkline, len(resultindex))
+	for i := 0; i < len(resultindex); i++ {
+		res[i] = first.Results.Lines[resultindex[i]]
 	}
 
 	second.Results.Lines = res

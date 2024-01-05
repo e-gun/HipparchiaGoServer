@@ -174,19 +174,19 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 
 	// gather all the lines you need: this is much faster than SimpleContextGrabber() 200x in a single threaded loop
 	// turn it into a new search where we accept any character as enough to yield a hit: ""
-	surroundingcontextsearch := CloneSearch(*thesearch, 3)
-	surroundingcontextsearch.Results = thesearch.Results
-	surroundingcontextsearch.Seeking = ""
-	surroundingcontextsearch.LemmaOne = ""
-	surroundingcontextsearch.Proximate = ""
-	surroundingcontextsearch.LemmaTwo = ""
-	surroundingcontextsearch.CurrentLimit = (thesearch.CurrentLimit * thesession.HitContext) * 3
+	ctxsearch := CloneSearch(thesearch, 3)
+	ctxsearch.Results = thesearch.Results
+	ctxsearch.Seeking = ""
+	ctxsearch.LemmaOne = ""
+	ctxsearch.Proximate = ""
+	ctxsearch.LemmaTwo = ""
+	ctxsearch.CurrentLimit = (thesearch.CurrentLimit * thesession.HitContext) * 3
 
 	context := thesession.HitContext / 2
 
-	surroundingcontextsearch.SearchIn.Passages = make([]string, surroundingcontextsearch.Results.Len())
+	ctxsearch.SearchIn.Passages = make([]string, ctxsearch.Results.Len())
 	ii := 0
-	rr := surroundingcontextsearch.Results.Generate()
+	rr := ctxsearch.Results.Generate()
 	for r := range rr {
 		low := r.TbIndex - context
 		high := r.TbIndex + context
@@ -194,18 +194,18 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 			// avoid "gr0258_FROM_-1_TO_3"
 			low = 1
 		}
-		surroundingcontextsearch.SearchIn.Passages[ii] = fmt.Sprintf(PSGTEMPL, r.AuID(), low, high)
+		ctxsearch.SearchIn.Passages[ii] = fmt.Sprintf(PSGTEMPL, r.AuID(), low, high)
 		ii++
 	}
 
-	surroundingcontextsearch.Results.Lines = []DbWorkline{}
-	SSBuildQueries(&surroundingcontextsearch)
-	SearchAndInsertResults(&surroundingcontextsearch)
+	ctxsearch.Results.Lines = []DbWorkline{}
+	SSBuildQueries(&ctxsearch)
+	SearchAndInsertResults(&ctxsearch)
 
 	// now you have all the lines you will ever need
 	linemap := make(map[string]DbWorkline)
 
-	rr = surroundingcontextsearch.Results.Generate()
+	rr = ctxsearch.Results.Generate()
 	for r := range rr {
 		linemap[r.BuildHyperlink()] = r
 	}
@@ -326,7 +326,7 @@ func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 		out.Found = DeLunate(out.Found)
 	}
 
-	SIDel <- surroundingcontextsearch.ID
+	SIDel <- ctxsearch.ID
 	return out
 }
 

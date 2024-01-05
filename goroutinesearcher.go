@@ -163,7 +163,6 @@ func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundli
 		}
 		select {
 		case <-ctx.Done():
-			// log.Print(ctx.Err().Error())
 			done = true
 		case ll, ok := <-foundlines:
 			if ok {

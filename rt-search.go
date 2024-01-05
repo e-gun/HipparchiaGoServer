@@ -563,26 +563,6 @@ func ColumnPicker(c string, r DbWorkline) string {
 	return li
 }
 
-// CloneSearch - make a copy of a search with results and queries, inter alia, ripped out
-func CloneSearch(f SearchStruct, iteration int) SearchStruct {
-	// note that the clone is not accessible to RtWebsocket() because it never gets registered in the global SearchMap
-	// this means no progress for second pass SearchMap; this can be achieved, but it is not currently a priority
-	s := f
-	s.Results = WorkLineBundle{}
-	s.Queries = []PrerolledQuery{}
-	s.SearchIn = SearchIncExl{}
-	s.SearchEx = SearchIncExl{}
-	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
-	s.SkgSlice = []string{}
-	s.PrxSlice = []string{}
-	s.PhaseNum = iteration
-
-	oid := strings.Replace(f.ID, "_pt2", "", -1) // so a pt3 does not look like "_pt2_pt3"
-	id := fmt.Sprintf("%s_pt%d", oid, iteration)
-	s.ID = id
-	return s
-}
-
 // UniversalPatternMaker - feeder for SearchTermFinder()
 func UniversalPatternMaker(term string) string {
 	// also used by searchformatting.go

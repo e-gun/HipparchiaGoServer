@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"regexp"
 	"runtime"
 	"sort"
@@ -51,7 +52,7 @@ type SearchStruct struct {
 	SearchIn      SearchIncExl
 	SearchEx      SearchIncExl
 	Queries       []PrerolledQuery
-	Results       WorkLineBundle // pointer problem: sometimes you need to compare S1 & S2 where S2 is a modified copy
+	Results       WorkLineBundle // pointer here yields problem: WithinXLinesSearch() has S1 & S2 where S2 is a modified copy of S1
 	Launched      time.Time
 	TTName        string
 	SearchSize    int // # of works searched
@@ -721,6 +722,73 @@ func SearchInfoHub() {
 
 		}
 	}
+}
+
+// CloneSearch - make a copy of a search with results and queries, inter alia, ripped out
+func CloneSearch(f *SearchStruct, iteration int) SearchStruct {
+	// note that the clone is not accessible to RtWebsocket() because it never gets registered in the global SearchMap
+	// this means no progress for second pass SearchMap; this can be achieved, but it is not currently a priority
+
+	oid := strings.Replace(f.ID, "_pt2", "", -1) // so a pt3 does not look like "_pt2_pt3"
+	id := fmt.Sprintf("%s_pt%d", oid, iteration)
+
+	// THE DIVERGENCES
+	//s.Results = WorkLineBundle{}
+	//s.Queries = []PrerolledQuery{}
+	//s.SearchIn = SearchIncExl{}
+	//s.SearchEx = SearchIncExl{}
+	//s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
+	//s.SkgSlice = []string{}
+	//s.PrxSlice = []string{}
+	//s.PhaseNum = iteration
+	//s.ID = id
+
+	clone := SearchStruct{
+		User:          f.User,
+		IPAddr:        f.IPAddr,
+		ID:            id,
+		Seeking:       f.Seeking,
+		Proximate:     f.Proximate,
+		LemmaOne:      f.LemmaOne,
+		LemmaTwo:      f.LemmaTwo,
+		InitSum:       f.InitSum,
+		Summary:       f.Summary,
+		ProxScope:     f.ProxScope,
+		ProxType:      f.ProxType,
+		ProxDist:      f.ProxDist,
+		HasLemmaBoxA:  f.HasLemmaBoxA,
+		HasLemmaBoxB:  f.HasLemmaBoxB,
+		HasPhraseBoxA: f.HasPhraseBoxA,
+		HasPhraseBoxB: f.HasLemmaBoxA,
+		IsVector:      f.IsVector,
+		IsActive:      f.IsActive,
+		IsLemmAndPhr:  f.IsLemmAndPhr,
+		OneHit:        f.OneHit,
+		Twobox:        f.Twobox,
+		NotNear:       f.NotNear,
+		SkgRewritten:  f.SkgRewritten,
+		PhaseNum:      iteration,
+		SrchColumn:    f.SrchColumn,
+		SrchSyntax:    f.SrchSyntax,
+		OrderBy:       f.OrderBy,
+		VecTextPrep:   f.VecTextPrep,
+		VecModeler:    f.VecModeler,
+		CurrentLimit:  f.CurrentLimit,
+		OriginalLimit: f.OriginalLimit,
+		SkgSlice:      []string{},
+		PrxSlice:      []string{},
+		SearchIn:      SearchIncExl{},
+		SearchEx:      SearchIncExl{},
+		Queries:       []PrerolledQuery{},
+		Results:       WorkLineBundle{},
+		Launched:      time.Now(),
+		TTName:        strings.Replace(uuid.New().String(), "-", "", -1),
+		SearchSize:    f.SearchSize,
+		TableSize:     f.TableSize,
+		ExtraMsg:      f.ExtraMsg,
+		StoredSession: f.StoredSession,
+	}
+	return clone
 }
 
 //
