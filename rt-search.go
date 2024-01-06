@@ -147,6 +147,7 @@ func InitializeSearch(c echo.Context, user string) SearchStruct {
 	srch.LemmaOne = c.QueryParam("lem")
 	srch.LemmaTwo = c.QueryParam("plm")
 	srch.ID = c.Param("id")
+	srch.WSID = srch.ID
 	srch.IPAddr = c.RealIP()
 
 	srch.CleanInput()
@@ -180,7 +181,7 @@ func InitializeSearch(c echo.Context, user string) SearchStruct {
 	srch.TableSize = len(srch.Queries)
 	srch.IsActive = true
 
-	SIUpdateRemain <- SIKVi{srch.ID, srch.TableSize}
+	SIUpdateRemain <- SIKVi{srch.WSID, srch.TableSize}
 	return srch
 }
 

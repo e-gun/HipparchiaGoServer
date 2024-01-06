@@ -90,9 +90,9 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 
 	var vs SearchStruct
 	if srch.ID != "ldamodelbot()" {
-		SIUpdateRemain <- SIKVi{srch.ID, 1}
-		SIUpdateSummMsg <- SIKVs{srch.ID, LDAMSG}
-		SIUpdateVProgMsg <- SIKVs{srch.ID, fmt.Sprintf(ESM1)}
+		SIUpdateRemain <- SIKVi{srch.WSID, 1}
+		SIUpdateSummMsg <- SIKVs{srch.WSID, LDAMSG}
+		SIUpdateVProgMsg <- SIKVs{srch.WSID, fmt.Sprintf(ESM1)}
 		vs = sessionintobulksearch(c, Config.VectorMaxlines)
 	} else {
 		vs = srch
@@ -108,7 +108,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	stops := StringMapKeysIntoSlice(getstopset())
 	vectoriser := nlp.NewCountVectoriser(stops...)
 
-	SIUpdateVProgMsg <- SIKVs{srch.ID, fmt.Sprintf(ESM2)}
+	SIUpdateVProgMsg <- SIKVs{srch.WSID, fmt.Sprintf(ESM2)}
 
 	// consider building TESTITERATIONS models and making a table for each
 	var dot mat.Matrix

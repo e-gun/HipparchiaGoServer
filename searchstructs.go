@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"regexp"
-	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -19,6 +18,7 @@ type SearchStruct struct {
 	User          string
 	IPAddr        string
 	ID            string
+	WSID          string
 	Seeking       string
 	Proximate     string
 	LemmaOne      string
@@ -524,205 +524,8 @@ func (s *SearchStruct) SortResults() {
 }
 
 //
-// THREAD SAFE INFRASTRUCTURE: MUTEX FOR STATE
-// (and not channel: https://github.com/golang/go/wiki/MutexOrChannel)
+// BUILD A SEARCH
 //
-
-// MakeSearchVault - called only once; yields the AllSearches vault
-func MakeSearchVault() SearchVault {
-	return SearchVault{
-		SearchMap: make(map[string]SearchStruct),
-		mutex:     sync.RWMutex{},
-	}
-}
-
-// SearchVault - there should be only one of these; and it contains all the searches
-type SearchVault struct {
-	SearchMap map[string]SearchStruct
-	mutex     sync.RWMutex
-}
-
-// InsertSS - add a search to the vault
-func (sv *SearchVault) InsertSS(s SearchStruct) {
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
-	sv.SearchMap[s.ID] = s
-	SIUpdateHits <- SIKVi{s.ID, 0}
-}
-
-// GetSS will fetch a SearchStruct; if it does not find one, it makes and registers a hollow search
-func (sv *SearchVault) GetSS(id string) SearchStruct {
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
-	s, e := sv.SearchMap[id]
-	if e != true {
-		s = BuildHollowSearch()
-		s.ID = id
-		s.IsActive = false
-		sv.SearchMap[id] = s
-		SIUpdateHits <- SIKVi{s.ID, 0}
-	}
-	return s
-}
-
-// SimpleGetSS will fetch a SearchStruct; if it does not find one, it makes but does not register a hollow search
-func (sv *SearchVault) SimpleGetSS(id string) SearchStruct {
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
-	s, e := sv.SearchMap[id]
-	if e != true {
-		s = BuildHollowSearch()
-		s.ID = id
-		s.IsActive = false
-		// do not let WSMessageLoop() register searches in the SearchMap. This wreaks havoc with the MAXSEARCHTOTAL code
-		// sv.SearchMap[id] = s
-		SIUpdateHits <- SIKVi{s.ID, 0}
-	}
-	return s
-}
-
-// Delete - get rid of a search (probably for good, but see "Purge")
-func (sv *SearchVault) Delete(id string) {
-	SIDel <- id
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
-	delete(sv.SearchMap, id)
-}
-
-// Purge is just delete; makes the code logic more legible; "Purge" implies that this search is likely to reappear with an "Update"
-func (sv *SearchVault) Purge(id string) {
-	SIDel <- id
-	sv.Delete(id)
-}
-
-// CountTotal - how many searches is the server already running?
-func (sv *SearchVault) CountTotal() int {
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
-	return len(sv.SearchMap)
-}
-
-// CountIP - how many searches is this IP address already running?
-func (sv *SearchVault) CountIP(ip string) int {
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
-	count := 0
-	for _, v := range sv.SearchMap {
-		if v.IPAddr == ip {
-			count += 1
-		}
-	}
-	return count
-}
-
-//
-// CHANNEL-BASED SEARCHINFO REPORTING TO COMMUNICATE RESULTS BETWEEN ROUTINES
-//
-
-// SrchInfo - struct used to deliver info about searches in progress
-type SrchInfo struct {
-	ID        string
-	Exists    bool
-	Hits      int
-	Remain    int
-	TableCt   int
-	SrchCount int
-	VProgStrg string
-	Summary   string
-}
-
-// SIKVi - SearchInfoHub helper struct for setting an int val on the item at map[key]
-type SIKVi struct {
-	key string
-	val int
-}
-
-// SIKVs - SearchInfoHub helper struct for setting a string val on the item at map[key]
-type SIKVs struct {
-	key string
-	val string
-}
-
-// SIReply - SearchInfoHub helper struct for returning the SrchInfo stored at map[key]
-type SIReply struct {
-	key      string
-	response chan SrchInfo
-}
-
-var (
-	SIUpdateHits     = make(chan SIKVi, 2*runtime.NumCPU())
-	SIUpdateRemain   = make(chan SIKVi, 2*runtime.NumCPU())
-	SIUpdateVProgMsg = make(chan SIKVs, 2*runtime.NumCPU())
-	SIUpdateSummMsg  = make(chan SIKVs, 2*runtime.NumCPU())
-	SIUpdateTW       = make(chan SIKVi)
-	SIRequest        = make(chan SIReply)
-	SIDel            = make(chan string)
-)
-
-// SearchInfoHub - the loop that lets you read/write from/to the searchinfo channels
-func SearchInfoHub() {
-	var (
-		Allinfo  = make(map[string]SrchInfo)
-		Finished = make(map[string]bool)
-	)
-
-	reporter := func(r SIReply) {
-		if _, ok := Allinfo[r.key]; ok {
-			r.response <- Allinfo[r.key]
-		} else {
-			// "false" triggers a break in rt-websocket.go
-			r.response <- SrchInfo{Exists: false}
-		}
-	}
-
-	fetchifexists := func(id string) SrchInfo {
-		if _, ok := Allinfo[id]; ok {
-			return Allinfo[id]
-		} else {
-			// any non-zero value for SrchCount is fine; the test in re-websocket.go is just for 0
-			return SrchInfo{ID: id, Exists: true, SrchCount: 1}
-		}
-	}
-
-	// this silly mechanism because selftest had 2nd round of nn vector tests respawning after deletion; rare, but...
-	storeunlessfinished := func(si SrchInfo) {
-		if _, ok := Finished[si.ID]; !ok {
-			Allinfo[si.ID] = si
-		}
-	}
-
-	// the main loop; it will never exit
-	for {
-		select {
-		case rq := <-SIRequest:
-			reporter(rq)
-		case tw := <-SIUpdateTW:
-			x := fetchifexists(tw.key)
-			x.TableCt = tw.val
-			storeunlessfinished(x)
-		case wr := <-SIUpdateHits:
-			x := fetchifexists(wr.key)
-			x.Hits = wr.val
-			storeunlessfinished(x)
-		case wr := <-SIUpdateRemain:
-			x := fetchifexists(wr.key)
-			x.Remain = wr.val
-			storeunlessfinished(x)
-		case wr := <-SIUpdateVProgMsg:
-			x := fetchifexists(wr.key)
-			x.VProgStrg = wr.val
-			storeunlessfinished(x)
-		case wr := <-SIUpdateSummMsg:
-			x := fetchifexists(wr.key)
-			x.Summary = wr.val
-			storeunlessfinished(x)
-		case del := <-SIDel:
-			Finished[del] = true
-			delete(Allinfo, del)
-
-		}
-	}
-}
 
 // BuildHollowSearch - is really a way to grab line collections via synthetic searchlists
 func BuildHollowSearch() SearchStruct {
@@ -766,6 +569,7 @@ func BuildHollowSearch() SearchStruct {
 		TableSize:     0,
 	}
 
+	s.WSID = s.ID
 	s.StoredSession = MakeDefaultSession(s.ID)
 	return s
 }
@@ -793,6 +597,7 @@ func CloneSearch(f *SearchStruct, iteration int) SearchStruct {
 		User:          f.User,
 		IPAddr:        f.IPAddr,
 		ID:            id,
+		WSID:          f.ID,
 		Seeking:       f.Seeking,
 		Proximate:     f.Proximate,
 		LemmaOne:      f.LemmaOne,
@@ -834,7 +639,101 @@ func CloneSearch(f *SearchStruct, iteration int) SearchStruct {
 		ExtraMsg:      f.ExtraMsg,
 		StoredSession: f.StoredSession,
 	}
+
+	SIUpdateIteration <- SIKVi{clone.WSID, clone.PhaseNum}
+
 	return clone
+}
+
+// THREAD SAFE INFRASTRUCTURE: MUTEX FOR STATE
+// (and not channel: https://github.com/golang/go/wiki/MutexOrChannel)
+//
+
+// MakeSearchVault - called only once; yields the AllSearches vault
+func MakeSearchVault() SearchVault {
+	return SearchVault{
+		SearchMap: make(map[string]SearchStruct),
+		mutex:     sync.RWMutex{},
+	}
+}
+
+// SearchVault - there should be only one of these; and it contains all the searches
+type SearchVault struct {
+	SearchMap map[string]SearchStruct
+	mutex     sync.RWMutex
+}
+
+// InsertSS - add a search to the vault
+func (sv *SearchVault) InsertSS(s SearchStruct) {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
+	sv.SearchMap[s.ID] = s
+	SIUpdateHits <- SIKVi{s.WSID, 0}
+}
+
+// GetSS will fetch a SearchStruct; if it does not find one, it makes and registers a hollow search
+func (sv *SearchVault) GetSS(id string) SearchStruct {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
+	s, e := sv.SearchMap[id]
+	if e != true {
+		s = BuildHollowSearch()
+		s.ID = id
+		s.IsActive = false
+		sv.SearchMap[id] = s
+		SIUpdateHits <- SIKVi{s.WSID, 0}
+	}
+	return s
+}
+
+// SimpleGetSS will fetch a SearchStruct; if it does not find one, it makes but does not register a hollow search
+func (sv *SearchVault) SimpleGetSS(id string) SearchStruct {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
+	s, e := sv.SearchMap[id]
+	if e != true {
+		s = BuildHollowSearch()
+		s.ID = id
+		s.IsActive = false
+		// do not let WSMessageLoop() register searches in the SearchMap. This wreaks havoc with the MAXSEARCHTOTAL code
+		// sv.SearchMap[id] = s
+		SIUpdateHits <- SIKVi{s.WSID, 0}
+	}
+	return s
+}
+
+// Delete - get rid of a search (probably for good, but see "Purge")
+func (sv *SearchVault) Delete(id string) {
+	SIDel <- id
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
+	delete(sv.SearchMap, id)
+}
+
+// Purge is just delete; makes the code logic more legible; "Purge" implies that this search is likely to reappear with an "Update"
+func (sv *SearchVault) Purge(id string) {
+	SIDel <- id
+	sv.Delete(id)
+}
+
+// CountTotal - how many searches is the server already running?
+func (sv *SearchVault) CountTotal() int {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
+	return len(sv.SearchMap)
+}
+
+// CountIP - how many searches is this IP address already running?
+func (sv *SearchVault) CountIP(ip string) int {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
+	count := 0
+	for _, v := range sv.SearchMap {
+		if v.IPAddr == ip {
+			count += 1
+		}
+	}
+	return count
 }
 
 //

@@ -360,7 +360,7 @@ func XWordsFeeder(ctx context.Context, kvp *[]KVPair, ss *SearchStruct) (<-chan 
 			default:
 				remainder = len(ss.Queries) - i - 1
 				if remainder%POLLEVERYNTABLES == 0 {
-					SIUpdateRemain <- SIKVi{ss.ID, remainder}
+					SIUpdateRemain <- SIKVi{ss.WSID, remainder}
 				}
 				emit <- (*kvp)[i]
 			}
@@ -431,7 +431,7 @@ func XWordsCollation(ctx context.Context, ss *SearchStruct, hits <-chan int) []i
 					// *something* came back from XWordsCheckFinds; a negative result is {-1, ""}
 					allhits = append(allhits, h)
 					// ss.Hits.Set(len(allhits))
-					SIUpdateHits <- SIKVi{ss.ID, len(allhits)}
+					SIUpdateHits <- SIKVi{ss.WSID, len(allhits)}
 				}
 				if len(allhits) > ss.OriginalLimit {
 					done = true

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -60,6 +61,7 @@ func formatpoll(pd PollData) string {
 	const (
 		FU  = `Finishing up...&nbsp;`
 		MS  = `Searching for matches among the initial finds...&nbsp;`
+		GF  = `Formatting the results...&nbsp;`
 		PCT = `: <span class="progress">%s</span> completed&nbsp;(%s)<br>`
 		EL1 = `&nbsp;(%s)<br>%s`
 		EL2 = `&nbsp;(%s)`
@@ -73,18 +75,30 @@ func formatpoll(pd PollData) string {
 
 	tp := func() string {
 		m := FU
-		if pd.TwoBox {
-			m = MS
-		}
+
 		if pd.IsVect {
 			m = ""
 		}
 		return fmt.Sprintf(EL1, pd.Elapsed, m)
 	}()
 
+	it := func() string {
+		var m string
+		switch pd.Iteration {
+		case 2:
+			m = MS
+		case 3:
+			m = GF
+		default:
+			// no change to m
+		}
+		return m
+	}()
+
 	if pctd != 0 && pd.Remain != 0 && pd.TotalWrk != 0 {
 		// normal in progress
 		htm += fmt.Sprintf(PCT, pcts, pd.Elapsed)
+		htm += it
 	} else if pd.Remain == 0 && pd.TotalWrk != 0 {
 		// finished, mostly
 		htm += tp
@@ -112,15 +126,15 @@ func formatpoll(pd PollData) string {
 //
 
 type PollData struct {
-	TotalWrk int    `json:"Poolofwork"`
-	Remain   int    `json:"Remaining"`
-	Hits     int    `json:"Hitcount"`
-	Msg      string `json:"Statusmessage"`
-	Elapsed  string `json:"Elapsed"`
-	Extra    string `json:"Notes"`
-	ID       string `json:"ID"`
-	TwoBox   bool
-	IsVect   bool
+	TotalWrk  int    `json:"Poolofwork"`
+	Remain    int    `json:"Remaining"`
+	Hits      int    `json:"Hitcount"`
+	Msg       string `json:"Statusmessage"`
+	Elapsed   string `json:"Elapsed"`
+	Extra     string `json:"Notes"`
+	ID        string `json:"ID"`
+	Iteration int
+	IsVect    bool
 }
 
 type WSClient struct {
@@ -202,7 +216,6 @@ func (c *WSClient) WSMessageLoop() {
 	srch := AllSearches.SimpleGetSS(c.ID)
 
 	var pd PollData
-	pd.TwoBox = srch.Twobox
 	pd.IsVect = srch.IsVector
 
 	// loop until search finishes
@@ -222,11 +235,7 @@ func (c *WSClient) WSMessageLoop() {
 
 		pd.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(srch.Launched).Seconds())
 
-		if srch.PhaseNum > 1 {
-			pd.Extra = "(second pass)"
-		} else {
-			pd.Extra = ""
-		}
+		pd.Iteration = srchinfo.Iteration
 
 		if srchinfo.VProgStrg != "" {
 			pd.Extra = fmt.Sprintf(VECAPPEND, srchinfo.VProgStrg)
@@ -286,6 +295,120 @@ func WSFillNewPool() *WSPool {
 		ClientMap: make(map[*WSClient]bool),
 		JSO:       make(chan *WSJSOut),
 		ReadID:    make(chan string),
+	}
+}
+
+//
+// CHANNEL-BASED SEARCHINFO REPORTING TO COMMUNICATE RESULTS BETWEEN ROUTINES
+//
+
+// SrchInfo - struct used to deliver info about searches in progress
+type SrchInfo struct {
+	ID        string
+	Exists    bool
+	Hits      int
+	Remain    int
+	TableCt   int
+	SrchCount int
+	VProgStrg string
+	Summary   string
+	Iteration int
+}
+
+// SIKVi - SearchInfoHub helper struct for setting an int val on the item at map[key]
+type SIKVi struct {
+	key string
+	val int
+}
+
+// SIKVs - SearchInfoHub helper struct for setting a string val on the item at map[key]
+type SIKVs struct {
+	key string
+	val string
+}
+
+// SIReply - SearchInfoHub helper struct for returning the SrchInfo stored at map[key]
+type SIReply struct {
+	key      string
+	response chan SrchInfo
+}
+
+var (
+	SIUpdateHits      = make(chan SIKVi, 2*runtime.NumCPU())
+	SIUpdateRemain    = make(chan SIKVi, 2*runtime.NumCPU())
+	SIUpdateVProgMsg  = make(chan SIKVs, 2*runtime.NumCPU())
+	SIUpdateSummMsg   = make(chan SIKVs, 2*runtime.NumCPU())
+	SIUpdateIteration = make(chan SIKVi, 2*runtime.NumCPU())
+	SIUpdateTW        = make(chan SIKVi)
+	SIRequest         = make(chan SIReply)
+	SIDel             = make(chan string)
+)
+
+// SearchInfoHub - the loop that lets you read/write from/to the searchinfo channels
+func SearchInfoHub() {
+	var (
+		Allinfo  = make(map[string]SrchInfo)
+		Finished = make(map[string]bool)
+	)
+
+	reporter := func(r SIReply) {
+		if _, ok := Allinfo[r.key]; ok {
+			r.response <- Allinfo[r.key]
+		} else {
+			// "false" triggers a break in rt-websocket.go
+			r.response <- SrchInfo{Exists: false}
+		}
+	}
+
+	fetchifexists := func(id string) SrchInfo {
+		if _, ok := Allinfo[id]; ok {
+			return Allinfo[id]
+		} else {
+			// any non-zero value for SrchCount is fine; the test in re-websocket.go is just for 0
+			return SrchInfo{ID: id, Exists: true, SrchCount: 1}
+		}
+	}
+
+	// this silly mechanism because selftest had 2nd round of nn vector tests respawning after deletion; rare, but...
+	storeunlessfinished := func(si SrchInfo) {
+		if _, ok := Finished[si.ID]; !ok {
+			Allinfo[si.ID] = si
+		}
+	}
+
+	// the main loop; it will never exit
+	for {
+		select {
+		case rq := <-SIRequest:
+			reporter(rq)
+		case tw := <-SIUpdateTW:
+			x := fetchifexists(tw.key)
+			x.TableCt = tw.val
+			storeunlessfinished(x)
+		case wr := <-SIUpdateHits:
+			x := fetchifexists(wr.key)
+			x.Hits = wr.val
+			storeunlessfinished(x)
+		case wr := <-SIUpdateRemain:
+			x := fetchifexists(wr.key)
+			x.Remain = wr.val
+			storeunlessfinished(x)
+		case wr := <-SIUpdateVProgMsg:
+			x := fetchifexists(wr.key)
+			x.VProgStrg = wr.val
+			storeunlessfinished(x)
+		case wr := <-SIUpdateSummMsg:
+			x := fetchifexists(wr.key)
+			x.Summary = wr.val
+			storeunlessfinished(x)
+		case wr := <-SIUpdateIteration:
+			x := fetchifexists(wr.key)
+			x.Iteration = wr.val
+			storeunlessfinished(x)
+		case del := <-SIDel:
+			Finished[del] = true
+			delete(Allinfo, del)
+		}
 	}
 }
 

@@ -253,7 +253,9 @@ func SSBuildQueries(s *SearchStruct) {
 		}
 	}
 	s.Queries = prqq
-	SIUpdateTW <- SIKVi{s.ID, len(prqq)}
+	SIUpdateTW <- SIKVi{s.WSID, len(prqq)}
+	SIUpdateRemain <- SIKVi{s.WSID, len(prqq)}
+	SIUpdateHits <- SIKVi{s.WSID, 0}
 }
 
 //
