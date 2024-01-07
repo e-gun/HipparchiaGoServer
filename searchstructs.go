@@ -36,13 +36,13 @@ type SearchStruct struct {
 	HasLemmaBoxB  bool
 	HasPhraseBoxA bool
 	HasPhraseBoxB bool
-	IsVector      bool
 	IsActive      bool
 	IsLemmAndPhr  bool
 	OneHit        bool
 	Twobox        bool
 	NotNear       bool
 	SkgRewritten  bool
+	Type          string
 	PhaseNum      int
 	SrchColumn    string // usually "stripped_line", sometimes "accented_line"
 	SrchSyntax    string // almost always "~"

@@ -74,11 +74,14 @@ func formatpoll(pd PollData) string {
 	htm := pd.Msg
 
 	tp := func() string {
-		m := FU
+		// textandindex or vectors
+		m := ""
 
-		if pd.IsVect {
-			m = ""
+		// regular searches
+		if pd.Type == "" {
+			m = FU
 		}
+
 		return fmt.Sprintf(EL1, pd.Elapsed, m)
 	}()
 
@@ -110,7 +113,7 @@ func formatpoll(pd PollData) string {
 		htm += fmt.Sprintf(EL2, pd.Elapsed)
 	}
 
-	if pd.Hits > 0 {
+	if pd.Hits > 0 && pd.Type == "" {
 		htm += fmt.Sprintf(HIT, pd.Hits)
 	}
 
@@ -134,7 +137,7 @@ type PollData struct {
 	Extra     string `json:"Notes"`
 	ID        string `json:"ID"`
 	Iteration int
-	IsVect    bool
+	Type      string
 }
 
 type WSClient struct {
@@ -217,7 +220,7 @@ func (c *WSClient) WSMessageLoop() {
 	srch := AllSearches.SimpleGetSS(c.ID)
 
 	var pd PollData
-	pd.IsVect = srch.IsVector
+	pd.Type = srch.Type
 
 	// loop until search finishes
 	for {

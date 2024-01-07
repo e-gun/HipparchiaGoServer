@@ -37,9 +37,8 @@ func InitializeSearch(c echo.Context, user string) SearchStruct {
 	srch.Optimize() // maybe rewrite the search to make it faster
 	srch.FormatInitialSummary()
 
-	if srch.IsVector {
+	if srch.Type == "vector" {
 		srch.InitSum = VECTORSEARCHSUMMARY
-		srch.IsVector = true
 	}
 
 	// now safe to rewrite skg oj that "^|\s", etc. can be added
@@ -91,7 +90,6 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	s.SkgRewritten = false
 	s.OneHit = sess.OneHit
 	s.PhaseNum = 1
-	s.IsVector = sess.VecNNSearch
 	s.VecTextPrep = sess.VecTextPrep
 	s.VecModeler = sess.VecModeler
 	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
@@ -99,6 +97,10 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 
 	if sess.NearOrNot == "notnear" {
 		s.NotNear = true
+	}
+
+	if sess.VecNNSearch {
+		s.Type = "vector"
 	}
 
 	s.ID = c.Param("id")
@@ -125,12 +127,12 @@ func BuildHollowSearch() SearchStruct {
 		ProxDist:      0,
 		HasLemmaBoxA:  false,
 		HasPhraseBoxA: false,
-		IsVector:      false,
 		IsActive:      false,
 		OneHit:        false,
 		Twobox:        false,
 		NotNear:       false,
 		SkgRewritten:  false,
+		Type:          "",
 		PhaseNum:      0,
 		SrchColumn:    DEFAULTCOLUMN,
 		SrchSyntax:    DEFAULTQUERYSYNTAX,
@@ -193,13 +195,13 @@ func CloneSearch(f *SearchStruct, iteration int) SearchStruct {
 		HasLemmaBoxB:  f.HasLemmaBoxB,
 		HasPhraseBoxA: f.HasPhraseBoxA,
 		HasPhraseBoxB: f.HasLemmaBoxA,
-		IsVector:      f.IsVector,
 		IsActive:      f.IsActive,
 		IsLemmAndPhr:  f.IsLemmAndPhr,
 		OneHit:        f.OneHit,
 		Twobox:        f.Twobox,
 		NotNear:       f.NotNear,
 		SkgRewritten:  f.SkgRewritten,
+		Type:          f.Type,
 		PhaseNum:      iteration,
 		SrchColumn:    f.SrchColumn,
 		SrchSyntax:    f.SrchSyntax,
