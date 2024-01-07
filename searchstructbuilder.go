@@ -30,8 +30,6 @@ func InitializeSearch(c echo.Context, user string) SearchStruct {
 	srch.Proximate = c.QueryParam("prx")
 	srch.LemmaOne = c.QueryParam("lem")
 	srch.LemmaTwo = c.QueryParam("plm")
-	srch.ID = c.Param("id")
-	srch.WSID = srch.ID
 	srch.IPAddr = c.RealIP()
 
 	srch.CleanInput()
@@ -102,6 +100,9 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	if sess.NearOrNot == "notnear" {
 		s.NotNear = true
 	}
+
+	s.ID = c.Param("id")
+	s.WSID = s.ID
 
 	// msg("nonstandard BuildDefaultSearch() for testing", MSGCRIT)
 

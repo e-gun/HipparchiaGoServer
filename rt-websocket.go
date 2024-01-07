@@ -192,6 +192,7 @@ func (c *WSClient) ReceiveID() {
 func (c *WSClient) WSMessageLoop() {
 	const (
 		FAIL      = `WSClient.WSMessageLoop() never found '%s' in the SearchMap`
+		SUCCESS   = `WSClient.WSMessageLoop() found '%s' in the SearchMap`
 		VECAPPEND = `<br><span class="smallerthannormal">%s</span>`
 	)
 
@@ -203,12 +204,12 @@ func (c *WSClient) WSMessageLoop() {
 		SIRequest <- responder
 		srchinfo := <-responder.response
 		if srchinfo.SrchCount != 0 && srchinfo.Exists {
+			msg(fmt.Sprintf(SUCCESS, c.ID), MSGTMI)
 			break
 		}
 
 		if time.Now().After(quit) {
 			msg(fmt.Sprintf(FAIL, c.ID), MSGFYI)
-			WebsocketPool.Remove <- c
 			break
 		}
 	}
@@ -250,6 +251,7 @@ func (c *WSClient) WSMessageLoop() {
 		c.Pool.JSO <- jso
 		time.Sleep(WSPOLLINGPAUSE)
 	}
+	WebsocketPool.Remove <- c
 }
 
 // WSPoolStartListening - the WSPool will listen for activity on its various channels (only called once at app launch)

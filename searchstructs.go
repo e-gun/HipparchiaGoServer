@@ -550,6 +550,7 @@ func (sv *SearchVault) InsertSS(s SearchStruct) {
 	sv.mutex.Lock()
 	defer sv.mutex.Unlock()
 	sv.SearchMap[s.ID] = s
+
 	SIUpdateHits <- SIKVi{s.WSID, 0}
 }
 

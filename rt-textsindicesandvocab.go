@@ -569,9 +569,10 @@ func RtIndexMaker(c echo.Context) error {
 	// "si" is a blank search struct used for progress reporting
 	si := BuildDefaultSearch(c)
 	AllSearches.InsertSS(si)
-
 	SIUpdateSummMsg <- SIKVs{si.WSID, MSG1}
 	SIUpdateRemain <- SIKVi{si.WSID, 1}
+
+	// [a] gather the lines...
 
 	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
 
