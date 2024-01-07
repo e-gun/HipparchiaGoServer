@@ -7,12 +7,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"regexp"
 	"strings"
-	"time"
 )
 
 var (
@@ -127,101 +125,6 @@ func RtSearch(c echo.Context) error {
 	AllSearches.Delete(srch.ID)
 
 	return JSONresponse(c, soj)
-}
-
-//
-// INITIAL SETUP
-//
-
-// InitializeSearch - set up a search; this is DRY code needed by both plain searches and vector searches
-func InitializeSearch(c echo.Context, user string) SearchStruct {
-	const (
-		VECTORSEARCHSUMMARY = "Acquiring a model for the selected texts"
-	)
-
-	srch := BuildDefaultSearch(c)
-	srch.User = user
-
-	srch.Seeking = c.QueryParam("skg")
-	srch.Proximate = c.QueryParam("prx")
-	srch.LemmaOne = c.QueryParam("lem")
-	srch.LemmaTwo = c.QueryParam("plm")
-	srch.ID = c.Param("id")
-	srch.WSID = srch.ID
-	srch.IPAddr = c.RealIP()
-
-	srch.CleanInput()
-	srch.SetType()  // must happen before SSBuildQueries()
-	srch.Optimize() // maybe rewrite the search to make it faster
-	srch.FormatInitialSummary()
-
-	if srch.IsVector {
-		srch.InitSum = VECTORSEARCHSUMMARY
-		srch.IsVector = true
-	}
-
-	// now safe to rewrite skg oj that "^|\s", etc. can be added
-	srch.Seeking = whitespacer(srch.Seeking, &srch)
-	srch.Proximate = whitespacer(srch.Proximate, &srch)
-
-	se := AllSessions.GetSess(user)
-	srch.StoredSession = se
-	sl := SessionIntoSearchlist(se)
-
-	srch.SearchIn = sl.Inc
-	srch.SearchEx = sl.Excl
-	srch.SearchSize = sl.Size
-
-	if srch.Twobox {
-		srch.CurrentLimit = FIRSTSEARCHLIM
-	}
-
-	SSBuildQueries(&srch)
-
-	srch.TableSize = len(srch.Queries)
-	srch.IsActive = true
-
-	SIUpdateRemain <- SIKVi{srch.WSID, srch.TableSize}
-	return srch
-}
-
-// BuildDefaultSearch - fill out the basic values for a new search
-func BuildDefaultSearch(c echo.Context) SearchStruct {
-	user := readUUIDCookie(c)
-	sess := AllSessions.GetSess(user)
-
-	var s SearchStruct
-	s.User = user
-	s.Launched = time.Now()
-	s.CurrentLimit = sess.HitLimit
-	s.OriginalLimit = sess.HitLimit
-	s.SrchColumn = DEFAULTCOLUMN
-	s.SrchSyntax = DEFAULTQUERYSYNTAX
-	s.OrderBy = ORDERBY
-	s.SearchIn = sess.Inclusions
-	s.SearchEx = sess.Exclusions
-	s.ProxDist = sess.Proximity
-	s.ProxScope = sess.SearchScope
-	s.NotNear = false
-	s.Twobox = false
-	s.HasPhraseBoxA = false
-	s.HasLemmaBoxA = false
-	s.SkgRewritten = false
-	s.OneHit = sess.OneHit
-	s.PhaseNum = 1
-	s.IsVector = sess.VecNNSearch
-	s.VecTextPrep = sess.VecTextPrep
-	s.VecModeler = sess.VecModeler
-	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
-	s.StoredSession = sess
-
-	if sess.NearOrNot == "notnear" {
-		s.NotNear = true
-	}
-
-	// msg("nonstandard BuildDefaultSearch() for testing", MSGCRIT)
-
-	return s
 }
 
 // whitespacer - massage search string to let regex accept start/end of a line as whitespace

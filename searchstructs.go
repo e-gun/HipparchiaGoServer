@@ -1,8 +1,12 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022-24
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package main
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"regexp"
 	"sort"
 	"strings"
@@ -521,128 +525,6 @@ func (s *SearchStruct) SortResults() {
 		// author nameIncreasing
 		WLOrderedBy(nameIncreasing, increasingLines).Sort(s.Results.Lines)
 	}
-}
-
-//
-// BUILD A SEARCH
-//
-
-// BuildHollowSearch - is really a way to grab line collections via synthetic searchlists
-func BuildHollowSearch() SearchStruct {
-	s := SearchStruct{
-		User:          "",
-		ID:            strings.Replace(uuid.New().String(), "-", "", -1),
-		Seeking:       "",
-		Proximate:     "",
-		LemmaOne:      "",
-		LemmaTwo:      "",
-		InitSum:       "",
-		Summary:       "",
-		ProxScope:     "",
-		ProxType:      "",
-		ProxDist:      0,
-		HasLemmaBoxA:  false,
-		HasPhraseBoxA: false,
-		IsVector:      false,
-		IsActive:      false,
-		OneHit:        false,
-		Twobox:        false,
-		NotNear:       false,
-		SkgRewritten:  false,
-		PhaseNum:      0,
-		SrchColumn:    DEFAULTCOLUMN,
-		SrchSyntax:    DEFAULTQUERYSYNTAX,
-		OrderBy:       ORDERBY,
-		VecTextPrep:   VECTORTEXTPREPDEFAULT,
-		VecModeler:    VECTORMODELDEFAULT,
-		CurrentLimit:  FIRSTSEARCHLIM,
-		OriginalLimit: FIRSTSEARCHLIM,
-		SkgSlice:      nil,
-		PrxSlice:      nil,
-		SearchIn:      SearchIncExl{},
-		SearchEx:      SearchIncExl{},
-		Queries:       nil,
-		Results:       WorkLineBundle{},
-		Launched:      time.Now(),
-		TTName:        strings.Replace(uuid.New().String(), "-", "", -1),
-		SearchSize:    0,
-		TableSize:     0,
-	}
-
-	s.WSID = s.ID
-	s.StoredSession = MakeDefaultSession(s.ID)
-	return s
-}
-
-// CloneSearch - make a copy of a search with results and queries, inter alia, ripped out
-func CloneSearch(f *SearchStruct, iteration int) SearchStruct {
-	// note that the clone is not accessible to RtWebsocket() because it never gets registered in the global SearchMap
-	// this means no progress for second pass SearchMap; this can be achieved, but it is not currently a priority
-
-	oid := strings.Replace(f.ID, "_pt2", "", -1) // so a pt3 does not look like "_pt2_pt3"
-	id := fmt.Sprintf("%s_pt%d", oid, iteration)
-
-	// THE DIVERGENCES
-	//s.Results = WorkLineBundle{}
-	//s.Queries = []PrerolledQuery{}
-	//s.SearchIn = SearchIncExl{}
-	//s.SearchEx = SearchIncExl{}
-	//s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
-	//s.SkgSlice = []string{}
-	//s.PrxSlice = []string{}
-	//s.PhaseNum = iteration
-	//s.ID = id
-
-	clone := SearchStruct{
-		User:          f.User,
-		IPAddr:        f.IPAddr,
-		ID:            id,
-		WSID:          f.ID,
-		Seeking:       f.Seeking,
-		Proximate:     f.Proximate,
-		LemmaOne:      f.LemmaOne,
-		LemmaTwo:      f.LemmaTwo,
-		InitSum:       f.InitSum,
-		Summary:       f.Summary,
-		ProxScope:     f.ProxScope,
-		ProxType:      f.ProxType,
-		ProxDist:      f.ProxDist,
-		HasLemmaBoxA:  f.HasLemmaBoxA,
-		HasLemmaBoxB:  f.HasLemmaBoxB,
-		HasPhraseBoxA: f.HasPhraseBoxA,
-		HasPhraseBoxB: f.HasLemmaBoxA,
-		IsVector:      f.IsVector,
-		IsActive:      f.IsActive,
-		IsLemmAndPhr:  f.IsLemmAndPhr,
-		OneHit:        f.OneHit,
-		Twobox:        f.Twobox,
-		NotNear:       f.NotNear,
-		SkgRewritten:  f.SkgRewritten,
-		PhaseNum:      iteration,
-		SrchColumn:    f.SrchColumn,
-		SrchSyntax:    f.SrchSyntax,
-		OrderBy:       f.OrderBy,
-		VecTextPrep:   f.VecTextPrep,
-		VecModeler:    f.VecModeler,
-		CurrentLimit:  f.CurrentLimit,
-		OriginalLimit: f.OriginalLimit,
-		SkgSlice:      []string{},
-		PrxSlice:      []string{},
-		SearchIn:      SearchIncExl{},
-		SearchEx:      SearchIncExl{},
-		Queries:       []PrerolledQuery{},
-		Results:       WorkLineBundle{},
-		Launched:      f.Launched,
-		TTName:        strings.Replace(uuid.New().String(), "-", "", -1),
-		SearchSize:    f.SearchSize,
-		TableSize:     f.TableSize,
-		ExtraMsg:      f.ExtraMsg,
-		StoredSession: f.StoredSession,
-	}
-
-	SIUpdateIteration <- SIKVi{clone.WSID, clone.PhaseNum}
-
-	return clone
 }
 
 // THREAD SAFE INFRASTRUCTURE: MUTEX FOR STATE
