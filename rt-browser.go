@@ -145,21 +145,23 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassag
 		return BrowsedPassage{}
 	}
 
-	// [b] acquire the lines we need to display in the body
+	// [b] acquire the wlb we need to display in the body
 
-	lines := SimpleContextGrabber(au, fc, ctx/2)
+	wlb := SimpleContextGrabber(au, fc, ctx/2)
 
-	// [b1] drop lines that are part of another work (matters in DP, IN, and CH)
+	// [b1] drop wlb that are part of another work (matters in DP, IN, and CH)
 	var trimmed []DbWorkline
-	for _, l := range lines {
+
+	ll := wlb.Generate()
+	for l := range ll {
 		if l.WkUID == w.UID {
 			trimmed = append(trimmed, l)
 		}
 	}
 
-	lines = trimmed
+	wlb.Lines = trimmed
 
-	if len(lines) == 0 {
+	if wlb.Len() == 0 {
 		var bp BrowsedPassage
 		bp.Browserhtml = fmt.Sprintf(FAIL2, au, wk, fc)
 		return bp
@@ -168,14 +170,15 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassag
 	// want to do what follows in some sort of regular order
 	nk := []string{"#", "", "loc", "pub", "c:", "r:", "d:"}
 
-	for i := range lines {
-		lines[i].GatherMetadata()
-		if len(lines[i].embnotes) != 0 {
+	ll = wlb.Generate()
+	for l := range ll {
+		l.GatherMetadata()
+		if len(l.embnotes) != 0 {
 			nt := `%s %s<br>`
-			lines[i].Annotations = ""
+			l.Annotations = ""
 			for _, key := range nk {
-				if v, y := lines[i].embnotes[key]; y {
-					lines[i].Annotations += fmt.Sprintf(nt, key, v)
+				if v, y := l.embnotes[key]; y {
+					l.Annotations += fmt.Sprintf(nt, key, v)
 				}
 			}
 		}
@@ -183,8 +186,8 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassag
 
 	// [c] acquire and format the HTML
 
-	ci := formatbrowsercitationinfo(lines[0], lines[len(lines)-1])
-	tr := buildbrowsertable(fc, lines)
+	ci := formatbrowsercitationinfo(wlb.FirstLine(), wlb.Lines[wlb.Len()-1])
+	tr := buildbrowsertable(fc, wlb.Lines)
 
 	// [d] fill out the JSON-ready struct
 	p := fc - ctx
@@ -206,7 +209,7 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassag
 		Browseforwards:    fw,
 		Browseback:        bw,
 		Authornumber:      au,
-		Workid:            lines[0].WkUID,
+		Workid:            wlb.FirstLine().WkUID,
 		Worknumber:        wk,
 		Authorboxcontents: ab,
 		Workboxcontents:   wb,

@@ -90,7 +90,7 @@ func RtTextMaker(c echo.Context) error {
 	}
 
 	// now we have the lines we need....
-	firstline := srch.Results.Lines[0]
+	firstline := srch.Results.FirstLine()
 	firstwork := firstline.MyWk()
 	firstauth := firstline.MyAu()
 
@@ -117,7 +117,7 @@ func RtTextMaker(c echo.Context) error {
 	block = []string{""}
 
 	trr := make([]string, srch.Results.Len())
-	previous := srch.Results.Lines[0]
+	previous := srch.Results.FirstLine()
 	workcount := 1
 
 	k := 0

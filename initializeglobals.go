@@ -211,23 +211,25 @@ func (dbw *DbWork) FindValidLevelValues(locc []string) LevelValues {
 
 	dbconn := GetDBConnection()
 	defer dbconn.Release()
-	lines := WorklineQuery(prq, dbconn)
+	wlb := WorklineQuery(prq, dbconn)
 
 	// [c] extract info from the hitlines returned
 	var vals LevelValues
 	vals.AtLvl = atlvl
 	vals.Label = lmap[atlvl]
 
-	if len(lines) == 0 {
+	if wlb.Len() == 0 {
 		return vals
 	}
 
-	vals.Total = lines[0].Lvls()
-	vals.Low = lines[0].LvlVal(atlvl)
-	vals.High = lines[len(lines)-1].LvlVal(atlvl)
+	first := wlb.FirstLine()
+	vals.Total = first.Lvls()
+	vals.Low = first.LvlVal(atlvl)
+	vals.High = wlb.Lines[wlb.Len()-1].LvlVal(atlvl)
 	var r []string
-	for i := range lines {
-		r = append(r, lines[i].LvlVal(atlvl))
+
+	for i := range wlb.Lines {
+		r = append(r, wlb.Lines[i].LvlVal(atlvl))
 	}
 	r = Unique(r)
 	sort.Strings(r)

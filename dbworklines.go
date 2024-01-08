@@ -281,14 +281,23 @@ func (wlb *WorkLineBundle) FirstLine() DbWorkline {
 	}
 }
 
+func (wlb *WorkLineBundle) AppendLines(toadd []DbWorkline) {
+	wlb.Lines = append(wlb.Lines, toadd...)
+}
+
+func (wlb *WorkLineBundle) AppendOne(toadd DbWorkline) {
+	wlb.Lines = append(wlb.Lines, toadd)
+}
+
 //
 // QUERY FUNCTIONS
 //
 
-// WorklineQuery - use a PrerolledQuery to acquire []DbWorkline
-func WorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
-	// NB: you have to use a dbconn.Exec() and can't use SQLPool.Exex() because with the latter
-	// the temp table will get separated from the main query: ERROR: relation "{ttname}" does not exist (SQLSTATE 42P01)
+// WorklineQuery - use a PrerolledQuery to acquire a WorkLineBundle
+func WorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) WorkLineBundle {
+	// NB: you have to use a dbconn.Exec() and can't use SQLPool.Exex() because with the latter the temp table will
+	// get separated from the main query:
+	// ERROR: relation "{ttname}" does not exist (SQLSTATE 42P01)
 
 	// [a] build a temp table if needed
 
@@ -307,7 +316,7 @@ func WorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) []DbWorkline {
 	thesefinds, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[DbWorkline])
 	chke(err)
 
-	return thesefinds
+	return WorkLineBundle{Lines: thesefinds}
 }
 
 // GrabOneLine - return a single DbWorkline from a table
@@ -323,16 +332,16 @@ func GrabOneLine(table string, line int) DbWorkline {
 	prq.TempTable = ""
 	prq.PsqlQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, line)
 	foundlines := WorklineQuery(prq, dbconn)
-	if len(foundlines) != 0 {
+	if foundlines.Len() != 0 {
 		// "index = %d" in QTMPL ought to mean you can never have len(foundlines) > 1 because index values are unique
-		return foundlines[0]
+		return foundlines.FirstLine()
 	} else {
 		return DbWorkline{}
 	}
 }
 
 // SimpleContextGrabber - grab a pile of Lines centered around the focusline
-func SimpleContextGrabber(table string, focus int, context int) []DbWorkline {
+func SimpleContextGrabber(table string, focus int, context int) WorkLineBundle {
 	const (
 		QTMPL = "SELECT %s FROM %s WHERE (index BETWEEN %d AND %d) ORDER by index"
 	)

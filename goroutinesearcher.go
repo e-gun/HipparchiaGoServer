@@ -14,11 +14,8 @@ import (
 // THE MANAGER
 //
 
-// SearchAndInsertResults - the core of a search: coordinates the dispatch of queries and collection of results
+// SearchAndInsertResults - fan out db queries and collect the results; insert a WorkLineBundle into the SearchStruct
 func SearchAndInsertResults(ss *SearchStruct) {
-	// not using *SearchStruct because of "first := HGoSrch(originalsrch)" in WithinXWordsSearch()
-	//
-
 	// see https://go.dev/blog/pipelines : see Parallel digestion & Fan-out, fan-in & Explicit cancellation
 	// https://medium.com/amboss/applying-modern-go-concurrency-patterns-to-data-pipelines-b3b5327908d4
 	// https://github.com/amboss-mededu/go-pipeline-article/blob/fe0cebe78ecc9c57cdb1ac83ae6af1cda44de475/main.go
@@ -35,7 +32,7 @@ func SearchAndInsertResults(ss *SearchStruct) {
 
 	workers := Config.WorkerCount
 
-	findchannels := make([]<-chan []DbWorkline, workers)
+	findchannels := make([]<-chan WorkLineBundle, workers)
 
 	for i := 0; i < workers; i++ {
 		fc, e := SrchConsumer(ctx, emitqueries)
@@ -49,9 +46,7 @@ func SearchAndInsertResults(ss *SearchStruct) {
 		mx = ss.CurrentLimit * 3
 	}
 
-	foundlines := ResultCollation(ctx, ss, mx, ResultAggregator(ctx, findchannels...))
-
-	wlb := WorkLineBundle{Lines: foundlines}
+	wlb := ResultCollation(ctx, ss, mx, ResultAggregator(ctx, findchannels...))
 	wlb.ResizeTo(mx)
 
 	ss.Results = wlb
@@ -92,8 +87,8 @@ func SrchFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, e
 }
 
 // SrchConsumer - grab a PrerolledQuery; execute search; emit finds to a channel
-func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWorkline, error) {
-	emitfinds := make(chan []DbWorkline)
+func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan WorkLineBundle, error) {
+	emitfinds := make(chan WorkLineBundle)
 
 	consume := func() {
 		dbconn := GetDBConnection()
@@ -104,7 +99,8 @@ func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWo
 			case <-ctx.Done():
 				return
 			default:
-				emitfinds <- WorklineQuery(q, dbconn)
+				wlb := WorklineQuery(q, dbconn)
+				emitfinds <- wlb
 			}
 		}
 	}
@@ -115,10 +111,10 @@ func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWo
 }
 
 // ResultAggregator - gather all hits from the findchannels into one place and then feed them to ResultCollation
-func ResultAggregator(ctx context.Context, findchannels ...<-chan []DbWorkline) <-chan []DbWorkline {
+func ResultAggregator(ctx context.Context, findchannels ...<-chan WorkLineBundle) <-chan WorkLineBundle {
 	var wg sync.WaitGroup
-	emitaggregate := make(chan []DbWorkline)
-	broadcast := func(ll <-chan []DbWorkline) {
+	emitaggregate := make(chan WorkLineBundle)
+	broadcast := func(ll <-chan WorkLineBundle) {
 		defer wg.Done()
 		for l := range ll {
 			select {
@@ -142,18 +138,18 @@ func ResultAggregator(ctx context.Context, findchannels ...<-chan []DbWorkline) 
 }
 
 // ResultCollation - return the actual []DbWorkline results after pulling them from the ResultAggregator channel
-func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundlines <-chan []DbWorkline) []DbWorkline {
-	var allhits []DbWorkline
+func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundbundle <-chan WorkLineBundle) WorkLineBundle {
+	var collated WorkLineBundle
 
-	addhits := func(worklines []DbWorkline) {
-		// each bundle of []DbWorkline comes off of a single author table
+	addhits := func(foundbundle WorkLineBundle) {
+		// each foundbundle comes off of a single author table
 		// so OneHit searches will just grab the top of that bundle
-		if ss.OneHit && ss.PhaseNum == 1 && len(worklines) > 0 {
-			allhits = append(allhits, worklines[0])
+		if ss.OneHit && ss.PhaseNum == 1 && !foundbundle.IsEmpty() {
+			collated.AppendOne(foundbundle.FirstLine())
 		} else {
-			allhits = append(allhits, worklines...)
+			collated.AppendLines(foundbundle.Lines)
 		}
-		SIUpdateHits <- SIKVi{ss.WSID, len(allhits)}
+		SIUpdateHits <- SIKVi{ss.WSID, collated.Len()}
 	}
 
 	done := false
@@ -164,10 +160,10 @@ func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundli
 		select {
 		case <-ctx.Done():
 			done = true
-		case ll, ok := <-foundlines:
+		case ll, ok := <-foundbundle:
 			if ok {
 				addhits(ll)
-				if len(allhits) > maxhits {
+				if collated.Len() > maxhits {
 					done = true
 				}
 			} else {
@@ -175,5 +171,5 @@ func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundli
 			}
 		}
 	}
-	return allhits
+	return collated
 }

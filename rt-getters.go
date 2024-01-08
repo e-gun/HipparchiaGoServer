@@ -317,9 +317,11 @@ func RtGetJSSampCit(c echo.Context) error {
 
 	w := AllWorks[wkid]
 	// because "t" is going to be the first line's citation you have to hunt for the real place where the text starts
-	ff := SimpleContextGrabber(w.AuID(), w.FirstLine, 2)
+	wlb := SimpleContextGrabber(w.AuID(), w.FirstLine, 2)
+	ff := wlb.Lines
+
 	var actualfirst DbWorkline
-	for i := len(ff) - 1; i > 0; i-- {
+	for i := wlb.Len() - 1; i > 0; i-- {
 		loc := strings.Join(ff[i].FindLocus(), ".")
 		if loc[0] != 't' && ff[i].TbIndex >= w.FirstLine {
 			actualfirst = ff[i]
