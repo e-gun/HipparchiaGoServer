@@ -275,7 +275,7 @@ func headwordlookup(word string) DbHeadwordCount {
 		INFO = "headwordlookup() for %s returned %d finds"
 	)
 
-	dbconn := GetPSQLconnection()
+	dbconn := GetDBConnection()
 	defer dbconn.Release()
 
 	q := fmt.Sprintf(QTP, word)

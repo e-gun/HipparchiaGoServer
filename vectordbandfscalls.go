@@ -129,7 +129,7 @@ func fetchheadwordcounts(headwordset map[string]bool) map[string]int {
 
 	msg(fmt.Sprintf(MSG1, len(headwordset)), MSGPEEK)
 
-	dbconn := GetPSQLconnection()
+	dbconn := GetDBConnection()
 	defer dbconn.Release()
 
 	arr := strings.Join(hw, "', '")

@@ -111,7 +111,7 @@ func RtMorphchart(c echo.Context) error {
 	// for ἐπιγιγνώϲκω...
 	// select * from greek_morphology where greek_morphology.xrefs='37925260';
 
-	dbconn := GetPSQLconnection()
+	dbconn := GetDBConnection()
 	defer dbconn.Release()
 
 	// hipparchiaDB=# select observed_form, xrefs from latin_morphology where observed_form = 'crediti';
@@ -929,7 +929,7 @@ func getwordcounts(ww []string) map[string]DbWordCount {
 		CHARR = `abcdefghijklmnopqrstuvwxyzαβψδεφγηιξκλμνοπρτυωχθζϲ`
 	)
 
-	dbconn := GetPSQLconnection()
+	dbconn := GetDBConnection()
 	defer dbconn.Release()
 
 	byfirstlett := make(map[string][]string)

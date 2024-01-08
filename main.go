@@ -81,7 +81,7 @@ func main() {
 	// [2] set up things that will run forever in the background
 	//
 
-	SQLPool = FillPSQLPoool()
+	SQLPool = FillDBConnectionPool()
 	go WebsocketPool.WSPoolStartListening()
 
 	go SearchInfoHub()

@@ -1,9 +1,4 @@
-# HipparchiaGoServer
-
-### STATUS (v1.2.19):
-
-* 25%-700% faster than HipparchiaServer depending on the function. Uses c. 60% as much RAM as python's HipparchiaServer.
-* monolithic binary: no need for extra files/folders; no need to chase dependencies
+## HipparchiaGoServer v1.2.19
 
 ### FEATURES
 
@@ -44,9 +39,9 @@
 
 ### NOTES
 
-* c. 189MB resident RAM on launch (note that a simple application like iTerm2 uses 354MB and Firefox uses 855MB)
+* c. 83MB resident RAM on launch (note that a simple application like iTerm2 uses 354MB and Firefox uses 855MB)
 * add about 125MB of RAM per postgres client connection in the pool
-* a very heavy search like "all forms of πόλιϲ near..." can kick you up into 660MB
+* a very heavy search like `all forms of πόλιϲ near...` can kick you up into 660MB
 
 ### MINIMUM VERSION OF GOLANG REQUIRED TO BUILD
 * go 1.21 because `slices` package is called

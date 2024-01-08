@@ -96,7 +96,7 @@ func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan []DbWo
 	emitfinds := make(chan []DbWorkline)
 
 	consume := func() {
-		dbconn := GetPSQLconnection()
+		dbconn := GetDBConnection()
 		defer dbconn.Release()
 		defer close(emitfinds)
 		for q := range prq {

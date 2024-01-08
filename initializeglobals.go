@@ -53,10 +53,6 @@ var (
 	ServableFonts = map[string]FontTempl{"Noto": NotoFont, "Roboto": RobotoFont, "Fira": FiraFont}
 	LaunchTime    = time.Now()
 	WebsocketPool = WSFillNewPool()
-	// abandoned option where "jsi" can be used instead of "json" in vectordbandfscalls.go and vectornnembeddings.go and with JSONresponse()
-	// not in fact 100% compatible because "jsi.MarshalIndent" will panic if used for "json.MarshalIndent"
-	// cf. https://jsoniter.com/migrate-from-go-std.html;  https://jsoniter.com/go-tips.html;
-	// jsi           = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 type DbAuthor struct {
@@ -213,7 +209,7 @@ func (dbw *DbWork) FindValidLevelValues(locc []string) LevelValues {
 	var prq PrerolledQuery
 	prq.PsqlQuery = fmt.Sprintf(SEL, dbw.AuID(), dbw.UID, and, andnot)
 
-	dbconn := GetPSQLconnection()
+	dbconn := GetDBConnection()
 	defer dbconn.Release()
 	lines := WorklineQuery(prq, dbconn)
 

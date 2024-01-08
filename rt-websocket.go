@@ -73,6 +73,7 @@ func formatpoll(pd PollData) string {
 
 	htm := pd.Msg
 
+	// conditionally add "finishing" message
 	tp := func() string {
 		// textandindex or vectors
 		m := ""
@@ -85,6 +86,7 @@ func formatpoll(pd PollData) string {
 		return fmt.Sprintf(EL1, pd.Elapsed, m)
 	}()
 
+	// conditionally add message based on iteration #
 	it := func() string {
 		var m string
 		switch pd.Iteration {

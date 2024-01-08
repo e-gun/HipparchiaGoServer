@@ -316,7 +316,7 @@ func GrabOneLine(table string, line int) DbWorkline {
 		QTMPL = "SELECT %s FROM %s WHERE index = %d"
 	)
 
-	dbconn := GetPSQLconnection()
+	dbconn := GetDBConnection()
 	defer dbconn.Release()
 
 	var prq PrerolledQuery
@@ -337,7 +337,7 @@ func SimpleContextGrabber(table string, focus int, context int) []DbWorkline {
 		QTMPL = "SELECT %s FROM %s WHERE (index BETWEEN %d AND %d) ORDER by index"
 	)
 
-	dbconn := GetPSQLconnection()
+	dbconn := GetDBConnection()
 	defer dbconn.Release()
 
 	low := focus - context

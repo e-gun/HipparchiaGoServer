@@ -14,9 +14,7 @@ import (
 )
 
 //
-// Note that SQLite will not really work. It is 10% as fast on a single word search, does not like concat(),
-// cannot readily do regex, etc. This makes SQLite way too costly even if the vision of a serverless solution with only
-// a "hgs_sqlite.db" file is enticing.
+// Note that SQLite will not really work. See the "devel-sqlite" branch for the brutal details. Way too slow...
 //
 
 type PostgresLogin struct {
@@ -27,8 +25,8 @@ type PostgresLogin struct {
 	DBName string
 }
 
-// FillPSQLPoool - build the pgxpool that the whole program will Acquire() from
-func FillPSQLPoool() *pgxpool.Pool {
+// FillDBConnectionPool - build the pgxpool that the whole program will Acquire() from
+func FillDBConnectionPool() *pgxpool.Pool {
 	// it is not clear that the casual user gains much from a pool; this mechanism mattered more for python
 
 	// if min < WorkerCount the search will be slowed significantly
@@ -77,10 +75,10 @@ func FillPSQLPoool() *pgxpool.Pool {
 	return thepool
 }
 
-// GetPSQLconnection - Acquire() a connection from the main pgxpool
-func GetPSQLconnection() *pgxpool.Conn {
+// GetDBConnection - Acquire() a connection from the main pgxpool
+func GetDBConnection() *pgxpool.Conn {
 	const (
-		FAIL1   = "GetPSQLconnection() could not Acquire() from SQLPool."
+		FAIL1   = "GetDBConnection() could not Acquire() from the DBConnectionPool."
 		FAIL2   = `Your password in '%s' is incorrect? Too many connections to the server?`
 		FAIL3   = `The database is empty. Deleting any configuration files so you can reset the server.`
 		FAIL4   = `Failed to delete %s`
