@@ -114,11 +114,11 @@ func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan WorkLi
 func ResultAggregator(ctx context.Context, findchannels ...<-chan WorkLineBundle) <-chan WorkLineBundle {
 	var wg sync.WaitGroup
 	emitaggregate := make(chan WorkLineBundle)
-	broadcast := func(ll <-chan WorkLineBundle) {
+	broadcast := func(wlbb <-chan WorkLineBundle) {
 		defer wg.Done()
-		for l := range ll {
+		for b := range wlbb {
 			select {
-			case emitaggregate <- l:
+			case emitaggregate <- b:
 			case <-ctx.Done():
 				return
 			}
@@ -160,9 +160,9 @@ func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundbu
 		select {
 		case <-ctx.Done():
 			done = true
-		case ll, ok := <-foundbundle:
+		case lb, ok := <-foundbundle:
 			if ok {
-				addhits(ll)
+				addhits(lb)
 				if collated.Len() > maxhits {
 					done = true
 				}
