@@ -422,9 +422,9 @@ func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
 	SSBuildQueries(&s)
 	SearchAndInsertResults(&s)
 	count := 0
-	lnn := s.Results.Generate()
-	for ln := range lnn {
-		count += len(strings.Split(ln.Stripped, " "))
+	ll := s.Results.YieldAll()
+	for l := range ll {
+		count += len(strings.Split(l.Stripped, " "))
 	}
 
 	ct := m.Sprintf(PSGTEMPL, AllAuthors[au].Cleaname, AllWorks[f.WkUID].Title, f.Citation(), l.Citation(), count)

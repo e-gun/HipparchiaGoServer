@@ -71,7 +71,7 @@ func formatpoll(pd PollData) string {
 	pctd := ((float32(pd.TotalWrk) - float32(pd.Remain)) / float32(pd.TotalWrk)) * 100
 	pcts := fmt.Sprintf("%.0f", pctd) + "%"
 
-	htm := pd.Msg
+	htm := pd.Msg // see TPM, etc. in searchstructs.go; e.g.: Seeking <span class="sought">»μελιϲϲα«</span>
 
 	// conditionally add "finishing" message
 	tp := func() string {

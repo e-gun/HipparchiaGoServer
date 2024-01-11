@@ -59,8 +59,8 @@ func WithinXLinesSearch(first SearchStruct) SearchStruct {
 	second.SetType()
 
 	newpsg := make([]string, first.Results.Len())
-	rr := first.Results.Generate()
-	k := 0
+	rr := first.Results.YieldAll()
+	i := 0
 	for r := range rr {
 		// avoid "gr0028_FROM_-1_TO_5"
 		low := r.TbIndex - first.ProxDist
@@ -68,8 +68,8 @@ func WithinXLinesSearch(first SearchStruct) SearchStruct {
 			low = 1
 		}
 		np := fmt.Sprintf(PSGT, r.AuID(), low, r.TbIndex+first.ProxDist)
-		newpsg[k] = np
-		k++
+		newpsg[i] = np
+		i++
 	}
 
 	second.CurrentLimit = first.OriginalLimit
@@ -93,14 +93,14 @@ func WithinXLinesSearch(first SearchStruct) SearchStruct {
 		hitmapper := make(map[string]DbWorkline)
 
 		// all the original hits start as "good"
-		rr = first.Results.Generate()
+		rr = first.Results.YieldAll()
 		for r := range rr {
 			hitmapper[r.BuildHyperlink()] = r
 		}
 
 		// delete any hit that is within N-lines of any second hit
 		// hence "second.NotNear = false" above vs "first.NotNear" to get here: need matches, not misses
-		rr = second.Results.Generate()
+		rr = second.Results.YieldAll()
 		for r := range rr {
 			low := r.TbIndex - first.ProxDist
 			high := r.TbIndex + first.ProxDist
@@ -190,20 +190,20 @@ func WithinXWordsSearch(first SearchStruct) SearchStruct {
 	// [a2] pick the lines to grab and associate them with the hits they go with
 	// map[index/gr0007/018/15195:93 index/gr0007/018/15196:93 index/gr0007/018/15197:93 index/gr0007/018/15198:93 ...
 
-	k := 0
-	rr := first.Results.Generate()
+	count := 0
+	rr := first.Results.YieldAll()
 	for r := range rr {
 		low := r.TbIndex - need
 		if low < 1 {
 			low = 1
 		}
 		np := fmt.Sprintf(PSGT, r.AuID(), low, r.TbIndex+need)
-		newpsg[k] = np
+		newpsg[count] = np
 		for j := r.TbIndex - need; j <= r.TbIndex+need; j++ {
 			m := fmt.Sprintf(LNK, r.AuID(), r.WkID(), j)
-			resultmapper[m] = k
+			resultmapper[m] = count
 		}
-		k++
+		count++
 	}
 
 	second.CurrentLimit = FIRSTSEARCHLIM
@@ -222,22 +222,22 @@ func WithinXWordsSearch(first SearchStruct) SearchStruct {
 	// [c1] build bundles of lines
 	bundlemapper := make(map[int][]DbWorkline)
 
-	rr = second.Results.Generate()
+	rr = second.Results.YieldAll()
 	for r := range rr {
 		url := r.BuildHyperlink()
 		bun := resultmapper[url]
 		bundlemapper[bun] = append(bundlemapper[bun], r)
 	}
 
-	for i, b := range bundlemapper {
+	for k, b := range bundlemapper {
 		sort.Slice(b, func(i, j int) bool { return b[i].TbIndex < b[j].TbIndex })
-		bundlemapper[i] = b
+		bundlemapper[k] = b
 	}
 
 	// [c2] decompose them into long strings and assign to a KVPair (K will let you get back to first.Results[i])
 
 	kvp := make([]KVPair, len(bundlemapper))
-	count := 0
+	count = 0
 	for idx, lines := range bundlemapper {
 		var bundle []string
 		for i := 0; i < len(lines); i++ {

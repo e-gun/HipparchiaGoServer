@@ -6,7 +6,7 @@ require (
 	github.com/e-gun/nlp v0.0.0-20230418221101-577c2209ffcc
 	github.com/e-gun/tsnemp v0.0.0
 	github.com/e-gun/wego v0.0.12
-	github.com/go-echarts/go-echarts/v2 v2.3.2
+	github.com/go-echarts/go-echarts/v2 v2.3.3
 	github.com/google/uuid v1.5.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/jackc/pgx/v5 v5.5.1
@@ -39,8 +39,8 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
-	golang.org/x/crypto v0.17.0 // indirect
-	golang.org/x/net v0.19.0 // indirect
+	golang.org/x/crypto v0.18.0 // indirect
+	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/time v0.5.0 // indirect

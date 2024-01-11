@@ -285,7 +285,7 @@ func findphrasesacrosslines(ss *SearchStruct) {
 		return
 	}
 
-	rr := ss.Results.Generate()
+	rr := ss.Results.YieldAll()
 	i := 0
 	for r := range rr {
 		// do the "it's all on this line" case separately
@@ -380,7 +380,7 @@ func pruneresultsbylemma(hdwd string, ss *SearchStruct) {
 
 	var valid = make(map[string]DbWorkline, ss.Results.Len())
 
-	rr := ss.Results.Generate()
+	rr := ss.Results.YieldAll()
 	for r := range rr {
 		// do the "it's all on this line" case separately
 		li := ColumnPicker(ss.SrchColumn, r)

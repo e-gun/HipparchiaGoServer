@@ -243,8 +243,13 @@ type WorkLineBundle struct {
 	Lines []DbWorkline
 }
 
-// Generate - don't copy everything at once; send it over a channel
-func (wlb *WorkLineBundle) Generate() chan DbWorkline {
+// YieldAll - don't copy everything at once; send everything over a channel
+func (wlb *WorkLineBundle) YieldAll() chan DbWorkline {
+	// assuming the receiver will grab everything
+	// the code is always of the following format: `ll = wlb.YieldAll()` + `for l := range ll { ... }`
+
+	// a YieldSome() is not yet needed: yield some but listen on a stop channel, etc.
+
 	c := make(chan DbWorkline)
 	go func() {
 		for i := 0; i < len(wlb.Lines); i++ {

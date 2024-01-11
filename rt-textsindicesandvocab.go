@@ -94,21 +94,21 @@ func RtTextMaker(c echo.Context) error {
 	firstwork := firstline.MyWk()
 	firstauth := firstline.MyAu()
 
-	lines := srch.Results.Generate()
+	lines := srch.Results.YieldAll()
 	block := make([]string, srch.Results.Len())
 
-	j := 0
+	i := 0
 	for l := range lines {
 		l.PurgeMetadata()
-		block[j] = l.MarkedUp
-		j++
+		block[i] = l.MarkedUp
+		i++
 	}
 
 	whole := strings.Join(block, SNIP)
 	whole = textblockcleaner(whole)
 	block = strings.Split(whole, SNIP)
 
-	for i := 0; i < len(block); i++ {
+	for i = 0; i < len(block); i++ {
 		srch.Results.Lines[i].MarkedUp = block[i]
 	}
 
@@ -120,21 +120,21 @@ func RtTextMaker(c echo.Context) error {
 	previous := srch.Results.FirstLine()
 	workcount := 1
 
-	k := 0
-	lines = srch.Results.Generate()
+	i = 0
+	lines = srch.Results.YieldAll()
 	for l := range lines {
 		cit := selectivelydisplaycitations(l, previous, -1)
-		trr[k] = fmt.Sprintf(TBLRW, l.Annotations, l.MarkedUp, cit)
+		trr[i] = fmt.Sprintf(TBLRW, l.Annotations, l.MarkedUp, cit)
 		if l.WkUID != previous.WkUID {
 			// you were doing multi-text generation
 			workcount += 1
 			aw := l.MyAu().Name + fmt.Sprintf(`, <span class="italic">%s</span>`, l.MyWk().Title)
 			aw = fmt.Sprintf(`<hr><span class="emph">[%d] %s</span>`, workcount, aw)
 			extra := fmt.Sprintf(TBLRW, "", aw, "")
-			trr[k] = extra + trr[k]
+			trr[i] = extra + trr[i]
 		}
 		previous = l
-		k++
+		i++
 	}
 
 	tab := strings.Join(trr, "")
@@ -277,7 +277,7 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	var slicedwords []WordInfo
-	rr := vocabsrch.Results.Generate()
+	rr := vocabsrch.Results.YieldAll()
 	for r := range rr {
 		wds := r.AccentedSlice()
 		for _, w := range wds {
@@ -584,8 +584,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	var slicedwords []WordInfo
 
-	rr := srch.Results.Generate()
-
+	rr := srch.Results.YieldAll()
 	for r := range rr {
 		wds := r.AccentedSlice()
 		for _, w := range wds {

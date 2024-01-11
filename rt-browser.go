@@ -152,7 +152,7 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassag
 	// [b1] drop wlb that are part of another work (matters in DP, IN, and CH)
 	var trimmed []DbWorkline
 
-	ll := wlb.Generate()
+	ll := wlb.YieldAll()
 	for l := range ll {
 		if l.WkUID == w.UID {
 			trimmed = append(trimmed, l)
@@ -170,7 +170,7 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassag
 	// want to do what follows in some sort of regular order
 	nk := []string{"#", "", "loc", "pub", "c:", "r:", "d:"}
 
-	ll = wlb.Generate()
+	ll = wlb.YieldAll()
 	for l := range ll {
 		l.GatherMetadata()
 		if len(l.embnotes) != 0 {
