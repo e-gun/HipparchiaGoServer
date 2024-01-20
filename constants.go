@@ -150,12 +150,12 @@ const (
    C1-dvC0          disable semantic vector searching
    C1-elC0 C2{num}C0    set echo server log level (C10-3C0) [C6currentC0: C3{{.echoll}}C0]
    C1-exC0          extract the data to an archive folder in the same directory as the application; data sent to: "C3{{.cwd}}C0"
-   C1-ftC0 C2{string}C0 force a client-side font instead of serving a font [C6served font:C0 C3NotoSansC0]
+   C1-ftC0 C2{string}C0 change the font [C6built-in:C0 C3{{.knownfnts}}C0][C6currentC0: C3{{.deffnt}}C0]
                    names with spaces need quotes around them: "C4Gentium Plus CompactC0"
    C1-glC0 C2{num}C0    set golang log level (C10-5C0) [C6currentC0: C3{{.hgsll}}C0]
    C1-gzC0          enable gzip compression of the server's output
    C1-hC0           print this help information
-   C1-mdC0 C2{string}C0 set the default vector model type; available: C3gloveC0, C3lexvecC0, & C3w2vC0 [C6currentC0: C3{{.vmodel}}C0]
+   C1-mdC0 C2{string}C0 set the default vector model type; available: C3gloveC0, C3lexvecC0, and C3w2vC0 [C6currentC0: C3{{.vmodel}}C0]
    C1-miC0 C2{num}C0    maximum number of concurrent searches per IP address [C6currentC0: C3{{.maxipsrch}}C0]
    C1-msC0 C2{num}C0    maximum total number of concurrent searches [C6currentC0: C3{{.maxtotscrh}}C0]
    C1-pcC0          enable CPU profiling run
@@ -172,7 +172,7 @@ const (
    C1-uiC0 C2{string}C0 unacceptable input characters [C6currentC0: C3{{.badchars}}C0]
    C1-vC0           print version info and exit
    C1-vvC0          print full version info and exit
-   C1-wcC0 C2{int}C0    number of workers [C6currentC0: C3{{.workers}}C0][C1cpu_countC0 is C3{{.cpus}}C0]
+   C1-wcC0 C2{int}C0    number of workers [C1cpu_countC0 is C3{{.cpus}}C0][C6currentC0: C3{{.workers}}C0]
    C1-zlC0          zap lunate sigmas and replace them with C1σ/ςC0
    C1-00C0          completely erase the database and reset the tables
                    the application cannot run again until you restore its data from an archive 
@@ -181,7 +181,7 @@ const (
          C4"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"C0
      
      S1NB:S0 a properly formatted version of "C3{{.conffile}}C0" in "C3{{.home}}C0" configures everything for you. 
-         See 'C3sample_hgs-prolix-conf.jsonC0' as well as other sample configuration files at
+         See "C3sample_hgs-prolix-conf.jsonC0"" as well as other sample configuration files at
              C3{{.projurl}}C0
 `
 	LEXFINDJS = `

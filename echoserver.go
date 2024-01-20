@@ -224,15 +224,14 @@ func StartEchoServer() {
 
 // JSONresponse - send the JSON; this function lets one test and document different strategies; jsr should be a json-ready struct
 func JSONresponse(c echo.Context, jsr any) error {
-	const (
-		RESPONDER = 1
-	)
+
+	return c.JSON(http.StatusOK, jsr)
 
 	// note that JSONPretty will end up strikingly prominent on the profiler: a waste of memory and cycles unless
 	// you are debugging and want to be able to inspect the json manually
 
 	// [1] "vanilla"; and it turns out there is nothing wrong with vanilla; seems like the best choice
-	opt1 := func() error { return c.JSON(http.StatusOK, jsr) }
+	//opt1 := func() error { return c.JSON(http.StatusOK, jsr) }
 
 	// [2] "costs a lot of RAM in return for what?"
 	//opt2 := func() error { return c.JSONPretty(http.StatusOK, jsr, JSONINDENT) }
@@ -255,6 +254,10 @@ func JSONresponse(c echo.Context, jsr any) error {
 	//	return c.JSONBlob(http.StatusOK, b)
 	//}
 
+	//const (
+	//	RESPONDER = 1
+	//)
+	//
 	//switch RESPONDER {
 	//case 1:
 	//	return opt1()
@@ -268,5 +271,5 @@ func JSONresponse(c echo.Context, jsr any) error {
 	//	return opt1()
 	//}
 
-	return opt1()
+	//return opt1()
 }

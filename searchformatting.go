@@ -31,6 +31,17 @@ const (
 
 // FormatNoContextResults - build zero context search results table
 func FormatNoContextResults(ss *SearchStruct) SearchOutputJSON {
+	// EXAMPLE
+	// <tr class="nthrow">
+	//			<td>
+	//				<span class="findnumber">[3]</span>&nbsp;
+	//				<span class="foundauthor">Theophilus</span>,&nbsp; <span class="foundwork">Ad Autolycum</span>: <browser id="index/gr1725/001/3"><span class="foundlocus">1.1.2</span></browser> <br>
+	//			</td>
+	//			<td class="leftpad">
+	//				<span class="foundtext">ἔπαινον πρὸϲ κενὴν δόξαν ἀθλίοιϲ ἀνθρώποιϲ ἔχουϲι τὸν νοῦν κατε-</span>
+	//			</td>
+	//		</tr>
+
 	const (
 		TABLEROW = `
 		<tr class="{{.TRClass}}">
@@ -134,11 +145,18 @@ type ResultPassageLine struct {
 	IsHighlight     bool
 }
 
-// FormatWithContextResults - build n-lines of context search results table
+// FormatWithContextResults - build n-lines of context search results as a list
 func FormatWithContextResults(thesearch *SearchStruct) SearchOutputJSON {
 	// profiling will show that the bulk of your time is spent on (in descending order):
 	// lemmaintoregexslice(), regexp.Compile(strings.Join(re, "|")), and highlightsearchterm()
 	// the cost is not outlandish, but regex is fairly expensive
+
+	// EXAMPLE:
+	// <locus>
+	//			<span class="findnumber">[1]</span>&nbsp;
+	//			<span class="foundauthor">Caelius, Marcus Rufus</span>,&nbsp;<span class="foundwork">orationes</span>
+	//			<browser id="index/lt0444/002/1"><span class="foundlocus">17.t</span></browser>
+	// </locus>
 
 	const (
 		FINDTEMPL = `
@@ -624,12 +642,12 @@ func gethighlighter(ss *SearchStruct) *regexp.Regexp {
 	// "s", "sp", "spa", ... will mean html gets highlighting: `<span class="xyz" ...>`
 	// there has to be a more clever way to do this...
 	const (
-		FAILRE = "MATCH_NOTHING"
-		SKIP1  = "^s$|^sp$|^spa$|^span$|^hmu$"
-		SKIP2  = "|^c$|^cl$|^cla$|^clas$|^class$"
-		SKIP3  = "|^a$|^as$|^ass$"
-		SKIP4  = "|^l$|^la$|^lat$|^lati$|^latin$"
-		SKIP   = SKIP1 + SKIP2 + SKIP3 + SKIP4
+		FAILURE = "MATCH_NOTHING"
+		SKIP1   = "^s$|^sp$|^spa$|^span$|^hmu$"
+		SKIP2   = "|^c$|^cl$|^cla$|^clas$|^class$"
+		SKIP3   = "|^a$|^as$|^ass$"
+		SKIP4   = "|^l$|^la$|^lat$|^lati$|^latin$"
+		SKIP    = SKIP1 + SKIP2 + SKIP3 + SKIP4
 	)
 
 	var re *regexp.Regexp
@@ -639,7 +657,7 @@ func gethighlighter(ss *SearchStruct) *regexp.Regexp {
 
 	skip := regexp.MustCompile(SKIP)
 	if skip.MatchString(skg) || skip.MatchString(prx) {
-		return regexp.MustCompile(FAILRE)
+		return regexp.MustCompile(FAILURE)
 	}
 
 	if ss.SkgRewritten {
@@ -662,7 +680,7 @@ func gethighlighter(ss *SearchStruct) *regexp.Regexp {
 	} else {
 		// FAIL = "gethighlighter() cannot find anything to highlight\n\t%ss"
 		// msg(fmt.Sprintf(FAIL, ss.InitSum), MSGFYI)
-		re = regexp.MustCompile(FAILRE)
+		re = regexp.MustCompile(FAILURE)
 	}
 	return re
 }
@@ -679,10 +697,11 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 	// tp := `[\^\s;]%s[\s\.,;·’$]`
 
 	const (
-		FAIL   = "lemmahighlighter() could not compile lemma into regex"
-		JOINER = ")✃✃✃("
-		SNIP   = "✃✃✃"
-		TP     = `%s` // move from match $1 to $0 in highlightsearchterm() yielded this shift...
+		FAIL    = "lemmahighlighter() could not compile lemma into regex"
+		FAILURE = "MATCH_NOTHING"
+		JOINER  = ")✃✃✃("
+		SNIP    = "✃✃✃"
+		TP      = `%s` // move from match $1 to $0 in highlightsearchterm() yielded this shift...
 	)
 
 	lemm := AllLemm[lm].Deriv
@@ -698,6 +717,8 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 	r, e := regexp.Compile(rec)
 	if e != nil {
 		msg(FAIL, MSGFYI)
+	} else {
+		return regexp.MustCompile(FAILURE)
 	}
 	return r
 }

@@ -50,7 +50,7 @@ var (
 	WkLocs        = make(map[string]bool)
 	TheCorpora    = []string{GREEKCORP, LATINCORP, INSCRIPTCORP, CHRISTINSC, PAPYRUSCORP}
 	TheLanguages  = []string{"greek", "latin"}
-	ServableFonts = map[string]FontTempl{"Noto": NotoFont, "Roboto": RobotoFont, "Fira": FiraFont}
+	ServableFonts = map[string]FontTempl{"Noto": NotoFont, "Roboto": RobotoFont, "Fira": FiraFont} // cf rt-embhcss.go
 	LaunchTime    = time.Now()
 	WebsocketPool = WSFillNewPool()
 )
@@ -211,7 +211,7 @@ func (dbw *DbWork) FindValidLevelValues(locc []string) LevelValues {
 
 	dbconn := GetDBConnection()
 	defer dbconn.Release()
-	wlb := WorklineQuery(prq, dbconn)
+	wlb := SearchForDBWorklines(prq, dbconn)
 
 	// [c] extract info from the hitlines returned
 	var vals LevelValues

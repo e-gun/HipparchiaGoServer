@@ -118,25 +118,25 @@ type FontTempl struct {
 }
 
 // the fonts we know how to serve
-// NB: Inter and Ubuntu have been toyed with: Inter lacks both condensed and semi-condensed
+// NB: Inter, SourceSans and Ubuntu have been toyed with: Inter lacks both condensed and semi-condensed
 
 var (
 	NotoFont = FontTempl{
-		Type:             "opentype",
-		ShrtType:         "otf",
-		Bold:             "NotoSans-Bold.otf",
-		BoldItalic:       "NotoSans-BoldItalic.otf",
-		CondensedBold:    "NotoSans-CondensedSemiBold.otf",
-		CondensedItalic:  "NotoSans-CondensedItalic.otf",
-		CondensedRegular: "NotoSans-Condensed.otf",
-		SemiCondRegular:  "NotoSans-SemiCondensed.otf",
-		SemiCondItalic:   "NotoSans-SemiCondensedItalic.otf",
-		Italic:           "NotoSans-Italic.otf",
-		Light:            "NotoSans-ExtraLight.otf",
-		Mono:             "NotoSansMono-SemiCondensed.otf",
-		Regular:          "NotoSans-Regular.otf",
-		SemiBold:         "NotoSans-SemiBold.otf",
-		Thin:             "NotoSans-Thin.otf",
+		Type:             "truetype",
+		ShrtType:         "ttf",
+		Bold:             "NotoSansDisplay-Bold.ttf",
+		BoldItalic:       "NotoSansDisplay-BoldItalic.ttf",
+		CondensedBold:    "NotoSansDisplay_Condensed-SemiBold.ttf",
+		CondensedItalic:  "NotoSansDisplay_Condensed-Italic.ttf",
+		CondensedRegular: "NotoSansDisplay_Condensed-Regular.ttf",
+		SemiCondRegular:  "NotoSansDisplay_SemiCondensed-Regular.ttf",
+		SemiCondItalic:   "NotoSansDisplay_SemiCondensed-Italic.ttf",
+		Italic:           "NotoSansDisplay-Italic.ttf",
+		Light:            "NotoSansDisplay-ExtraLight.ttf",
+		Mono:             "NotoSansMono_Condensed-Regular.ttf",
+		Regular:          "NotoSansDisplay-Regular.ttf",
+		SemiBold:         "NotoSansDisplay-SemiBold.ttf",
+		Thin:             "NotoSansDisplay-Thin.ttf",
 	}
 	FiraFont = FontTempl{
 		Type:             "truetype",

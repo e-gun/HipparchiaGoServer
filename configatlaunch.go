@@ -14,6 +14,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"strings"
 	"text/template"
 )
 
@@ -191,6 +192,8 @@ func ConfigAtLaunch() {
 			cwd = "(unknown)"
 		}
 
+		kff := StringMapKeysIntoSlice(ServableFonts)
+
 		m := map[string]interface{}{
 			"badchars":   Config.BadChars,
 			"confauth":   CONFIGAUTH,
@@ -210,7 +213,9 @@ func ConfigAtLaunch() {
 			"port":       Config.HostPort,
 			"projurl":    PROJURL,
 			"vmodel":     Config.VectorModel,
-			"workers":    Config.WorkerCount}
+			"workers":    Config.WorkerCount,
+			"knownfnts":  strings.Join(kff, "C0, C3"),
+			"deffnt":     Config.Font}
 
 		t := template.Must(template.New("").Parse(HELPTEXTTEMPLATE))
 

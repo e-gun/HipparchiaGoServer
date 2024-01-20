@@ -14,7 +14,7 @@ import (
 // THE MANAGER
 //
 
-// SearchAndInsertResults - fan out db queries and collect the results; insert a WorkLineBundle into the SearchStruct
+// SearchAndInsertResults - take a SearchStruct; fan out its []PrerolledQuery; collect the results; insert a WorkLineBundle into the SearchStruct
 func SearchAndInsertResults(ss *SearchStruct) {
 	// see https://go.dev/blog/pipelines : see Parallel digestion & Fan-out, fan-in & Explicit cancellation
 	// https://medium.com/amboss/applying-modern-go-concurrency-patterns-to-data-pipelines-b3b5327908d4
@@ -24,8 +24,11 @@ func SearchAndInsertResults(ss *SearchStruct) {
 	// https://pranav93.github.io/blog/golang-fan-inout-pattern/
 	// https://github.com/luk4z7/go-concurrency-guide
 
+	// theoretically possible to yield up the interim results while the search is in progress; but a pain/gain problem
+	// specifically, two-part searches will always need a lot of fussing... websocket is perhaps the way to go
+
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	defer cancel() // nobody sends "<-ctx.Done()" as seen below; but this gives you that
 
 	emitqueries, err := SrchFeeder(ctx, ss)
 	chke(err)
@@ -99,7 +102,7 @@ func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan WorkLi
 			case <-ctx.Done():
 				return
 			default:
-				wlb := WorklineQuery(q, dbconn)
+				wlb := SearchForDBWorklines(q, dbconn)
 				emitfinds <- wlb
 			}
 		}
@@ -137,7 +140,7 @@ func ResultAggregator(ctx context.Context, findchannels ...<-chan WorkLineBundle
 	return emitaggregate
 }
 
-// ResultCollation - return the actual []DbWorkline results after pulling them from the ResultAggregator channel
+// ResultCollation - return the actual WorkLineBundle results after pulling them from the ResultAggregator channel
 func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundbundle <-chan WorkLineBundle) WorkLineBundle {
 	var collated WorkLineBundle
 

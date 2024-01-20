@@ -63,7 +63,7 @@ self-test with vectors can be deceptive because `-wc` flag will not override con
 
 ## profiling
 
-`HipparchiaGoServer -st -st -st` called to generate
+`HipparchiaGoServer -st` called to generate
 * `default.pgo`
 * `MEMProfile.pdf`
 * `CPUProfile.pdf`

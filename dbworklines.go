@@ -298,8 +298,8 @@ func (wlb *WorkLineBundle) AppendOne(toadd DbWorkline) {
 // QUERY FUNCTIONS
 //
 
-// WorklineQuery - use a PrerolledQuery to acquire a WorkLineBundle
-func WorklineQuery(prq PrerolledQuery, dbconn *pgxpool.Conn) WorkLineBundle {
+// SearchForDBWorklines - use a PrerolledQuery to acquire a WorkLineBundle
+func SearchForDBWorklines(prq PrerolledQuery, dbconn *pgxpool.Conn) WorkLineBundle {
 	// NB: you have to use a dbconn.Exec() and can't use SQLPool.Exex() because with the latter the temp table will
 	// get separated from the main query:
 	// ERROR: relation "{ttname}" does not exist (SQLSTATE 42P01)
@@ -336,7 +336,7 @@ func GrabOneLine(table string, line int) DbWorkline {
 	var prq PrerolledQuery
 	prq.TempTable = ""
 	prq.PsqlQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, line)
-	foundlines := WorklineQuery(prq, dbconn)
+	foundlines := SearchForDBWorklines(prq, dbconn)
 	if foundlines.Len() != 0 {
 		// "index = %d" in QTMPL ought to mean you can never have len(foundlines) > 1 because index values are unique
 		return foundlines.FirstLine()
@@ -361,7 +361,7 @@ func SimpleContextGrabber(table string, focus int, context int) WorkLineBundle {
 	prq.TempTable = ""
 	prq.PsqlQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, low, high)
 
-	foundlines := WorklineQuery(prq, dbconn)
+	foundlines := SearchForDBWorklines(prq, dbconn)
 
 	return foundlines
 }
