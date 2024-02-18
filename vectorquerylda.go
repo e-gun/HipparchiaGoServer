@@ -67,9 +67,9 @@ func (b *BagWithLocus) GetWL() {
 	tb := strings.Split(b.Loc, "/")
 	ln, e := strconv.Atoi(tb[2])
 	if e != nil {
-		msg("BagWithLocus.GetWL() failed to convert ascii to int", 2)
+		msg("BagWithLocus.GetWL() failed to convert ascii to int", MSGNOTE)
 	}
-	b.Workline = GrabOneLine(tb[1][:6], ln)
+	b.Workline = GrabOneLine(tb[1][0:LENGTHOFAUTHORID], ln)
 }
 
 // LDASearch - search via Latent Dirichlet Allocation

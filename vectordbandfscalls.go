@@ -262,10 +262,10 @@ func vectordbaddnn(fp string, embs embedding.Embeddings) {
 
 	_, err = SQLPool.Exec(context.Background(), ex, l2, b)
 	dbi.EC(err)
-	msg(MSG1+fp, MSGPEEK)
+	msg(MSG1+fp, MSGTMI)
 
 	// compressed is c. 28% of original
-	msg(fmt.Sprintf(MSG2, fp, l1/1024/1024, l2/1024/1024, (float32(l2)/float32(l1))*100), MSGPEEK)
+	msg(fmt.Sprintf(MSG2, fp, l1/1024/1024, l2/1024/1024, (float32(l2)/float32(l1))*100), MSGTMI)
 	buf.Reset()
 }
 

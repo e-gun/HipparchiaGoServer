@@ -95,15 +95,15 @@ type DbWork struct {
 
 // WkID - ex: gr2017w068 --> 068
 func (dbw *DbWork) WkID() string {
-	return dbw.UID[7:]
+	return dbw.UID[LENGTHOFAUTHORID+1:]
 }
 
 // AuID - ex: gr2017w068 --> gr2017
 func (dbw *DbWork) AuID() string {
-	if len(dbw.UID) < 6 {
+	if len(dbw.UID) < LENGTHOFAUTHORID {
 		return ""
 	} else {
-		return dbw.UID[:6]
+		return dbw.UID[:LENGTHOFAUTHORID]
 	}
 }
 
@@ -416,7 +416,7 @@ func sliceauthorcorpus(corpus string) []DbAuthor {
 	worklists := make(map[string][]string)
 	for _, w := range AllWorks {
 		wk := w.UID
-		au := wk[0:6]
+		au := wk[0:LENGTHOFAUTHORID]
 		if _, y := worklists[au]; !y {
 			worklists[au] = []string{wk}
 		} else {

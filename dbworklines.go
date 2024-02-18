@@ -62,9 +62,9 @@ type DbWorkline struct {
 	Lvl2Value   string
 	Lvl1Value   string
 	Lvl0Value   string
-	MarkedUp    string
-	Accented    string
-	Stripped    string
+	MarkedUp    string // converting this and others to pointers will not save you memory
+	Accented    string // converting to pointers might give you a very slight speed boost
+	Stripped    string // converting to pointers can produce nil pointer problems that need constant checks
 	Hyphenated  string
 	Annotations string
 	// beyond the db stuff; do not make this "public": pgx.RowToStructByPos will balk
@@ -72,7 +72,7 @@ type DbWorkline struct {
 }
 
 func (dbw *DbWorkline) FindLocus() []string {
-	loc := [6]string{
+	loc := [NUMBEROFCITATIONLEVELS]string{
 		dbw.Lvl5Value,
 		dbw.Lvl4Value,
 		dbw.Lvl3Value,
@@ -92,7 +92,7 @@ func (dbw *DbWorkline) FindLocus() []string {
 
 // AuID - gr0001w001 --> gr0001
 func (dbw *DbWorkline) AuID() string {
-	return dbw.WkUID[:6]
+	return dbw.WkUID[:LENGTHOFAUTHORID]
 }
 
 // MyAu - get the DbAuthor for this line
@@ -107,7 +107,7 @@ func (dbw *DbWorkline) MyAu() *DbAuthor {
 
 // WkID - gr0001w001 --> 001
 func (dbw *DbWorkline) WkID() string {
-	return dbw.WkUID[7:]
+	return dbw.WkUID[LENGTHOFAUTHORID+1:]
 }
 
 // MyWk - get the DbWork for this line
@@ -205,7 +205,7 @@ func (dbw *DbWorkline) Lvls() int {
 	//alternate is: "return dbw.MyWk().CountLevels()"
 	vv := []string{dbw.Lvl0Value, dbw.Lvl1Value, dbw.Lvl2Value, dbw.Lvl3Value, dbw.Lvl4Value, dbw.Lvl5Value}
 	empty := ContainsN(vv, "-1")
-	return 6 - empty
+	return NUMBEROFCITATIONLEVELS - empty
 }
 
 func (dbw *DbWorkline) LvlVal(lvl int) string {

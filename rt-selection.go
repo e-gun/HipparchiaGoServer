@@ -421,7 +421,7 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		// [b] remove the works from this column
 		clean = []string{}
 		for _, w := range si.Works {
-			if w[0:6] != sv.Auth {
+			if w[0:LENGTHOFAUTHORID] != sv.Auth {
 				clean = append(clean, w)
 			}
 		}
@@ -430,7 +430,7 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		// [c] remove the passages from this column
 		clean = []string{}
 		for _, p := range si.Passages {
-			if p[0:6] != sv.Auth {
+			if p[0:LENGTHOFAUTHORID] != sv.Auth {
 				clean = append(clean, p)
 			} else {
 				delete(si.MappedPsgByName, p)
@@ -450,7 +450,7 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		// [b] remove the works from both columns
 		clean = []string{}
 		for _, w := range si.Works {
-			if w[0:6] != sv.Auth {
+			if w[0:LENGTHOFAUTHORID] != sv.Auth {
 				clean = append(clean, w)
 			}
 		}
@@ -458,7 +458,7 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 
 		clean = []string{}
 		for _, w := range se.Works {
-			if w[0:6] != sv.Auth {
+			if w[0:LENGTHOFAUTHORID] != sv.Auth {
 				clean = append(clean, w)
 			}
 		}
@@ -467,7 +467,7 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 		// [c] remove the passages from both columns
 		clean = []string{}
 		for _, p := range si.Passages {
-			if p[0:6] != sv.Auth {
+			if p[0:LENGTHOFAUTHORID] != sv.Auth {
 				clean = append(clean, p)
 			} else {
 				delete(si.MappedPsgByName, p)
@@ -477,7 +477,7 @@ func rationalizeselections(original ServerSession, sv SelectionValues) ServerSes
 
 		clean = []string{}
 		for _, p := range se.Passages {
-			if p[0:6] != sv.Auth {
+			if p[0:LENGTHOFAUTHORID] != sv.Auth {
 				clean = append(clean, p)
 			} else {
 				delete(se.MappedPsgByName, p)
@@ -763,7 +763,7 @@ func endpointer(wuid string, locus string, sep string) ([2]int, bool) {
 		ll = ll[0 : len(ll)-1]
 	}
 
-	col := [6]string{"level_00_value", "level_01_value", "level_02_value", "level_03_value", "level_04_value", "level_05_value"}
+	col := []string{"level_00_value", "level_01_value", "level_02_value", "level_03_value", "level_04_value", "level_05_value"}
 	tem := `%s='%s'`
 	var use []string
 	for i, l := range ll {
@@ -946,7 +946,7 @@ func formatnewselectionjs(jsinfo []JSData) string {
 func validateworkselection(uid string) *DbWork {
 	w := &DbWork{}
 	w.UID = "work_not_found"
-	au := uid[0:6]
+	au := uid[0:LENGTHOFAUTHORID]
 	if _, ok := AllWorks[uid]; ok {
 		w = AllWorks[uid]
 	} else {

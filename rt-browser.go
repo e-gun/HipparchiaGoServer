@@ -329,7 +329,7 @@ func basiccitation(l DbWorkline) string {
 	w := l.MyWk()
 	cf := w.CitationFormat()
 	loc := l.FindLocus()
-	cf = cf[6-(len(loc)) : 6]
+	cf = cf[NUMBEROFCITATIONLEVELS-(len(loc)) : NUMBEROFCITATIONLEVELS]
 
 	var cit []string
 	for i := range loc {

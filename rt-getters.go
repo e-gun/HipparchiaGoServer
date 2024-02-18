@@ -126,7 +126,7 @@ func RtGetJSWorksOf(c echo.Context) error {
 	wks := make([]string, len(wl))
 	for i := 0; i < len(wl); i++ {
 		w := wl[i]
-		wks[i] = fmt.Sprintf(TEMPL, AllWorks[w].Title, w[6:10])
+		wks[i] = fmt.Sprintf(TEMPL, AllWorks[w].Title, w[LENGTHOFAUTHORID:LENGTHOFAUTHORID+LENGTHOFWORKID+1])
 	}
 
 	slices.Sort(wks)

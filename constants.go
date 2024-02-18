@@ -58,6 +58,8 @@ const (
 	HDBFOLDER                = "hDB"
 	INCERTADATE              = 2500
 	JSONINDENT               = "  "
+	LENGTHOFAUTHORID         = 6
+	LENGTHOFWORKID           = 3
 	LDATOPICS                = 8
 	LDAMAXTOPICS             = 30
 	LDASENTPERBAG            = 1
@@ -89,6 +91,7 @@ const (
 	MINDATESTR               = "-850"
 	MINORGENREWTCAP          = 250
 	NESTEDLEMMASIZE          = 543
+	NUMBEROFCITATIONLEVELS   = 6
 	ORDERBY                  = "index"
 	POLLEVERYNTABLES         = 34 // 3455 is the max number of tables in a search...
 	SERVEDFROMHOST           = "127.0.0.1"
