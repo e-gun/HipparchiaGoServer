@@ -211,7 +211,7 @@ func (dbw *DbWork) FindValidLevelValues(locc []string) LevelValues {
 
 	dbconn := GetDBConnection()
 	defer dbconn.Release()
-	wlb := SearchForDBWorklines(prq, dbconn)
+	wlb := AcquireWorkLineBundle(prq, dbconn)
 
 	// [c] extract info from the hitlines returned
 	var vals LevelValues

@@ -6,10 +6,7 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"regexp"
 	"strings"
 )
@@ -292,76 +289,4 @@ func (wlb *WorkLineBundle) AppendLines(toadd []DbWorkline) {
 
 func (wlb *WorkLineBundle) AppendOne(toadd DbWorkline) {
 	wlb.Lines = append(wlb.Lines, toadd)
-}
-
-//
-// QUERY FUNCTIONS
-//
-
-// SearchForDBWorklines - use a PrerolledQuery to acquire a WorkLineBundle
-func SearchForDBWorklines(prq PrerolledQuery, dbconn *pgxpool.Conn) WorkLineBundle {
-	// NB: you have to use a dbconn.Exec() and can't use SQLPool.Exex() because with the latter the temp table will
-	// get separated from the main query:
-	// ERROR: relation "{ttname}" does not exist (SQLSTATE 42P01)
-
-	// [a] build a temp table if needed
-
-	if prq.TempTable != "" {
-		_, err := dbconn.Exec(context.Background(), prq.TempTable)
-		chke(err)
-	}
-
-	// [b] execute the main query (nb: query needs to satisfy needs of RowToStructByPos in [c])
-
-	foundrows, err := dbconn.Query(context.Background(), prq.PsqlQuery)
-	chke(err)
-
-	// [c] convert the finds into []DbWorkline
-
-	thesefinds, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[DbWorkline])
-	chke(err)
-
-	return WorkLineBundle{Lines: thesefinds}
-}
-
-// GrabOneLine - return a single DbWorkline from a table
-func GrabOneLine(table string, line int) DbWorkline {
-	const (
-		QTMPL = "SELECT %s FROM %s WHERE index = %d"
-	)
-
-	dbconn := GetDBConnection()
-	defer dbconn.Release()
-
-	var prq PrerolledQuery
-	prq.TempTable = ""
-	prq.PsqlQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, line)
-	foundlines := SearchForDBWorklines(prq, dbconn)
-	if foundlines.Len() != 0 {
-		// "index = %d" in QTMPL ought to mean you can never have len(foundlines) > 1 because index values are unique
-		return foundlines.FirstLine()
-	} else {
-		return DbWorkline{}
-	}
-}
-
-// SimpleContextGrabber - grab a pile of Lines centered around the focusline
-func SimpleContextGrabber(table string, focus int, context int) WorkLineBundle {
-	const (
-		QTMPL = "SELECT %s FROM %s WHERE (index BETWEEN %d AND %d) ORDER by index"
-	)
-
-	dbconn := GetDBConnection()
-	defer dbconn.Release()
-
-	low := focus - context
-	high := focus + context
-
-	var prq PrerolledQuery
-	prq.TempTable = ""
-	prq.PsqlQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, low, high)
-
-	foundlines := SearchForDBWorklines(prq, dbconn)
-
-	return foundlines
 }

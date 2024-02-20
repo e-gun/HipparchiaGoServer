@@ -35,7 +35,7 @@ func SearchAndInsertResults(ss *SearchStruct) {
 
 	workers := Config.WorkerCount
 
-	findchannels := make([]<-chan WorkLineBundle, workers)
+	findchannels := make([]<-chan *WorkLineBundle, workers)
 
 	for i := 0; i < workers; i++ {
 		fc, e := SrchConsumer(ctx, emitqueries)
@@ -49,10 +49,7 @@ func SearchAndInsertResults(ss *SearchStruct) {
 		mx = ss.CurrentLimit * 3
 	}
 
-	wlb := ResultCollation(ctx, ss, mx, ResultAggregator(ctx, findchannels...))
-	wlb.ResizeTo(mx)
-
-	ss.Results = wlb
+	ResultCollation(ctx, ss, mx, ResultAggregator(ctx, findchannels...))
 }
 
 //
@@ -90,8 +87,8 @@ func SrchFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, e
 }
 
 // SrchConsumer - grab a PrerolledQuery; execute search; emit finds to a channel
-func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan WorkLineBundle, error) {
-	emitfinds := make(chan WorkLineBundle)
+func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan *WorkLineBundle, error) {
+	emitfinds := make(chan *WorkLineBundle)
 
 	consume := func() {
 		dbconn := GetDBConnection()
@@ -102,7 +99,7 @@ func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan WorkLi
 			case <-ctx.Done():
 				return
 			default:
-				wlb := SearchForDBWorklines(q, dbconn)
+				wlb := AcquireWorkLineBundle(q, dbconn)
 				emitfinds <- wlb
 			}
 		}
@@ -114,10 +111,10 @@ func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan WorkLi
 }
 
 // ResultAggregator - gather all hits from the findchannels into one place and then feed them to ResultCollation
-func ResultAggregator(ctx context.Context, findchannels ...<-chan WorkLineBundle) <-chan WorkLineBundle {
+func ResultAggregator(ctx context.Context, findchannels ...<-chan *WorkLineBundle) <-chan *WorkLineBundle {
 	var wg sync.WaitGroup
-	emitaggregate := make(chan WorkLineBundle)
-	broadcast := func(wlbb <-chan WorkLineBundle) {
+	emitaggregate := make(chan *WorkLineBundle)
+	broadcast := func(wlbb <-chan *WorkLineBundle) {
 		defer wg.Done()
 		for b := range wlbb {
 			select {
@@ -140,11 +137,11 @@ func ResultAggregator(ctx context.Context, findchannels ...<-chan WorkLineBundle
 	return emitaggregate
 }
 
-// ResultCollation - return the actual WorkLineBundle results after pulling them from the ResultAggregator channel
-func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundbundle <-chan WorkLineBundle) WorkLineBundle {
+// ResultCollation - insert the actual WorkLineBundle results into the SearchStruct after pulling them from the ResultAggregator channel
+func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundbundle <-chan *WorkLineBundle) {
 	var collated WorkLineBundle
 
-	addhits := func(foundbundle WorkLineBundle) {
+	addhits := func(foundbundle *WorkLineBundle) {
 		// each foundbundle comes off of a single author table
 		// so OneHit searches will just grab the top of that bundle
 		if ss.OneHit && ss.PhaseNum == 1 && !foundbundle.IsEmpty() {
@@ -174,5 +171,7 @@ func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundbu
 			}
 		}
 	}
-	return collated
+
+	collated.ResizeTo(maxhits) // a cap of N can collect >N hits before the "if collated.Len() > maxhits" halt check is made
+	ss.Results = collated
 }

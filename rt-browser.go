@@ -53,7 +53,7 @@ func RtBrowseRaw(c echo.Context) error {
 // RtBrowseLine - open a browser if sent '/browse/index/lt0550/001/1855'
 func RtBrowseLine(c echo.Context) error {
 	// sample input: '/browse/index/lt0550/001/1855'
-	// the one route that calls generatebrowsedpassage() directly
+	// the one route that calls GenerateBrowsedPassage() directly
 	c.Response().After(func() { messenger.LogPaths("RtBrowseLine()") })
 
 	const (
@@ -75,7 +75,7 @@ func RtBrowseLine(c echo.Context) error {
 		ln, e := strconv.Atoi(elem[2])
 		chke(e)
 		ctx := s.BrowseCtx
-		bp := generatebrowsedpassage(au, wk, ln, ctx)
+		bp := GenerateBrowsedPassage(au, wk, ln, ctx)
 		return JSONresponse(c, bp)
 	} else {
 		msg(fmt.Sprintf(FAIL, locus), MSGFYI)
@@ -87,7 +87,7 @@ func RtBrowseLine(c echo.Context) error {
 // BROWSING
 //
 
-// Browse - parse request and send a request to generatebrowsedpassage
+// Browse - parse request and send a request to GenerateBrowsedPassage
 func Browse(c echo.Context, sep string) BrowsedPassage {
 	// sample input: http://localhost:8000//browse/perseus/lt0550/001/2:717
 	const (
@@ -117,15 +117,15 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 		ln := findendpointsfromlocus(uid, elem[2], sep)
 		ctx := s.BrowseCtx
 
-		return generatebrowsedpassage(au, wk, ln[0], ctx)
+		return GenerateBrowsedPassage(au, wk, ln[0], ctx)
 	} else {
 		msg(fmt.Sprintf(FAIL, locus), MSGFYI)
 		return BrowsedPassage{}
 	}
 }
 
-// generatebrowsedpassage - browse Author A at line X with a context of Y lines
-func generatebrowsedpassage(au string, wk string, fc int, ctx int) BrowsedPassage {
+// GenerateBrowsedPassage - browse Author A at line X with a context of Y lines
+func GenerateBrowsedPassage(au string, wk string, fc int, ctx int) BrowsedPassage {
 	// build a response to "GET /browse/index/gr0062/028/14672 HTTP/1.1"
 
 	const (
