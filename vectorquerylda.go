@@ -98,7 +98,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 		vs = srch
 	}
 
-	bags := ldapreptext(se.VecTextPrep, vs.Results.Lines)
+	bags := ldapreptext(se.VecTextPrep, &vs)
 
 	corpus := make([]string, len(bags))
 	for i := 0; i < len(bags); i++ {
@@ -143,15 +143,16 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	return JSONresponse(c, soj)
 }
 
-// ldapreptext - prepare a collectio of dblines for lda analysis
-func ldapreptext(bagger string, dblines []DbWorkline) []BagWithLocus {
+// ldapreptext - prepare the WorkLineBundle of a SearchStruct for lda analysis
+func ldapreptext(bagger string, vs *SearchStruct) []BagWithLocus {
 
 	var sb strings.Builder
-	preallocate := CHARSPERLINE * len(dblines) // NB: a long line has 60 chars
+	preallocate := CHARSPERLINE * vs.Results.Len() // NB: a long line has 60 chars
 	sb.Grow(preallocate)
 
-	for i := 0; i < len(dblines); i++ {
-		newtxt := fmt.Sprintf("⊏line/%s/%d⊐%s ", dblines[i].WkUID, dblines[i].TbIndex, dblines[i].MarkedUp)
+	rr := vs.Results.YieldAll()
+	for r := range rr {
+		newtxt := fmt.Sprintf("⊏line/%s/%d⊐%s ", r.WkUID, r.TbIndex, r.MarkedUp)
 		sb.WriteString(newtxt)
 	}
 
@@ -190,8 +191,6 @@ func ldapreptext(bagger string, dblines []DbWorkline) []BagWithLocus {
 	const tagger = `⊏(.*?)⊐`
 	const notachar = `[^\sa-zα-ωϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ]`
 	re := regexp.MustCompile(tagger)
-
-	// SentPerBag = number of sentences per bag
 
 	cfg := ldavecconfig()
 

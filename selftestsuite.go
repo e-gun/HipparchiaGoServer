@@ -75,10 +75,18 @@ func selftestsuite() {
 		URL   = "http://%s:%d/vbot/%s/%s"
 	)
 
-	// TODO: figure out why memory use creeps forever up; vectors are the problem; the wego code itself seems to be to blame
+	// NOTES ON SELFTEST MEMORY USE
 
-	// currently a non-vector selftest() will go from 210M post-initialization to 263M at the end; this final figure will
-	// drop after a while; you will make it back down to 218M. the non-vector code is not leaking, it would seem
+	// [a] currently a non-vector selftest will go from its post-initialization value to something larger in the end;
+	// this final figure will drop after a while: garbage collected; you will return to the base memory footprint.
+
+	// [b] a vector selftest will go from its post-initialization value to something *much, much* larger in the end;
+	// this final figure will drop *somewhat* after a while; you will never return to the base memory footprint.
+
+	// [c] a series of non-selftest vector searches will consume a lot of RAM; this final figure will drop after a
+	// while; you will return to the base memory footprint. So [b] is producing (matrix) objects that elude GC.
+	// This is a bug. It has proven to be very elusive. But it is not a bug that affects real world use unless one
+	// always runs in selftest mode...
 
 	//go tool pprof heap.4.pprof
 	//Type: inuse_space

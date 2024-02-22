@@ -301,7 +301,7 @@ func findphrasesacrosslines(ss *SearchStruct) {
 			// Sought »αρετα παϲα«
 			// Searched 7,461 works and found 2 passages (1.80s)
 
-			// the first pass will find the wrong lines. OneHit means ResultCollation() will register only the first
+			// the first pass will find the wrong lines. OneHit means FinalResultCollation() will register only the first
 			// of a yet untested pair; but the real hit is in [b], not [a]; this is a 'linebundle' windowing problem from PSQL
 
 			// [1.a] διανοίαϲ καὶ ὀρέξιοϲ ὧν ἁ μὲν διάνοια τῶ λόγον ἔχοντόϲ

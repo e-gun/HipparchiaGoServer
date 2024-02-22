@@ -10,10 +10,6 @@ import (
 	"sync"
 )
 
-//
-// THE MANAGER
-//
-
 // SearchAndInsertResults - take a SearchStruct; fan out its []PrerolledQuery; collect the results; insert a WorkLineBundle into the SearchStruct
 func SearchAndInsertResults(ss *SearchStruct) {
 	// see https://go.dev/blog/pipelines : see Parallel digestion & Fan-out, fan-in & Explicit cancellation
@@ -28,19 +24,20 @@ func SearchAndInsertResults(ss *SearchStruct) {
 	// specifically, two-part searches will always need a lot of fussing... websocket is perhaps the way to go
 
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel() // nobody sends "<-ctx.Done()" as seen below; but this gives you that
+	defer cancel() // nobody emits "<-ctx.Done()" as seen below; but this gives you that
 
-	emitqueries, err := SrchFeeder(ctx, ss)
+	// [a] load the queries into a channel
+	querychannel, err := SearchQueryFeeder(ctx, ss)
 	chke(err)
 
+	// [b] fan out to run searches in parallel; searches fed by the query channel
 	workers := Config.WorkerCount
-
-	findchannels := make([]<-chan *WorkLineBundle, workers)
+	searchchannels := make([]<-chan *WorkLineBundle, workers)
 
 	for i := 0; i < workers; i++ {
-		fc, e := SrchConsumer(ctx, emitqueries)
+		foundlineschannel, e := PRQSearcher(ctx, querychannel)
 		chke(e)
-		findchannels[i] = fc
+		searchchannels[i] = foundlineschannel
 	}
 
 	mx := ss.CurrentLimit
@@ -49,15 +46,15 @@ func SearchAndInsertResults(ss *SearchStruct) {
 		mx = ss.CurrentLimit * 3
 	}
 
-	ResultCollation(ctx, ss, mx, ResultAggregator(ctx, findchannels...))
+	// [c] fan in to gather the results into a single channel
+	resultchan := ResultChannelAggregator(ctx, searchchannels...)
+
+	// [d] pull the results off of the result channel and collate them
+	FinalResultCollation(ctx, ss, mx, resultchan)
 }
 
-//
-// THE WORKERS
-//
-
-// SrchFeeder - emit items to a channel from the []PrerolledQuery that will be consumed by the SrchConsumer
-func SrchFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, error) {
+// SearchQueryFeeder - emit items to a channel from the []PrerolledQuery; they will be consumed by the PRQSearcher
+func SearchQueryFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, error) {
 	emitqueries := make(chan PrerolledQuery, Config.WorkerCount)
 	remainder := -1
 
@@ -86,59 +83,62 @@ func SrchFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, e
 	return emitqueries, nil
 }
 
-// SrchConsumer - grab a PrerolledQuery; execute search; emit finds to a channel
-func SrchConsumer(ctx context.Context, prq <-chan PrerolledQuery) (<-chan *WorkLineBundle, error) {
-	emitfinds := make(chan *WorkLineBundle)
+// PRQSearcher - this is where the search happens... grab a PrerolledQuery; execute search; emit finds to a channel
+func PRQSearcher(ctx context.Context, querychannel <-chan PrerolledQuery) (<-chan *WorkLineBundle, error) {
+	foundlineschannel := make(chan *WorkLineBundle)
 
 	consume := func() {
 		dbconn := GetDBConnection()
 		defer dbconn.Release()
-		defer close(emitfinds)
-		for q := range prq {
+		defer close(foundlineschannel)
+		for q := range querychannel {
 			select {
 			case <-ctx.Done():
 				return
 			default:
-				wlb := AcquireWorkLineBundle(q, dbconn)
-				emitfinds <- wlb
+				// execute a search and send the finds over the channel
+				b := AcquireWorkLineBundle(q, dbconn)
+				foundlineschannel <- b
 			}
 		}
 	}
 
 	go consume()
 
-	return emitfinds, nil
+	return foundlineschannel, nil
 }
 
-// ResultAggregator - gather all hits from the findchannels into one place and then feed them to ResultCollation
-func ResultAggregator(ctx context.Context, findchannels ...<-chan *WorkLineBundle) <-chan *WorkLineBundle {
+// ResultChannelAggregator - gather all hits from the searchchannels into one place and then feed them to FinalResultCollation
+func ResultChannelAggregator(ctx context.Context, searchchannels ...<-chan *WorkLineBundle) <-chan *WorkLineBundle {
 	var wg sync.WaitGroup
-	emitaggregate := make(chan *WorkLineBundle)
+	resultchann := make(chan *WorkLineBundle)
+
 	broadcast := func(wlbb <-chan *WorkLineBundle) {
 		defer wg.Done()
 		for b := range wlbb {
 			select {
-			case emitaggregate <- b:
+			case resultchann <- b:
 			case <-ctx.Done():
 				return
 			}
 		}
 	}
-	wg.Add(len(findchannels))
-	for _, fc := range findchannels {
+
+	wg.Add(len(searchchannels))
+	for _, fc := range searchchannels {
 		go broadcast(fc)
 	}
 
 	go func() {
 		wg.Wait()
-		close(emitaggregate)
+		close(resultchann)
 	}()
 
-	return emitaggregate
+	return resultchann
 }
 
-// ResultCollation - insert the actual WorkLineBundle results into the SearchStruct after pulling them from the ResultAggregator channel
-func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundbundle <-chan *WorkLineBundle) {
+// FinalResultCollation - insert the actual WorkLineBundle results into the SearchStruct after pulling them from the ResultChannelAggregator channel
+func FinalResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundbundle <-chan *WorkLineBundle) {
 	var collated WorkLineBundle
 
 	addhits := func(foundbundle *WorkLineBundle) {
@@ -164,6 +164,7 @@ func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundbu
 			if ok {
 				addhits(lb)
 				if collated.Len() > maxhits {
+					collated.ResizeTo(maxhits)
 					done = true
 				}
 			} else {
@@ -172,6 +173,5 @@ func ResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundbu
 		}
 	}
 
-	collated.ResizeTo(maxhits) // a cap of N can collect >N hits before the "if collated.Len() > maxhits" halt check is made
 	ss.Results = collated
 }
