@@ -23,11 +23,10 @@ func SearchAndInsertResults(ss *SearchStruct) {
 	// theoretically possible to yield up the interim results while the search is in progress; but a pain/gain problem
 	// specifically, two-part searches will always need a lot of fussing... websocket is perhaps the way to go
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel() // nobody emits "<-ctx.Done()" as seen below; but this gives you that
+	defer ss.CancelFnc()
 
 	// [a] load the queries into a channel
-	querychannel, err := SearchQueryFeeder(ctx, ss)
+	querychannel, err := SearchQueryFeeder(ss)
 	chke(err)
 
 	// [b] fan out to run searches in parallel; searches fed by the query channel
@@ -35,7 +34,7 @@ func SearchAndInsertResults(ss *SearchStruct) {
 	searchchannels := make([]<-chan *WorkLineBundle, workers)
 
 	for i := 0; i < workers; i++ {
-		foundlineschannel, e := PRQSearcher(ctx, querychannel)
+		foundlineschannel, e := PRQSearcher(ss.Context, querychannel)
 		chke(e)
 		searchchannels[i] = foundlineschannel
 	}
@@ -47,14 +46,14 @@ func SearchAndInsertResults(ss *SearchStruct) {
 	}
 
 	// [c] fan in to gather the results into a single channel
-	resultchan := ResultChannelAggregator(ctx, searchchannels...)
+	resultchan := ResultChannelAggregator(ss.Context, searchchannels...)
 
 	// [d] pull the results off of the result channel and collate them
-	FinalResultCollation(ctx, ss, mx, resultchan)
+	FinalResultCollation(ss, mx, resultchan)
 }
 
 // SearchQueryFeeder - emit items to a channel from the []PrerolledQuery; they will be consumed by the PRQSearcher
-func SearchQueryFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQuery, error) {
+func SearchQueryFeeder(ss *SearchStruct) (<-chan PrerolledQuery, error) {
 	emitqueries := make(chan PrerolledQuery, Config.WorkerCount)
 	remainder := -1
 
@@ -70,7 +69,7 @@ func SearchQueryFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQ
 		defer close(emitqueries)
 		for i := 0; i < len(ss.Queries); i++ {
 			select {
-			case <-ctx.Done():
+			case <-ss.Context.Done():
 				break
 			default:
 				emitone(i)
@@ -138,7 +137,7 @@ func ResultChannelAggregator(ctx context.Context, searchchannels ...<-chan *Work
 }
 
 // FinalResultCollation - insert the actual WorkLineBundle results into the SearchStruct after pulling them from the ResultChannelAggregator channel
-func FinalResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, foundbundle <-chan *WorkLineBundle) {
+func FinalResultCollation(ss *SearchStruct, maxhits int, foundbundle <-chan *WorkLineBundle) {
 	var collated WorkLineBundle
 
 	addhits := func(foundbundle *WorkLineBundle) {
@@ -158,7 +157,7 @@ func FinalResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, fo
 			break
 		}
 		select {
-		case <-ctx.Done():
+		case <-ss.Context.Done():
 			done = true
 		case lb, ok := <-foundbundle:
 			if ok {

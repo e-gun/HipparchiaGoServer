@@ -6,6 +6,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"sort"
@@ -35,7 +36,6 @@ type SearchStruct struct {
 	HasLemmaBoxB  bool
 	HasPhraseBoxA bool
 	HasPhraseBoxB bool
-	IsActive      bool
 	IsLemmAndPhr  bool
 	OneHit        bool
 	Twobox        bool
@@ -63,6 +63,9 @@ type SearchStruct struct {
 	ExtraMsg      string
 	StoredSession ServerSession
 	RealIP        string
+	Context       context.Context
+	CancelFnc     context.CancelFunc
+	IsActive      bool
 }
 
 // CleanInput - remove bad chars, etc. from the submitted data

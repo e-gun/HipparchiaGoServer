@@ -6,6 +6,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -88,6 +89,8 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	user := readUUIDCookie(c)
 	sess := AllSessions.GetSess(user)
 
+	// msg("nonstandard BuildDefaultSearch() for testing", MSGCRIT)
+
 	var s SearchStruct
 	s.User = user
 	s.Launched = time.Now()
@@ -124,7 +127,7 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	s.ID = c.Param("id")
 	s.WSID = s.ID
 
-	// msg("nonstandard BuildDefaultSearch() for testing", MSGCRIT)
+	InsertContextIntoSS(&s)
 
 	// but some fields are not set up quite yet
 	WSInfo.InsertInfo <- GenerateSrchInfo(&s)
@@ -173,6 +176,8 @@ func BuildHollowSearch() SearchStruct {
 		TableSize:     0,
 	}
 
+	InsertContextIntoSS(&s)
+
 	s.WSID = s.ID
 	s.StoredSession = MakeDefaultSession(s.ID)
 	return s
@@ -196,6 +201,8 @@ func CloneSearch(f *SearchStruct, iteration int) SearchStruct {
 	//s.PrxSlice = []string{}
 	//s.PhaseNum = iteration
 	//s.ID = id
+	//s.Context
+	//s.CancelFnc
 
 	clone := SearchStruct{
 		User:          f.User,
@@ -215,7 +222,6 @@ func CloneSearch(f *SearchStruct, iteration int) SearchStruct {
 		HasLemmaBoxB:  f.HasLemmaBoxB,
 		HasPhraseBoxA: f.HasPhraseBoxA,
 		HasPhraseBoxB: f.HasLemmaBoxA,
-		IsActive:      f.IsActive,
 		IsLemmAndPhr:  f.IsLemmAndPhr,
 		OneHit:        f.OneHit,
 		Twobox:        f.Twobox,
@@ -242,8 +248,15 @@ func CloneSearch(f *SearchStruct, iteration int) SearchStruct {
 		TableSize:     f.TableSize,
 		ExtraMsg:      f.ExtraMsg,
 		StoredSession: f.StoredSession,
+		IsActive:      f.IsActive,
 	}
+
+	InsertContextIntoSS(&clone)
 
 	WSInfo.UpdateIteration <- WSSIKVi{clone.WSID, clone.PhaseNum}
 	return clone
+}
+
+func InsertContextIntoSS(ss *SearchStruct) {
+	ss.Context, ss.CancelFnc = context.WithCancel(context.Background())
 }
