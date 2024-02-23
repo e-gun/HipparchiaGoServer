@@ -307,4 +307,5 @@ func selftestsuite() {
 
 	Config.VectorModel = ovm
 	Config.VectorTextPrep = otx
+	Config.SelfTest = 0
 }

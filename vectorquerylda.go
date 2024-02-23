@@ -114,6 +114,12 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	var dot mat.Matrix
 	var tables []string
 
+	// a chance to bail if you hit RtResetSession() in time
+	if Config.SelfTest == 0 && !Config.VectorBot && !AllSessions.IsInVault(vs.User) {
+		msg("LDASearch() aborting: RtResetSession switched user to "+vs.User, MSGFYI)
+		return JSONresponse(c, SearchOutputJSON{})
+	}
+
 	docsOverTopics, topicsOverWords := ldamodel(ntopics, corpus, vectoriser)
 	tables = append(tables, ldatopicsummary(ntopics, topicsOverWords, vectoriser, docsOverTopics))
 	tables = append(tables, ldatopsentences(ntopics, bags, corpus, docsOverTopics))

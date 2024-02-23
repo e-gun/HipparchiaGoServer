@@ -264,4 +264,5 @@ func activatevectorbot() {
 	messenger.Timer("VB", MSG3, start, previous)
 	vectordbsizenn(MSGNOTE)
 	vectordbcountnn(MSGNOTE)
+	Config.VectorBot = false
 }

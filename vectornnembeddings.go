@@ -196,6 +196,12 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	// input for  word2vec.Train() is 'io.ReadSeeker'
 	b := bytes.NewReader([]byte(thetext))
 
+	// a chance to bail before training if you hit RtResetSession() in time
+	if Config.SelfTest == 0 && !Config.VectorBot && !AllSessions.IsInVault(s.User) {
+		msg("generateembeddings() aborting: RtResetSession switched user to "+s.User, MSGFYI)
+		return embedding.Embeddings{}
+	}
+
 	finished := make(chan bool)
 
 	// .Train() but do not block; so we can also .Reporter()

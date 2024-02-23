@@ -81,13 +81,12 @@ func SSBuildQueries(s *SearchStruct) {
 	)
 
 	// check to see if RtResetSession() was called in the middle of a search
-	if !AllSessions.IsInVault(s.User) {
-		// msg("SSBuildQueries aborting: user switched", MSGFYI)
+	if Config.SelfTest == 0 && !Config.VectorBot && !AllSessions.IsInVault(s.User) {
+		msg("SSBuildQueries aborting: user switched to "+s.User, MSGFYI)
 		s.Queries = []PrerolledQuery{}
 		return
 	}
 
-	// modifies the SearchStruct in place
 	inc := s.SearchIn
 	exc := s.SearchEx
 
