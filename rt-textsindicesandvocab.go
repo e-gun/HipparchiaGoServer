@@ -619,6 +619,11 @@ func RtIndexMaker(c echo.Context) error {
 
 	// [c1] map words to a dbMorphology
 
+	// one of the places where you can catch a session reset
+	if !AllSessions.IsInVault(user) {
+		return JSONresponse(c, JSFeeder{})
+	}
+
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
 	WSInfo.UpdateSummMsg <- WSSIKVs{si.ID, MSG2}
@@ -656,6 +661,11 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	morphmap = make(map[string]DbMorphology) // drop after use
+
+	// one of the places where you can catch a session reset
+	if !AllSessions.IsInVault(user) {
+		return JSONresponse(c, JSFeeder{})
+	}
 
 	// keep track of unique values
 	globalwordcounts := getwordcounts(StringMapKeysIntoSlice(distinct))
@@ -717,6 +727,11 @@ func RtIndexMaker(c echo.Context) error {
 	mp := make(map[string]rune)
 	if srch.SearchSize > 1 {
 		trimslices, mp = addkeystowordinfo(trimslices)
+	}
+
+	// one of the places where you can catch a session reset
+	if !AllSessions.IsInVault(user) {
+		return JSONresponse(c, JSFeeder{})
 	}
 
 	// [d] the final map
@@ -800,6 +815,11 @@ func RtIndexMaker(c echo.Context) error {
 	cit := strings.Join(tc, ", ")
 
 	el := fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
+
+	// one of the places where you can catch a session reset
+	if !AllSessions.IsInVault(user) {
+		return JSONresponse(c, JSFeeder{})
+	}
 
 	ky := multiworkkeymaker(mp, &srch)
 

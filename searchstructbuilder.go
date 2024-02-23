@@ -71,6 +71,7 @@ func InitializeSearch(c echo.Context, user string) SearchStruct {
 func GenerateSrchInfo(srch *SearchStruct) WSSrchInfo {
 	return WSSrchInfo{
 		ID:        srch.WSID,
+		User:      srch.User,
 		Exists:    true,
 		Hits:      0,
 		Remain:    srch.TableSize,
@@ -81,6 +82,7 @@ func GenerateSrchInfo(srch *SearchStruct) WSSrchInfo {
 		Iteration: 0,
 		SType:     srch.Type,
 		Launched:  srch.Launched,
+		CancelFnc: srch.CancelFnc,
 	}
 }
 
@@ -254,6 +256,7 @@ func CloneSearch(f *SearchStruct, iteration int) SearchStruct {
 	InsertContextIntoSS(&clone)
 
 	WSInfo.UpdateIteration <- WSSIKVi{clone.WSID, clone.PhaseNum}
+
 	return clone
 }
 

@@ -97,6 +97,14 @@ func (sv *SessionVault) Delete(id string) {
 	delete(sv.SessionMap, id)
 }
 
+func (sv *SessionVault) IsInVault(id string) bool {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
+	_, b := sv.SessionMap[id]
+	// fmt.Println(StringMapKeysIntoSlice(sv.SessionMap))
+	return b
+}
+
 func (sv *SessionVault) GetSess(id string) ServerSession {
 	sv.mutex.Lock()
 	defer sv.mutex.Unlock()
@@ -236,11 +244,25 @@ func RtSessionGetCookie(c echo.Context) error {
 
 // RtResetSession - delete and then reset the session
 func RtResetSession(c echo.Context) error {
-	user := readUUIDCookie(c)
-	AllSessions.Delete(user)
+	id := readUUIDCookie(c)
 
-	// then reset it
-	readUUIDCookie(c)
+	AllSessions.Delete(id)
+
+	// cancel any searches in progress
+	WSInfo.Reset <- id
+
+	// two-part searches are not canceled yet; and the incomplete results will be handed to the next function
+	// canceling the subsequent parts happens via SSBuildQueries()
+	// if !AllSessions.IsInVault(s.User) no actual queries will be loaded into the ss so the search ends instantly
+
+	// there are no easy ways to halt a vector search once it starts training since the wego code has taken over
+	// you can only stop in the text building and parsing stage, but these will usually be over before you can mouse
+	// over and click "reset"...
+
+	// reset the user ID and session
+	newid := writeUUIDCookie(c)
+	AllSessions.InsertSess(MakeDefaultSession(newid))
+
 	e := c.Redirect(http.StatusFound, "/")
 	chke(e)
 	return nil

@@ -136,8 +136,9 @@ func readUUIDCookie(c echo.Context) string {
 	}
 	id := cookie.Value
 
-	// .GetSess() will make a new session if id is not found
-	_ = AllSessions.GetSess(id)
+	if !AllSessions.IsInVault(id) {
+		AllSessions.InsertSess(MakeDefaultSession(id))
+	}
 
 	return id
 }

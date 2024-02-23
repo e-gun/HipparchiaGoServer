@@ -6,6 +6,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
@@ -313,6 +314,7 @@ func WSFillNewPool() *WSPool {
 // WSSrchInfo - struct used to deliver info about searches in progress
 type WSSrchInfo struct {
 	ID        string
+	User      string
 	Exists    bool
 	Hits      int
 	Remain    int
@@ -324,6 +326,7 @@ type WSSrchInfo struct {
 	SType     string
 	Launched  time.Time
 	RealIP    string
+	CancelFnc context.CancelFunc
 }
 
 // WSSIKVi - WSSearchInfoHub helper struct for setting an int val on the item at map[key]
@@ -360,6 +363,7 @@ type WSInfoHubInterface struct {
 	InsertInfo      chan WSSrchInfo
 	IPSrchCount     chan WSSICount
 	Del             chan string
+	Reset           chan string
 }
 
 // BuildWSInfoHubIf - build the WSInfoHubInterface that will interact with WSSearchInfoHub (one and only one built at app startup)
@@ -375,6 +379,7 @@ func BuildWSInfoHubIf() *WSInfoHubInterface {
 		InsertInfo:      make(chan WSSrchInfo),
 		IPSrchCount:     make(chan WSSICount),
 		Del:             make(chan string),
+		Reset:           make(chan string),
 	}
 }
 
@@ -421,6 +426,15 @@ func WSSearchInfoHub() {
 		}
 	}
 
+	cancelall := func(u string) {
+		for _, v := range Allinfo {
+			if v.User == u {
+				v.CancelFnc()
+				// msg(v.ID+" canceled", 1)
+			}
+		}
+	}
+
 	// the main loop; it will never exit
 	for {
 		select {
@@ -454,6 +468,8 @@ func WSSearchInfoHub() {
 			storeunlessfinished(si)
 		case ipc := <-WSInfo.IPSrchCount:
 			ipc.response <- ipcount(ipc.key)
+		case reset := <-WSInfo.Reset:
+			cancelall(reset)
 		case del := <-WSInfo.Del:
 			Finished[del] = true
 			delete(Allinfo, del)

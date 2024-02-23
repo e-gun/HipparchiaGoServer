@@ -79,6 +79,14 @@ func SSBuildQueries(s *SearchStruct) {
 		REG = `(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
 		IDX = `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
 	)
+
+	// check to see if RtResetSession() was called in the middle of a search
+	if !AllSessions.IsInVault(s.User) {
+		// msg("SSBuildQueries aborting: user switched", MSGFYI)
+		s.Queries = []PrerolledQuery{}
+		return
+	}
+
 	// modifies the SearchStruct in place
 	inc := s.SearchIn
 	exc := s.SearchEx

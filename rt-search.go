@@ -92,7 +92,7 @@ func RtSearch(c echo.Context) error {
 		return LDASearch(c, srch)
 	}
 
-	// [E] OK, IT IS A SEARCH FOR A WORD OR PHRASE
+	// [D] OK, IT IS A SEARCH FOR A WORD OR PHRASE
 
 	c.Response().After(func() { messenger.LogPaths("RtSearch()") })
 
@@ -117,6 +117,8 @@ func RtSearch(c echo.Context) error {
 	if completed.Results.Len() > reallimit {
 		completed.Results.ResizeTo(reallimit)
 	}
+
+	// [E] DONE: TIME TO FORMAT
 
 	completed.SortResults()
 	soj := SearchOutputJSON{}
