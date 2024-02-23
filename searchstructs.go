@@ -176,7 +176,9 @@ func (s *SearchStruct) FormatInitialSummary() {
 	sk := s.Seeking
 	if len(s.LemmaOne) != 0 {
 		sk = s.LemmaOne
-		af1 = fmt.Sprintf(ADF, len(AllLemm[sk].Deriv))
+		if _, ok := AllLemm[sk]; ok {
+			af1 = fmt.Sprintf(ADF, len(AllLemm[sk].Deriv))
+		}
 	}
 
 	two := ""
@@ -185,7 +187,9 @@ func (s *SearchStruct) FormatInitialSummary() {
 		af2 := ""
 		if len(s.LemmaTwo) != 0 {
 			sk2 = s.LemmaTwo
-			af2 = fmt.Sprintf(ADF, len(AllLemm[sk2].Deriv))
+			if _, ok := AllLemm[sk]; ok {
+				af2 = fmt.Sprintf(ADF, len(AllLemm[sk].Deriv))
+			}
 		}
 		two = fmt.Sprintf(WIN, yn, s.ProxDist, s.ProxScope, af2, sk2)
 	}
