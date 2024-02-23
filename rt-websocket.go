@@ -203,7 +203,7 @@ func (c *WSClient) WSMessageLoop() {
 
 	getsrchinfo := func() WSSrchInfo {
 		responder := WSSIReply{key: c.ID, response: make(chan WSSrchInfo)}
-		WSSIRequest <- responder
+		WSInfo.RequestInfo <- responder
 		return <-responder.response
 	}
 
@@ -349,20 +349,36 @@ type WSSICount struct {
 	response chan int
 }
 
-var (
-	WSSIUpdateHits      = make(chan WSSIKVi, 2*runtime.NumCPU())
-	WSSIUpdateRemain    = make(chan WSSIKVi, 2*runtime.NumCPU())
-	WSSIUpdateVProgMsg  = make(chan WSSIKVs, 2*runtime.NumCPU())
-	WSSIUpdateSummMsg   = make(chan WSSIKVs, 2*runtime.NumCPU())
-	WSSIUpdateIteration = make(chan WSSIKVi, 2*runtime.NumCPU())
-	WSSIUpdateTW        = make(chan WSSIKVi)
-	WSSIRequest         = make(chan WSSIReply)
-	WSSIInsertInfo      = make(chan WSSrchInfo)
-	WSSIIPSrchCount     = make(chan WSSICount)
-	WSSIDel             = make(chan string)
-)
+type WSInfoHubInterface struct {
+	UpdateHits      chan WSSIKVi
+	UpdateRemain    chan WSSIKVi
+	UpdateVProgMsg  chan WSSIKVs
+	UpdateSummMsg   chan WSSIKVs
+	UpdateIteration chan WSSIKVi
+	UpdateTW        chan WSSIKVi
+	RequestInfo     chan WSSIReply
+	InsertInfo      chan WSSrchInfo
+	IPSrchCount     chan WSSICount
+	Del             chan string
+}
 
-// WSSearchInfoHub - the loop that lets you read/write from/to the various WSSrchInfo channels
+// BuildWSInfoHubIf - build the WSInfoHubInterface that will interact with WSSearchInfoHub (one and only one built at app startup)
+func BuildWSInfoHubIf() *WSInfoHubInterface {
+	return &WSInfoHubInterface{
+		UpdateHits:      make(chan WSSIKVi, 2*runtime.NumCPU()),
+		UpdateRemain:    make(chan WSSIKVi, 2*runtime.NumCPU()),
+		UpdateVProgMsg:  make(chan WSSIKVs, 2*runtime.NumCPU()),
+		UpdateSummMsg:   make(chan WSSIKVs, 2*runtime.NumCPU()),
+		UpdateIteration: make(chan WSSIKVi, 2*runtime.NumCPU()),
+		UpdateTW:        make(chan WSSIKVi),
+		RequestInfo:     make(chan WSSIReply),
+		InsertInfo:      make(chan WSSrchInfo),
+		IPSrchCount:     make(chan WSSICount),
+		Del:             make(chan string),
+	}
+}
+
+// WSSearchInfoHub - the loop that lets you read/write from/to the various WSSrchInfo channels via the WSInfo global (a *WSInfoHubInterface)
 func WSSearchInfoHub() {
 	var (
 		Allinfo  = make(map[string]WSSrchInfo)
@@ -408,37 +424,37 @@ func WSSearchInfoHub() {
 	// the main loop; it will never exit
 	for {
 		select {
-		case rq := <-WSSIRequest:
+		case rq := <-WSInfo.RequestInfo:
 			reporter(rq)
-		case tw := <-WSSIUpdateTW:
+		case tw := <-WSInfo.UpdateTW:
 			x := fetchifexists(tw.key)
 			x.TableCt = tw.val
 			storeunlessfinished(x)
-		case wr := <-WSSIUpdateHits:
+		case wr := <-WSInfo.UpdateHits:
 			x := fetchifexists(wr.key)
 			x.Hits = wr.val
 			storeunlessfinished(x)
-		case wr := <-WSSIUpdateRemain:
+		case wr := <-WSInfo.UpdateRemain:
 			x := fetchifexists(wr.key)
 			x.Remain = wr.val
 			storeunlessfinished(x)
-		case wr := <-WSSIUpdateVProgMsg:
+		case wr := <-WSInfo.UpdateVProgMsg:
 			x := fetchifexists(wr.key)
 			x.VProgStrg = wr.val
 			storeunlessfinished(x)
-		case wr := <-WSSIUpdateSummMsg:
+		case wr := <-WSInfo.UpdateSummMsg:
 			x := fetchifexists(wr.key)
 			x.Summary = wr.val
 			storeunlessfinished(x)
-		case wr := <-WSSIUpdateIteration:
+		case wr := <-WSInfo.UpdateIteration:
 			x := fetchifexists(wr.key)
 			x.Iteration = wr.val
 			storeunlessfinished(x)
-		case si := <-WSSIInsertInfo:
+		case si := <-WSInfo.InsertInfo:
 			storeunlessfinished(si)
-		case ipc := <-WSSIIPSrchCount:
+		case ipc := <-WSInfo.IPSrchCount:
 			ipc.response <- ipcount(ipc.key)
-		case del := <-WSSIDel:
+		case del := <-WSInfo.Del:
 			Finished[del] = true
 			delete(Allinfo, del)
 		}

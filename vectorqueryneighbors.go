@@ -110,7 +110,7 @@ func NeighborsSearch(c echo.Context, srch SearchStruct) error {
 		JS:            VECTORJS,
 	}
 
-	WSSIDel <- srch.WSID
+	WSInfo.Del <- srch.WSID
 	return JSONresponse(c, soj)
 }
 

@@ -56,7 +56,7 @@ func RtSearch(c echo.Context) error {
 
 	getsrchcount := func(ip string) int {
 		responder := WSSICount{key: ip, response: make(chan int)}
-		WSSIIPSrchCount <- responder
+		WSInfo.IPSrchCount <- responder
 		return <-responder.response
 	}
 
@@ -126,7 +126,7 @@ func RtSearch(c echo.Context) error {
 		soj = FormatWithContextResults(&completed)
 	}
 
-	WSSIDel <- srch.WSID
+	WSInfo.Del <- srch.WSID
 	return JSONresponse(c, soj)
 }
 

@@ -63,7 +63,7 @@ func InitializeSearch(c echo.Context, user string) SearchStruct {
 	srch.IsActive = true
 
 	// some info already inserted by BuildDefaultSearch(), but now that more info is ready...
-	WSSIInsertInfo <- GenerateSrchInfo(&srch)
+	WSInfo.InsertInfo <- GenerateSrchInfo(&srch)
 	return srch
 }
 
@@ -127,7 +127,7 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	// msg("nonstandard BuildDefaultSearch() for testing", MSGCRIT)
 
 	// but some fields are not set up quite yet
-	WSSIInsertInfo <- GenerateSrchInfo(&s)
+	WSInfo.InsertInfo <- GenerateSrchInfo(&s)
 	return s
 }
 
@@ -244,6 +244,6 @@ func CloneSearch(f *SearchStruct, iteration int) SearchStruct {
 		StoredSession: f.StoredSession,
 	}
 
-	WSSIUpdateIteration <- WSSIKVi{clone.WSID, clone.PhaseNum}
+	WSInfo.UpdateIteration <- WSSIKVi{clone.WSID, clone.PhaseNum}
 	return clone
 }

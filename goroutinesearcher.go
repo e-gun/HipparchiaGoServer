@@ -61,7 +61,7 @@ func SearchQueryFeeder(ctx context.Context, ss *SearchStruct) (<-chan PrerolledQ
 	emitone := func(i int) {
 		remainder = len(ss.Queries) - i - 1
 		if remainder%POLLEVERYNTABLES == 0 {
-			WSSIUpdateRemain <- WSSIKVi{ss.WSID, remainder}
+			WSInfo.UpdateRemain <- WSSIKVi{ss.WSID, remainder}
 		}
 		emitqueries <- ss.Queries[i]
 	}
@@ -149,7 +149,7 @@ func FinalResultCollation(ctx context.Context, ss *SearchStruct, maxhits int, fo
 		} else {
 			collated.AppendLines(foundbundle.Lines)
 		}
-		WSSIUpdateHits <- WSSIKVi{ss.WSID, collated.Len()}
+		WSInfo.UpdateHits <- WSSIKVi{ss.WSID, collated.Len()}
 	}
 
 	done := false

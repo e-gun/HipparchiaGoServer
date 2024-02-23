@@ -90,9 +90,9 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 
 	var vs SearchStruct
 	if srch.ID != "ldamodelbot()" {
-		WSSIUpdateRemain <- WSSIKVi{srch.WSID, 1}
-		WSSIUpdateSummMsg <- WSSIKVs{srch.WSID, LDAMSG}
-		WSSIUpdateVProgMsg <- WSSIKVs{srch.WSID, fmt.Sprintf(ESM1)}
+		WSInfo.UpdateRemain <- WSSIKVi{srch.WSID, 1}
+		WSInfo.UpdateSummMsg <- WSSIKVs{srch.WSID, LDAMSG}
+		WSInfo.UpdateVProgMsg <- WSSIKVs{srch.WSID, fmt.Sprintf(ESM1)}
 		vs = sessionintobulksearch(c, Config.VectorMaxlines)
 	} else {
 		vs = srch
@@ -108,7 +108,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	stops := StringMapKeysIntoSlice(getstopset())
 	vectoriser := nlp.NewCountVectoriser(stops...)
 
-	WSSIUpdateVProgMsg <- WSSIKVs{srch.WSID, fmt.Sprintf(ESM2)}
+	WSInfo.UpdateVProgMsg <- WSSIKVs{srch.WSID, fmt.Sprintf(ESM2)}
 
 	// consider building TESTITERATIONS models and making a table for each
 	var dot mat.Matrix
@@ -125,7 +125,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 
 	var img string
 	if se.LDAgraph || srch.ID == "ldamodelbot()" {
-		WSSIUpdateVProgMsg <- WSSIKVs{srch.ID, fmt.Sprintf(ESM3)}
+		WSInfo.UpdateVProgMsg <- WSSIKVs{srch.ID, fmt.Sprintf(ESM3)}
 		img = ldaplot(se.LDA2D, ntopics, incl, se.VecTextPrep, dot, bags)
 	}
 
@@ -137,8 +137,8 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 		JS:            VECTORJS,
 	}
 
-	WSSIDel <- srch.ID
-	WSSIDel <- vs.ID
+	WSInfo.Del <- srch.ID
+	WSInfo.Del <- vs.ID
 
 	return JSONresponse(c, soj)
 }

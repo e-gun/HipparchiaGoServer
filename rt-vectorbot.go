@@ -113,7 +113,7 @@ func RtVectorBot(c echo.Context) error {
 		nnmodelbot(c, s, a)
 	}
 
-	WSSIDel <- s.WSID
+	WSInfo.Del <- s.WSID
 	return nil
 }
 

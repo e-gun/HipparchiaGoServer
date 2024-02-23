@@ -181,7 +181,7 @@ func RtTextMaker(c echo.Context) error {
 	jso.HT = tab
 	jso.JS = ""
 
-	WSSIDel <- srch.WSID
+	WSInfo.Del <- srch.WSID
 
 	return JSONresponse(c, jso)
 }
@@ -264,8 +264,8 @@ func RtVocabMaker(c echo.Context) error {
 	si := BuildDefaultSearch(c)
 	si.Type = "vocab"
 
-	WSSIUpdateSummMsg <- WSSIKVs{si.WSID, MSG1}
-	WSSIUpdateRemain <- WSSIKVi{si.WSID, 1}
+	WSInfo.UpdateSummMsg <- WSSIKVs{si.WSID, MSG1}
+	WSInfo.UpdateRemain <- WSSIKVi{si.WSID, 1}
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
 	mx := Config.MaxText * MAXVOCABLINEGENERATION
@@ -312,7 +312,7 @@ func RtVocabMaker(c echo.Context) error {
 	// [c1] get and map all the DbMorphology
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
-	WSSIUpdateSummMsg <- WSSIKVs{id, MSG2}
+	WSInfo.UpdateSummMsg <- WSSIKVs{id, MSG2}
 
 	// [c2] map observed words to possibilities
 	poss := make(map[string][]MorphPossib)
@@ -396,7 +396,7 @@ func RtVocabMaker(c echo.Context) error {
 		ct += 1
 	}
 
-	WSSIUpdateSummMsg <- WSSIKVs{id, MSG3}
+	WSInfo.UpdateSummMsg <- WSSIKVs{id, MSG3}
 
 	// [f2] sort the results
 	if se.VocByCount {
@@ -411,7 +411,7 @@ func RtVocabMaker(c echo.Context) error {
 		sort.Slice(vis, func(i, j int) bool { return vis[i].Strip < vis[j].Strip })
 	}
 
-	WSSIUpdateSummMsg <- WSSIKVs{id, MSG4}
+	WSInfo.UpdateSummMsg <- WSSIKVs{id, MSG4}
 
 	// [g] format the output
 
@@ -487,8 +487,8 @@ func RtVocabMaker(c echo.Context) error {
 	j := fmt.Sprintf(LEXFINDJS, "vocabobserved")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	WSSIDel <- si.WSID
-	WSSIDel <- vocabsrch.WSID
+	WSInfo.Del <- si.WSID
+	WSInfo.Del <- vocabsrch.WSID
 
 	return JSONresponse(c, jso)
 }
@@ -570,8 +570,8 @@ func RtIndexMaker(c echo.Context) error {
 	si := BuildDefaultSearch(c)
 	si.Type = "index"
 
-	WSSIUpdateSummMsg <- WSSIKVs{si.WSID, MSG1}
-	WSSIUpdateRemain <- WSSIKVi{si.WSID, 1}
+	WSInfo.UpdateSummMsg <- WSSIKVs{si.WSID, MSG1}
+	WSInfo.UpdateRemain <- WSSIKVi{si.WSID, 1}
 
 	// [a] gather the lines...
 
@@ -621,7 +621,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	morphmap := arraytogetrequiredmorphobjects(morphslice)
 
-	WSSIUpdateSummMsg <- WSSIKVs{si.ID, MSG2}
+	WSInfo.UpdateSummMsg <- WSSIKVs{si.ID, MSG2}
 
 	var slicedlookups []WordInfo
 	for _, w := range slicedwords {
@@ -722,7 +722,7 @@ func RtIndexMaker(c echo.Context) error {
 	// [d] the final map
 	// [d1] build it
 
-	WSSIUpdateSummMsg <- WSSIKVs{si.ID, MSG3}
+	WSInfo.UpdateSummMsg <- WSSIKVs{si.ID, MSG3}
 
 	indexmap := make(map[PolytonicSorterStruct][]WordInfo, len(trimslices))
 	for _, w := range trimslices {
@@ -766,7 +766,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	indexmap = make(map[PolytonicSorterStruct][]WordInfo, 1) // drop after use
 
-	WSSIUpdateSummMsg <- WSSIKVs{si.ID, MSG4}
+	WSInfo.UpdateSummMsg <- WSSIKVs{si.ID, MSG4}
 
 	trr := make([]string, len(plainkeys))
 	for i, k := range plainkeys {
@@ -832,8 +832,8 @@ func RtIndexMaker(c echo.Context) error {
 
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	WSSIDel <- si.WSID
-	WSSIDel <- srch.WSID
+	WSInfo.Del <- si.WSID
+	WSInfo.Del <- srch.WSID
 
 	return JSONresponse(c, jso)
 }

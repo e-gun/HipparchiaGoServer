@@ -66,10 +66,10 @@ func generateneighborsdata(c echo.Context, s SearchStruct) map[string]search.Nei
 	isstored := vectordbchecknn(fp)
 	var embs embedding.Embeddings
 	if isstored {
-		WSSIUpdateVProgMsg <- WSSIKVs{s.ID, FMSG}
+		WSInfo.UpdateVProgMsg <- WSSIKVs{s.ID, FMSG}
 		embs = vectordbfetchnn(fp)
 	} else {
-		WSSIUpdateVProgMsg <- WSSIKVs{s.ID, GMSG}
+		WSInfo.UpdateVProgMsg <- WSSIKVs{s.ID, GMSG}
 		embs = generateembeddings(c, s.VecModeler, s)
 		vectordbaddnn(fp, embs)
 		vectordbsizenn(MSGPEEK)
@@ -78,7 +78,7 @@ func generateneighborsdata(c echo.Context, s SearchStruct) map[string]search.Nei
 	// [b] make a query against the model
 
 	// len(s.Results) is zero, so it is OK to UpdateSS() without copying 500k lines
-	WSSIUpdateVProgMsg <- WSSIKVs{s.ID, MQMEG}
+	WSInfo.UpdateVProgMsg <- WSSIKVs{s.ID, MQMEG}
 
 	searcher, err := search.New(embs...)
 	if err != nil {
@@ -110,7 +110,7 @@ func generateneighborsdata(c echo.Context, s SearchStruct) map[string]search.Nei
 		}
 	}
 
-	WSSIDel <- s.ID
+	WSInfo.Del <- s.ID
 	return nn
 }
 
@@ -134,7 +134,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	// this also means we need the "modeltype" parameter as well (bot: configtype; surfer: sessiontype)
 	start := time.Now()
 
-	WSSIUpdateVProgMsg <- WSSIKVs{s.ID, PRLMSG}
+	WSInfo.UpdateVProgMsg <- WSSIKVs{s.ID, PRLMSG}
 
 	var vs SearchStruct
 	p := message.NewPrinter(language.English)
@@ -144,8 +144,8 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 		vs = sessionintobulksearch(c, Config.VectorMaxlines)
 		msg(fmt.Sprintf(MSG1, vs.Results.Len()), MSGPEEK)
 		s.Results = vs.Results
-		WSSIUpdateVProgMsg <- WSSIKVs{s.ID, p.Sprintf(TBMSG, vs.Results.Len())}
-		WSSIDel <- s.ID
+		WSInfo.UpdateVProgMsg <- WSSIKVs{s.ID, p.Sprintf(TBMSG, vs.Results.Len())}
+		WSInfo.Del <- s.ID
 	}
 
 	thetext := buildtextblock(&s)
@@ -230,7 +230,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 					// tm = coll[3]
 				}
 			}
-			WSSIUpdateVProgMsg <- WSSIKVs{s.ID, fmt.Sprintf(VMSG, in, ti)}
+			WSInfo.UpdateVProgMsg <- WSSIKVs{s.ID, fmt.Sprintf(VMSG, in, ti)}
 			time.Sleep(WSPOLLINGPAUSE)
 			if !s.IsActive {
 				break
@@ -242,7 +242,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 
 	_ = <-finished
 
-	WSSIUpdateVProgMsg <- WSSIKVs{s.ID, DBMSG}
+	WSInfo.UpdateVProgMsg <- WSSIKVs{s.ID, DBMSG}
 
 	// use buffers; skip the disk; psql used for storage: vectordbaddnn() & vectordbfetchnn()
 	var buf bytes.Buffer
@@ -263,7 +263,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 
 	buf.Reset()
 
-	WSSIDel <- s.ID
+	WSInfo.Del <- s.ID
 
 	return embs
 }

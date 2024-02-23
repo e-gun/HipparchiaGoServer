@@ -27,8 +27,8 @@ const (
 // The maps below are all race condition candidates, but most of them are write once, read many.
 
 // But note that the races are in practice a "small" and "technical" complaint. HipparchiaGoServer is not supposed to
-// be exposed to everyone, everywhere all the time. Someone requesting 100 searches is a bigger worry than any race on
-// 10m requests condition. There needs to be a fairly high degree of user trust to begin with.
+// be exposed to everyone, everywhere all the time. Someone requesting 100 searches is a bigger worry than any race once
+// every 10m requests condition. There needs to be a fairly high degree of user trust to begin with.
 
 var (
 	Config        CurrentConfiguration
@@ -52,6 +52,7 @@ var (
 	ServableFonts = map[string]FontTempl{"Noto": NotoFont, "Roboto": RobotoFont, "Fira": FiraFont} // cf rt-embhcss.go
 	LaunchTime    = time.Now()
 	WebsocketPool = WSFillNewPool()
+	WSInfo        = BuildWSInfoHubIf()
 )
 
 type DbAuthor struct {
