@@ -78,8 +78,6 @@ func RtVectorBot(c echo.Context) error {
 	s := BuildDefaultSearch(c)
 	s.ID = "RtVectorBot-" + vtype + "-" + strings.Replace(uuid.New().String(), "-", "", -1)
 
-	AllSearches.InsertSS(s)
-
 	allof := func(db string) []string {
 		allauth := StringMapKeysIntoSlice(AllAuthors)
 		var dbauth []string
@@ -115,7 +113,7 @@ func RtVectorBot(c echo.Context) error {
 		nnmodelbot(c, s, a)
 	}
 
-	AllSearches.Delete(s.ID)
+	WSSIDel <- s.WSID
 	return nil
 }
 

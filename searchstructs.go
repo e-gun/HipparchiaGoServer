@@ -10,7 +10,6 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -63,6 +62,7 @@ type SearchStruct struct {
 	TableSize     int // # of tables searched
 	ExtraMsg      string
 	StoredSession ServerSession
+	RealIP        string
 }
 
 // CleanInput - remove bad chars, etc. from the submitted data
@@ -188,7 +188,6 @@ func (s *SearchStruct) FormatInitialSummary() {
 	}
 	sum := fmt.Sprintf(TPM, af1, sk, two)
 	s.InitSum = sum
-	SIUpdateSummMsg <- SIKVs{s.ID, sum}
 }
 
 // InclusionOverview - yield a summary of the inclusions; NeighborsSearch will use this when calling buildblanknngraph()
@@ -524,118 +523,5 @@ func (s *SearchStruct) SortResults() {
 	default:
 		// author nameIncreasing
 		WLOrderedBy(nameIncreasing, increasingLines).Sort(s.Results.Lines)
-	}
-}
-
-// THREAD SAFE INFRASTRUCTURE: MUTEX FOR STATE
-// (and not channel: https://github.com/golang/go/wiki/MutexOrChannel)
-//
-
-// MakeSearchVault - called only once; yields the AllSearches vault
-func MakeSearchVault() SearchVault {
-	return SearchVault{
-		SearchMap: make(map[string]SearchStruct),
-		mutex:     sync.RWMutex{},
-	}
-}
-
-// SearchVault - there should be only one of these; and it contains all the searches
-type SearchVault struct {
-	SearchMap map[string]SearchStruct
-	mutex     sync.RWMutex
-}
-
-// InsertSS - add a search to the vault
-func (sv *SearchVault) InsertSS(s SearchStruct) {
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
-	sv.SearchMap[s.ID] = s
-
-	SIUpdateHits <- SIKVi{s.WSID, 0}
-}
-
-// GetSS will fetch a SearchStruct; if it does not find one, it makes and registers a hollow search
-func (sv *SearchVault) GetSS(id string) SearchStruct {
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
-	s, e := sv.SearchMap[id]
-	if e != true {
-		s = BuildHollowSearch()
-		s.ID = id
-		s.IsActive = false
-		sv.SearchMap[id] = s
-		SIUpdateHits <- SIKVi{s.WSID, 0}
-	}
-	return s
-}
-
-// SimpleGetSS will fetch a SearchStruct; if it does not find one, it makes but does not register a hollow search
-func (sv *SearchVault) SimpleGetSS(id string) SearchStruct {
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
-	s, e := sv.SearchMap[id]
-	if e != true {
-		s = BuildHollowSearch()
-		s.ID = id
-		s.IsActive = false
-		// do not let WSMessageLoop() register searches in the SearchMap. This wreaks havoc with the MAXSEARCHTOTAL code
-		// sv.SearchMap[id] = s
-		SIUpdateHits <- SIKVi{s.WSID, 0}
-	}
-	return s
-}
-
-// Delete - get rid of a search (probably for good, but see "Purge")
-func (sv *SearchVault) Delete(id string) {
-	SIDel <- id
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
-	delete(sv.SearchMap, id)
-}
-
-// Purge is just delete; makes the code logic more legible; "Purge" implies that this search is likely to reappear with an "Update"
-func (sv *SearchVault) Purge(id string) {
-	SIDel <- id
-	sv.Delete(id)
-}
-
-// CountTotal - how many searches is the server already running?
-func (sv *SearchVault) CountTotal() int {
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
-	return len(sv.SearchMap)
-}
-
-// CountIP - how many searches is this IP address already running?
-func (sv *SearchVault) CountIP(ip string) int {
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
-	count := 0
-	for _, v := range sv.SearchMap {
-		if v.IPAddr == ip {
-			count += 1
-		}
-	}
-	return count
-}
-
-//
-// FOR DEBUGGING ONLY
-//
-
-// searchvaultreport - report the # and names of the registered searches every N seconds
-func searchvaultreport(d time.Duration) {
-	// add the following to main.go: "go searchvaultreport()"
-	// it would be possible to "garbage collect" all searches where IsActive is "false" for too long
-	// but these really are not supposed to be a problem
-
-	for {
-		as := AllSearches.SearchMap
-		var ss []string
-		for k := range as {
-			ss = append(ss, k)
-		}
-		msg(fmt.Sprintf("%d in AllSearches: %s", len(as), strings.Join(ss, ", ")), MSGNOTE)
-		time.Sleep(d)
 	}
 }

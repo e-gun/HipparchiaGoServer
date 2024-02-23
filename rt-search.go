@@ -54,20 +54,25 @@ func RtSearch(c echo.Context) error {
 		return JSONresponse(c, SearchOutputJSON{JS: VALIDATIONBOX})
 	}
 
-	if AllSearches.CountIP(c.RealIP()) >= Config.MaxSrchIP {
-		m := fmt.Sprintf(TOOMANYIP, c.RealIP(), AllSearches.CountIP(c.RealIP()))
+	getsrchcount := func(ip string) int {
+		responder := WSSICount{key: ip, response: make(chan int)}
+		WSSIIPSrchCount <- responder
+		return <-responder.response
+	}
+
+	if getsrchcount(c.RealIP()) >= Config.MaxSrchIP {
+		m := fmt.Sprintf(TOOMANYIP, c.RealIP(), getsrchcount(c.RealIP()))
 		return JSONresponse(c, SearchOutputJSON{Searchsummary: m})
 	}
 
-	if AllSearches.CountTotal() >= Config.MaxSrchTot {
-		m := fmt.Sprintf(TOOMANYTOTAL, AllSearches.CountTotal())
+	if len(WebsocketPool.ClientMap) >= Config.MaxSrchTot {
+		m := fmt.Sprintf(TOOMANYTOTAL, len(WebsocketPool.ClientMap))
 		return JSONresponse(c, SearchOutputJSON{Searchsummary: m})
 	}
 
 	// [B] OK, WE ARE DOING IT
 
 	srch := InitializeSearch(c, user)
-	AllSearches.InsertSS(srch)
 	se := AllSessions.GetSess(user)
 
 	// [C] BUT WHAT KIND OF SEARCH IS IT? MAYBE IT IS A VECTOR SEARCH...
@@ -79,7 +84,6 @@ func RtSearch(c echo.Context) error {
 
 	if se.VecNNSearch && !Config.VectorsDisabled {
 		// not a normal search: jump to "vectorqueryneighbors.go" where we grab all lines; build a model; query against the model; return html
-		// note that "AllSearches.Delete(srch.ID)" is now another function's responsibility
 		return NeighborsSearch(c, srch)
 	}
 
@@ -98,12 +102,12 @@ func RtSearch(c echo.Context) error {
 	var completed SearchStruct
 	if srch.Twobox {
 		if srch.ProxScope == "words" {
-			completed = WithinXWordsSearch(AllSearches.GetSS(srch.ID))
+			completed = WithinXWordsSearch(srch)
 		} else {
-			completed = WithinXLinesSearch(AllSearches.GetSS(srch.ID))
+			completed = WithinXLinesSearch(srch)
 		}
 	} else {
-		completed = AllSearches.GetSS(srch.ID)
+		completed = srch
 		SearchAndInsertResults(&completed)
 		if completed.HasPhraseBoxA {
 			findphrasesacrosslines(&completed)
@@ -122,8 +126,7 @@ func RtSearch(c echo.Context) error {
 		soj = FormatWithContextResults(&completed)
 	}
 
-	AllSearches.Delete(srch.ID)
-
+	WSSIDel <- srch.WSID
 	return JSONresponse(c, soj)
 }
 

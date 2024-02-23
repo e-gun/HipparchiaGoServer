@@ -33,7 +33,6 @@ const (
 var (
 	Config        CurrentConfiguration
 	SQLPool       *pgxpool.Pool
-	AllSearches   = MakeSearchVault()
 	AllSessions   = MakeSessionVault()
 	AllAuthorized = MakeAuthorizedVault()
 	UserPassPairs = make(map[string]string)

@@ -84,7 +84,7 @@ func main() {
 	SQLPool = FillDBConnectionPool()
 	go WebsocketPool.WSPoolStartListening()
 
-	go SearchInfoHub()
+	go WSSearchInfoHub()
 	go PathInfoHub()
 
 	go messenger.Ticker(TICKERDELAY)
@@ -146,10 +146,9 @@ func main() {
 
 	//
 	// [4] debugging code block #2 of 2
-	// uncomment one or more; they are very spammy in the console...
+	// uncomment the following but very spammy in the console...
 	//
 
-	// go searchvaultreport(2 * time.Second)
 	// go wsclientreport(2 * time.Second)
 
 	msg(QUIT, MSGMAND)

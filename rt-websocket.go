@@ -79,7 +79,7 @@ func formatpoll(pd PollData) string {
 		m := ""
 
 		// regular searches
-		if pd.Type == "" {
+		if pd.SType == "" {
 			m = FU
 		}
 
@@ -115,7 +115,7 @@ func formatpoll(pd PollData) string {
 		htm += fmt.Sprintf(EL2, pd.Elapsed)
 	}
 
-	if pd.Hits > 0 && pd.Type == "" {
+	if pd.Hits > 0 && pd.SType == "" {
 		htm += fmt.Sprintf(HIT, pd.Hits)
 	}
 
@@ -139,7 +139,7 @@ type PollData struct {
 	Extra     string `json:"Notes"`
 	ID        string `json:"ID"`
 	Iteration int
-	Type      string
+	SType     string
 }
 
 type WSClient struct {
@@ -201,13 +201,17 @@ func (c *WSClient) WSMessageLoop() {
 		VECAPPEND = `<br><span class="smallerthannormal">%s</span>`
 	)
 
+	getsrchinfo := func() WSSrchInfo {
+		responder := WSSIReply{key: c.ID, response: make(chan WSSrchInfo)}
+		WSSIRequest <- responder
+		return <-responder.response
+	}
+
 	// wait for the search to exist
 	quit := time.Now().Add(time.Second * 1)
 
 	for {
-		responder := SIReply{key: c.ID, response: make(chan SrchInfo)}
-		SIRequest <- responder
-		srchinfo := <-responder.response
+		srchinfo := getsrchinfo()
 		if srchinfo.SrchCount != 0 && srchinfo.Exists {
 			msg(fmt.Sprintf(SUCCESS, c.ID), MSGTMI)
 			break
@@ -219,17 +223,14 @@ func (c *WSClient) WSMessageLoop() {
 		}
 	}
 
-	srch := AllSearches.SimpleGetSS(c.ID)
+	si := getsrchinfo()
 
 	var pd PollData
-	pd.Type = srch.Type
+	pd.SType = si.SType
 
 	// loop until search finishes
 	for {
-		responder := SIReply{key: c.ID, response: make(chan SrchInfo)}
-		SIRequest <- responder
-		srchinfo := <-responder.response
-
+		srchinfo := getsrchinfo()
 		if srchinfo.Exists {
 			pd.Remain = srchinfo.Remain
 			pd.Hits = srchinfo.Hits
@@ -239,7 +240,7 @@ func (c *WSClient) WSMessageLoop() {
 			break
 		}
 
-		pd.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(srch.Launched).Seconds())
+		pd.Elapsed = fmt.Sprintf("%.1fs", time.Now().Sub(srchinfo.Launched).Seconds())
 
 		pd.Iteration = srchinfo.Iteration
 
@@ -306,11 +307,11 @@ func WSFillNewPool() *WSPool {
 }
 
 //
-// CHANNEL-BASED SEARCHINFO REPORTING TO COMMUNICATE RESULTS BETWEEN ROUTINES
+// CHANNEL-BASED SEARCHINFO REPORTING TO COMMUNICATE RESULTS BETWEEN ROUTINES: search routes write; websocket reads
 //
 
-// SrchInfo - struct used to deliver info about searches in progress
-type SrchInfo struct {
+// WSSrchInfo - struct used to deliver info about searches in progress
+type WSSrchInfo struct {
 	ID        string
 	Exists    bool
 	Hits      int
@@ -320,64 +321,85 @@ type SrchInfo struct {
 	VProgStrg string
 	Summary   string
 	Iteration int
+	SType     string
+	Launched  time.Time
+	RealIP    string
 }
 
-// SIKVi - SearchInfoHub helper struct for setting an int val on the item at map[key]
-type SIKVi struct {
+// WSSIKVi - WSSearchInfoHub helper struct for setting an int val on the item at map[key]
+type WSSIKVi struct {
 	key string
 	val int
 }
 
-// SIKVs - SearchInfoHub helper struct for setting a string val on the item at map[key]
-type SIKVs struct {
+// WSSIKVs - WSSearchInfoHub helper struct for setting a string val on the item at map[key]
+type WSSIKVs struct {
 	key string
 	val string
 }
 
-// SIReply - SearchInfoHub helper struct for returning the SrchInfo stored at map[key]
-type SIReply struct {
+// WSSIReply - WSSearchInfoHub helper struct for returning the WSSrchInfo stored at map[key]
+type WSSIReply struct {
 	key      string
-	response chan SrchInfo
+	response chan WSSrchInfo
+}
+
+type WSSICount struct {
+	key      string
+	response chan int
 }
 
 var (
-	SIUpdateHits      = make(chan SIKVi, 2*runtime.NumCPU())
-	SIUpdateRemain    = make(chan SIKVi, 2*runtime.NumCPU())
-	SIUpdateVProgMsg  = make(chan SIKVs, 2*runtime.NumCPU())
-	SIUpdateSummMsg   = make(chan SIKVs, 2*runtime.NumCPU())
-	SIUpdateIteration = make(chan SIKVi, 2*runtime.NumCPU())
-	SIUpdateTW        = make(chan SIKVi)
-	SIRequest         = make(chan SIReply)
-	SIDel             = make(chan string)
+	WSSIUpdateHits      = make(chan WSSIKVi, 2*runtime.NumCPU())
+	WSSIUpdateRemain    = make(chan WSSIKVi, 2*runtime.NumCPU())
+	WSSIUpdateVProgMsg  = make(chan WSSIKVs, 2*runtime.NumCPU())
+	WSSIUpdateSummMsg   = make(chan WSSIKVs, 2*runtime.NumCPU())
+	WSSIUpdateIteration = make(chan WSSIKVi, 2*runtime.NumCPU())
+	WSSIUpdateTW        = make(chan WSSIKVi)
+	WSSIRequest         = make(chan WSSIReply)
+	WSSIInsertInfo      = make(chan WSSrchInfo)
+	WSSIIPSrchCount     = make(chan WSSICount)
+	WSSIDel             = make(chan string)
 )
 
-// SearchInfoHub - the loop that lets you read/write from/to the searchinfo channels
-func SearchInfoHub() {
+// WSSearchInfoHub - the loop that lets you read/write from/to the various WSSrchInfo channels
+func WSSearchInfoHub() {
 	var (
-		Allinfo  = make(map[string]SrchInfo)
+		Allinfo  = make(map[string]WSSrchInfo)
 		Finished = make(map[string]bool)
 	)
 
-	reporter := func(r SIReply) {
+	reporter := func(r WSSIReply) {
 		if _, ok := Allinfo[r.key]; ok {
 			r.response <- Allinfo[r.key]
 		} else {
 			// "false" triggers a break in rt-websocket.go
-			r.response <- SrchInfo{Exists: false}
+			r.response <- WSSrchInfo{Exists: false}
 		}
+		// msg(fmt.Sprintf("%d WSSearchInfoHub searches: %s", len(Allinfo), strings.Join(StringMapKeysIntoSlice(Allinfo), ", ")), MSGNOTE)
 	}
 
-	fetchifexists := func(id string) SrchInfo {
+	fetchifexists := func(id string) WSSrchInfo {
 		if _, ok := Allinfo[id]; ok {
 			return Allinfo[id]
 		} else {
-			// any non-zero value for SrchCount is fine; the test in re-websocket.go is just for 0
-			return SrchInfo{ID: id, Exists: true, SrchCount: 1}
+			// any non-zero value for SrchCount is fine; the test in rt-websocket.go is just for 0
+			return WSSrchInfo{ID: id, Exists: true, SrchCount: 1}
 		}
 	}
 
+	ipcount := func(id string) int {
+		count := 0
+		for _, v := range Allinfo {
+			if v.RealIP == id {
+				count++
+			}
+		}
+		return count
+	}
+
 	// this silly mechanism because selftest had 2nd round of nn vector tests respawning after deletion; rare, but...
-	storeunlessfinished := func(si SrchInfo) {
+	storeunlessfinished := func(si WSSrchInfo) {
 		if _, ok := Finished[si.ID]; !ok {
 			Allinfo[si.ID] = si
 		}
@@ -386,33 +408,37 @@ func SearchInfoHub() {
 	// the main loop; it will never exit
 	for {
 		select {
-		case rq := <-SIRequest:
+		case rq := <-WSSIRequest:
 			reporter(rq)
-		case tw := <-SIUpdateTW:
+		case tw := <-WSSIUpdateTW:
 			x := fetchifexists(tw.key)
 			x.TableCt = tw.val
 			storeunlessfinished(x)
-		case wr := <-SIUpdateHits:
+		case wr := <-WSSIUpdateHits:
 			x := fetchifexists(wr.key)
 			x.Hits = wr.val
 			storeunlessfinished(x)
-		case wr := <-SIUpdateRemain:
+		case wr := <-WSSIUpdateRemain:
 			x := fetchifexists(wr.key)
 			x.Remain = wr.val
 			storeunlessfinished(x)
-		case wr := <-SIUpdateVProgMsg:
+		case wr := <-WSSIUpdateVProgMsg:
 			x := fetchifexists(wr.key)
 			x.VProgStrg = wr.val
 			storeunlessfinished(x)
-		case wr := <-SIUpdateSummMsg:
+		case wr := <-WSSIUpdateSummMsg:
 			x := fetchifexists(wr.key)
 			x.Summary = wr.val
 			storeunlessfinished(x)
-		case wr := <-SIUpdateIteration:
+		case wr := <-WSSIUpdateIteration:
 			x := fetchifexists(wr.key)
 			x.Iteration = wr.val
 			storeunlessfinished(x)
-		case del := <-SIDel:
+		case si := <-WSSIInsertInfo:
+			storeunlessfinished(si)
+		case ipc := <-WSSIIPSrchCount:
+			ipc.response <- ipcount(ipc.key)
+		case del := <-WSSIDel:
 			Finished[del] = true
 			delete(Allinfo, del)
 		}

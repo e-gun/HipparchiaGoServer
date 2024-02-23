@@ -62,8 +62,25 @@ func InitializeSearch(c echo.Context, user string) SearchStruct {
 	srch.TableSize = len(srch.Queries)
 	srch.IsActive = true
 
-	SIUpdateRemain <- SIKVi{srch.WSID, srch.TableSize}
+	// some info already inserted by BuildDefaultSearch(), but now that more info is ready...
+	WSSIInsertInfo <- GenerateSrchInfo(&srch)
 	return srch
+}
+
+func GenerateSrchInfo(srch *SearchStruct) WSSrchInfo {
+	return WSSrchInfo{
+		ID:        srch.WSID,
+		Exists:    true,
+		Hits:      0,
+		Remain:    srch.TableSize,
+		TableCt:   srch.TableSize,
+		SrchCount: 1,
+		VProgStrg: "",
+		Summary:   srch.InitSum,
+		Iteration: 0,
+		SType:     srch.Type,
+		Launched:  srch.Launched,
+	}
 }
 
 // BuildDefaultSearch - fill out the basic values for a new search
@@ -94,6 +111,7 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	s.VecModeler = sess.VecModeler
 	s.TTName = strings.Replace(uuid.New().String(), "-", "", -1)
 	s.StoredSession = sess
+	s.RealIP = c.RealIP()
 
 	if sess.NearOrNot == "notnear" {
 		s.NotNear = true
@@ -108,6 +126,8 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 
 	// msg("nonstandard BuildDefaultSearch() for testing", MSGCRIT)
 
+	// but some fields are not set up quite yet
+	WSSIInsertInfo <- GenerateSrchInfo(&s)
 	return s
 }
 
@@ -224,6 +244,6 @@ func CloneSearch(f *SearchStruct, iteration int) SearchStruct {
 		StoredSession: f.StoredSession,
 	}
 
-	SIUpdateIteration <- SIKVi{clone.WSID, clone.PhaseNum}
+	WSSIUpdateIteration <- WSSIKVi{clone.WSID, clone.PhaseNum}
 	return clone
 }
