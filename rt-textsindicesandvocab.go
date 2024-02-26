@@ -83,7 +83,7 @@ func RtTextMaker(c echo.Context) error {
 	}
 
 	sess := AllSessions.GetSess(user)
-	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
+	srch := SessionIntoBulkSearch(c, MAXTEXTLINEGENERATION)
 
 	if srch.Results.Len() == 0 {
 		return emptyjsreturn(c)
@@ -269,7 +269,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
 	mx := Config.MaxText * MAXVOCABLINEGENERATION
-	vocabsrch := sessionintobulksearch(c, mx) // allow vocab lists to ingest more lines that text & index makers
+	vocabsrch := SessionIntoBulkSearch(c, mx) // allow vocab lists to ingest more lines that text & index makers
 
 	if vocabsrch.Results.Len() == 0 {
 		return emptyjsreturn(c)
@@ -575,7 +575,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// [a] gather the lines...
 
-	srch := sessionintobulksearch(c, MAXTEXTLINEGENERATION)
+	srch := SessionIntoBulkSearch(c, MAXTEXTLINEGENERATION)
 
 	if srch.Results.IsEmpty() {
 		return emptyjsreturn(c)
@@ -861,30 +861,6 @@ func RtIndexMaker(c echo.Context) error {
 //
 // HELPERS
 //
-
-// sessionintobulksearch - grab every line of text in the currently registerselection set of authors, works, and passages
-func sessionintobulksearch(c echo.Context, lim int) SearchStruct {
-	user := readUUIDCookie(c)
-	sess := AllSessions.GetSess(user)
-
-	srch := BuildDefaultSearch(c)
-	srch.Seeking = ""
-	srch.CurrentLimit = lim
-	srch.InitSum = "(gathering and formatting lines of text)"
-	srch.ID = strings.Replace(uuid.New().String(), "-", "", -1)
-
-	srch.CleanInput()
-
-	sl := SessionIntoSearchlist(sess)
-	srch.SearchIn = sl.Inc
-	srch.SearchEx = sl.Excl
-	srch.SearchSize = sl.Size
-	SSBuildQueries(&srch)
-	srch.IsActive = true
-	srch.TableSize = len(srch.Queries)
-	SearchAndInsertResults(&srch)
-	return srch
-}
 
 // arraytogetscansion - grab all scansions for a slice of words and return as a map
 func arraytogetscansion(wordlist []string) map[string]string {

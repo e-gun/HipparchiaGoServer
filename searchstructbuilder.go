@@ -123,7 +123,6 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	s.TableSize = len(s.Queries)
 	s.IsActive = true
 
-	// but some fields are not set up quite yet
 	WSInfo.InsertInfo <- GenerateSrchInfo(&s)
 	return s
 }
@@ -254,4 +253,32 @@ func CloneSearch(f *SearchStruct, iteration int) SearchStruct {
 
 func InsertContextIntoSS(ss *SearchStruct) {
 	ss.Context, ss.CancelFnc = context.WithCancel(context.Background())
+}
+
+// SessionIntoBulkSearch - grab every line of text in the currently registerselection set of authors, works, and passages
+func SessionIntoBulkSearch(c echo.Context, lim int) SearchStruct {
+	user := readUUIDCookie(c)
+	sess := AllSessions.GetSess(user)
+
+	ss := BuildDefaultSearch(c)
+	ss.Seeking = ""
+	ss.Proximate = ""
+	ss.LemmaOne = ""
+	ss.LemmaTwo = ""
+	ss.CurrentLimit = lim
+	ss.InitSum = "(gathering and formatting lines of text)"
+	ss.ID = strings.Replace(uuid.New().String(), "-", "", -1)
+
+	ss.CleanInput() // BuildDefaultSearch() set some things that need resetting
+	ss.SetType()
+
+	sl := SessionIntoSearchlist(sess)
+	ss.SearchIn = sl.Inc
+	ss.SearchEx = sl.Excl
+	ss.SearchSize = sl.Size
+	SSBuildQueries(&ss)
+	ss.IsActive = true
+	ss.TableSize = len(ss.Queries)
+	SearchAndInsertResults(&ss)
+	return ss
 }

@@ -141,7 +141,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 
 	// vectorbot already has s.Results vs normal user who does not
 	if s.Results.IsEmpty() {
-		vs = sessionintobulksearch(c, Config.VectorMaxlines)
+		vs = SessionIntoBulkSearch(c, Config.VectorMaxlines)
 		msg(fmt.Sprintf(MSG1, vs.Results.Len()), MSGPEEK)
 		s.Results = vs.Results
 		WSInfo.UpdateVProgMsg <- WSSIKVs{s.ID, p.Sprintf(TBMSG, vs.Results.Len())}

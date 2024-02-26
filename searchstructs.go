@@ -165,6 +165,7 @@ func (s *SearchStruct) FormatInitialSummary() {
 		TPM = `Sought %s<span class="sought">»%s«</span>%s`
 		WIN = `%s within %d %s of %s<span class="sought">»%s«</span>`
 		ADF = "all %d forms of "
+		INF = "Grabbing all relevant lines..."
 	)
 
 	yn := ""
@@ -193,7 +194,11 @@ func (s *SearchStruct) FormatInitialSummary() {
 		}
 		two = fmt.Sprintf(WIN, yn, s.ProxDist, s.ProxScope, af2, sk2)
 	}
-	sum := fmt.Sprintf(TPM, af1, sk, two)
+
+	sum := INF
+	if af1 != "" {
+		sum = fmt.Sprintf(TPM, af1, sk, two)
+	}
 	s.InitSum = sum
 }
 

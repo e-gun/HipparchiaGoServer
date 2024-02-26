@@ -93,7 +93,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 		WSInfo.UpdateRemain <- WSSIKVi{srch.WSID, 1}
 		WSInfo.UpdateSummMsg <- WSSIKVs{srch.WSID, LDAMSG}
 		WSInfo.UpdateVProgMsg <- WSSIKVs{srch.WSID, fmt.Sprintf(ESM1)}
-		vs = sessionintobulksearch(c, Config.VectorMaxlines)
+		vs = SessionIntoBulkSearch(c, Config.VectorMaxlines)
 	} else {
 		vs = srch
 	}

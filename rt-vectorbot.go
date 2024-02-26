@@ -126,7 +126,7 @@ func ldamodelbot(c echo.Context, s SearchStruct, a string) {
 	// in fact pre-building works makes more sense than authors
 	// and the caps need to be borne in mind
 
-	// sessionintobulksearch() can't be used because there is no real session...
+	// SessionIntoBulkSearch() can't be used because there is no real session...
 
 	s.CurrentLimit = Config.VectorMaxlines
 	s.Seeking = ""
@@ -161,7 +161,7 @@ func nnmodelbot(c echo.Context, s SearchStruct, a string) {
 	if isstored {
 		msg(fmt.Sprintf(MSG1, AllAuthors[a].Name), MSGPEEK)
 	} else {
-		// sessionintobulksearch() can't be used because there is no real session...
+		// SessionIntoBulkSearch() can't be used because there is no real session...
 		s.CurrentLimit = Config.VectorMaxlines
 		s.Seeking = ""
 
