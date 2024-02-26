@@ -62,7 +62,7 @@ func selftestsuite() {
 		MSG6  = "phrase near phrase: '%s' near '%s'"
 		MSG3  = "lemma in corpus: '%s'%s"
 		MSG4  = "lemma near phrase: '%s' near '%s'"
-		MSG5  = "lemma near lemma in corpus: '%s' near '%s"
+		MSG5  = "lemma near lemma in corpus: '%s' near '%s'"
 		MSG7  = "build a text for %d arbitrary lines"
 		MSG8  = "build an index to %d arbitrary lines"
 		MSG9  = "build vocabulary list for %d arbitrary lines"

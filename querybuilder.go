@@ -76,13 +76,15 @@ const (
 // SSBuildQueries - populate a SearchStruct with []PrerolledQuery
 func SSBuildQueries(s *SearchStruct) {
 	const (
-		REG = `(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
-		IDX = `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
+		REG   = `(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
+		IDX   = `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
+		ABORT = "SSBuildQueries() aborting: the ID '%s' is not in the SessionVault"
 	)
 
 	// check to see if RtResetSession() was called in the middle of a search
+	// selftest and vectorbot will both reset their Config values on completion
 	if Config.SelfTest == 0 && !Config.VectorBot && !AllSessions.IsInVault(s.User) {
-		msg("SSBuildQueries aborting: user switched to "+s.User, MSGFYI)
+		msg(fmt.Sprintf(ABORT, s.User), MSGFYI)
 		s.Queries = []PrerolledQuery{}
 		return
 	}
