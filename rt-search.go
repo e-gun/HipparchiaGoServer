@@ -72,7 +72,7 @@ func RtSearch(c echo.Context) error {
 
 	// [B] OK, WE ARE DOING IT
 
-	srch := InitializeSearch(c, user)
+	srch := BuildDefaultSearch(c)
 	se := AllSessions.GetSess(user)
 
 	// [C] BUT WHAT KIND OF SEARCH IS IT? MAYBE IT IS A VECTOR SEARCH...

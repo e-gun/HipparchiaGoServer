@@ -18,56 +18,6 @@ import (
 // INITIAL SETUP
 //
 
-// InitializeSearch - set up a search; this is DRY code needed by both plain searches and vector searches
-func InitializeSearch(c echo.Context, user string) SearchStruct {
-	const (
-		VECTORSEARCHSUMMARY = "Acquiring a model for the selected texts"
-	)
-
-	srch := BuildDefaultSearch(c)
-	srch.User = user
-
-	srch.Seeking = c.QueryParam("skg")
-	srch.Proximate = c.QueryParam("prx")
-	srch.LemmaOne = c.QueryParam("lem")
-	srch.LemmaTwo = c.QueryParam("plm")
-	srch.IPAddr = c.RealIP()
-
-	srch.CleanInput()
-	srch.SetType()  // must happen before SSBuildQueries()
-	srch.Optimize() // maybe rewrite the search to make it faster
-	srch.FormatInitialSummary()
-
-	if srch.Type == "vector" {
-		srch.InitSum = VECTORSEARCHSUMMARY
-	}
-
-	// now safe to rewrite skg oj that "^|\s", etc. can be added
-	srch.Seeking = whitespacer(srch.Seeking, &srch)
-	srch.Proximate = whitespacer(srch.Proximate, &srch)
-
-	se := AllSessions.GetSess(user)
-	srch.StoredSession = se
-	sl := SessionIntoSearchlist(se)
-
-	srch.SearchIn = sl.Inc
-	srch.SearchEx = sl.Excl
-	srch.SearchSize = sl.Size
-
-	if srch.Twobox {
-		srch.CurrentLimit = FIRSTSEARCHLIM
-	}
-
-	SSBuildQueries(&srch)
-
-	srch.TableSize = len(srch.Queries)
-	srch.IsActive = true
-
-	// some info already inserted by BuildDefaultSearch(), but now that more info is ready...
-	WSInfo.InsertInfo <- GenerateSrchInfo(&srch)
-	return srch
-}
-
 func GenerateSrchInfo(srch *SearchStruct) WSSrchInfo {
 	return WSSrchInfo{
 		ID:        srch.WSID,
@@ -88,6 +38,10 @@ func GenerateSrchInfo(srch *SearchStruct) WSSrchInfo {
 
 // BuildDefaultSearch - fill out the basic values for a new search
 func BuildDefaultSearch(c echo.Context) SearchStruct {
+	const (
+		VECTORSEARCHSUMMARY = "Acquiring a model for the selected texts"
+	)
+
 	user := readUUIDCookie(c)
 	sess := AllSessions.GetSess(user)
 
@@ -130,6 +84,44 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	s.WSID = s.ID
 
 	InsertContextIntoSS(&s)
+
+	s.User = user
+
+	s.Seeking = c.QueryParam("skg")
+	s.Proximate = c.QueryParam("prx")
+	s.LemmaOne = c.QueryParam("lem")
+	s.LemmaTwo = c.QueryParam("plm")
+	s.IPAddr = c.RealIP()
+
+	s.CleanInput()
+	s.SetType()  // must happen before SSBuildQueries()
+	s.Optimize() // maybe rewrite the search to make it faster
+	s.FormatInitialSummary()
+
+	if s.Type == "vector" {
+		s.InitSum = VECTORSEARCHSUMMARY
+	}
+
+	// now safe to rewrite skg oj that "^|\s", etc. can be added
+	s.Seeking = whitespacer(s.Seeking, &s)
+	s.Proximate = whitespacer(s.Proximate, &s)
+
+	se := AllSessions.GetSess(user)
+	s.StoredSession = se
+	sl := SessionIntoSearchlist(se)
+
+	s.SearchIn = sl.Inc
+	s.SearchEx = sl.Excl
+	s.SearchSize = sl.Size
+
+	if s.Twobox {
+		s.CurrentLimit = FIRSTSEARCHLIM
+	}
+
+	SSBuildQueries(&s)
+
+	s.TableSize = len(s.Queries)
+	s.IsActive = true
 
 	// but some fields are not set up quite yet
 	WSInfo.InsertInfo <- GenerateSrchInfo(&s)

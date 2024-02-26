@@ -134,7 +134,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	// this also means we need the "modeltype" parameter as well (bot: configtype; surfer: sessiontype)
 	start := time.Now()
 
-	WSInfo.UpdateVProgMsg <- WSSIKVs{s.ID, PRLMSG}
+	WSInfo.UpdateSummMsg <- WSSIKVs{s.ID, PRLMSG}
 
 	var vs SearchStruct
 	p := message.NewPrinter(language.English)
@@ -145,7 +145,6 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 		msg(fmt.Sprintf(MSG1, vs.Results.Len()), MSGPEEK)
 		s.Results = vs.Results
 		WSInfo.UpdateVProgMsg <- WSSIKVs{s.ID, p.Sprintf(TBMSG, vs.Results.Len())}
-		WSInfo.Del <- s.ID
 	}
 
 	thetext := buildtextblock(&s)
