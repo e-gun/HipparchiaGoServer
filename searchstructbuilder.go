@@ -255,7 +255,7 @@ func InsertContextIntoSS(ss *SearchStruct) {
 	ss.Context, ss.CancelFnc = context.WithCancel(context.Background())
 }
 
-// SessionIntoBulkSearch - grab every line of text in the currently registerselection set of authors, works, and passages
+// SessionIntoBulkSearch - grab every line of text in the currently selected set of authors, works, and passages
 func SessionIntoBulkSearch(c echo.Context, lim int) SearchStruct {
 	user := readUUIDCookie(c)
 	sess := AllSessions.GetSess(user)
@@ -265,20 +265,24 @@ func SessionIntoBulkSearch(c echo.Context, lim int) SearchStruct {
 	ss.Proximate = ""
 	ss.LemmaOne = ""
 	ss.LemmaTwo = ""
+	ss.SkgSlice = []string{}
 	ss.CurrentLimit = lim
 	ss.InitSum = "(gathering and formatting lines of text)"
 	ss.ID = strings.Replace(uuid.New().String(), "-", "", -1)
 
-	ss.CleanInput() // BuildDefaultSearch() set some things that need resetting
+	// BuildDefaultSearch() set some things that need resetting
 	ss.SetType()
 
 	sl := SessionIntoSearchlist(sess)
 	ss.SearchIn = sl.Inc
 	ss.SearchEx = sl.Excl
 	ss.SearchSize = sl.Size
+
 	SSBuildQueries(&ss)
-	ss.IsActive = true
+
 	ss.TableSize = len(ss.Queries)
+	ss.IsActive = true
+
 	SearchAndInsertResults(&ss)
 	return ss
 }

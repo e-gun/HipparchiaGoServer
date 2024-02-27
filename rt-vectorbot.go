@@ -164,6 +164,10 @@ func nnmodelbot(c echo.Context, s SearchStruct, a string) {
 		// SessionIntoBulkSearch() can't be used because there is no real session...
 		s.CurrentLimit = Config.VectorMaxlines
 		s.Seeking = ""
+		s.Proximate = ""
+		s.LemmaOne = ""
+		s.LemmaTwo = ""
+		s.SkgSlice = []string{}
 
 		SSBuildQueries(&s)
 		s.IsActive = true

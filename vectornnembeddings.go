@@ -133,7 +133,6 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	// lack of a real session means we can't call readUUIDCookie() repeatedly
 	// this also means we need the "modeltype" parameter as well (bot: configtype; surfer: sessiontype)
 	start := time.Now()
-
 	WSInfo.UpdateSummMsg <- WSSIKVs{s.ID, PRLMSG}
 
 	var vs SearchStruct

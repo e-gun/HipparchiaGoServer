@@ -85,7 +85,6 @@ func SSBuildQueries(s *SearchStruct) {
 	// selftest and vectorbot will both reset their Config values on completion
 	if Config.SelfTest == 0 && !Config.VectorBot && !AllSessions.IsInVault(s.User) {
 		msg(fmt.Sprintf(ABORT, s.User), MSGFYI)
-		s.Queries = []PrerolledQuery{}
 		return
 	}
 
@@ -201,7 +200,6 @@ func SSBuildQueries(s *SearchStruct) {
 		}
 
 		// [b3] search term might be lemmatized, hence the range
-
 		for i, skg := range s.SkgSlice {
 			sprq := prq
 			// there are fancier ways to do this, but debugging and maintaining become overwhelming...
@@ -262,6 +260,11 @@ func SSBuildQueries(s *SearchStruct) {
 		}
 	}
 	s.Queries = prqq
+
+	//for _, q := range prqq {
+	//	msg(q.PsqlQuery, 3)
+	//}
+
 	WSInfo.UpdateTW <- WSSIKVi{s.WSID, len(prqq)}
 	WSInfo.UpdateRemain <- WSSIKVi{s.WSID, len(prqq)}
 	WSInfo.UpdateHits <- WSSIKVi{s.WSID, 0}
