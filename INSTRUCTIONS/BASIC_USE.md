@@ -18,7 +18,8 @@
 16. Get a text of the current selection. 
 17. Build and index of the current selection. 
 18. Get the vocabulary for the current selection. 
-19. I need to know still more...
+19. Cancel a long search / vectorization request
+20. I need to know still more...
 
 ---
 [0] **Built-in tips**
@@ -239,7 +240,17 @@ Click the icon and a vocabulary list will be generated for whatever you have sel
 
 ---
 
-[19] **I need to know still more...**
+[19] Cancel a long search / vectorization request.
+
+Click on the circled `X` in the upper left portion of the screen. This will reset your session and cancel
+any searches in progress. Note that you will lose any search lists, etc. that are currently in use. 
+Most useful to people who accidentally do an `everything` request on a slow machine and are in danger of jamming their CPU for several minutes. 
+
+![inst03](../gitimg/basic_use/01_basic_search_area.png)
+
+---
+
+[20] **I need to know still more...**
 
 More help is also available via the `?` button in the bottom right corner of the page. There you can learn about
 `regex`, see some warnings about the data, etc. See also the separate instructions about `semantic vectors`. 

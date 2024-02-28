@@ -10,6 +10,7 @@
   * near/not-near syntax
   * progress polling
   * automatic rewrites of searches to optimize for speed
+  * can cancel long in-progress searches (and/or vectorizations)
 * dictionaries
 * text browsing
 * text maker

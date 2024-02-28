@@ -1,0 +1,11 @@
+{
+    "SentencesPerBag": 1,
+    "LDAIterations": 200,
+    "LDAXformPasses": 100,
+    "BurnInPasses": 2,
+    "ChangeEvalFrq": 10,
+    "PerplexEvalFrq": 10,
+    "PerplexTol": 0.01,
+    "Goroutines": 20,
+    "MaxLDAGraphSize": 30000
+}

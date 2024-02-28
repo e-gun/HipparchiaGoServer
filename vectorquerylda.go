@@ -76,8 +76,8 @@ func (b *BagWithLocus) GetWL() {
 func LDASearch(c echo.Context, srch SearchStruct) error {
 	const (
 		LDAMSG = `Building LDA model for the current selections`
-		ESM1   = "<br>preparing the text for modeling"
-		ESM2   = "<br>building topic models"
+		ESM1   = "preparing the text for modeling"
+		ESM2   = "building topic models"
 		ESM3   = "<br>using t-Distributed Stochastic Neighbor Embedding to build graph (please be patient...)"
 	)
 	c.Response().After(func() { messenger.LogPaths("LDASearch()") })
@@ -91,7 +91,6 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	var vs SearchStruct
 	if srch.ID != "ldamodelbot()" {
 		vs = SessionIntoBulkSearch(c, Config.VectorMaxlines)
-		WSInfo.InsertInfo <- GenerateSrchInfo(&vs)
 		WSInfo.UpdateRemain <- WSSIKVi{vs.WSID, 1}
 		WSInfo.UpdateSummMsg <- WSSIKVs{vs.WSID, LDAMSG}
 		WSInfo.UpdateVProgMsg <- WSSIKVs{vs.WSID, fmt.Sprintf(ESM1)}
@@ -99,7 +98,29 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 		vs = srch
 	}
 
+	// DEBUGGING WSInfo UPDATE ISSUES
+
+	//msg(vs.WSID, 2)
+	//
+	//getsrchinfo := func() WSSrchInfo {
+	//	responder := WSSIReply{key: vs.WSID, response: make(chan WSSrchInfo)}
+	//	WSInfo.RequestInfo <- responder
+	//	return <-responder.response
+	//}
+
+	// [A] WSInfo works for next...
+	// WSInfo.UpdateVProgMsg <- WSSIKVs{vs.WSID, fmt.Sprintf("XXXXX")}
+
+	//si := getsrchinfo()
+	//fmt.Println(si)
+
 	bags := ldapreptext(se.VecTextPrep, &vs)
+
+	//si = getsrchinfo()
+	//fmt.Println(si)
+
+	// [B] but now WSInfo is broken...
+	// WSInfo.UpdateVProgMsg <- WSSIKVs{vs.WSID, fmt.Sprintf("YYYY")}
 
 	corpus := make([]string, len(bags))
 	for i := 0; i < len(bags); i++ {
@@ -109,7 +130,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	stops := StringMapKeysIntoSlice(getstopset())
 	vectoriser := nlp.NewCountVectoriser(stops...)
 
-	WSInfo.UpdateVProgMsg <- WSSIKVs{vs.WSID, fmt.Sprintf(ESM2)}
+	WSInfo.UpdateSummMsg <- WSSIKVs{vs.WSID, fmt.Sprintf(ESM2)}
 
 	// consider building TESTITERATIONS models and making a table for each
 	var dot mat.Matrix
@@ -132,7 +153,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 
 	var img string
 	if se.LDAgraph || srch.ID == "ldamodelbot()" {
-		WSInfo.UpdateVProgMsg <- WSSIKVs{vs.ID, fmt.Sprintf(ESM3)}
+		WSInfo.UpdateVProgMsg <- WSSIKVs{vs.WSID, fmt.Sprintf(ESM3)}
 		img = ldaplot(se.LDA2D, ntopics, incl, se.VecTextPrep, dot, bags)
 	}
 

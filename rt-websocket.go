@@ -386,12 +386,14 @@ func BuildWSInfoHubIf() *WSInfoHubInterface {
 // WSSearchInfoHub - the loop that lets you read/write from/to the various WSSrchInfo channels via the WSInfo global (a *WSInfoHubInterface)
 func WSSearchInfoHub() {
 	const (
-		CANC = "WSSearchInfoHub() reports that '%s' was cancelled"
+		CANC    = "WSSearchInfoHub() reports that '%s' was cancelled"
+		FINWAIT = 10
+		FINCHK  = 60
 	)
 
 	var (
 		Allinfo  = make(map[string]WSSrchInfo)
-		Finished = make(map[string]bool)
+		Finished = make(map[string]time.Time)
 	)
 
 	reporter := func(r WSSIReply) {
@@ -423,13 +425,6 @@ func WSSearchInfoHub() {
 		return count
 	}
 
-	// this silly mechanism because selftest had 2nd round of nn vector tests respawning after deletion; rare, but...
-	storeunlessfinished := func(si WSSrchInfo) {
-		if _, ok := Finished[si.ID]; !ok {
-			Allinfo[si.ID] = si
-		}
-	}
-
 	// see also the notes at RtResetSession()
 	cancelall := func(u string) {
 		for _, v := range Allinfo {
@@ -439,6 +434,44 @@ func WSSearchInfoHub() {
 			}
 		}
 	}
+
+	// this silly mechanism because selftest had 2nd round of nn vector tests respawning after deletion; rare, but...
+	storeunlessfinished := func(si WSSrchInfo) {
+		if _, ok := Finished[si.ID]; !ok {
+			Allinfo[si.ID] = si
+		}
+	}
+
+	// storeunlessfinished() requires a cleanup function too...
+	cleanfinished := func() {
+		for {
+			for f := range Finished {
+				ft := Finished[f]
+				later := ft.Add(time.Second * FINWAIT)
+				if time.Now().After(later) {
+					delete(Finished, f)
+				} else {
+					fmt.Println(later)
+				}
+			}
+			time.Sleep(time.Second * FINCHK)
+		}
+	}
+
+	go cleanfinished()
+
+	//UNCOMMENT FOR DEBUGGING BUILDS
+	//allinfo := func() {
+	//	for {
+	//		ai := StringMapKeysIntoSlice(Allinfo)
+	//		msg("ai: "+strings.Join(ai, ", "), 2)
+	//		for f := range Finished {
+	//			msg(f+" is in finished", 2)
+	//		}
+	//		time.Sleep(1 * time.Second)
+	//	}
+	//}
+	//go allinfo()
 
 	// the main loop; it will never exit
 	for {
@@ -476,7 +509,7 @@ func WSSearchInfoHub() {
 		case reset := <-WSInfo.Reset:
 			cancelall(reset)
 		case del := <-WSInfo.Del:
-			Finished[del] = true
+			Finished[del] = time.Now()
 			delete(Allinfo, del)
 		}
 	}

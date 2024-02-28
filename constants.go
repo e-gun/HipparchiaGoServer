@@ -63,11 +63,11 @@ const (
 	LDATOPICS                = 8
 	LDAMAXTOPICS             = 30
 	LDASENTPERBAG            = 1
-	LDAITER                  = 60
-	LDAXFORMPASSES           = 30
-	LDABURNINPASSES          = 1
-	LDACHGEVALFRQ            = 15
-	LDAPERPEVALFRQ           = 15
+	LDAITER                  = 200
+	LDAXFORMPASSES           = 100
+	LDABURNINPASSES          = 2
+	LDACHGEVALFRQ            = 10
+	LDAPERPEVALFRQ           = 10
 	LDAPERPTOL               = 1e-2
 	LDAMAXGRAPHLINES         = 30000
 	MAXBROWSERCONTEXT        = 60

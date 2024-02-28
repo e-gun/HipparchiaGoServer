@@ -158,8 +158,8 @@ func selftestsuite() {
 
 	u := fmt.Sprintf("http://%s:%d/", Config.HostIP, Config.HostPort)
 
-	// tt := [5]bool{true, true, true, true, true}
-	tt := [5]bool{false, false, false, false, true}
+	tt := [5]bool{true, true, true, true, true}
+	// tt := [5]bool{false, false, false, false, true}
 
 	getter := func(u string) {
 		res, e := http.Get(u)
