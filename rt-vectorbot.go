@@ -135,6 +135,12 @@ func ldamodelbot(c echo.Context, s SearchStruct, a string) {
 	// note also that you REALLY do not want multiple vectorbots running at once...
 	s.ID = "ldamodelbot()"
 
+	s.Seeking = ""
+	s.Proximate = ""
+	s.LemmaOne = ""
+	s.LemmaTwo = ""
+	s.SkgSlice = []string{}
+
 	SSBuildQueries(&s)
 	s.IsActive = true
 	s.TableSize = 1

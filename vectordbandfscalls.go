@@ -229,6 +229,7 @@ func vectordbaddnn(fp string, embs embedding.Embeddings) {
 	const (
 		MSG1 = "vectordbaddnn(): "
 		MSG2 = "%s compression: %dM -> %dM (-> %.1f%%)"
+		MSG3 = "vectordbaddnn() was sent empty embeddings"
 		FAIL = "vectordbaddnn() failed when calling json.Marshal(embs): nothing stored"
 		INS  = `
 			INSERT INTO %s
@@ -237,14 +238,17 @@ func vectordbaddnn(fp string, embs embedding.Embeddings) {
 		GZ = gzip.BestSpeed
 	)
 
+	if embs.Empty() {
+		msg(MSG3, MSGPEEK)
+		return
+	}
+
 	// json vs jsi: jsoniter.ConfigFastest, this will marshal the float with 6 digits precision (lossy)
 	eb, err := json.Marshal(embs)
 	if err != nil {
 		msg(FAIL, MSGNOTE)
 		eb = []byte{}
 	}
-
-	l1 := len(eb)
 
 	// https://stackoverflow.com/questions/61077668/how-to-gzip-string-and-return-byte-array-in-golang
 	var buf bytes.Buffer
@@ -264,8 +268,9 @@ func vectordbaddnn(fp string, embs embedding.Embeddings) {
 	dbi.EC(err)
 	msg(MSG1+fp, MSGTMI)
 
-	// compressed is c. 28% of original
-	msg(fmt.Sprintf(MSG2, fp, l1/1024/1024, l2/1024/1024, (float32(l2)/float32(l1))*100), MSGTMI)
+	// compressed is c. 33% of original
+	// l1 := len(eb)
+	// msg(fmt.Sprintf(MSG2, fp, l1/1024/1024, l2/1024/1024, (float32(l2)/float32(l1))*100), MSGTMI)
 	buf.Reset()
 }
 
@@ -308,7 +313,7 @@ func vectordbfetchnn(fp string) embedding.Embeddings {
 		msg(fmt.Sprintf(MSG2, fp), MSGNOTE)
 	}
 
-	msg(MSG1+fp, MSGPEEK)
+	// msg(MSG1+fp, MSGPEEK)
 
 	return emb
 }
@@ -415,7 +420,7 @@ func ldavecconfig() LDAConfig {
 			msg(ERR2+CONFIGVECTORLDA, MSGCRIT)
 			vc = cfg
 		}
-		msg(MSG2+CONFIGVECTORLDA, MSGTMI)
+		// msg(MSG2+CONFIGVECTORLDA, MSGTMI)
 		cfg = vc
 	}
 

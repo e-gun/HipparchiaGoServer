@@ -247,7 +247,7 @@ func (wlb *WorkLineBundle) YieldAll() chan DbWorkline {
 
 	// a YieldSome() is not yet needed: yield some but listen on a stop channel, etc.
 
-	msg(fmt.Sprintf("YieldAll() sending %d lines", wlb.Len()), MSGTMI)
+	msg(fmt.Sprintf("WorkLineBundle.YieldAll() sending %d lines", wlb.Len()), MSGTMI)
 
 	c := make(chan DbWorkline)
 	go func() {

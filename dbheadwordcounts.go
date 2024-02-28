@@ -271,8 +271,8 @@ func headwordlookup(word string) DbHeadwordCount {
 			satura, satyr, schol, tact, test, theol, trag
 		FROM dictionary_headword_wordcounts WHERE entry_name='%s'`
 
-		FAIL = "headwordlookup() returned nil when looking for '%s'"
-		INFO = "headwordlookup() for %s returned %d finds"
+		FAIL = "headwordlookup() returned 'nil' when looking for '%s'"
+		INFO = "headwordlookup() for '%s' returned %d finds"
 	)
 
 	dbconn := GetDBConnection()

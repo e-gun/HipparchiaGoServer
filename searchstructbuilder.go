@@ -83,7 +83,7 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 	s.ID = c.Param("id")
 	s.WSID = s.ID
 
-	InsertContextIntoSS(&s)
+	InsertNewContextIntoSS(&s)
 
 	s.User = user
 
@@ -118,6 +118,8 @@ func BuildDefaultSearch(c echo.Context) SearchStruct {
 		s.CurrentLimit = FIRSTSEARCHLIM
 	}
 
+	// rewrite these might be "bad" if you are doing a bulk search since search terms will be registered
+	// SessionIntoBulkSearch() will blank this out and call SSBuildQueries() all over again
 	SSBuildQueries(&s)
 
 	s.TableSize = len(s.Queries)
@@ -169,7 +171,7 @@ func BuildHollowSearch() SearchStruct {
 		TableSize:     0,
 	}
 
-	InsertContextIntoSS(&s)
+	InsertNewContextIntoSS(&s)
 
 	s.WSID = s.ID
 	s.StoredSession = MakeDefaultSession(s.ID)
@@ -244,14 +246,14 @@ func CloneSearch(f *SearchStruct, iteration int) SearchStruct {
 		IsActive:      f.IsActive,
 	}
 
-	InsertContextIntoSS(&clone)
+	InsertNewContextIntoSS(&clone)
 
 	WSInfo.UpdateIteration <- WSSIKVi{clone.WSID, clone.PhaseNum}
 
 	return clone
 }
 
-func InsertContextIntoSS(ss *SearchStruct) {
+func InsertNewContextIntoSS(ss *SearchStruct) {
 	ss.Context, ss.CancelFnc = context.WithCancel(context.Background())
 }
 

@@ -72,7 +72,9 @@ func generateneighborsdata(c echo.Context, s SearchStruct) map[string]search.Nei
 		WSInfo.UpdateVProgMsg <- WSSIKVs{s.ID, GMSG}
 		embs = generateembeddings(c, s.VecModeler, s)
 		vectordbaddnn(fp, embs)
-		vectordbsizenn(MSGPEEK)
+		if !embs.Empty() {
+			vectordbsizenn(MSGPEEK)
+		}
 	}
 
 	// [b] make a query against the model
@@ -164,6 +166,12 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	// BUT word2vec and lexvec do not do this (much): and glove does: +50MB to model Hdt
 	// bleh. The problem is in imported code?
 
+	enablecancellation := func(m model.CtxModel) {
+		InsertNewContextIntoSS(&s)
+		m.InsertContext(s.Context)
+		WSInfo.InsertInfo <- GenerateSrchInfo(&s)
+	}
+
 	switch modeltype {
 	case "glove":
 		cfg := glovevectorconfig()
@@ -184,6 +192,8 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	default:
 		cfg := w2vvectorconfig()
 		m, err := word2vec.NewForOptions(cfg)
+		enablecancellation(m)
+
 		if err != nil {
 			msg(FAIL1, MSGWARN)
 		}
@@ -245,6 +255,12 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	go getreport()
 
 	_ = <-finished
+
+	// check that we did not visit RtResetSession()...
+	if s.Context.Err() != nil {
+		// fmt.Println(s.Context.Err()) --> "context canceled"
+		return embedding.Embeddings{}
+	}
 
 	WSInfo.UpdateVProgMsg <- WSSIKVs{s.ID, DBMSG}
 
