@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/e-gun/nlp v0.0.2
-	github.com/e-gun/tsnemp v0.0.0
+	github.com/e-gun/tsnemp v0.1.7
 	github.com/e-gun/wego v0.1.0
 	github.com/go-echarts/go-echarts/v2 v2.3.3
 	github.com/google/uuid v1.6.0

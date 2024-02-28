@@ -6,6 +6,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/e-gun/nlp"
 	"github.com/labstack/echo/v4"
@@ -77,9 +78,9 @@ func (b *BagWithLocus) GetWL() {
 func LDASearch(c echo.Context, srch SearchStruct) error {
 	const (
 		LDAMSG = `Building LDA model for the current selections`
-		ESM1   = "preparing the text for modeling"
+		ESM1   = "Preparing the text for modeling"
 		ESM2   = "Building topic models"
-		ESM3   = "Using t-Distributed Stochastic Neighbor Embedding to build graph (please be patient...)"
+		ESM3   = "Building the graph (please be patient this can be very slow...)"
 	)
 	c.Response().After(func() { messenger.LogPaths("LDASearch()") })
 
@@ -137,7 +138,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	var img string
 	if se.LDAgraph || srch.ID == "ldamodelbot()" {
 		WSInfo.UpdateSummMsg <- WSSIKVs{vs.WSID, fmt.Sprintf(ESM3)}
-		img = ldaplot(se.LDA2D, ntopics, incl, se.VecTextPrep, dot, bags)
+		img = ldaplot(vs.Context, se.LDA2D, ntopics, incl, se.VecTextPrep, dot, bags)
 	}
 
 	soj := SearchOutputJSON{
@@ -629,10 +630,7 @@ func ldadocbyweight(ntopics int, docsOverTopics mat.Matrix) []float64 {
 // see https://pkg.go.dev/gonum.org/v1/gonum/mat@v0.12.0#pkg-index
 
 // ldaplot - plot the lda results
-func ldaplot(graph2d bool, ntopics int, incl string, bagger string, docsOverTopics mat.Matrix, bags []BagWithLocus) string {
-	// m := mat.NewDense()
-	// func NewDense(r int, c int, data []float64) *Dense
-
+func ldaplot(ctx context.Context, graph2d bool, ntopics int, incl string, bagger string, docsOverTopics mat.Matrix, bags []BagWithLocus) string {
 	const (
 		PERPLEX = 150 // default 300
 		LEARNRT = 100 // default 100
@@ -693,12 +691,12 @@ func ldaplot(graph2d bool, ntopics int, incl string, bagger string, docsOverTopi
 	if graph2d && graph {
 		// t := NewTSNE(2, PERPLEX, LEARNRT, MAXITER, VERBOSE)
 		t := tsnemp.NewMPTSNE(Config.WorkerCount, 2, PERPLEX, LEARNRT, MAXITER, VERBOSE)
-		t.EmbedData(wv, nil)
+		t.EmbedDataWithCtx(ctx, wv, nil)
 		htmlandjs = lda2dscatter(ntopics, incl, bagger, t.Y, Y, bags)
 	} else if graph {
 		// 3d
 		nd := tsnemp.NewMPTSNE(Config.WorkerCount, 3, PERPLEX, LEARNRT, MAXITER, VERBOSE)
-		nd.EmbedData(wv, nil)
+		nd.EmbedDataWithCtx(ctx, wv, nil)
 		htmlandjs = lda3dscatter(ntopics, incl, bagger, nd.Y, Y, bags)
 	} else {
 		p := message.NewPrinter(language.English)
