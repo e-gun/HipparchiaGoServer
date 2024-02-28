@@ -90,10 +90,11 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 
 	var vs SearchStruct
 	if srch.ID != "ldamodelbot()" {
-		WSInfo.UpdateRemain <- WSSIKVi{srch.WSID, 1}
-		WSInfo.UpdateSummMsg <- WSSIKVs{srch.WSID, LDAMSG}
-		WSInfo.UpdateVProgMsg <- WSSIKVs{srch.WSID, fmt.Sprintf(ESM1)}
 		vs = SessionIntoBulkSearch(c, Config.VectorMaxlines)
+		WSInfo.InsertInfo <- GenerateSrchInfo(&vs)
+		WSInfo.UpdateRemain <- WSSIKVi{vs.WSID, 1}
+		WSInfo.UpdateSummMsg <- WSSIKVs{vs.WSID, LDAMSG}
+		WSInfo.UpdateVProgMsg <- WSSIKVs{vs.WSID, fmt.Sprintf(ESM1)}
 	} else {
 		vs = srch
 	}
@@ -108,7 +109,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	stops := StringMapKeysIntoSlice(getstopset())
 	vectoriser := nlp.NewCountVectoriser(stops...)
 
-	WSInfo.UpdateVProgMsg <- WSSIKVs{srch.WSID, fmt.Sprintf(ESM2)}
+	WSInfo.UpdateVProgMsg <- WSSIKVs{vs.WSID, fmt.Sprintf(ESM2)}
 
 	// consider building TESTITERATIONS models and making a table for each
 	var dot mat.Matrix
@@ -120,7 +121,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 		return JSONresponse(c, SearchOutputJSON{})
 	}
 
-	docsOverTopics, topicsOverWords := ldamodel(ntopics, corpus, vectoriser)
+	docsOverTopics, topicsOverWords := ldamodel(ntopics, corpus, vectoriser, &vs)
 	tables = append(tables, ldatopicsummary(ntopics, topicsOverWords, vectoriser, docsOverTopics))
 	tables = append(tables, ldatopsentences(ntopics, bags, corpus, docsOverTopics))
 	dot = docsOverTopics
@@ -131,7 +132,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 
 	var img string
 	if se.LDAgraph || srch.ID == "ldamodelbot()" {
-		WSInfo.UpdateVProgMsg <- WSSIKVs{srch.ID, fmt.Sprintf(ESM3)}
+		WSInfo.UpdateVProgMsg <- WSSIKVs{vs.ID, fmt.Sprintf(ESM3)}
 		img = ldaplot(se.LDA2D, ntopics, incl, se.VecTextPrep, dot, bags)
 	}
 
@@ -234,6 +235,11 @@ func ldapreptext(bagger string, vs *SearchStruct) []BagWithLocus {
 	}
 
 	slicedwords := StringMapKeysIntoSlice(allwords)
+	// catching resets
+	if Config.SelfTest == 0 && !Config.VectorBot && !AllSessions.IsInVault(vs.User) {
+		return []BagWithLocus{}
+	}
+
 	morphmapdbm := arraytogetrequiredmorphobjects(slicedwords) // map[string]DbMorphology
 	morphmapstrslc := buildmorphmapstrslc(slicedwords, morphmapdbm)
 
@@ -250,6 +256,11 @@ func ldapreptext(bagger string, vs *SearchStruct) []BagWithLocus {
 		// winner
 		winnermap := buildwinnertakesallparsemap(morphmapstrslc)
 		thebags = ldawinnerbagging(thebags, winnermap)
+	}
+
+	// catching resets
+	if Config.SelfTest == 0 && !Config.VectorBot && !AllSessions.IsInVault(vs.User) {
+		return []BagWithLocus{}
 	}
 
 	return thebags
@@ -302,13 +313,21 @@ func ldamontecarlobagging(thebags []BagWithLocus, montecarlo map[string]hwguesse
 }
 
 // ldamodel - build the lda model for the corpus
-func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser) (mat.Matrix, mat.Matrix) {
+func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser, s *SearchStruct) (mat.Matrix, mat.Matrix) {
 	const (
 		FAIL = "Failed to model topics for documents"
 	)
 
+	enablecancellation := func(l *nlp.LatentDirichletAllocation) {
+		InsertNewContextIntoSS(s)
+		l.Ctx = s.Context
+		WSInfo.InsertInfo <- GenerateSrchInfo(s)
+	}
+
 	cfg := ldavecconfig()
 	lda := nlp.NewLatentDirichletAllocation(topics)
+	enablecancellation(lda)
+
 	lda.Processes = cfg.Goroutines
 	lda.Iterations = cfg.LDAIterations
 	lda.TransformationPasses = cfg.LDAXformPasses

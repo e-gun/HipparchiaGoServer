@@ -166,7 +166,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	// BUT word2vec and lexvec do not do this (much): and glove does: +50MB to model Hdt
 	// bleh. The problem is in imported code?
 
-	enablecancellation := func(m model.CtxModel) {
+	enablecancellation := func(m model.ModelWithCtx) {
 		InsertNewContextIntoSS(&s)
 		m.InsertContext(s.Context)
 		WSInfo.InsertInfo <- GenerateSrchInfo(&s)
@@ -179,6 +179,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 		if err != nil {
 			msg(FAIL1, MSGWARN)
 		}
+		enablecancellation(m)
 		vmodel = m
 		ti = cfg.Iter
 	case "lexvec":
@@ -187,16 +188,16 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 		if err != nil {
 			msg(FAIL1, MSGWARN)
 		}
+		enablecancellation(m)
 		vmodel = m
 		ti = cfg.Iter
 	default:
 		cfg := w2vvectorconfig()
 		m, err := word2vec.NewForOptions(cfg)
-		enablecancellation(m)
-
 		if err != nil {
 			msg(FAIL1, MSGWARN)
 		}
+		enablecancellation(m)
 		vmodel = m
 		ti = cfg.Iter
 	}
@@ -213,6 +214,7 @@ func generateembeddings(c echo.Context, modeltype string, s SearchStruct) embedd
 	finished := make(chan bool)
 
 	// .Train() but do not block; so we can also .Reporter()
+	// NB the training has a copy of the ss's context.Cancel; wego's trainPerThread() is responsive to RtResetSession()
 	go func() {
 		if err := vmodel.Train(b); err != nil {
 			msg(FAIL2, 1)

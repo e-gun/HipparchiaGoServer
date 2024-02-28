@@ -248,16 +248,17 @@ func RtResetSession(c echo.Context) error {
 
 	AllSessions.Delete(id)
 
-	// cancel any searches in progress
+	// cancel any searches in progress: you are about to do a .CancelFnc()
 	WSInfo.Reset <- id
 
-	// two-part searches are not canceled yet; and the incomplete results will be handed to the next function
+	// [a] two-part searches are not canceled yet; and the incomplete results will be handed to the next function
 	// canceling the subsequent parts happens via SSBuildQueries()
 	// if !AllSessions.IsInVault(s.User) no actual queries will be loaded into the ss so the search ends instantly
 
-	// there are no easy ways to halt a vector search once it starts training since the wego code has taken over
-	// you can only stop in the text building and parsing stage, but these will usually be over before you can mouse
-	// over and click "reset"...
+	// [b] a different mechanism is used to halt a nn vector search once it starts training and the wego code has taken over
+	// but the supplied context can cancel a training loop, yield empty embeddings, and then skip storage
+
+	// [c] lda uses a similar mechanism: context inserted into nlp.LatentDirichletAllocation in the nlp code
 
 	// reset the user ID and session
 	newid := writeUUIDCookie(c)

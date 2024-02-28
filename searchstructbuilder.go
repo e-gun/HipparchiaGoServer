@@ -269,7 +269,7 @@ func SessionIntoBulkSearch(c echo.Context, lim int) SearchStruct {
 	ss.LemmaTwo = ""
 	ss.SkgSlice = []string{}
 	ss.CurrentLimit = lim
-	ss.InitSum = "(gathering and formatting lines of text)"
+	ss.InitSum = "Gathering and formatting the text..."
 	ss.ID = strings.Replace(uuid.New().String(), "-", "", -1)
 
 	// BuildDefaultSearch() set some things that need resetting

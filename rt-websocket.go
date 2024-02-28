@@ -385,6 +385,10 @@ func BuildWSInfoHubIf() *WSInfoHubInterface {
 
 // WSSearchInfoHub - the loop that lets you read/write from/to the various WSSrchInfo channels via the WSInfo global (a *WSInfoHubInterface)
 func WSSearchInfoHub() {
+	const (
+		CANC = "WSSearchInfoHub() reports that '%s' was cancelled"
+	)
+
 	var (
 		Allinfo  = make(map[string]WSSrchInfo)
 		Finished = make(map[string]bool)
@@ -426,11 +430,12 @@ func WSSearchInfoHub() {
 		}
 	}
 
+	// see also the notes at RtResetSession()
 	cancelall := func(u string) {
 		for _, v := range Allinfo {
 			if v.User == u {
 				v.CancelFnc()
-				// msg(v.ID+" canceled", 1)
+				msg(fmt.Sprintf(CANC, v.ID), MSGPEEK)
 			}
 		}
 	}
