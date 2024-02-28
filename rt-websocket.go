@@ -450,8 +450,6 @@ func WSSearchInfoHub() {
 				later := ft.Add(time.Second * FINWAIT)
 				if time.Now().After(later) {
 					delete(Finished, f)
-				} else {
-					fmt.Println(later)
 				}
 			}
 			time.Sleep(time.Second * FINCHK)
@@ -513,6 +511,12 @@ func WSSearchInfoHub() {
 			delete(Allinfo, del)
 		}
 	}
+}
+
+func WSFetchSrchInfo(id string) WSSrchInfo {
+	responder := WSSIReply{key: id, response: make(chan WSSrchInfo)}
+	WSInfo.RequestInfo <- responder
+	return <-responder.response
 }
 
 //

@@ -35,6 +35,8 @@ var (
 	SQLPool       *pgxpool.Pool
 	AllSessions   = MakeSessionVault()
 	AllAuthorized = MakeAuthorizedVault()
+	WebsocketPool = WSFillNewPool()
+	WSInfo        = BuildWSInfoHubIf()
 	UserPassPairs = make(map[string]string)
 	AllWorks      = make(map[string]*DbWork)
 	AllAuthors    = make(map[string]*DbAuthor)
@@ -51,8 +53,6 @@ var (
 	TheLanguages  = []string{"greek", "latin"}
 	ServableFonts = map[string]FontTempl{"Noto": NotoFont, "Roboto": RobotoFont, "Fira": FiraFont} // cf rt-embhcss.go
 	LaunchTime    = time.Now()
-	WebsocketPool = WSFillNewPool()
-	WSInfo        = BuildWSInfoHubIf()
 )
 
 type DbAuthor struct {

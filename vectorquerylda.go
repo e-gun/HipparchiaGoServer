@@ -16,6 +16,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	tsnemp "github.com/e-gun/tsnemp/pkg"
 )
@@ -77,8 +78,8 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 	const (
 		LDAMSG = `Building LDA model for the current selections`
 		ESM1   = "preparing the text for modeling"
-		ESM2   = "building topic models"
-		ESM3   = "<br>using t-Distributed Stochastic Neighbor Embedding to build graph (please be patient...)"
+		ESM2   = "Building topic models"
+		ESM3   = "Using t-Distributed Stochastic Neighbor Embedding to build graph (please be patient...)"
 	)
 	c.Response().After(func() { messenger.LogPaths("LDASearch()") })
 
@@ -98,29 +99,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 		vs = srch
 	}
 
-	// DEBUGGING WSInfo UPDATE ISSUES
-
-	//msg(vs.WSID, 2)
-	//
-	//getsrchinfo := func() WSSrchInfo {
-	//	responder := WSSIReply{key: vs.WSID, response: make(chan WSSrchInfo)}
-	//	WSInfo.RequestInfo <- responder
-	//	return <-responder.response
-	//}
-
-	// [A] WSInfo works for next...
-	// WSInfo.UpdateVProgMsg <- WSSIKVs{vs.WSID, fmt.Sprintf("XXXXX")}
-
-	//si := getsrchinfo()
-	//fmt.Println(si)
-
 	bags := ldapreptext(se.VecTextPrep, &vs)
-
-	//si = getsrchinfo()
-	//fmt.Println(si)
-
-	// [B] but now WSInfo is broken...
-	// WSInfo.UpdateVProgMsg <- WSSIKVs{vs.WSID, fmt.Sprintf("YYYY")}
 
 	corpus := make([]string, len(bags))
 	for i := 0; i < len(bags); i++ {
@@ -138,11 +117,15 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 
 	// a chance to bail if you hit RtResetSession() in time
 	if Config.SelfTest == 0 && !Config.VectorBot && !AllSessions.IsInVault(vs.User) {
-		msg("LDASearch() aborting: RtResetSession switched user to "+vs.User, MSGFYI)
+		// msg("LDASearch() aborting: RtResetSession switched user to "+vs.User, MSGFYI)
 		return JSONresponse(c, SearchOutputJSON{})
 	}
 
-	docsOverTopics, topicsOverWords := ldamodel(ntopics, corpus, vectoriser, &vs)
+	docsOverTopics, topicsOverWords, ok := ldamodel(ntopics, corpus, vectoriser, &vs)
+	if !ok {
+		return JSONresponse(c, SearchOutputJSON{})
+	}
+
 	tables = append(tables, ldatopicsummary(ntopics, topicsOverWords, vectoriser, docsOverTopics))
 	tables = append(tables, ldatopsentences(ntopics, bags, corpus, docsOverTopics))
 	dot = docsOverTopics
@@ -153,7 +136,7 @@ func LDASearch(c echo.Context, srch SearchStruct) error {
 
 	var img string
 	if se.LDAgraph || srch.ID == "ldamodelbot()" {
-		WSInfo.UpdateVProgMsg <- WSSIKVs{vs.WSID, fmt.Sprintf(ESM3)}
+		WSInfo.UpdateSummMsg <- WSSIKVs{vs.WSID, fmt.Sprintf(ESM3)}
 		img = ldaplot(se.LDA2D, ntopics, incl, se.VecTextPrep, dot, bags)
 	}
 
@@ -334,15 +317,18 @@ func ldamontecarlobagging(thebags []BagWithLocus, montecarlo map[string]hwguesse
 }
 
 // ldamodel - build the lda model for the corpus
-func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser, s *SearchStruct) (mat.Matrix, mat.Matrix) {
+func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser, s *SearchStruct) (mat.Matrix, mat.Matrix, bool) {
 	const (
 		FAIL = "Failed to model topics for documents"
 	)
 
+	// cancellation is not a big deal: models are fairly fast; ldaplot() is where you can get stuck
 	enablecancellation := func(l *nlp.LatentDirichletAllocation) {
 		InsertNewContextIntoSS(s)
 		l.Ctx = s.Context
-		WSInfo.InsertInfo <- GenerateSrchInfo(s)
+		si := WSFetchSrchInfo(s.WSID)
+		si.CancelFnc = s.CancelFnc
+		WSInfo.InsertInfo <- si
 	}
 
 	cfg := ldavecconfig()
@@ -362,11 +348,14 @@ func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser, s *S
 
 	docsOverTopics, err := pipeline.FitTransform(corpus...)
 	if err != nil {
-		fmt.Println(FAIL)
-		panic(err)
+		// you probably cancelled in the middle...
+		msg(FAIL, 4)
+		blank := mat.NewDense(1, 1, nil)
+		return blank, blank, false
 	}
+
 	topicsOverWords := lda.Components()
-	return docsOverTopics, topicsOverWords
+	return docsOverTopics, topicsOverWords, true
 }
 
 // ldatopsentences - generate html table reporting sentences most associated with each topic
@@ -697,7 +686,9 @@ func ldaplot(graph2d bool, ntopics int, incl string, bagger string, docsOverTopi
 		graph = false
 	}
 
-	// LaunchTime = time.Now()
+	// this is the slow part...: you make it here in no time; then you can easily wait >1m
+	// tsnemp needs to learn how to accept context
+	LaunchTime = time.Now()
 	var htmlandjs string
 	if graph2d && graph {
 		// t := NewTSNE(2, PERPLEX, LEARNRT, MAXITER, VERBOSE)
@@ -713,7 +704,7 @@ func ldaplot(graph2d bool, ntopics int, incl string, bagger string, docsOverTopi
 		p := message.NewPrinter(language.English)
 		htmlandjs = p.Sprintf(SKIPPED, dc, cfg.MaxLDAGraphSize)
 	}
-	// msg(fmt.Sprintf("EmbedData took %.3fs", time.Now().Sub(LaunchTime).Seconds()), MSGWARN)
+	msg(fmt.Sprintf("ldaplot() EmbedData required %.3fs", time.Now().Sub(LaunchTime).Seconds()), MSGPEEK)
 
 	return htmlandjs
 }
