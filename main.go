@@ -141,6 +141,7 @@ func main() {
 
 	awaiting.Wait()
 
+	runtime.GC()
 	messenger.LogPaths("main() post-initialization")
 	msg(messenger.ColStyle(fmt.Sprintf(SUMM, time.Now().Sub(LaunchTime).Seconds())), -999)
 

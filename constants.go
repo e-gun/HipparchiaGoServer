@@ -10,7 +10,7 @@ import "time"
 const (
 	MYNAME    = "Hipparchia Golang Server"
 	SHORTNAME = "HGS"
-	VERSION   = "1.2.21"
+	VERSION   = "1.2.22"
 
 	GREEKCORP      = "gr"
 	LATINCORP      = "lt"
@@ -77,7 +77,7 @@ const (
 	MAXDISTANCE              = 10
 	MAXECHOREQPERSECONDPERIP = 60 // it takes c. 20 to load the front page for the first time; 40 lets you double-load; selftestsuite needs 60
 	MAXHITLIMIT              = 2500
-	MAXINPUTLEN              = 50
+	MAXINPUTLEN              = 64
 	MAXLEMMACHUNKSIZE        = 25
 	MAXLINESHITCONTEXT       = 30
 	MAXSEARCHINFOLISTLEN     = 100

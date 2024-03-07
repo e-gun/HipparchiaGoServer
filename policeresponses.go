@@ -20,6 +20,7 @@ type EchoResponseStats struct {
 	TwoHundred  uint64
 	FourOhThree uint64
 	FourOhFour  uint64
+	FourOhFive  uint64
 	FiveHundred uint64
 }
 
@@ -126,15 +127,34 @@ func ResponseStatsKeeper() {
 	const (
 		BLACK1 = `IP address %s received a strike: StatusNotFound error for URI "%s"`
 		BLACK2 = `IP address %s received a strike: StatusInternalServerError for URI "%s"`
+		BLACK3 = `IP address %s received a strike: MethodNotAllowed for URI "%s"`
 		FYI200 = `StatusOK count is %d`
 		FRQ200 = 1000
 		FYI403 = `[%s] StatusForbidden count is %d. Last blocked was %s requesting "%s"`
 		FRQ403 = 100
 		FYI404 = `[%s] StatusNotFound count is %d`
 		FRQ404 = 100
+		FYI405 = `[%s] MethodNotAllowed count is %d`
+		FRQ405 = 5
 		FYI500 = `[%s] StatusInternalServerError count is %d.`
 		FRQ500 = 1
 	)
+
+	warn := func(v uint64, frq uint64, fyi string) {
+		if v%frq == 0 {
+			msg(fmt.Sprintf(fyi, v), MSGNOTE)
+		}
+	}
+
+	blacklist := func(status StatListWR, note string) {
+		// you need to be logged on the blacklist...
+		wr := BlackListWR{ip: status.ip, resp: make(chan bool)}
+		BListWR <- wr
+		ok := <-wr.resp
+		if !ok {
+			msg(fmt.Sprintf(BLACK1, status.ip, status.uri), MSGWARN)
+		}
+	}
 
 	// NB: this loop will never exit
 	for {
@@ -143,41 +163,27 @@ func ResponseStatsKeeper() {
 		switch status.code {
 		case 200:
 			EchoServerStats.TwoHundred++
-			if EchoServerStats.TwoHundred%FRQ200 == 0 {
-				msg(fmt.Sprintf(FYI200, EchoServerStats.TwoHundred), MSGNOTE)
-			}
+			warn(EchoServerStats.TwoHundred, FRQ200, FYI200)
 		case 403:
 			// you are already on the blacklist...
 			EchoServerStats.FourOhThree++
+			// use of 'when' makes this different...
 			if EchoServerStats.FourOhThree%FRQ403 == 0 {
 				msg(fmt.Sprintf(FYI403, when, EchoServerStats.FourOhThree, status.ip, status.uri), MSGNOTE)
 			}
 		case 404:
 			EchoServerStats.FourOhFour++
-			if EchoServerStats.FourOhFour%FRQ404 == 0 {
-				msg(fmt.Sprintf(FYI404, when, EchoServerStats.FourOhFour), MSGNOTE)
-			}
-			// you need to be logged on the blacklist...
-			wr := BlackListWR{ip: status.ip, resp: make(chan bool)}
-			BListWR <- wr
-			ok := <-wr.resp
-			if !ok {
-				msg(fmt.Sprintf(BLACK1, status.ip, status.uri), MSGWARN)
-			}
-
+			warn(EchoServerStats.FourOhFour, FRQ404, FYI404)
+			blacklist(status, BLACK1)
+		case 405:
+			// these seem to come only from hostile scanners; it is a bug that needs fixing if a real user sees this
+			EchoServerStats.FourOhFive++
+			warn(EchoServerStats.FourOhFive, FRQ405, FYI405)
+			blacklist(status, BLACK3)
 		case 500:
 			EchoServerStats.FiveHundred++
-			if EchoServerStats.FiveHundred%FRQ500 == 0 {
-				msg(fmt.Sprintf(FYI500, when, EchoServerStats.FiveHundred), MSGWARN)
-			}
-
-			// you need to be logged on the blacklist...
-			wr := BlackListWR{ip: status.ip, resp: make(chan bool)}
-			BListWR <- wr
-			ok := <-wr.resp
-			if !ok {
-				msg(fmt.Sprintf(BLACK2, status.ip, status.uri), MSGWARN)
-			}
+			warn(EchoServerStats.FiveHundred, FRQ500, FYI500)
+			blacklist(status, BLACK2)
 		default:
 			// do nothing: not interested
 			// 302 from "/reset/session"
@@ -192,6 +198,7 @@ func NewEchoResponseStats() *EchoResponseStats {
 		TwoHundred:  0,
 		FourOhThree: 0,
 		FourOhFour:  0,
+		FourOhFive:  0,
 		FiveHundred: 0,
 	}
 }

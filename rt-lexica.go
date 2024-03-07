@@ -76,7 +76,7 @@ type DbMorphology struct {
 	RelatedHW   string
 }
 
-func (dbm DbMorphology) PossibSlice() []string {
+func (dbm *DbMorphology) PossibSlice() []string {
 	return strings.Split(dbm.RawPossib, " ")
 }
 
