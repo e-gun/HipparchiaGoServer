@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -48,24 +49,36 @@ var (
 	EchoServerStats = NewEchoResponseStats()
 )
 
-// PoliceResponse - track response code counts + block repeat 404 offenders; this is custom middleware for an *echo.Echo
-func PoliceResponse(nextechohandler echo.HandlerFunc) echo.HandlerFunc {
+// PoliceRequestAndResponse - track response code counts + block repeat 404 offenders; this is custom middleware for an *echo.Echo
+func PoliceRequestAndResponse(nextechohandler echo.HandlerFunc) echo.HandlerFunc {
 	const (
 		BLACK0 = `IP address %s was blacklisted: too many previous response code errors`
 		SLOWDN = 3
+		BLACK1 = `IP address %s received a strike: invalid request prefix in URI "%s"`
 	)
 
 	return func(c echo.Context) error {
-		checkblacklist := BlackListRD{ip: c.RealIP(), resp: make(chan bool)}
-		BListRD <- checkblacklist
-		ok := <-checkblacklist.resp
-
 		// presumed guilty: 403
 		registerresult := StatListWR{
 			code: 403,
 			ip:   c.RealIP(),
 			uri:  c.Request().RequestURI,
 		}
+
+		// is something like 'http://journalseek.net/' in the request?
+		rq := c.Request().RequestURI
+		if strings.HasPrefix(rq, "http:") || strings.HasPrefix(rq, "https:") {
+			wr := BlackListWR{ip: c.RealIP(), resp: make(chan bool)}
+			BListWR <- wr   // register a strike
+			ok := <-wr.resp // are you over the limit?
+			if !ok {
+				msg(fmt.Sprintf(BLACK1, c.RealIP(), rq), MSGWARN)
+			}
+		}
+
+		checkblacklist := BlackListRD{ip: c.RealIP(), resp: make(chan bool)}
+		BListRD <- checkblacklist
+		ok := <-checkblacklist.resp
 
 		if !ok {
 			// register a 403
@@ -97,16 +110,17 @@ func IPBlacklistKeeper() {
 	blacklist := make(map[string]struct{})
 
 	// NB: this loop will never exit
+	// the channels are returning 'bool'
 	for {
 		select {
-		case rd := <-BListRD:
+		case rd := <-BListRD: // read from the blacklist
 			valid := true
 			if _, ok := blacklist[rd.ip]; ok {
 				// you are on the blacklist...
 				valid = false
 			}
 			rd.resp <- valid
-		case wr := <-BListWR:
+		case wr := <-BListWR: // check strikes; maybe write to the blacklist
 			ret := false
 			if _, ok := strikecount[wr.ip]; !ok {
 				strikecount[wr.ip] = 1

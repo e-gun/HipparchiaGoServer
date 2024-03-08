@@ -196,7 +196,7 @@ func (s *SearchStruct) FormatInitialSummary() {
 	}
 
 	sum := INF
-	if af1 != "" {
+	if sk != "" {
 		sum = fmt.Sprintf(TPM, af1, sk, two)
 	}
 	s.InitSum = sum

@@ -44,11 +44,11 @@ func StartEchoServer() {
 		e.Server.ReadTimeout = TIMEOUTRD
 		e.Server.WriteTimeout = TIMEOUTWR
 
-		// also assume that internet exposure yields scanning attempts that will spam 404s && 500s; block IPs that do this
-		// see "policeresponses.go" for these functions
+		// also assume that internet exposure yields scanning attempts that will spam 404s & 500s; block IPs that do this
+		// see "policerequestandresponse.go" for these functions
 		go IPBlacklistKeeper()
 		go ResponseStatsKeeper()
-		e.Use(PoliceResponse)
+		e.Use(PoliceRequestAndResponse)
 	}
 
 	switch Config.EchoLog {
