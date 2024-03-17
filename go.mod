@@ -9,7 +9,7 @@ require (
 	github.com/go-echarts/go-echarts/v2 v2.3.3
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.1
-	github.com/jackc/pgx/v5 v5.5.4
+	github.com/jackc/pgx/v5 v5.5.5
 	github.com/labstack/echo/v4 v4.11.4
 	github.com/pkg/profile v1.7.0
 	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225

@@ -7,6 +7,14 @@ package main
 
 import (
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/db"
+	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/m"
+	"github.com/e-gun/HipparchiaGoServer/internal/pools"
+	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vect"
+	"github.com/e-gun/HipparchiaGoServer/internal/vv"
+	"github.com/e-gun/HipparchiaGoServer/web"
 	"github.com/pkg/profile"
 	_ "net/http/pprof"
 	"runtime"
@@ -35,18 +43,18 @@ func main() {
 	// "go tool pprof heap.0.pprof" -> "top 20", etc.
 
 	//go func() {
-	//	msg("**THIS BUILD IS NOT FOR RELEASE** PPROF server is active", MSGCRIT)
+	//	m("**THIS BUILD IS NOT FOR RELEASE** PPROF server is active", MSGCRIT)
 	//	http.ListenAndServe("localhost:8080", nil)
 	//}()
 
-	LaunchTime = time.Now()
+	vv.LaunchTime = time.Now()
 
 	//
 	// [1] set up the runtime configuration
 	//
 
-	LookForConfigFile()
-	ConfigAtLaunch()
+	launch.LookForConfigFile()
+	launch.ConfigAtLaunch()
 
 	// profiling runs are requested from the command line
 
@@ -57,37 +65,37 @@ func main() {
 	// 	"go tool pprof --pdf ./HipparchiaGoServer /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1075644045/cpu.pprof > ./fyi/CPUProfile.pdf"
 	//	"cp /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1075644045/cpu.pprof ./pgo/default.pgo"
 
-	if Config.ProfileCPU {
+	if launch.Config.ProfileCPU {
 		defer profile.Start().Stop()
 	}
 
-	if Config.ProfileMEM {
+	if launch.Config.ProfileMEM {
 		// mem profile:
 		defer profile.Start(profile.MemProfile).Stop()
 	}
-
-	messenger.Cfg = Config
-	messenger.Lnc.LaunchTime = LaunchTime
+	messenger := m.NewMessageMaker(launch.Config, m.LaunchStruct{})
+	messenger.Cfg = launch.Config
+	messenger.Lnc.LaunchTime = vv.LaunchTime
 	messenger.ResetScreen()
 
-	printversion()
-	printbuildinfo()
+	launch.PrintVersion(*launch.Config)
+	launch.PrintBuildInfo(*launch.Config)
 
-	if !Config.QuietStart {
-		msg(fmt.Sprintf(TERMINALTEXT, PROJYEAR, PROJAUTH, PROJMAIL), MSGMAND)
+	if !launch.Config.QuietStart {
+		messenger.MAND(fmt.Sprintf(vv.TERMINALTEXT, vv.PROJYEAR, vv.PROJAUTH, vv.PROJMAIL))
 	}
 
 	//
 	// [2] set up things that will run forever in the background
 	//
 
-	SQLPool = FillDBConnectionPool()
-	go WebsocketPool.WSPoolStartListening()
+	db.SQLPool = pools.FillDBConnectionPool(*launch.Config)
+	go vaults.WebsocketPool.WSPoolStartListening()
 
-	go WSSearchInfoHub()
-	go PathInfoHub()
+	go vaults.WSSearchInfoHub()
+	go m.PathInfoHub()
 
-	go messenger.Ticker(TICKERDELAY)
+	go messenger.Ticker(vv.TICKERDELAY)
 
 	//
 	// [3] concurrent loading of the core data
@@ -101,16 +109,16 @@ func main() {
 		start := time.Now()
 		previous := time.Now()
 
-		AllWorks = activeworkmapper()
-		messenger.Timer("A1", fmt.Sprintf(MSG1, len(AllWorks)), start, previous)
+		vv.AllWorks = vv.ActiveWorkMapper()
+		messenger.Timer("A1", fmt.Sprintf(MSG1, len(vv.AllWorks)), start, previous)
 		previous = time.Now()
 
-		AllAuthors = activeauthormapper()
-		messenger.Timer("A2", fmt.Sprintf(MSG2, len(AllAuthors)), start, previous)
+		vv.AllAuthors = vv.ActiveAuthorMapper()
+		messenger.Timer("A2", fmt.Sprintf(MSG2, len(vv.AllAuthors)), start, previous)
 		previous = time.Now()
 
 		// full up WkCorpusMap, AuCorpusMap, ...
-		populateglobalmaps()
+		vv.RePopulateGlobalMaps()
 		messenger.Timer("A3", MSG3, start, previous)
 	}(&awaiting)
 
@@ -121,21 +129,21 @@ func main() {
 		start := time.Now()
 		previous := time.Now()
 
-		AllLemm = lemmamapper()
-		messenger.Timer("B1", fmt.Sprintf(MSG4, len(AllLemm)), start, previous)
+		vv.AllLemm = vv.LemmaMapper()
+		messenger.Timer("B1", fmt.Sprintf(MSG4, len(vv.AllLemm)), start, previous)
 
 		previous = time.Now()
-		NestedLemm = nestedlemmamapper(AllLemm)
+		vv.NestedLemm = vv.NestedLemmaMapper(vv.AllLemm)
 		messenger.Timer("B2", MSG5, start, previous)
 	}(&awaiting)
 
 	awaiting.Add(1)
 	go func(awaiting *sync.WaitGroup) {
 		defer awaiting.Done()
-		if Config.ResetVectors {
-			vectordbreset()
-		} else if Config.LogLevel >= MSGNOTE {
-			vectordbcountnn(MSGNOTE)
+		if launch.Config.ResetVectors {
+			vect.VectorDBReset()
+		} else if launch.Config.LogLevel >= m.MSGNOTE {
+			vect.VectorDBCountNN(m.MSGNOTE)
 		}
 	}(&awaiting)
 
@@ -143,7 +151,7 @@ func main() {
 
 	runtime.GC()
 	messenger.LogPaths("main() post-initialization")
-	msg(messenger.ColStyle(fmt.Sprintf(SUMM, time.Now().Sub(LaunchTime).Seconds())), -999)
+	messenger.Emit(messenger.ColStyle(fmt.Sprintf(SUMM, time.Now().Sub(vv.LaunchTime).Seconds())), -999)
 
 	//
 	// [4] debugging code block #2 of 2
@@ -152,73 +160,15 @@ func main() {
 
 	// go wsclientreport(2 * time.Second)
 
-	msg(QUIT, MSGMAND)
+	messenger.MAND(QUIT)
+
+	if launch.Config.Authenticate {
+		vaults.BuildUserPassPairs(*launch.Config)
+	}
 
 	//
 	// [5] done: start the server (which will never return)
 	//
 
-	StartEchoServer()
-}
-
-//
-// VERSION INFO BUILD TIME INJECTION
-//
-
-// these next variables should be injected at build time: 'go build -ldflags "-X main.GitCommit=$GIT_COMMIT"', etc
-
-var GitCommit string
-var VersSuppl string
-var BuildDate string
-var PGOInfo string
-
-func printversion() {
-	// example:
-	// [HGS] Hipparchia Golang Server (v1.2.16-pre) [git: 64974732] [default.pgo] [gl=3; el=0]
-	const (
-		SN = "[C1%sC0] "
-		GC = " [C4git: C4%sC0]"
-		LL = " [C6gl=%d; el=%dC0]"
-		ME = "C5%sC0 (C2v%sC0)"
-		PG = " [C3%sC0]"
-	)
-	sn := fmt.Sprintf(SN, SHORTNAME)
-	gc := ""
-	if GitCommit != "" {
-		gc = fmt.Sprintf(GC, GitCommit)
-	}
-
-	pg := ""
-	if PGOInfo != "" {
-		pg = fmt.Sprintf(PG, PGOInfo)
-	} else {
-		pg = fmt.Sprintf(PG, "no pgo")
-	}
-
-	ll := fmt.Sprintf(LL, Config.LogLevel, Config.EchoLog)
-	versioninfo := fmt.Sprintf(ME, MYNAME, VERSION+VersSuppl)
-	versioninfo = sn + versioninfo + gc + pg + ll
-	versioninfo = messenger.ColStyle(versioninfo)
-	fmt.Println(versioninfo)
-}
-
-func printbuildinfo() {
-	// example:
-	// 	Built:	2023-11-14@19:02:51		Golang:	go1.21.4
-	//	System:	darwin-arm64			WKvCPU:	20/20
-	const (
-		BD = "\tS1Built:S0\tC3%sC0\t"
-		GV = "\tS1Golang:S0\tC3%sC0\n"
-		SY = "\tS1System:S0\tC3%s-%sC0\t"
-		WC = "\t\tS1WKvCPU:S0\tC3%dC0/C3%dC0"
-	)
-
-	bi := ""
-	if BuildDate != "" {
-		bi = messenger.ColStyle(fmt.Sprintf(BD, BuildDate))
-	}
-	bi += messenger.ColStyle(fmt.Sprintf(GV, runtime.Version()))
-	bi += messenger.ColStyle(fmt.Sprintf(SY, runtime.GOOS, runtime.GOARCH))
-	bi += messenger.ColStyle(fmt.Sprintf(WC, Config.WorkerCount, runtime.NumCPU()))
-	fmt.Println(bi)
+	web.StartEchoServer()
 }
