@@ -12,7 +12,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"regexp"
@@ -67,13 +67,13 @@ func RtBrowseLine(c echo.Context) error {
 		FAIL = "RtBrowseLine() could not parse %s"
 	)
 
-	user := vaults.ReadUUIDCookie(c)
-	if !vaults.AllAuthorized.Check(user) {
+	user := vlt.ReadUUIDCookie(c)
+	if !vlt.AllAuthorized.Check(user) {
 		bp := BrowsedPassage{Browserhtml: vv.AUTHWARN}
 		return generic.JSONresponse(c, bp)
 	}
 
-	s := vaults.AllSessions.GetSess(user)
+	s := vlt.AllSessions.GetSess(user)
 	locus := c.Param("locus")
 	elem := strings.Split(locus, "/")
 	if len(elem) == 3 {
@@ -102,10 +102,10 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 		FIRST = "_firstwork"
 	)
 
-	user := vaults.ReadUUIDCookie(c)
-	s := vaults.AllSessions.GetSess(user)
+	user := vlt.ReadUUIDCookie(c)
+	s := vlt.AllSessions.GetSess(user)
 
-	if !vaults.AllAuthorized.Check(user) {
+	if !vlt.AllAuthorized.Check(user) {
 		return BrowsedPassage{Browserhtml: vv.AUTHWARN}
 	}
 

@@ -3,7 +3,7 @@
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 
-package vect
+package vec
 
 import (
 	"crypto/md5"
@@ -12,7 +12,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"os"
@@ -116,7 +116,7 @@ func NeighborsSearch(c echo.Context, srch structs.SearchStruct) error {
 		JS:            vv.VECTORJS,
 	}
 
-	vaults.WSInfo.Del <- srch.WSID
+	vlt.WSInfo.Del <- srch.WSID
 	return generic.JSONresponse(c, soj)
 }
 

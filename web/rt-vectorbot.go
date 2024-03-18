@@ -13,8 +13,8 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
-	"github.com/e-gun/HipparchiaGoServer/internal/vect"
+	"github.com/e-gun/HipparchiaGoServer/internal/vec"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -121,7 +121,7 @@ func RtVectorBot(c echo.Context) error {
 		nnmodelbot(c, s, a)
 	}
 
-	vaults.WSInfo.Del <- s.WSID
+	vlt.WSInfo.Del <- s.WSID
 	return nil
 }
 
@@ -153,7 +153,7 @@ func ldamodelbot(c echo.Context, s structs.SearchStruct, a string) {
 	s.IsActive = true
 	s.TableSize = 1
 	search.SearchAndInsertResults(&s)
-	e := vect.LDASearch(c, s)
+	e := vec.LDASearch(c, s)
 	if e != nil {
 		msg.WARN("ldamodelbot() could not execute LDASearch()")
 	}
@@ -167,10 +167,10 @@ func nnmodelbot(c echo.Context, s structs.SearchStruct, a string) {
 		MINSIZE = 10000
 	)
 	m := launch.Config.VectorModel
-	fp := vect.FingerprintNNVectorSearch(s)
+	fp := vec.FingerprintNNVectorSearch(s)
 
 	// bot hangs here on gr0063 (Dionysius Thrax)
-	isstored := vect.VectorDBCheckNN(fp)
+	isstored := vec.VectorDBCheckNN(fp)
 
 	if isstored {
 		msg.PEEK(fmt.Sprintf(MSG1, mps.AllAuthors[a].Name))
@@ -188,8 +188,8 @@ func nnmodelbot(c echo.Context, s structs.SearchStruct, a string) {
 		s.TableSize = 1
 		search.SearchAndInsertResults(&s)
 		if s.Results.Len() > MINSIZE {
-			embs := vect.GenerateVectEmbeddings(c, m, s)
-			vect.VectorDBAddNN(fp, embs)
+			embs := vec.GenerateVectEmbeddings(c, m, s)
+			vec.VectorDBAddNN(fp, embs)
 		} else {
 			msg.TMI(fmt.Sprintf(MSG2, a, s.Results.Len()))
 		}
@@ -275,12 +275,12 @@ func activatevectorbot() {
 		time.Sleep(THROTTLE * time.Millisecond)
 
 		if count%SIZEVERY == 0 {
-			vect.VectorDBSizeNN(m.MSGNOTE)
+			vec.VectorDBSizeNN(m.MSGNOTE)
 		}
 	}
 
 	msg.Timer("VB", MSG3, start, previous)
-	vect.VectorDBSizeNN(m.MSGNOTE)
-	vect.VectorDBCountNN(m.MSGNOTE)
+	vec.VectorDBSizeNN(m.MSGNOTE)
+	vec.VectorDBCountNN(m.MSGNOTE)
 	launch.Config.VectorBot = false
 }

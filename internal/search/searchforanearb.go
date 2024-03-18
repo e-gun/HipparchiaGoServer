@@ -12,7 +12,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"regexp"
 	"sort"
@@ -123,7 +123,7 @@ func WithinXLinesSearch(first structs.SearchStruct) structs.SearchStruct {
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
 	Msg.PEEK(fmt.Sprintf(MSG3, d, second.Results.Len()))
 
-	vaults.WSInfo.Del <- second.ID
+	vlt.WSInfo.Del <- second.ID
 
 	return second
 }
@@ -338,7 +338,7 @@ func WithinXWordsSearch(first structs.SearchStruct) structs.SearchStruct {
 	second.LemmaOne = first.LemmaOne
 	second.CurrentLimit = first.OriginalLimit
 
-	vaults.WSInfo.Del <- second.ID
+	vlt.WSInfo.Del <- second.ID
 
 	return second
 }
@@ -366,7 +366,7 @@ func XWordsFeeder(ctx context.Context, kvp *[]KVPair, ss *structs.SearchStruct) 
 			default:
 				remainder = len(ss.Queries) - i - 1
 				if remainder%vv.POLLEVERYNTABLES == 0 {
-					vaults.WSInfo.UpdateRemain <- vaults.WSSIKVi{ss.WSID, remainder}
+					vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{ss.WSID, remainder}
 				}
 				emit <- (*kvp)[i]
 			}
@@ -436,7 +436,7 @@ func XWordsCollation(ctx context.Context, ss *structs.SearchStruct, hits <-chan 
 				if h != -1 {
 					// *something* came back from XWordsCheckFinds; a negative result is {-1, ""}
 					allhits = append(allhits, h)
-					vaults.WSInfo.UpdateHits <- vaults.WSSIKVi{ss.WSID, len(allhits)}
+					vlt.WSInfo.UpdateHits <- vlt.WSSIKVi{ss.WSID, len(allhits)}
 				}
 				if len(allhits) > ss.OriginalLimit {
 					done = true

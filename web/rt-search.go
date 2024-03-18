@@ -11,8 +11,8 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
-	"github.com/e-gun/HipparchiaGoServer/internal/vect"
+	"github.com/e-gun/HipparchiaGoServer/internal/vec"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -47,17 +47,17 @@ func RtSearch(c echo.Context) error {
 		TOOMANYTOTAL = "<code>Cannot execute this search. The server is already running the maximum number of simultaneous searches allowed: %d.</code>"
 	)
 
-	user := vaults.ReadUUIDCookie(c)
+	user := vlt.ReadUUIDCookie(c)
 
 	// [A] ARE WE GOING TO DO THIS AT ALL?
 
-	if !vaults.AllAuthorized.Check(user) {
+	if !vlt.AllAuthorized.Check(user) {
 		return generic.JSONresponse(c, structs.SearchOutputJSON{JS: vv.VALIDATIONBOX})
 	}
 
 	getsrchcount := func(ip string) int {
-		responder := vaults.WSSICount{Key: ip, Response: make(chan int)}
-		vaults.WSInfo.IPSrchCount <- responder
+		responder := vlt.WSSICount{Key: ip, Response: make(chan int)}
+		vlt.WSInfo.IPSrchCount <- responder
 		return <-responder.Response
 	}
 
@@ -66,15 +66,15 @@ func RtSearch(c echo.Context) error {
 		return generic.JSONresponse(c, structs.SearchOutputJSON{Searchsummary: m})
 	}
 
-	if len(vaults.WebsocketPool.ClientMap) >= launch.Config.MaxSrchTot {
-		m := fmt.Sprintf(TOOMANYTOTAL, len(vaults.WebsocketPool.ClientMap))
+	if len(vlt.WebsocketPool.ClientMap) >= launch.Config.MaxSrchTot {
+		m := fmt.Sprintf(TOOMANYTOTAL, len(vlt.WebsocketPool.ClientMap))
 		return generic.JSONresponse(c, structs.SearchOutputJSON{Searchsummary: m})
 	}
 
 	// [B] OK, WE ARE DOING IT
 
 	srch := search.BuildDefaultSearch(c)
-	se := vaults.AllSessions.GetSess(user)
+	se := vlt.AllSessions.GetSess(user)
 
 	// [C] BUT WHAT KIND OF SEARCH IS IT? MAYBE IT IS A VECTOR SEARCH...
 
@@ -85,12 +85,12 @@ func RtSearch(c echo.Context) error {
 
 	if se.VecNNSearch && !launch.Config.VectorsDisabled {
 		// not a normal search: jump to "vectorqueryneighbors.go" where we grab all lines; build a model; query against the model; return html
-		return vect.NeighborsSearch(c, srch)
+		return vec.NeighborsSearch(c, srch)
 	}
 
 	if se.VecLDASearch && !launch.Config.VectorsDisabled {
 		// not a normal search: jump to "vectorquerylda.go"
-		return vect.LDASearch(c, srch)
+		return vec.LDASearch(c, srch)
 	}
 
 	// [D] OK, IT IS A SEARCH FOR A WORD OR PHRASE
@@ -129,6 +129,6 @@ func RtSearch(c echo.Context) error {
 		soj = search.FormatWithContextResults(&completed)
 	}
 
-	vaults.WSInfo.Del <- srch.WSID
+	vlt.WSInfo.Del <- srch.WSID
 	return generic.JSONresponse(c, soj)
 }

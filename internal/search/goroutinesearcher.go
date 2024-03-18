@@ -10,7 +10,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"sync"
 )
@@ -69,7 +69,7 @@ func SearchQueryFeeder(ss *structs.SearchStruct) (<-chan structs.PrerolledQuery,
 	emitone := func(i int) {
 		remainder = len(ss.Queries) - i - 1
 		if remainder%vv.POLLEVERYNTABLES == 0 {
-			vaults.WSInfo.UpdateRemain <- vaults.WSSIKVi{ss.WSID, remainder}
+			vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{ss.WSID, remainder}
 		}
 		emitqueries <- ss.Queries[i]
 	}
@@ -157,7 +157,7 @@ func FinalResultCollation(ss *structs.SearchStruct, maxhits int, foundbundle <-c
 		} else {
 			collated.AppendLines(foundbundle.Lines)
 		}
-		vaults.WSInfo.UpdateHits <- vaults.WSSIKVi{ss.WSID, collated.Len()}
+		vlt.WSInfo.UpdateHits <- vlt.WSSIKVi{ss.WSID, collated.Len()}
 	}
 
 	done := false

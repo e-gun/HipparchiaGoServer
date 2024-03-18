@@ -16,7 +16,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
@@ -79,8 +79,8 @@ type JSB struct {
 func RtLexLookup(c echo.Context) error {
 	c.Response().After(func() { msg.LogPaths("RtLexLookup()") })
 
-	user := vaults.ReadUUIDCookie(c)
-	if !vaults.AllAuthorized.Check(user) {
+	user := vlt.ReadUUIDCookie(c)
+	if !vlt.AllAuthorized.Check(user) {
 		return generic.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
 	}
 
@@ -121,8 +121,8 @@ func RtLexLookup(c echo.Context) error {
 // RtLexFindByForm - search the dictionary for a specific headword
 func RtLexFindByForm(c echo.Context) error {
 	// be able to respond to "GET /lexica/findbyform/ἀμιϲθὶ/gr0062 HTTP/1.1"
-	user := vaults.ReadUUIDCookie(c)
-	if !vaults.AllAuthorized.Check(user) {
+	user := vlt.ReadUUIDCookie(c)
+	if !vlt.AllAuthorized.Check(user) {
 		return generic.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
 	}
 	c.Response().After(func() { msg.LogPaths("RtLexFindByForm()") })
@@ -167,8 +167,8 @@ func RtLexId(c echo.Context) error {
 		FAIL2 = "RtLexId() found nothing at id_number '%s'"
 	)
 
-	user := vaults.ReadUUIDCookie(c)
-	if !vaults.AllAuthorized.Check(user) {
+	user := vlt.ReadUUIDCookie(c)
+	if !vlt.AllAuthorized.Check(user) {
 		return generic.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
 	}
 
@@ -202,8 +202,8 @@ func RtLexReverse(c echo.Context) error {
 	// be able to respond to "/lexica/reverselookup/0ae94619/sorrow"
 	c.Response().After(func() { msg.LogPaths("RtLexReverse()") })
 
-	user := vaults.ReadUUIDCookie(c)
-	if !vaults.AllAuthorized.Check(user) {
+	user := vlt.ReadUUIDCookie(c)
+	if !vlt.AllAuthorized.Check(user) {
 		return generic.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
 	}
 
@@ -216,7 +216,7 @@ func RtLexReverse(c echo.Context) error {
 
 	word := generic.Purgechars(launch.Config.BadChars, elem[1])
 
-	s := vaults.AllSessions.GetSess(user)
+	s := vlt.AllSessions.GetSess(user)
 
 	var dd []string
 	// map[string]bool{"gr": true, "lt": true, "in": false, "ch": false, "dp": false}

@@ -3,7 +3,7 @@
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 
-package vect
+package vec
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/e-gun/wego/pkg/search"
 	"github.com/go-echarts/go-echarts/v2/charts"
@@ -91,7 +91,7 @@ func formatnngraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 		NOTOFONT      = "'hipparchiasemiboldstatic', sans-serif"
 	)
 
-	se := vaults.AllSessions.GetSess(vaults.ReadUUIDCookie(c))
+	se := vlt.AllSessions.GetSess(vlt.ReadUUIDCookie(c))
 
 	var gnn []opts.GraphNode
 	var gll []opts.GraphLink

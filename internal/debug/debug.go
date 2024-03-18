@@ -5,8 +5,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 )
 
-// TODO: this is hollow
-var msg = m.NewMessageMaker()
+var Msg = m.NewMessageMaker()
 
 //
 // DEBUGGING
@@ -14,7 +13,7 @@ var msg = m.NewMessageMaker()
 
 // stringkeyprinter - print out the keys of a map
 func stringkeyprinter[T any](n string, m map[string]T) {
-	msg.WARN(n)
+	Msg.WARN(n)
 	counter := 0
 	for k, _ := range m {
 		fmt.Printf("[%d] %s\n", counter, k)
@@ -24,7 +23,7 @@ func stringkeyprinter[T any](n string, m map[string]T) {
 
 // stringmapprinter - print out the k/v pairs of a map
 func stringmapprinter[T any](n string, m map[string]T) {
-	msg.WARN(n)
+	Msg.WARN(n)
 	counter := 0
 	for k, v := range m {
 		fmt.Printf("[%d] %s\t", counter, k)
@@ -35,7 +34,7 @@ func stringmapprinter[T any](n string, m map[string]T) {
 
 // sliceprinter - print out the members of a slice
 func sliceprinter[T any](n string, s []T) {
-	msg.WARN(n)
+	Msg.WARN(n)
 	for i, v := range s {
 		fmt.Printf("[%d]\t", i)
 		fmt.Println(v)

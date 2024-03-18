@@ -11,7 +11,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -47,8 +47,8 @@ func RtFrontpage(c echo.Context) error {
         </span>`
 	)
 	// will set if missing
-	user := vaults.ReadUUIDCookie(c)
-	s := vaults.AllSessions.GetSess(user)
+	user := vlt.ReadUUIDCookie(c)
+	s := vlt.AllSessions.GetSess(user)
 
 	ahtm := vv.AUTHHTML
 	if !launch.Config.Authenticate {

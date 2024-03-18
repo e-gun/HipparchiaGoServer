@@ -12,7 +12,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
@@ -173,7 +173,7 @@ func FormatWithContextResults(thesearch *structs.SearchStruct) structs.SearchOut
 		HIGHLIGHTER = `<span class="highlight">%s</span>`
 		SNIP        = `✃✃✃`
 	)
-	thesession := vaults.AllSessions.GetSess(thesearch.User)
+	thesession := vlt.AllSessions.GetSess(thesearch.User)
 
 	type PsgFormattingTemplate struct {
 		Findnumber  int
@@ -342,7 +342,7 @@ func FormatWithContextResults(thesearch *structs.SearchStruct) structs.SearchOut
 		out.Found = generic.DeLunate(out.Found)
 	}
 
-	vaults.WSInfo.Del <- ctxsearch.ID
+	vlt.WSInfo.Del <- ctxsearch.ID
 	return out
 }
 
@@ -380,7 +380,7 @@ func formatfinalsearchsummary(s *structs.SearchStruct) string {
 	)
 
 	m := message.NewPrinter(language.English)
-	sess := vaults.AllSessions.GetSess(s.User)
+	sess := vlt.AllSessions.GetSess(s.User)
 	var dr string
 	if sess.Earliest != vv.MINDATESTR || sess.Latest != vv.MAXDATESTR {
 		a := generic.FormatBCEDate(sess.Earliest)

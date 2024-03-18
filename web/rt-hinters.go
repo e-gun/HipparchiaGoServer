@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -52,8 +52,8 @@ func RtAuthorHints(c echo.Context) error {
 	}
 
 	// trim by active corpora
-	user := vaults.ReadUUIDCookie(c)
-	s := vaults.AllSessions.GetSess(user)
+	user := vlt.ReadUUIDCookie(c)
+	s := vlt.AllSessions.GetSess(user)
 
 	var trimmed [][2]string
 	for _, a := range auu {

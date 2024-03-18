@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -28,8 +28,8 @@ func RtSessionSetsCookie(c echo.Context) error {
 		FAIL = "RtSessionSetsCookie() could not marshal the session"
 	)
 	num := c.Param("num")
-	user := vaults.ReadUUIDCookie(c)
-	s := vaults.AllSessions.GetSess(user)
+	user := vlt.ReadUUIDCookie(c)
+	s := vlt.AllSessions.GetSess(user)
 
 	v, e := json.Marshal(s)
 	if e != nil {
@@ -58,7 +58,7 @@ func RtSessionGetCookie(c echo.Context) error {
 		FAIL2 = "RtSessionGetCookie failed to unmarshal cookie %s for %s"
 	)
 
-	user := vaults.ReadUUIDCookie(c)
+	user := vlt.ReadUUIDCookie(c)
 	num := c.Param("num")
 	cookie, err := c.Cookie("session" + num)
 	if err != nil {
@@ -80,7 +80,7 @@ func RtSessionGetCookie(c echo.Context) error {
 		return c.String(http.StatusOK, "")
 	}
 
-	vaults.AllSessions.InsertSess(s)
+	vlt.AllSessions.InsertSess(s)
 
 	e := c.Redirect(http.StatusFound, "/")
 	msg.EC(e)
@@ -89,16 +89,16 @@ func RtSessionGetCookie(c echo.Context) error {
 
 // RtResetSession - delete and then reset the session
 func RtResetSession(c echo.Context) error {
-	id := vaults.ReadUUIDCookie(c)
+	id := vlt.ReadUUIDCookie(c)
 
-	vaults.AllSessions.Delete(id)
+	vlt.AllSessions.Delete(id)
 
 	// cancel any searches in progress: you are about to do a .CancelFnc()
-	vaults.WSInfo.Reset <- id
+	vlt.WSInfo.Reset <- id
 
 	// [a] two-part searches are not canceled yet; and the incomplete results will be handed to the next function
 	// canceling the subsequent parts happens via SSBuildQueries()
-	// if !vaults.AllSessions.IsInVault(s.User) no actual queries will be loaded into the ss so the search ends instantly
+	// if !vlt.AllSessions.IsInVault(s.User) no actual queries will be loaded into the ss so the search ends instantly
 
 	// [b] a different mechanism is used to halt a nn vector search once it starts training and the wego code has taken over
 	// but the supplied context can cancel a training loop, yield empty embeddings, and then skip storage
@@ -106,8 +106,8 @@ func RtResetSession(c echo.Context) error {
 	// [c] lda uses a similar mechanism: context inserted into nlp.LatentDirichletAllocation in the nlp code
 
 	// reset the user ID and session
-	newid := vaults.WriteUUIDCookie(c)
-	vaults.AllSessions.InsertSess(launch.MakeDefaultSession(newid))
+	newid := vlt.WriteUUIDCookie(c)
+	vlt.AllSessions.InsertSess(launch.MakeDefaultSession(newid))
 
 	e := c.Redirect(http.StatusFound, "/")
 	msg.EC(e)

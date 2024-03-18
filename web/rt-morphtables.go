@@ -12,7 +12,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -75,8 +75,8 @@ func RtMorphchart(c echo.Context) error {
 
 	// should reach this route exclusively via a click from rt-lexica.go
 	c.Response().After(func() { msg.LogPaths("RtMorphchart()") })
-	user := vaults.ReadUUIDCookie(c)
-	if !vaults.AllAuthorized.Check(user) {
+	user := vlt.ReadUUIDCookie(c)
+	if !vlt.AllAuthorized.Check(user) {
 		return generic.JSONresponse(c, structs.SearchOutputJSON{JS: vv.VALIDATIONBOX})
 	}
 

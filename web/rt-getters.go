@@ -12,7 +12,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/exp/slices"
@@ -35,8 +35,8 @@ type JSStruct struct {
 func RtGetJSSession(c echo.Context) error {
 	// see hipparchiajs/coreinterfaceclicks.js
 
-	user := vaults.ReadUUIDCookie(c)
-	s := vaults.AllSessions.GetSess(user)
+	user := vlt.ReadUUIDCookie(c)
+	s := vlt.AllSessions.GetSess(user)
 
 	type JSO struct {
 		// what the JS is looking for; note that vector stuff, etc is being skipped vs the python session dump
@@ -357,8 +357,8 @@ func RtGetJSSearchlist(c echo.Context) error {
 		REG       = `(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
 	)
 
-	user := vaults.ReadUUIDCookie(c)
-	sess := vaults.AllSessions.GetSess(user)
+	user := vlt.ReadUUIDCookie(c)
+	sess := vlt.AllSessions.GetSess(user)
 
 	m := message.NewPrinter(language.English)
 	sl := search.SessionIntoSearchlist(sess)

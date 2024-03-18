@@ -6,7 +6,7 @@
 package web
 
 import (
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 )
@@ -25,8 +25,8 @@ func RtWebsocket(c echo.Context) error {
 		FAILCON = "RtWebsocket(): ws connection failed"
 	)
 
-	user := vaults.ReadUUIDCookie(c)
-	if !vaults.AllAuthorized.Check(user) {
+	user := vlt.ReadUUIDCookie(c)
+	if !vlt.AllAuthorized.Check(user) {
 		return nil
 	}
 
@@ -36,14 +36,14 @@ func RtWebsocket(c echo.Context) error {
 		return nil
 	}
 
-	progresspoll := &vaults.WSClient{
+	progresspoll := &vlt.WSClient{
 		Conn: ws,
-		Pool: vaults.WebsocketPool,
+		Pool: vlt.WebsocketPool,
 	}
 
-	vaults.WebsocketPool.Add <- progresspoll
+	vlt.WebsocketPool.Add <- progresspoll
 	progresspoll.ReceiveID()
 	progresspoll.WSMessageLoop()
-	vaults.WebsocketPool.Remove <- progresspoll
+	vlt.WebsocketPool.Remove <- progresspoll
 	return nil
 }

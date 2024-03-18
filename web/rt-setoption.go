@@ -11,7 +11,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
@@ -28,7 +28,7 @@ func RtSetOption(c echo.Context) error {
 		FAIL1 = "RtSetOption() was given bad input: %s"
 		FAIL2 = "RtSetOption() hit an impossible case"
 	)
-	user := vaults.ReadUUIDCookie(c)
+	user := vlt.ReadUUIDCookie(c)
 	optandval := c.Param("opt")
 	parsed := strings.Split(optandval, "/")
 
@@ -44,7 +44,7 @@ func RtSetOption(c echo.Context) error {
 		"rawinputstyle", "onehit", "headwordindexing", "indexbyfrequency", "spuria", "incerta", "varia", "vocbycount",
 		"vocscansion", "isvectorsearch", "extendedgraph", "ldagraph", "isldasearch", "ldagraph2dimensions"}
 
-	s := vaults.AllSessions.GetSess(user)
+	s := vlt.AllSessions.GetSess(user)
 
 	modifyglobalmapsifneeded := func(c string, y bool) {
 		// this is a "laggy" click: something comparable to the vv initialization time
@@ -248,7 +248,7 @@ func RtSetOption(c echo.Context) error {
 		}
 	}
 
-	vaults.AllSessions.InsertSess(s)
+	vlt.AllSessions.InsertSess(s)
 	return c.String(http.StatusOK, "")
 }
 

@@ -3,7 +3,7 @@
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 
-package vect
+package vec
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/e-gun/nlp"
 	"github.com/labstack/echo/v4"
@@ -100,9 +100,9 @@ func LDASearch(c echo.Context, srch structs.SearchStruct) error {
 	var vs structs.SearchStruct
 	if srch.ID != "ldamodelbot()" {
 		vs = search.SessionIntoBulkSearch(c, launch.Config.VectorMaxlines)
-		vaults.WSInfo.UpdateRemain <- vaults.WSSIKVi{vs.WSID, 1}
-		vaults.WSInfo.UpdateSummMsg <- vaults.WSSIKVs{vs.WSID, LDAMSG}
-		vaults.WSInfo.UpdateVProgMsg <- vaults.WSSIKVs{vs.WSID, fmt.Sprintf(ESM1)}
+		vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{vs.WSID, 1}
+		vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{vs.WSID, LDAMSG}
+		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{vs.WSID, fmt.Sprintf(ESM1)}
 	} else {
 		vs = srch
 	}
@@ -117,14 +117,14 @@ func LDASearch(c echo.Context, srch structs.SearchStruct) error {
 	stops := generic.StringMapKeysIntoSlice(getstopset())
 	vectoriser := nlp.NewCountVectoriser(stops...)
 
-	vaults.WSInfo.UpdateSummMsg <- vaults.WSSIKVs{vs.WSID, fmt.Sprintf(ESM2)}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{vs.WSID, fmt.Sprintf(ESM2)}
 
 	// consider building TESTITERATIONS models and making a table for each
 	var dot mat.Matrix
 	var tables []string
 
 	// a chance to bail if you hit RtResetSession() in time
-	if launch.Config.SelfTest == 0 && !launch.Config.VectorBot && !vaults.AllSessions.IsInVault(vs.User) {
+	if launch.Config.SelfTest == 0 && !launch.Config.VectorBot && !vlt.AllSessions.IsInVault(vs.User) {
 		// m("LDASearch() aborting: RtResetSession switched user to "+vs.User, MSGFYI)
 		return generic.JSONresponse(c, structs.SearchOutputJSON{})
 	}
@@ -144,7 +144,7 @@ func LDASearch(c echo.Context, srch structs.SearchStruct) error {
 
 	var img string
 	if se.LDAgraph || srch.ID == "ldamodelbot()" {
-		vaults.WSInfo.UpdateSummMsg <- vaults.WSSIKVs{vs.WSID, fmt.Sprintf(ESM3)}
+		vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{vs.WSID, fmt.Sprintf(ESM3)}
 		img = ldaplot(vs.Context, se.LDA2D, ntopics, incl, se.VecTextPrep, dot, bags)
 	}
 
@@ -156,8 +156,8 @@ func LDASearch(c echo.Context, srch structs.SearchStruct) error {
 		JS:            vv.VECTORJS,
 	}
 
-	vaults.WSInfo.Del <- srch.ID
-	vaults.WSInfo.Del <- vs.ID
+	vlt.WSInfo.Del <- srch.ID
+	vlt.WSInfo.Del <- vs.ID
 
 	return generic.JSONresponse(c, soj)
 }
@@ -248,7 +248,7 @@ func ldapreptext(bagger string, vs *structs.SearchStruct) []BagWithLocus {
 
 	slicedwords := generic.StringMapKeysIntoSlice(allwords)
 	// catching resets
-	if launch.Config.SelfTest == 0 && !launch.Config.VectorBot && !vaults.AllSessions.IsInVault(vs.User) {
+	if launch.Config.SelfTest == 0 && !launch.Config.VectorBot && !vlt.AllSessions.IsInVault(vs.User) {
 		return []BagWithLocus{}
 	}
 
@@ -271,7 +271,7 @@ func ldapreptext(bagger string, vs *structs.SearchStruct) []BagWithLocus {
 	}
 
 	// catching resets
-	if launch.Config.SelfTest == 0 && !launch.Config.VectorBot && !vaults.AllSessions.IsInVault(vs.User) {
+	if launch.Config.SelfTest == 0 && !launch.Config.VectorBot && !vlt.AllSessions.IsInVault(vs.User) {
 		return []BagWithLocus{}
 	}
 
@@ -334,9 +334,9 @@ func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser, s *s
 	enablecancellation := func(l *nlp.LatentDirichletAllocation) {
 		search.InsertNewContextIntoSS(s)
 		l.Ctx = s.Context
-		si := vaults.WSFetchSrchInfo(s.WSID)
+		si := vlt.WSFetchSrchInfo(s.WSID)
 		si.CancelFnc = s.CancelFnc
-		vaults.WSInfo.InsertInfo <- si
+		vlt.WSInfo.InsertInfo <- si
 	}
 
 	cfg := ldavecconfig()

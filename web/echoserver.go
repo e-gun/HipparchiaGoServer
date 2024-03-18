@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -53,9 +53,9 @@ func StartEchoServer() {
 
 		// also assume that internet exposure yields scanning attempts that will spam 404s & 500s; block IPs that do this
 		// see "policerequestandresponse.go" for these functions
-		go vaults.IPBlacklistKeeper()
-		go vaults.ResponseStatsKeeper()
-		e.Use(vaults.PoliceRequestAndResponse)
+		go vlt.IPBlacklistKeeper()
+		go vlt.ResponseStatsKeeper()
+		e.Use(vlt.PoliceRequestAndResponse)
 	}
 
 	switch launch.Config.EchoLog {

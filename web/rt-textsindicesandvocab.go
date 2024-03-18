@@ -13,7 +13,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/exp/slices"
@@ -59,12 +59,12 @@ func RtTextMaker(c echo.Context) error {
 		JS string `json:"newjs"`
 	}
 
-	user := vaults.ReadUUIDCookie(c)
-	if !vaults.AllAuthorized.Check(user) {
+	user := vlt.ReadUUIDCookie(c)
+	if !vlt.AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, JSFeeder{JS: vv.JSVALIDATION}, vv.JSONINDENT)
 	}
 
-	sess := vaults.AllSessions.GetSess(user)
+	sess := vlt.AllSessions.GetSess(user)
 	srch := search.SessionIntoBulkSearch(c, vv.MAXTEXTLINEGENERATION)
 
 	if srch.Results.Len() == 0 {
@@ -163,7 +163,7 @@ func RtTextMaker(c echo.Context) error {
 	jso.HT = tab
 	jso.JS = ""
 
-	vaults.WSInfo.Del <- srch.WSID
+	vlt.WSInfo.Del <- srch.WSID
 
 	return generic.JSONresponse(c, jso)
 }
@@ -231,13 +231,13 @@ func RtVocabMaker(c echo.Context) error {
 		HT string `json:"thehtml"`
 		NJ string `json:"newjs"`
 	}
-	user := vaults.ReadUUIDCookie(c)
-	if !vaults.AllAuthorized.Check(user) {
+	user := vlt.ReadUUIDCookie(c)
+	if !vlt.AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, JSFeeder{NJ: vv.JSVALIDATION}, vv.JSONINDENT)
 	}
 
 	start := time.Now()
-	se := vaults.AllSessions.GetSess(user)
+	se := vlt.AllSessions.GetSess(user)
 
 	id := c.Param("id")
 	id = generic.Purgechars(launch.Config.BadChars, id)
@@ -246,8 +246,8 @@ func RtVocabMaker(c echo.Context) error {
 	si := search.BuildDefaultSearch(c)
 	si.Type = "vocab"
 
-	vaults.WSInfo.UpdateSummMsg <- vaults.WSSIKVs{si.WSID, MSG1}
-	vaults.WSInfo.UpdateRemain <- vaults.WSSIKVi{si.WSID, 1}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{si.WSID, MSG1}
+	vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{si.WSID, 1}
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
 	mx := launch.Config.MaxText * vv.MAXVOCABLINEGENERATION
@@ -294,7 +294,7 @@ func RtVocabMaker(c echo.Context) error {
 	// [c1] get and map all the DbMorphology
 	morphmap := search.ArrayToGetRequiredMorphObjects(morphslice)
 
-	vaults.WSInfo.UpdateSummMsg <- vaults.WSSIKVs{id, MSG2}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{id, MSG2}
 
 	// [c2] map observed words to possibilities
 	poss := make(map[string][]structs.MorphPossib)
@@ -378,7 +378,7 @@ func RtVocabMaker(c echo.Context) error {
 		ct += 1
 	}
 
-	vaults.WSInfo.UpdateSummMsg <- vaults.WSSIKVs{id, MSG3}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{id, MSG3}
 
 	// [f2] sort the results
 	if se.VocByCount {
@@ -393,7 +393,7 @@ func RtVocabMaker(c echo.Context) error {
 		sort.Slice(vis, func(i, j int) bool { return vis[i].Strip < vis[j].Strip })
 	}
 
-	vaults.WSInfo.UpdateSummMsg <- vaults.WSSIKVs{id, MSG4}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{id, MSG4}
 
 	// [g] format the output
 
@@ -469,8 +469,8 @@ func RtVocabMaker(c echo.Context) error {
 	j := fmt.Sprintf(vv.LEXFINDJS, "vocabobserved")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	vaults.WSInfo.Del <- si.WSID
-	vaults.WSInfo.Del <- vocabsrch.WSID
+	vlt.WSInfo.Del <- si.WSID
+	vlt.WSInfo.Del <- vocabsrch.WSID
 
 	return generic.JSONresponse(c, jso)
 }
@@ -538,8 +538,8 @@ func RtIndexMaker(c echo.Context) error {
 		NJ string `json:"newjs"`
 	}
 
-	user := vaults.ReadUUIDCookie(c)
-	if !vaults.AllAuthorized.Check(user) {
+	user := vlt.ReadUUIDCookie(c)
+	if !vlt.AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, JSFeeder{NJ: vv.JSVALIDATION}, vv.JSONINDENT)
 	}
 
@@ -552,8 +552,8 @@ func RtIndexMaker(c echo.Context) error {
 	si := search.BuildDefaultSearch(c)
 	si.Type = "index"
 
-	vaults.WSInfo.UpdateSummMsg <- vaults.WSSIKVs{si.WSID, MSG1}
-	vaults.WSInfo.UpdateRemain <- vaults.WSSIKVi{si.WSID, 1}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{si.WSID, MSG1}
+	vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{si.WSID, 1}
 
 	// [a] gather the lines...
 
@@ -602,13 +602,13 @@ func RtIndexMaker(c echo.Context) error {
 	// [c1] map words to a dbMorphology
 
 	// one of the places where you can catch a session reset
-	if !vaults.AllSessions.IsInVault(user) {
+	if !vlt.AllSessions.IsInVault(user) {
 		return generic.JSONresponse(c, JSFeeder{})
 	}
 
 	morphmap := search.ArrayToGetRequiredMorphObjects(morphslice)
 
-	vaults.WSInfo.UpdateSummMsg <- vaults.WSSIKVs{si.ID, MSG2}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{si.ID, MSG2}
 
 	var slicedlookups []structs.WordInfo
 	for _, w := range slicedwords {
@@ -645,7 +645,7 @@ func RtIndexMaker(c echo.Context) error {
 	morphmap = make(map[string]structs.DbMorphology) // drop after use
 
 	// one of the places where you can catch a session reset
-	if !vaults.AllSessions.IsInVault(user) {
+	if !vlt.AllSessions.IsInVault(user) {
 		return generic.JSONresponse(c, JSFeeder{})
 	}
 
@@ -712,14 +712,14 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	// one of the places where you can catch a session reset
-	if !vaults.AllSessions.IsInVault(user) {
+	if !vlt.AllSessions.IsInVault(user) {
 		return generic.JSONresponse(c, JSFeeder{})
 	}
 
 	// [d] the final map
 	// [d1] build it
 
-	vaults.WSInfo.UpdateSummMsg <- vaults.WSSIKVs{si.ID, MSG3}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{si.ID, MSG3}
 
 	indexmap := make(map[generic.PolytonicSorterStruct][]structs.WordInfo, len(trimslices))
 	for _, w := range trimslices {
@@ -763,7 +763,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	indexmap = make(map[generic.PolytonicSorterStruct][]structs.WordInfo, 1) // drop after use
 
-	vaults.WSInfo.UpdateSummMsg <- vaults.WSSIKVs{si.ID, MSG4}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{si.ID, MSG4}
 
 	trr := make([]string, len(plainkeys))
 	for i, k := range plainkeys {
@@ -799,7 +799,7 @@ func RtIndexMaker(c echo.Context) error {
 	el := fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
 
 	// one of the places where you can catch a session reset
-	if !vaults.AllSessions.IsInVault(user) {
+	if !vlt.AllSessions.IsInVault(user) {
 		return generic.JSONresponse(c, JSFeeder{})
 	}
 
@@ -834,8 +834,8 @@ func RtIndexMaker(c echo.Context) error {
 
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
 
-	vaults.WSInfo.Del <- si.WSID
-	vaults.WSInfo.Del <- srch.WSID
+	vlt.WSInfo.Del <- si.WSID
+	vlt.WSInfo.Del <- srch.WSID
 
 	return generic.JSONresponse(c, jso)
 }

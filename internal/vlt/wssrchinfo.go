@@ -1,4 +1,4 @@
-package vaults
+package vlt
 
 import (
 	"context"

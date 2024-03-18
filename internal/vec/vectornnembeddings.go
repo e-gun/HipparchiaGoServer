@@ -3,7 +3,7 @@
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 
-package vect
+package vec
 
 import (
 	"bytes"
@@ -14,7 +14,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	sr "github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/e-gun/wego/pkg/embedding"
 	"github.com/e-gun/wego/pkg/model"
@@ -54,10 +54,10 @@ func generateneighborsdata(c echo.Context, s structs.SearchStruct) map[string]se
 	isstored := VectorDBCheckNN(fp)
 	var embs embedding.Embeddings
 	if isstored {
-		vaults.WSInfo.UpdateVProgMsg <- vaults.WSSIKVs{s.ID, FMSG}
+		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, FMSG}
 		embs = VectorDBFetchNN(fp)
 	} else {
-		vaults.WSInfo.UpdateVProgMsg <- vaults.WSSIKVs{s.ID, GMSG}
+		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, GMSG}
 		embs = GenerateVectEmbeddings(c, s.VecModeler, s)
 		VectorDBAddNN(fp, embs)
 		if !embs.Empty() {
@@ -68,7 +68,7 @@ func generateneighborsdata(c echo.Context, s structs.SearchStruct) map[string]se
 	// [b] make a query against the model
 
 	// len(s.Results) is zero, so it is OK to UpdateSS() without copying 500k lines
-	vaults.WSInfo.UpdateVProgMsg <- vaults.WSSIKVs{s.ID, MQMEG}
+	vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, MQMEG}
 
 	searcher, err := search.New(embs...)
 	if err != nil {
@@ -100,7 +100,7 @@ func generateneighborsdata(c echo.Context, s structs.SearchStruct) map[string]se
 		}
 	}
 
-	vaults.WSInfo.Del <- s.ID
+	vlt.WSInfo.Del <- s.ID
 	return nn
 }
 
@@ -123,7 +123,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 	// lack of a real session means we can't call readUUIDCookie() repeatedly
 	// this also means we need the "modeltype" parameter as well (bot: configtype; surfer: sessiontype)
 	start := time.Now()
-	vaults.WSInfo.UpdateSummMsg <- vaults.WSSIKVs{s.ID, PRLMSG}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{s.ID, PRLMSG}
 
 	var vs structs.SearchStruct
 	p := message.NewPrinter(language.English)
@@ -133,7 +133,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 		vs = sr.SessionIntoBulkSearch(c, launch.Config.VectorMaxlines)
 		Msg.PEEK(fmt.Sprintf(MSG1, vs.Results.Len()))
 		s.Results = vs.Results
-		vaults.WSInfo.UpdateVProgMsg <- vaults.WSSIKVs{s.ID, p.Sprintf(TBMSG, vs.Results.Len())}
+		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, p.Sprintf(TBMSG, vs.Results.Len())}
 	}
 
 	thetext := buildtextblock(&s)
@@ -157,7 +157,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 	enablecancellation := func(m model.ModelWithCtx) {
 		sr.InsertNewContextIntoSS(&s)
 		m.InsertContext(s.Context)
-		vaults.WSInfo.InsertInfo <- sr.GenerateSrchInfo(&s)
+		vlt.WSInfo.InsertInfo <- sr.GenerateSrchInfo(&s)
 	}
 
 	switch modeltype {
@@ -194,7 +194,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 	b := bytes.NewReader([]byte(thetext))
 
 	// a chance to bail before training if you hit RtResetSession() in time
-	if launch.Config.SelfTest == 0 && !launch.Config.VectorBot && !vaults.AllSessions.IsInVault(s.User) {
+	if launch.Config.SelfTest == 0 && !launch.Config.VectorBot && !vlt.AllSessions.IsInVault(s.User) {
 		Msg.FYI("GenerateVectEmbeddings() aborting: RtResetSession switched user to " + s.User)
 		return embedding.Embeddings{}
 	}
@@ -234,7 +234,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 					// tm = coll[3]
 				}
 			}
-			vaults.WSInfo.UpdateVProgMsg <- vaults.WSSIKVs{s.ID, fmt.Sprintf(VMSG, in, ti)}
+			vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, fmt.Sprintf(VMSG, in, ti)}
 			time.Sleep(vv.WSPOLLINGPAUSE)
 			if !s.IsActive {
 				break
@@ -252,7 +252,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 		return embedding.Embeddings{}
 	}
 
-	vaults.WSInfo.UpdateVProgMsg <- vaults.WSSIKVs{s.ID, DBMSG}
+	vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, DBMSG}
 
 	// use buffers; skip the disk; psql used for storage: VectorDBAddNN() & VectorDBFetchNN()
 	var buf bytes.Buffer
@@ -273,7 +273,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 
 	buf.Reset()
 
-	vaults.WSInfo.Del <- s.ID
+	vlt.WSInfo.Del <- s.ID
 
 	return embs
 }

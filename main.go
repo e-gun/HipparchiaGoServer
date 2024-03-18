@@ -8,12 +8,13 @@ package main
 import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
+	"github.com/e-gun/HipparchiaGoServer/internal/debug"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
-	"github.com/e-gun/HipparchiaGoServer/internal/vect"
+	"github.com/e-gun/HipparchiaGoServer/internal/vec"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/e-gun/HipparchiaGoServer/web"
 	"github.com/pkg/profile"
@@ -81,8 +82,10 @@ func main() {
 	db.Msg.LLvl = launch.Config.LogLevel
 	mps.Msg.LLvl = launch.Config.LogLevel
 	search.Msg.LLvl = launch.Config.LogLevel
-	vaults.Msg.LLvl = launch.Config.LogLevel
-	vect.Msg.LLvl = launch.Config.LogLevel
+	vlt.Msg.LLvl = launch.Config.LogLevel
+	vec.Msg.LLvl = launch.Config.LogLevel
+
+	debug.Msg = launch.NewMessageMakerConfigured()
 
 	launch.PrintVersion(*launch.Config)
 	launch.PrintBuildInfo(*launch.Config)
@@ -96,9 +99,9 @@ func main() {
 	//
 
 	db.SQLPool = db.FillDBConnectionPool(*launch.Config)
-	go vaults.WebsocketPool.WSPoolStartListening()
+	go vlt.WebsocketPool.WSPoolStartListening()
 
-	go vaults.WSSearchInfoHub()
+	go vlt.WSSearchInfoHub()
 	go m.PathInfoHub()
 
 	go msg.Ticker(vv.TICKERDELAY)
@@ -147,9 +150,9 @@ func main() {
 	go func(awaiting *sync.WaitGroup) {
 		defer awaiting.Done()
 		if launch.Config.ResetVectors {
-			vect.VectorDBReset()
+			vec.VectorDBReset()
 		} else if launch.Config.LogLevel >= m.MSGNOTE {
-			vect.VectorDBCountNN(m.MSGNOTE)
+			vec.VectorDBCountNN(m.MSGNOTE)
 		}
 	}(&awaiting)
 
@@ -169,7 +172,7 @@ func main() {
 	msg.MAND(QUIT)
 
 	if launch.Config.Authenticate {
-		vaults.BuildUserPassPairs(*launch.Config)
+		vlt.BuildUserPassPairs(*launch.Config)
 	}
 
 	//

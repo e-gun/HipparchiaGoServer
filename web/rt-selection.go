@@ -13,7 +13,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
@@ -91,7 +91,7 @@ func RtSelectionMake(c echo.Context) error {
 	// note that you need to return JSON: reportcurrentselections() to fill #selectionstable on the page
 	// see bottom of this file for a sample list and the html of the table that goes with it
 
-	user := vaults.ReadUUIDCookie(c)
+	user := vlt.ReadUUIDCookie(c)
 
 	var sel SelectionValues
 	sel.Auth = c.QueryParam("auth")
@@ -116,7 +116,7 @@ func RtSelectionMake(c echo.Context) error {
 	}
 
 	ns := registerselection(user, sel)
-	vaults.AllSessions.InsertSess(ns)
+	vlt.AllSessions.InsertSess(ns)
 
 	cs := reportcurrentselections(c)
 
@@ -132,7 +132,7 @@ func RtSelectionClear(c echo.Context) error {
 
 	// NB: restarting the server with an open browser can leave an impossible JS click; not really a bug, but...
 
-	user := vaults.ReadUUIDCookie(c)
+	user := vlt.ReadUUIDCookie(c)
 
 	locus := c.Param("locus")
 	which := strings.Split(locus, "/")
@@ -145,7 +145,7 @@ func RtSelectionClear(c echo.Context) error {
 	cat := which[0]
 	id := which[1]
 
-	newsess := vaults.AllSessions.GetSess(user)
+	newsess := vlt.AllSessions.GetSess(user)
 	newsess.BuildSelectionOverview()
 	newincl := newsess.Inclusions
 	newexcl := newsess.Exclusions
@@ -255,7 +255,7 @@ func RtSelectionClear(c echo.Context) error {
 	newsess.Inclusions = newincl
 	newsess.Exclusions = newexcl
 
-	vaults.AllSessions.InsertSess(newsess)
+	vlt.AllSessions.InsertSess(newsess)
 	r := RtSelectionFetch(c)
 
 	//sliceprinter("newincl.Passages", newincl.Passages)
@@ -286,7 +286,7 @@ func registerselection(user string, sv SelectionValues) structs.ServerSession {
 		PSGT = `%s_FROM_%d_TO_%d`
 	)
 
-	s := vaults.AllSessions.GetSess(user)
+	s := vlt.AllSessions.GetSess(user)
 
 	sep := "|"
 	if s.RawInput {
@@ -828,8 +828,8 @@ func reportcurrentselections(c echo.Context) SelectionData {
 		JSEXU = `/selection/clear/%sexclusions/%s`
 	)
 
-	user := vaults.ReadUUIDCookie(c)
-	s := vaults.AllSessions.GetSess(user)
+	user := vlt.ReadUUIDCookie(c)
+	s := vlt.AllSessions.GetSess(user)
 	s.BuildSelectionOverview()
 
 	i := s.Inclusions

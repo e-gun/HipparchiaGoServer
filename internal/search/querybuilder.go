@@ -11,7 +11,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"html/template"
 	"regexp"
@@ -66,7 +66,7 @@ func SSBuildQueries(s *structs.SearchStruct) {
 
 	// check to see if RtResetSession() was called in the middle of a search
 	// selftest and vectorbot will both reset their Config values on completion
-	if launch.Config.SelfTest == 0 && !launch.Config.VectorBot && !vaults.AllSessions.IsInVault(s.User) {
+	if launch.Config.SelfTest == 0 && !launch.Config.VectorBot && !vlt.AllSessions.IsInVault(s.User) {
 		Msg.FYI(fmt.Sprintf(ABORT, s.User))
 		return
 	}
@@ -248,9 +248,9 @@ func SSBuildQueries(s *structs.SearchStruct) {
 	//	m(q.PsqlQuery, 3)
 	//}
 
-	vaults.WSInfo.UpdateTW <- vaults.WSSIKVi{s.WSID, len(prqq)}
-	vaults.WSInfo.UpdateRemain <- vaults.WSSIKVi{s.WSID, len(prqq)}
-	vaults.WSInfo.UpdateHits <- vaults.WSSIKVi{s.WSID, 0}
+	vlt.WSInfo.UpdateTW <- vlt.WSSIKVi{s.WSID, len(prqq)}
+	vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{s.WSID, len(prqq)}
+	vlt.WSInfo.UpdateHits <- vlt.WSSIKVi{s.WSID, 0}
 }
 
 //

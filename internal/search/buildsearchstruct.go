@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -22,8 +22,8 @@ import (
 // INITIAL SETUP
 //
 
-func GenerateSrchInfo(srch *structs.SearchStruct) vaults.WSSrchInfo {
-	return vaults.WSSrchInfo{
+func GenerateSrchInfo(srch *structs.SearchStruct) vlt.WSSrchInfo {
+	return vlt.WSSrchInfo{
 		ID:        srch.WSID,
 		User:      srch.User,
 		Exists:    true,
@@ -46,8 +46,8 @@ func BuildDefaultSearch(c echo.Context) structs.SearchStruct {
 		VECTORSEARCHSUMMARY = "Acquiring a model for the selected texts"
 	)
 
-	user := vaults.ReadUUIDCookie(c)
-	sess := vaults.AllSessions.GetSess(user)
+	user := vlt.ReadUUIDCookie(c)
+	sess := vlt.AllSessions.GetSess(user)
 
 	// m("nonstandard BuildDefaultSearch() for testing", MSGCRIT)
 
@@ -111,7 +111,7 @@ func BuildDefaultSearch(c echo.Context) structs.SearchStruct {
 	s.Seeking = WhiteSpacer(s.Seeking, &s)
 	s.Proximate = WhiteSpacer(s.Proximate, &s)
 
-	se := vaults.AllSessions.GetSess(user)
+	se := vlt.AllSessions.GetSess(user)
 	s.StoredSession = se
 	sl := SessionIntoSearchlist(se)
 
@@ -130,7 +130,7 @@ func BuildDefaultSearch(c echo.Context) structs.SearchStruct {
 	s.TableSize = len(s.Queries)
 	s.IsActive = true
 
-	vaults.WSInfo.InsertInfo <- GenerateSrchInfo(&s)
+	vlt.WSInfo.InsertInfo <- GenerateSrchInfo(&s)
 	return s
 }
 
@@ -253,7 +253,7 @@ func CloneSearch(f *structs.SearchStruct, iteration int) structs.SearchStruct {
 
 	InsertNewContextIntoSS(&clone)
 
-	vaults.WSInfo.UpdateIteration <- vaults.WSSIKVi{clone.WSID, clone.PhaseNum}
+	vlt.WSInfo.UpdateIteration <- vlt.WSSIKVi{clone.WSID, clone.PhaseNum}
 
 	return clone
 }
@@ -264,8 +264,8 @@ func InsertNewContextIntoSS(ss *structs.SearchStruct) {
 
 // SessionIntoBulkSearch - grab every line of text in the currently selected set of authors, works, and passages
 func SessionIntoBulkSearch(c echo.Context, lim int) structs.SearchStruct {
-	user := vaults.ReadUUIDCookie(c)
-	sess := vaults.AllSessions.GetSess(user)
+	user := vlt.ReadUUIDCookie(c)
+	sess := vlt.AllSessions.GetSess(user)
 
 	ss := BuildDefaultSearch(c)
 	ss.Seeking = ""

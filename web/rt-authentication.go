@@ -7,7 +7,7 @@ package web
 
 import (
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -15,20 +15,20 @@ import (
 
 // RtAuthLogin - accept and validate login info sent from <form id="hipparchiauserlogin"...>
 func RtAuthLogin(c echo.Context) error {
-	cid := vaults.ReadUUIDCookie(c)
-	s := vaults.AllSessions.GetSess(cid)
+	cid := vlt.ReadUUIDCookie(c)
+	s := vlt.AllSessions.GetSess(cid)
 	u := c.FormValue("user")
 	p := c.FormValue("pw")
 
-	if vaults.UserPassPairs[u] == p {
-		vaults.AllAuthorized.Register(cid, true)
+	if vlt.UserPassPairs[u] == p {
+		vlt.AllAuthorized.Register(cid, true)
 		s.LoginName = u
 	} else {
-		vaults.AllAuthorized.Register(cid, false)
+		vlt.AllAuthorized.Register(cid, false)
 		s.LoginName = "Anonymous"
 	}
 
-	vaults.AllSessions.InsertSess(s)
+	vlt.AllSessions.InsertSess(s)
 	e := c.Redirect(http.StatusFound, "/")
 	msg.EC(e)
 	return nil
@@ -36,19 +36,19 @@ func RtAuthLogin(c echo.Context) error {
 
 // RtAuthLogout - log this session out
 func RtAuthLogout(c echo.Context) error {
-	u := vaults.ReadUUIDCookie(c)
-	s := vaults.AllSessions.GetSess(u)
+	u := vlt.ReadUUIDCookie(c)
+	s := vlt.AllSessions.GetSess(u)
 	s.LoginName = "Anonymous"
-	vaults.AllSessions.InsertSess(s)
-	vaults.AllAuthorized.Register(u, false)
+	vlt.AllSessions.InsertSess(s)
+	vlt.AllAuthorized.Register(u, false)
 	return c.JSONPretty(http.StatusOK, "Anonymous", vv.JSONINDENT)
 }
 
 // RtAuthChkuser - report who this session is logged in as
 func RtAuthChkuser(c echo.Context) error {
-	user := vaults.ReadUUIDCookie(c)
-	s := vaults.AllSessions.GetSess(user)
-	a := vaults.AllAuthorized.Check(s.ID)
+	user := vlt.ReadUUIDCookie(c)
+	s := vlt.AllSessions.GetSess(user)
+	a := vlt.AllAuthorized.Check(s.ID)
 
 	type JSO struct {
 		ID   string `json:"userid"`

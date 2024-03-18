@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
-	"github.com/e-gun/HipparchiaGoServer/internal/vect"
+	"github.com/e-gun/HipparchiaGoServer/internal/vec"
 	"github.com/google/uuid"
 	"io"
 	"net/http"
@@ -246,7 +246,7 @@ func selftestsuite() {
 	}
 
 	// vector selftestsuite
-	vect.VectorDBReset()
+	vec.VectorDBReset()
 	ovm := launch.Config.VectorModel
 	otx := launch.Config.VectorTextPrep
 
