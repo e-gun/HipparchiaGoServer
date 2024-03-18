@@ -7,7 +7,7 @@ package web
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -86,7 +86,7 @@ func RtLemmaHints(c echo.Context) error {
 		return emptyjsreturn(c)
 	}
 
-	skg = generic.StripaccentsRUNE(skg)
+	skg = gen.StripaccentsRUNE(skg)
 	nl := string(skg[0:2])
 
 	var matches []string
@@ -100,7 +100,7 @@ func RtLemmaHints(c echo.Context) error {
 				lim = len(er)
 			}
 
-			potential := generic.StripaccentsRUNE(er[0:lim])
+			potential := gen.StripaccentsRUNE(er[0:lim])
 			if len(er) >= len(skg) && string(potential) == string(skg) {
 				// need to filter ab-cedo¹ --> abcedo
 				matches = append(matches, l.Entry)
@@ -108,7 +108,7 @@ func RtLemmaHints(c echo.Context) error {
 		}
 	}
 
-	matches = generic.PolytonicSort(matches)
+	matches = gen.PolytonicSort(matches)
 	jss := tojsstructslice(matches)
 
 	return c.JSONPretty(http.StatusOK, jss, vv.JSONINDENT)
@@ -148,7 +148,7 @@ func basichinter(c echo.Context, mastermap map[string]bool) error {
 	}
 
 	// not really needed in practice?
-	ff = generic.PolytonicSort(ff)
+	ff = gen.PolytonicSort(ff)
 	fs := tojsstructslice(ff)
 
 	return c.JSONPretty(http.StatusOK, fs, vv.JSONINDENT)

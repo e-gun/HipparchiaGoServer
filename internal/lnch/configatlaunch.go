@@ -3,7 +3,7 @@
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //
 
-package launch
+package lnch
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -74,7 +74,7 @@ var (
 // LookForConfigFile - test to see if we can find a config file; if not build one and check to see if the DB needs loading
 func LookForConfigFile() {
 	const (
-		WRN      = "Warning: unable to launch: Cannot find a configuration file."
+		WRN      = "Warning: unable to lnch: Cannot find a configuration file."
 		FYI      = "\tC1Creating configuration directory: 'C3%sC1'C0"
 		FNF      = "\tC1Generating a simple 'C3%sC1'C0"
 		FWR      = "\tC1Wrote configuration to 'C3%sC1'C0\n"
@@ -204,7 +204,7 @@ func ConfigAtLaunch() {
 			cwd = "(unknown)"
 		}
 
-		kff := generic.StringMapKeysIntoSlice(vv.ServableFonts)
+		kff := gen.StringMapKeysIntoSlice(vv.ServableFonts)
 
 		m := map[string]interface{}{
 			"badchars":   Config.BadChars,

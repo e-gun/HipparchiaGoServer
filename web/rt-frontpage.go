@@ -8,8 +8,8 @@ package web
 import (
 	"bytes"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -51,17 +51,17 @@ func RtFrontpage(c echo.Context) error {
 	s := vlt.AllSessions.GetSess(user)
 
 	ahtm := vv.AUTHHTML
-	if !launch.Config.Authenticate {
+	if !lnch.Config.Authenticate {
 		ahtm = ""
 	}
 
-	gc := launch.GitCommit
+	gc := lnch.GitCommit
 	if gc == "" {
 		gc = "UNKNOWN"
 	}
-	ver := fmt.Sprintf("Version: %s [git: %s]", vv.VERSION+launch.VersSuppl, gc)
+	ver := fmt.Sprintf("Version: %s [git: %s]", vv.VERSION+lnch.VersSuppl, gc)
 
-	env := fmt.Sprintf("%s: %s - %s (%d workers)", runtime.Version(), runtime.GOOS, runtime.GOARCH, launch.Config.WorkerCount)
+	env := fmt.Sprintf("%s: %s - %s (%d workers)", runtime.Version(), runtime.GOOS, runtime.GOARCH, lnch.Config.WorkerCount)
 
 	// t() will give the uptime
 	var mem runtime.MemStats
@@ -80,8 +80,8 @@ func RtFrontpage(c echo.Context) error {
 		ctr := <-responder.Response
 
 		exclude := []string{"main() post-initialization"}
-		keys := generic.StringMapKeysIntoSlice(ctr)
-		keys = generic.SetSubtraction(keys, exclude)
+		keys := gen.StringMapKeysIntoSlice(ctr)
+		keys = gen.SetSubtraction(keys, exclude)
 		sort.Strings(keys)
 
 		var pairs []string
@@ -94,7 +94,7 @@ func RtFrontpage(c echo.Context) error {
 	}
 
 	vec := ""
-	if !launch.Config.VectorsDisabled {
+	if !lnch.Config.VectorsDisabled {
 		vec = VECTORS
 	}
 
@@ -107,7 +107,7 @@ func RtFrontpage(c echo.Context) error {
 	//    Search: 4
 
 	subs := map[string]interface{}{
-		"version":       vv.VERSION + launch.VersSuppl,
+		"version":       vv.VERSION + lnch.VersSuppl,
 		"longver":       ver,
 		"authhtm":       ahtm,
 		"vec":           vec,

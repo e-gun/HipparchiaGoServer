@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"strings"
@@ -69,7 +69,7 @@ func NestedLemmaMapper(unnested map[string]*structs.DbLemma) map[string]map[stri
 	swap := strings.NewReplacer("j", "i", "v", "u")
 	for k, v := range unnested {
 		rbag := []rune(v.Entry)[0:2]
-		rbag = generic.StripaccentsRUNE(rbag)
+		rbag = gen.StripaccentsRUNE(rbag)
 		bag := strings.ToLower(string(rbag))
 		bag = swap.Replace(bag)
 		if _, y := nested[bag]; !y {

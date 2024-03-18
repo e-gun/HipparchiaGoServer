@@ -9,8 +9,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -77,7 +77,7 @@ func RtMorphchart(c echo.Context) error {
 	c.Response().After(func() { msg.LogPaths("RtMorphchart()") })
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return generic.JSONresponse(c, structs.SearchOutputJSON{JS: vv.VALIDATIONBOX})
+		return gen.JSONresponse(c, structs.SearchOutputJSON{JS: vv.VALIDATIONBOX})
 	}
 
 	const (
@@ -102,7 +102,7 @@ func RtMorphchart(c echo.Context) error {
 	lg := elem[0]
 	id, e1 := strconv.ParseFloat(elem[1], 32)
 	_, e2 := strconv.Atoi(elem[2])
-	wd := generic.Purgechars(vv.UNACCEPTABLEINPUT, elem[3])
+	wd := gen.Purgechars(vv.UNACCEPTABLEINPUT, elem[3])
 	gl := lg == "greek" || lg == "latin"
 
 	if !gl || e1 != nil || e2 != nil {
@@ -161,7 +161,7 @@ func RtMorphchart(c echo.Context) error {
 		fo := f.Observed
 		ww[count] = fo
 		r := []rune(fo)
-		init := generic.StripaccentsRUNE(r)
+		init := gen.StripaccentsRUNE(r)
 		lett[string(init[0])] = true
 		count += 1
 		words = append(words, f.Observed)
@@ -361,7 +361,7 @@ func RtMorphchart(c echo.Context) error {
 		const (
 			MSG = "RtMorphchart() isverb counts cases: %d; tenses: %d"
 		)
-		kk := generic.StringMapKeysIntoSlice(pdxm)
+		kk := gen.StringMapKeysIntoSlice(pdxm)
 		// ῥώμη will trigger "verb"... : you can't choose via a single verb hit; you have to compare total form counts
 		// NO GOOD: return arraystringseeker(GKTENSES, kk)
 
@@ -392,11 +392,11 @@ func RtMorphchart(c echo.Context) error {
 
 	jb.JS = vv.MORPHJS
 
-	if launch.Config.ZapLunates {
-		jb.HTML = generic.DeLunate(jb.HTML)
+	if lnch.Config.ZapLunates {
+		jb.HTML = gen.DeLunate(jb.HTML)
 	}
 
-	return generic.JSONresponse(c, jb)
+	return gen.JSONresponse(c, jb)
 }
 
 // generateverbtable - given a map of grammar IDs to words, build a verb table
@@ -455,7 +455,7 @@ func generateverbtable(lang string, words map[string]string) string {
 		cases = LTCASES
 	}
 
-	kk := generic.StringMapKeysIntoSlice(words)
+	kk := gen.StringMapKeysIntoSlice(words)
 
 	// do we need all theoretically possible categories?
 	needy := func(someslice []string) []string {
@@ -852,7 +852,7 @@ func generatedeclinedtable(lang string, words map[string]string) string {
 		gend = GENDERS
 	}
 
-	kk := generic.StringMapKeysIntoSlice(words)
+	kk := gen.StringMapKeysIntoSlice(words)
 	needy := func(someslice []string) []string {
 		var need []string
 		for _, g := range someslice {
@@ -946,7 +946,7 @@ func getwordcounts(ww []string) map[string]structs.DbWordCount {
 	// but they will in fact be stored less the apostrophe...
 
 	for _, w := range ww {
-		init := generic.StripaccentsRUNE([]rune(w))
+		init := gen.StripaccentsRUNE([]rune(w))
 		if len(init) == 0 {
 			continue
 		}

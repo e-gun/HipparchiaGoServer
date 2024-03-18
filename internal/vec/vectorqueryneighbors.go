@@ -9,7 +9,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
@@ -69,7 +69,7 @@ func NeighborsSearch(c echo.Context, srch structs.SearchStruct) error {
 
 	// the words in the model have different formation rules from the hints supplied...
 	term = strings.ToLower(term)
-	term = generic.RestoreInitialVJ(term) // a quick, partial fix...
+	term = gen.RestoreInitialVJ(term) // a quick, partial fix...
 	srch.LemmaOne = term
 
 	nn := generateneighborsdata(c, srch)
@@ -117,7 +117,7 @@ func NeighborsSearch(c echo.Context, srch structs.SearchStruct) error {
 	}
 
 	vlt.WSInfo.Del <- srch.WSID
-	return generic.JSONresponse(c, soj)
+	return gen.JSONresponse(c, soj)
 }
 
 // FingerprintNNVectorSearch - derive a unique md5 for any given mix of search items & vector settings

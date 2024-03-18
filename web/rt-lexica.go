@@ -11,8 +11,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
@@ -81,20 +81,20 @@ func RtLexLookup(c echo.Context) error {
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return generic.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
+		return gen.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
 	}
 
 	req := c.Param("wd")
-	seeking := generic.Purgechars(launch.Config.BadChars, req)
-	seeking = generic.SwapAcuteForGrave(seeking)
+	seeking := gen.Purgechars(lnch.Config.BadChars, req)
+	seeking = gen.SwapAcuteForGrave(seeking)
 
 	dict := "latin"
 	if vv.IsGreek.MatchString(seeking) {
 		dict = "greek"
 	}
 
-	seeking = generic.UVσςϲ(seeking)
-	seeking = generic.UniversalPatternMaker(seeking) // UniversalPatternMaker() returns the term with brackets around it
+	seeking = gen.UVσςϲ(seeking)
+	seeking = gen.UniversalPatternMaker(seeking) // UniversalPatternMaker() returns the term with brackets around it
 
 	seeking = strings.Replace(seeking, "(", "", -1)
 	seeking = strings.Replace(seeking, ")", "", -1)
@@ -115,7 +115,7 @@ func RtLexLookup(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = insertlexicaljs()
 
-	return generic.JSONresponse(c, jb)
+	return gen.JSONresponse(c, jb)
 }
 
 // RtLexFindByForm - search the dictionary for a specific headword
@@ -123,7 +123,7 @@ func RtLexFindByForm(c echo.Context) error {
 	// be able to respond to "GET /lexica/findbyform/ἀμιϲθὶ/gr0062 HTTP/1.1"
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return generic.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
+		return gen.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
 	}
 	c.Response().After(func() { msg.LogPaths("RtLexFindByForm()") })
 
@@ -141,13 +141,13 @@ func RtLexFindByForm(c echo.Context) error {
 		au = elem[1]
 	}
 
-	word := generic.Purgechars(launch.Config.BadChars, elem[0])
+	word := gen.Purgechars(lnch.Config.BadChars, elem[0])
 
 	clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "") // you can get sent here by the indexer ...
 	word = clean.Replace(word)
 
-	word = generic.SwapAcuteForGrave(word)
-	word = generic.UVσςϲ(word)
+	word = gen.SwapAcuteForGrave(word)
+	word = gen.UVσςϲ(word)
 
 	html := findbyform(word, au)
 	js := insertlexicaljs()
@@ -156,7 +156,7 @@ func RtLexFindByForm(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = js
 
-	return generic.JSONresponse(c, jb)
+	return gen.JSONresponse(c, jb)
 }
 
 // RtLexId - grab a word by its entry value
@@ -169,7 +169,7 @@ func RtLexId(c echo.Context) error {
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return generic.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
+		return gen.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
 	}
 
 	req := c.Param("wd")
@@ -178,8 +178,8 @@ func RtLexId(c echo.Context) error {
 		msg.WARN(fmt.Sprintf(FAIL1, req))
 		return emptyjsreturn(c)
 	}
-	d := generic.Purgechars(launch.Config.BadChars, elem[0])
-	w := generic.Purgechars(launch.Config.BadChars, elem[1])
+	d := gen.Purgechars(lnch.Config.BadChars, elem[0])
+	w := gen.Purgechars(lnch.Config.BadChars, elem[1])
 
 	f := dictgrabber(w, d, "id_number", "=")
 	if len(f) == 0 {
@@ -194,7 +194,7 @@ func RtLexId(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = js
 
-	return generic.JSONresponse(c, jb)
+	return gen.JSONresponse(c, jb)
 }
 
 // RtLexReverse - look for the headwords that have the sought word in their body
@@ -204,7 +204,7 @@ func RtLexReverse(c echo.Context) error {
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return generic.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
+		return gen.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
 	}
 
 	req := c.Param("wd")
@@ -214,7 +214,7 @@ func RtLexReverse(c echo.Context) error {
 		return emptyjsreturn(c)
 	}
 
-	word := generic.Purgechars(launch.Config.BadChars, elem[1])
+	word := gen.Purgechars(lnch.Config.BadChars, elem[1])
 
 	s := vlt.AllSessions.GetSess(user)
 
@@ -238,7 +238,7 @@ func RtLexReverse(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = insertlexicaljs()
 
-	return generic.JSONresponse(c, jb)
+	return gen.JSONresponse(c, jb)
 }
 
 //
@@ -283,7 +283,7 @@ func findbyform(word string, author string) string {
 
 	// golang hates indexing unicode strings: strings are bytes, and unicode chars take more than one byte
 	c := []rune(word)
-	q := fmt.Sprintf(PSQQ, FLDS, generic.StripaccentsSTR(string(c[0])), word)
+	q := fmt.Sprintf(PSQQ, FLDS, gen.StripaccentsSTR(string(c[0])), word)
 
 	var wc structs.DbWordCount
 	ct := db.SQLPool.QueryRow(context.Background(), q)
@@ -311,8 +311,8 @@ func findbyform(word string, author string) string {
 	html := allformpd + parsing + entries
 
 	// [h] conditionally rewrite the html
-	if launch.Config.ZapLunates {
-		html = generic.DeLunate(html)
+	if lnch.Config.ZapLunates {
+		html = gen.DeLunate(html)
 	}
 
 	// author flagging: "<bibl id="perseus/lt0474" --> "<bibl class="flagged" id="perseus/lt0474"
@@ -443,8 +443,8 @@ func dictsearch(seeking string, dict string) string {
 		html = "(nothing found)"
 	}
 
-	if launch.Config.ZapLunates {
-		html = generic.DeLunate(html)
+	if lnch.Config.ZapLunates {
+		html = gen.DeLunate(html)
 	}
 
 	return html
@@ -533,7 +533,7 @@ func extractmorphpossibilities(raw string) []structs.MorphPossib {
 	// note that there is a macron in there in the second pair: ̄
 	clean := strings.NewReplacer("-", "", "̄", "")
 
-	mpp := generic.StringMapIntoSlice(nested)
+	mpp := gen.StringMapIntoSlice(nested)
 	for i := 0; i < len(mpp); i++ {
 		// "ob-caec" --> "obcaec", etc.
 		mpp[i].Headwd = clean.Replace(mpp[i].Headwd)
@@ -557,7 +557,7 @@ func morphpossibintolexpossib(d string, mpp []structs.MorphPossib) []structs.DbL
 
 	// the next is primed to produce problems: see καρποῦ which will turn καρπόϲ1 and καρπόϲ2 into just καρπόϲ; need xref_value?
 	// but we have probably taken care of this below: see the comments
-	hwm = generic.Unique(hwm)
+	hwm = gen.Unique(hwm)
 
 	// [d] get the wordobjects for each Unique headword: probedictionary()
 
@@ -597,7 +597,7 @@ func morphpossibintolexpossib(d string, mpp []structs.MorphPossib) []structs.DbL
 
 // paralleldictformatter - send N workers off to turn []DbLexicon into a map: [entryid]entryhtml
 func paralleldictformatter(lexicalfinds []structs.DbLexicon) map[float32]string {
-	workers := launch.Config.WorkerCount
+	workers := lnch.Config.WorkerCount
 	totalwork := len(lexicalfinds)
 	chunksize := totalwork / workers
 	leftover := totalwork % workers
@@ -719,7 +719,7 @@ func formatparsingdata(mpp []structs.MorphPossib) string {
 		mpmap[k] = p
 	}
 
-	keys := generic.StringMapKeysIntoSlice(mpmap)
+	keys := gen.StringMapKeysIntoSlice(mpmap)
 	sort.Strings(keys)
 
 	var html string
@@ -830,7 +830,7 @@ func formatlexicaloutput(w structs.DbLexicon) string {
 	hwc := search.HeadwordLookup(w.Word)
 	elem = append(elem, fmt.Sprintf(FRQSUM, hwc.FrqCla))
 
-	lw := generic.UVσςϲ(w.Word) // otherwise "venio" will hit AllLemm instead of "uenio"
+	lw := gen.UVσςϲ(w.Word) // otherwise "venio" will hit AllLemm instead of "uenio"
 	if _, ok := mps.AllLemm[lw]; ok {
 		elem = append(elem, fmt.Sprintf(FORMSUMM, mps.AllLemm[lw].Xref, w.ID, w.Word, w.GetLang(), len(mps.AllLemm[lw].Deriv)))
 	}

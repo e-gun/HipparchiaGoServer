@@ -1,4 +1,4 @@
-package generic
+package gen
 
 //
 // STRINGS and []RUNE

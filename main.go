@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/debug"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
@@ -55,8 +55,8 @@ func main() {
 	// [1] set up the runtime configuration
 	//
 
-	launch.LookForConfigFile()
-	launch.ConfigAtLaunch()
+	lnch.LookForConfigFile()
+	lnch.ConfigAtLaunch()
 
 	// profiling runs are requested from the command line
 
@@ -67,30 +67,30 @@ func main() {
 	// 	"go tool pprof --pdf ./HipparchiaGoServer /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1075644045/cpu.pprof > ./fyi/CPUProfile.pdf"
 	//	"cp /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1075644045/cpu.pprof ./pgo/default.pgo"
 
-	if launch.Config.ProfileCPU {
+	if lnch.Config.ProfileCPU {
 		defer profile.Start().Stop()
 	}
 
-	if launch.Config.ProfileMEM {
+	if lnch.Config.ProfileMEM {
 		// mem profile:
 		defer profile.Start(profile.MemProfile).Stop()
 	}
-	msg := launch.NewMessageMakerConfigured()
+	msg := lnch.NewMessageMakerConfigured()
 	msg.ResetScreen()
 
 	// need to update all the message makers out there
-	db.Msg.LLvl = launch.Config.LogLevel
-	mps.Msg.LLvl = launch.Config.LogLevel
-	search.Msg.LLvl = launch.Config.LogLevel
-	vlt.Msg.LLvl = launch.Config.LogLevel
-	vec.Msg.LLvl = launch.Config.LogLevel
+	db.Msg.LLvl = lnch.Config.LogLevel
+	mps.Msg.LLvl = lnch.Config.LogLevel
+	search.Msg.LLvl = lnch.Config.LogLevel
+	vlt.Msg.LLvl = lnch.Config.LogLevel
+	vec.Msg.LLvl = lnch.Config.LogLevel
 
-	debug.Msg = launch.NewMessageMakerConfigured()
+	debug.Msg = lnch.NewMessageMakerConfigured()
 
-	launch.PrintVersion(*launch.Config)
-	launch.PrintBuildInfo(*launch.Config)
+	lnch.PrintVersion(*lnch.Config)
+	lnch.PrintBuildInfo(*lnch.Config)
 
-	if !launch.Config.QuietStart {
+	if !lnch.Config.QuietStart {
 		msg.MAND(fmt.Sprintf(vv.TERMINALTEXT, vv.PROJYEAR, vv.PROJAUTH, vv.PROJMAIL))
 	}
 
@@ -98,7 +98,7 @@ func main() {
 	// [2] set up things that will run forever in the background
 	//
 
-	db.SQLPool = db.FillDBConnectionPool(*launch.Config)
+	db.SQLPool = db.FillDBConnectionPool(*lnch.Config)
 	go vlt.WebsocketPool.WSPoolStartListening()
 
 	go vlt.WSSearchInfoHub()
@@ -149,9 +149,9 @@ func main() {
 	awaiting.Add(1)
 	go func(awaiting *sync.WaitGroup) {
 		defer awaiting.Done()
-		if launch.Config.ResetVectors {
+		if lnch.Config.ResetVectors {
 			vec.VectorDBReset()
-		} else if launch.Config.LogLevel >= m.MSGNOTE {
+		} else if lnch.Config.LogLevel >= m.MSGNOTE {
 			vec.VectorDBCountNN(m.MSGNOTE)
 		}
 	}(&awaiting)
@@ -171,8 +171,8 @@ func main() {
 
 	msg.MAND(QUIT)
 
-	if launch.Config.Authenticate {
-		vlt.BuildUserPassPairs(*launch.Config)
+	if lnch.Config.Authenticate {
+		vlt.BuildUserPassPairs(*lnch.Config)
 	}
 
 	//

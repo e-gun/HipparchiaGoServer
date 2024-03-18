@@ -7,7 +7,7 @@ package structs
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"regexp"
 	"strings"
 )
@@ -205,7 +205,7 @@ func (dbw *DbWorkline) Citation() string {
 func (dbw *DbWorkline) Lvls() int {
 	//alternate is: "return dbw.MyWk().CountLevels()"
 	vl := []string{dbw.Lvl0Value, dbw.Lvl1Value, dbw.Lvl2Value, dbw.Lvl3Value, dbw.Lvl4Value, dbw.Lvl5Value}
-	empty := generic.ContainsN(vl, "-1")
+	empty := gen.ContainsN(vl, "-1")
 	return NUMBEROFCITATIONLEVELS - empty
 }
 

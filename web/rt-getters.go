@@ -8,7 +8,7 @@ package web
 import (
 	"bytes"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
@@ -257,7 +257,7 @@ func RtGetJSAuthorinfo(c echo.Context) error {
 	}
 
 	if au.ConvDate != 2500 {
-		at.DateCalc = fmt.Sprintf("assigned to approx date: %s ", generic.IntToBCE(au.ConvDate))
+		at.DateCalc = fmt.Sprintf("assigned to approx date: %s ", gen.IntToBCE(au.ConvDate))
 	} else {
 		at.DateCalc = "(date is unavalable)"
 	}

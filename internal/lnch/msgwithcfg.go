@@ -1,4 +1,4 @@
-package launch
+package lnch
 
 import (
 	"github.com/e-gun/HipparchiaGoServer/internal/m"

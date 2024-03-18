@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5"
@@ -28,7 +28,7 @@ func ActiveWorkMapper() map[string]*structs.DbWork {
 
 	workmap := make(map[string]*structs.DbWork)
 
-	for k, b := range launch.Config.DefCorp {
+	for k, b := range lnch.Config.DefCorp {
 		if b {
 			workmap = MapNewWorkCorpus(k, workmap)
 		}

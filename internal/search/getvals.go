@@ -3,7 +3,7 @@ package search
 import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"sort"
 	"strings"
@@ -96,7 +96,7 @@ func FindValidLevelValues(dbw structs.DbWork, locc []string) structs.LevelValues
 	for i := range wlb.Lines {
 		r = append(r, wlb.Lines[i].LvlVal(atlvl))
 	}
-	r = generic.Unique(r)
+	r = gen.Unique(r)
 	sort.Strings(r)
 	vals.Range = r
 

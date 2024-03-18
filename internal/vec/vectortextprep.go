@@ -8,7 +8,7 @@ package vec
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -288,10 +288,10 @@ func readstopconfig(fn string) []string {
 	switch fn {
 	case "latin":
 		vcfg = vv.CONFIGVECTORSTOPSLAT
-		stops = generic.StringMapKeysIntoSlice(getlatinstops())
+		stops = gen.StringMapKeysIntoSlice(getlatinstops())
 	case "greek":
 		vcfg = vv.CONFIGVECTORSTOPSGRK
-		stops = generic.StringMapKeysIntoSlice(getgreekstops())
+		stops = gen.StringMapKeysIntoSlice(getgreekstops())
 	}
 
 	h, e := os.UserHomeDir()
@@ -370,18 +370,18 @@ var (
 )
 
 func getgreekstops() map[string]struct{} {
-	gs := generic.SetSubtraction(GreekStop, GreekKeep)
-	return generic.ToSet(gs)
+	gs := gen.SetSubtraction(GreekStop, GreekKeep)
+	return gen.ToSet(gs)
 }
 
 func getlatinstops() map[string]struct{} {
-	ls := generic.SetSubtraction(LatStop, LatinKeep)
-	return generic.ToSet(ls)
+	ls := gen.SetSubtraction(LatStop, LatinKeep)
+	return gen.ToSet(ls)
 }
 
 func getstopset() map[string]struct{} {
 	ls := readstopconfig("latin")
 	gs := readstopconfig("greek")
 	ss := append(gs, ls...)
-	return generic.ToSet(ss)
+	return gen.ToSet(ss)
 }

@@ -3,14 +3,14 @@ package vlt
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/gorilla/websocket"
 	"strings"
 	"time"
 )
 
-var Msg = launch.NewMessageMakerWithDefaults()
+var Msg = lnch.NewMessageMakerWithDefaults()
 
 //
 // WEBSOCKET INFRASTRUCTURE: see https://tutorialedge.net/projects/chat-system-in-go-and-react/part-4-handling-multiple-clients/

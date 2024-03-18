@@ -6,7 +6,7 @@
 package search
 
 import (
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -168,7 +168,7 @@ func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
 			}
 		}
 
-		blacklist = generic.Unique(blacklist)
+		blacklist = gen.Unique(blacklist)
 
 		// [c2d] all works of all excluded authors are themselves excluded
 		// we are now moving over from AuUIDs to WkUIDS...
@@ -198,7 +198,7 @@ func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
 			}
 		}
 
-		inc.Works = generic.SetSubtraction(inc.Works, exc.Works)
+		inc.Works = gen.SetSubtraction(inc.Works, exc.Works)
 	}
 
 	// this is the moment when you know the total # of locations searched: worth recording
@@ -224,13 +224,13 @@ func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
 
 	inc.Works = trim
 
-	inc.Passages = generic.Unique(inc.Passages)
-	inc.Works = generic.Unique(inc.Works)
-	inc.Authors = generic.Unique(inc.Authors)
+	inc.Passages = gen.Unique(inc.Passages)
+	inc.Works = gen.Unique(inc.Works)
+	inc.Authors = gen.Unique(inc.Authors)
 
-	exc.Passages = generic.Unique(exc.Passages)
-	exc.Works = generic.Unique(exc.Works)
-	exc.Authors = generic.Unique(exc.Authors)
+	exc.Passages = gen.Unique(exc.Passages)
+	exc.Works = gen.Unique(exc.Works)
+	exc.Authors = gen.Unique(exc.Authors)
 
 	var proc ProcessedList
 	proc.Inc = inc

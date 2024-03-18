@@ -7,8 +7,8 @@ package web
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
@@ -40,21 +40,21 @@ type BrowsedPassage struct {
 func RtBrowseLocus(c echo.Context) error {
 	sep := "|"
 	bp := Browse(c, sep)
-	return generic.JSONresponse(c, bp)
+	return gen.JSONresponse(c, bp)
 }
 
 // RtBrowsePerseus - open a browser if sent '/browse/perseus/lt0550/001/2:717'
 func RtBrowsePerseus(c echo.Context) error {
 	sep := ":"
 	bp := Browse(c, sep)
-	return generic.JSONresponse(c, bp)
+	return gen.JSONresponse(c, bp)
 }
 
 // RtBrowseRaw - open a browser if sent '/browse/rawlocus/lt0474/055/1.1.1'
 func RtBrowseRaw(c echo.Context) error {
 	sep := "."
 	bp := Browse(c, sep)
-	return generic.JSONresponse(c, bp)
+	return gen.JSONresponse(c, bp)
 }
 
 // RtBrowseLine - open a browser if sent '/browse/index/lt0550/001/1855'
@@ -70,7 +70,7 @@ func RtBrowseLine(c echo.Context) error {
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
 		bp := BrowsedPassage{Browserhtml: vv.AUTHWARN}
-		return generic.JSONresponse(c, bp)
+		return gen.JSONresponse(c, bp)
 	}
 
 	s := vlt.AllSessions.GetSess(user)
@@ -83,7 +83,7 @@ func RtBrowseLine(c echo.Context) error {
 		msg.EC(e)
 		ctx := s.BrowseCtx
 		bp := GenerateBrowsedPassage(au, wk, ln, ctx)
-		return generic.JSONresponse(c, bp)
+		return gen.JSONresponse(c, bp)
 	} else {
 		msg.FYI(fmt.Sprintf(FAIL, locus))
 		return emptyjsreturn(c)
@@ -276,7 +276,7 @@ func formatpublicationinfo(w structs.DbWork) string {
 		}
 	}
 
-	pubinfo = generic.AvoidLongLines(pubinfo, vv.MINBROWSERWIDTH+(vv.MINBROWSERWIDTH/2))
+	pubinfo = gen.AvoidLongLines(pubinfo, vv.MINBROWSERWIDTH+(vv.MINBROWSERWIDTH/2))
 
 	// restore the strings
 	var reconstituted string
@@ -317,7 +317,7 @@ func formatbrowsercitationinfo(f structs.DbWorkline, l structs.DbWorkline) strin
 	ti := w.Title
 
 	ci := fmt.Sprintf(CT, au, ti)
-	ci = generic.AvoidLongLines(ci, vv.MINBROWSERWIDTH)
+	ci = gen.AvoidLongLines(ci, vv.MINBROWSERWIDTH)
 	ci = strings.Replace(ci, "<cv", `<span class="currentlyviewing`, -1)
 
 	dt := `<br>(Assigned date of %s)`
@@ -395,14 +395,14 @@ func buildbrowsertable(focus int, lines []structs.DbWorkline) string {
 				wm[w] = true
 			}
 		}
-		return generic.StringMapKeysIntoSlice(wm)
+		return gen.StringMapKeysIntoSlice(wm)
 	}()
 
 	almostallregex := func() map[string]*regexp.Regexp {
 		// you will have "ἱματίῳ", but the marked up line has "ἱμα- | τίῳ"
 		ar := make(map[string]*regexp.Regexp)
 		for _, w := range allwords {
-			r := fmt.Sprintf(OBSREGTEMPL, generic.CapsVariants(w))
+			r := fmt.Sprintf(OBSREGTEMPL, gen.CapsVariants(w))
 			pattern, e := regexp.Compile(r)
 			if e != nil {
 				// you will barf if w = *
@@ -423,7 +423,7 @@ func buildbrowsertable(focus int, lines []structs.DbWorkline) string {
 		wds := strings.Split(lines[i].Accented, " ")
 		lastwordindex := len(wds) - 1
 		lwd := wds[lastwordindex] // preserve this before potentially shrinking wds
-		wds = generic.Unique(wds)
+		wds = gen.Unique(wds)
 
 		newline := lines[i].MarkedUp
 		mw := strings.Split(lines[i].MarkedUp, " ")
@@ -434,7 +434,7 @@ func buildbrowsertable(focus int, lines []structs.DbWorkline) string {
 			if j == len(wds)-1 && terminalhyph.MatchString(lmw) {
 				// wds[lastwordindex] is the unhyphenated word
 				// almostallregex does not contain this pattern: "ἱμα-", e.g.
-				np, e := regexp.Compile(fmt.Sprintf(OBSREGTEMPL, generic.CapsVariants(lmw)))
+				np, e := regexp.Compile(fmt.Sprintf(OBSREGTEMPL, gen.CapsVariants(lmw)))
 				if e != nil {
 					msg.PEEK(fmt.Sprintf(FAIL, lmw))
 					np = regexp.MustCompile("FIND_NOTHING")
@@ -465,7 +465,7 @@ func buildbrowsertable(focus int, lines []structs.DbWorkline) string {
 		cit := selectivelydisplaycitations(lines[i], previous, focus)
 
 		an := lines[i].Annotations
-		if launch.Config.DbDebug {
+		if lnch.Config.DbDebug {
 			an = fmt.Sprintf("%s: %d", lines[i].AuID(), lines[i].TbIndex)
 			// bl = fmt.Sprintf(`<span class="small">%s</span>`, lines[i].ShowMarkup())
 		}
@@ -482,8 +482,8 @@ func buildbrowsertable(focus int, lines []structs.DbWorkline) string {
 
 	tab = top + tab + `</tbody></table>`
 
-	if launch.Config.ZapLunates {
-		tab = generic.DeLunate(tab)
+	if lnch.Config.ZapLunates {
+		tab = gen.DeLunate(tab)
 	}
 
 	return tab

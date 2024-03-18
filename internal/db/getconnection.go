@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"os"
@@ -27,7 +27,7 @@ func GetDBConnection() *pgxpool.Conn {
 
 	dbc, e := SQLPool.Acquire(context.Background())
 	if e != nil {
-		if !HipparchiaDBHasData(launch.Config.PGLogin.Pass) {
+		if !HipparchiaDBHasData(lnch.Config.PGLogin.Pass) {
 			// you need to reset the whole application...
 			Msg.MAND(Msg.Color(fmt.Sprintf(FAIL3)))
 			h, err := os.UserHomeDir()
@@ -45,7 +45,7 @@ func GetDBConnection() *pgxpool.Conn {
 
 		Msg.MAND(fmt.Sprintf(FAIL1))
 		if strings.Contains(e.Error(), ERRRUN) {
-			Msg.CRIT(fmt.Sprintf(FAILRUN, ERRRUN, launch.Config.PGLogin.Port))
+			Msg.CRIT(fmt.Sprintf(FAILRUN, ERRRUN, lnch.Config.PGLogin.Port))
 		} else {
 			Msg.MAND(fmt.Sprintf(FAIL2, vv.CONFIGBASIC))
 		}

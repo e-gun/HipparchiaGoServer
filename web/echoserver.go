@@ -8,7 +8,7 @@ package web
 import (
 	"bytes"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -46,7 +46,7 @@ func StartEchoServer() {
 
 	e := echo.New()
 
-	if launch.Config.Authenticate {
+	if lnch.Config.Authenticate {
 		// assume that anyone who is using authentication is serving via the internet and so set timeouts
 		e.Server.ReadTimeout = vv.TIMEOUTRD
 		e.Server.WriteTimeout = vv.TIMEOUTWR
@@ -58,7 +58,7 @@ func StartEchoServer() {
 		e.Use(vlt.PoliceRequestAndResponse)
 	}
 
-	switch launch.Config.EchoLog {
+	switch lnch.Config.EchoLog {
 	case 3:
 		e.Use(middleware.Logger())
 	case 2:
@@ -73,7 +73,7 @@ func StartEchoServer() {
 
 	e.Use(middleware.Recover())
 
-	if launch.Config.Gzip {
+	if lnch.Config.Gzip {
 		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
 	}
 
@@ -226,5 +226,5 @@ func StartEchoServer() {
 	e.HidePort = false
 	e.Debug = false
 	e.DisableHTTP2 = true
-	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", launch.Config.HostIP, launch.Config.HostPort)))
+	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", lnch.Config.HostIP, lnch.Config.HostPort)))
 }

@@ -2,8 +2,8 @@ package search
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -32,7 +32,7 @@ func LemmaIntoRegexSlice(hdwd string) []string {
 	// there is a problem: unless you do something, "(^|\s)ἁλιεύϲ(\s|$)" will be a search term but this will not find "ἁλιεὺϲ"
 	var lemm []string
 	for _, l := range mps.AllLemm[hdwd].Deriv {
-		lemm = append(lemm, generic.FindAcuteOrGrave(l))
+		lemm = append(lemm, gen.FindAcuteOrGrave(l))
 	}
 
 	ct := 0
@@ -274,7 +274,7 @@ func SearchTermFinder(term string) *regexp.Regexp {
 		MSG = "SearchTermFinder() could not compile the following: %s"
 	)
 
-	stre := generic.UniversalPatternMaker(term)
+	stre := gen.UniversalPatternMaker(term)
 	pattern, e := regexp.Compile(stre)
 	if e != nil {
 		Msg.WARN(fmt.Sprintf(MSG, stre))
@@ -291,8 +291,8 @@ func SearchTermFinder(term string) *regexp.Regexp {
 func CleanInput(s *structs.SearchStruct) {
 	// address uv issues; lunate issues; ...
 	// no need to parse a lemma: this bounces if there is not a key match to a map
-	dropping := vv.USELESSINPUT + launch.Config.BadChars
-	s.ID = generic.Purgechars(dropping, s.ID)
+	dropping := vv.USELESSINPUT + lnch.Config.BadChars
+	s.ID = gen.Purgechars(dropping, s.ID)
 	s.Seeking = strings.ToLower(s.Seeking)
 	s.Proximate = strings.ToLower(s.Proximate)
 
@@ -311,11 +311,11 @@ func CleanInput(s *structs.SearchStruct) {
 		s.Proximate = string(rs[0:vv.MAXINPUTLEN])
 	}
 
-	s.Seeking = generic.UVσςϲ(s.Seeking)
-	s.Proximate = generic.UVσςϲ(s.Proximate)
+	s.Seeking = gen.UVσςϲ(s.Seeking)
+	s.Proximate = gen.UVσςϲ(s.Proximate)
 
-	s.Seeking = generic.Purgechars(dropping, s.Seeking)
-	s.Proximate = generic.Purgechars(dropping, s.Proximate)
+	s.Seeking = gen.Purgechars(dropping, s.Seeking)
+	s.Proximate = gen.Purgechars(dropping, s.Proximate)
 
 	// don't let BoxA be blank if BoxB is not
 	BoxA := s.Seeking == "" && s.LemmaOne == ""

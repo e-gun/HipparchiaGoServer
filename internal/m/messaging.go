@@ -7,7 +7,7 @@ package m
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"os"
 	"runtime"
 	"sort"
@@ -353,8 +353,8 @@ func (m *MessageMaker) Ticker(wait time.Duration) {
 		ctr := <-responder.Response
 
 		exclude := []string{"main() post-initialization"}
-		keys := generic.StringMapKeysIntoSlice(ctr)
-		keys = generic.SetSubtraction(keys, exclude)
+		keys := gen.StringMapKeysIntoSlice(ctr)
+		keys = gen.SetSubtraction(keys, exclude)
 
 		var pairs []string
 		for k := range keys {

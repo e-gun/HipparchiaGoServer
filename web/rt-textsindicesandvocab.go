@@ -8,8 +8,8 @@ package web
 import (
 	"cmp"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
@@ -154,8 +154,8 @@ func RtTextMaker(c echo.Context) error {
 	}
 	sum = sum + cp
 
-	if launch.Config.ZapLunates {
-		tab = generic.DeLunate(tab)
+	if lnch.Config.ZapLunates {
+		tab = gen.DeLunate(tab)
 	}
 
 	var jso JSFeeder
@@ -165,7 +165,7 @@ func RtTextMaker(c echo.Context) error {
 
 	vlt.WSInfo.Del <- srch.WSID
 
-	return generic.JSONresponse(c, jso)
+	return gen.JSONresponse(c, jso)
 }
 
 // RtVocabMaker - get the vocabulary for whatever collection of lines you would be searching
@@ -240,7 +240,7 @@ func RtVocabMaker(c echo.Context) error {
 	se := vlt.AllSessions.GetSess(user)
 
 	id := c.Param("id")
-	id = generic.Purgechars(launch.Config.BadChars, id)
+	id = gen.Purgechars(lnch.Config.BadChars, id)
 
 	// "si" is a blank search struct used for progress reporting
 	si := search.BuildDefaultSearch(c)
@@ -250,7 +250,7 @@ func RtVocabMaker(c echo.Context) error {
 	vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{si.WSID, 1}
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
-	mx := launch.Config.MaxText * vv.MAXVOCABLINEGENERATION
+	mx := lnch.Config.MaxText * vv.MAXVOCABLINEGENERATION
 	vocabsrch := search.SessionIntoBulkSearch(c, mx) // allow vocab lists to ingest more lines that text & index makers
 
 	if vocabsrch.Results.Len() == 0 {
@@ -264,7 +264,7 @@ func RtVocabMaker(c echo.Context) error {
 		for _, w := range wds {
 			this := structs.WordInfo{
 				HeadWd:     "",
-				Word:       generic.UVσςϲ(generic.SwapAcuteForGrave(w)),
+				Word:       gen.UVσςϲ(gen.SwapAcuteForGrave(w)),
 				Loc:        r.BuildHyperlink(),
 				Cit:        r.Citation(),
 				IsHomonymn: false,
@@ -336,7 +336,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	scansion := make(map[string]string)
 	if se.VocScansion {
-		scansion = search.ArrayToGetScansion(generic.StringMapKeysIntoSlice(vit))
+		scansion = search.ArrayToGetScansion(gen.StringMapKeysIntoSlice(vit))
 	}
 
 	// [f1] consolidate the information
@@ -356,7 +356,7 @@ func RtVocabMaker(c echo.Context) error {
 			Word:  k,
 			C:     v,
 			TR:    polishtrans(vit[k], pat),
-			Strip: strings.Replace(generic.StripaccentsSTR(k), "ϲ", "σ", -1),
+			Strip: strings.Replace(gen.StripaccentsSTR(k), "ϲ", "σ", -1),
 			Metr:  quantityfixer.Replace(m),
 		}
 	}
@@ -368,8 +368,8 @@ func RtVocabMaker(c echo.Context) error {
 			onlyhere = append(onlyhere, parsedwords[i].HeadWd)
 		}
 	}
-	onlyhere = generic.Unique(onlyhere)
-	onlyhere = generic.PolytonicSort(onlyhere)
+	onlyhere = gen.Unique(onlyhere)
+	onlyhere = gen.PolytonicSort(onlyhere)
 
 	vis := make([]structs.VocInfo, len(vim))
 	ct := 0
@@ -458,8 +458,8 @@ func RtVocabMaker(c echo.Context) error {
 
 	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, u, uw, el, cp, ky)
 
-	if launch.Config.ZapLunates {
-		htm = generic.DeLunate(htm)
+	if lnch.Config.ZapLunates {
+		htm = gen.DeLunate(htm)
 	}
 
 	var jso JSFeeder
@@ -472,7 +472,7 @@ func RtVocabMaker(c echo.Context) error {
 	vlt.WSInfo.Del <- si.WSID
 	vlt.WSInfo.Del <- vocabsrch.WSID
 
-	return generic.JSONresponse(c, jso)
+	return gen.JSONresponse(c, jso)
 }
 
 // RtIndexMaker - build an index for whatever collection of lines you would be searching
@@ -546,7 +546,7 @@ func RtIndexMaker(c echo.Context) error {
 	start := time.Now()
 
 	id := c.Param("id")
-	id = generic.Purgechars(launch.Config.BadChars, id)
+	id = gen.Purgechars(lnch.Config.BadChars, id)
 
 	// "si" is a blank search struct used for progress reporting
 	si := search.BuildDefaultSearch(c)
@@ -571,7 +571,7 @@ func RtIndexMaker(c echo.Context) error {
 		for _, w := range wds {
 			this := structs.WordInfo{
 				HeadWd:     "",
-				Word:       generic.UVσςϲ(generic.SwapAcuteForGrave(w)),
+				Word:       gen.UVσςϲ(gen.SwapAcuteForGrave(w)),
 				Loc:        r.BuildHyperlink(),
 				Cit:        r.Citation(),
 				IsHomonymn: false,
@@ -603,7 +603,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {
-		return generic.JSONresponse(c, JSFeeder{})
+		return gen.JSONresponse(c, JSFeeder{})
 	}
 
 	morphmap := search.ArrayToGetRequiredMorphObjects(morphslice)
@@ -646,11 +646,11 @@ func RtIndexMaker(c echo.Context) error {
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {
-		return generic.JSONresponse(c, JSFeeder{})
+		return gen.JSONresponse(c, JSFeeder{})
 	}
 
 	// keep track of unique values
-	globalwordcounts := getwordcounts(generic.StringMapKeysIntoSlice(distinct))
+	globalwordcounts := getwordcounts(gen.StringMapKeysIntoSlice(distinct))
 	localwordcounts := make(map[string]int)
 	for _, k := range slicedwords {
 		localwordcounts[k.Word] += 1
@@ -663,8 +663,8 @@ func RtIndexMaker(c echo.Context) error {
 			onlyhere = append(onlyhere, w)
 		}
 	}
-	onlyhere = generic.Unique(onlyhere)
-	onlyhere = generic.PolytonicSort(onlyhere)
+	onlyhere = gen.Unique(onlyhere)
+	onlyhere = gen.PolytonicSort(onlyhere)
 
 	slicedwords = []structs.WordInfo{} // drop after use
 
@@ -713,7 +713,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {
-		return generic.JSONresponse(c, JSFeeder{})
+		return gen.JSONresponse(c, JSFeeder{})
 	}
 
 	// [d] the final map
@@ -721,11 +721,11 @@ func RtIndexMaker(c echo.Context) error {
 
 	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{si.ID, MSG3}
 
-	indexmap := make(map[generic.PolytonicSorterStruct][]structs.WordInfo, len(trimslices))
+	indexmap := make(map[gen.PolytonicSorterStruct][]structs.WordInfo, len(trimslices))
 	for _, w := range trimslices {
 		// lunate sigma sorts after omega
-		sigma := strings.Replace(generic.StripaccentsSTR(w.HeadWd), "ϲ", "σ", -1)
-		ss := generic.PolytonicSorterStruct{
+		sigma := strings.Replace(gen.StripaccentsSTR(w.HeadWd), "ϲ", "σ", -1)
+		ss := gen.PolytonicSorterStruct{
 			Sortstring:     sigma + w.HeadWd,
 			Originalstring: w.HeadWd,
 		}
@@ -738,7 +738,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// [d2] sort the keys
 
-	keys := make([]generic.PolytonicSorterStruct, len(indexmap))
+	keys := make([]gen.PolytonicSorterStruct, len(indexmap))
 	counter := 0
 	for k, v := range indexmap {
 		k.Count = len(v)
@@ -746,7 +746,7 @@ func RtIndexMaker(c echo.Context) error {
 		counter += 1
 	}
 
-	slices.SortFunc(keys, func(a, b generic.PolytonicSorterStruct) int { return cmp.Compare(a.Sortstring, b.Sortstring) })
+	slices.SortFunc(keys, func(a, b gen.PolytonicSorterStruct) int { return cmp.Compare(a.Sortstring, b.Sortstring) })
 
 	// now you have a sorted index...; but a PolytonicSorterStruct does not make for a usable map key...
 	plainkeys := make([]string, len(keys))
@@ -761,7 +761,7 @@ func RtIndexMaker(c echo.Context) error {
 		plainmap[k.Originalstring] = indexmap[k]
 	}
 
-	indexmap = make(map[generic.PolytonicSorterStruct][]structs.WordInfo, 1) // drop after use
+	indexmap = make(map[gen.PolytonicSorterStruct][]structs.WordInfo, 1) // drop after use
 
 	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{si.ID, MSG4}
 
@@ -800,7 +800,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {
-		return generic.JSONresponse(c, JSFeeder{})
+		return gen.JSONresponse(c, JSFeeder{})
 	}
 
 	ky := multiworkkeymaker(mp, &srch)
@@ -822,8 +822,8 @@ func RtIndexMaker(c echo.Context) error {
 
 	htm += oh
 
-	if launch.Config.ZapLunates {
-		htm = generic.DeLunate(htm)
+	if lnch.Config.ZapLunates {
+		htm = gen.DeLunate(htm)
 	}
 
 	var jso JSFeeder
@@ -837,7 +837,7 @@ func RtIndexMaker(c echo.Context) error {
 	vlt.WSInfo.Del <- si.WSID
 	vlt.WSInfo.Del <- srch.WSID
 
-	return generic.JSONresponse(c, jso)
+	return gen.JSONresponse(c, jso)
 }
 
 //
@@ -855,7 +855,7 @@ func addkeystowordinfo(wii []structs.WordInfo) ([]structs.WordInfo, map[string]r
 	for i, w := range wii {
 		uu[i] = w.Wk
 	}
-	uu = generic.Unique(uu)
+	uu = gen.Unique(uu)
 	sort.Slice(uu, func(i, j int) bool { return uu[i] < uu[j] })
 	mp := make(map[string]rune)
 	for i, u := range uu {
@@ -945,7 +945,7 @@ func convertwordinfototablerow(ww []structs.WordInfo) string {
 		count += 1
 	}
 
-	keys = generic.PolytonicSort(keys)
+	keys = gen.PolytonicSort(keys)
 
 	trr := make([]string, len(keys))
 	used := make(map[string]bool)

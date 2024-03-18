@@ -6,7 +6,7 @@
 package web
 
 import (
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
@@ -59,5 +59,5 @@ func RtAuthChkuser(c echo.Context) error {
 		ID:   s.LoginName,
 		Auth: a,
 	}
-	return generic.JSONresponse(c, o)
+	return gen.JSONresponse(c, o)
 }

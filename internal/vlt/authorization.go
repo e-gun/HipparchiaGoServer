@@ -3,7 +3,7 @@ package vlt
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"io"
@@ -34,7 +34,7 @@ type AuthVault struct {
 }
 
 func (av *AuthVault) Check(u string) bool {
-	if !launch.Config.Authenticate {
+	if !lnch.Config.Authenticate {
 		return true
 	}
 	av.mutex.Lock()

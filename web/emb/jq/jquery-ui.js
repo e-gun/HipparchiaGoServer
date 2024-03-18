@@ -487,8 +487,8 @@ $.Widget.prototype = {
 
 		// If the widget is becoming disabled, then nothing is interactive
 		if ( value ) {
-			this._removeClass( this.hoverable, null, "ui-launch-hover" );
-			this._removeClass( this.focusable, null, "ui-launch-focus" );
+			this._removeClass( this.hoverable, null, "ui-lnch-hover" );
+			this._removeClass( this.focusable, null, "ui-lnch-focus" );
 		}
 	},
 
@@ -668,10 +668,10 @@ $.Widget.prototype = {
 		this.hoverable = this.hoverable.add( element );
 		this._on( element, {
 			mouseenter: function( event ) {
-				this._addClass( $( event.currentTarget ), null, "ui-launch-hover" );
+				this._addClass( $( event.currentTarget ), null, "ui-lnch-hover" );
 			},
 			mouseleave: function( event ) {
-				this._removeClass( $( event.currentTarget ), null, "ui-launch-hover" );
+				this._removeClass( $( event.currentTarget ), null, "ui-lnch-hover" );
 			}
 		} );
 	},
@@ -680,10 +680,10 @@ $.Widget.prototype = {
 		this.focusable = this.focusable.add( element );
 		this._on( element, {
 			focusin: function( event ) {
-				this._addClass( $( event.currentTarget ), null, "ui-launch-focus" );
+				this._addClass( $( event.currentTarget ), null, "ui-lnch-focus" );
 			},
 			focusout: function( event ) {
-				this._removeClass( $( event.currentTarget ), null, "ui-launch-focus" );
+				this._removeClass( $( event.currentTarget ), null, "ui-lnch-focus" );
 			}
 		} );
 	},
@@ -7007,8 +7007,8 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 		// Support: IE8 Only
 		// #5332 / #6059 - opacity doesn't cascade to positioned elements in IE
 		// so we need to add the disabled class to the headers and panels
-		this._toggleClass( null, "ui-launch-disabled", !!value );
-		this._toggleClass( this.headers.add( this.headers.next() ), null, "ui-launch-disabled",
+		this._toggleClass( null, "ui-lnch-disabled", !!value );
+		this._toggleClass( this.headers.add( this.headers.next() ), null, "ui-lnch-disabled",
 			!!value );
 	},
 
@@ -7075,7 +7075,7 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 		} else if ( this.active.length && !$.contains( this.element[ 0 ], this.active[ 0 ] ) ) {
 
 			// all remaining panel are disabled
-			if ( this.headers.length === this.headers.find( ".ui-launch-disabled" ).length ) {
+			if ( this.headers.length === this.headers.find( ".ui-lnch-disabled" ).length ) {
 				options.active = false;
 				this.active = $();
 
@@ -7106,7 +7106,7 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 			this.headers = this.element.find( this.options.header );
 		}
 		this._addClass( this.headers, "ui-accordion-header ui-accordion-header-collapsed",
-			"ui-launch-default" );
+			"ui-lnch-default" );
 
 		this.panels = this.headers.next().filter( ":not(.ui-accordion-content-active)" ).hide();
 		this._addClass( this.panels, "ui-accordion-content", "ui-helper-reset ui-widget-content" );
@@ -7125,7 +7125,7 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 			parent = this.element.parent();
 
 		this.active = this._findActive( options.active );
-		this._addClass( this.active, "ui-accordion-header-active", "ui-launch-active" )
+		this._addClass( this.active, "ui-accordion-header-active", "ui-lnch-active" )
 			._removeClass( this.active, "ui-accordion-header-collapsed" );
 		this._addClass( this.active.next(), "ui-accordion-content-active" );
 		this.active.next().show();
@@ -7290,7 +7290,7 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 
 		// Switch classes
 		// corner classes on the previously active header stay after the animation
-		this._removeClass( active, "ui-accordion-header-active", "ui-launch-active" );
+		this._removeClass( active, "ui-accordion-header-active", "ui-lnch-active" );
 		if ( options.icons ) {
 			activeChildren = active.children( ".ui-accordion-header-icon" );
 			this._removeClass( activeChildren, null, options.icons.activeHeader )
@@ -7299,7 +7299,7 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 
 		if ( !clickedIsActive ) {
 			this._removeClass( clicked, "ui-accordion-header-collapsed" )
-				._addClass( clicked, "ui-accordion-header-active", "ui-launch-active" );
+				._addClass( clicked, "ui-accordion-header-active", "ui-lnch-active" );
 			if ( options.icons ) {
 				clickedChildren = clicked.children( ".ui-accordion-header-icon" );
 				this._removeClass( clickedChildren, null, options.icons.header )
@@ -7336,7 +7336,7 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 		} );
 
 		// if we're switching panels, remove the old header from the tab order
-		// if we're opening from collapsed launch, remove the previous header from the tab order
+		// if we're opening from collapsed lnch, remove the previous header from the tab order
 		// if we're collapsing, then keep the collapsing header in the tab order
 		if ( toShow.length && toHide.length ) {
 			toHide.prev().attr( {
@@ -7504,7 +7504,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 			"click .ui-menu-item": function( event ) {
 				var target = $( event.target );
 				var active = $( $.ui.safeActiveElement( this.document[ 0 ] ) );
-				if ( !this.mouseHandled && target.not( ".ui-launch-disabled" ).length ) {
+				if ( !this.mouseHandled && target.not( ".ui-lnch-disabled" ).length ) {
 					this.select( event );
 
 					// Only set the mouseHandled flag if the event will bubble, see #9469.
@@ -7601,14 +7601,14 @@ var widgetsMenu = $.widget( "ui.menu", {
 		}
 
 		// If the item is already active, there's nothing to do
-		if ( target.is( ".ui-launch-active" ) ) {
+		if ( target.is( ".ui-lnch-active" ) ) {
 			return;
 		}
 
-		// Remove ui-launch-active class from siblings of the newly focused menu item
+		// Remove ui-lnch-active class from siblings of the newly focused menu item
 		// to avoid a jump caused by adjacent elements both having a class with a border
-		this._removeClass( target.siblings().children( ".ui-launch-active" ),
-			null, "ui-launch-active" );
+		this._removeClass( target.siblings().children( ".ui-lnch-active" ),
+			null, "ui-lnch-active" );
 		this.focus( event, target );
 	},
 
@@ -7663,7 +7663,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 			this.collapse( event );
 			break;
 		case $.ui.keyCode.RIGHT:
-			if ( this.active && !this.active.is( ".ui-launch-disabled" ) ) {
+			if ( this.active && !this.active.is( ".ui-lnch-disabled" ) ) {
 				this.expand( event );
 			}
 			break;
@@ -7720,7 +7720,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 	},
 
 	_activate: function( event ) {
-		if ( this.active && !this.active.is( ".ui-launch-disabled" ) ) {
+		if ( this.active && !this.active.is( ".ui-lnch-disabled" ) ) {
 			if ( this.active.children( "[aria-haspopup='true']" ).length ) {
 				this.expand( event );
 			} else {
@@ -7783,7 +7783,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 			._addClass( newWrappers, "ui-menu-item-wrapper" );
 
 		// Add aria-disabled attribute to any disabled menu item
-		items.filter( ".ui-launch-disabled" ).attr( "aria-disabled", "true" );
+		items.filter( ".ui-lnch-disabled" ).attr( "aria-disabled", "true" );
 
 		// If the active item has been removed, blur the menu
 		if ( this.active && !$.contains( this.element[ 0 ], this.active[ 0 ] ) ) {
@@ -7811,7 +7811,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 		this._super( value );
 
 		this.element.attr( "aria-disabled", String( value ) );
-		this._toggleClass( null, "ui-launch-disabled", !!value );
+		this._toggleClass( null, "ui-lnch-disabled", !!value );
 	},
 
 	focus: function( event, item ) {
@@ -7823,7 +7823,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 		this.active = item.first();
 
 		focused = this.active.children( ".ui-menu-item-wrapper" );
-		this._addClass( focused, null, "ui-launch-active" );
+		this._addClass( focused, null, "ui-lnch-active" );
 
 		// Only update aria-activedescendant if there's a role
 		// otherwise we assume focus is managed elsewhere
@@ -7836,7 +7836,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 			.parent()
 				.closest( ".ui-menu-item" )
 					.children( ".ui-menu-item-wrapper" );
-		this._addClass( activeParent, null, "ui-launch-active" );
+		this._addClass( activeParent, null, "ui-lnch-active" );
 
 		if ( event && event.type === "keydown" ) {
 			this._close();
@@ -7883,7 +7883,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 		}
 
 		this._removeClass( this.active.children( ".ui-menu-item-wrapper" ),
-			null, "ui-launch-active" );
+			null, "ui-lnch-active" );
 
 		this._trigger( "blur", event, { item: this.active } );
 		this.active = null;
@@ -7940,7 +7940,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 			this.blur( event );
 
 			// Work around active item staying active after menu is blurred
-			this._removeClass( currentMenu.find( ".ui-launch-active" ), null, "ui-launch-active" );
+			this._removeClass( currentMenu.find( ".ui-lnch-active" ), null, "ui-lnch-active" );
 
 			this.activeMenu = currentMenu;
 		}, all ? 0 : this.delay );
@@ -8867,7 +8867,7 @@ var widgetsControlgroup = $.widget( "ui.controlgroup", {
 					element.contents()
 						.wrapAll( "<span class='ui-controlgroup-label-contents'></span>" );
 				} );
-				that._addClass( labels, null, "ui-widget ui-widget-content ui-launch-default" );
+				that._addClass( labels, null, "ui-widget ui-widget-content ui-lnch-default" );
 				childWidgets = childWidgets.concat( labels.get() );
 				return;
 			}
@@ -8897,7 +8897,7 @@ var widgetsControlgroup = $.widget( "ui.controlgroup", {
 					var instanceOptions = $.widget.extend( {}, options );
 
 					// If the button is the child of a spinner ignore it
-					// TODO: Find a more generic solution
+					// TODO: Find a more gen solution
 					if ( widget === "button" && element.parent( ".ui-spinner" ).length ) {
 						return;
 					}
@@ -9172,16 +9172,16 @@ $.widget( "ui.checkboxradio", [ $.ui.formResetMixin, {
 		this._enhance();
 
 		if ( checked ) {
-			this._addClass( this.label, "ui-checkboxradio-checked", "ui-launch-active" );
+			this._addClass( this.label, "ui-checkboxradio-checked", "ui-lnch-active" );
 		}
 
 		this._on( {
 			change: "_toggleClasses",
 			focus: function() {
-				this._addClass( this.label, null, "ui-launch-focus ui-visual-focus" );
+				this._addClass( this.label, null, "ui-lnch-focus ui-visual-focus" );
 			},
 			blur: function() {
-				this._removeClass( this.label, null, "ui-launch-focus ui-visual-focus" );
+				this._removeClass( this.label, null, "ui-lnch-focus ui-visual-focus" );
 			}
 		} );
 	},
@@ -9228,10 +9228,10 @@ $.widget( "ui.checkboxradio", [ $.ui.formResetMixin, {
 
 	_toggleClasses: function() {
 		var checked = this.element[ 0 ].checked;
-		this._toggleClass( this.label, "ui-checkboxradio-checked", "ui-launch-active", checked );
+		this._toggleClass( this.label, "ui-checkboxradio-checked", "ui-lnch-active", checked );
 
 		if ( this.options.icon && this.type === "checkbox" ) {
-			this._toggleClass( this.icon, null, "ui-icon-check ui-launch-checked", checked )
+			this._toggleClass( this.icon, null, "ui-icon-check ui-lnch-checked", checked )
 				._toggleClass( this.icon, null, "ui-icon-blank", !checked );
 		}
 
@@ -9242,7 +9242,7 @@ $.widget( "ui.checkboxradio", [ $.ui.formResetMixin, {
 
 					if ( instance ) {
 						instance._removeClass( instance.label,
-							"ui-checkboxradio-checked", "ui-launch-active" );
+							"ui-checkboxradio-checked", "ui-lnch-active" );
 					}
 				} );
 		}
@@ -9267,7 +9267,7 @@ $.widget( "ui.checkboxradio", [ $.ui.formResetMixin, {
 		this._super( key, value );
 
 		if ( key === "disabled" ) {
-			this._toggleClass( this.label, null, "ui-launch-disabled", value );
+			this._toggleClass( this.label, null, "ui-lnch-disabled", value );
 			this.element[ 0 ].disabled = value;
 
 			// Don't refresh when setting disabled
@@ -9287,14 +9287,14 @@ $.widget( "ui.checkboxradio", [ $.ui.formResetMixin, {
 			}
 
 			if ( this.type === "checkbox" ) {
-				toAdd += checked ? "ui-icon-check ui-launch-checked" : "ui-icon-blank";
+				toAdd += checked ? "ui-icon-check ui-lnch-checked" : "ui-icon-blank";
 				this._removeClass( this.icon, null, checked ? "ui-icon-blank" : "ui-icon-check" );
 			} else {
 				toAdd += "ui-icon-blank";
 			}
 			this._addClass( this.icon, "ui-checkboxradio-icon", toAdd );
 			if ( !checked ) {
-				this._removeClass( this.icon, null, "ui-icon-check ui-launch-checked" );
+				this._removeClass( this.icon, null, "ui-icon-check ui-lnch-checked" );
 			}
 			this.icon.prependTo( this.label ).after( this.iconSpace );
 		} else if ( this.icon !== undefined ) {
@@ -9324,7 +9324,7 @@ $.widget( "ui.checkboxradio", [ $.ui.formResetMixin, {
 			isDisabled = this.element[ 0 ].disabled;
 
 		this._updateIcon( checked );
-		this._toggleClass( this.label, "ui-checkboxradio-checked", "ui-launch-active", checked );
+		this._toggleClass( this.label, "ui-checkboxradio-checked", "ui-lnch-active", checked );
 		if ( this.options.label !== null ) {
 			this._updateLabel();
 		}
@@ -9580,7 +9580,7 @@ $.widget( "ui.button", {
 		this._super( key, value );
 
 		if ( key === "disabled" ) {
-			this._toggleClass( null, "ui-launch-disabled", value );
+			this._toggleClass( null, "ui-lnch-disabled", value );
 			this.element[ 0 ].disabled = value;
 			if ( value ) {
 				this.element.trigger( "blur" );
@@ -9591,7 +9591,7 @@ $.widget( "ui.button", {
 	refresh: function() {
 
 		// Make sure to only check disabled if its an element that supports this otherwise
-		// check for the disabled class to determine launch
+		// check for the disabled class to determine lnch
 		var isDisabled = this.element.is( "input, button" ) ?
 			this.element[ 0 ].disabled : this.element.hasClass( "ui-button-disabled" );
 
@@ -9903,7 +9903,7 @@ function Datepicker() {
 		constrainInput: true, // The input is constrained by the current date format
 		showButtonPanel: false, // True to show button panel, false to not show it
 		autoSize: false, // True to size the input for the date format, false to leave as is
-		disabled: false // The initial disabled launch
+		disabled: false // The initial disabled lnch
 	};
 	$.extend( this._defaults, this.regional[ "" ] );
 	this.regional.en = $.extend( true, {}, this.regional[ "" ] );
@@ -10211,7 +10211,7 @@ $.extend( Datepicker.prototype, {
 				filter( "img" ).css( { opacity: "1.0", cursor: "" } );
 		} else if ( nodeName === "div" || nodeName === "span" ) {
 			inline = $target.children( "." + this._inlineClass );
-			inline.children().removeClass( "ui-launch-disabled" );
+			inline.children().removeClass( "ui-lnch-disabled" );
 			inline.find( "select.ui-datepicker-month, select.ui-datepicker-year" ).
 				prop( "disabled", false );
 		}
@@ -10245,7 +10245,7 @@ $.extend( Datepicker.prototype, {
 				filter( "img" ).css( { opacity: "0.5", cursor: "default" } );
 		} else if ( nodeName === "div" || nodeName === "span" ) {
 			inline = $target.children( "." + this._inlineClass );
-			inline.children().addClass( "ui-launch-disabled" );
+			inline.children().addClass( "ui-lnch-disabled" );
 			inline.find( "select.ui-datepicker-month, select.ui-datepicker-year" ).
 				prop( "disabled", true );
 		}
@@ -11444,7 +11444,7 @@ $.extend( Datepicker.prototype, {
 		} );
 	},
 
-	/* Generate the HTML for the current launch of the date picker. */
+	/* Generate the HTML for the current lnch of the date picker. */
 	_generateHTML: function( inst ) {
 		var maxDraw, prevText, prev, nextText, next, currentText, gotoDate,
 			controls, buttonPanel, firstDay, showWeek, dayNames, dayNamesMin,
@@ -11513,7 +11513,7 @@ $.extend( Datepicker.prototype, {
 		} else {
 			prev = $( "<a>" )
 				.attr( {
-					"class": "ui-datepicker-prev ui-corner-all ui-launch-disabled",
+					"class": "ui-datepicker-prev ui-corner-all ui-lnch-disabled",
 					title: prevText
 				} )
 				.append(
@@ -11548,7 +11548,7 @@ $.extend( Datepicker.prototype, {
 		} else {
 			next = $( "<a>" )
 				.attr( {
-					"class": "ui-datepicker-next ui-corner-all ui-launch-disabled",
+					"class": "ui-datepicker-next ui-corner-all ui-lnch-disabled",
 					title: nextText
 				} )
 				.append(
@@ -11569,7 +11569,7 @@ $.extend( Datepicker.prototype, {
 			controls = $( "<button>" )
 				.attr( {
 					type: "button",
-					"class": "ui-datepicker-close ui-launch-default ui-priority-primary ui-corner-all",
+					"class": "ui-datepicker-close ui-lnch-default ui-priority-primary ui-corner-all",
 					"data-handler": "hide",
 					"data-event": "click"
 				} )
@@ -11584,7 +11584,7 @@ $.extend( Datepicker.prototype, {
 					$( "<button>" )
 						.attr( {
 							type: "button",
-							"class": "ui-datepicker-current ui-launch-default ui-priority-secondary ui-corner-all",
+							"class": "ui-datepicker-current ui-lnch-default ui-priority-secondary ui-corner-all",
 							"data-handler": "today",
 							"data-event": "click"
 						} )
@@ -11668,16 +11668,16 @@ $.extend( Datepicker.prototype, {
 
 							// or defaultDate is current printedDate and defaultDate is selectedDate
 							" " + this._dayOverClass : "" ) + // highlight selected day
-							( unselectable ? " " + this._unselectableClass + " ui-launch-disabled" : "" ) +  // highlight unselectable days
+							( unselectable ? " " + this._unselectableClass + " ui-lnch-disabled" : "" ) +  // highlight unselectable days
 							( otherMonth && !showOtherMonths ? "" : " " + daySettings[ 1 ] + // highlight custom dates
 							( printDate.getTime() === currentDate.getTime() ? " " + this._currentClass : "" ) + // highlight selected day
 							( printDate.getTime() === today.getTime() ? " ui-datepicker-today" : "" ) ) + "'" + // highlight today (if different)
 							( ( !otherMonth || showOtherMonths ) && daySettings[ 2 ] ? " title='" + daySettings[ 2 ].replace( /'/g, "&#39;" ) + "'" : "" ) + // cell title
 							( unselectable ? "" : " data-handler='selectDay' data-event='click' data-month='" + printDate.getMonth() + "' data-year='" + printDate.getFullYear() + "'" ) + ">" + // actions
 							( otherMonth && !showOtherMonths ? "&#xa0;" : // display for other months
-							( unselectable ? "<span class='ui-launch-default'>" + printDate.getDate() + "</span>" : "<a class='ui-launch-default" +
-							( printDate.getTime() === today.getTime() ? " ui-launch-highlight" : "" ) +
-							( printDate.getTime() === currentDate.getTime() ? " ui-launch-active" : "" ) + // highlight selected day
+							( unselectable ? "<span class='ui-lnch-default'>" + printDate.getDate() + "</span>" : "<a class='ui-lnch-default" +
+							( printDate.getTime() === today.getTime() ? " ui-lnch-highlight" : "" ) +
+							( printDate.getTime() === currentDate.getTime() ? " ui-lnch-active" : "" ) + // highlight selected day
 							( otherMonth ? " ui-priority-secondary" : "" ) + // distinguish dates from other months
 							"' href='#' aria-current='" + ( printDate.getTime() === currentDate.getTime() ? "true" : "false" ) + // mark date as selected for screen reader
 							"' data-date='" + printDate.getDate() + // store date as data
@@ -12923,7 +12923,7 @@ var widgetsDialog = $.ui.dialog;
 //>>label: Progressbar
 //>>group: Widgets
 /* eslint-disable max-len */
-//>>description: Displays a status indicator for loading launch, standard percentage, and other progress indicators.
+//>>description: Displays a status indicator for loading lnch, standard percentage, and other progress indicators.
 /* eslint-enable max-len */
 //>>docs: http://api.jqueryui.com/progressbar/
 //>>demos: http://jqueryui.com/progressbar/
@@ -13024,7 +13024,7 @@ var widgetsProgressbar = $.widget( "ui.progressbar", {
 		this._super( value );
 
 		this.element.attr( "aria-disabled", value );
-		this._toggleClass( null, "ui-launch-disabled", !!value );
+		this._toggleClass( null, "ui-lnch-disabled", !!value );
 	},
 
 	_percentage: function() {
@@ -13299,7 +13299,7 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 		this.menuInstance.focus( null, item );
 		this._setAria( item.data( "ui-selectmenu-item" ) );
 
-		// Set disabled launch
+		// Set disabled lnch
 		this._setOption( "disabled", this.element.prop( "disabled" ) );
 	},
 
@@ -13314,7 +13314,7 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 		} else {
 
 			// Menu clears focus on close, reset focus to selected item
-			this._removeClass( this.menu.find( ".ui-launch-active" ), null, "ui-launch-active" );
+			this._removeClass( this.menu.find( ".ui-lnch-active" ), null, "ui-lnch-active" );
 			this.menuInstance.focus( null, this._getSelectedItem() );
 		}
 
@@ -13381,7 +13381,7 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 				} );
 				that._addClass( li, "ui-selectmenu-optgroup", "ui-menu-divider" +
 					( item.element.parent( "optgroup" ).prop( "disabled" ) ?
-						" ui-launch-disabled" :
+						" ui-lnch-disabled" :
 						"" ) );
 
 				li.appendTo( ul );
@@ -13404,7 +13404,7 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 			} );
 
 		if ( item.disabled ) {
-			this._addClass( li, null, "ui-launch-disabled" );
+			this._addClass( li, null, "ui-lnch-disabled" );
 		}
 		this._setText( wrapper, item.label );
 
@@ -13427,7 +13427,7 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 			item = this.menuItems.eq( this.focusIndex ).parent( "li" );
 		} else {
 			item = this.menuItems.eq( this.element[ 0 ].selectedIndex ).parent( "li" );
-			filter += ":not(.ui-launch-disabled)";
+			filter += ":not(.ui-lnch-disabled)";
 		}
 
 		if ( direction === "first" || direction === "last" ) {
@@ -13569,7 +13569,7 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 
 	_selectFocusedItem: function( event ) {
 		var item = this.menuItems.eq( this.focusIndex ).parent( "li" );
-		if ( !item.hasClass( "ui-launch-disabled" ) ) {
+		if ( !item.hasClass( "ui-lnch-disabled" ) ) {
 			this._select( item.data( "ui-selectmenu-item" ), event );
 		}
 	},
@@ -13623,7 +13623,7 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 
 		this.menuInstance.option( "disabled", value );
 		this.button.attr( "aria-disabled", value );
-		this._toggleClass( this.button, null, "ui-launch-disabled", value );
+		this._toggleClass( this.button, null, "ui-lnch-disabled", value );
 
 		this.element.prop( "disabled", value );
 		if ( value ) {
@@ -13840,7 +13840,7 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 
 		this.handles = existingHandles.add( $( handles.join( "" ) ).appendTo( this.element ) );
 
-		this._addClass( this.handles, "ui-slider-handle", "ui-launch-default" );
+		this._addClass( this.handles, "ui-slider-handle", "ui-lnch-default" );
 
 		this.handle = this.handles.eq( 0 );
 
@@ -13943,7 +13943,7 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 
 		this._handleIndex = index;
 
-		this._addClass( closestHandle, null, "ui-launch-active" );
+		this._addClass( closestHandle, null, "ui-lnch-active" );
 		closestHandle.trigger( "focus" );
 
 		offset = closestHandle.offset();
@@ -13957,7 +13957,7 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 				( parseInt( closestHandle.css( "marginTop" ), 10 ) || 0 )
 		};
 
-		if ( !this.handles.hasClass( "ui-launch-hover" ) ) {
+		if ( !this.handles.hasClass( "ui-lnch-hover" ) ) {
 			this._slide( event, index, normValue );
 		}
 		this._animateOff = true;
@@ -13978,7 +13978,7 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 	},
 
 	_mouseStop: function( event ) {
-		this._removeClass( this.handles, null, "ui-launch-active" );
+		this._removeClass( this.handles, null, "ui-lnch-active" );
 		this._mouseSliding = false;
 
 		this._stop( event, this._handleIndex );
@@ -14211,7 +14211,7 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 	_setOptionDisabled: function( value ) {
 		this._super( value );
 
-		this._toggleClass( null, "ui-launch-disabled", !!value );
+		this._toggleClass( null, "ui-lnch-disabled", !!value );
 	},
 
 	//internal value getter
@@ -14414,7 +14414,7 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 					event.preventDefault();
 					if ( !this._keySliding ) {
 						this._keySliding = true;
-						this._addClass( $( event.target ), null, "ui-launch-active" );
+						this._addClass( $( event.target ), null, "ui-lnch-active" );
 						allowed = this._start( event, index );
 						if ( allowed === false ) {
 							return;
@@ -14471,7 +14471,7 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 				this._keySliding = false;
 				this._stop( event, index );
 				this._change( event, index );
-				this._removeClass( $( event.target ), null, "ui-launch-active" );
+				this._removeClass( $( event.target ), null, "ui-lnch-active" );
 			}
 		}
 	}
@@ -14671,7 +14671,7 @@ $.widget( "ui.spinner", {
 		"mouseup .ui-spinner-button": "_stop",
 		"mouseenter .ui-spinner-button": function( event ) {
 
-			// button will add ui-launch-active if mouse was down while mouseleave and kept down
+			// button will add ui-lnch-active if mouse was down while mouseleave and kept down
 			if ( !$( event.currentTarget ).hasClass( "ui-state-active" ) ) {
 				return;
 			}
@@ -14899,7 +14899,7 @@ $.widget( "ui.spinner", {
 	_setOptionDisabled: function( value ) {
 		this._super( value );
 
-		this._toggleClass( this.uiSpinner, null, "ui-launch-disabled", !!value );
+		this._toggleClass( this.uiSpinner, null, "ui-lnch-disabled", !!value );
 		this.element.prop( "disabled", !!value );
 		this.buttons.button( value ? "disable" : "enable" );
 	},
@@ -15119,7 +15119,7 @@ $.widget( "ui.tabs", {
 		// into account and update option properly.
 		if ( Array.isArray( options.disabled ) ) {
 			options.disabled = $.uniqueSort( options.disabled.concat(
-				$.map( this.tabs.filter( ".ui-launch-disabled" ), function( li ) {
+				$.map( this.tabs.filter( ".ui-lnch-disabled" ), function( li ) {
 					return that.tabs.index( li );
 				} )
 			) ).sort();
@@ -15343,7 +15343,7 @@ $.widget( "ui.tabs", {
 
 		// Get disabled tabs from class attribute from HTML
 		// this will get converted to a boolean if needed in _refresh()
-		options.disabled = $.map( lis.filter( ".ui-launch-disabled" ), function( tab ) {
+		options.disabled = $.map( lis.filter( ".ui-lnch-disabled" ), function( tab ) {
 			return lis.index( tab );
 		} );
 
@@ -15403,7 +15403,7 @@ $.widget( "ui.tabs", {
 					"aria-expanded": "true",
 					tabIndex: 0
 				} );
-			this._addClass( this.active, "ui-tabs-active", "ui-launch-active" );
+			this._addClass( this.active, "ui-tabs-active", "ui-lnch-active" );
 			this._getPanelForTab( this.active )
 				.show()
 				.attr( {
@@ -15425,7 +15425,7 @@ $.widget( "ui.tabs", {
 		// Prevent users from focusing disabled tabs via click
 		this.tablist
 			.on( "mousedown" + this.eventNamespace, "> li", function( event ) {
-				if ( $( this ).is( ".ui-launch-disabled" ) ) {
+				if ( $( this ).is( ".ui-lnch-disabled" ) ) {
 					event.preventDefault();
 				}
 			} )
@@ -15437,7 +15437,7 @@ $.widget( "ui.tabs", {
 			// element since clicking on a non-focusable element should focus
 			// the body anyway.
 			.on( "focus" + this.eventNamespace, ".ui-tabs-anchor", function() {
-				if ( $( this ).closest( "li" ).is( ".ui-launch-disabled" ) ) {
+				if ( $( this ).closest( "li" ).is( ".ui-lnch-disabled" ) ) {
 					this.blur();
 				}
 			} );
@@ -15447,7 +15447,7 @@ $.widget( "ui.tabs", {
 				role: "tab",
 				tabIndex: -1
 			} );
-		this._addClass( this.tabs, "ui-tabs-tab", "ui-launch-default" );
+		this._addClass( this.tabs, "ui-tabs-tab", "ui-lnch-default" );
 
 		this.anchors = this.tabs.map( function() {
 			return $( "a", this )[ 0 ];
@@ -15537,10 +15537,10 @@ $.widget( "ui.tabs", {
 			currentItem = $( li );
 			if ( disabled === true || $.inArray( i, disabled ) !== -1 ) {
 				currentItem.attr( "aria-disabled", "true" );
-				this._addClass( currentItem, null, "ui-launch-disabled" );
+				this._addClass( currentItem, null, "ui-lnch-disabled" );
 			} else {
 				currentItem.removeAttr( "aria-disabled" );
-				this._removeClass( currentItem, null, "ui-launch-disabled" );
+				this._removeClass( currentItem, null, "ui-lnch-disabled" );
 			}
 		}
 
@@ -15627,7 +15627,7 @@ $.widget( "ui.tabs", {
 
 		event.preventDefault();
 
-		if ( tab.hasClass( "ui-launch-disabled" ) ||
+		if ( tab.hasClass( "ui-lnch-disabled" ) ||
 
 				// tab is already loading
 				tab.hasClass( "ui-tabs-loading" ) ||
@@ -15674,7 +15674,7 @@ $.widget( "ui.tabs", {
 		}
 
 		function show() {
-			that._addClass( eventData.newTab.closest( "li" ), "ui-tabs-active", "ui-launch-active" );
+			that._addClass( eventData.newTab.closest( "li" ), "ui-tabs-active", "ui-lnch-active" );
 
 			if ( toShow.length && that.options.show ) {
 				that._show( toShow, that.options.show, complete );
@@ -15688,12 +15688,12 @@ $.widget( "ui.tabs", {
 		if ( toHide.length && this.options.hide ) {
 			this._hide( toHide, this.options.hide, function() {
 				that._removeClass( eventData.oldTab.closest( "li" ),
-					"ui-tabs-active", "ui-launch-active" );
+					"ui-tabs-active", "ui-lnch-active" );
 				show();
 			} );
 		} else {
 			this._removeClass( eventData.oldTab.closest( "li" ),
-				"ui-tabs-active", "ui-launch-active" );
+				"ui-tabs-active", "ui-lnch-active" );
 			toHide.hide();
 			show();
 		}
@@ -15705,7 +15705,7 @@ $.widget( "ui.tabs", {
 		} );
 
 		// If we're switching tabs, remove the old tab from the tab order.
-		// If we're opening from collapsed launch, remove the previous tab from the tab order.
+		// If we're opening from collapsed lnch, remove the previous tab from the tab order.
 		// If we're collapsing, then keep the collapsing tab in the tab order.
 		if ( toShow.length && toHide.length ) {
 			eventData.oldTab.attr( "tabIndex", -1 );
@@ -17850,7 +17850,7 @@ $.fn.extend( {
 
 				// Save effect mode for later use,
 				// we can't just call $.effects.mode again later,
-				// as the .show() below destroys the initial launch
+				// as the .show() below destroys the initial lnch
 				modes.push( normalizedMode );
 
 				// See $.uiBackCompat inside of run() for removal of defaultMode in 1.14
@@ -17908,7 +17908,7 @@ $.fn.extend( {
 			}
 
 			// Override mode option on a per element basis,
-			// as toggle can be either show or hide depending on element launch
+			// as toggle can be either show or hide depending on element lnch
 			args.mode = modes.shift();
 
 			if ( $.uiBackCompat !== false && !defaultMode ) {

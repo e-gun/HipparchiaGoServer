@@ -7,8 +7,8 @@ package web
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
@@ -64,11 +64,11 @@ func RtVectorBot(c echo.Context) error {
 	// testable via:
 	// curl localhost:8000/vbot/nn/gr0011
 
-	if launch.Config.VectorsDisabled {
+	if lnch.Config.VectorsDisabled {
 		return nil
 	}
 
-	if c.RealIP() != launch.Config.HostIP {
+	if c.RealIP() != lnch.Config.HostIP {
 		msg.NOTE(fmt.Sprintf(MSG3, c.RealIP()))
 		return nil
 	}
@@ -87,7 +87,7 @@ func RtVectorBot(c echo.Context) error {
 	s.ID = "RtVectorBot-" + vtype + "-" + strings.Replace(uuid.New().String(), "-", "", -1)
 
 	allof := func(db string) []string {
-		allauth := generic.StringMapKeysIntoSlice(mps.AllAuthors)
+		allauth := gen.StringMapKeysIntoSlice(mps.AllAuthors)
 		var dbauth []string
 		for _, au := range allauth {
 			if strings.HasPrefix(au, db) {
@@ -104,7 +104,7 @@ func RtVectorBot(c echo.Context) error {
 
 	if slices.Contains(dbs, a) {
 		s.SearchIn.Authors = allof(a)
-		m := fmt.Sprintf(MSG4, a, len(s.SearchIn.Authors), launch.Config.VectorMaxlines)
+		m := fmt.Sprintf(MSG4, a, len(s.SearchIn.Authors), lnch.Config.VectorMaxlines)
 		msg.FYI(m)
 	} else {
 		if _, ok := mps.AllAuthors[a]; !ok {
@@ -136,7 +136,7 @@ func ldamodelbot(c echo.Context, s structs.SearchStruct, a string) {
 
 	// SessionIntoBulkSearch() can't be used because there is no real session...
 
-	s.CurrentLimit = launch.Config.VectorMaxlines
+	s.CurrentLimit = lnch.Config.VectorMaxlines
 	s.Seeking = ""
 
 	// do not edit the next variable without appreciating that there are "if srch.ID == "ldamodelbot()" checks elsewhere
@@ -166,7 +166,7 @@ func nnmodelbot(c echo.Context, s structs.SearchStruct, a string) {
 		MSG2    = "RtVectorBot() skipping %s - only %d lines found"
 		MINSIZE = 10000
 	)
-	m := launch.Config.VectorModel
+	m := lnch.Config.VectorModel
 	fp := vec.FingerprintNNVectorSearch(s)
 
 	// bot hangs here on gr0063 (Dionysius Thrax)
@@ -176,7 +176,7 @@ func nnmodelbot(c echo.Context, s structs.SearchStruct, a string) {
 		msg.PEEK(fmt.Sprintf(MSG1, mps.AllAuthors[a].Name))
 	} else {
 		// SessionIntoBulkSearch() can't be used because there is no real session...
-		s.CurrentLimit = launch.Config.VectorMaxlines
+		s.CurrentLimit = lnch.Config.VectorMaxlines
 		s.Seeking = ""
 		s.Proximate = ""
 		s.LemmaOne = ""
@@ -209,7 +209,7 @@ func activatevectorbot() {
 		STARTDELAY = 2
 	)
 
-	if !launch.Config.VectorBot {
+	if !lnch.Config.VectorBot {
 		return
 	}
 
@@ -223,7 +223,7 @@ func activatevectorbot() {
 	start := time.Now()
 	previous := time.Now()
 
-	auu := generic.StringMapKeysIntoSlice(mps.AllAuthors)
+	auu := gen.StringMapKeysIntoSlice(mps.AllAuthors)
 	sort.Strings(auu)
 
 	var dbs []string
@@ -267,7 +267,7 @@ func activatevectorbot() {
 			msg.Timer("AV", fmt.Sprintf(MSG2, float32(count)/tot*100, an, a), start, previous)
 			previous = time.Now()
 		}
-		u := fmt.Sprintf(URL, launch.Config.HostIP, launch.Config.HostPort, "nn", a)
+		u := fmt.Sprintf(URL, lnch.Config.HostIP, lnch.Config.HostPort, "nn", a)
 		_, err := http.Get(u)
 		msg.EC(err)
 
@@ -282,5 +282,5 @@ func activatevectorbot() {
 	msg.Timer("VB", MSG3, start, previous)
 	vec.VectorDBSizeNN(m.MSGNOTE)
 	vec.VectorDBCountNN(m.MSGNOTE)
-	launch.Config.VectorBot = false
+	lnch.Config.VectorBot = false
 }

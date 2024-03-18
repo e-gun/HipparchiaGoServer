@@ -2,7 +2,7 @@ package vlt
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -54,7 +54,7 @@ func (sv *SessionVault) GetSess(id string) structs.ServerSession {
 	defer sv.mutex.Unlock()
 	s, e := sv.SessionMap[id]
 	if e != true {
-		s = launch.MakeDefaultSession(id)
+		s = lnch.MakeDefaultSession(id)
 	}
 	return s
 }
@@ -71,7 +71,7 @@ func ReadUUIDCookie(c echo.Context) string {
 	id := cookie.Value
 
 	if !AllSessions.IsInVault(id) {
-		AllSessions.InsertSess(launch.MakeDefaultSession(id))
+		AllSessions.InsertSess(lnch.MakeDefaultSession(id))
 	}
 
 	return id

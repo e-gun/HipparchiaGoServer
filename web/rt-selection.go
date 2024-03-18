@@ -10,7 +10,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
@@ -217,15 +217,15 @@ func RtSelectionClear(c echo.Context) error {
 		// Authors: lt0474
 		// id is the md5 for "Cicero - Cicero, Marcus Tullius"
 		foundkey := kvpairmdkey(id, newincl.MappedAuthByName)
-		newincl.Authors = generic.SetSubtraction(newincl.Authors, []string{foundkey})
+		newincl.Authors = gen.SetSubtraction(newincl.Authors, []string{foundkey})
 	case "wkselections":
 		foundkey := kvpairmdkey(id, newincl.MappedWkByName)
-		newincl.Works = generic.SetSubtraction(newincl.Works, []string{foundkey})
+		newincl.Works = gen.SetSubtraction(newincl.Works, []string{foundkey})
 	case "psgselections":
 		foundkey := kvpairmdkey(id, newincl.MappedPsgByName)
-		newincl.Passages = generic.SetSubtraction(newincl.Passages, []string{foundkey})
+		newincl.Passages = gen.SetSubtraction(newincl.Passages, []string{foundkey})
 		foundbval := kvpairmdval(id, newincl.MappedPsgByName)
-		newincl.ListedPBN = generic.SetSubtraction(newincl.ListedPBN, []string{foundbval})
+		newincl.ListedPBN = gen.SetSubtraction(newincl.ListedPBN, []string{foundbval})
 		delete(newincl.MappedPsgByName, foundkey)
 	// PART TWO: EXCLUSIONS
 	case "agnexclusions":
@@ -238,15 +238,15 @@ func RtSelectionClear(c echo.Context) error {
 		newexcl.WkLocations = removemd(newexcl.WkLocations, id)
 	case "auexclusions":
 		foundkey := kvpairmdkey(id, newexcl.MappedAuthByName)
-		newexcl.Authors = generic.SetSubtraction(newexcl.Authors, []string{foundkey})
+		newexcl.Authors = gen.SetSubtraction(newexcl.Authors, []string{foundkey})
 	case "wkexclusions":
 		foundkey := kvpairmdkey(id, newexcl.MappedWkByName)
-		newexcl.Works = generic.SetSubtraction(newexcl.Works, []string{foundkey})
+		newexcl.Works = gen.SetSubtraction(newexcl.Works, []string{foundkey})
 	case "psgexclusions":
 		foundkey := kvpairmdkey(id, newexcl.MappedPsgByName)
-		newexcl.Passages = generic.SetSubtraction(newexcl.Passages, []string{foundkey})
+		newexcl.Passages = gen.SetSubtraction(newexcl.Passages, []string{foundkey})
 		foundbval := kvpairmdval(id, newexcl.MappedPsgByName)
-		newexcl.ListedPBN = generic.SetSubtraction(newexcl.ListedPBN, []string{foundbval})
+		newexcl.ListedPBN = gen.SetSubtraction(newexcl.ListedPBN, []string{foundbval})
 		delete(newexcl.MappedPsgByName, foundkey)
 	default:
 		msg.WARN(fmt.Sprintf(FAIL2, cat))
@@ -302,17 +302,17 @@ func registerselection(user string, sv SelectionValues) structs.ServerSession {
 
 	if sv.A() {
 		if !sv.IsExcl {
-			s.Inclusions.Authors = generic.Unique(append(s.Inclusions.Authors, sv.Auth))
+			s.Inclusions.Authors = gen.Unique(append(s.Inclusions.Authors, sv.Auth))
 		} else {
-			s.Exclusions.Authors = generic.Unique(append(s.Exclusions.Authors, sv.Auth))
+			s.Exclusions.Authors = gen.Unique(append(s.Exclusions.Authors, sv.Auth))
 		}
 	}
 
 	if sv.AW() {
 		if !sv.IsExcl {
-			s.Inclusions.Works = generic.Unique(append(s.Inclusions.Works, fmt.Sprintf("%sw%s", sv.Auth, sv.Work)))
+			s.Inclusions.Works = gen.Unique(append(s.Inclusions.Works, fmt.Sprintf("%sw%s", sv.Auth, sv.Work)))
 		} else {
-			s.Exclusions.Works = generic.Unique(append(s.Exclusions.Works, fmt.Sprintf("%sw%s", sv.Auth, sv.Work)))
+			s.Exclusions.Works = gen.Unique(append(s.Exclusions.Works, fmt.Sprintf("%sw%s", sv.Auth, sv.Work)))
 		}
 	}
 
@@ -325,10 +325,10 @@ func registerselection(user string, sv SelectionValues) structs.ServerSession {
 		cs := fmt.Sprintf("%s, %s, %s", ra, rw, r)
 		i := fmt.Sprintf(PSGT, sv.Auth, b[0], b[1])
 		if !sv.IsExcl {
-			s.Inclusions.Passages = generic.Unique(append(s.Inclusions.Passages, i))
+			s.Inclusions.Passages = gen.Unique(append(s.Inclusions.Passages, i))
 			s.Inclusions.MappedPsgByName[i] = cs
 		} else {
-			s.Exclusions.Passages = generic.Unique(append(s.Exclusions.Passages, i))
+			s.Exclusions.Passages = gen.Unique(append(s.Exclusions.Passages, i))
 			s.Exclusions.MappedPsgByName[i] = cs
 		}
 	}
@@ -344,10 +344,10 @@ func registerselection(user string, sv SelectionValues) structs.ServerSession {
 		cs := fmt.Sprintf("%s, %s, %s - %s", ra, rw, rs, re)
 		i := fmt.Sprintf(PSGT, sv.Auth, b[0], e[1])
 		if !sv.IsExcl {
-			s.Inclusions.Passages = generic.Unique(append(s.Inclusions.Passages, i))
+			s.Inclusions.Passages = gen.Unique(append(s.Inclusions.Passages, i))
 			s.Inclusions.MappedPsgByName[i] = cs
 		} else {
-			s.Exclusions.Passages = generic.Unique(append(s.Exclusions.Passages, i))
+			s.Exclusions.Passages = gen.Unique(append(s.Exclusions.Passages, i))
 			s.Exclusions.MappedPsgByName[i] = cs
 		}
 	}
@@ -355,9 +355,9 @@ func registerselection(user string, sv SelectionValues) structs.ServerSession {
 	if len(sv.AGenre) != 0 {
 		if _, ok := mps.AuGenres[sv.AGenre]; ok {
 			if !sv.IsExcl {
-				s.Inclusions.AuGenres = generic.Unique(append(s.Inclusions.AuGenres, sv.AGenre))
+				s.Inclusions.AuGenres = gen.Unique(append(s.Inclusions.AuGenres, sv.AGenre))
 			} else {
-				s.Exclusions.AuGenres = generic.Unique(append(s.Exclusions.AuGenres, sv.AGenre))
+				s.Exclusions.AuGenres = gen.Unique(append(s.Exclusions.AuGenres, sv.AGenre))
 			}
 		}
 	}
@@ -365,9 +365,9 @@ func registerselection(user string, sv SelectionValues) structs.ServerSession {
 	if len(sv.ALoc) != 0 {
 		if _, ok := mps.AuLocs[sv.ALoc]; ok {
 			if !sv.IsExcl {
-				s.Inclusions.AuLocations = generic.Unique(append(s.Inclusions.AuLocations, sv.ALoc))
+				s.Inclusions.AuLocations = gen.Unique(append(s.Inclusions.AuLocations, sv.ALoc))
 			} else {
-				s.Exclusions.AuLocations = generic.Unique(append(s.Exclusions.AuLocations, sv.ALoc))
+				s.Exclusions.AuLocations = gen.Unique(append(s.Exclusions.AuLocations, sv.ALoc))
 			}
 		}
 	}
@@ -375,9 +375,9 @@ func registerselection(user string, sv SelectionValues) structs.ServerSession {
 	if len(sv.WGenre) != 0 {
 		if _, ok := mps.WkGenres[sv.WGenre]; ok {
 			if !sv.IsExcl {
-				s.Inclusions.WkGenres = generic.Unique(append(s.Inclusions.WkGenres, sv.WGenre))
+				s.Inclusions.WkGenres = gen.Unique(append(s.Inclusions.WkGenres, sv.WGenre))
 			} else {
-				s.Exclusions.WkGenres = generic.Unique(append(s.Exclusions.WkGenres, sv.WGenre))
+				s.Exclusions.WkGenres = gen.Unique(append(s.Exclusions.WkGenres, sv.WGenre))
 			}
 		}
 	}
@@ -385,9 +385,9 @@ func registerselection(user string, sv SelectionValues) structs.ServerSession {
 	if len(sv.WLoc) != 0 {
 		if _, ok := mps.WkLocs[sv.WLoc]; ok {
 			if !sv.IsExcl {
-				s.Inclusions.WkLocations = generic.Unique(append(s.Inclusions.WkLocations, sv.WLoc))
+				s.Inclusions.WkLocations = gen.Unique(append(s.Inclusions.WkLocations, sv.WLoc))
 			} else {
-				s.Exclusions.WkLocations = generic.Unique(append(s.Exclusions.WkLocations, sv.WLoc))
+				s.Exclusions.WkLocations = gen.Unique(append(s.Exclusions.WkLocations, sv.WLoc))
 			}
 		}
 	}
@@ -716,11 +716,11 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int {
 		// [b] BUT in lt0474w024 "10:24" you want "24"
 		ll := strings.Split(locus, sep)
 		if len(ll) > 2 {
-			newlocus := strings.Join(generic.RemoveIndex(ll, 1), ":")
+			newlocus := strings.Join(gen.RemoveIndex(ll, 1), ":")
 			msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
 			fl, success = endpointer(wuid, newlocus, sep)
 		} else if len(ll) == 2 {
-			newlocus := strings.Join(generic.RemoveIndex(ll, 0), ":")
+			newlocus := strings.Join(gen.RemoveIndex(ll, 0), ":")
 			msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
 			fl, success = endpointer(wuid, newlocus, sep)
 		}
@@ -905,7 +905,7 @@ func reportcurrentselections(c echo.Context) SelectionData {
 
 	if s.Earliest != vv.MINDATESTR || s.Latest != vv.MAXDATESTR {
 		mustshow = true
-		sd.TimeRestr = fmt.Sprintf(TL, generic.FormatBCEDate(s.Earliest), generic.FormatBCEDate(s.Latest))
+		sd.TimeRestr = fmt.Sprintf(TL, gen.FormatBCEDate(s.Earliest), gen.FormatBCEDate(s.Latest))
 	}
 
 	sd.Select = strings.Join(rows[0], "")

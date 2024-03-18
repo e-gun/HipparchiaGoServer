@@ -7,8 +7,8 @@ package web
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vec"
@@ -24,7 +24,7 @@ import (
 
 // RtSearchConfirm - just tells the client JS where to find the poll
 func RtSearchConfirm(c echo.Context) error {
-	pt := fmt.Sprintf("%d", launch.Config.HostPort)
+	pt := fmt.Sprintf("%d", lnch.Config.HostPort)
 	return c.String(http.StatusOK, pt)
 }
 
@@ -52,7 +52,7 @@ func RtSearch(c echo.Context) error {
 	// [A] ARE WE GOING TO DO THIS AT ALL?
 
 	if !vlt.AllAuthorized.Check(user) {
-		return generic.JSONresponse(c, structs.SearchOutputJSON{JS: vv.VALIDATIONBOX})
+		return gen.JSONresponse(c, structs.SearchOutputJSON{JS: vv.VALIDATIONBOX})
 	}
 
 	getsrchcount := func(ip string) int {
@@ -61,14 +61,14 @@ func RtSearch(c echo.Context) error {
 		return <-responder.Response
 	}
 
-	if getsrchcount(c.RealIP()) >= launch.Config.MaxSrchIP {
+	if getsrchcount(c.RealIP()) >= lnch.Config.MaxSrchIP {
 		m := fmt.Sprintf(TOOMANYIP, c.RealIP(), getsrchcount(c.RealIP()))
-		return generic.JSONresponse(c, structs.SearchOutputJSON{Searchsummary: m})
+		return gen.JSONresponse(c, structs.SearchOutputJSON{Searchsummary: m})
 	}
 
-	if len(vlt.WebsocketPool.ClientMap) >= launch.Config.MaxSrchTot {
+	if len(vlt.WebsocketPool.ClientMap) >= lnch.Config.MaxSrchTot {
 		m := fmt.Sprintf(TOOMANYTOTAL, len(vlt.WebsocketPool.ClientMap))
-		return generic.JSONresponse(c, structs.SearchOutputJSON{Searchsummary: m})
+		return gen.JSONresponse(c, structs.SearchOutputJSON{Searchsummary: m})
 	}
 
 	// [B] OK, WE ARE DOING IT
@@ -83,12 +83,12 @@ func RtSearch(c echo.Context) error {
 	// "wego@v0.0.11/pkg/model/word2vec/model.go:75"
 	// ...
 
-	if se.VecNNSearch && !launch.Config.VectorsDisabled {
+	if se.VecNNSearch && !lnch.Config.VectorsDisabled {
 		// not a normal search: jump to "vectorqueryneighbors.go" where we grab all lines; build a model; query against the model; return html
 		return vec.NeighborsSearch(c, srch)
 	}
 
-	if se.VecLDASearch && !launch.Config.VectorsDisabled {
+	if se.VecLDASearch && !lnch.Config.VectorsDisabled {
 		// not a normal search: jump to "vectorquerylda.go"
 		return vec.LDASearch(c, srch)
 	}
@@ -130,5 +130,5 @@ func RtSearch(c echo.Context) error {
 	}
 
 	vlt.WSInfo.Del <- srch.WSID
-	return generic.JSONresponse(c, soj)
+	return gen.JSONresponse(c, soj)
 }

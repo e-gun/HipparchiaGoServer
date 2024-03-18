@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
@@ -236,7 +236,7 @@ func ArrayToGetRequiredMorphObjects(wordlist []string) map[string]structs.DbMorp
 
 	// this could be parallelized...
 
-	chunkedlist := generic.ChunkSlice(wordlist, CHUNKSIZE)
+	chunkedlist := gen.ChunkSlice(wordlist, CHUNKSIZE)
 	for _, cl := range chunkedlist {
 		// a waste of time to check the language on every word; just flail/fail once
 		for _, uselang := range vv.TheLanguages {

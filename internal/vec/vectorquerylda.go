@@ -8,8 +8,8 @@ package vec
 import (
 	"context"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
@@ -99,7 +99,7 @@ func LDASearch(c echo.Context, srch structs.SearchStruct) error {
 
 	var vs structs.SearchStruct
 	if srch.ID != "ldamodelbot()" {
-		vs = search.SessionIntoBulkSearch(c, launch.Config.VectorMaxlines)
+		vs = search.SessionIntoBulkSearch(c, lnch.Config.VectorMaxlines)
 		vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{vs.WSID, 1}
 		vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{vs.WSID, LDAMSG}
 		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{vs.WSID, fmt.Sprintf(ESM1)}
@@ -114,7 +114,7 @@ func LDASearch(c echo.Context, srch structs.SearchStruct) error {
 		corpus[i] = bags[i].ModifiedBag
 	}
 
-	stops := generic.StringMapKeysIntoSlice(getstopset())
+	stops := gen.StringMapKeysIntoSlice(getstopset())
 	vectoriser := nlp.NewCountVectoriser(stops...)
 
 	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{vs.WSID, fmt.Sprintf(ESM2)}
@@ -124,14 +124,14 @@ func LDASearch(c echo.Context, srch structs.SearchStruct) error {
 	var tables []string
 
 	// a chance to bail if you hit RtResetSession() in time
-	if launch.Config.SelfTest == 0 && !launch.Config.VectorBot && !vlt.AllSessions.IsInVault(vs.User) {
+	if lnch.Config.SelfTest == 0 && !lnch.Config.VectorBot && !vlt.AllSessions.IsInVault(vs.User) {
 		// m("LDASearch() aborting: RtResetSession switched user to "+vs.User, MSGFYI)
-		return generic.JSONresponse(c, structs.SearchOutputJSON{})
+		return gen.JSONresponse(c, structs.SearchOutputJSON{})
 	}
 
 	docsOverTopics, topicsOverWords, ok := ldamodel(ntopics, corpus, vectoriser, &vs)
 	if !ok {
-		return generic.JSONresponse(c, structs.SearchOutputJSON{})
+		return gen.JSONresponse(c, structs.SearchOutputJSON{})
 	}
 
 	tables = append(tables, ldatopicsummary(ntopics, topicsOverWords, vectoriser, docsOverTopics))
@@ -159,7 +159,7 @@ func LDASearch(c echo.Context, srch structs.SearchStruct) error {
 	vlt.WSInfo.Del <- srch.ID
 	vlt.WSInfo.Del <- vs.ID
 
-	return generic.JSONresponse(c, soj)
+	return gen.JSONresponse(c, soj)
 }
 
 // ldapreptext - prepare the WorkLineBundle of a SearchStruct for lda analysis
@@ -185,7 +185,7 @@ func ldapreptext(bagger string, vs *structs.SearchStruct) []BagWithLocus {
 
 	// this would be a good place to deabbreviate, etc...
 	thetext = makesubstitutions(thetext)
-	thetext = generic.SwapAcuteForGrave(thetext)
+	thetext = gen.SwapAcuteForGrave(thetext)
 	split := splitonpunctuaton(thetext)
 
 	// empty sentences via "..."? not much of an issue: Cicero goes from 68790 to 68697
@@ -246,9 +246,9 @@ func ldapreptext(bagger string, vs *structs.SearchStruct) []BagWithLocus {
 		}
 	}
 
-	slicedwords := generic.StringMapKeysIntoSlice(allwords)
+	slicedwords := gen.StringMapKeysIntoSlice(allwords)
 	// catching resets
-	if launch.Config.SelfTest == 0 && !launch.Config.VectorBot && !vlt.AllSessions.IsInVault(vs.User) {
+	if lnch.Config.SelfTest == 0 && !lnch.Config.VectorBot && !vlt.AllSessions.IsInVault(vs.User) {
 		return []BagWithLocus{}
 	}
 
@@ -271,7 +271,7 @@ func ldapreptext(bagger string, vs *structs.SearchStruct) []BagWithLocus {
 	}
 
 	// catching resets
-	if launch.Config.SelfTest == 0 && !launch.Config.VectorBot && !vlt.AllSessions.IsInVault(vs.User) {
+	if lnch.Config.SelfTest == 0 && !lnch.Config.VectorBot && !vlt.AllSessions.IsInVault(vs.User) {
 		return []BagWithLocus{}
 	}
 
@@ -697,12 +697,12 @@ func ldaplot(ctx context.Context, graph2d bool, ntopics int, incl string, bagger
 	var htmlandjs string
 	if graph2d && graph {
 		// t := NewTSNE(2, PERPLEX, LEARNRT, MAXITER, VERBOSE)
-		t := tsnemp.NewMPTSNE(launch.Config.WorkerCount, 2, PERPLEX, LEARNRT, MAXITER, VERBOSE)
+		t := tsnemp.NewMPTSNE(lnch.Config.WorkerCount, 2, PERPLEX, LEARNRT, MAXITER, VERBOSE)
 		t.EmbedDataWithCtx(ctx, wv, nil)
 		htmlandjs = lda2dscatter(ntopics, incl, bagger, t.Y, Y, bags)
 	} else if graph {
 		// 3d
-		nd := tsnemp.NewMPTSNE(launch.Config.WorkerCount, 3, PERPLEX, LEARNRT, MAXITER, VERBOSE)
+		nd := tsnemp.NewMPTSNE(lnch.Config.WorkerCount, 3, PERPLEX, LEARNRT, MAXITER, VERBOSE)
 		nd.EmbedDataWithCtx(ctx, wv, nil)
 		htmlandjs = lda3dscatter(ntopics, incl, bagger, nd.Y, Y, bags)
 	} else {

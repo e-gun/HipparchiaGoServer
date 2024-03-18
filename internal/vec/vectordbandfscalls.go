@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/e-gun/wego/pkg/embedding"
 	"github.com/e-gun/wego/pkg/model/glove"
@@ -26,8 +26,8 @@ import (
 )
 
 var (
-	dbi = launch.NewMessageMakerWithDefaults()
-	Msg = launch.NewMessageMakerWithDefaults()
+	dbi = lnch.NewMessageMakerWithDefaults()
+	Msg = lnch.NewMessageMakerWithDefaults()
 )
 
 var (

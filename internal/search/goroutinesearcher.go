@@ -8,7 +8,7 @@ package search
 import (
 	"context"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	Msg = launch.NewMessageMakerWithDefaults()
+	Msg = lnch.NewMessageMakerWithDefaults()
 )
 
 // SearchAndInsertResults - take a SearchStruct; fan out its []PrerolledQuery; collect the results; insert a WorkLineBundle into the SearchStruct
@@ -39,7 +39,7 @@ func SearchAndInsertResults(ss *structs.SearchStruct) {
 	Msg.EC(err)
 
 	// [b] fan out to run searches in parallel; searches fed by the query channel
-	workers := launch.Config.WorkerCount
+	workers := lnch.Config.WorkerCount
 	searchchannels := make([]<-chan *structs.WorkLineBundle, workers)
 
 	for i := 0; i < workers; i++ {
@@ -63,7 +63,7 @@ func SearchAndInsertResults(ss *structs.SearchStruct) {
 
 // SearchQueryFeeder - emit items to a channel from the []PrerolledQuery; they will be consumed by the PRQSearcher
 func SearchQueryFeeder(ss *structs.SearchStruct) (<-chan structs.PrerolledQuery, error) {
-	emitqueries := make(chan structs.PrerolledQuery, launch.Config.WorkerCount)
+	emitqueries := make(chan structs.PrerolledQuery, lnch.Config.WorkerCount)
 	remainder := -1
 
 	emitone := func(i int) {

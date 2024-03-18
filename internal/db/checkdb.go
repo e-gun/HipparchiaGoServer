@@ -3,14 +3,14 @@ package db
 import (
 	"bytes"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"os"
 	"os/exec"
 	"strings"
 )
 
-var Msg = launch.NewMessageMakerWithDefaults()
+var Msg = lnch.NewMessageMakerWithDefaults()
 
 // HipparchiaDBexists - does psql have hipparchiaDB in it yet?
 func HipparchiaDBexists(pgpw string) bool {

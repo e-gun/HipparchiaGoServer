@@ -7,7 +7,7 @@ package web
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/vec"
 	"github.com/google/uuid"
@@ -30,7 +30,7 @@ type SrchTest struct {
 func (t *SrchTest) Url() string {
 	sid := "selftest-" + strings.Replace(uuid.New().String(), "-", "", -1)
 	uri := fmt.Sprintf(t.s, sid, t.t1, t.t2)
-	return fmt.Sprintf("http://%s:%d/%s", launch.Config.HostIP, launch.Config.HostPort, uri)
+	return fmt.Sprintf("http://%s:%d/%s", lnch.Config.HostIP, lnch.Config.HostPort, uri)
 }
 
 func (t *SrchTest) Msg() string {
@@ -39,10 +39,10 @@ func (t *SrchTest) Msg() string {
 
 // runselftests - loop selftestsuite()
 func runselftests() {
-	if launch.Config.SelfTest > 0 {
+	if lnch.Config.SelfTest > 0 {
 		go func() {
-			for i := 0; i < launch.Config.SelfTest; i++ {
-				msg.MAND(fmt.Sprintf("Running Selftest %d of %d", i+1, launch.Config.SelfTest))
+			for i := 0; i < lnch.Config.SelfTest; i++ {
+				msg.MAND(fmt.Sprintf("Running Selftest %d of %d", i+1, lnch.Config.SelfTest))
 				selftestsuite()
 			}
 		}()
@@ -156,7 +156,7 @@ func selftestsuite() {
 
 	mm.Emit("entering selftestsuite mode (4 segments)", m.MSGMAND)
 
-	u := fmt.Sprintf("http://%s:%d/", launch.Config.HostIP, launch.Config.HostPort)
+	u := fmt.Sprintf("http://%s:%d/", lnch.Config.HostIP, lnch.Config.HostPort)
 
 	tt := [5]bool{true, true, true, true, true}
 	// tt := [5]bool{false, false, false, false, true}
@@ -185,15 +185,15 @@ func selftestsuite() {
 		mm.Emit("[II] 3 text, index, and vocab maker tests", m.MSGWARN)
 
 		getter(u + TXT)
-		mm.Timer("C1", fmt.Sprintf(MSG7, launch.Config.MaxText), start, previous)
+		mm.Timer("C1", fmt.Sprintf(MSG7, lnch.Config.MaxText), start, previous)
 		previous = time.Now()
 
 		getter(u + IDX)
-		mm.Timer("C2", fmt.Sprintf(MSG8, launch.Config.MaxText), start, previous)
+		mm.Timer("C2", fmt.Sprintf(MSG8, lnch.Config.MaxText), start, previous)
 		previous = time.Now()
 
 		getter(u + VOC)
-		mm.Timer("C3", fmt.Sprintf(MSG9, launch.Config.MaxText), start, previous)
+		mm.Timer("C3", fmt.Sprintf(MSG9, lnch.Config.MaxText), start, previous)
 		previous = time.Now()
 	}
 
@@ -240,15 +240,15 @@ func selftestsuite() {
 		previous = time.Now()
 	}
 
-	if launch.Config.VectorsDisabled {
+	if lnch.Config.VectorsDisabled {
 		mm.Emit("exiting selftestsuite mode", m.MSGMAND)
 		return
 	}
 
 	// vector selftestsuite
 	vec.VectorDBReset()
-	ovm := launch.Config.VectorModel
-	otx := launch.Config.VectorTextPrep
+	ovm := lnch.Config.VectorModel
+	otx := lnch.Config.VectorTextPrep
 
 	// glove seizes scads of memory and never releases it; need to fix wego, though, it seems
 	vmod := []string{"w2v", "lexvec", "glove"}
@@ -258,7 +258,7 @@ func selftestsuite() {
 	// fnc for [iv.3]
 	httpgetauthor := func(v string) {
 		for _, a := range vauu {
-			url := fmt.Sprintf(URL, launch.Config.HostIP, launch.Config.HostPort, v, a)
+			url := fmt.Sprintf(URL, lnch.Config.HostIP, lnch.Config.HostPort, v, a)
 			getter(url)
 		}
 	}
@@ -266,7 +266,7 @@ func selftestsuite() {
 	// fnc for [iv.2]
 	preptext := func(v string) {
 		for _, t := range vtxp {
-			launch.Config.VectorTextPrep = t
+			lnch.Config.VectorTextPrep = t
 			httpgetauthor(v)
 		}
 	}
@@ -277,7 +277,7 @@ func selftestsuite() {
 
 		// [iv.1]
 		buildmodel := func(m string, count int) {
-			launch.Config.VectorModel = m
+			lnch.Config.VectorModel = m
 			preptext("nn")
 			nb := fmt.Sprintf(MSG14, m, len(vauu), len(vtxp))
 			mm.Timer(fmt.Sprintf("E%d", count), nb, start, previous)
@@ -305,7 +305,7 @@ func selftestsuite() {
 	previous = time.Now()
 	mm.Emit("exiting selftestsuite mode", m.MSGMAND)
 
-	launch.Config.VectorModel = ovm
-	launch.Config.VectorTextPrep = otx
-	launch.Config.SelfTest = 0
+	lnch.Config.VectorModel = ovm
+	lnch.Config.VectorTextPrep = otx
+	lnch.Config.SelfTest = 0
 }

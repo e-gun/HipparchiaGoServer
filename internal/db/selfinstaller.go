@@ -8,7 +8,7 @@ package db
 import (
 	"errors"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"os"
 	"os/exec"
@@ -224,10 +224,10 @@ func ArchiveDB() {
 	// panic: runtime error: invalid memory address or nil pointer dereference
 
 	// highly likely that you do not have a value for Config.PGLogin.Pass yet, but you need one...
-	launch.SetConfigPass(launch.Config, "")
+	lnch.SetConfigPass(lnch.Config, "")
 
 	binary := GetBinaryPath("pg_dump")
-	url := GetHippaWRURI(launch.Config.PGLogin.Pass)
+	url := GetHippaWRURI(lnch.Config.PGLogin.Pass)
 
 	workers := fmt.Sprintf("%d", WRK)
 

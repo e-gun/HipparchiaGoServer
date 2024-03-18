@@ -8,8 +8,8 @@ package web
 import (
 	"bytes"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"io"
@@ -26,16 +26,16 @@ func RtEmbHCSS(c echo.Context) error {
 		ECSS = "emb/css/hgs.css"
 	)
 
-	if launch.Config.CustomCSS {
+	if lnch.Config.CustomCSS {
 		return CustomCSS(c)
 	}
 
 	// if you asked for a font on the command line, the next two lines will do something about that
-	fsub := launch.Config.Font
+	fsub := lnch.Config.Font
 	sdf := "var(--systemdefaultfont), "
 
 	// if the font is being served, then blank out "--systemdefaultfont" and get ready to map the font files into the CSS
-	if slices.Contains(generic.StringMapKeysIntoSlice(vv.ServableFonts), launch.Config.Font) {
+	if slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), lnch.Config.Font) {
 		fsub = ""
 		sdf = ""
 	}
@@ -49,7 +49,7 @@ func RtEmbHCSS(c echo.Context) error {
 	subs := map[string]interface{}{
 		"fontname":     fsub,
 		"sdf":          sdf,
-		"fontfaceinfo": cssfontfacedirectives(launch.Config.Font),
+		"fontfaceinfo": cssfontfacedirectives(lnch.Config.Font),
 	}
 
 	tmpl, e := template.New("fp").Parse(string(j))
@@ -62,7 +62,7 @@ func RtEmbHCSS(c echo.Context) error {
 	css := b.String()
 
 	// if the font is not being served, then replace font names with explicit style directives
-	if !slices.Contains(generic.StringMapKeysIntoSlice(vv.ServableFonts), launch.Config.Font) {
+	if !slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), lnch.Config.Font) {
 		css = cssmanualfontstyling(css)
 	}
 
@@ -83,14 +83,14 @@ func CustomCSS(c echo.Context) error {
 	csf, ee := os.Open(f)
 	if ee != nil {
 		msg.CRIT(fmt.Sprintf(FAIL1, h, vv.CUSTOMCSSFILENAME))
-		launch.Config.CustomCSS = false
+		lnch.Config.CustomCSS = false
 		return RtEmbHCSS(c)
 	}
 
 	b, err := io.ReadAll(csf)
 	if err != nil {
 		msg.CRIT(fmt.Sprintf(FAIL2, h, vv.CUSTOMCSSFILENAME))
-		launch.Config.CustomCSS = false
+		lnch.Config.CustomCSS = false
 		return RtEmbHCSS(c)
 	}
 

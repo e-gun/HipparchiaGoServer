@@ -8,8 +8,8 @@ package vec
 import (
 	"bytes"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -54,7 +54,7 @@ func buildblanknngraph(settings string, coreword string, incl string) *charts.Gr
 
 	wd, ht := getvecchrtwdht()
 	t := fmt.Sprintf(TITLESTR, coreword, incl)
-	sf := fmt.Sprintf(SAVEFILE, generic.StripaccentsSTR(coreword))
+	sf := fmt.Sprintf(SAVEFILE, gen.StripaccentsSTR(coreword))
 
 	graph := charts.NewGraph()
 	graph.SetGlobalOptions(
@@ -140,7 +140,7 @@ func formatnngraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 	}
 
 	// the relationships between the other words
-	coreterms := generic.ToSet(generic.StringMapKeysIntoSlice(nn))
+	coreterms := gen.ToSet(gen.StringMapKeysIntoSlice(nn))
 
 	// populate the nodes with just the core collection of terms
 	simpleweb := func() {
@@ -184,7 +184,7 @@ func formatnngraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 		simpleweb()
 	}
 
-	ft := launch.Config.Font
+	ft := lnch.Config.Font
 	if ft == "Noto" {
 		ft = NOTOFONT
 	}
@@ -350,7 +350,7 @@ func getcharttitleopts(t string, st string) opts.Title {
 		TEXTPAD   = "10"
 		NOTOFONT  = "'hipparchiasemiboldstatic', sans-serif"
 	)
-	ft := launch.Config.Font
+	ft := lnch.Config.Font
 	if ft == "Noto" {
 		ft = NOTOFONT
 	}
@@ -662,8 +662,8 @@ func custom3dscatterhtmlandjs(s *charts.Scatter3D) string {
 }
 
 func getvecchrtwdht() (string, string) {
-	wd := launch.Config.VectorChtWd
-	ht := launch.Config.VectorChtHt
+	wd := lnch.Config.VectorChtWd
+	ht := lnch.Config.VectorChtHt
 	if wd == "" || ht == "" {
 		wd = vv.DEFAULTCHRTWIDTH
 		ht = vv.DEFAULTCHRTHEIGHT

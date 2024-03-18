@@ -9,8 +9,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	sr "github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
@@ -130,7 +130,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 
 	// vectorbot already has s.Results vs normal user who does not
 	if s.Results.IsEmpty() {
-		vs = sr.SessionIntoBulkSearch(c, launch.Config.VectorMaxlines)
+		vs = sr.SessionIntoBulkSearch(c, lnch.Config.VectorMaxlines)
 		Msg.PEEK(fmt.Sprintf(MSG1, vs.Results.Len()))
 		s.Results = vs.Results
 		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, p.Sprintf(TBMSG, vs.Results.Len())}
@@ -194,7 +194,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 	b := bytes.NewReader([]byte(thetext))
 
 	// a chance to bail before training if you hit RtResetSession() in time
-	if launch.Config.SelfTest == 0 && !launch.Config.VectorBot && !vlt.AllSessions.IsInVault(s.User) {
+	if lnch.Config.SelfTest == 0 && !lnch.Config.VectorBot && !vlt.AllSessions.IsInVault(s.User) {
 		Msg.FYI("GenerateVectEmbeddings() aborting: RtResetSession switched user to " + s.User)
 		return embedding.Embeddings{}
 	}
@@ -289,7 +289,7 @@ func buildtextblock(s *structs.SearchStruct) string {
 	for r := range rr {
 		wds := r.AccentedSlice()
 		for _, w := range wds {
-			slicedwords = append(slicedwords, generic.UVσςϲ(generic.SwapAcuteForGrave(w)))
+			slicedwords = append(slicedwords, gen.UVσςϲ(gen.SwapAcuteForGrave(w)))
 		}
 	}
 

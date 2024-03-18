@@ -8,7 +8,7 @@ package search
 import (
 	"bytes"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
@@ -66,7 +66,7 @@ func SSBuildQueries(s *structs.SearchStruct) {
 
 	// check to see if RtResetSession() was called in the middle of a search
 	// selftest and vectorbot will both reset their Config values on completion
-	if launch.Config.SelfTest == 0 && !launch.Config.VectorBot && !vlt.AllSessions.IsInVault(s.User) {
+	if lnch.Config.SelfTest == 0 && !lnch.Config.VectorBot && !vlt.AllSessions.IsInVault(s.User) {
 		Msg.FYI(fmt.Sprintf(ABORT, s.User))
 		return
 	}

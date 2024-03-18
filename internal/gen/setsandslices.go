@@ -3,7 +3,7 @@
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 
-package generic
+package gen
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ import (
 // RemoveIndex - remove item #N from a slice
 func RemoveIndex[T any](s []T, index int) []T {
 	if len(s) == 0 || len(s) < index {
-		// messaging.go imports generic, so you can't 'm' this
+		// messaging.go imports gen, so you can't 'm' this
 		fmt.Println("RemoveIndex() tried to drop an out of range element")
 		return s
 	}

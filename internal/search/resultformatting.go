@@ -8,8 +8,8 @@ package search
 import (
 	"bytes"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
@@ -103,7 +103,7 @@ func FormatNoContextResults(ss *structs.SearchStruct) structs.SearchOutputJSON {
 
 		// <span class="foundauthor">%s</span>,&nbsp;<span class="foundwork">%s</span>: <browser id="%s"><span class="foundlocus">%s</span></browser>
 		ci := fmt.Sprintf(SPSUBBER, au, wk, lk, lc)
-		ci = generic.AvoidLongLines(ci, vv.MAXTITLELENGTH)
+		ci = gen.AvoidLongLines(ci, vv.MAXTITLELENGTH)
 		ci = strings.Replace(ci, "<spc", `<span class="found`, -1)
 		ci = strings.Replace(ci, `browser_id`, `browser id`, -1)
 
@@ -128,8 +128,8 @@ func FormatNoContextResults(ss *structs.SearchStruct) structs.SearchOutputJSON {
 	out.Searchsummary = formatfinalsearchsummary(ss)
 
 	out.Found = "<tbody>" + b.String() + "</tbody>"
-	if launch.Config.ZapLunates {
-		out.Found = generic.DeLunate(out.Found)
+	if lnch.Config.ZapLunates {
+		out.Found = gen.DeLunate(out.Found)
 	}
 
 	return out
@@ -338,8 +338,8 @@ func FormatWithContextResults(thesearch *structs.SearchStruct) structs.SearchOut
 	out.Searchsummary = formatfinalsearchsummary(thesearch)
 	out.Found = b.String()
 
-	if launch.Config.ZapLunates {
-		out.Found = generic.DeLunate(out.Found)
+	if lnch.Config.ZapLunates {
+		out.Found = gen.DeLunate(out.Found)
 	}
 
 	vlt.WSInfo.Del <- ctxsearch.ID
@@ -383,8 +383,8 @@ func formatfinalsearchsummary(s *structs.SearchStruct) string {
 	sess := vlt.AllSessions.GetSess(s.User)
 	var dr string
 	if sess.Earliest != vv.MINDATESTR || sess.Latest != vv.MAXDATESTR {
-		a := generic.FormatBCEDate(sess.Earliest)
-		b := generic.FormatBCEDate(sess.Latest)
+		a := gen.FormatBCEDate(sess.Earliest)
+		b := gen.FormatBCEDate(sess.Latest)
 		dr = fmt.Sprintf(BETW, a, b)
 	} else {
 		dr = DDM
@@ -443,7 +443,7 @@ func FormatInscriptionDates(template string, dbw *structs.DbWorkline) string {
 	fc := dbw.FindCorpus()
 	dated := fc == vv.INSCRIPTCORP || fc == vv.CHRISTINSC || fc == vv.PAPYRUSCORP
 	if dated {
-		cd := generic.IntToBCE(mps.AllWorks[dbw.WkUID].ConvDate)
+		cd := gen.IntToBCE(mps.AllWorks[dbw.WkUID].ConvDate)
 		if cd == "2500 C.E." {
 			cd = "??? BCE/CE"
 		}
@@ -540,7 +540,7 @@ func formateditorialbrackets(html string) string {
 
 	// special cases:
 	// [a] no "open" or "close" bracket at the head/tail of a line: ^τε͂ι βολε͂ι καὶ] το͂ι...$ / ^...ἔδοχϲεν τε͂ι βολε͂ι [καὶ το͂ι$
-	// [b] we are continuing from a previous launch: no brackets here, but should insert a span; the previous line will need to notify the subsequent...
+	// [b] we are continuing from a previous lnch: no brackets here, but should insert a span; the previous line will need to notify the subsequent...
 
 	// types: editorialmarker_angledbrackets; editorialmarker_curlybrackets, editorialmarker_roundbrackets, editorialmarker_squarebrackets
 	//
@@ -705,7 +705,7 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 	lemm := mps.AllLemm[lm].Deriv
 
 	whole := strings.Join(lemm, JOINER)
-	st := generic.UniversalPatternMaker(whole)
+	st := gen.UniversalPatternMaker(whole)
 	lup := strings.Split(st, SNIP)
 	for i, l := range lup {
 		lup[i] = fmt.Sprintf(TP, l)

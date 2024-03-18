@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5"
@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	Msg = launch.NewMessageMakerWithDefaults()
+	Msg = lnch.NewMessageMakerWithDefaults()
 )
 
 const (
@@ -23,7 +23,7 @@ const (
 func ActiveAuthorMapper() map[string]*structs.DbAuthor {
 	// see comments at top of ActiveWorkMapper(): they apply here too
 	authmap := make(map[string]*structs.DbAuthor)
-	for k, b := range launch.Config.DefCorp {
+	for k, b := range lnch.Config.DefCorp {
 		if b {
 			authmap = MapNewAuthorCorpus(k, authmap)
 		}

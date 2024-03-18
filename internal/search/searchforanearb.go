@@ -8,8 +8,8 @@ package search
 import (
 	"context"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
@@ -117,7 +117,7 @@ func WithinXLinesSearch(first structs.SearchStruct) structs.SearchStruct {
 				}
 			}
 		}
-		second.Results.Lines = generic.StringMapIntoSlice(hitmapper)
+		second.Results.Lines = gen.StringMapIntoSlice(hitmapper)
 	}
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
@@ -314,7 +314,7 @@ func WithinXWordsSearch(first structs.SearchStruct) structs.SearchStruct {
 	emit, err := XWordsFeeder(ctx, &kvp, &second)
 	Msg.EC(err)
 
-	workers := launch.Config.WorkerCount
+	workers := lnch.Config.WorkerCount
 	findchannels := make([]<-chan int, workers)
 
 	for i := 0; i < workers; i++ {
@@ -354,7 +354,7 @@ type KVPair struct {
 
 // XWordsFeeder - emit items to a channel from the []KVPair that will be consumed by the XWordsConsumer
 func XWordsFeeder(ctx context.Context, kvp *[]KVPair, ss *structs.SearchStruct) (<-chan KVPair, error) {
-	emit := make(chan KVPair, launch.Config.WorkerCount)
+	emit := make(chan KVPair, lnch.Config.WorkerCount)
 	remainder := -1
 
 	go func() {

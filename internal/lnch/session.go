@@ -1,4 +1,4 @@
-package launch
+package lnch
 
 import (
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
@@ -53,7 +53,7 @@ func MakeDefaultSession(id string) structs.ServerSession {
 	//	AllAuthorized.Register(id, true)
 	//}
 
-	//m("MakeDefaultSession() in non-default launch for testing; this is not a release build of HGS", 0)
+	//m("MakeDefaultSession() in non-default lnch for testing; this is not a release build of HGS", 0)
 	//
 	//s.VecLDASearch = true
 	//s.VecNNSearch = true
