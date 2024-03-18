@@ -7,6 +7,7 @@ package search
 
 import (
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"strconv"
@@ -53,16 +54,16 @@ func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
 		// [b1] author genres to include
 		for _, g := range sessincl.AuGenres {
 			for _, a := range activeauthors {
-				if strings.Contains(vv.AllAuthors[a].Genres, g) {
-					inc.Works = append(inc.Works, vv.AllAuthors[a].WorkList...)
+				if strings.Contains(mps.AllAuthors[a].Genres, g) {
+					inc.Works = append(inc.Works, mps.AllAuthors[a].WorkList...)
 				}
 			}
 		}
 		// [b2] work genres to include
 		for _, g := range sessincl.WkGenres {
 			for _, w := range activeworks {
-				if vv.AllWorks[w].Genre == g {
-					inc.Works = append(inc.Works, vv.AllWorks[w].UID)
+				if mps.AllWorks[w].Genre == g {
+					inc.Works = append(inc.Works, mps.AllWorks[w].UID)
 				}
 			}
 		}
@@ -70,8 +71,8 @@ func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
 		// [b3] author locations to include
 		for _, l := range sessincl.AuLocations {
 			for _, a := range activeauthors {
-				if vv.AllAuthors[a].Location == l {
-					inc.Works = append(inc.Works, vv.AllAuthors[a].WorkList...)
+				if mps.AllAuthors[a].Location == l {
+					inc.Works = append(inc.Works, mps.AllAuthors[a].WorkList...)
 				}
 			}
 		}
@@ -79,8 +80,8 @@ func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
 		// [b4] work locations to include
 		for _, l := range sessincl.WkLocations {
 			for _, w := range activeworks {
-				if vv.AllWorks[w].Prov == l {
-					inc.Works = append(inc.Works, vv.AllWorks[w].UID)
+				if mps.AllWorks[w].Prov == l {
+					inc.Works = append(inc.Works, mps.AllWorks[w].UID)
 				}
 			}
 		}
@@ -97,9 +98,9 @@ func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
 
 		for _, au := range sessincl.Authors {
 			// this should be superfluous, but...
-			_, remains := vv.AllAuthors[au]
+			_, remains := mps.AllAuthors[au]
 			if remains {
-				inc.Works = append(inc.Works, vv.AllAuthors[au].WorkList...)
+				inc.Works = append(inc.Works, mps.AllAuthors[au].WorkList...)
 			}
 		}
 
@@ -107,7 +108,7 @@ func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
 
 		for _, wk := range sessincl.Works {
 			// this should be superfluous, but...
-			_, remains := vv.AllWorks[wk]
+			_, remains := mps.AllWorks[wk]
 			if remains {
 				inc.Works = append(inc.Works, wk)
 			}
@@ -120,7 +121,7 @@ func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
 	} else {
 		// you want everything. well, maybe everything...
 		for _, w := range activeworks {
-			inc.Works = append(inc.Works, vv.AllWorks[w].UID)
+			inc.Works = append(inc.Works, mps.AllWorks[w].UID)
 		}
 
 		// but maybe the only restriction is time...
@@ -136,7 +137,7 @@ func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
 	if !s.SpuriaOK {
 		var trimmed []string
 		for _, w := range inc.Works {
-			if vv.AllWorks[w[0:10]].Authentic {
+			if mps.AllWorks[w[0:10]].Authentic {
 				trimmed = append(trimmed, w)
 			}
 		}
@@ -152,8 +153,8 @@ func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
 		// [c2c] the author genres
 		for _, g := range sessexl.AuGenres {
 			for _, a := range activeauthors {
-				if strings.Contains(vv.AllAuthors[a].Genres, g) {
-					blacklist = append(blacklist, vv.AllAuthors[a].UID)
+				if strings.Contains(mps.AllAuthors[a].Genres, g) {
+					blacklist = append(blacklist, mps.AllAuthors[a].UID)
 				}
 			}
 		}
@@ -161,8 +162,8 @@ func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
 		// [c2c] the author locations
 		for _, l := range sessexl.AuLocations {
 			for _, a := range activeauthors {
-				if vv.AllAuthors[a].Location == l {
-					blacklist = append(blacklist, vv.AllAuthors[a].UID)
+				if mps.AllAuthors[a].Location == l {
+					blacklist = append(blacklist, mps.AllAuthors[a].UID)
 				}
 			}
 		}
@@ -173,7 +174,7 @@ func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
 		// we are now moving over from AuUIDs to WkUIDS...
 
 		for _, b := range blacklist {
-			exc.Works = append(exc.Works, vv.AllAuthors[b].WorkList...)
+			exc.Works = append(exc.Works, mps.AllAuthors[b].WorkList...)
 		}
 
 		// [c2e] + the plain old work exclusions
@@ -182,8 +183,8 @@ func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
 		// [c2f] works excluded by genre
 		for _, l := range sessexl.WkGenres {
 			for _, w := range activeworks {
-				if vv.AllWorks[w].Genre == l {
-					exc.Works = append(exc.Works, vv.AllWorks[w].UID)
+				if mps.AllWorks[w].Genre == l {
+					exc.Works = append(exc.Works, mps.AllWorks[w].UID)
 				}
 			}
 		}
@@ -191,8 +192,8 @@ func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
 		// [c2g] works excluded by provenance
 		for _, l := range sessexl.WkLocations {
 			for _, w := range activeworks {
-				if vv.AllWorks[w].Prov == l {
-					exc.Works = append(exc.Works, vv.AllWorks[w].UID)
+				if mps.AllWorks[w].Prov == l {
+					exc.Works = append(exc.Works, mps.AllWorks[w].UID)
 				}
 			}
 		}
@@ -260,8 +261,8 @@ func prunebydate(searchlist []string, s structs.ServerSession) []string {
 	// [b5a] first prune the bad dates; nb: the inscriptions have lots of work dates; the gl and lt works don't
 	var trimmed []string
 	for _, uid := range searchlist {
-		cda := vv.AllAuthors[vv.AllWorks[uid].AuID()].ConvDate
-		cdb := vv.AllWorks[uid].ConvDate
+		cda := mps.AllAuthors[mps.AllWorks[uid].AuID()].ConvDate
+		cdb := mps.AllWorks[uid].ConvDate
 		if (cda >= e && cda <= l) || (cdb >= e && cdb <= l) {
 			trimmed = append(trimmed, uid)
 		}
@@ -270,8 +271,8 @@ func prunebydate(searchlist []string, s structs.ServerSession) []string {
 	// [b5b] add back in any varia and/or incerta as needed
 	if s.VariaOK {
 		for _, uid := range searchlist {
-			cda := vv.AllAuthors[vv.AllWorks[uid].AuID()].ConvDate
-			cdb := vv.AllWorks[uid].ConvDate
+			cda := mps.AllAuthors[mps.AllWorks[uid].AuID()].ConvDate
+			cdb := mps.AllWorks[uid].ConvDate
 			if (cda == vv.INCERTADATE || cda == vv.VARIADATE) && cdb == vv.VARIADATE {
 				trimmed = append(trimmed, uid)
 			}
@@ -280,8 +281,8 @@ func prunebydate(searchlist []string, s structs.ServerSession) []string {
 
 	if s.IncertaOK {
 		for _, uid := range searchlist {
-			cda := vv.AllAuthors[vv.AllWorks[uid].AuID()].ConvDate
-			cdb := vv.AllWorks[uid].ConvDate
+			cda := mps.AllAuthors[mps.AllWorks[uid].AuID()].ConvDate
+			cdb := mps.AllWorks[uid].ConvDate
 			if (cda == vv.INCERTADATE || cda == vv.VARIADATE) && cdb == vv.INCERTADATE {
 				trimmed = append(trimmed, uid)
 			}
@@ -317,9 +318,9 @@ func calculatewholeauthorsearches(sl []string) [2][]string {
 	}
 
 	for k, v := range members {
-		if len(vv.AllAuthors[k].WorkList) == v {
+		if len(mps.AllAuthors[k].WorkList) == v {
 			wholes = append(wholes, k)
-			pruner = append(pruner, vv.AllAuthors[k].WorkList...)
+			pruner = append(pruner, mps.AllAuthors[k].WorkList...)
 		}
 	}
 

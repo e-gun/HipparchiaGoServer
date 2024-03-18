@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
@@ -139,7 +140,7 @@ func LDASearch(c echo.Context, srch structs.SearchStruct) error {
 
 	htmltables := strings.Join(tables, "")
 
-	incl := srch.InclusionOverview(se.Inclusions)
+	incl := search.InclusionOverview(&srch, se.Inclusions)
 
 	var img string
 	if se.LDAgraph || srch.ID == "ldamodelbot()" {
@@ -451,8 +452,8 @@ func ldatopsentences(ntopics int, thebags []BagWithLocus, corpus []string, docsO
 
 	for i, w := range winners {
 		wl := w.Workline
-		au := stripbold.Replace(vv.AllAuthors[wl.AuID()].IDXname)
-		cit := fmt.Sprintf(tp, au, vv.AllWorks[wl.WkUID].Title, wl.Citation())
+		au := stripbold.Replace(mps.AllAuthors[wl.AuID()].IDXname)
+		cit := fmt.Sprintf(tp, au, mps.AllWorks[wl.WkUID].Title, wl.Citation())
 		r := fmt.Sprintf(TABLEELEM, i+1, w.LDAScore, cit, w.Bag)
 		tablecolumn = append(tablecolumn, r)
 	}

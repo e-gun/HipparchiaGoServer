@@ -2,12 +2,11 @@ package debug
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 )
 
 // TODO: this is hollow
-var msg = m.NewMessageMaker(launch.BuildDefaultConfig(), m.LaunchStruct{})
+var msg = m.NewMessageMaker()
 
 //
 // DEBUGGING

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
@@ -884,9 +885,9 @@ func multiworkkeymaker(mapper map[string]rune, srch *structs.SearchStruct) strin
 	if auu || wkk {
 		var out []string
 		for k, v := range mapper {
-			t := fmt.Sprintf(`<span class="italic">%s</span>`, vv.AllWorks[k].Title)
+			t := fmt.Sprintf(`<span class="italic">%s</span>`, mps.AllWorks[k].Title)
 			if auu {
-				t = vv.AllWorks[k].MyAu().Name + ", " + t
+				t = mps.MyAu(mps.AllWorks[k]).Name + ", " + t
 			}
 			out = append(out, fmt.Sprintf("%s: %s\n", string(v), t))
 		}

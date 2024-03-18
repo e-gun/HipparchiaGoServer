@@ -37,7 +37,7 @@ const (
 )
 
 var (
-	vgrm = m.NewMessageMaker(launch.BuildDefaultConfig(), m.LaunchStruct{Caller: "vectorgraphing.go"})
+	vgrm = m.NewMessageMaker()
 )
 
 //

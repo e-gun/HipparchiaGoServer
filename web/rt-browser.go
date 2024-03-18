@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
@@ -115,7 +116,7 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 		wk := elem[1]
 
 		if wk == FIRST {
-			wk = vv.AllWorks[vv.AllAuthors[au].WorkList[0]].WkID()
+			wk = mps.AllWorks[mps.AllAuthors[au].WorkList[0]].WkID()
 		}
 		uid := au + "w" + wk
 
@@ -208,7 +209,7 @@ func GenerateBrowsedPassage(au string, wk string, fc int, ctx int) BrowsedPassag
 
 	bw := fmt.Sprintf(`index/%s/%s/%d`, au, wk, p)
 	fw := fmt.Sprintf(`index/%s/%s/%d`, au, wk, n)
-	ab := fmt.Sprintf(`%s [%s]`, vv.AllAuthors[au].Cleaname, au)
+	ab := fmt.Sprintf(`%s [%s]`, mps.AllAuthors[au].Cleaname, au)
 	wb := fmt.Sprintf(`%s (w%s)`, w.Title, w.WkID())
 
 	bp := BrowsedPassage{
@@ -312,7 +313,7 @@ func formatbrowsercitationinfo(f structs.DbWorkline, l structs.DbWorkline) strin
 
 	w := f.MyWk()
 
-	au := w.MyAu().Name
+	au := mps.MyAu(w).Name
 	ti := w.Title
 
 	ci := fmt.Sprintf(CT, au, ti)

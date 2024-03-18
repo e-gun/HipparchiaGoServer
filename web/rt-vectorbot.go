@@ -10,6 +10,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
+	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
@@ -87,7 +88,7 @@ func RtVectorBot(c echo.Context) error {
 	s.ID = "RtVectorBot-" + vtype + "-" + strings.Replace(uuid.New().String(), "-", "", -1)
 
 	allof := func(db string) []string {
-		allauth := generic.StringMapKeysIntoSlice(vv.AllAuthors)
+		allauth := generic.StringMapKeysIntoSlice(mps.AllAuthors)
 		var dbauth []string
 		for _, au := range allauth {
 			if strings.HasPrefix(au, db) {
@@ -107,7 +108,7 @@ func RtVectorBot(c echo.Context) error {
 		m := fmt.Sprintf(MSG4, a, len(s.SearchIn.Authors), launch.Config.VectorMaxlines)
 		msg.FYI(m)
 	} else {
-		if _, ok := vv.AllAuthors[a]; !ok {
+		if _, ok := mps.AllAuthors[a]; !ok {
 			return nil
 		}
 		s.SearchIn.Authors = []string{a}
@@ -173,7 +174,7 @@ func nnmodelbot(c echo.Context, s structs.SearchStruct, a string) {
 	isstored := vect.VectorDBCheckNN(fp)
 
 	if isstored {
-		msg.PEEK(fmt.Sprintf(MSG1, vv.AllAuthors[a].Name))
+		msg.PEEK(fmt.Sprintf(MSG1, mps.AllAuthors[a].Name))
 	} else {
 		// SessionIntoBulkSearch() can't be used because there is no real session...
 		s.CurrentLimit = launch.Config.VectorMaxlines
@@ -223,7 +224,7 @@ func activatevectorbot() {
 	start := time.Now()
 	previous := time.Now()
 
-	auu := generic.StringMapKeysIntoSlice(vv.AllAuthors)
+	auu := generic.StringMapKeysIntoSlice(mps.AllAuthors)
 	sort.Strings(auu)
 
 	var dbs []string
@@ -250,9 +251,9 @@ func activatevectorbot() {
 		mustnotify := false
 
 		var an string
-		if _, ok := vv.AllAuthors[a]; ok {
+		if _, ok := mps.AllAuthors[a]; ok {
 			// full corpora "gr", "lt", etc. can be in here too; AllAuthors[a].Name will not find  AllAuthors["gr"]
-			an = vv.AllAuthors[a].Name
+			an = mps.AllAuthors[a].Name
 		} else {
 			an = a
 		}

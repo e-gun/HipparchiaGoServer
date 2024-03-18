@@ -8,11 +8,8 @@ package structs
 import (
 	"context"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"regexp"
 	"slices"
-	"sort"
 	"strings"
 	"time"
 )
@@ -71,52 +68,6 @@ type SearchStruct struct {
 	IsActive      bool
 }
 
-// CleanInput - remove bad chars, etc. from the submitted data
-func (s *SearchStruct) CleanInput() {
-	// address uv issues; lunate issues; ...
-	// no need to parse a lemma: this bounces if there is not a key match to a map
-	dropping := vv.USELESSINPUT + Config.BadChars
-	s.ID = generic.Purgechars(dropping, s.ID)
-	s.Seeking = strings.ToLower(s.Seeking)
-	s.Proximate = strings.ToLower(s.Proximate)
-
-	if vv.HasAccent.MatchString(s.Seeking) || vv.HasAccent.MatchString(s.Proximate) {
-		// lemma search will select accented automatically
-		s.SrchColumn = "accented_line"
-	}
-
-	rs := []rune(s.Seeking)
-	if len(rs) > vv.MAXINPUTLEN {
-		s.Seeking = string(rs[0:vv.MAXINPUTLEN])
-	}
-
-	rp := []rune(s.Proximate)
-	if len(rp) > vv.MAXINPUTLEN {
-		s.Proximate = string(rs[0:vv.MAXINPUTLEN])
-	}
-
-	s.Seeking = generic.UVσςϲ(s.Seeking)
-	s.Proximate = generic.UVσςϲ(s.Proximate)
-
-	s.Seeking = generic.Purgechars(dropping, s.Seeking)
-	s.Proximate = generic.Purgechars(dropping, s.Proximate)
-
-	// don't let BoxA be blank if BoxB is not
-	BoxA := s.Seeking == "" && s.LemmaOne == ""
-	NotBoxB := s.Proximate != "" || s.LemmaTwo != ""
-
-	if BoxA && NotBoxB {
-		if s.Proximate != "" {
-			s.Seeking = s.Proximate
-			s.Proximate = ""
-		}
-		if s.LemmaTwo != "" {
-			s.LemmaOne = s.LemmaTwo
-			s.LemmaTwo = ""
-		}
-	}
-}
-
 // SetType - set internal values via self-probe
 func (s *SearchStruct) SetType() {
 	const (
@@ -144,7 +95,7 @@ func (s *SearchStruct) SetType() {
 	if s.LemmaOne != "" {
 		s.HasLemmaBoxA = true
 		// accented line has "volat" in latin; and "uolo" will not find it
-		if vv.IsGreek.MatchString(s.LemmaOne) {
+		if IsGreek.MatchString(s.LemmaOne) {
 			s.SrchColumn = "accented_line"
 		}
 	}
@@ -158,138 +109,6 @@ func (s *SearchStruct) SetType() {
 	}
 
 	return
-}
-
-// FormatInitialSummary - build HTML for the search summary
-func (s *SearchStruct) FormatInitialSummary() {
-	// ex:
-	// Sought <span class="sought">»ἡμέρα«</span> within 2 lines of all 79 forms of <span class="sought">»ἀγαθόϲ«</span>
-	const (
-		TPM = `Sought %s<span class="sought">»%s«</span>%s`
-		WIN = `%s within %d %s of %s<span class="sought">»%s«</span>`
-		ADF = "all %d forms of "
-		INF = "Grabbing all relevant lines..."
-	)
-
-	yn := ""
-	if s.NotNear {
-		yn = " not "
-	}
-
-	af1 := ""
-	sk := s.Seeking
-	if len(s.LemmaOne) != 0 {
-		sk = s.LemmaOne
-		if _, ok := AllLemm[sk]; ok {
-			af1 = fmt.Sprintf(ADF, len(AllLemm[sk].Deriv))
-		}
-	}
-
-	two := ""
-	if s.Twobox {
-		sk2 := s.Proximate
-		af2 := ""
-		if len(s.LemmaTwo) != 0 {
-			sk2 = s.LemmaTwo
-			if _, ok := AllLemm[sk]; ok {
-				af2 = fmt.Sprintf(ADF, len(AllLemm[sk].Deriv))
-			}
-		}
-		two = fmt.Sprintf(WIN, yn, s.ProxDist, s.ProxScope, af2, sk2)
-	}
-
-	sum := INF
-	if sk != "" {
-		sum = fmt.Sprintf(TPM, af1, sk, two)
-	}
-	s.InitSum = sum
-}
-
-// InclusionOverview - yield a summary of the inclusions; NeighborsSearch will use this when calling buildblanknngraph()
-func (s *SearchStruct) InclusionOverview(sessincl SearchIncExl) string {
-	// possible to get burned, but this cheat is "good enough"
-	// hipparchiaDB=# SELECT COUNT(universalid) FROM authors WHERE universalid LIKE 'gr%';
-	// gr: 1823
-	// lt: 362
-	// in: 463
-	// ch: 291
-	// dp: 516
-
-	const (
-		MAXITEMS = 4
-		GRCT     = 1823
-		LTCT     = 362
-		INCT     = 463
-		CHCT     = 291
-		DPCT     = 516
-		FULL     = "all %d of the %s tables"
-	)
-
-	in := s.SearchIn
-	in.BuildAuByName()
-	in.BuildWkByName()
-
-	// the named passages are available to a SeverSession, not a SearchStruct
-	namemap := sessincl.MappedPsgByName
-	var nameslc []string
-	for _, v := range namemap {
-		nameslc = append(nameslc, v)
-	}
-	sort.Strings(nameslc)
-
-	var ov []string
-	ov = append(ov, in.AuGenres...)
-	ov = append(ov, in.WkGenres...)
-	ov = append(ov, in.ListedABN...)
-	ov = append(ov, in.ListedWBN...)
-	ov = append(ov, nameslc...)
-
-	notall := func() string {
-		sort.Strings(ov)
-
-		var enum []string
-
-		if len(ov) != 1 {
-			for i, p := range ov {
-				enum = append(enum, fmt.Sprintf("(%d) %s", i+1, p))
-			}
-		} else {
-			enum = append(enum, fmt.Sprintf("%s", ov[0]))
-		}
-
-		if len(enum) > MAXITEMS {
-			diff := len(enum) - MAXITEMS
-			enum = enum[0:MAXITEMS]
-			enum = append(enum, fmt.Sprintf("and %d others", diff))
-		}
-
-		o := strings.Join(enum, "; ")
-		nomarkup := strings.NewReplacer("<i>", "", "</i>", "")
-		return nomarkup.Replace(o)
-	}
-
-	tt := len(ov)
-	if tt != len(in.Authors) {
-		tt = -1
-	}
-
-	r := ""
-	switch tt {
-	case GRCT:
-		r = fmt.Sprintf(FULL, GRCT, "Greek author")
-	case LTCT:
-		r = fmt.Sprintf(FULL, LTCT, "Latin author")
-	case INCT:
-		r = fmt.Sprintf(FULL, INCT, "classical inscriptions")
-	case DPCT:
-		r = fmt.Sprintf(FULL, DPCT, "documentary papyri")
-	case CHCT:
-		r = fmt.Sprintf(FULL, CHCT, "christian era inscriptions")
-	default:
-		r = notall()
-	}
-
-	return r
 }
 
 // todo: refactor to avoid circularity
@@ -376,10 +195,10 @@ func (s *SearchStruct) LemmaBoxSwap() {
 	s.LemmaTwo = boxa
 	s.Proximate = ""
 
-	if vv.HasAccent.MatchString(boxb) {
+	if HasAccent.MatchString(boxb) {
 		s.SrchColumn = "accented_line"
 	} else {
-		s.SrchColumn = vv.DEFAULTCOLUMN
+		s.SrchColumn = DEFAULTCOLUMN
 	}
 
 	// zap some bools

@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -75,7 +76,8 @@ func NeighborsSearch(c echo.Context, srch structs.SearchStruct) error {
 	set := fmt.Sprintf(SETTINGS, sess.VecModeler, sess.VecTextPrep)
 
 	// [a] prepare the image output
-	blank := buildblanknngraph(set, term, srch.InclusionOverview(sess.Inclusions))
+	io := search.InclusionOverview(&srch, sess.Inclusions)
+	blank := buildblanknngraph(set, term, io)
 	graph := formatnngraph(c, blank, term, nn)
 	img := customnngraphhtmlandjs(graph)
 

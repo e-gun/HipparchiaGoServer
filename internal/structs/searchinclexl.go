@@ -1,7 +1,6 @@
 package structs
 
 import (
-	"fmt"
 	"slices"
 )
 
@@ -38,45 +37,6 @@ func (i *SearchIncExl) CountItems() int {
 	l := len(i.AuGenres) + len(i.WkGenres) + len(i.AuLocations) + len(i.WkLocations) + len(i.Authors)
 	l += len(i.Works) + len(i.Passages)
 	return l
-}
-
-// todo: refactor to elim circle; fnc used only once
-func (i *SearchIncExl) BuildAuByName() {
-	bn := make(map[string]string, len(i.MappedAuthByName))
-	for _, a := range i.Authors {
-		bn[a] = AllAuthors[a].Cleaname
-	}
-	i.MappedAuthByName = bn
-
-	var nn []string
-	for _, v := range bn {
-		nn = append(nn, v)
-	}
-
-	slices.Sort(nn)
-	i.ListedABN = nn
-}
-
-func (i *SearchIncExl) BuildWkByName() {
-	const (
-		TMPL = `%s, <i>%s</i>`
-	)
-	bn := make(map[string]string, len(i.MappedWkByName))
-	for _, w := range i.Works {
-		ws := AllWorks[w]
-		au := ws.MyAu().Name
-		ti := ws.Title
-		bn[w] = fmt.Sprintf(TMPL, au, ti)
-	}
-	i.MappedWkByName = bn
-
-	var nn []string
-	for _, v := range bn {
-		nn = append(nn, v)
-	}
-
-	slices.Sort(nn)
-	i.ListedWBN = nn
 }
 
 func (i *SearchIncExl) BuildPsgByName() {

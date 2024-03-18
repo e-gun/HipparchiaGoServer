@@ -8,7 +8,6 @@ package structs
 import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"regexp"
 	"sort"
 	"strings"
@@ -73,7 +72,7 @@ func (dbw *DbWorkline) GetNotes() map[string]string {
 }
 
 func (dbw *DbWorkline) FindLocus() []string {
-	loc := [vv.NUMBEROFCITATIONLEVELS]string{
+	loc := [NUMBEROFCITATIONLEVELS]string{
 		dbw.Lvl5Value,
 		dbw.Lvl4Value,
 		dbw.Lvl3Value,
@@ -93,7 +92,7 @@ func (dbw *DbWorkline) FindLocus() []string {
 
 // AuID - gr0001w001 --> gr0001
 func (dbw *DbWorkline) AuID() string {
-	return dbw.WkUID[:vv.LENGTHOFAUTHORID]
+	return dbw.WkUID[:LENGTHOFAUTHORID]
 }
 
 // MyAu - get the DbAuthor for this line
@@ -108,7 +107,7 @@ func (dbw *DbWorkline) MyAu() *DbAuthor {
 
 // WkID - gr0001w001 --> 001
 func (dbw *DbWorkline) WkID() string {
-	return dbw.WkUID[vv.LENGTHOFAUTHORID+1:]
+	return dbw.WkUID[LENGTHOFAUTHORID+1:]
 }
 
 // MyWk - get the DbWork for this line
@@ -206,7 +205,7 @@ func (dbw *DbWorkline) Lvls() int {
 	//alternate is: "return dbw.MyWk().CountLevels()"
 	vl := []string{dbw.Lvl0Value, dbw.Lvl1Value, dbw.Lvl2Value, dbw.Lvl3Value, dbw.Lvl4Value, dbw.Lvl5Value}
 	empty := generic.ContainsN(vl, "-1")
-	return vv.NUMBEROFCITATIONLEVELS - empty
+	return NUMBEROFCITATIONLEVELS - empty
 }
 
 func (dbw *DbWorkline) LvlVal(lvl int) string {

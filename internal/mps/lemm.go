@@ -1,14 +1,13 @@
-package vv
+package mps
 
 import (
 	"context"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"strings"
 )
-
-// [3] LEMMATA
 
 // LemmaMapper - map[string]DbLemma for all lemmata
 func LemmaMapper() map[string]*structs.DbLemma {
@@ -40,12 +39,12 @@ func LemmaMapper() map[string]*structs.DbLemma {
 	// clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "", "j", "i", "v", "u")
 	clean := strings.NewReplacer("-", "", "j", "i", "v", "u")
 
-	unnested := make(map[string]*structs.DbLemma, DBLMMAPSIZE)
+	unnested := make(map[string]*structs.DbLemma, vv.DBLMMAPSIZE)
 
 	// use the older iterative idiom to facilitate working with pointers: "foreach" idiom will fight you...
-	for _, lg := range TheLanguages {
+	for _, lg := range vv.TheLanguages {
 		q := fmt.Sprintf(THEQUERY, lg)
-		foundrows, err := SQLPool.Query(context.Background(), q)
+		foundrows, err := vv.SQLPool.Query(context.Background(), q)
 		msg.EC(err)
 		for foundrows.Next() {
 			thehit := &structs.DbLemma{}
@@ -65,7 +64,7 @@ func NestedLemmaMapper(unnested map[string]*structs.DbLemma) map[string]map[stri
 	// 20.96MB    20.96MB (flat, cum)  7.91% of Total
 	// you need both a nested and the unnested version; nested is for the hinter
 
-	nested := make(map[string]map[string]*structs.DbLemma, NESTEDLEMMASIZE)
+	nested := make(map[string]map[string]*structs.DbLemma, vv.NESTEDLEMMASIZE)
 	swap := strings.NewReplacer("j", "i", "v", "u")
 	for k, v := range unnested {
 		rbag := []rune(v.Entry)[0:2]

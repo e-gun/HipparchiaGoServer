@@ -12,7 +12,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/e-gun/wego/pkg/embedding"
@@ -27,8 +26,8 @@ import (
 )
 
 var (
-	dbi = m.NewMessageMaker(launch.BuildDefaultConfig(), m.LaunchStruct{Caller: "vectordbandfscalls.go"})
-	msg = m.NewMessageMaker(launch.BuildDefaultConfig(), m.LaunchStruct{})
+	dbi = m.NewMessageMaker()
+	msg = m.NewMessageMaker()
 )
 
 var (

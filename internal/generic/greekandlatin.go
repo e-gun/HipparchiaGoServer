@@ -8,11 +8,14 @@ package generic
 import (
 	"cmp"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"regexp"
 	"slices"
 	"strconv"
 	"strings"
+)
+
+const (
+	TERMINATIONS = `(\s|\.|\]|\<|⟩|’|”|\!|,|:|;|\?|·|$)` // circular imports means this is declared 2x...
 )
 
 var (
@@ -152,7 +155,7 @@ func FindAcuteOrGrave(s string) string {
 // DeLunate - Τὴν οὖν τῶν ϲωμάτων ϲύνταξιν ϲκεψαμένουϲ πρὸϲ --> Τὴν οὖν τῶν σωμάτων σύνταξιν σκεψαμένους πρὸς
 func DeLunate(txt string) string {
 	// be careful not to loop regexp.MustCompile; this function should be called on text blocks not single lines
-	swap := regexp.MustCompile("σ" + vv.TERMINATIONS)
+	swap := regexp.MustCompile("σ" + TERMINATIONS)
 	txt = strings.Replace(txt, "ϲ", "σ", -1)
 	txt = strings.Replace(txt, "Ϲ", "Σ", -1)
 	txt = swap.ReplaceAllString(txt, "ς$1")

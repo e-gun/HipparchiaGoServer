@@ -11,10 +11,10 @@ var (
 	Config        structs.CurrentConfiguration
 	SQLPool       *pgxpool.Pool
 	UserPassPairs = make(map[string]string)
-	AllWorks      = make(map[string]*structs.DbWork)
-	AllAuthors    = make(map[string]*structs.DbAuthor) // populated by authormap.go
-	AllLemm       = make(map[string]*structs.DbLemma)
-	NestedLemm    = make(map[string]map[string]*structs.DbLemma)
+	//AllWorks      = make(map[string]*structs.DbWork)
+	//AllAuthors    = make(map[string]*structs.DbAuthor) // populated by authormap.go
+	//AllLemm       = make(map[string]*structs.DbLemma)
+	//NestedLemm    = make(map[string]map[string]*structs.DbLemma)
 	WkCorpusMap   = make(map[string][]string)
 	AuCorpusMap   = make(map[string][]string)
 	LoadedCorp    = make(map[string]bool)

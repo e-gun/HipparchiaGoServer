@@ -1,10 +1,5 @@
 package structs
 
-import (
-	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-)
-
 type DbWork struct {
 	UID       string
 	Title     string
@@ -30,27 +25,16 @@ type DbWork struct {
 
 // WkID - ex: gr2017w068 --> 068
 func (dbw *DbWork) WkID() string {
-	return dbw.UID[vv.LENGTHOFAUTHORID+1:]
+	return dbw.UID[LENGTHOFAUTHORID+1:]
 }
 
 // AuID - ex: gr2017w068 --> gr2017
 func (dbw *DbWork) AuID() string {
-	if len(dbw.UID) < vv.LENGTHOFAUTHORID {
+	if len(dbw.UID) < LENGTHOFAUTHORID {
 		return ""
 	} else {
-		return dbw.UID[:vv.LENGTHOFAUTHORID]
+		return dbw.UID[:LENGTHOFAUTHORID]
 	}
-}
-
-// todo: refactor to avoid circularity
-// MyAu - return the work's DbAuthor
-func (dbw *DbWork) MyAu() *DbAuthor {
-	a, ok := AllAuthors[dbw.AuID()]
-	if !ok {
-		msg.WARN(fmt.Sprintf("DbWork.MyAu() failed to find '%s'", dbw.AuID()))
-		a = &DbAuthor{}
-	}
-	return a
 }
 
 func (dbw *DbWork) CitationFormat() []string {

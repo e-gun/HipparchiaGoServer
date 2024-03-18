@@ -44,10 +44,10 @@ type ServerSession struct {
 
 // BuildSelectionOverview will call the relevant SearchIncExl functions: see searchlistbuilder.go
 func (s *ServerSession) BuildSelectionOverview() {
-	s.Inclusions.BuildAuByName()
-	s.Exclusions.BuildAuByName()
-	s.Inclusions.BuildWkByName()
-	s.Exclusions.BuildWkByName()
+	//s.Inclusions.BuildAuByName()
+	//s.Exclusions.BuildAuByName()
+	//s.Inclusions.BuildWkByName()
+	//s.Exclusions.BuildWkByName()
 	s.Inclusions.BuildPsgByName()
 	s.Exclusions.BuildPsgByName()
 }

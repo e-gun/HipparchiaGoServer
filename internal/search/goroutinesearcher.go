@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	msg = m.NewMessageMaker(launch.BuildDefaultConfig(), m.LaunchStruct{})
+	msg = m.NewMessageMaker()
 )
 
 // SearchAndInsertResults - take a SearchStruct; fan out its []PrerolledQuery; collect the results; insert a WorkLineBundle into the SearchStruct

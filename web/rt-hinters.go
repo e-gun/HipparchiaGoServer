@@ -8,6 +8,7 @@ package web
 import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
@@ -30,7 +31,7 @@ func RtAuthorHints(c echo.Context) error {
 
 	// is what we have a match?
 	var auu [][2]string
-	for _, a := range vv.AllAuthors {
+	for _, a := range mps.AllAuthors {
 		var who string
 		var an string
 
@@ -89,8 +90,8 @@ func RtLemmaHints(c echo.Context) error {
 	nl := string(skg[0:2])
 
 	var matches []string
-	if _, ok := vv.NestedLemm[nl]; ok {
-		for _, l := range vv.NestedLemm[nl] {
+	if _, ok := mps.NestedLemm[nl]; ok {
+		for _, l := range mps.NestedLemm[nl] {
 			er := l.EntryRune()
 
 			// do not overshoot "er"...: "slice bounds out of range"

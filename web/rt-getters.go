@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
@@ -126,12 +127,12 @@ func RtGetJSWorksOf(c echo.Context) error {
 	)
 
 	id := c.Param("id")
-	wl := vv.AllAuthors[id].WorkList
+	wl := mps.AllAuthors[id].WorkList
 
 	wks := make([]string, len(wl))
 	for i := 0; i < len(wl); i++ {
 		w := wl[i]
-		wks[i] = fmt.Sprintf(TEMPL, vv.AllWorks[w].Title, w[vv.LENGTHOFAUTHORID:vv.LENGTHOFAUTHORID+vv.LENGTHOFWORKID+1])
+		wks[i] = fmt.Sprintf(TEMPL, mps.AllWorks[w].Title, w[vv.LENGTHOFAUTHORID:vv.LENGTHOFAUTHORID+vv.LENGTHOFWORKID+1])
 	}
 
 	slices.Sort(wks)
@@ -156,7 +157,7 @@ func RtGetJSWorksStruct(c echo.Context) error {
 		parsed = append(parsed, "")
 	}
 
-	if w, ok := vv.AllWorks[wkid]; !ok {
+	if w, ok := mps.AllWorks[wkid]; !ok {
 		return emptyjsreturn(c)
 	} else {
 		locc := strings.Split(parsed[2], "|")
@@ -244,7 +245,7 @@ func RtGetJSAuthorinfo(c echo.Context) error {
 	}
 
 	id := c.Param("id")
-	au := vv.AllAuthors[id]
+	au := mps.AllAuthors[id]
 
 	var at AUTempl
 	at.Name = au.Name
@@ -272,7 +273,7 @@ func RtGetJSAuthorinfo(c echo.Context) error {
 	p := message.NewPrinter(language.English)
 
 	for _, w := range au.WorkList {
-		ws := vv.AllWorks[w]
+		ws := mps.AllWorks[w]
 		var wt WKTempl
 		wt.ID = ws.UID[7:]
 		wt.Title = ws.Title
@@ -316,11 +317,11 @@ func RtGetJSSampCit(c echo.Context) error {
 	}
 	wkid := parsed[0] + "w" + parsed[1]
 
-	if _, ok := vv.AllWorks[wkid]; !ok {
+	if _, ok := mps.AllWorks[wkid]; !ok {
 		return emptyjsreturn(c)
 	}
 
-	w := vv.AllWorks[wkid]
+	w := mps.AllWorks[wkid]
 	// because "t" is going to be the first line's citation you have to hunt for the real place where the text starts
 	wlb := search.SimpleContextGrabber(w.AuID(), w.FirstLine, 2)
 	ff := wlb.Lines
@@ -366,18 +367,18 @@ func RtGetJSSearchlist(c echo.Context) error {
 
 	var wkk []string
 	for _, a := range sl.Inc.Authors {
-		for _, w := range vv.AllAuthors[a].WorkList {
+		for _, w := range mps.AllAuthors[a].WorkList {
 			ct := WORKTMPL
-			cf := m.Sprintf(ct, vv.AllAuthors[a].Cleaname, vv.AllWorks[w].Title, vv.AllWorks[w].WdCount)
+			cf := m.Sprintf(ct, mps.AllAuthors[a].Cleaname, mps.AllWorks[w].Title, mps.AllWorks[w].WdCount)
 			wkk = append(wkk, cf)
-			totalwords += vv.AllWorks[w].WdCount
+			totalwords += mps.AllWorks[w].WdCount
 		}
 	}
 
 	for _, w := range sl.Inc.Works {
-		thiswk := vv.AllWorks[w]
+		thiswk := mps.AllWorks[w]
 		ct := WORKTMPL
-		cf := m.Sprintf(ct, thiswk.MyAu().Cleaname, thiswk.Title, thiswk.WdCount)
+		cf := m.Sprintf(ct, mps.MyAu(thiswk).Cleaname, thiswk.Title, thiswk.WdCount)
 		wkk = append(wkk, cf)
 		totalwords += thiswk.WdCount
 	}
@@ -432,7 +433,7 @@ func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
 		count += len(strings.Split(l.Stripped, " "))
 	}
 
-	ct := m.Sprintf(PSGTEMPL, vv.AllAuthors[au].Cleaname, vv.AllWorks[f.WkUID].Title, f.Citation(), l.Citation(), count)
+	ct := m.Sprintf(PSGTEMPL, mps.AllAuthors[au].Cleaname, mps.AllWorks[f.WkUID].Title, f.Citation(), l.Citation(), count)
 	return ct, count
 }
 

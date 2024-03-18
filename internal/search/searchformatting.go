@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -442,7 +443,7 @@ func FormatInscriptionDates(template string, dbw *structs.DbWorkline) string {
 	fc := dbw.FindCorpus()
 	dated := fc == vv.INSCRIPTCORP || fc == vv.CHRISTINSC || fc == vv.PAPYRUSCORP
 	if dated {
-		cd := generic.IntToBCE(vv.AllWorks[dbw.WkUID].ConvDate)
+		cd := generic.IntToBCE(mps.AllWorks[dbw.WkUID].ConvDate)
 		if cd == "2500 C.E." {
 			cd = "??? BCE/CE"
 		}
@@ -461,7 +462,7 @@ func formatinscriptionplaces(dbw *structs.DbWorkline) string {
 	fc := dbw.FindCorpus()
 	placed := fc == vv.INSCRIPTCORP || fc == vv.CHRISTINSC || fc == vv.PAPYRUSCORP
 	if placed {
-		placestring = fmt.Sprintf(PLACER, vv.AllWorks[dbw.WkUID].Prov)
+		placestring = fmt.Sprintf(PLACER, mps.AllWorks[dbw.WkUID].Prov)
 	}
 	return placestring
 }
@@ -701,7 +702,7 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 		TP      = `%s` // move from match $1 to $0 in highlightsearchterm() yielded this shift...
 	)
 
-	lemm := vv.AllLemm[lm].Deriv
+	lemm := mps.AllLemm[lm].Deriv
 
 	whole := strings.Join(lemm, JOINER)
 	st := generic.UniversalPatternMaker(whole)

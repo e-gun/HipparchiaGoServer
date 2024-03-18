@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
+	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -51,11 +52,11 @@ func RtSetOption(c echo.Context) error {
 		if y && !vv.LoadedCorp[c] {
 			start := time.Now()
 			// append to the master work map
-			vv.AllWorks = mapnewworkcorpus(c, vv.AllWorks)
+			mps.AllWorks = mapnewworkcorpus(c, mps.AllWorks)
 			// append to the master author map
-			vv.AllAuthors = mapnewauthorcorpus(c, vv.AllAuthors)
+			mps.AllAuthors = mapnewauthorcorpus(c, mps.AllAuthors)
 			// re-populateglobalmaps
-			vv.RePopulateGlobalMaps()
+			mps.RePopulateGlobalMaps()
 			d := fmt.Sprintf("modifyglobalmapsifneeded(): %.3fs", time.Now().Sub(start).Seconds())
 			msg.PEEK(d)
 		}
@@ -306,7 +307,7 @@ func sliceworkcorpus(corpus string) []structs.DbWork {
 
 	var cc int
 	cq := fmt.Sprintf(CT, corpus)
-	qq := fmt.Sprintf(QT, vv.WORKTEMPLATE, corpus)
+	qq := fmt.Sprintf(QT, mps.WORKTEMPLATE, corpus)
 
 	countrow := db.SQLPool.QueryRow(context.Background(), cq)
 	err := countrow.Scan(&cc)
@@ -378,7 +379,7 @@ func sliceauthorcorpus(corpus string) []structs.DbAuthor {
 	// so: build a map of {UID: WORKLIST...}; map called by rfnc()
 
 	worklists := make(map[string][]string)
-	for _, w := range vv.AllWorks {
+	for _, w := range mps.AllWorks {
 		wk := w.UID
 		au := wk[0:vv.LENGTHOFAUTHORID]
 		if _, y := worklists[au]; !y {
@@ -390,7 +391,7 @@ func sliceauthorcorpus(corpus string) []structs.DbAuthor {
 
 	var cc int
 	cq := fmt.Sprintf(CT, corpus)
-	qq := fmt.Sprintf(QT, vv.AUTHORTEMPLATE, corpus)
+	qq := fmt.Sprintf(QT, mps.AUTHORTEMPLATE, corpus)
 
 	countrow := db.SQLPool.QueryRow(context.Background(), cq)
 	err := countrow.Scan(&cc)

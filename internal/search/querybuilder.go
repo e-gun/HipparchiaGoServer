@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -100,13 +101,13 @@ func SSBuildQueries(s *structs.SearchStruct) {
 
 	// [a1] individual works included/excluded
 	for _, w := range inc.Works {
-		wk := vv.AllWorks[w]
+		wk := mps.AllWorks[w]
 		b := structs.QueryBounds{wk.FirstLine, wk.LastLine}
 		boundedincl[wk.AuID()] = append(boundedincl[wk.AuID()], b)
 	}
 
 	for _, w := range exc.Works {
-		wk := vv.AllWorks[w]
+		wk := mps.AllWorks[w]
 		b := structs.QueryBounds{wk.FirstLine, wk.LastLine}
 		boundedexcl[wk.AuID()] = append(boundedexcl[wk.AuID()], b)
 	}

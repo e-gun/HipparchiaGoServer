@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -270,7 +271,7 @@ func WithinXWordsSearch(first structs.SearchStruct) structs.SearchStruct {
 	}
 
 	if len(first.LemmaOne) != 0 {
-		re = "(" + strings.Join(vv.AllLemm[first.LemmaOne].Deriv, " | ") + ")"
+		re = "(" + strings.Join(mps.AllLemm[first.LemmaOne].Deriv, " | ") + ")"
 
 	} else {
 		re = first.Seeking

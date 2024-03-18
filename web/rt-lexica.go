@@ -13,6 +13,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
@@ -830,8 +831,8 @@ func formatlexicaloutput(w structs.DbLexicon) string {
 	elem = append(elem, fmt.Sprintf(FRQSUM, hwc.FrqCla))
 
 	lw := generic.UVσςϲ(w.Word) // otherwise "venio" will hit AllLemm instead of "uenio"
-	if _, ok := vv.AllLemm[lw]; ok {
-		elem = append(elem, fmt.Sprintf(FORMSUMM, vv.AllLemm[lw].Xref, w.ID, w.Word, w.GetLang(), len(vv.AllLemm[lw].Deriv)))
+	if _, ok := mps.AllLemm[lw]; ok {
+		elem = append(elem, fmt.Sprintf(FORMSUMM, mps.AllLemm[lw].Xref, w.ID, w.Word, w.GetLang(), len(mps.AllLemm[lw].Deriv)))
 	}
 
 	// [h1b] principle parts

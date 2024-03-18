@@ -8,7 +8,6 @@ package pools
 import (
 	"context"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -18,7 +17,7 @@ import (
 )
 
 // TODO: this is hollow
-var msg = m.NewMessageMaker(launch.BuildDefaultConfig(), m.LaunchStruct{})
+var msg = m.NewMessageMaker()
 
 //
 // Note that SQLite will not really work. See the "devel-sqlite" branch for the brutal details. Way too slow...

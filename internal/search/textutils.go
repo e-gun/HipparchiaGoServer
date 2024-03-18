@@ -3,9 +3,13 @@ package search
 import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/launch"
+	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"regexp"
+	"slices"
+	"sort"
 	"strings"
 )
 
@@ -18,7 +22,7 @@ func LemmaIntoRegexSlice(hdwd string) []string {
 	)
 
 	var qq []string
-	if _, ok := vv.AllLemm[hdwd]; !ok {
+	if _, ok := mps.AllLemm[hdwd]; !ok {
 		msg.FYI(fmt.Sprintf(FAILMSG, hdwd))
 		return []string{FAILSLC}
 	}
@@ -27,7 +31,7 @@ func LemmaIntoRegexSlice(hdwd string) []string {
 
 	// there is a problem: unless you do something, "(^|\s)ἁλιεύϲ(\s|$)" will be a search term but this will not find "ἁλιεὺϲ"
 	var lemm []string
-	for _, l := range vv.AllLemm[hdwd].Deriv {
+	for _, l := range mps.AllLemm[hdwd].Deriv {
 		lemm = append(lemm, generic.FindAcuteOrGrave(l))
 	}
 
@@ -157,7 +161,7 @@ func FindPhrasesAcrossLines(ss *structs.SearchStruct) {
 			var nxt structs.DbWorkline
 			if i+1 < ss.Results.Len() {
 				nxt = ss.Results.Lines[i+1]
-				if r.TbIndex+1 > vv.AllWorks[r.WkUID].LastLine {
+				if r.TbIndex+1 > mps.AllWorks[r.WkUID].LastLine {
 					nxt = structs.DbWorkline{}
 				} else if r.WkUID != nxt.WkUID || r.TbIndex+1 != nxt.TbIndex {
 					// grab the actual next line (i.e. index = 101)
@@ -277,4 +281,224 @@ func SearchTermFinder(term string) *regexp.Regexp {
 		pattern = regexp.MustCompile("FAILED_FIND_NOTHING")
 	}
 	return pattern
+}
+
+//
+// ALL of the following used to be a method on the struct but that yielded import problems
+//
+
+// CleanInput - remove bad chars, etc. from the submitted data
+func CleanInput(s *structs.SearchStruct) {
+	// address uv issues; lunate issues; ...
+	// no need to parse a lemma: this bounces if there is not a key match to a map
+	dropping := vv.USELESSINPUT + launch.Config.BadChars
+	s.ID = generic.Purgechars(dropping, s.ID)
+	s.Seeking = strings.ToLower(s.Seeking)
+	s.Proximate = strings.ToLower(s.Proximate)
+
+	if structs.HasAccent.MatchString(s.Seeking) || structs.HasAccent.MatchString(s.Proximate) {
+		// lemma search will select accented automatically
+		s.SrchColumn = "accented_line"
+	}
+
+	rs := []rune(s.Seeking)
+	if len(rs) > vv.MAXINPUTLEN {
+		s.Seeking = string(rs[0:vv.MAXINPUTLEN])
+	}
+
+	rp := []rune(s.Proximate)
+	if len(rp) > vv.MAXINPUTLEN {
+		s.Proximate = string(rs[0:vv.MAXINPUTLEN])
+	}
+
+	s.Seeking = generic.UVσςϲ(s.Seeking)
+	s.Proximate = generic.UVσςϲ(s.Proximate)
+
+	s.Seeking = generic.Purgechars(dropping, s.Seeking)
+	s.Proximate = generic.Purgechars(dropping, s.Proximate)
+
+	// don't let BoxA be blank if BoxB is not
+	BoxA := s.Seeking == "" && s.LemmaOne == ""
+	NotBoxB := s.Proximate != "" || s.LemmaTwo != ""
+
+	if BoxA && NotBoxB {
+		if s.Proximate != "" {
+			s.Seeking = s.Proximate
+			s.Proximate = ""
+		}
+		if s.LemmaTwo != "" {
+			s.LemmaOne = s.LemmaTwo
+			s.LemmaTwo = ""
+		}
+	}
+}
+
+// FormatInitialSummary - build HTML for the search summary
+func FormatInitialSummary(s *structs.SearchStruct) {
+	// ex:
+	// Sought <span class="sought">»ἡμέρα«</span> within 2 lines of all 79 forms of <span class="sought">»ἀγαθόϲ«</span>
+	const (
+		TPM = `Sought %s<span class="sought">»%s«</span>%s`
+		WIN = `%s within %d %s of %s<span class="sought">»%s«</span>`
+		ADF = "all %d forms of "
+		INF = "Grabbing all relevant lines..."
+	)
+
+	yn := ""
+	if s.NotNear {
+		yn = " not "
+	}
+
+	af1 := ""
+	sk := s.Seeking
+	if len(s.LemmaOne) != 0 {
+		sk = s.LemmaOne
+		if _, ok := mps.AllLemm[sk]; ok {
+			af1 = fmt.Sprintf(ADF, len(mps.AllLemm[sk].Deriv))
+		}
+	}
+
+	two := ""
+	if s.Twobox {
+		sk2 := s.Proximate
+		af2 := ""
+		if len(s.LemmaTwo) != 0 {
+			sk2 = s.LemmaTwo
+			if _, ok := mps.AllLemm[sk]; ok {
+				af2 = fmt.Sprintf(ADF, len(mps.AllLemm[sk].Deriv))
+			}
+		}
+		two = fmt.Sprintf(WIN, yn, s.ProxDist, s.ProxScope, af2, sk2)
+	}
+
+	sum := INF
+	if sk != "" {
+		sum = fmt.Sprintf(TPM, af1, sk, two)
+	}
+	s.InitSum = sum
+}
+
+// InclusionOverview - yield a summary of the inclusions; NeighborsSearch will use this when calling buildblanknngraph()
+func InclusionOverview(s *structs.SearchStruct, sessincl structs.SearchIncExl) string {
+	// possible to get burned, but this cheat is "good enough"
+	// hipparchiaDB=# SELECT COUNT(universalid) FROM authors WHERE universalid LIKE 'gr%';
+	// gr: 1823
+	// lt: 362
+	// in: 463
+	// ch: 291
+	// dp: 516
+
+	const (
+		MAXITEMS = 4
+		GRCT     = 1823
+		LTCT     = 362
+		INCT     = 463
+		CHCT     = 291
+		DPCT     = 516
+		FULL     = "all %d of the %s tables"
+	)
+
+	in := s.SearchIn
+	BuildAuByName(&in)
+	BuildWkByName(&in)
+
+	// the named passages are available to a SeverSession, not a SearchStruct
+	namemap := sessincl.MappedPsgByName
+	var nameslc []string
+	for _, v := range namemap {
+		nameslc = append(nameslc, v)
+	}
+	sort.Strings(nameslc)
+
+	var ov []string
+	ov = append(ov, in.AuGenres...)
+	ov = append(ov, in.WkGenres...)
+	ov = append(ov, in.ListedABN...)
+	ov = append(ov, in.ListedWBN...)
+	ov = append(ov, nameslc...)
+
+	notall := func() string {
+		sort.Strings(ov)
+
+		var enum []string
+
+		if len(ov) != 1 {
+			for i, p := range ov {
+				enum = append(enum, fmt.Sprintf("(%d) %s", i+1, p))
+			}
+		} else {
+			enum = append(enum, fmt.Sprintf("%s", ov[0]))
+		}
+
+		if len(enum) > MAXITEMS {
+			diff := len(enum) - MAXITEMS
+			enum = enum[0:MAXITEMS]
+			enum = append(enum, fmt.Sprintf("and %d others", diff))
+		}
+
+		o := strings.Join(enum, "; ")
+		nomarkup := strings.NewReplacer("<i>", "", "</i>", "")
+		return nomarkup.Replace(o)
+	}
+
+	tt := len(ov)
+	if tt != len(in.Authors) {
+		tt = -1
+	}
+
+	r := ""
+	switch tt {
+	case GRCT:
+		r = fmt.Sprintf(FULL, GRCT, "Greek author")
+	case LTCT:
+		r = fmt.Sprintf(FULL, LTCT, "Latin author")
+	case INCT:
+		r = fmt.Sprintf(FULL, INCT, "classical inscriptions")
+	case DPCT:
+		r = fmt.Sprintf(FULL, DPCT, "documentary papyri")
+	case CHCT:
+		r = fmt.Sprintf(FULL, CHCT, "christian era inscriptions")
+	default:
+		r = notall()
+	}
+
+	return r
+}
+
+func BuildAuByName(i *structs.SearchIncExl) {
+	bn := make(map[string]string, len(i.MappedAuthByName))
+	for _, a := range i.Authors {
+		bn[a] = mps.AllAuthors[a].Cleaname
+	}
+	i.MappedAuthByName = bn
+
+	var nn []string
+	for _, v := range bn {
+		nn = append(nn, v)
+	}
+
+	slices.Sort(nn)
+	i.ListedABN = nn
+}
+
+func BuildWkByName(i *structs.SearchIncExl) {
+	const (
+		TMPL = `%s, <i>%s</i>`
+	)
+	bn := make(map[string]string, len(i.MappedWkByName))
+	for _, w := range i.Works {
+		ws := mps.AllWorks[w]
+		au := mps.MyAu(ws).Name
+		ti := ws.Title
+		bn[w] = fmt.Sprintf(TMPL, au, ti)
+	}
+	i.MappedWkByName = bn
+
+	var nn []string
+	for _, v := range bn {
+		nn = append(nn, v)
+	}
+
+	slices.Sort(nn)
+	i.ListedWBN = nn
 }

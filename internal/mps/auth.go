@@ -1,4 +1,4 @@
-package vv
+package mps
 
 import (
 	"context"
@@ -7,13 +7,14 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5"
 	"strings"
 )
 
 var (
 	// TODO: this is hollow
-	msg = m.NewMessageMaker(launch.BuildDefaultConfig(), m.LaunchStruct{})
+	msg = m.NewMessageMaker()
 )
 
 const (
@@ -44,7 +45,7 @@ func mapnewauthorcorpus(corpus string, authmap map[string]*structs.DbAuthor) map
 		authmap[a.UID] = &a
 	}
 
-	LoadedCorp[corpus] = true
+	vv.LoadedCorp[corpus] = true
 
 	msg.PEEK(fmt.Sprintf(MSG, len(toadd), corpus))
 
@@ -77,9 +78,9 @@ func sliceauthorcorpus(corpus string) []structs.DbAuthor {
 	// so: build a map of {UID: WORKLIST...}; map called by rfnc()
 
 	worklists := make(map[string][]string)
-	for _, w := range AllWorks {
+	for _, w := range vv.AllWorks {
 		wk := w.UID
-		au := wk[0:LENGTHOFAUTHORID]
+		au := wk[0:vv.LENGTHOFAUTHORID]
 		if _, y := worklists[au]; !y {
 			worklists[au] = []string{wk}
 		} else {
@@ -119,8 +120,8 @@ func sliceauthorcorpus(corpus string) []structs.DbAuthor {
 func Buildaucorpusmap() map[string][]string {
 	// SessionIntoSearchlist() could just grab a pre-rolled list instead of calculating every time...
 	aucorpusmap := make(map[string][]string)
-	for _, a := range AllAuthors {
-		for _, c := range TheCorpora {
+	for _, a := range vv.AllAuthors {
+		for _, c := range vv.TheCorpora {
 			if a.UID[0:2] == c {
 				aucorpusmap[c] = append(aucorpusmap[c], a.UID)
 			}
@@ -132,7 +133,7 @@ func Buildaucorpusmap() map[string][]string {
 // Buildaugenresmap - populate global variable used by hinter
 func Buildaugenresmap() map[string]bool {
 	genres := make(map[string]bool)
-	for _, a := range AllAuthors {
+	for _, a := range vv.AllAuthors {
 		gg := strings.Split(a.Genres, ",")
 		for _, g := range gg {
 			genres[g] = true

@@ -8,7 +8,6 @@ package m
 import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"os"
 	"runtime"
 	"sort"
@@ -49,74 +48,49 @@ const (
 	PANIC2               = "[%s%s v.%s%s] (%s%s%s) %sUNRECOVERABLE ERROR%s\n"
 )
 
-//var (
-//	messenger = NewGenericMessageMaker(structs.CurrentConfiguration{}, LaunchStruct{
-//		Name:       vv.MYNAME,
-//		Version:    vv.VERSION,
-//		Shortname:  vv.SHORTNAME,
-//		LaunchTime: time.Now(),
-//	})
-//)
-//
-//// m - send a message to the terminal; alias for "messenger.Emit(s, i)"
-//func m(s string, i int) {
-//	messenger.Emit(s, i)
-//}
-//
-//// chke - check an error; alias for messenger.Error(e)
-//func chke(e error) {
-//	messenger.Error(e)
-//}
-//
-//func chkf(e error, s string) {
-//	messenger.EF(e, s)
-//}
-//
-//func coloroutput(s string) string {
-//	return messenger.Color(s)
-//}
-//
-//func styleoutput(s string) string {
-//	return messenger.Styled(s)
-//}
+// tedious because we need to avoid circular imports
 
-func NewMessageMaker(cc *structs.CurrentConfiguration, ls LaunchStruct) *MessageMaker {
+func NewMessageMaker() *MessageMaker {
 	w := false
 	if runtime.GOOS == "windows" {
 		w = true
 	}
 	return &MessageMaker{
-		Cfg: cc,
-		Lnc: ls,
-		Win: w,
+		Lnc:  time.Now(),
+		BW:   false,
+		Clr:  "",
+		GC:   false,
+		LLvl: 0,
+		LNm:  "",
+		SNm:  "",
+		Tick: false,
+		Ver:  "",
+		Win:  w,
+		mtx:  sync.RWMutex{},
 	}
 }
 
-//func NewFncMessageMaker(c string) *MessageMaker {
-//	cc := messenger.Cfg
-//	ls := messenger.Lnc
-//	ls.Caller = c
-//	return &MessageMaker{
-//		Cfg: cc,
-//		Lnc: ls,
-//	}
-//}
-
 type MessageMaker struct {
-	Cfg *structs.CurrentConfiguration
-	Lnc LaunchStruct
-	Pgn string
-	Win bool
-	mtx sync.RWMutex
+	Lnc  time.Time
+	BW   bool
+	Clr  string
+	GC   bool
+	LLvl int
+	LNm  string
+	SNm  string
+	Tick bool
+	Ver  string
+	Win  bool
+	mtx  sync.RWMutex
 }
 
-type LaunchStruct struct {
-	Name       string
-	Version    string
-	Shortname  string
-	LaunchTime time.Time
-	Caller     string
-}
+//type MsgLaunchStruct struct {
+//	Name       string
+//	Version    string
+//	Shortname  string
+//	LaunchTime time.Time
+//	Caller     string
+//}
 
 func (m *MessageMaker) MAND(s string) {
 	m.Emit(s, MSGMAND)
@@ -150,11 +124,11 @@ func (m *MessageMaker) TMI(s string) {
 func (m *MessageMaker) Emit(message string, threshold int) {
 	// sample output: "[HGS] findbyform() found no results for 'Romani'"
 
-	if m.Cfg.LogLevel < threshold {
+	if m.LLvl < threshold {
 		return
 	}
 
-	if !m.Win && !m.Cfg.BlackAndWhite {
+	if !m.Win && !m.BW {
 		var color string
 
 		switch threshold {
@@ -175,13 +149,13 @@ func (m *MessageMaker) Emit(message string, threshold int) {
 		default:
 			color = WHITE
 		}
-		fmt.Printf("[%s%s%s] %s%s%s\n", YELLOW1, m.Lnc.Shortname, RESET, color, message, RESET)
+		fmt.Printf("[%s%s%s] %s%s%s\n", YELLOW1, m.SNm, RESET, color, message, RESET)
 	} else {
 		// terminal color codes not w's friend
 		if threshold < 0 {
-			fmt.Printf("[%s] %s\n", m.Lnc.Shortname, message)
+			fmt.Printf("[%s] %s\n", m.SNm, message)
 		} else {
-			fmt.Printf("[%s] [LL%d] %s\n", m.Lnc.Shortname, threshold, message)
+			fmt.Printf("[%s] [LL%d] %s\n", m.SNm, threshold, message)
 		}
 	}
 }
@@ -191,7 +165,7 @@ func (m *MessageMaker) Color(tagged string) string {
 	// "[git: C4%sC0]" ==> green text for the %s
 	swap := strings.NewReplacer("C1", "", "C2", "", "C3", "", "C4", "", "C5", "", "C6", "", "C7", "", "C0", "")
 
-	if !m.Win && !m.Cfg.BlackAndWhite {
+	if !m.Win && !m.BW {
 		swap = strings.NewReplacer("C1", YELLOW1, "C2", CYAN2, "C3", BLUE1, "C4", GREEN, "C5", RED1,
 			"C6", GREY3, "C7", BLINK, "C0", RESET)
 	}
@@ -210,7 +184,7 @@ func (m *MessageMaker) Styled(tagged string) string {
 	)
 	swap := strings.NewReplacer("S1", "", "S2", "", "S3", "", "S4", "", "S5", "", "S0", "")
 
-	if !m.Win && !m.Cfg.BlackAndWhite {
+	if !m.Win && !m.BW {
 		swap = strings.NewReplacer("S1", BOLD, "S2", ITAL, "S3", UNDER, "S4", STRIKE, "S5", REVERSE,
 			"S0", RESET)
 	}
@@ -225,7 +199,7 @@ func (m *MessageMaker) ColStyle(tagged string) string {
 // Error - just panic...
 func (m *MessageMaker) Error(err error) {
 	if err != nil {
-		fmt.Printf(PANIC, YELLOW2, m.Lnc.Name, m.Lnc.Version, RESET, RED1, RESET)
+		fmt.Printf(PANIC, YELLOW2, m.LNm, m.Ver, RESET, RED1, RESET)
 		fmt.Println(err)
 		m.ExitOrHang(1)
 	}
@@ -234,7 +208,7 @@ func (m *MessageMaker) Error(err error) {
 // EF - report error and function
 func (m *MessageMaker) EF(err error, fn string) {
 	if err != nil {
-		fmt.Printf(PANIC2, YELLOW2, m.Lnc.Name, m.Lnc.Version, RESET, CYAN2, fn, RESET, RED1, RESET)
+		fmt.Printf(PANIC2, YELLOW2, m.LNm, m.Ver, RESET, CYAN2, fn, RESET, RED1, RESET)
 		fmt.Println(err)
 		m.ExitOrHang(1)
 	}
@@ -243,11 +217,11 @@ func (m *MessageMaker) EF(err error, fn string) {
 // EC - report error and page that called function
 func (m *MessageMaker) EC(err error) {
 	var c string
-	if m.Lnc.Caller != "" {
-		c = m.Lnc.Caller
+	if m.Clr != "" {
+		c = m.Clr
 	}
 	if err != nil {
-		fmt.Printf(PANIC2, YELLOW2, m.Lnc.Name, m.Lnc.Version, RESET, CYAN2, c, RESET, RED1, RESET)
+		fmt.Printf(PANIC2, YELLOW2, m.LNm, m.Ver, RESET, CYAN2, c, RESET, RED1, RESET)
 		fmt.Println(err)
 		m.ExitOrHang(1)
 	}
@@ -262,7 +236,7 @@ func (m *MessageMaker) ExitOrHang(e int) {
 	if !m.Win {
 		os.Exit(e)
 	} else {
-		m.Emit(fmt.Sprintf(HANG, m.Lnc.Name, SUSP), -1)
+		m.Emit(fmt.Sprintf(HANG, m.LNm, SUSP), -1)
 		time.Sleep(SUSP * time.Second)
 		os.Exit(e)
 	}
@@ -275,7 +249,7 @@ func (m *MessageMaker) ResetScreen() {
 		CURSHOME  = "\033[1;1H"
 		DOWNONE   = "\033[1B"
 	)
-	if !m.Cfg.TickerActive || m.Win {
+	if !m.Tick || m.Win {
 		return
 	}
 	fmt.Println(ERASESCRN + CURSHOME + DOWNONE + DOWNONE)
@@ -316,7 +290,7 @@ func (m *MessageMaker) LogPaths(fn string) {
 	runtime.ReadMemStats(&mem)
 	b := fmt.Sprintf("%dM", mem.HeapAlloc/1024/1024)
 
-	if !m.Cfg.ManualGC {
+	if !m.GC {
 		m.Emit(fmt.Sprintf(HEAP, fn, b), MPR)
 	} else {
 		runtime.GC()
@@ -357,7 +331,7 @@ func (m *MessageMaker) Ticker(wait time.Duration) {
 	)
 
 	// ANSI escape codes do not work in windows
-	if !m.Cfg.TickerActive || m.Win {
+	if !m.Tick || m.Win {
 		return
 	}
 	var mem runtime.MemStats
@@ -399,7 +373,7 @@ func (m *MessageMaker) Ticker(wait time.Duration) {
 	}
 
 	for {
-		up := time.Since(m.Lnc.LaunchTime)
+		up := time.Since(m.Lnc)
 		t(up)
 		s()
 		time.Sleep(wait)

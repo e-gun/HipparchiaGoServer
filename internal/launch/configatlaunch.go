@@ -28,7 +28,7 @@ var efs embed.FS
 var (
 	Config *structs.CurrentConfiguration
 	// TODO: this is hollow
-	msg = m.NewMessageMaker(BuildDefaultConfig(), m.LaunchStruct{})
+	msg = m.NewMessageMaker()
 	EPD = "emb/pdf/"
 )
 
@@ -196,7 +196,7 @@ func ConfigAtLaunch() {
 
 	help := func() {
 		PrintVersion(*Config)
-		printbuildinfo(*Config)
+		PrintBuildInfo(*Config)
 		cwd, err := os.Getwd()
 		if err != nil {
 			msg.CRIT(FAIL8)
@@ -243,7 +243,7 @@ func ConfigAtLaunch() {
 		switch a {
 		case "-vv":
 			PrintVersion(*Config)
-			printbuildinfo(*Config)
+			PrintBuildInfo(*Config)
 			os.Exit(1)
 		case "-v":
 			fmt.Println(vv.VERSION + VersSuppl)

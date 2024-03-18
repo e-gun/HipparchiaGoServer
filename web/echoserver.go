@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	msg = m.NewMessageMaker(launch.BuildDefaultConfig(), m.LaunchStruct{})
+	msg = m.NewMessageMaker()
 )
 
 // StartEchoServer - start serving; this blocks and does not return while the program remains alive

@@ -10,6 +10,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
+	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/pools"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
 	"github.com/e-gun/HipparchiaGoServer/internal/vect"
@@ -109,11 +110,11 @@ func main() {
 		start := time.Now()
 		previous := time.Now()
 
-		vv.AllWorks = vv.ActiveWorkMapper()
+		vv.AllWorks = mps.ActiveWorkMapper()
 		messenger.Timer("A1", fmt.Sprintf(MSG1, len(vv.AllWorks)), start, previous)
 		previous = time.Now()
 
-		vv.AllAuthors = vv.ActiveAuthorMapper()
+		vv.AllAuthors = mps.ActiveAuthorMapper()
 		messenger.Timer("A2", fmt.Sprintf(MSG2, len(vv.AllAuthors)), start, previous)
 		previous = time.Now()
 
@@ -129,11 +130,11 @@ func main() {
 		start := time.Now()
 		previous := time.Now()
 
-		vv.AllLemm = vv.LemmaMapper()
+		vv.AllLemm = mps.LemmaMapper()
 		messenger.Timer("B1", fmt.Sprintf(MSG4, len(vv.AllLemm)), start, previous)
 
 		previous = time.Now()
-		vv.NestedLemm = vv.NestedLemmaMapper(vv.AllLemm)
+		vv.NestedLemm = mps.NestedLemmaMapper(vv.AllLemm)
 		messenger.Timer("B2", MSG5, start, previous)
 	}(&awaiting)
 

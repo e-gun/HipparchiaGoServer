@@ -98,11 +98,11 @@ func BuildDefaultSearch(c echo.Context) structs.SearchStruct {
 	s.LemmaTwo = c.QueryParam("plm")
 	s.IPAddr = c.RealIP()
 
-	s.CleanInput()
+	CleanInput(&s)
 	s.SetType() // must happen before SSBuildQueries()
 	// todo: restore this ability
 	//s.Optimize() // maybe rewrite the search to make it faster
-	s.FormatInitialSummary()
+	FormatInitialSummary(&s)
 
 	if s.Type == "vector" {
 		s.InitSum = VECTORSEARCHSUMMARY

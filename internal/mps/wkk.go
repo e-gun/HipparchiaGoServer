@@ -1,4 +1,4 @@
-package vv
+package mps
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5"
 	"strings"
 )
@@ -46,7 +47,7 @@ func mapnewworkcorpus(corpus string, workmap map[string]*structs.DbWork) map[str
 		workmap[w.UID] = &w
 	}
 
-	LoadedCorp[corpus] = true
+	vv.LoadedCorp[corpus] = true
 
 	msg.PEEK(fmt.Sprintf(MSG, len(toadd), corpus))
 	return workmap
@@ -121,7 +122,7 @@ func Buildwkcorpusmap() map[string][]string {
 	// SessionIntoSearchlist() could just grab a pre-rolled list instead of calculating every time...
 	wkcorpusmap := make(map[string][]string)
 	for _, w := range AllWorks {
-		for _, c := range TheCorpora {
+		for _, c := range vv.TheCorpora {
 			if w.UID[0:2] == c {
 				wkcorpusmap[c] = append(wkcorpusmap[c], w.UID)
 			}
