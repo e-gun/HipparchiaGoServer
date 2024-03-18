@@ -47,7 +47,7 @@ func RtSearch(c echo.Context) error {
 		TOOMANYTOTAL = "<code>Cannot execute this search. The server is already running the maximum number of simultaneous searches allowed: %d.</code>"
 	)
 
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 
 	// [A] ARE WE GOING TO DO THIS AT ALL?
 
@@ -121,7 +121,7 @@ func RtSearch(c echo.Context) error {
 
 	// [E] DONE: TIME TO FORMAT
 
-	completed.SortResults()
+	search.SortResults(&completed)
 	soj := structs.SearchOutputJSON{}
 	if se.HitContext == 0 {
 		soj = search.FormatNoContextResults(&completed)

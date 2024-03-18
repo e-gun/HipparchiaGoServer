@@ -298,69 +298,6 @@ func (s *SearchStruct) SearchQuickestFirst() {
 	}
 }
 
-// SortResults - sort the search results by the session's registerselection criterion
-func (s *SearchStruct) SortResults() {
-	// Closures that order the DbWorkline structure:
-	// see setsandslices.go and https://pkg.go.dev/sort#example__sortMultiKeys
-
-	const (
-		NULL = `Unavailable`
-	)
-
-	nameIncreasing := func(one, two *DbWorkline) bool {
-		a1 := one.MyAu().Shortname
-		a2 := two.MyAu().Shortname
-		return a1 < a2
-	}
-
-	titleIncreasing := func(one, two *DbWorkline) bool {
-		return one.MyWk().Title < two.MyWk().Title
-	}
-
-	dateIncreasing := func(one, two *DbWorkline) bool {
-		d1 := one.MyWk().RecDate
-		d2 := two.MyWk().RecDate
-		if d1 != NULL && d2 != NULL {
-			return one.MyWk().ConvDate < two.MyWk().ConvDate
-		} else if d1 == NULL && d2 != NULL {
-			return one.MyAu().ConvDate < two.MyAu().ConvDate
-		} else if d1 != NULL && d2 == NULL {
-			return one.MyAu().ConvDate < two.MyAu().ConvDate
-		} else {
-			return one.MyAu().ConvDate < two.MyAu().ConvDate
-		}
-	}
-
-	increasingLines := func(one, two *DbWorkline) bool {
-		return one.TbIndex < two.TbIndex
-	}
-
-	increasingID := func(one, two *DbWorkline) bool {
-		return one.BuildHyperlink() < two.BuildHyperlink()
-	}
-
-	increasingWLOC := func(one, two *DbWorkline) bool {
-		return one.MyWk().Prov < two.MyWk().Prov
-	}
-
-	sortby := s.StoredSession.SortHitsBy
-
-	switch {
-	case sortby == "shortname":
-		WLOrderedBy(nameIncreasing, titleIncreasing, increasingLines).Sort(s.Results.Lines)
-	case sortby == "converted_date":
-		WLOrderedBy(dateIncreasing, nameIncreasing, titleIncreasing, increasingLines).Sort(s.Results.Lines)
-	case sortby == "universalid":
-		WLOrderedBy(increasingID).Sort(s.Results.Lines)
-	case sortby == "provenance":
-		// as this is likely an inscription search, why not sort next by date?
-		WLOrderedBy(increasingWLOC, dateIncreasing).Sort(s.Results.Lines)
-	default:
-		// author nameIncreasing
-		WLOrderedBy(nameIncreasing, increasingLines).Sort(s.Results.Lines)
-	}
-}
-
 // showinterimresults - print out the current results
 func showinterimresults(s *SearchStruct) {
 	const (

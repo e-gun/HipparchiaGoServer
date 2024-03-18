@@ -74,9 +74,9 @@ func main() {
 		// mem profile:
 		defer profile.Start(profile.MemProfile).Stop()
 	}
-	messenger := m.NewMessageMaker(launch.Config, m.LaunchStruct{})
-	messenger.Cfg = launch.Config
-	messenger.Lnc.LaunchTime = vv.LaunchTime
+	messenger := m.NewMessageMaker()
+	//messenger.Cfg = launch.Config
+	//messenger.Lnc.LaunchTime = vv.LaunchTime
 	messenger.ResetScreen()
 
 	launch.PrintVersion(*launch.Config)
@@ -110,16 +110,16 @@ func main() {
 		start := time.Now()
 		previous := time.Now()
 
-		vv.AllWorks = mps.ActiveWorkMapper()
-		messenger.Timer("A1", fmt.Sprintf(MSG1, len(vv.AllWorks)), start, previous)
+		mps.AllWorks = mps.ActiveWorkMapper()
+		messenger.Timer("A1", fmt.Sprintf(MSG1, len(mps.AllWorks)), start, previous)
 		previous = time.Now()
 
-		vv.AllAuthors = mps.ActiveAuthorMapper()
-		messenger.Timer("A2", fmt.Sprintf(MSG2, len(vv.AllAuthors)), start, previous)
+		mps.AllAuthors = mps.ActiveAuthorMapper()
+		messenger.Timer("A2", fmt.Sprintf(MSG2, len(mps.AllAuthors)), start, previous)
 		previous = time.Now()
 
 		// full up WkCorpusMap, AuCorpusMap, ...
-		vv.RePopulateGlobalMaps()
+		mps.RePopulateGlobalMaps()
 		messenger.Timer("A3", MSG3, start, previous)
 	}(&awaiting)
 
@@ -130,11 +130,11 @@ func main() {
 		start := time.Now()
 		previous := time.Now()
 
-		vv.AllLemm = mps.LemmaMapper()
-		messenger.Timer("B1", fmt.Sprintf(MSG4, len(vv.AllLemm)), start, previous)
+		mps.AllLemm = mps.LemmaMapper()
+		messenger.Timer("B1", fmt.Sprintf(MSG4, len(mps.AllLemm)), start, previous)
 
 		previous = time.Now()
-		vv.NestedLemm = mps.NestedLemmaMapper(vv.AllLemm)
+		mps.NestedLemm = mps.NestedLemmaMapper(mps.AllLemm)
 		messenger.Timer("B2", MSG5, start, previous)
 	}(&awaiting)
 

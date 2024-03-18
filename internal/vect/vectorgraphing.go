@@ -13,7 +13,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/e-gun/HipparchiaGoServer/web"
 	"github.com/e-gun/wego/pkg/search"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/components"
@@ -92,7 +91,7 @@ func formatnngraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 		NOTOFONT      = "'hipparchiasemiboldstatic', sans-serif"
 	)
 
-	se := vaults.AllSessions.GetSess(web.ReadUUIDCookie(c))
+	se := vaults.AllSessions.GetSess(vaults.ReadUUIDCookie(c))
 
 	var gnn []opts.GraphNode
 	var gll []opts.GraphLink

@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
 	"regexp"
-	"sort"
 	"strings"
 )
 
@@ -96,14 +95,14 @@ func (dbw *DbWorkline) AuID() string {
 }
 
 // MyAu - get the DbAuthor for this line
-func (dbw *DbWorkline) MyAu() *DbAuthor {
-	a, ok := AllAuthors[dbw.AuID()]
-	if !ok {
-		msg.WARN(fmt.Sprintf("DbWorkline.MyAu() failed to find '%s'", dbw.AuID()))
-		a = &DbAuthor{}
-	}
-	return a
-}
+//func (dbw *DbWorkline) MyAu() *DbAuthor {
+//	a, ok := AllAuthors[dbw.AuID()]
+//	if !ok {
+//		msg.WARN(fmt.Sprintf("DbWorkline.MyAu() failed to find '%s'", dbw.AuID()))
+//		a = &DbAuthor{}
+//	}
+//	return a
+//}
 
 // WkID - gr0001w001 --> 001
 func (dbw *DbWorkline) WkID() string {
@@ -111,14 +110,14 @@ func (dbw *DbWorkline) WkID() string {
 }
 
 // MyWk - get the DbWork for this line
-func (dbw *DbWorkline) MyWk() *DbWork {
-	w, ok := AllWorks[dbw.WkUID]
-	if !ok {
-		msg.WARN(fmt.Sprintf("MyAu() failed to find '%s'", dbw.AuID()))
-		w = &DbWork{}
-	}
-	return w
-}
+//func (dbw *DbWorkline) MyWk() *DbWork {
+//	w, ok := AllWorks[dbw.WkUID]
+//	if !ok {
+//		msg.WARN(fmt.Sprintf("MyAu() failed to find '%s'", dbw.AuID()))
+//		w = &DbWork{}
+//	}
+//	return w
+//}
 
 func (dbw *DbWorkline) FindCorpus() string {
 	// gr0001w001 --> gr
@@ -294,61 +293,4 @@ func (wlb *WorkLineBundle) AppendLines(toadd []DbWorkline) {
 
 func (wlb *WorkLineBundle) AppendOne(toadd DbWorkline) {
 	wlb.Lines = append(wlb.Lines, toadd)
-}
-
-//
-// SORTING: https://pkg.go.dev/sort#example__sortMultiKeys
-//
-
-type WLLessFunc func(p1, p2 *DbWorkline) bool
-
-// WLMultiSorter implements the Sort interface, sorting the changes within.
-type WLMultiSorter struct {
-	changes []DbWorkline
-	less    []WLLessFunc
-}
-
-// Sort sorts the argument slice according to the less functions passed to WLOrderedBy.
-func (ms *WLMultiSorter) Sort(changes []DbWorkline) {
-	ms.changes = changes
-	sort.Sort(ms)
-}
-
-// WLOrderedBy returns a Sorter that sorts using the less functions, in order.
-// Call its Sort method to sort the data.
-func WLOrderedBy(less ...WLLessFunc) *WLMultiSorter {
-	return &WLMultiSorter{
-		less: less,
-	}
-}
-
-// Len is part of sort.Interface.
-func (ms *WLMultiSorter) Len() int {
-	return len(ms.changes)
-}
-
-// Swap is part of sort.Interface.
-func (ms *WLMultiSorter) Swap(i, j int) {
-	ms.changes[i], ms.changes[j] = ms.changes[j], ms.changes[i]
-}
-
-func (ms *WLMultiSorter) Less(i, j int) bool {
-	p, q := &ms.changes[i], &ms.changes[j]
-	// Try all but the last comparison.
-	var k int
-	for k = 0; k < len(ms.less)-1; k++ {
-		less := ms.less[k]
-		switch {
-		case less(p, q):
-			// p < q, so we have a decision.
-			return true
-		case less(q, p):
-			// p > q, so we have a decision.
-			return false
-		}
-		// p == q; try the next comparison.
-	}
-	// All comparisons to here said "equal", so just return whatever
-	// the final comparison reports.
-	return ms.less[k](p, q)
 }

@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
+	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -90,7 +91,7 @@ func RtSelectionMake(c echo.Context) error {
 	// note that you need to return JSON: reportcurrentselections() to fill #selectionstable on the page
 	// see bottom of this file for a sample list and the html of the table that goes with it
 
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 
 	var sel SelectionValues
 	sel.Auth = c.QueryParam("auth")
@@ -131,7 +132,7 @@ func RtSelectionClear(c echo.Context) error {
 
 	// NB: restarting the server with an open browser can leave an impossible JS click; not really a bug, but...
 
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 
 	locus := c.Param("locus")
 	which := strings.Split(locus, "/")
@@ -319,8 +320,8 @@ func registerselection(user string, sv SelectionValues) structs.ServerSession {
 		// [2]int comes back: first and last lines found via the query
 		b := findendpointsfromlocus(sv.WUID(), sv.Start, sep)
 		r := strings.Replace(sv.Start, "|", ".", -1)
-		ra := vv.AllAuthors[sv.Auth].Shortname
-		rw := vv.AllWorks[sv.WUID()].Title
+		ra := mps.AllAuthors[sv.Auth].Shortname
+		rw := mps.AllWorks[sv.WUID()].Title
 		cs := fmt.Sprintf("%s, %s, %s", ra, rw, r)
 		i := fmt.Sprintf(PSGT, sv.Auth, b[0], b[1])
 		if !sv.IsExcl {
@@ -336,8 +337,8 @@ func registerselection(user string, sv SelectionValues) structs.ServerSession {
 		// [2]int comes back: first and last lines found via the query
 		b := findendpointsfromlocus(sv.WUID(), sv.Start, sep)
 		e := findendpointsfromlocus(sv.WUID(), sv.End, sep)
-		ra := vv.AllAuthors[sv.Auth].Shortname
-		rw := vv.AllWorks[sv.WUID()].Title
+		ra := mps.AllAuthors[sv.Auth].Shortname
+		rw := mps.AllWorks[sv.WUID()].Title
 		rs := strings.Replace(sv.Start, "|", ".", -1)
 		re := strings.Replace(sv.End, "|", ".", -1)
 		cs := fmt.Sprintf("%s, %s, %s - %s", ra, rw, rs, re)
@@ -675,9 +676,9 @@ func workvalueofpassage(psg string) string {
 	st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
 	sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
 	thework := ""
-	for _, w := range vv.AllAuthors[au].WorkList {
-		ws := vv.AllWorks[w].FirstLine
-		we := vv.AllWorks[w].LastLine
+	for _, w := range mps.AllAuthors[au].WorkList {
+		ws := mps.AllWorks[w].FirstLine
+		we := mps.AllWorks[w].LastLine
 		if st >= ws && sp <= we {
 			thework = w
 		}
@@ -827,7 +828,7 @@ func reportcurrentselections(c echo.Context) SelectionData {
 		JSEXU = `/selection/clear/%sexclusions/%s`
 	)
 
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	s := vaults.AllSessions.GetSess(user)
 	s.BuildSelectionOverview()
 
@@ -952,12 +953,12 @@ func validateworkselection(uid string) *structs.DbWork {
 	w := &structs.DbWork{}
 	w.UID = "work_not_found"
 	au := uid[0:vv.LENGTHOFAUTHORID]
-	if _, ok := vv.AllWorks[uid]; ok {
-		w = vv.AllWorks[uid]
+	if _, ok := mps.AllWorks[uid]; ok {
+		w = mps.AllWorks[uid]
 	} else {
-		if _, y := vv.AllAuthors[au]; y {
+		if _, y := mps.AllAuthors[au]; y {
 			// firstwork; otherwise we are still set to "null"
-			w = vv.AllWorks[vv.AllAuthors[au].WorkList[0]]
+			w = mps.AllWorks[mps.AllAuthors[au].WorkList[0]]
 		}
 	}
 	return w

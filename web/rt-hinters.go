@@ -52,7 +52,7 @@ func RtAuthorHints(c echo.Context) error {
 	}
 
 	// trim by active corpora
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	s := vaults.AllSessions.GetSess(user)
 
 	var trimmed [][2]string

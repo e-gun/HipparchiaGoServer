@@ -15,7 +15,7 @@ import (
 
 // RtAuthLogin - accept and validate login info sent from <form id="hipparchiauserlogin"...>
 func RtAuthLogin(c echo.Context) error {
-	cid := ReadUUIDCookie(c)
+	cid := vaults.ReadUUIDCookie(c)
 	s := vaults.AllSessions.GetSess(cid)
 	u := c.FormValue("user")
 	p := c.FormValue("pw")
@@ -36,7 +36,7 @@ func RtAuthLogin(c echo.Context) error {
 
 // RtAuthLogout - log this session out
 func RtAuthLogout(c echo.Context) error {
-	u := ReadUUIDCookie(c)
+	u := vaults.ReadUUIDCookie(c)
 	s := vaults.AllSessions.GetSess(u)
 	s.LoginName = "Anonymous"
 	vaults.AllSessions.InsertSess(s)
@@ -46,7 +46,7 @@ func RtAuthLogout(c echo.Context) error {
 
 // RtAuthChkuser - report who this session is logged in as
 func RtAuthChkuser(c echo.Context) error {
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	s := vaults.AllSessions.GetSess(user)
 	a := vaults.AllAuthorized.Check(s.ID)
 

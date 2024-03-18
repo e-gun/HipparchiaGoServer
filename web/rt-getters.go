@@ -35,7 +35,7 @@ type JSStruct struct {
 func RtGetJSSession(c echo.Context) error {
 	// see hipparchiajs/coreinterfaceclicks.js
 
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	s := vaults.AllSessions.GetSess(user)
 
 	type JSO struct {
@@ -357,7 +357,7 @@ func RtGetJSSearchlist(c echo.Context) error {
 		REG       = `(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
 	)
 
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	sess := vaults.AllSessions.GetSess(user)
 
 	m := message.NewPrinter(language.English)

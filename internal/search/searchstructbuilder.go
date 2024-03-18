@@ -12,7 +12,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/e-gun/HipparchiaGoServer/web"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"strings"
@@ -47,7 +46,7 @@ func BuildDefaultSearch(c echo.Context) structs.SearchStruct {
 		VECTORSEARCHSUMMARY = "Acquiring a model for the selected texts"
 	)
 
-	user := web.ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	sess := vaults.AllSessions.GetSess(user)
 
 	// m("nonstandard BuildDefaultSearch() for testing", MSGCRIT)
@@ -265,7 +264,7 @@ func InsertNewContextIntoSS(ss *structs.SearchStruct) {
 
 // SessionIntoBulkSearch - grab every line of text in the currently selected set of authors, works, and passages
 func SessionIntoBulkSearch(c echo.Context, lim int) structs.SearchStruct {
-	user := web.ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	sess := vaults.AllSessions.GetSess(user)
 
 	ss := BuildDefaultSearch(c)

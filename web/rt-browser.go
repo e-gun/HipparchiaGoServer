@@ -67,7 +67,7 @@ func RtBrowseLine(c echo.Context) error {
 		FAIL = "RtBrowseLine() could not parse %s"
 	)
 
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	if !vaults.AllAuthorized.Check(user) {
 		bp := BrowsedPassage{Browserhtml: vv.AUTHWARN}
 		return generic.JSONresponse(c, bp)
@@ -102,7 +102,7 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 		FIRST = "_firstwork"
 	)
 
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	s := vaults.AllSessions.GetSess(user)
 
 	if !vaults.AllAuthorized.Check(user) {
@@ -311,7 +311,7 @@ func formatbrowsercitationinfo(f structs.DbWorkline, l structs.DbWorkline) strin
 		CT = `<cvauthor">%s</span>, <cvwork">%s</span>`
 	)
 
-	w := f.MyWk()
+	w := search.MyWk(&f)
 
 	au := mps.MyAu(w).Name
 	ti := w.Title
@@ -333,7 +333,7 @@ func formatbrowsercitationinfo(f structs.DbWorkline, l structs.DbWorkline) strin
 
 // basiccitation - produce a comma-separated citation from a DbWorkline: e.g., "book 5, chapter 37, section 5, line 3"
 func basiccitation(l structs.DbWorkline) string {
-	w := l.MyWk()
+	w := search.MyWk(&l)
 	cf := w.CitationFormat()
 	loc := l.FindLocus()
 	cf = cf[vv.NUMBEROFCITATIONLEVELS-(len(loc)) : vv.NUMBEROFCITATIONLEVELS]

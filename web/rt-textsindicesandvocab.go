@@ -59,7 +59,7 @@ func RtTextMaker(c echo.Context) error {
 		JS string `json:"newjs"`
 	}
 
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	if !vaults.AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, JSFeeder{JS: vv.JSVALIDATION}, vv.JSONINDENT)
 	}
@@ -73,8 +73,8 @@ func RtTextMaker(c echo.Context) error {
 
 	// now we have the lines we need....
 	firstline := srch.Results.FirstLine()
-	firstwork := firstline.MyWk()
-	firstauth := firstline.MyAu()
+	firstwork := search.MyWk(&firstline)
+	firstauth := search.MyAu(&firstline)
 
 	lines := srch.Results.YieldAll()
 	block := make([]string, srch.Results.Len())
@@ -110,7 +110,7 @@ func RtTextMaker(c echo.Context) error {
 		if l.WkUID != previous.WkUID {
 			// you were doing multi-text generation
 			workcount += 1
-			aw := l.MyAu().Name + fmt.Sprintf(`, <span class="italic">%s</span>`, l.MyWk().Title)
+			aw := search.MyAu(&l).Name + fmt.Sprintf(`, <span class="italic">%s</span>`, search.MyWk(&l).Title)
 			aw = fmt.Sprintf(`<hr><span class="emph">[%d] %s</span>`, workcount, aw)
 			extra := fmt.Sprintf(TBLRW, "", aw, "")
 			trr[i] = extra + trr[i]
@@ -231,7 +231,7 @@ func RtVocabMaker(c echo.Context) error {
 		HT string `json:"thehtml"`
 		NJ string `json:"newjs"`
 	}
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	if !vaults.AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, JSFeeder{NJ: vv.JSVALIDATION}, vv.JSONINDENT)
 	}
@@ -421,17 +421,17 @@ func RtVocabMaker(c echo.Context) error {
 
 	// [g2] build the summary: jso.SU
 
-	an := vocabsrch.Results.Lines[0].MyAu().Cleaname
+	an := search.MyAu(&vocabsrch.Results.Lines[0]).Cleaname
 	if vocabsrch.TableSize > 1 {
 		an = an + fmt.Sprintf(" and %d more author(s)", vocabsrch.TableSize-1)
 	}
 
-	wn := vocabsrch.Results.Lines[0].MyWk().Title
+	wn := search.MyWk(&vocabsrch.Results.Lines[0]).Title
 	if vocabsrch.SearchSize > 1 {
 		wn = wn + fmt.Sprintf(" and %d more works(s)", vocabsrch.SearchSize-1)
 	}
 
-	cf := vocabsrch.Results.Lines[0].MyWk().CitationFormat()
+	cf := search.MyWk(&vocabsrch.Results.Lines[0]).CitationFormat()
 	var tc []string
 	for _, x := range cf {
 		if len(x) != 0 {
@@ -538,7 +538,7 @@ func RtIndexMaker(c echo.Context) error {
 		NJ string `json:"newjs"`
 	}
 
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	if !vaults.AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, JSFeeder{NJ: vv.JSVALIDATION}, vv.JSONINDENT)
 	}
@@ -776,17 +776,17 @@ func RtIndexMaker(c echo.Context) error {
 
 	// build the summary info: jso.SU
 
-	an := firstresult.MyAu().Cleaname
+	an := search.MyAu(&firstresult).Cleaname
 	if srch.TableSize > 1 {
 		an = an + fmt.Sprintf(" and %d more author(s)", srch.TableSize-1)
 	}
 
-	wn := firstresult.MyWk().Title
+	wn := search.MyWk(&firstresult).Title
 	if srch.SearchSize > 1 {
 		wn = wn + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
 	}
 
-	cf := firstresult.MyWk().CitationFormat()
+	cf := search.MyWk(&firstresult).CitationFormat()
 	var tc []string
 	for _, x := range cf {
 		if len(x) != 0 {

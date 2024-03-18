@@ -75,7 +75,7 @@ func RtMorphchart(c echo.Context) error {
 
 	// should reach this route exclusively via a click from rt-lexica.go
 	c.Response().After(func() { msg.LogPaths("RtMorphchart()") })
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	if !vaults.AllAuthorized.Check(user) {
 		return generic.JSONresponse(c, structs.SearchOutputJSON{JS: vv.VALIDATIONBOX})
 	}

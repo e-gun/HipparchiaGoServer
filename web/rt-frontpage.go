@@ -47,7 +47,7 @@ func RtFrontpage(c echo.Context) error {
         </span>`
 	)
 	// will set if missing
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	s := vaults.AllSessions.GetSess(user)
 
 	ahtm := vv.AUTHHTML

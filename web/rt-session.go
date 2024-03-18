@@ -28,7 +28,7 @@ func RtSessionSetsCookie(c echo.Context) error {
 		FAIL = "RtSessionSetsCookie() could not marshal the session"
 	)
 	num := c.Param("num")
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	s := vaults.AllSessions.GetSess(user)
 
 	v, e := json.Marshal(s)
@@ -58,7 +58,7 @@ func RtSessionGetCookie(c echo.Context) error {
 		FAIL2 = "RtSessionGetCookie failed to unmarshal cookie %s for %s"
 	)
 
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	num := c.Param("num")
 	cookie, err := c.Cookie("session" + num)
 	if err != nil {
@@ -89,7 +89,7 @@ func RtSessionGetCookie(c echo.Context) error {
 
 // RtResetSession - delete and then reset the session
 func RtResetSession(c echo.Context) error {
-	id := ReadUUIDCookie(c)
+	id := vaults.ReadUUIDCookie(c)
 
 	vaults.AllSessions.Delete(id)
 
@@ -106,7 +106,7 @@ func RtResetSession(c echo.Context) error {
 	// [c] lda uses a similar mechanism: context inserted into nlp.LatentDirichletAllocation in the nlp code
 
 	// reset the user ID and session
-	newid := writeUUIDCookie(c)
+	newid := vaults.WriteUUIDCookie(c)
 	vaults.AllSessions.InsertSess(launch.MakeDefaultSession(newid))
 
 	e := c.Redirect(http.StatusFound, "/")

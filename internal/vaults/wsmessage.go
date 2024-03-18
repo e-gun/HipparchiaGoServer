@@ -3,7 +3,6 @@ package vaults
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/gorilla/websocket"
@@ -12,7 +11,7 @@ import (
 )
 
 // TODO: this is hollow
-var msg = m.NewMessageMaker(launch.BuildDefaultConfig(), m.LaunchStruct{})
+var msg = m.NewMessageMaker()
 
 //
 // WEBSOCKET INFRASTRUCTURE: see https://tutorialedge.net/projects/chat-system-in-go-and-react/part-4-handling-multiple-clients/

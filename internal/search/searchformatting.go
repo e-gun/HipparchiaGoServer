@@ -96,8 +96,8 @@ func FormatNoContextResults(ss *structs.SearchStruct) structs.SearchOutputJSON {
 			rc = "regular"
 		}
 
-		au := r.MyAu().Shortname
-		wk := r.MyWk().Title
+		au := MyAu(&r).Shortname
+		wk := MyWk(&r).Title
 		lk := r.BuildHyperlink()
 		lc := strings.Join(r.FindLocus(), ".")
 
@@ -235,8 +235,8 @@ func FormatWithContextResults(thesearch *structs.SearchStruct) structs.SearchOut
 	for r := range rr {
 		var psg PsgFormattingTemplate
 		psg.Findnumber = kk + 1
-		psg.Foundauthor = r.MyAu().Name
-		psg.Foundwork = r.MyWk().Title
+		psg.Foundauthor = MyAu(&r).Name
+		psg.Foundwork = MyWk(&r).Title
 		psg.FindURL = r.BuildHyperlink()
 		psg.FindLocus = strings.Join(r.FindLocus(), ".")
 		psg.FindDate = FormatInscriptionDates(DTT, &r)

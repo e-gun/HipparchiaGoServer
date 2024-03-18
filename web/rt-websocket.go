@@ -25,7 +25,7 @@ func RtWebsocket(c echo.Context) error {
 		FAILCON = "RtWebsocket(): ws connection failed"
 	)
 
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	if !vaults.AllAuthorized.Check(user) {
 		return nil
 	}

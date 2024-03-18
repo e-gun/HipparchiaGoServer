@@ -1,9 +1,14 @@
 package vaults
 
 import (
+	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
+	"net/http"
 	"sync"
+	"time"
 )
 
 //
@@ -52,4 +57,34 @@ func (sv *SessionVault) GetSess(id string) structs.ServerSession {
 		s = launch.MakeDefaultSession(id)
 	}
 	return s
+}
+
+// cookies here for import issues
+
+// ReadUUIDCookie - find the ID of the client
+func ReadUUIDCookie(c echo.Context) string {
+	cookie, err := c.Cookie("ID")
+	if err != nil {
+		id := WriteUUIDCookie(c)
+		return id
+	}
+	id := cookie.Value
+
+	if !AllSessions.IsInVault(id) {
+		AllSessions.InsertSess(launch.MakeDefaultSession(id))
+	}
+
+	return id
+}
+
+// WriteUUIDCookie - set the ID of the client
+func WriteUUIDCookie(c echo.Context) string {
+	cookie := new(http.Cookie)
+	cookie.Name = "ID"
+	cookie.Path = "/"
+	cookie.Value = uuid.New().String()
+	cookie.Expires = time.Now().Add(4800 * time.Hour)
+	c.SetCookie(cookie)
+	msg.TMI(fmt.Sprintf("WriteUUIDCookie() - new ID set: %s", cookie.Value))
+	return cookie.Value
 }

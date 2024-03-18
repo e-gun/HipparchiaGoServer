@@ -79,7 +79,7 @@ type JSB struct {
 func RtLexLookup(c echo.Context) error {
 	c.Response().After(func() { msg.LogPaths("RtLexLookup()") })
 
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	if !vaults.AllAuthorized.Check(user) {
 		return generic.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
 	}
@@ -121,7 +121,7 @@ func RtLexLookup(c echo.Context) error {
 // RtLexFindByForm - search the dictionary for a specific headword
 func RtLexFindByForm(c echo.Context) error {
 	// be able to respond to "GET /lexica/findbyform/ἀμιϲθὶ/gr0062 HTTP/1.1"
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	if !vaults.AllAuthorized.Check(user) {
 		return generic.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
 	}
@@ -167,7 +167,7 @@ func RtLexId(c echo.Context) error {
 		FAIL2 = "RtLexId() found nothing at id_number '%s'"
 	)
 
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	if !vaults.AllAuthorized.Check(user) {
 		return generic.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
 	}
@@ -202,7 +202,7 @@ func RtLexReverse(c echo.Context) error {
 	// be able to respond to "/lexica/reverselookup/0ae94619/sorrow"
 	c.Response().After(func() { msg.LogPaths("RtLexReverse()") })
 
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	if !vaults.AllAuthorized.Check(user) {
 		return generic.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
 	}

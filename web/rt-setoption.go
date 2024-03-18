@@ -28,7 +28,7 @@ func RtSetOption(c echo.Context) error {
 		FAIL1 = "RtSetOption() was given bad input: %s"
 		FAIL2 = "RtSetOption() hit an impossible case"
 	)
-	user := ReadUUIDCookie(c)
+	user := vaults.ReadUUIDCookie(c)
 	optandval := c.Param("opt")
 	parsed := strings.Split(optandval, "/")
 
