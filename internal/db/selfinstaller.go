@@ -76,10 +76,10 @@ func InitializeHDB(pgpw string, hdbpw string) {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		err := cmd.Run()
-		msg.EC(err)
+		Msg.EC(err)
 	}
 
-	msg.CRIT(DONE)
+	Msg.CRIT(DONE)
 }
 
 // LoadhDBfolder - take a psql dump and `pg_restore` it by exec-ing the binary
@@ -113,9 +113,9 @@ OR at 'C3%sC0'`
 
 	notfound := (a != nil) && (b != nil)
 	if notfound {
-		fmt.Println(msg.Color(fmt.Sprintf(FAIL, vv.HDBFOLDER, vv.MYNAME, h+"/"+vv.HDBFOLDER)))
+		fmt.Println(Msg.Color(fmt.Sprintf(FAIL, vv.HDBFOLDER, vv.MYNAME, h+"/"+vv.HDBFOLDER)))
 		hd, err := os.UserHomeDir()
-		msg.EC(err)
+		Msg.EC(err)
 
 		fp := fmt.Sprintf(vv.CONFIGALTAPTH, hd) + vv.CONFIGPROLIX
 		_ = os.Remove(fp)
@@ -123,7 +123,7 @@ OR at 'C3%sC0'`
 		_ = os.Remove(fp)
 
 		fmt.Println()
-		fmt.Println(msg.Color(fmt.Sprintf(FAIL2, fp, pw)))
+		fmt.Println(Msg.Color(fmt.Sprintf(FAIL2, fp, pw)))
 		os.Exit(0)
 	} else {
 		if a != nil {
@@ -133,7 +133,7 @@ OR at 'C3%sC0'`
 		}
 	}
 
-	fmt.Println(msg.Color(fmt.Sprintf(WARN, DELAY)))
+	fmt.Println(Msg.Color(fmt.Sprintf(WARN, DELAY)))
 	time.Sleep(DELAY * time.Second)
 
 	binary := GetBinaryPath("pg_restore")
@@ -148,10 +148,10 @@ OR at 'C3%sC0'`
 
 	err := cmd.Run()
 	if err != nil {
-		msg.CRIT(ERR)
+		Msg.CRIT(ERR)
 	}
 
-	msg.CRIT(fmt.Sprintf(OK, vv.MYNAME))
+	Msg.CRIT(fmt.Sprintf(OK, vv.MYNAME))
 	fmt.Println()
 }
 
@@ -196,9 +196,9 @@ func SetPostgresAdminPW() string {
 	var pgpw string
 	if runtime.GOOS != "darwin" {
 		// macos users have admin access already (on their primary account...) and do not need a pg admin password
-		fmt.Printf(msg.Color(PWD2))
+		fmt.Printf(Msg.Color(PWD2))
 		_, ee := fmt.Scan(&pgpw)
-		msg.EC(ee)
+		Msg.EC(ee)
 	}
 	return pgpw
 }
@@ -213,7 +213,7 @@ func ArchiveDB() {
 		DELAY = 5
 	)
 
-	fmt.Println(msg.Color(fmt.Sprintf(WARN, DELAY)))
+	fmt.Println(Msg.Color(fmt.Sprintf(WARN, DELAY)))
 	time.Sleep(DELAY * time.Second)
 
 	// pg_dump --clean "hipparchiaDB" --user hippa_wr | split -b 100m - out/hipparchiaDB-
@@ -235,12 +235,12 @@ func ArchiveDB() {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	msg.CRIT(MSG)
+	Msg.CRIT(MSG)
 	err := cmd.Run()
 	if err != nil {
-		msg.CRIT(ERR)
+		Msg.CRIT(ERR)
 		e := os.RemoveAll(vv.HDBFOLDER)
-		msg.EC(e)
+		Msg.EC(e)
 	}
 }
 
@@ -279,14 +279,14 @@ func DBSelfDestruct() {
 		}
 	}
 
-	msg.CRIT(DONE1)
+	Msg.CRIT(DONE1)
 
 	hd, e := os.UserHomeDir()
-	msg.EC(e)
+	Msg.EC(e)
 	cp := fmt.Sprintf(vv.CONFIGALTAPTH, hd)
 	_ = os.Remove(cp + vv.CONFIGBASIC)
 	_ = os.Remove(cp + vv.CONFIGPROLIX)
-	msg.CRIT(fmt.Sprintf(DONE2, cp))
+	Msg.CRIT(fmt.Sprintf(DONE2, cp))
 }
 
 // GetBinaryPath - return the path of a psql or pg_restore binary
@@ -342,7 +342,7 @@ func GetBinaryPath(command string) string {
 	}
 
 	if vers == 0 {
-		msg.CRIT(FAIL)
+		Msg.CRIT(FAIL)
 		os.Exit(0)
 	}
 
@@ -391,9 +391,9 @@ Type C6YESC0 to confirm that you want to proceed. --> `
 	yes := true
 
 	var ok string
-	fmt.Printf(msg.Color(CONF))
+	fmt.Printf(Msg.Color(CONF))
 	_, ee := fmt.Scan(&ok)
-	msg.EC(ee)
+	Msg.EC(ee)
 	if ok != "YES" {
 		fmt.Println(NOPE)
 		yes = false

@@ -6,7 +6,7 @@ import (
 )
 
 // todo: import issue; put this function elsewhere
-// BuildSelectionOverview will call the relevant SearchIncExl functions: see searchlistbuilder.go
+// BuildSelectionOverview will call the relevant SearchIncExl functions: see buildesearchlist.go
 //func (s *ServerSession) BuildSelectionOverview() {
 //	s.Inclusions.BuildAuByName()
 //	s.Exclusions.BuildAuByName()

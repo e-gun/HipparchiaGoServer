@@ -68,7 +68,7 @@ func BuildUserPassPairs(cc structs.CurrentConfiguration) {
 
 	pwc, e := os.Open(pwf)
 	if e != nil {
-		msg.CRIT(fmt.Sprintf(FAIL3, pwf))
+		Msg.CRIT(fmt.Sprintf(FAIL3, pwf))
 	}
 	defer func(pwc *os.File) {
 		err := pwc.Close()
@@ -86,7 +86,7 @@ func BuildUserPassPairs(cc structs.CurrentConfiguration) {
 	var upp []UserPass
 	err := json.Unmarshal(filebytes, &upp)
 	if err != nil {
-		msg.NOTE(FAIL1)
+		Msg.NOTE(FAIL1)
 	}
 
 	for _, u := range upp {
@@ -94,7 +94,7 @@ func BuildUserPassPairs(cc structs.CurrentConfiguration) {
 	}
 
 	if cc.Authenticate && len(UserPassPairs) == 0 {
-		msg.CRIT(FAIL2)
+		Msg.CRIT(FAIL2)
 		os.Exit(1)
 	}
 }

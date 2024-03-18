@@ -3,21 +3,17 @@
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 
-package pools
+package db
 
 import (
 	"context"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"os"
 	"strings"
 )
-
-// TODO: this is hollow
-var msg = m.NewMessageMaker()
 
 //
 // Note that SQLite will not really work. See the "devel-sqlite" branch for the brutal details. Way too slow...
@@ -53,22 +49,22 @@ func FillDBConnectionPool(cfg structs.CurrentConfiguration) *pgxpool.Pool {
 
 	config, e := pgxpool.ParseConfig(url)
 	if e != nil {
-		msg.MAND(fmt.Sprintf(FAIL1, url))
+		Msg.MAND(fmt.Sprintf(FAIL1, url))
 		os.Exit(0)
 	}
 
 	thepool, e := pgxpool.NewWithConfig(context.Background(), config)
 	if e != nil {
-		msg.MAND(fmt.Sprintf(FAIL2))
+		Msg.MAND(fmt.Sprintf(FAIL2))
 		if strings.Contains(e.Error(), ERRRUN) {
-			msg.MAND(fmt.Sprintf(FAILRUN, ERRRUN, cfg.PGLogin.Port))
+			Msg.MAND(fmt.Sprintf(FAILRUN, ERRRUN, cfg.PGLogin.Port))
 		}
 		if strings.Contains(e.Error(), ERRSRV) {
-			msg.MAND(fmt.Sprintf(FAILSRV, ERRSRV))
+			Msg.MAND(fmt.Sprintf(FAILSRV, ERRSRV))
 			parts := strings.Split(e.Error(), ERRSRV)
-			msg.CRIT(parts[1])
+			Msg.CRIT(parts[1])
 		}
-		msg.ExitOrHang(0)
+		Msg.ExitOrHang(0)
 	}
 	return thepool
 }

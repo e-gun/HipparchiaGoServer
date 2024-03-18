@@ -15,7 +15,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
 	"github.com/e-gun/HipparchiaGoServer/internal/vect"
-	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -99,7 +98,7 @@ func RtVectorBot(c echo.Context) error {
 	}
 
 	var dbs []string
-	for db := range vv.LoadedCorp {
+	for db := range mps.LoadedCorp {
 		dbs = append(dbs, db)
 	}
 
@@ -228,7 +227,7 @@ func activatevectorbot() {
 	sort.Strings(auu)
 
 	var dbs []string
-	for db := range vv.LoadedCorp {
+	for db := range mps.LoadedCorp {
 		dbs = append(dbs, db)
 	}
 

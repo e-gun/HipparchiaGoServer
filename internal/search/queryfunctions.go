@@ -35,18 +35,18 @@ func AcquireWorkLineBundle(prq structs.PrerolledQuery, dbconn *pgxpool.Conn) *st
 
 	if prq.TempTable != "" {
 		_, err := dbconn.Exec(context.Background(), prq.TempTable)
-		msg.EC(err)
+		Msg.EC(err)
 	}
 
 	// [b] execute the main query (nb: query needs to satisfy needs of RowToStructByPos in [c])
 
 	foundrows, err := dbconn.Query(context.Background(), prq.PsqlQuery)
-	msg.EC(err)
+	Msg.EC(err)
 
 	// [c] convert the finds into []DbWorkline
 
 	thesefinds, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[structs.DbWorkline])
-	msg.EC(err)
+	Msg.EC(err)
 
 	return &structs.WorkLineBundle{Lines: thesefinds}
 }

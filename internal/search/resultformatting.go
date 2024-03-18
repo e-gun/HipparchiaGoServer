@@ -68,7 +68,7 @@ func FormatNoContextResults(ss *structs.SearchStruct) structs.SearchOutputJSON {
 	searchterm := gethighlighter(ss)
 
 	trt, e := template.New("trt").Parse(TABLEROW)
-	msg.EC(e)
+	Msg.EC(e)
 
 	var b bytes.Buffer
 
@@ -96,8 +96,8 @@ func FormatNoContextResults(ss *structs.SearchStruct) structs.SearchOutputJSON {
 			rc = "regular"
 		}
 
-		au := MyAu(&r).Shortname
-		wk := MyWk(&r).Title
+		au := DbWlnMyAu(&r).Shortname
+		wk := DbWlnMyWk(&r).Title
 		lk := r.BuildHyperlink()
 		lc := strings.Join(r.FindLocus(), ".")
 
@@ -117,7 +117,7 @@ func FormatNoContextResults(ss *structs.SearchStruct) structs.SearchOutputJSON {
 		}
 
 		err := trt.Execute(&b, tr)
-		msg.EC(err)
+		Msg.EC(err)
 		i++
 	}
 
@@ -235,8 +235,8 @@ func FormatWithContextResults(thesearch *structs.SearchStruct) structs.SearchOut
 	for r := range rr {
 		var psg PsgFormattingTemplate
 		psg.Findnumber = kk + 1
-		psg.Foundauthor = MyAu(&r).Name
-		psg.Foundwork = MyWk(&r).Title
+		psg.Foundauthor = DbWlnMyAu(&r).Name
+		psg.Foundwork = DbWlnMyWk(&r).Title
 		psg.FindURL = r.BuildHyperlink()
 		psg.FindLocus = strings.Join(r.FindLocus(), ".")
 		psg.FindDate = FormatInscriptionDates(DTT, &r)
@@ -302,7 +302,7 @@ func FormatWithContextResults(thesearch *structs.SearchStruct) structs.SearchOut
 				pat, e := regexp.Compile(strings.Join(re, "|"))
 				if e != nil {
 					pat = regexp.MustCompile("FAILED_FIND_NOTHING")
-					msg.WARN(fmt.Sprintf("SearchTermFinder() could not compile the following: %s", strings.Join(re, "|")))
+					Msg.WARN(fmt.Sprintf("SearchTermFinder() could not compile the following: %s", strings.Join(re, "|")))
 				}
 				highlightsearchterm(pat, &p.CookedCTX[i])
 			}
@@ -315,7 +315,7 @@ func FormatWithContextResults(thesearch *structs.SearchStruct) structs.SearchOut
 	}
 
 	tmpl, e := template.New("tr").Parse(FINDTEMPL)
-	msg.EC(e)
+	Msg.EC(e)
 
 	var b bytes.Buffer
 	for _, p := range allpassages {
@@ -326,7 +326,7 @@ func FormatWithContextResults(thesearch *structs.SearchStruct) structs.SearchOut
 		}
 		p.LocusBody = strings.Join(lines, "")
 		err := tmpl.Execute(&b, p)
-		msg.EC(err)
+		Msg.EC(err)
 	}
 
 	// ouput
@@ -714,7 +714,7 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 
 	r, e := regexp.Compile(rec)
 	if e != nil {
-		msg.FYI(FAIL)
+		Msg.FYI(FAIL)
 	} else {
 		return regexp.MustCompile(FAILURE)
 	}

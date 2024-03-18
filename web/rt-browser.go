@@ -311,9 +311,9 @@ func formatbrowsercitationinfo(f structs.DbWorkline, l structs.DbWorkline) strin
 		CT = `<cvauthor">%s</span>, <cvwork">%s</span>`
 	)
 
-	w := search.MyWk(&f)
+	w := search.DbWlnMyWk(&f)
 
-	au := mps.MyAu(w).Name
+	au := mps.DbWkMyAu(w).Name
 	ti := w.Title
 
 	ci := fmt.Sprintf(CT, au, ti)
@@ -333,7 +333,7 @@ func formatbrowsercitationinfo(f structs.DbWorkline, l structs.DbWorkline) strin
 
 // basiccitation - produce a comma-separated citation from a DbWorkline: e.g., "book 5, chapter 37, section 5, line 3"
 func basiccitation(l structs.DbWorkline) string {
-	w := search.MyWk(&l)
+	w := search.DbWlnMyWk(&l)
 	cf := w.CitationFormat()
 	loc := l.FindLocus()
 	cf = cf[vv.NUMBEROFCITATIONLEVELS-(len(loc)) : vv.NUMBEROFCITATIONLEVELS]

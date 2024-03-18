@@ -11,7 +11,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
-	"github.com/e-gun/HipparchiaGoServer/internal/pools"
+	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
 	"github.com/e-gun/HipparchiaGoServer/internal/vect"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -74,29 +74,34 @@ func main() {
 		// mem profile:
 		defer profile.Start(profile.MemProfile).Stop()
 	}
-	messenger := m.NewMessageMaker()
-	//messenger.Cfg = launch.Config
-	//messenger.Lnc.LaunchTime = vv.LaunchTime
-	messenger.ResetScreen()
+	msg := launch.NewMessageMakerConfigured()
+	msg.ResetScreen()
+
+	// need to update all the message makers out there
+	db.Msg.LLvl = launch.Config.LogLevel
+	mps.Msg.LLvl = launch.Config.LogLevel
+	search.Msg.LLvl = launch.Config.LogLevel
+	vaults.Msg.LLvl = launch.Config.LogLevel
+	vect.Msg.LLvl = launch.Config.LogLevel
 
 	launch.PrintVersion(*launch.Config)
 	launch.PrintBuildInfo(*launch.Config)
 
 	if !launch.Config.QuietStart {
-		messenger.MAND(fmt.Sprintf(vv.TERMINALTEXT, vv.PROJYEAR, vv.PROJAUTH, vv.PROJMAIL))
+		msg.MAND(fmt.Sprintf(vv.TERMINALTEXT, vv.PROJYEAR, vv.PROJAUTH, vv.PROJMAIL))
 	}
 
 	//
 	// [2] set up things that will run forever in the background
 	//
 
-	db.SQLPool = pools.FillDBConnectionPool(*launch.Config)
+	db.SQLPool = db.FillDBConnectionPool(*launch.Config)
 	go vaults.WebsocketPool.WSPoolStartListening()
 
 	go vaults.WSSearchInfoHub()
 	go m.PathInfoHub()
 
-	go messenger.Ticker(vv.TICKERDELAY)
+	go msg.Ticker(vv.TICKERDELAY)
 
 	//
 	// [3] concurrent loading of the core data
@@ -111,16 +116,16 @@ func main() {
 		previous := time.Now()
 
 		mps.AllWorks = mps.ActiveWorkMapper()
-		messenger.Timer("A1", fmt.Sprintf(MSG1, len(mps.AllWorks)), start, previous)
+		msg.Timer("A1", fmt.Sprintf(MSG1, len(mps.AllWorks)), start, previous)
 		previous = time.Now()
 
 		mps.AllAuthors = mps.ActiveAuthorMapper()
-		messenger.Timer("A2", fmt.Sprintf(MSG2, len(mps.AllAuthors)), start, previous)
+		msg.Timer("A2", fmt.Sprintf(MSG2, len(mps.AllAuthors)), start, previous)
 		previous = time.Now()
 
 		// full up WkCorpusMap, AuCorpusMap, ...
 		mps.RePopulateGlobalMaps()
-		messenger.Timer("A3", MSG3, start, previous)
+		msg.Timer("A3", MSG3, start, previous)
 	}(&awaiting)
 
 	awaiting.Add(1)
@@ -131,11 +136,11 @@ func main() {
 		previous := time.Now()
 
 		mps.AllLemm = mps.LemmaMapper()
-		messenger.Timer("B1", fmt.Sprintf(MSG4, len(mps.AllLemm)), start, previous)
+		msg.Timer("B1", fmt.Sprintf(MSG4, len(mps.AllLemm)), start, previous)
 
 		previous = time.Now()
 		mps.NestedLemm = mps.NestedLemmaMapper(mps.AllLemm)
-		messenger.Timer("B2", MSG5, start, previous)
+		msg.Timer("B2", MSG5, start, previous)
 	}(&awaiting)
 
 	awaiting.Add(1)
@@ -151,8 +156,8 @@ func main() {
 	awaiting.Wait()
 
 	runtime.GC()
-	messenger.LogPaths("main() post-initialization")
-	messenger.Emit(messenger.ColStyle(fmt.Sprintf(SUMM, time.Now().Sub(vv.LaunchTime).Seconds())), -999)
+	msg.LogPaths("main() post-initialization")
+	msg.Emit(msg.ColStyle(fmt.Sprintf(SUMM, time.Now().Sub(vv.LaunchTime).Seconds())), -999)
 
 	//
 	// [4] debugging code block #2 of 2
@@ -161,7 +166,7 @@ func main() {
 
 	// go wsclientreport(2 * time.Second)
 
-	messenger.MAND(QUIT)
+	msg.MAND(QUIT)
 
 	if launch.Config.Authenticate {
 		vaults.BuildUserPassPairs(*launch.Config)

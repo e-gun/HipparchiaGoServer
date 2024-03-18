@@ -75,7 +75,7 @@ func HeadwordLookup(word string) structs.DbHeadwordCount {
 	q := fmt.Sprintf(QTP, word)
 
 	foundrows, err := dbconn.Query(context.Background(), q)
-	msg.EC(err)
+	Msg.EC(err)
 
 	var thesefinds []structs.DbHeadwordCount
 	var co structs.DbHeadwordCorpusCounts
@@ -97,7 +97,7 @@ func HeadwordLookup(word string) structs.DbHeadwordCount {
 			&g.Paradox, &g.Parod, &g.Paroem, &g.Perig, &g.Phil, &g.Physiog, &g.Poem, &g.Polyhist, &th.Proph, &g.Pseud, &rh.Rhet,
 			&g.Satura, &g.Satyr, &g.Schol, &g.Tact, &g.Test, &th.Theol, &g.Trag)
 		if e != nil {
-			msg.TMI(fmt.Sprintf(FAIL, word))
+			Msg.TMI(fmt.Sprintf(FAIL, word))
 		}
 		thehit.Corpus = co
 		thehit.Chron = chr
@@ -111,7 +111,7 @@ func HeadwordLookup(word string) structs.DbHeadwordCount {
 	if len(thesefinds) == 1 {
 		thefind = thesefinds[0]
 	} else {
-		msg.TMI(fmt.Sprintf(INFO, word, len(thesefinds)))
+		Msg.TMI(fmt.Sprintf(INFO, word, len(thesefinds)))
 	}
 
 	thefind.LoadCorpVals()
@@ -163,13 +163,13 @@ func ArrayToGetScansion(wordlist []string) map[string]string {
 		t := fmt.Sprintf(TT, id, a)
 
 		_, err := dbconn.Exec(context.Background(), t)
-		msg.EC(err)
+		Msg.EC(err)
 
 		foundrows, e := dbconn.Query(context.Background(), fmt.Sprintf(QT, uselang, id, uselang))
-		msg.EC(e)
+		Msg.EC(e)
 
 		_, ee := pgx.ForEachRow(foundrows, foreach, rwfnc)
-		msg.EC(ee)
+		Msg.EC(ee)
 	}
 	return foundmetrics
 }
@@ -217,7 +217,7 @@ func ArrayToGetRequiredMorphObjects(wordlist []string) map[string]structs.DbMorp
 	wordlist = append(wordlist, uppers...)
 	wordlist = append(wordlist, apo...)
 
-	msg.PEEK(fmt.Sprintf(MSG1, len(wordlist)))
+	Msg.PEEK(fmt.Sprintf(MSG1, len(wordlist)))
 
 	foundmorph := make(map[string]structs.DbMorphology)
 	var thehit structs.DbMorphology
@@ -246,13 +246,13 @@ func ArrayToGetRequiredMorphObjects(wordlist []string) map[string]structs.DbMorp
 			t := fmt.Sprintf(TT, id, a)
 
 			_, err := dbconn.Exec(context.Background(), t)
-			msg.EC(err)
+			Msg.EC(err)
 
 			foundrows, e := dbconn.Query(context.Background(), fmt.Sprintf(QT, uselang, id, uselang))
-			msg.EC(e)
+			Msg.EC(e)
 
 			_, ee := pgx.ForEachRow(foundrows, foreach, rwfnc)
-			msg.EC(ee)
+			Msg.EC(ee)
 		}
 	}
 	return foundmorph
@@ -289,13 +289,13 @@ func ArrayToGetTeadwordCounts(wordlist []string) map[string]int {
 
 	t := fmt.Sprintf(TT, u, a)
 	_, err := dbconn.Exec(context.Background(), t)
-	msg.EC(err)
+	Msg.EC(err)
 
 	foundrows, e := dbconn.Query(context.Background(), fmt.Sprintf(QT, u))
-	msg.EC(e)
+	Msg.EC(e)
 
 	_, ee := pgx.ForEachRow(foundrows, foreach, rwfnc)
-	msg.EC(ee)
+	Msg.EC(ee)
 
 	return countmap
 }
@@ -320,7 +320,7 @@ func FetchHeadwordCounts(headwordset map[string]bool) map[string]int {
 		hw = append(hw, h)
 	}
 
-	msg.PEEK(fmt.Sprintf(MSG1, len(headwordset)))
+	Msg.PEEK(fmt.Sprintf(MSG1, len(headwordset)))
 
 	dbconn := db.GetDBConnection()
 	defer dbconn.Release()
@@ -330,18 +330,18 @@ func FetchHeadwordCounts(headwordset map[string]bool) map[string]int {
 
 	tt = fmt.Sprintf(tt, rndid, arr)
 	_, err := dbconn.Exec(context.Background(), tt)
-	msg.EC(err)
+	Msg.EC(err)
 
 	qt = fmt.Sprintf(qt, rndid)
 	foundrows, e := dbconn.Query(context.Background(), qt)
-	msg.EC(e)
+	Msg.EC(e)
 
 	returnmap := make(map[string]int)
 	defer foundrows.Close()
 	for foundrows.Next() {
 		var thehit structs.WeightedHeadword
 		err = foundrows.Scan(&thehit.Word, &thehit.Count)
-		msg.EC(err)
+		Msg.EC(err)
 		returnmap[thehit.Word] = thehit.Count
 	}
 

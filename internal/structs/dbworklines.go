@@ -94,6 +94,7 @@ func (dbw *DbWorkline) AuID() string {
 	return dbw.WkUID[:LENGTHOFAUTHORID]
 }
 
+// Warning: circular import...
 // MyAu - get the DbAuthor for this line
 //func (dbw *DbWorkline) MyAu() *DbAuthor {
 //	a, ok := AllAuthors[dbw.AuID()]
@@ -109,6 +110,7 @@ func (dbw *DbWorkline) WkID() string {
 	return dbw.WkUID[LENGTHOFAUTHORID+1:]
 }
 
+// Warning: circular import...
 // MyWk - get the DbWork for this line
 //func (dbw *DbWorkline) MyWk() *DbWork {
 //	w, ok := AllWorks[dbw.WkUID]

@@ -73,8 +73,8 @@ func RtTextMaker(c echo.Context) error {
 
 	// now we have the lines we need....
 	firstline := srch.Results.FirstLine()
-	firstwork := search.MyWk(&firstline)
-	firstauth := search.MyAu(&firstline)
+	firstwork := search.DbWlnMyWk(&firstline)
+	firstauth := search.DbWlnMyAu(&firstline)
 
 	lines := srch.Results.YieldAll()
 	block := make([]string, srch.Results.Len())
@@ -110,7 +110,7 @@ func RtTextMaker(c echo.Context) error {
 		if l.WkUID != previous.WkUID {
 			// you were doing multi-text generation
 			workcount += 1
-			aw := search.MyAu(&l).Name + fmt.Sprintf(`, <span class="italic">%s</span>`, search.MyWk(&l).Title)
+			aw := search.DbWlnMyAu(&l).Name + fmt.Sprintf(`, <span class="italic">%s</span>`, search.DbWlnMyWk(&l).Title)
 			aw = fmt.Sprintf(`<hr><span class="emph">[%d] %s</span>`, workcount, aw)
 			extra := fmt.Sprintf(TBLRW, "", aw, "")
 			trr[i] = extra + trr[i]
@@ -421,17 +421,17 @@ func RtVocabMaker(c echo.Context) error {
 
 	// [g2] build the summary: jso.SU
 
-	an := search.MyAu(&vocabsrch.Results.Lines[0]).Cleaname
+	an := search.DbWlnMyAu(&vocabsrch.Results.Lines[0]).Cleaname
 	if vocabsrch.TableSize > 1 {
 		an = an + fmt.Sprintf(" and %d more author(s)", vocabsrch.TableSize-1)
 	}
 
-	wn := search.MyWk(&vocabsrch.Results.Lines[0]).Title
+	wn := search.DbWlnMyWk(&vocabsrch.Results.Lines[0]).Title
 	if vocabsrch.SearchSize > 1 {
 		wn = wn + fmt.Sprintf(" and %d more works(s)", vocabsrch.SearchSize-1)
 	}
 
-	cf := search.MyWk(&vocabsrch.Results.Lines[0]).CitationFormat()
+	cf := search.DbWlnMyWk(&vocabsrch.Results.Lines[0]).CitationFormat()
 	var tc []string
 	for _, x := range cf {
 		if len(x) != 0 {
@@ -776,17 +776,17 @@ func RtIndexMaker(c echo.Context) error {
 
 	// build the summary info: jso.SU
 
-	an := search.MyAu(&firstresult).Cleaname
+	an := search.DbWlnMyAu(&firstresult).Cleaname
 	if srch.TableSize > 1 {
 		an = an + fmt.Sprintf(" and %d more author(s)", srch.TableSize-1)
 	}
 
-	wn := search.MyWk(&firstresult).Title
+	wn := search.DbWlnMyWk(&firstresult).Title
 	if srch.SearchSize > 1 {
 		wn = wn + fmt.Sprintf(" and %d more works(s)", srch.SearchSize-1)
 	}
 
-	cf := search.MyWk(&firstresult).CitationFormat()
+	cf := search.DbWlnMyWk(&firstresult).CitationFormat()
 	var tc []string
 	for _, x := range cf {
 		if len(x) != 0 {
@@ -887,7 +887,7 @@ func multiworkkeymaker(mapper map[string]rune, srch *structs.SearchStruct) strin
 		for k, v := range mapper {
 			t := fmt.Sprintf(`<span class="italic">%s</span>`, mps.AllWorks[k].Title)
 			if auu {
-				t = mps.MyAu(mps.AllWorks[k]).Name + ", " + t
+				t = mps.DbWkMyAu(mps.AllWorks[k]).Name + ", " + t
 			}
 			out = append(out, fmt.Sprintf("%s: %s\n", string(v), t))
 		}

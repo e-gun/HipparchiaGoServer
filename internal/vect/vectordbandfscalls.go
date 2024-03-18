@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
-	"github.com/e-gun/HipparchiaGoServer/internal/m"
+	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/e-gun/wego/pkg/embedding"
 	"github.com/e-gun/wego/pkg/model/glove"
@@ -26,8 +26,8 @@ import (
 )
 
 var (
-	dbi = m.NewMessageMaker()
-	msg = m.NewMessageMaker()
+	dbi = launch.NewMessageMakerWithDefaults()
+	Msg = launch.NewMessageMakerWithDefaults()
 )
 
 var (
@@ -130,7 +130,7 @@ var (
 //		hw = append(hw, h)
 //	}
 //
-//	msg.PEEK(fmt.Sprintf(MSG1, len(headwordset)))
+//	Msg.PEEK(fmt.Sprintf(MSG1, len(headwordset)))
 //
 //	dbconn := db.GetDBConnection()
 //	defer dbconn.Release()
@@ -190,7 +190,7 @@ func VectorDBInitNN() {
 			dbi.EC(err)
 		}
 	} else {
-		msg.FYI("VectorDBInitNN(): success")
+		Msg.FYI("VectorDBInitNN(): success")
 	}
 }
 
@@ -222,7 +222,7 @@ func VectorDBCheckNN(fp string) bool {
 		// m will be "no rows in result set" if you did not find the fingerprint
 		return false
 	} else {
-		msg.TMI(fmt.Sprintf(F, ss.S))
+		Msg.TMI(fmt.Sprintf(F, ss.S))
 		return true
 	}
 }
@@ -242,14 +242,14 @@ func VectorDBAddNN(fp string, embs embedding.Embeddings) {
 	)
 
 	if embs.Empty() {
-		msg.PEEK(MSG3)
+		Msg.PEEK(MSG3)
 		return
 	}
 
 	// json vs jsi: jsoniter.ConfigFastest, this will marshal the float with 6 digits precision (lossy)
 	eb, err := json.Marshal(embs)
 	if err != nil {
-		msg.NOTE(FAIL)
+		Msg.NOTE(FAIL)
 		eb = []byte{}
 	}
 
@@ -269,7 +269,7 @@ func VectorDBAddNN(fp string, embs embedding.Embeddings) {
 
 	_, err = db.SQLPool.Exec(context.Background(), ex, l2, b)
 	dbi.EC(err)
-	msg.TMI(MSG1 + fp)
+	Msg.TMI(MSG1 + fp)
 
 	// compressed is c. 33% of original
 	// l1 := len(eb)
@@ -313,7 +313,7 @@ func VectorDBFetchNN(fp string) embedding.Embeddings {
 	buf.Reset()
 
 	if emb.Empty() {
-		msg.NOTE(fmt.Sprintf(MSG2, fp))
+		Msg.NOTE(fmt.Sprintf(MSG2, fp))
 	}
 
 	// m(MSG1+fp, MSGPEEK)
@@ -333,9 +333,9 @@ func VectorDBReset() {
 	_, err := db.SQLPool.Exec(context.Background(), ex)
 	if err != nil {
 		ms := err.Error()
-		msg.TMI(fmt.Sprintf(MSG2, vv.VECTORTABLENAMENN, ms))
+		Msg.TMI(fmt.Sprintf(MSG2, vv.VECTORTABLENAMENN, ms))
 	} else {
-		msg.NOTE(MSG1 + vv.VECTORTABLENAMENN)
+		Msg.NOTE(MSG1 + vv.VECTORTABLENAMENN)
 	}
 }
 
@@ -349,7 +349,7 @@ func VectorDBSizeNN(priority int) {
 
 	err := db.SQLPool.QueryRow(context.Background(), SZQ).Scan(&size)
 	dbi.EC(err)
-	msg.Emit(fmt.Sprintf(MSG4, size/1024/1024), priority)
+	Msg.Emit(fmt.Sprintf(MSG4, size/1024/1024), priority)
 }
 
 func VectorDBCountNN(priority int) {
@@ -368,7 +368,7 @@ func VectorDBCountNN(priority int) {
 		}
 		size = 0
 	}
-	msg.Emit(fmt.Sprintf(MSG4, size), priority)
+	Msg.Emit(fmt.Sprintf(MSG4, size), priority)
 }
 
 //
@@ -400,7 +400,7 @@ func ldavecconfig() LDAConfig {
 
 	h, e := os.UserHomeDir()
 	if e != nil {
-		msg.MAND(ERR1)
+		Msg.MAND(ERR1)
 		return cfg
 	}
 
@@ -412,7 +412,7 @@ func ldavecconfig() LDAConfig {
 
 		err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+vv.CONFIGVECTORLDA, content, vv.WRITEPERMS)
 		dbi.EC(err)
-		msg.PEEK(MSG1 + vv.CONFIGVECTORLDA)
+		Msg.PEEK(MSG1 + vv.CONFIGVECTORLDA)
 	} else {
 		loadedcfg, _ := os.Open(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vv.CONFIGVECTORLDA)
 		decoderc := json.NewDecoder(loadedcfg)
@@ -420,7 +420,7 @@ func ldavecconfig() LDAConfig {
 		errc := decoderc.Decode(&vc)
 		_ = loadedcfg.Close()
 		if errc != nil {
-			msg.CRIT(ERR2 + vv.CONFIGVECTORLDA)
+			Msg.CRIT(ERR2 + vv.CONFIGVECTORLDA)
 			vc = cfg
 		}
 		// m(MSG2+vv.CONFIGVECTORLDA, MSGTMI)
@@ -452,7 +452,7 @@ func w2vvectorconfig() word2vec.Options {
 
 	h, e := os.UserHomeDir()
 	if e != nil {
-		msg.MAND(ERR1)
+		Msg.MAND(ERR1)
 		return cfg
 	}
 
@@ -464,7 +464,7 @@ func w2vvectorconfig() word2vec.Options {
 
 		err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+vv.CONFIGVECTORW2V, content, vv.WRITEPERMS)
 		dbi.EC(err)
-		msg.PEEK(MSG1 + vv.CONFIGVECTORW2V)
+		Msg.PEEK(MSG1 + vv.CONFIGVECTORW2V)
 	} else {
 		loadedcfg, _ := os.Open(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vv.CONFIGVECTORW2V)
 		decoderc := json.NewDecoder(loadedcfg)
@@ -472,10 +472,10 @@ func w2vvectorconfig() word2vec.Options {
 		errc := decoderc.Decode(&vc)
 		_ = loadedcfg.Close()
 		if errc != nil {
-			msg.CRIT(ERR2 + vv.CONFIGVECTORW2V)
+			Msg.CRIT(ERR2 + vv.CONFIGVECTORW2V)
 			vc = DefaultW2VVectors
 		}
-		msg.TMI(MSG2 + vv.CONFIGVECTORW2V)
+		Msg.TMI(MSG2 + vv.CONFIGVECTORW2V)
 		cfg = vc
 	}
 
@@ -497,7 +497,7 @@ func lexvecvectorconfig() lexvec.Options {
 
 	h, e := os.UserHomeDir()
 	if e != nil {
-		msg.MAND(ERR1)
+		Msg.MAND(ERR1)
 		return cfg
 	}
 
@@ -509,7 +509,7 @@ func lexvecvectorconfig() lexvec.Options {
 
 		err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+vv.CONFIGVECTORLEXVEC, content, vv.WRITEPERMS)
 		dbi.EC(err)
-		msg.PEEK(MSG1 + vv.CONFIGVECTORLEXVEC)
+		Msg.PEEK(MSG1 + vv.CONFIGVECTORLEXVEC)
 	} else {
 		loadedcfg, _ := os.Open(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vv.CONFIGVECTORLEXVEC)
 		decoderc := json.NewDecoder(loadedcfg)
@@ -517,10 +517,10 @@ func lexvecvectorconfig() lexvec.Options {
 		errc := decoderc.Decode(&vc)
 		_ = loadedcfg.Close()
 		if errc != nil {
-			msg.CRIT(ERR2 + vv.CONFIGVECTORLEXVEC)
+			Msg.CRIT(ERR2 + vv.CONFIGVECTORLEXVEC)
 			vc = DefaultLexVecVectors
 		}
-		msg.TMI(MSG2 + vv.CONFIGVECTORLEXVEC)
+		Msg.TMI(MSG2 + vv.CONFIGVECTORLEXVEC)
 		cfg = vc
 	}
 	return cfg
@@ -541,7 +541,7 @@ func glovevectorconfig() glove.Options {
 
 	h, e := os.UserHomeDir()
 	if e != nil {
-		msg.MAND(ERR1)
+		Msg.MAND(ERR1)
 		return cfg
 	}
 
@@ -553,7 +553,7 @@ func glovevectorconfig() glove.Options {
 
 		err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+vv.CONFIGVECTORGLOVE, content, vv.WRITEPERMS)
 		dbi.EC(err)
-		msg.PEEK(MSG1 + vv.CONFIGVECTORGLOVE)
+		Msg.PEEK(MSG1 + vv.CONFIGVECTORGLOVE)
 	} else {
 		loadedcfg, _ := os.Open(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vv.CONFIGVECTORGLOVE)
 		decoderc := json.NewDecoder(loadedcfg)
@@ -561,10 +561,10 @@ func glovevectorconfig() glove.Options {
 		errc := decoderc.Decode(&vc)
 		_ = loadedcfg.Close()
 		if errc != nil {
-			msg.CRIT(ERR2 + vv.CONFIGVECTORGLOVE)
+			Msg.CRIT(ERR2 + vv.CONFIGVECTORGLOVE)
 			vc = DefaultGloveVectors
 		}
-		msg.TMI(MSG2 + vv.CONFIGVECTORGLOVE)
+		Msg.TMI(MSG2 + vv.CONFIGVECTORGLOVE)
 		cfg = vc
 	}
 

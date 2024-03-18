@@ -76,7 +76,7 @@ func (b *BagWithLocus) GetWL() {
 	tb := strings.Split(b.Loc, "/")
 	ln, e := strconv.Atoi(tb[2])
 	if e != nil {
-		msg.NOTE("BagWithLocus.GetWL() failed to convert ascii to int")
+		Msg.NOTE("BagWithLocus.GetWL() failed to convert ascii to int")
 	}
 	b.Workline = search.GrabOneLine(tb[1][0:vv.LENGTHOFAUTHORID], ln)
 }
@@ -89,7 +89,7 @@ func LDASearch(c echo.Context, srch structs.SearchStruct) error {
 		ESM2   = "Building topic models"
 		ESM3   = "Building the graph (please be patient this can be very slow...)"
 	)
-	c.Response().After(func() { msg.LogPaths("LDASearch()") })
+	c.Response().After(func() { Msg.LogPaths("LDASearch()") })
 
 	se := srch.StoredSession
 	ntopics := se.LDAtopics
@@ -357,7 +357,7 @@ func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser, s *s
 	docsOverTopics, err := pipeline.FitTransform(corpus...)
 	if err != nil {
 		// you probably cancelled in the middle...
-		msg.FYI(FAIL)
+		Msg.FYI(FAIL)
 		blank := mat.NewDense(1, 1, nil)
 		return blank, blank, false
 	}
@@ -709,7 +709,7 @@ func ldaplot(ctx context.Context, graph2d bool, ntopics int, incl string, bagger
 		p := message.NewPrinter(language.English)
 		htmlandjs = p.Sprintf(SKIPPED, dc, cfg.MaxLDAGraphSize)
 	}
-	msg.PEEK(fmt.Sprintf("ldaplot() EmbedData required %.3fs", time.Now().Sub(vv.LaunchTime).Seconds()))
+	Msg.PEEK(fmt.Sprintf("ldaplot() EmbedData required %.3fs", time.Now().Sub(vv.LaunchTime).Seconds()))
 
 	return htmlandjs
 }

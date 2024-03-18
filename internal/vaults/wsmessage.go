@@ -3,15 +3,14 @@ package vaults
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/m"
+	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/gorilla/websocket"
 	"strings"
 	"time"
 )
 
-// TODO: this is hollow
-var msg = m.NewMessageMaker()
+var Msg = launch.NewMessageMakerWithDefaults()
 
 //
 // WEBSOCKET INFRASTRUCTURE: see https://tutorialedge.net/projects/chat-system-in-go-and-react/part-4-handling-multiple-clients/
@@ -61,7 +60,7 @@ func (c *WSClient) ReceiveID() {
 	for {
 		_, m, err := c.Conn.ReadMessage()
 		if err != nil {
-			msg.FYI(FAIL1)
+			Msg.FYI(FAIL1)
 			return
 		}
 
@@ -74,7 +73,7 @@ func (c *WSClient) ReceiveID() {
 		}
 
 		if time.Now().After(quit) {
-			msg.FYI(FAIL2)
+			Msg.FYI(FAIL2)
 			break
 		}
 	}
@@ -100,12 +99,12 @@ func (c *WSClient) WSMessageLoop() {
 	for {
 		srchinfo := getsrchinfo()
 		if srchinfo.SrchCount != 0 && srchinfo.Exists {
-			msg.FYI(fmt.Sprintf(SUCCESS, c.ID))
+			Msg.FYI(fmt.Sprintf(SUCCESS, c.ID))
 			break
 		}
 
 		if time.Now().After(quit) {
-			msg.FYI(fmt.Sprintf(FAIL, c.ID))
+			Msg.FYI(fmt.Sprintf(FAIL, c.ID))
 			break
 		}
 	}
@@ -158,10 +157,10 @@ func (pool *WSPool) WSPoolStartListening() {
 		for cl := range pool.ClientMap {
 			if cl.ID == jso.ID {
 				js, y := json.Marshal(jso)
-				msg.EC(y)
+				Msg.EC(y)
 				e := cl.Conn.WriteMessage(websocket.TextMessage, js)
 				if e != nil {
-					msg.WARN(MSG2)
+					Msg.WARN(MSG2)
 					delete(pool.ClientMap, cl)
 				}
 			}
@@ -175,7 +174,7 @@ func (pool *WSPool) WSPoolStartListening() {
 		case id := <-pool.Remove:
 			delete(pool.ClientMap, id)
 		case id := <-pool.ReadID:
-			msg.PEEK(fmt.Sprintf(MSG1, id))
+			Msg.PEEK(fmt.Sprintf(MSG1, id))
 		case wrt := <-pool.JSO:
 			writemsg(wrt)
 		}

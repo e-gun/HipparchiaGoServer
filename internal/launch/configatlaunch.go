@@ -74,7 +74,7 @@ var (
 // LookForConfigFile - test to see if we can find a config file; if not build one and check to see if the DB needs loading
 func LookForConfigFile() {
 	const (
-		WRN      = "Warning: unable to vv: Cannot find a configuration file."
+		WRN      = "Warning: unable to launch: Cannot find a configuration file."
 		FYI      = "\tC1Creating configuration directory: 'C3%sC1'C0"
 		FNF      = "\tC1Generating a simple 'C3%sC1'C0"
 		FWR      = "\tC1Wrote configuration to 'C3%sC1'C0\n"
@@ -85,6 +85,7 @@ func LookForConfigFile() {
 	)
 	_, a := os.Stat(vv.CONFIGBASIC)
 
+	fmt.Println(vv.CONFIGBASIC)
 	var b error
 	var c error
 

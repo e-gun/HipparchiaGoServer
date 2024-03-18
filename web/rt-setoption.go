@@ -49,12 +49,12 @@ func RtSetOption(c echo.Context) error {
 	modifyglobalmapsifneeded := func(c string, y bool) {
 		// this is a "laggy" click: something comparable to the vv initialization time
 		// if you call it via "go modifyglobalmapsifneeded()" the lag vanishes: nobody will search <.5s later, right?
-		if y && !vv.LoadedCorp[c] {
+		if y && !mps.LoadedCorp[c] {
 			start := time.Now()
 			// append to the master work map
-			mps.AllWorks = mapnewworkcorpus(c, mps.AllWorks)
+			mps.AllWorks = mps.MapNewWorkCorpus(c, mps.AllWorks)
 			// append to the master author map
-			mps.AllAuthors = mapnewauthorcorpus(c, mps.AllAuthors)
+			mps.AllAuthors = mps.MapNewAuthorCorpus(c, mps.AllAuthors)
 			// re-populateglobalmaps
 			mps.RePopulateGlobalMaps()
 			d := fmt.Sprintf("modifyglobalmapsifneeded(): %.3fs", time.Now().Sub(start).Seconds())
@@ -252,23 +252,6 @@ func RtSetOption(c echo.Context) error {
 	return c.String(http.StatusOK, "")
 }
 
-// mapnewworkcorpus - add a corpus to a workmap
-func mapnewworkcorpus(corpus string, workmap map[string]*structs.DbWork) map[string]*structs.DbWork {
-	const (
-		MSG = "mapnewworkcorpus() added %d works from '%s'"
-	)
-	toadd := sliceworkcorpus(corpus)
-	for i := 0; i < len(toadd); i++ {
-		w := toadd[i]
-		workmap[w.UID] = &w
-	}
-
-	vv.LoadedCorp[corpus] = true
-
-	msg.PEEK(fmt.Sprintf(MSG, len(toadd), corpus))
-	return workmap
-}
-
 // sliceworkcorpus - fetch all relevant works from the db as a DbWork slice
 func sliceworkcorpus(corpus string) []structs.DbWork {
 	// this is far and away the "heaviest" bit of the whole program if you grab every known work
@@ -332,87 +315,4 @@ func sliceworkcorpus(corpus string) []structs.DbWork {
 	msg.EC(e)
 
 	return workslice
-}
-
-// mapnewauthorcorpus - add a corpus to an authormap
-func mapnewauthorcorpus(corpus string, authmap map[string]*structs.DbAuthor) map[string]*structs.DbAuthor {
-	const (
-		MSG = "mapnewauthorcorpus() added %d authors from '%s'"
-	)
-
-	toadd := sliceauthorcorpus(corpus)
-	for i := 0; i < len(toadd); i++ {
-		a := toadd[i]
-		authmap[a.UID] = &a
-	}
-
-	vv.LoadedCorp[corpus] = true
-
-	msg.PEEK(fmt.Sprintf(MSG, len(toadd), corpus))
-
-	return authmap
-}
-
-// sliceauthorcorpus - fetch all relevant works from the db as a DbAuthor slice
-func sliceauthorcorpus(corpus string) []structs.DbAuthor {
-	// hipparchiaDB-# \d authors
-	//                          Table "public.authors"
-	//     Column     |          Type          | Collation | Nullable | Default
-	//----------------+------------------------+-----------+----------+---------
-	// universalid    | character(6)           |           |          |
-	// language       | character varying(10)  |           |          |
-	// idxname        | character varying(128) |           |          |
-	// akaname        | character varying(128) |           |          |
-	// shortname      | character varying(128) |           |          |
-	// cleanname      | character varying(128) |           |          |
-	// genres         | character varying(512) |           |          |
-	// recorded_date  | character varying(64)  |           |          |
-	// converted_date | integer                |           |          |
-	// location       | character varying(128) |           |          |
-
-	const (
-		CT = `SELECT count(*) FROM authors WHERE universalid ~* '^%s'`
-		QT = `SELECT %s FROM authors WHERE universalid ~* '^%s'`
-	)
-
-	// need to be ready to load the worklists into the authors
-	// so: build a map of {UID: WORKLIST...}; map called by rfnc()
-
-	worklists := make(map[string][]string)
-	for _, w := range mps.AllWorks {
-		wk := w.UID
-		au := wk[0:vv.LENGTHOFAUTHORID]
-		if _, y := worklists[au]; !y {
-			worklists[au] = []string{wk}
-		} else {
-			worklists[au] = append(worklists[au], wk)
-		}
-	}
-
-	var cc int
-	cq := fmt.Sprintf(CT, corpus)
-	qq := fmt.Sprintf(QT, mps.AUTHORTEMPLATE, corpus)
-
-	countrow := db.SQLPool.QueryRow(context.Background(), cq)
-	err := countrow.Scan(&cc)
-
-	foundrows, err := db.SQLPool.Query(context.Background(), qq)
-	msg.EC(err)
-
-	authslice := make([]structs.DbAuthor, cc)
-	var a structs.DbAuthor
-	foreach := []any{&a.UID, &a.Language, &a.IDXname, &a.Name, &a.Shortname, &a.Cleaname, &a.Genres, &a.RecDate, &a.ConvDate, &a.Location}
-
-	index := 0
-	rfnc := func() error {
-		a.WorkList = worklists[a.UID]
-		authslice[index] = a
-		index++
-		return nil
-	}
-
-	_, e := pgx.ForEachRow(foundrows, foreach, rfnc)
-	msg.EC(e)
-
-	return authslice
 }

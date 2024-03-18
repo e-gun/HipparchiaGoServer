@@ -115,19 +115,19 @@ func RtLemmaHints(c echo.Context) error {
 }
 
 func RtAuGenreHints(c echo.Context) error {
-	return basichinter(c, vv.AuGenres)
+	return basichinter(c, mps.AuGenres)
 }
 
 func RtWkGenreHints(c echo.Context) error {
-	return basichinter(c, vv.WkGenres)
+	return basichinter(c, mps.WkGenres)
 }
 
 func RtAuLocHints(c echo.Context) error {
-	return basichinter(c, vv.AuLocs)
+	return basichinter(c, mps.AuLocs)
 }
 
 func RtWkLocHints(c echo.Context) error {
-	return basichinter(c, vv.WkLocs)
+	return basichinter(c, mps.WkLocs)
 }
 
 // basichinter - which substrings of the request are members of the master map?

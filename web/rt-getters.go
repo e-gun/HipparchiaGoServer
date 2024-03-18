@@ -378,7 +378,7 @@ func RtGetJSSearchlist(c echo.Context) error {
 	for _, w := range sl.Inc.Works {
 		thiswk := mps.AllWorks[w]
 		ct := WORKTMPL
-		cf := m.Sprintf(ct, mps.MyAu(thiswk).Cleaname, thiswk.Title, thiswk.WdCount)
+		cf := m.Sprintf(ct, mps.DbWkMyAu(thiswk).Cleaname, thiswk.Title, thiswk.WdCount)
 		wkk = append(wkk, cf)
 		totalwords += thiswk.WdCount
 	}

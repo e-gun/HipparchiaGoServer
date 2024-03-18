@@ -42,7 +42,7 @@ type ServerSession struct {
 	LDA2D        bool
 }
 
-// BuildSelectionOverview will call the relevant SearchIncExl functions: see searchlistbuilder.go
+// BuildSelectionOverview will call the relevant SearchIncExl functions: see buildesearchlist.go
 func (s *ServerSession) BuildSelectionOverview() {
 	//s.Inclusions.BuildAuByName()
 	//s.Exclusions.BuildAuByName()

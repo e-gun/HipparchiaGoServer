@@ -3,6 +3,7 @@ package mps
 import (
 	"context"
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/generic"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -44,12 +45,12 @@ func LemmaMapper() map[string]*structs.DbLemma {
 	// use the older iterative idiom to facilitate working with pointers: "foreach" idiom will fight you...
 	for _, lg := range vv.TheLanguages {
 		q := fmt.Sprintf(THEQUERY, lg)
-		foundrows, err := vv.SQLPool.Query(context.Background(), q)
-		msg.EC(err)
+		foundrows, err := db.SQLPool.Query(context.Background(), q)
+		Msg.EC(err)
 		for foundrows.Next() {
 			thehit := &structs.DbLemma{}
 			e := foundrows.Scan(&thehit.Entry, &thehit.Xref, &thehit.Deriv)
-			msg.EC(e)
+			Msg.EC(e)
 			thehit.Entry = clean.Replace(thehit.Entry)
 			unnested[thehit.Entry] = thehit
 		}

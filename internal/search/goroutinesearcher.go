@@ -9,7 +9,6 @@ import (
 	"context"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
-	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vaults"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -17,7 +16,7 @@ import (
 )
 
 var (
-	msg = m.NewMessageMaker()
+	Msg = launch.NewMessageMakerWithDefaults()
 )
 
 // SearchAndInsertResults - take a SearchStruct; fan out its []PrerolledQuery; collect the results; insert a WorkLineBundle into the SearchStruct
@@ -37,7 +36,7 @@ func SearchAndInsertResults(ss *structs.SearchStruct) {
 
 	// [a] load the queries into a channel
 	querychannel, err := SearchQueryFeeder(ss)
-	msg.EC(err)
+	Msg.EC(err)
 
 	// [b] fan out to run searches in parallel; searches fed by the query channel
 	workers := launch.Config.WorkerCount
@@ -45,7 +44,7 @@ func SearchAndInsertResults(ss *structs.SearchStruct) {
 
 	for i := 0; i < workers; i++ {
 		foundlineschannel, e := PRQSearcher(ss.Context, querychannel)
-		msg.EC(e)
+		Msg.EC(e)
 		searchchannels[i] = foundlineschannel
 	}
 

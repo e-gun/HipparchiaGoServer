@@ -72,7 +72,7 @@ func PoliceRequestAndResponse(nextechohandler echo.HandlerFunc) echo.HandlerFunc
 			BListWR <- wr   // register a strike
 			ok := <-wr.resp // are you over the limit?
 			if !ok {
-				msg.WARN(fmt.Sprintf(BLACK1, c.RealIP(), rq))
+				Msg.WARN(fmt.Sprintf(BLACK1, c.RealIP(), rq))
 			}
 		}
 
@@ -126,7 +126,7 @@ func IPBlacklistKeeper() {
 				strikecount[wr.ip] = 1
 			} else if strikecount[wr.ip] >= FAILSALLOWED {
 				blacklist[wr.ip] = struct{}{}
-				msg.NOTE(fmt.Sprintf(BLACK0, wr.ip, len(blacklist)))
+				Msg.NOTE(fmt.Sprintf(BLACK0, wr.ip, len(blacklist)))
 				ret = true
 			} else {
 				strikecount[wr.ip]++
@@ -156,7 +156,7 @@ func ResponseStatsKeeper() {
 
 	warn := func(v uint64, frq uint64, fyi string) {
 		if v%frq == 0 {
-			msg.NOTE(fmt.Sprintf(fyi, v))
+			Msg.NOTE(fmt.Sprintf(fyi, v))
 		}
 	}
 
@@ -166,7 +166,7 @@ func ResponseStatsKeeper() {
 		BListWR <- wr
 		ok := <-wr.resp
 		if !ok {
-			msg.WARN(fmt.Sprintf(BLACK1, status.ip, status.uri))
+			Msg.WARN(fmt.Sprintf(BLACK1, status.ip, status.uri))
 		}
 	}
 
@@ -183,7 +183,7 @@ func ResponseStatsKeeper() {
 			EchoServerStats.FourOhThree++
 			// use of 'when' makes this different...
 			if EchoServerStats.FourOhThree%FRQ403 == 0 {
-				msg.NOTE(fmt.Sprintf(FYI403, when, EchoServerStats.FourOhThree, status.ip, status.uri))
+				Msg.NOTE(fmt.Sprintf(FYI403, when, EchoServerStats.FourOhThree, status.ip, status.uri))
 			}
 		case 404:
 			EchoServerStats.FourOhFour++

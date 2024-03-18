@@ -353,7 +353,7 @@ func registerselection(user string, sv SelectionValues) structs.ServerSession {
 	}
 
 	if len(sv.AGenre) != 0 {
-		if _, ok := vv.AuGenres[sv.AGenre]; ok {
+		if _, ok := mps.AuGenres[sv.AGenre]; ok {
 			if !sv.IsExcl {
 				s.Inclusions.AuGenres = generic.Unique(append(s.Inclusions.AuGenres, sv.AGenre))
 			} else {
@@ -363,7 +363,7 @@ func registerselection(user string, sv SelectionValues) structs.ServerSession {
 	}
 
 	if len(sv.ALoc) != 0 {
-		if _, ok := vv.AuLocs[sv.ALoc]; ok {
+		if _, ok := mps.AuLocs[sv.ALoc]; ok {
 			if !sv.IsExcl {
 				s.Inclusions.AuLocations = generic.Unique(append(s.Inclusions.AuLocations, sv.ALoc))
 			} else {
@@ -373,7 +373,7 @@ func registerselection(user string, sv SelectionValues) structs.ServerSession {
 	}
 
 	if len(sv.WGenre) != 0 {
-		if _, ok := vv.WkGenres[sv.WGenre]; ok {
+		if _, ok := mps.WkGenres[sv.WGenre]; ok {
 			if !sv.IsExcl {
 				s.Inclusions.WkGenres = generic.Unique(append(s.Inclusions.WkGenres, sv.WGenre))
 			} else {
@@ -383,7 +383,7 @@ func registerselection(user string, sv SelectionValues) structs.ServerSession {
 	}
 
 	if len(sv.WLoc) != 0 {
-		if _, ok := vv.WkLocs[sv.WLoc]; ok {
+		if _, ok := mps.WkLocs[sv.WLoc]; ok {
 			if !sv.IsExcl {
 				s.Inclusions.WkLocations = generic.Unique(append(s.Inclusions.WkLocations, sv.WLoc))
 			} else {
@@ -838,7 +838,7 @@ func reportcurrentselections(c echo.Context) SelectionData {
 	// need to do it in this order: don't walk through the map keys
 	cat := []string{"agn", "wgn", "aloc", "wloc", "au", "wk", "psg"}
 	catmap := map[string][2]string{
-		"agn":  {"Author categories", "vv.AuGenres"},
+		"agn":  {"Author categories", "AuGenres"},
 		"wgn":  {"Work genres", "WkGenres"},
 		"aloc": {"Author location", "AuLocations"},
 		"wloc": {"Work provenance", "WkLocations"},

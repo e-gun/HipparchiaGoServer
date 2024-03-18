@@ -58,7 +58,7 @@ func NeighborsSearch(c echo.Context, srch structs.SearchStruct) error {
 		SETTINGS = `model type: %s; text prep: %s`
 	)
 
-	c.Response().After(func() { msg.LogPaths("NeighborsSearch()") })
+	c.Response().After(func() { Msg.LogPaths("NeighborsSearch()") })
 	sess := srch.StoredSession
 
 	term := srch.LemmaOne
@@ -184,7 +184,7 @@ func FingerprintNNVectorSearch(srch structs.SearchStruct) string {
 	}
 
 	if e1 != nil || e2 != nil {
-		msg.MAND(FAIL)
+		Msg.MAND(FAIL)
 		os.Exit(1)
 	}
 
@@ -195,7 +195,7 @@ func FingerprintNNVectorSearch(srch structs.SearchStruct) string {
 	// [4] generate the md5 fingerprint from this
 
 	m := fmt.Sprintf("%x", md5.Sum(f1))
-	msg.TMI(MSG1 + m)
+	Msg.TMI(MSG1 + m)
 
 	return m
 }

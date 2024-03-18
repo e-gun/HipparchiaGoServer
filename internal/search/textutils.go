@@ -23,7 +23,7 @@ func LemmaIntoRegexSlice(hdwd string) []string {
 
 	var qq []string
 	if _, ok := mps.AllLemm[hdwd]; !ok {
-		msg.FYI(fmt.Sprintf(FAILMSG, hdwd))
+		Msg.FYI(fmt.Sprintf(FAILMSG, hdwd))
 		return []string{FAILSLC}
 	}
 
@@ -214,7 +214,7 @@ func FindPhrasesAcrossLines(ss *structs.SearchStruct) {
 func WhiteSpacer(skg string, ss *structs.SearchStruct) string {
 	// whitespace issue: " ἐν Ὀρέϲτῃ " cannot be found at the start of a line where it is "ἐν Ὀρέϲτῃ "
 	// do not run this before formatinitialsummary()
-	// also used by searchformatting.go
+	// also used by resultformatting.go
 
 	if strings.Contains(skg, " ") {
 		ss.SkgRewritten = true
@@ -258,7 +258,7 @@ func ColumnPicker(c string, r structs.DbWorkline) string {
 		li = r.MarkedUp
 	default:
 		li = r.Stripped
-		msg.NOTE(MSG)
+		Msg.NOTE(MSG)
 	}
 	return li
 }
@@ -277,7 +277,7 @@ func SearchTermFinder(term string) *regexp.Regexp {
 	stre := generic.UniversalPatternMaker(term)
 	pattern, e := regexp.Compile(stre)
 	if e != nil {
-		msg.WARN(fmt.Sprintf(MSG, stre))
+		Msg.WARN(fmt.Sprintf(MSG, stre))
 		pattern = regexp.MustCompile("FAILED_FIND_NOTHING")
 	}
 	return pattern
@@ -488,7 +488,7 @@ func BuildWkByName(i *structs.SearchIncExl) {
 	bn := make(map[string]string, len(i.MappedWkByName))
 	for _, w := range i.Works {
 		ws := mps.AllWorks[w]
-		au := mps.MyAu(ws).Name
+		au := mps.DbWkMyAu(ws).Name
 		ti := ws.Title
 		bn[w] = fmt.Sprintf(TMPL, au, ti)
 	}
@@ -570,26 +570,26 @@ func SortResults(s *structs.SearchStruct) {
 	)
 
 	nameIncreasing := func(one, two *structs.DbWorkline) bool {
-		a1 := MyAu(one).Shortname
-		a2 := MyAu(two).Shortname
+		a1 := DbWlnMyAu(one).Shortname
+		a2 := DbWlnMyAu(two).Shortname
 		return a1 < a2
 	}
 
 	titleIncreasing := func(one, two *structs.DbWorkline) bool {
-		return MyWk(one).Title < MyWk(two).Title
+		return DbWlnMyWk(one).Title < DbWlnMyWk(two).Title
 	}
 
 	dateIncreasing := func(one, two *structs.DbWorkline) bool {
-		d1 := MyWk(one).RecDate
-		d2 := MyWk(two).RecDate
+		d1 := DbWlnMyWk(one).RecDate
+		d2 := DbWlnMyWk(two).RecDate
 		if d1 != NULL && d2 != NULL {
-			return MyWk(one).ConvDate < MyWk(two).ConvDate
+			return DbWlnMyWk(one).ConvDate < DbWlnMyWk(two).ConvDate
 		} else if d1 == NULL && d2 != NULL {
-			return MyAu(one).ConvDate < MyAu(two).ConvDate
+			return DbWlnMyAu(one).ConvDate < DbWlnMyAu(two).ConvDate
 		} else if d1 != NULL && d2 == NULL {
-			return MyAu(one).ConvDate < MyAu(two).ConvDate
+			return DbWlnMyAu(one).ConvDate < DbWlnMyAu(two).ConvDate
 		} else {
-			return MyAu(one).ConvDate < MyAu(two).ConvDate
+			return DbWlnMyAu(one).ConvDate < DbWlnMyAu(two).ConvDate
 		}
 	}
 
@@ -602,7 +602,7 @@ func SortResults(s *structs.SearchStruct) {
 	}
 
 	increasingWLOC := func(one, two *structs.DbWorkline) bool {
-		return MyWk(one).Prov < MyWk(two).Prov
+		return DbWlnMyWk(one).Prov < DbWlnMyWk(two).Prov
 	}
 
 	sortby := s.StoredSession.SortHitsBy
@@ -623,21 +623,21 @@ func SortResults(s *structs.SearchStruct) {
 	}
 }
 
-// MyWk - get the DbWork for this line
-func MyWk(dbw *structs.DbWorkline) *structs.DbWork {
+// DbWlnMyWk - get the DbWork for this line
+func DbWlnMyWk(dbw *structs.DbWorkline) *structs.DbWork {
 	w, ok := mps.AllWorks[dbw.WkUID]
 	if !ok {
-		msg.WARN(fmt.Sprintf("MyAu() failed to find '%s'", dbw.AuID()))
+		Msg.WARN(fmt.Sprintf("search.DbWlnMyWk() failed to find '%s'", dbw.AuID()))
 		w = &structs.DbWork{}
 	}
 	return w
 }
 
-// MyAu - get the DbAuthor for this line
-func MyAu(dbw *structs.DbWorkline) *structs.DbAuthor {
+// DbWlnMyAu - get the DbAuthor for this line
+func DbWlnMyAu(dbw *structs.DbWorkline) *structs.DbAuthor {
 	a, ok := mps.AllAuthors[dbw.AuID()]
 	if !ok {
-		msg.WARN(fmt.Sprintf("DbWorkline.MyAu() failed to find '%s'", dbw.AuID()))
+		Msg.WARN(fmt.Sprintf("search.DbWkMyAu() failed to find '%s'", dbw.AuID()))
 		a = &structs.DbAuthor{}
 	}
 	return a

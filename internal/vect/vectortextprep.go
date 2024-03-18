@@ -296,7 +296,7 @@ func readstopconfig(fn string) []string {
 
 	h, e := os.UserHomeDir()
 	if e != nil {
-		msg.MAND(ERR1)
+		Msg.MAND(ERR1)
 		return stops
 	}
 
@@ -305,11 +305,11 @@ func readstopconfig(fn string) []string {
 	if yes != nil {
 		sort.Strings(stops)
 		content, err := json.MarshalIndent(stops, vv.JSONINDENT, vv.JSONINDENT)
-		msg.EC(err)
+		Msg.EC(err)
 
 		err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+vcfg, content, vv.WRITEPERMS)
-		msg.EC(err)
-		msg.PEEK(MSG1 + vcfg)
+		Msg.EC(err)
+		Msg.PEEK(MSG1 + vcfg)
 	} else {
 		loadedcfg, _ := os.Open(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vcfg)
 		decoderc := json.NewDecoder(loadedcfg)
@@ -317,7 +317,7 @@ func readstopconfig(fn string) []string {
 		errc := decoderc.Decode(&stp)
 		_ = loadedcfg.Close()
 		if errc != nil {
-			msg.CRIT(ERR2 + vcfg)
+			Msg.CRIT(ERR2 + vcfg)
 		} else {
 			stops = stp
 		}

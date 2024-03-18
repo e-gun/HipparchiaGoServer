@@ -3,15 +3,14 @@ package db
 import (
 	"bytes"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/m"
+	"github.com/e-gun/HipparchiaGoServer/internal/launch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"os"
 	"os/exec"
 	"strings"
 )
 
-// TODO: this is hollow
-var msg = m.NewMessageMaker()
+var Msg = launch.NewMessageMakerWithDefaults()
 
 // HipparchiaDBexists - does psql have hipparchiaDB in it yet?
 func HipparchiaDBexists(pgpw string) bool {
@@ -31,7 +30,7 @@ func HipparchiaDBexists(pgpw string) bool {
 	cmd := exec.Command(binary, "-c", fmt.Sprintf(Q, vv.DEFAULTPSQLDB), url)
 	cmd.Stderr = os.Stderr
 	out, err := cmd.Output()
-	msg.EC(err)
+	Msg.EC(err)
 	if strings.Contains(string(out), vv.DEFAULTPSQLDB) {
 		exists = true
 	}
@@ -73,8 +72,8 @@ func HipparchiaDBHasData(userpw string) bool {
 
 	if strings.Contains(check, CHKFAIL) {
 		hd, e := os.UserHomeDir()
-		msg.EC(e)
-		msg.CRIT(fmt.Sprintf(AUTH, fmt.Sprintf(vv.CONFIGALTAPTH, hd)))
+		Msg.EC(e)
+		Msg.CRIT(fmt.Sprintf(AUTH, fmt.Sprintf(vv.CONFIGALTAPTH, hd)))
 	}
 
 	return found

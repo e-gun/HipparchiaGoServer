@@ -72,7 +72,7 @@ func generateneighborsdata(c echo.Context, s structs.SearchStruct) map[string]se
 
 	searcher, err := search.New(embs...)
 	if err != nil {
-		msg.FYI(FAIL2)
+		Msg.FYI(FAIL2)
 		searcher = func() *search.Searcher { return &search.Searcher{} }()
 	}
 
@@ -86,7 +86,7 @@ func generateneighborsdata(c echo.Context, s structs.SearchStruct) map[string]se
 	nn := make(map[string]search.Neighbors)
 	neighbors, err := searcher.SearchInternal(word, ncount)
 	if err != nil {
-		msg.FYI(FAIL3)
+		Msg.FYI(FAIL3)
 		neighbors = search.Neighbors{}
 	}
 
@@ -94,7 +94,7 @@ func generateneighborsdata(c echo.Context, s structs.SearchStruct) map[string]se
 	for _, n := range neighbors {
 		meta, e := searcher.SearchInternal(n.Word, ncount)
 		if e != nil {
-			msg.FYI(fmt.Sprintf(FAIL1, n.Word, word))
+			Msg.FYI(fmt.Sprintf(FAIL1, n.Word, word))
 		} else {
 			nn[n.Word] = meta
 		}
@@ -131,7 +131,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 	// vectorbot already has s.Results vs normal user who does not
 	if s.Results.IsEmpty() {
 		vs = sr.SessionIntoBulkSearch(c, launch.Config.VectorMaxlines)
-		msg.PEEK(fmt.Sprintf(MSG1, vs.Results.Len()))
+		Msg.PEEK(fmt.Sprintf(MSG1, vs.Results.Len()))
 		s.Results = vs.Results
 		vaults.WSInfo.UpdateVProgMsg <- vaults.WSSIKVs{s.ID, p.Sprintf(TBMSG, vs.Results.Len())}
 	}
@@ -165,7 +165,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 		cfg := glovevectorconfig()
 		m, err := glove.NewForOptions(cfg)
 		if err != nil {
-			msg.WARN(FAIL1)
+			Msg.WARN(FAIL1)
 		}
 		enablecancellation(m)
 		vmodel = m
@@ -174,7 +174,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 		cfg := lexvecvectorconfig()
 		m, err := lexvec.NewForOptions(cfg)
 		if err != nil {
-			msg.WARN(FAIL1)
+			Msg.WARN(FAIL1)
 		}
 		enablecancellation(m)
 		vmodel = m
@@ -183,7 +183,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 		cfg := w2vvectorconfig()
 		m, err := word2vec.NewForOptions(cfg)
 		if err != nil {
-			msg.WARN(FAIL1)
+			Msg.WARN(FAIL1)
 		}
 		enablecancellation(m)
 		vmodel = m
@@ -195,7 +195,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 
 	// a chance to bail before training if you hit RtResetSession() in time
 	if launch.Config.SelfTest == 0 && !launch.Config.VectorBot && !vaults.AllSessions.IsInVault(s.User) {
-		msg.FYI("GenerateVectEmbeddings() aborting: RtResetSession switched user to " + s.User)
+		Msg.FYI("GenerateVectEmbeddings() aborting: RtResetSession switched user to " + s.User)
 		return embedding.Embeddings{}
 	}
 
@@ -205,10 +205,10 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 	// NB the training has a copy of the ss's context.Cancel; wego's trainPerThread() is responsive to RtResetSession()
 	go func() {
 		if err := vmodel.Train(b); err != nil {
-			msg.WARN(FAIL2)
+			Msg.WARN(FAIL2)
 		} else {
 			t := fmt.Sprintf("%.3f", time.Now().Sub(start).Seconds())
-			msg.TMI(fmt.Sprintf(MSG2, modeltype, t))
+			Msg.TMI(fmt.Sprintf(MSG2, modeltype, t))
 		}
 		finished <- true
 	}()
@@ -259,7 +259,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 	w := io.Writer(&buf)
 	err := vmodel.Save(w, vector.Agg)
 	if err != nil {
-		msg.NOTE(FAIL3)
+		Msg.NOTE(FAIL3)
 
 	}
 
@@ -267,7 +267,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 	var embs embedding.Embeddings
 	embs, err = embedding.Load(r)
 	if err != nil {
-		msg.NOTE(FAIL4)
+		Msg.NOTE(FAIL4)
 		embs = embedding.Embeddings{}
 	}
 

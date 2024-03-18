@@ -2,26 +2,25 @@ package vv
 
 import (
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"regexp"
 	"time"
 )
 
 var (
-	Config        structs.CurrentConfiguration
-	SQLPool       *pgxpool.Pool
+	Config structs.CurrentConfiguration
+	// SQLPool       *pgxpool.Pool
 	UserPassPairs = make(map[string]string)
 	//AllWorks      = make(map[string]*structs.DbWork)
 	//AllAuthors    = make(map[string]*structs.DbAuthor) // populated by authormap.go
 	//AllLemm       = make(map[string]*structs.DbLemma)
 	//NestedLemm    = make(map[string]map[string]*structs.DbLemma)
-	WkCorpusMap   = make(map[string][]string)
-	AuCorpusMap   = make(map[string][]string)
-	LoadedCorp    = make(map[string]bool)
-	AuGenres      = make(map[string]bool)
-	WkGenres      = make(map[string]bool)
-	AuLocs        = make(map[string]bool)
-	WkLocs        = make(map[string]bool)
+	//WkCorpusMap   = make(map[string][]string)
+	//AuCorpusMap   = make(map[string][]string)
+	// LoadedCorp = make(map[string]bool)
+	//AuGenres      = make(map[string]bool)
+	//WkGenres      = make(map[string]bool)
+	//AuLocs        = make(map[string]bool)
+	//WkLocs        = make(map[string]bool)
 	TheCorpora    = []string{GREEKCORP, LATINCORP, INSCRIPTCORP, CHRISTINSC, PAPYRUSCORP}
 	TheLanguages  = []string{"greek", "latin"}
 	ServableFonts = map[string]structs.FontTempl{"Noto": NotoFont, "Roboto": RobotoFont, "Fira": FiraFont} // cf rt-embhcss.go

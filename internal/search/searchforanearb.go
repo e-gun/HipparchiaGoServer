@@ -53,7 +53,7 @@ func WithinXLinesSearch(first structs.SearchStruct) structs.SearchStruct {
 	first.CurrentLimit = first.OriginalLimit
 
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg.PEEK(fmt.Sprintf(MSG1, d, first.Results.Len()))
+	Msg.PEEK(fmt.Sprintf(MSG1, d, first.Results.Len()))
 	previous = time.Now()
 
 	second := CloneSearch(&first, 2)
@@ -85,7 +85,7 @@ func WithinXLinesSearch(first structs.SearchStruct) structs.SearchStruct {
 	SSBuildQueries(&second)
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg.PEEK(fmt.Sprintf(MSG2, d))
+	Msg.PEEK(fmt.Sprintf(MSG2, d))
 	previous = time.Now()
 
 	SearchAndInsertResults(&second)
@@ -121,7 +121,7 @@ func WithinXLinesSearch(first structs.SearchStruct) structs.SearchStruct {
 	}
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg.PEEK(fmt.Sprintf(MSG3, d, second.Results.Len()))
+	Msg.PEEK(fmt.Sprintf(MSG3, d, second.Results.Len()))
 
 	vaults.WSInfo.Del <- second.ID
 
@@ -168,7 +168,7 @@ func WithinXWordsSearch(first structs.SearchStruct) structs.SearchStruct {
 	first.CurrentLimit = first.OriginalLimit
 
 	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg.PEEK(fmt.Sprintf(MSG1, d, first.Results.Len()))
+	Msg.PEEK(fmt.Sprintf(MSG1, d, first.Results.Len()))
 	previous = time.Now()
 
 	// the trick is we are going to grab ALL lines near the initial hit; then build strings; then search those strings ourselves
@@ -221,7 +221,7 @@ func WithinXWordsSearch(first structs.SearchStruct) structs.SearchStruct {
 	SearchAndInsertResults(&second)
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
-	msg.PEEK(fmt.Sprintf(MSG2, d, first.Results.Len()))
+	Msg.PEEK(fmt.Sprintf(MSG2, d, first.Results.Len()))
 	previous = time.Now()
 
 	// [c] convert these finds into strings and then search those strings
@@ -266,7 +266,7 @@ func WithinXWordsSearch(first structs.SearchStruct) structs.SearchStruct {
 	basicprxfinder, e := regexp.Compile(re)
 	if e != nil {
 		m := fmt.Sprintf(BAD2, re)
-		msg.WARN(m)
+		Msg.WARN(m)
 		return badsearch(m)
 	}
 
@@ -280,7 +280,7 @@ func WithinXWordsSearch(first structs.SearchStruct) structs.SearchStruct {
 	submatchsrchfinder, e := regexp.Compile(fmt.Sprintf(RGX, re))
 	if e != nil {
 		m := fmt.Sprintf(BAD1, re)
-		msg.WARN(m)
+		Msg.WARN(m)
 		return badsearch(m)
 	}
 
@@ -312,14 +312,14 @@ func WithinXWordsSearch(first structs.SearchStruct) structs.SearchStruct {
 	defer cancel()
 
 	emit, err := XWordsFeeder(ctx, &kvp, &second)
-	msg.EC(err)
+	Msg.EC(err)
 
 	workers := launch.Config.WorkerCount
 	findchannels := make([]<-chan int, workers)
 
 	for i := 0; i < workers; i++ {
 		fc, ee := XWordsConsumer(ctx, emit, basicprxfinder, submatchsrchfinder, pd, first.NotNear)
-		msg.EC(ee)
+		Msg.EC(ee)
 		findchannels[i] = fc
 	}
 
@@ -558,7 +558,7 @@ func IterativeProxWordsMatching(text string, sought string, proximity int) []str
 
 	// this is the right way to split; it should be hard to get a compile error since this is a recompilation
 	re, e := regexp.Compile(sought)
-	msg.EC(e)
+	Msg.EC(e)
 
 	segments := re.Split(text, -1)
 
@@ -632,7 +632,7 @@ func pruneresultsbylemma(hdwd string, ss *structs.SearchStruct) {
 	pat, e := regexp.Compile(strings.Join(rgx, "|"))
 	if e != nil {
 		pat = regexp.MustCompile("FAILED_FIND_NOTHING")
-		msg.WARN(fmt.Sprintf("pruneresultsbylemma() could not compile the following: %s", strings.Join(rgx, "|")))
+		Msg.WARN(fmt.Sprintf("pruneresultsbylemma() could not compile the following: %s", strings.Join(rgx, "|")))
 	}
 
 	var valid = make(map[string]structs.DbWorkline, ss.Results.Len())

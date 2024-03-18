@@ -616,7 +616,7 @@ func customscatterhtmlandjs(s *charts.Scatter) string {
 	var buf bytes.Buffer
 	err := p.Render(&buf)
 	if err != nil {
-		msg.WARN("customscatterhtmlandjs() failed to render the page template")
+		Msg.WARN("customscatterhtmlandjs() failed to render the page template")
 	}
 
 	htmlandjs := string(buf.Bytes())
@@ -651,7 +651,7 @@ func custom3dscatterhtmlandjs(s *charts.Scatter3D) string {
 	var buf bytes.Buffer
 	err := p.Render(&buf)
 	if err != nil {
-		msg.WARN("custom3dscatterhtmlandjs() failed to render the page template")
+		Msg.WARN("custom3dscatterhtmlandjs() failed to render the page template")
 		//[Hipparchia Golang Server v.1.2.6] UNRECOVERABLE ERROR
 		//template: chart:11:41: executing "base" at <.JSONNotEscapedAction>: can't evaluate field JSONNotEscapedAction in type *charts.Scatter3D
 	}

@@ -131,7 +131,7 @@ func WSSearchInfoHub() {
 		for _, v := range Allinfo {
 			if v.User == u {
 				v.CancelFnc()
-				msg.PEEK(fmt.Sprintf(CANC, v.ID))
+				Msg.PEEK(fmt.Sprintf(CANC, v.ID))
 			}
 		}
 	}
@@ -233,7 +233,7 @@ func wsclientreport(d time.Duration) {
 		for k := range cl {
 			cc = append(cc, k.ID)
 		}
-		msg.NOTE(fmt.Sprintf("%d WebsocketPool clients: %s", len(cl), strings.Join(cc, ", ")))
+		Msg.NOTE(fmt.Sprintf("%d WebsocketPool clients: %s", len(cl), strings.Join(cc, ", ")))
 		time.Sleep(d)
 	}
 }

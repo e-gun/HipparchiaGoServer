@@ -36,8 +36,8 @@ func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
 
 	for k, v := range s.ActiveCorp {
 		if v {
-			activeauthors = append(activeauthors, vv.AuCorpusMap[k]...)
-			activeworks = append(activeworks, vv.WkCorpusMap[k]...)
+			activeauthors = append(activeauthors, mps.AuCorpusMap[k]...)
+			activeworks = append(activeworks, mps.WkCorpusMap[k]...)
 		}
 	}
 

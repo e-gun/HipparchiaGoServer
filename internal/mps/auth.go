@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/launch"
-	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/structs"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5"
@@ -13,8 +12,7 @@ import (
 )
 
 var (
-	// TODO: this is hollow
-	msg = m.NewMessageMaker()
+	Msg = launch.NewMessageMakerWithDefaults()
 )
 
 const (
@@ -27,16 +25,16 @@ func ActiveAuthorMapper() map[string]*structs.DbAuthor {
 	authmap := make(map[string]*structs.DbAuthor)
 	for k, b := range launch.Config.DefCorp {
 		if b {
-			authmap = mapnewauthorcorpus(k, authmap)
+			authmap = MapNewAuthorCorpus(k, authmap)
 		}
 	}
 	return authmap
 }
 
-// mapnewauthorcorpus - add a corpus to an authormap
-func mapnewauthorcorpus(corpus string, authmap map[string]*structs.DbAuthor) map[string]*structs.DbAuthor {
+// MapNewAuthorCorpus - add a corpus to an authormap
+func MapNewAuthorCorpus(corpus string, authmap map[string]*structs.DbAuthor) map[string]*structs.DbAuthor {
 	const (
-		MSG = "mapnewauthorcorpus() added %d authors from '%s'"
+		MSG = "MapNewAuthorCorpus() added %d authors from '%s'"
 	)
 
 	toadd := sliceauthorcorpus(corpus)
@@ -45,9 +43,9 @@ func mapnewauthorcorpus(corpus string, authmap map[string]*structs.DbAuthor) map
 		authmap[a.UID] = &a
 	}
 
-	vv.LoadedCorp[corpus] = true
+	LoadedCorp[corpus] = true
 
-	msg.PEEK(fmt.Sprintf(MSG, len(toadd), corpus))
+	Msg.PEEK(fmt.Sprintf(MSG, len(toadd), corpus))
 
 	return authmap
 }
@@ -96,7 +94,7 @@ func sliceauthorcorpus(corpus string) []structs.DbAuthor {
 	err := countrow.Scan(&cc)
 
 	foundrows, err := db.SQLPool.Query(context.Background(), qq)
-	msg.EC(err)
+	Msg.EC(err)
 
 	authslice := make([]structs.DbAuthor, cc)
 	var a structs.DbAuthor
@@ -111,7 +109,7 @@ func sliceauthorcorpus(corpus string) []structs.DbAuthor {
 	}
 
 	_, e := pgx.ForEachRow(foundrows, foreach, rfnc)
-	msg.EC(e)
+	Msg.EC(e)
 
 	return authslice
 }

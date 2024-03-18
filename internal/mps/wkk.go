@@ -30,26 +30,9 @@ func ActiveWorkMapper() map[string]*structs.DbWork {
 
 	for k, b := range launch.Config.DefCorp {
 		if b {
-			workmap = mapnewworkcorpus(k, workmap)
+			workmap = MapNewWorkCorpus(k, workmap)
 		}
 	}
-	return workmap
-}
-
-// mapnewworkcorpus - add a corpus to a workmap
-func mapnewworkcorpus(corpus string, workmap map[string]*structs.DbWork) map[string]*structs.DbWork {
-	const (
-		MSG = "mapnewworkcorpus() added %d works from '%s'"
-	)
-	toadd := sliceworkcorpus(corpus)
-	for i := 0; i < len(toadd); i++ {
-		w := toadd[i]
-		workmap[w.UID] = &w
-	}
-
-	vv.LoadedCorp[corpus] = true
-
-	msg.PEEK(fmt.Sprintf(MSG, len(toadd), corpus))
 	return workmap
 }
 
@@ -96,7 +79,7 @@ func sliceworkcorpus(corpus string) []structs.DbWork {
 	err := countrow.Scan(&cc)
 
 	foundrows, err := db.SQLPool.Query(context.Background(), qq)
-	msg.EC(err)
+	Msg.EC(err)
 
 	workslice := make([]structs.DbWork, cc)
 	var w structs.DbWork
@@ -112,7 +95,7 @@ func sliceworkcorpus(corpus string) []structs.DbWork {
 	}
 
 	_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
-	msg.EC(e)
+	Msg.EC(e)
 
 	return workslice
 }

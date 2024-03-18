@@ -29,27 +29,27 @@ func GetDBConnection() *pgxpool.Conn {
 	if e != nil {
 		if !HipparchiaDBHasData(launch.Config.PGLogin.Pass) {
 			// you need to reset the whole application...
-			msg.MAND(msg.Color(fmt.Sprintf(FAIL3)))
+			Msg.MAND(Msg.Color(fmt.Sprintf(FAIL3)))
 			h, err := os.UserHomeDir()
-			msg.EC(err)
+			Msg.EC(err)
 			err = os.Remove(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vv.CONFIGBASIC)
 			if err != nil {
-				msg.CRIT(fmt.Sprintf(FAIL4, vv.CONFIGBASIC))
+				Msg.CRIT(fmt.Sprintf(FAIL4, vv.CONFIGBASIC))
 			}
 			err = os.Remove(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vv.CONFIGPROLIX)
 			if err != nil {
-				msg.CRIT(fmt.Sprintf(FAIL4, vv.CONFIGPROLIX))
+				Msg.CRIT(fmt.Sprintf(FAIL4, vv.CONFIGPROLIX))
 			}
-			msg.ExitOrHang(0)
+			Msg.ExitOrHang(0)
 		}
 
-		msg.MAND(fmt.Sprintf(FAIL1))
+		Msg.MAND(fmt.Sprintf(FAIL1))
 		if strings.Contains(e.Error(), ERRRUN) {
-			msg.CRIT(fmt.Sprintf(FAILRUN, ERRRUN, launch.Config.PGLogin.Port))
+			Msg.CRIT(fmt.Sprintf(FAILRUN, ERRRUN, launch.Config.PGLogin.Port))
 		} else {
-			msg.MAND(fmt.Sprintf(FAIL2, vv.CONFIGBASIC))
+			Msg.MAND(fmt.Sprintf(FAIL2, vv.CONFIGBASIC))
 		}
-		msg.ExitOrHang(0)
+		Msg.ExitOrHang(0)
 	}
 	return dbc
 }

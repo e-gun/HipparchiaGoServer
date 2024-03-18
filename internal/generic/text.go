@@ -29,7 +29,7 @@ func AvoidLongLines(untrimmed string, maxlen int) string {
 
 // UniversalPatternMaker - feeder for SearchTermFinder()
 func UniversalPatternMaker(term string) string {
-	// also used by searchformatting.go
+	// also used by resultformatting.go
 	// converter := extendedrunefeeder()
 	converter := ERuneFd // see top of setsandslices.go
 	st := []rune(term)

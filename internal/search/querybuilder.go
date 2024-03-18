@@ -67,7 +67,7 @@ func SSBuildQueries(s *structs.SearchStruct) {
 	// check to see if RtResetSession() was called in the middle of a search
 	// selftest and vectorbot will both reset their Config values on completion
 	if launch.Config.SelfTest == 0 && !launch.Config.VectorBot && !vaults.AllSessions.IsInVault(s.User) {
-		msg.FYI(fmt.Sprintf(ABORT, s.User))
+		Msg.FYI(fmt.Sprintf(ABORT, s.User))
 		return
 	}
 
@@ -271,7 +271,7 @@ func acquiretails() map[string]*template.Template {
 	t := make(map[string]*template.Template)
 	for k, v := range mm {
 		tmpl, e := template.New(k).Parse(v)
-		msg.EC(e)
+		Msg.EC(e)
 		t[k] = tmpl
 	}
 	return t
@@ -288,7 +288,7 @@ func basicprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.Preroll
 
 	var b bytes.Buffer
 	e := t.Tail.Execute(&b, t)
-	msg.EC(e)
+	Msg.EC(e)
 
 	prq.PsqlQuery = fmt.Sprintf(SELECTFROM, b.String())
 	return prq
@@ -304,7 +304,7 @@ func basicidxprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.Prer
 
 	var b bytes.Buffer
 	e := t.Tail.Execute(&b, t)
-	msg.EC(e)
+	Msg.EC(e)
 
 	prq.PsqlQuery = fmt.Sprintf(SELECTFROM, b.String())
 	return prq
@@ -326,7 +326,7 @@ func basicwindowprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.P
 
 	var b bytes.Buffer
 	e := t.Tail.Execute(&b, t)
-	msg.EC(e)
+	Msg.EC(e)
 
 	alb := fmt.Sprintf(ASLINEBUNDLE, t.PSCol, t.PSCol)
 
@@ -349,7 +349,7 @@ func windandidxprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.Pr
 
 	var b bytes.Buffer
 	e := t.Tail.Execute(&b, t)
-	msg.EC(e)
+	Msg.EC(e)
 
 	alb := fmt.Sprintf(ASLINEBUNDLE, t.PSCol, t.PSCol)
 
@@ -374,7 +374,7 @@ func simplettprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.Prer
 
 	var b bytes.Buffer
 	e := t.Tail.Execute(&b, t)
-	msg.EC(e)
+	Msg.EC(e)
 
 	prq.PsqlQuery = fmt.Sprintf(SELECTFROM, b.String())
 	return prq
@@ -403,7 +403,7 @@ func windowandttprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.P
 
 	var b bytes.Buffer
 	e := t.Tail.Execute(&b, t)
-	msg.EC(e)
+	Msg.EC(e)
 
 	alb := fmt.Sprintf(ASLINEBUNDLE, t.PSCol, t.PSCol)
 
@@ -421,7 +421,7 @@ func requiresindextemptable(au string, bb []structs.QueryBounds, ss *structs.Sea
 			values`
 	)
 
-	msg.TMI(fmt.Sprintf(MSG, au, len(bb)))
+	Msg.TMI(fmt.Sprintf(MSG, au, len(bb)))
 	var required []int
 	for _, b := range bb {
 		for i := b.Start; i <= b.Stop; i++ {
