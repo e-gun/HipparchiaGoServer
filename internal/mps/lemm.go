@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"strings"
 )
 
 // LemmaMapper - map[string]DbLemma for all lemmata
-func LemmaMapper() map[string]*structs.DbLemma {
+func LemmaMapper() map[string]*str.DbLemma {
 	// example: {dorsum 24563373 [dorsum dorsone dorsa dorsoque dorso dorsoue dorsis dorsi dorsisque dorsumque]}
 
 	// hipparchiaDB=# \d greek_lemmata
@@ -40,7 +40,7 @@ func LemmaMapper() map[string]*structs.DbLemma {
 	// clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "", "j", "i", "v", "u")
 	clean := strings.NewReplacer("-", "", "j", "i", "v", "u")
 
-	unnested := make(map[string]*structs.DbLemma, vv.DBLMMAPSIZE)
+	unnested := make(map[string]*str.DbLemma, vv.DBLMMAPSIZE)
 
 	// use the older iterative idiom to facilitate working with pointers: "foreach" idiom will fight you...
 	for _, lg := range vv.TheLanguages {
@@ -48,7 +48,7 @@ func LemmaMapper() map[string]*structs.DbLemma {
 		foundrows, err := db.SQLPool.Query(context.Background(), q)
 		Msg.EC(err)
 		for foundrows.Next() {
-			thehit := &structs.DbLemma{}
+			thehit := &str.DbLemma{}
 			e := foundrows.Scan(&thehit.Entry, &thehit.Xref, &thehit.Deriv)
 			Msg.EC(e)
 			thehit.Entry = clean.Replace(thehit.Entry)
@@ -61,11 +61,11 @@ func LemmaMapper() map[string]*structs.DbLemma {
 }
 
 // NestedLemmaMapper - map[string]map[string]DbLemma for the hinter
-func NestedLemmaMapper(unnested map[string]*structs.DbLemma) map[string]map[string]*structs.DbLemma {
+func NestedLemmaMapper(unnested map[string]*str.DbLemma) map[string]map[string]*str.DbLemma {
 	// 20.96MB    20.96MB (flat, cum)  7.91% of Total
 	// you need both a nested and the unnested version; nested is for the hinter
 
-	nested := make(map[string]map[string]*structs.DbLemma, vv.NESTEDLEMMASIZE)
+	nested := make(map[string]map[string]*str.DbLemma, vv.NESTEDLEMMASIZE)
 	swap := strings.NewReplacer("j", "i", "v", "u")
 	for k, v := range unnested {
 		rbag := []rune(v.Entry)[0:2]
@@ -73,7 +73,7 @@ func NestedLemmaMapper(unnested map[string]*structs.DbLemma) map[string]map[stri
 		bag := strings.ToLower(string(rbag))
 		bag = swap.Replace(bag)
 		if _, y := nested[bag]; !y {
-			nested[bag] = make(map[string]*structs.DbLemma)
+			nested[bag] = make(map[string]*str.DbLemma)
 		}
 		nested[bag][k] = v
 	}

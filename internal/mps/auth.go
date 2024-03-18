@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5"
 	"strings"
@@ -20,9 +20,9 @@ const (
 )
 
 // ActiveAuthorMapper - build a map of all authors in the *active* corpora; keyed to the authorUID: map[string]*DbAuthor
-func ActiveAuthorMapper() map[string]*structs.DbAuthor {
+func ActiveAuthorMapper() map[string]*str.DbAuthor {
 	// see comments at top of ActiveWorkMapper(): they apply here too
-	authmap := make(map[string]*structs.DbAuthor)
+	authmap := make(map[string]*str.DbAuthor)
 	for k, b := range lnch.Config.DefCorp {
 		if b {
 			authmap = MapNewAuthorCorpus(k, authmap)
@@ -32,7 +32,7 @@ func ActiveAuthorMapper() map[string]*structs.DbAuthor {
 }
 
 // MapNewAuthorCorpus - add a corpus to an authormap
-func MapNewAuthorCorpus(corpus string, authmap map[string]*structs.DbAuthor) map[string]*structs.DbAuthor {
+func MapNewAuthorCorpus(corpus string, authmap map[string]*str.DbAuthor) map[string]*str.DbAuthor {
 	const (
 		MSG = "MapNewAuthorCorpus() added %d authors from '%s'"
 	)
@@ -51,7 +51,7 @@ func MapNewAuthorCorpus(corpus string, authmap map[string]*structs.DbAuthor) map
 }
 
 // sliceauthorcorpus - fetch all relevant works from the db as a DbAuthor slice
-func sliceauthorcorpus(corpus string) []structs.DbAuthor {
+func sliceauthorcorpus(corpus string) []str.DbAuthor {
 	// hipparchiaDB-# \d authors
 	//                          Table "public.authors"
 	//     Column     |          Type          | Collation | Nullable | Default
@@ -96,8 +96,8 @@ func sliceauthorcorpus(corpus string) []structs.DbAuthor {
 	foundrows, err := db.SQLPool.Query(context.Background(), qq)
 	Msg.EC(err)
 
-	authslice := make([]structs.DbAuthor, cc)
-	var a structs.DbAuthor
+	authslice := make([]str.DbAuthor, cc)
+	var a str.DbAuthor
 	foreach := []any{&a.UID, &a.Language, &a.IDXname, &a.Name, &a.Shortname, &a.Cleaname, &a.Genres, &a.RecDate, &a.ConvDate, &a.Location}
 
 	index := 0

@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
@@ -66,7 +66,7 @@ func RtSessionGetCookie(c echo.Context) error {
 		return c.String(http.StatusOK, "")
 	}
 
-	var s structs.ServerSession
+	var s str.ServerSession
 	// invalid character '%' looking for beginning of object key string:
 	// {%22ID%22:%22723073ae-09a7-4b24-a5d6-7e20603d8c44%22%2C%22IsLoggedIn%22:true%2C...}
 	swap := strings.NewReplacer("%22", `"`, "%2C", ",", "%20", " ")

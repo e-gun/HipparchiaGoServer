@@ -8,24 +8,24 @@ package search
 import (
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"strconv"
 	"strings"
 )
 
 type ProcessedList struct {
-	Inc  structs.SearchIncExl
-	Excl structs.SearchIncExl
+	Inc  str.SearchIncExl
+	Excl str.SearchIncExl
 	Size int
 }
 
 // SessionIntoSearchlist - converts the stored set of selections into a calculated pair of SearchIncExl w/ Authors, Works, Passages
-func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
+func SessionIntoSearchlist(s str.ServerSession) ProcessedList {
 	// https://medium.com/scum-gazeta/golang-simple-optimization-notes-70bc64673980
 
-	var inc structs.SearchIncExl
-	var exc structs.SearchIncExl
+	var inc str.SearchIncExl
+	var exc str.SearchIncExl
 
 	// note that we do all the initial stuff by adding WORKS to the list individually
 
@@ -242,7 +242,7 @@ func SessionIntoSearchlist(s structs.ServerSession) ProcessedList {
 }
 
 // prunebydate - drop items from searchlist if they are not inside the valid date range
-func prunebydate(searchlist []string, s structs.ServerSession) []string {
+func prunebydate(searchlist []string, s str.ServerSession) []string {
 	// 'varia' and 'incerta' have special dates: incerta = 2500; varia = 2000
 
 	if s.Earliest == vv.MINDATESTR && s.Latest == vv.MAXDATESTR && s.VariaOK && s.IncertaOK {

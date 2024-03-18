@@ -11,7 +11,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
@@ -326,7 +326,7 @@ func RtGetJSSampCit(c echo.Context) error {
 	wlb := search.SimpleContextGrabber(w.AuID(), w.FirstLine, 2)
 	ff := wlb.Lines
 
-	var actualfirst structs.DbWorkline
+	var actualfirst str.DbWorkline
 	for i := wlb.Len() - 1; i > 0; i-- {
 		loc := strings.Join(ff[i].FindLocus(), ".")
 		if loc[0] != 't' && ff[i].TbIndex >= w.FirstLine {

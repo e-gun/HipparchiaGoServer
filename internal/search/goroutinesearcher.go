@@ -9,7 +9,7 @@ import (
 	"context"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"sync"
@@ -20,7 +20,7 @@ var (
 )
 
 // SearchAndInsertResults - take a SearchStruct; fan out its []PrerolledQuery; collect the results; insert a WorkLineBundle into the SearchStruct
-func SearchAndInsertResults(ss *structs.SearchStruct) {
+func SearchAndInsertResults(ss *str.SearchStruct) {
 	// see https://go.dev/blog/pipelines : see Parallel digestion & Fan-out, fan-in & Explicit cancellation
 	// https://medium.com/amboss/applying-modern-go-concurrency-patterns-to-data-pipelines-b3b5327908d4
 	// https://github.com/amboss-mededu/go-pipeline-article/blob/fe0cebe78ecc9c57cdb1ac83ae6af1cda44de475/main.go
@@ -40,7 +40,7 @@ func SearchAndInsertResults(ss *structs.SearchStruct) {
 
 	// [b] fan out to run searches in parallel; searches fed by the query channel
 	workers := lnch.Config.WorkerCount
-	searchchannels := make([]<-chan *structs.WorkLineBundle, workers)
+	searchchannels := make([]<-chan *str.WorkLineBundle, workers)
 
 	for i := 0; i < workers; i++ {
 		foundlineschannel, e := PRQSearcher(ss.Context, querychannel)
@@ -62,8 +62,8 @@ func SearchAndInsertResults(ss *structs.SearchStruct) {
 }
 
 // SearchQueryFeeder - emit items to a channel from the []PrerolledQuery; they will be consumed by the PRQSearcher
-func SearchQueryFeeder(ss *structs.SearchStruct) (<-chan structs.PrerolledQuery, error) {
-	emitqueries := make(chan structs.PrerolledQuery, lnch.Config.WorkerCount)
+func SearchQueryFeeder(ss *str.SearchStruct) (<-chan str.PrerolledQuery, error) {
+	emitqueries := make(chan str.PrerolledQuery, lnch.Config.WorkerCount)
 	remainder := -1
 
 	emitone := func(i int) {
@@ -92,8 +92,8 @@ func SearchQueryFeeder(ss *structs.SearchStruct) (<-chan structs.PrerolledQuery,
 }
 
 // PRQSearcher - this is where the search happens... grab a PrerolledQuery; execute search; emit finds to a channel
-func PRQSearcher(ctx context.Context, querychannel <-chan structs.PrerolledQuery) (<-chan *structs.WorkLineBundle, error) {
-	foundlineschannel := make(chan *structs.WorkLineBundle)
+func PRQSearcher(ctx context.Context, querychannel <-chan str.PrerolledQuery) (<-chan *str.WorkLineBundle, error) {
+	foundlineschannel := make(chan *str.WorkLineBundle)
 
 	consume := func() {
 		dbconn := db.GetDBConnection()
@@ -117,11 +117,11 @@ func PRQSearcher(ctx context.Context, querychannel <-chan structs.PrerolledQuery
 }
 
 // ResultChannelAggregator - gather all hits from the searchchannels into one place and then feed them to FinalResultCollation
-func ResultChannelAggregator(ctx context.Context, searchchannels ...<-chan *structs.WorkLineBundle) <-chan *structs.WorkLineBundle {
+func ResultChannelAggregator(ctx context.Context, searchchannels ...<-chan *str.WorkLineBundle) <-chan *str.WorkLineBundle {
 	var wg sync.WaitGroup
-	resultchann := make(chan *structs.WorkLineBundle)
+	resultchann := make(chan *str.WorkLineBundle)
 
-	broadcast := func(wlbb <-chan *structs.WorkLineBundle) {
+	broadcast := func(wlbb <-chan *str.WorkLineBundle) {
 		defer wg.Done()
 		for b := range wlbb {
 			select {
@@ -146,10 +146,10 @@ func ResultChannelAggregator(ctx context.Context, searchchannels ...<-chan *stru
 }
 
 // FinalResultCollation - insert the actual WorkLineBundle results into the SearchStruct after pulling them from the ResultChannelAggregator channel
-func FinalResultCollation(ss *structs.SearchStruct, maxhits int, foundbundle <-chan *structs.WorkLineBundle) {
-	var collated structs.WorkLineBundle
+func FinalResultCollation(ss *str.SearchStruct, maxhits int, foundbundle <-chan *str.WorkLineBundle) {
+	var collated str.WorkLineBundle
 
-	addhits := func(foundbundle *structs.WorkLineBundle) {
+	addhits := func(foundbundle *str.WorkLineBundle) {
 		// each foundbundle comes off of a single author table
 		// so OneHit searches will just grab the top of that bundle
 		if ss.OneHit && ss.PhaseNum == 1 && !foundbundle.IsEmpty() {

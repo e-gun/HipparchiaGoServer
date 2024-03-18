@@ -1,14 +1,14 @@
 package mps
 
 import (
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 )
 
 var (
-	AllWorks    = make(map[string]*structs.DbWork)
-	AllAuthors  = make(map[string]*structs.DbAuthor) // populated by authormap.go
-	AllLemm     = make(map[string]*structs.DbLemma)
-	NestedLemm  = make(map[string]map[string]*structs.DbLemma)
+	AllWorks    = make(map[string]*str.DbWork)
+	AllAuthors  = make(map[string]*str.DbAuthor) // populated by authormap.go
+	AllLemm     = make(map[string]*str.DbLemma)
+	NestedLemm  = make(map[string]map[string]*str.DbLemma)
 	WkCorpusMap = make(map[string][]string)
 	AuCorpusMap = make(map[string][]string)
 	AuGenres    = make(map[string]bool)

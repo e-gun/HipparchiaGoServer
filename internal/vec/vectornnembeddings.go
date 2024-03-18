@@ -13,7 +13,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	sr "github.com/e-gun/HipparchiaGoServer/internal/search"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/e-gun/wego/pkg/embedding"
@@ -40,7 +40,7 @@ import (
 //
 
 // generateneighborsdata - generate the Neighbors data for a headword within a search
-func generateneighborsdata(c echo.Context, s structs.SearchStruct) map[string]search.Neighbors {
+func generateneighborsdata(c echo.Context, s str.SearchStruct) map[string]search.Neighbors {
 	const (
 		FMSG  = `Fetching a stored model`
 		GMSG  = `Generating a model`
@@ -105,7 +105,7 @@ func generateneighborsdata(c echo.Context, s structs.SearchStruct) map[string]se
 }
 
 // GenerateVectEmbeddings - turn a search into a collection of semantic vector embeddings
-func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchStruct) embedding.Embeddings {
+func GenerateVectEmbeddings(c echo.Context, modeltype string, s str.SearchStruct) embedding.Embeddings {
 	const (
 		FAIL1  = "model initialization failed"
 		FAIL2  = "GenerateVectEmbeddings() failed to train vector embeddings"
@@ -125,7 +125,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 	start := time.Now()
 	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{s.ID, PRLMSG}
 
-	var vs structs.SearchStruct
+	var vs str.SearchStruct
 	p := message.NewPrinter(language.English)
 
 	// vectorbot already has s.Results vs normal user who does not
@@ -137,7 +137,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 	}
 
 	thetext := buildtextblock(&s)
-	s.Results.Lines = []structs.DbWorkline{}
+	s.Results.Lines = []str.DbWorkline{}
 
 	// "thetext" for Albinus , poet. [lt2002]
 	// res romanus liber⁴ eo¹ ille qui¹ terni capitolium celsus¹ triumphus sponte deus pateo qui¹ fretus¹ nullus re-pono abscondo sinus¹ non tueor moenia¹ urbs de metrum †uilem spondeus totus¹ concludo verro possum fio jungo sed dactylus aptus
@@ -279,7 +279,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s structs.SearchSt
 }
 
 // buildtextblock - turn []DbWorkline into a single long string
-func buildtextblock(s *structs.SearchStruct) string {
+func buildtextblock(s *str.SearchStruct) string {
 
 	// [a] get all the words we need
 	var slicedwords []string
@@ -349,7 +349,7 @@ func buildtextblock(s *structs.SearchStruct) string {
 }
 
 // buildmorphmapstrslc - a map that lets you convert words into headwords
-func buildmorphmapstrslc(slicedwords []string, morphmapdbm map[string]structs.DbMorphology) map[string]map[string]bool {
+func buildmorphmapstrslc(slicedwords []string, morphmapdbm map[string]str.DbMorphology) map[string]map[string]bool {
 	// figure out which headwords to associate with the collection of words
 	//
 	//	// this information is inside DbMorphology.RawPossib

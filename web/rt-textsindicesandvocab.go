@@ -12,7 +12,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
@@ -257,12 +257,12 @@ func RtVocabMaker(c echo.Context) error {
 		return emptyjsreturn(c)
 	}
 
-	var slicedwords []structs.WordInfo
+	var slicedwords []str.WordInfo
 	rr := vocabsrch.Results.YieldAll()
 	for r := range rr {
 		wds := r.AccentedSlice()
 		for _, w := range wds {
-			this := structs.WordInfo{
+			this := str.WordInfo{
 				HeadWd:     "",
 				Word:       gen.UVσςϲ(gen.SwapAcuteForGrave(w)),
 				Loc:        r.BuildHyperlink(),
@@ -297,15 +297,15 @@ func RtVocabMaker(c echo.Context) error {
 	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{id, MSG2}
 
 	// [c2] map observed words to possibilities
-	poss := make(map[string][]structs.MorphPossib)
+	poss := make(map[string][]str.MorphPossib)
 	for k, v := range morphmap {
 		poss[k] = extractmorphpossibilities(v.RawPossib)
 	}
 
-	morphmap = make(map[string]structs.DbMorphology) // clear after use
+	morphmap = make(map[string]str.DbMorphology) // clear after use
 
 	// [c3] build a new slice of seen words with headwords attached
-	var parsedwords []structs.WordInfo
+	var parsedwords []str.WordInfo
 	for _, s := range slicedwords {
 		hww := poss[s.Word]
 		for _, h := range hww {
@@ -343,7 +343,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
 
-	vim := make(map[string]structs.VocInfo)
+	vim := make(map[string]str.VocInfo)
 	for k, v := range vic {
 		m := scansion[k]
 		if len(m) == 0 {
@@ -352,7 +352,7 @@ func RtVocabMaker(c echo.Context) error {
 			m = scansion[cases.Title(language.Und).String(k)]
 		}
 
-		vim[k] = structs.VocInfo{
+		vim[k] = str.VocInfo{
 			Word:  k,
 			C:     v,
 			TR:    polishtrans(vit[k], pat),
@@ -371,7 +371,7 @@ func RtVocabMaker(c echo.Context) error {
 	onlyhere = gen.Unique(onlyhere)
 	onlyhere = gen.PolytonicSort(onlyhere)
 
-	vis := make([]structs.VocInfo, len(vim))
+	vis := make([]str.VocInfo, len(vim))
 	ct := 0
 	for _, v := range vim {
 		vis[ct] = v
@@ -382,13 +382,13 @@ func RtVocabMaker(c echo.Context) error {
 
 	// [f2] sort the results
 	if se.VocByCount {
-		countDecreasing := func(one, two *structs.VocInfo) bool {
+		countDecreasing := func(one, two *str.VocInfo) bool {
 			return one.C > two.C
 		}
-		wordIncreasing := func(one, two *structs.VocInfo) bool {
+		wordIncreasing := func(one, two *str.VocInfo) bool {
 			return one.Strip < two.Strip
 		}
-		structs.VIOrderedBy(countDecreasing, wordIncreasing).Sort(vis)
+		str.VIOrderedBy(countDecreasing, wordIncreasing).Sort(vis)
 	} else {
 		sort.Slice(vis, func(i, j int) bool { return vis[i].Strip < vis[j].Strip })
 	}
@@ -563,13 +563,13 @@ func RtIndexMaker(c echo.Context) error {
 		return emptyjsreturn(c)
 	}
 
-	var slicedwords []structs.WordInfo
+	var slicedwords []str.WordInfo
 
 	rr := srch.Results.YieldAll()
 	for r := range rr {
 		wds := r.AccentedSlice()
 		for _, w := range wds {
-			this := structs.WordInfo{
+			this := str.WordInfo{
 				HeadWd:     "",
 				Word:       gen.UVσςϲ(gen.SwapAcuteForGrave(w)),
 				Loc:        r.BuildHyperlink(),
@@ -583,7 +583,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	firstresult := srch.Results.FirstLine()
 	linesingested := srch.Results.Len()
-	srch.Results.Lines = make([]structs.DbWorkline, 1) // clearing after use
+	srch.Results.Lines = make([]str.DbWorkline, 1) // clearing after use
 
 	// [b] find the Unique values
 	distinct := make(map[string]bool, len(slicedwords))
@@ -610,7 +610,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{si.ID, MSG2}
 
-	var slicedlookups []structs.WordInfo
+	var slicedlookups []str.WordInfo
 	for _, w := range slicedwords {
 		emm := false
 		mme := w.Word
@@ -633,7 +633,7 @@ func RtIndexMaker(c echo.Context) error {
 			mps := extractmorphpossibilities(morphmap[mme].RawPossib)
 			if len(mps) > 1 {
 				for i := 0; i < len(mps); i++ {
-					var additionalword structs.WordInfo
+					var additionalword str.WordInfo
 					additionalword = w
 					additionalword.HeadWd = mps[i].Headwd
 					slicedlookups = append(slicedlookups, additionalword)
@@ -642,7 +642,7 @@ func RtIndexMaker(c echo.Context) error {
 		}
 	}
 
-	morphmap = make(map[string]structs.DbMorphology) // drop after use
+	morphmap = make(map[string]str.DbMorphology) // drop after use
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {
@@ -666,16 +666,16 @@ func RtIndexMaker(c echo.Context) error {
 	onlyhere = gen.Unique(onlyhere)
 	onlyhere = gen.PolytonicSort(onlyhere)
 
-	slicedwords = []structs.WordInfo{} // drop after use
+	slicedwords = []str.WordInfo{} // drop after use
 
-	var trimslices []structs.WordInfo
+	var trimslices []str.WordInfo
 	for _, w := range slicedlookups {
 		if len(w.HeadWd) != 0 {
 			trimslices = append(trimslices, w)
 		}
 	}
 
-	slicedlookups = []structs.WordInfo{} // drop after use
+	slicedlookups = []str.WordInfo{} // drop after use
 
 	// pseudocode:
 
@@ -721,7 +721,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{si.ID, MSG3}
 
-	indexmap := make(map[gen.PolytonicSorterStruct][]structs.WordInfo, len(trimslices))
+	indexmap := make(map[gen.PolytonicSorterStruct][]str.WordInfo, len(trimslices))
 	for _, w := range trimslices {
 		// lunate sigma sorts after omega
 		sigma := strings.Replace(gen.StripaccentsSTR(w.HeadWd), "ϲ", "σ", -1)
@@ -734,7 +734,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	m := message.NewPrinter(language.English)
 	wf := m.Sprintf("%d", len(trimslices))
-	trimslices = []structs.WordInfo{} // drop after use
+	trimslices = []str.WordInfo{} // drop after use
 
 	// [d2] sort the keys
 
@@ -756,12 +756,12 @@ func RtIndexMaker(c echo.Context) error {
 
 	// example keys: [ἀβαϲάνιϲτοϲ ἀβουλία ἄβουλοϲ ἁβροδίαιτοϲ ἀγαθόϲ ἀγαθόω ἄγαν ...]
 
-	plainmap := make(map[string][]structs.WordInfo, len(indexmap))
+	plainmap := make(map[string][]str.WordInfo, len(indexmap))
 	for k := range indexmap {
 		plainmap[k.Originalstring] = indexmap[k]
 	}
 
-	indexmap = make(map[gen.PolytonicSorterStruct][]structs.WordInfo, 1) // drop after use
+	indexmap = make(map[gen.PolytonicSorterStruct][]str.WordInfo, 1) // drop after use
 
 	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{si.ID, MSG4}
 
@@ -849,7 +849,7 @@ func RtIndexMaker(c echo.Context) error {
 //
 
 // addkeystowordinfo - index to more than one work needs to have a key attached to the citations
-func addkeystowordinfo(wii []structs.WordInfo) ([]structs.WordInfo, map[string]rune) {
+func addkeystowordinfo(wii []str.WordInfo) ([]str.WordInfo, map[string]rune) {
 	// build the key: 9372 = ⒜
 	uu := make([]string, len(wii))
 	for i, w := range wii {
@@ -870,7 +870,7 @@ func addkeystowordinfo(wii []structs.WordInfo) ([]structs.WordInfo, map[string]r
 }
 
 // multiworkkeymaker - index to more than one work needs a key to the whole
-func multiworkkeymaker(mapper map[string]rune, srch *structs.SearchStruct) string {
+func multiworkkeymaker(mapper map[string]rune, srch *str.SearchStruct) string {
 	// <br><span class="emph">Works:</span> ⒜: <span class="italic">De caede Eratosthenis</span>
 	//; ⒝: <span class="italic">Epitaphius [Sp.]</span>
 	//; ⒞: <span class="italic">Contra Simonem</span> ...
@@ -899,7 +899,7 @@ func multiworkkeymaker(mapper map[string]rune, srch *structs.SearchStruct) strin
 }
 
 // convertwordinfototablerow - []WordInfo --> "<tr>...</tr>"
-func convertwordinfototablerow(ww []structs.WordInfo) string {
+func convertwordinfototablerow(ww []str.WordInfo) string {
 	// every word has the same headword
 	// now we build a sub-map after the pattern of the main map: but now the keys are the words, not the headwords
 
@@ -932,7 +932,7 @@ func convertwordinfototablerow(ww []structs.WordInfo) string {
 	)
 
 	// build it
-	indexmap := make(map[string][]structs.WordInfo, len(ww))
+	indexmap := make(map[string][]str.WordInfo, len(ww))
 	for _, w := range ww {
 		indexmap[w.Word] = append(indexmap[w.Word], w)
 	}
@@ -999,7 +999,7 @@ func polishtrans(tr string, pat *regexp.Regexp) string {
 		TT = `<span class="transtree">$1</span> `
 	)
 
-	tr = structs.NoHTML.ReplaceAllString(tr, "")
+	tr = str.NoHTML.ReplaceAllString(tr, "")
 	elem := strings.Split(tr, "; ")
 	for i, e := range elem {
 		elem[i] = pat.ReplaceAllString(e, TT)

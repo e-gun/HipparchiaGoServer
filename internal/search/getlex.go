@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -48,7 +48,7 @@ import (
 // see CALCULATEWORDWEIGHTS in HipparchiaServer's startup.py on where these really come from
 // alternate chars: "🄶", "🄻", "🄸", "🄳", "🄲"; but these align awkwardly on the page
 
-func HeadwordLookup(word string) structs.DbHeadwordCount {
+func HeadwordLookup(word string) str.DbHeadwordCount {
 	// scan a headwordcount into the corresponding struct
 	// note that if you reassign a genre, this is one of the place you have to edit
 	const (
@@ -77,16 +77,16 @@ func HeadwordLookup(word string) structs.DbHeadwordCount {
 	foundrows, err := dbconn.Query(context.Background(), q)
 	Msg.EC(err)
 
-	var thesefinds []structs.DbHeadwordCount
-	var co structs.DbHeadwordCorpusCounts
-	var chr structs.DbHeadwordTimeCounts
-	var g structs.DbHeadwordGenreCounts
-	var th structs.DbHeadwordTheologyCounts
-	var rh structs.DbHeadwordRhetoricaCounts
+	var thesefinds []str.DbHeadwordCount
+	var co str.DbHeadwordCorpusCounts
+	var chr str.DbHeadwordTimeCounts
+	var g str.DbHeadwordGenreCounts
+	var th str.DbHeadwordTheologyCounts
+	var rh str.DbHeadwordRhetoricaCounts
 
 	defer foundrows.Close()
 	for foundrows.Next() {
-		var thehit structs.DbHeadwordCount
+		var thehit str.DbHeadwordCount
 		e := foundrows.Scan(&thehit.Entry, &thehit.Total, &co.TGrk, &co.TLat, &co.TDP, &co.TIN, &co.TCh,
 			&thehit.FrqCla, &chr.Early, &chr.Middle, &chr.Late,
 			&th.Acta, &g.Agric, &g.Alchem, &g.Anthol, &th.Apocal, &th.Apocr, &th.Apol, &g.Astrol, &g.Astron, &g.Biogr, &g.Bucol,
@@ -107,7 +107,7 @@ func HeadwordLookup(word string) structs.DbHeadwordCount {
 		thesefinds = append(thesefinds, thehit)
 	}
 
-	var thefind structs.DbHeadwordCount
+	var thefind str.DbHeadwordCount
 	if len(thesefinds) == 1 {
 		thefind = thesefinds[0]
 	} else {
@@ -175,7 +175,7 @@ func ArrayToGetScansion(wordlist []string) map[string]string {
 }
 
 // ArrayToGetRequiredMorphObjects - map a slice of words to the corresponding DbMorphology
-func ArrayToGetRequiredMorphObjects(wordlist []string) map[string]structs.DbMorphology {
+func ArrayToGetRequiredMorphObjects(wordlist []string) map[string]str.DbMorphology {
 	// hipparchiaDB=# \d greek_morphology
 	//                           Table "public.greek_morphology"
 	//          Column           |          Type          | Collation | Nullable | Default
@@ -219,8 +219,8 @@ func ArrayToGetRequiredMorphObjects(wordlist []string) map[string]structs.DbMorp
 
 	Msg.PEEK(fmt.Sprintf(MSG1, len(wordlist)))
 
-	foundmorph := make(map[string]structs.DbMorphology)
-	var thehit structs.DbMorphology
+	foundmorph := make(map[string]str.DbMorphology)
+	var thehit str.DbMorphology
 
 	foreach := []any{&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW}
 
@@ -339,7 +339,7 @@ func FetchHeadwordCounts(headwordset map[string]bool) map[string]int {
 	returnmap := make(map[string]int)
 	defer foundrows.Close()
 	for foundrows.Next() {
-		var thehit structs.WeightedHeadword
+		var thehit str.WeightedHeadword
 		err = foundrows.Scan(&thehit.Word, &thehit.Count)
 		Msg.EC(err)
 		returnmap[thehit.Word] = thehit.Count

@@ -9,7 +9,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -26,7 +26,7 @@ const (
 //
 
 // AcquireWorkLineBundle - use a PrerolledQuery to acquire a *WorkLineBundle
-func AcquireWorkLineBundle(prq structs.PrerolledQuery, dbconn *pgxpool.Conn) *structs.WorkLineBundle {
+func AcquireWorkLineBundle(prq str.PrerolledQuery, dbconn *pgxpool.Conn) *str.WorkLineBundle {
 	// NB: you have to use a dbconn.Exec() and can't use SQLPool.Exex() because with the latter the temp table will
 	// get separated from the main query:
 	// ERROR: relation "{ttname}" does not exist (SQLSTATE 42P01)
@@ -45,14 +45,14 @@ func AcquireWorkLineBundle(prq structs.PrerolledQuery, dbconn *pgxpool.Conn) *st
 
 	// [c] convert the finds into []DbWorkline
 
-	thesefinds, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[structs.DbWorkline])
+	thesefinds, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[str.DbWorkline])
 	Msg.EC(err)
 
-	return &structs.WorkLineBundle{Lines: thesefinds}
+	return &str.WorkLineBundle{Lines: thesefinds}
 }
 
 // SimpleContextGrabber - grab a *WorkLineBundle centered around the focusline (only called by GenerateBrowsedPassage)
-func SimpleContextGrabber(table string, focus int, context int) *structs.WorkLineBundle {
+func SimpleContextGrabber(table string, focus int, context int) *str.WorkLineBundle {
 	const (
 		QTMPL = "SELECT %s FROM %s WHERE (index BETWEEN %d AND %d) ORDER by index"
 	)
@@ -63,7 +63,7 @@ func SimpleContextGrabber(table string, focus int, context int) *structs.WorkLin
 	low := focus - context
 	high := focus + context
 
-	var prq structs.PrerolledQuery
+	var prq str.PrerolledQuery
 	prq.TempTable = ""
 	prq.PsqlQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, low, high)
 
@@ -73,7 +73,7 @@ func SimpleContextGrabber(table string, focus int, context int) *structs.WorkLin
 }
 
 // GrabOneLine - return a single DbWorkline from a table
-func GrabOneLine(table string, line int) structs.DbWorkline {
+func GrabOneLine(table string, line int) str.DbWorkline {
 	const (
 		QTMPL = "SELECT %s FROM %s WHERE index = %d"
 	)
@@ -81,7 +81,7 @@ func GrabOneLine(table string, line int) structs.DbWorkline {
 	dbconn := db.GetDBConnection()
 	defer dbconn.Release()
 
-	var prq structs.PrerolledQuery
+	var prq str.PrerolledQuery
 	prq.TempTable = ""
 	prq.PsqlQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, line)
 	foundlines := AcquireWorkLineBundle(prq, dbconn)
@@ -89,6 +89,6 @@ func GrabOneLine(table string, line int) structs.DbWorkline {
 		// "index = %d" in QTMPL ought to mean you can never have len(foundlines) > 1 because index values are unique
 		return foundlines.FirstLine()
 	} else {
-		return structs.DbWorkline{}
+		return str.DbWorkline{}
 	}
 }

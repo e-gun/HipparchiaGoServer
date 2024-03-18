@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5"
@@ -253,7 +253,7 @@ func RtSetOption(c echo.Context) error {
 }
 
 // sliceworkcorpus - fetch all relevant works from the db as a DbWork slice
-func sliceworkcorpus(corpus string) []structs.DbWork {
+func sliceworkcorpus(corpus string) []str.DbWork {
 	// this is far and away the "heaviest" bit of the whole program if you grab every known work
 	// Total: 204MB
 	// 65.35MB (flat, cum) 32.03% of Total
@@ -298,8 +298,8 @@ func sliceworkcorpus(corpus string) []structs.DbWork {
 	foundrows, err := db.SQLPool.Query(context.Background(), qq)
 	msg.EC(err)
 
-	workslice := make([]structs.DbWork, cc)
-	var w structs.DbWork
+	workslice := make([]str.DbWork, cc)
+	var w str.DbWork
 
 	foreach := []any{&w.UID, &w.Title, &w.Language, &w.Pub, &w.LL0, &w.LL1, &w.LL2, &w.LL3, &w.LL4, &w.LL5, &w.Genre,
 		&w.Xmit, &w.Type, &w.Prov, &w.RecDate, &w.ConvDate, &w.WdCount, &w.FirstLine, &w.LastLine, &w.Authentic}

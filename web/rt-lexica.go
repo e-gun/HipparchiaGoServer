@@ -15,7 +15,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5"
@@ -285,7 +285,7 @@ func findbyform(word string, author string) string {
 	c := []rune(word)
 	q := fmt.Sprintf(PSQQ, FLDS, gen.StripaccentsSTR(string(c[0])), word)
 
-	var wc structs.DbWordCount
+	var wc str.DbWordCount
 	ct := db.SQLPool.QueryRow(context.Background(), q)
 	e := ct.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
 	if e != nil {
@@ -330,7 +330,7 @@ func reversefind(word string, dicts []string) string {
 		ITEMIZER  = `<hr><span class="small">(%d)</span>`
 	)
 
-	var lexicalfinds []structs.DbLexicon
+	var lexicalfinds []str.DbLexicon
 	// [a] look for the words
 	for _, d := range dicts {
 		ff := dictgrabber(word, d, "translations", "~")
@@ -338,7 +338,7 @@ func reversefind(word string, dicts []string) string {
 	}
 
 	// [b] the counts for the finds
-	countmap := make(map[float32]structs.DbHeadwordCount)
+	countmap := make(map[float32]str.DbHeadwordCount)
 	for _, f := range lexicalfinds {
 		ct := search.HeadwordLookup(f.Word)
 		if ct.Entry == "" {
@@ -415,7 +415,7 @@ func dictsearch(seeking string, dict string) string {
 		htmlchunks[i] = h
 	}
 
-	countmap := make(map[float32]structs.DbHeadwordCount)
+	countmap := make(map[float32]str.DbHeadwordCount)
 	for _, f := range lexicalfinds {
 		ct := search.HeadwordLookup(f.Word)
 		if ct.Entry == "" {
@@ -451,7 +451,7 @@ func dictsearch(seeking string, dict string) string {
 }
 
 // dictgrabber - search postgres tables and return []DbLexicon
-func dictgrabber(seeking string, dict string, col string, syntax string) []structs.DbLexicon {
+func dictgrabber(seeking string, dict string, col string, syntax string) []str.DbLexicon {
 	const (
 		FLDS = `entry_name, metrical_entry, id_number, pos, translations, html_body`
 		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s %s '%s' ORDER BY id_number ASC LIMIT %d`
@@ -460,8 +460,8 @@ func dictgrabber(seeking string, dict string, col string, syntax string) []struc
 	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
 	q := fmt.Sprintf(PSQQ, FLDS, dict, col, syntax, seeking, vv.MAXDICTLOOKUP)
 
-	var lexicalfinds []structs.DbLexicon
-	var thehit structs.DbLexicon
+	var lexicalfinds []str.DbLexicon
+	var thehit str.DbLexicon
 	dedup := make(map[float32]bool)
 
 	foreach := []any{&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry}
@@ -485,7 +485,7 @@ func dictgrabber(seeking string, dict string, col string, syntax string) []struc
 }
 
 // getmorphmatch - word into []DbMorphology
-func getmorphmatch(word string, lang string) []structs.DbMorphology {
+func getmorphmatch(word string, lang string) []str.DbMorphology {
 	const (
 		FLDS = `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
 		PSQQ = "SELECT %s FROM %s_morphology WHERE observed_form = '%s'"
@@ -496,16 +496,16 @@ func getmorphmatch(word string, lang string) []structs.DbMorphology {
 	foundrows, err := db.SQLPool.Query(context.Background(), psq)
 	msg.EC(err)
 
-	thesefinds, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[structs.DbMorphology])
+	thesefinds, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[str.DbMorphology])
 	msg.EC(err)
 
 	return thesefinds
 }
 
 // dbmorphintomorphpossib - from []DbMorphology yield up []MorphPossib
-func dbmorphintomorphpossib(dbmm []structs.DbMorphology) []structs.MorphPossib {
+func dbmorphintomorphpossib(dbmm []str.DbMorphology) []str.MorphPossib {
 
-	var mpp []structs.MorphPossib
+	var mpp []str.MorphPossib
 
 	for _, d := range dbmm {
 		mpp = append(mpp, extractmorphpossibilities(d.RawPossib)...)
@@ -515,7 +515,7 @@ func dbmorphintomorphpossib(dbmm []structs.DbMorphology) []structs.MorphPossib {
 }
 
 // extractmorphpossibilities - turn nested morphological JSON into []MorphPossib
-func extractmorphpossibilities(raw string) []structs.MorphPossib {
+func extractmorphpossibilities(raw string) []str.MorphPossib {
 	// Input:     {"1": {"transl": "A.I. stem, tree; II. shaft of a spear", "analysis": "neut nom/voc/acc sg", "headword": "δόρυ", "scansion": "", "xref_kind": "9", "xref_value": "26874791"}}
 	// Unmarshal: map[1:{A.I. stem, tree; II. shaft of a spear neut nom/voc/acc sg δόρυ  9 26874791}]
 
@@ -523,7 +523,7 @@ func extractmorphpossibilities(raw string) []structs.MorphPossib {
 		FAIL = "dbmorphintomorphpossib() could not unmarshal %s"
 	)
 
-	nested := make(map[string]structs.MorphPossib)
+	nested := make(map[string]str.MorphPossib)
 	e := json.Unmarshal([]byte(raw), &nested)
 	if e != nil {
 		msg.TMI(fmt.Sprintf(FAIL, raw))
@@ -542,7 +542,7 @@ func extractmorphpossibilities(raw string) []structs.MorphPossib {
 }
 
 // morphpossibintolexpossib - []MorphPossib into []DbLexicon
-func morphpossibintolexpossib(d string, mpp []structs.MorphPossib) []structs.DbLexicon {
+func morphpossibintolexpossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 	const (
 		FLDS = `entry_name, metrical_entry, id_number, pos, translations, html_body`
 		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴|1|2)$' ORDER BY id_number ASC`
@@ -563,8 +563,8 @@ func morphpossibintolexpossib(d string, mpp []structs.MorphPossib) []structs.DbL
 
 	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
 
-	var lexicalfinds []structs.DbLexicon
-	var thehit structs.DbLexicon
+	var lexicalfinds []str.DbLexicon
+	var thehit str.DbLexicon
 	dedup := make(map[float32]bool)
 
 	foreach := []any{&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry}
@@ -596,12 +596,12 @@ func morphpossibintolexpossib(d string, mpp []structs.MorphPossib) []structs.DbL
 //
 
 // paralleldictformatter - send N workers off to turn []DbLexicon into a map: [entryid]entryhtml
-func paralleldictformatter(lexicalfinds []structs.DbLexicon) map[float32]string {
+func paralleldictformatter(lexicalfinds []str.DbLexicon) map[float32]string {
 	workers := lnch.Config.WorkerCount
 	totalwork := len(lexicalfinds)
 	chunksize := totalwork / workers
 	leftover := totalwork % workers
-	entrymap := make(map[int][]structs.DbLexicon, workers)
+	entrymap := make(map[int][]str.DbLexicon, workers)
 
 	if totalwork <= workers {
 		chunksize = 1
@@ -627,7 +627,7 @@ func paralleldictformatter(lexicalfinds []structs.DbLexicon) map[float32]string 
 	for i := 0; i < workers; i++ {
 		wg.Add(1)
 		j := i
-		go func(lexlist []structs.DbLexicon, workerid int) {
+		go func(lexlist []str.DbLexicon, workerid int) {
 			defer wg.Done()
 			outputchannels <- multipleentriesashtml(entrymap[j])
 		}(entrymap[i], i)
@@ -656,8 +656,8 @@ func paralleldictformatter(lexicalfinds []structs.DbLexicon) map[float32]string 
 }
 
 // multipleentriesashtml - turn []DbLexicon into a map: [entryid]entryhtml
-func multipleentriesashtml(ee []structs.DbLexicon) map[float32]string {
-	oneentry := func(e structs.DbLexicon) (float32, string) {
+func multipleentriesashtml(ee []str.DbLexicon) map[float32]string {
+	oneentry := func(e str.DbLexicon) (float32, string) {
 		body := formatlexicaloutput(e)
 		return e.ID, body
 	}
@@ -671,7 +671,7 @@ func multipleentriesashtml(ee []structs.DbLexicon) map[float32]string {
 }
 
 // formatprevalencedata - turn a wordcount into an HTML summary
-func formatprevalencedata(w structs.DbWordCount, s string) string {
+func formatprevalencedata(w str.DbWordCount, s string) string {
 	// <p class="wordcounts">Prevalence (all forms): <span class="prevalence">Ⓣ</span> 1482 / <span class="prevalence">Ⓖ</span> 1415 / <span class="prevalence">Ⓓ</span> 54 / <span class="prevalence">Ⓘ</span> 11 / <span class="prevalence">Ⓒ</span> 2</p>
 	const (
 		PDPAR = `<p class="wordcounts">Prevalence of <span class="emph">%s</span>: %s</p>`
@@ -696,7 +696,7 @@ func formatprevalencedata(w structs.DbWordCount, s string) string {
 }
 
 // formatparsingdata - turn []MorphPossib into HTML
-func formatparsingdata(mpp []structs.MorphPossib) string {
+func formatparsingdata(mpp []str.MorphPossib) string {
 	const (
 		OBSERVED = `<span class="obsv"><span class="obsv"> from <span class="baseform"><a class="lex" href="#%s_%s">%s</a></span>
 	`
@@ -713,7 +713,7 @@ func formatparsingdata(mpp []structs.MorphPossib) string {
 	)
 	pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
 
-	mpmap := make(map[string]structs.MorphPossib, len(mpp))
+	mpmap := make(map[string]str.MorphPossib, len(mpp))
 	for _, p := range mpp {
 		k := p.Headwd + " - " + p.Anal + " - " + p.Transl
 		mpmap[k] = p
@@ -784,7 +784,7 @@ func formatparsingdata(mpp []structs.MorphPossib) string {
 }
 
 // formatlexicaloutput - turn a DbLexicon word into HTML
-func formatlexicaloutput(w structs.DbLexicon) string {
+func formatlexicaloutput(w str.DbLexicon) string {
 	const (
 		HEADTEMPL = `<div id="%s_%f"><hr>
 		<p class="dictionaryheading" id="%s_%.1f">%s&nbsp;<span class="metrics">%s</span></p>
@@ -857,14 +857,14 @@ func formatlexicaloutput(w structs.DbLexicon) string {
 	// [h5] previous & next entry
 
 	// todo: push all db interaction into 'search'
-	var prev structs.DbLexicon
+	var prev str.DbLexicon
 	p := db.SQLPool.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.GetLang(), "<", w.ID, "DESC"))
 	e := p.Scan(&prev.Entry, &prev.ID)
 	if e != nil {
 		msg.FYI(fmt.Sprintf(NOTH, "before", w.Entry))
 	}
 
-	var nxt structs.DbLexicon
+	var nxt str.DbLexicon
 	n := db.SQLPool.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.GetLang(), ">", w.ID, "ASC"))
 	e = n.Scan(&nxt.Entry, &nxt.ID)
 	if e != nil {
@@ -911,7 +911,7 @@ func insertlexicaljs() string {
 	return thejs
 }
 
-func headwordprevalence(wc structs.DbHeadwordCount) string {
+func headwordprevalence(wc str.DbHeadwordCount) string {
 	// Prevalence (all forms): Ⓖ 95,843 / Ⓛ 10 / Ⓘ 151 / Ⓓ 751 / Ⓒ 64 / Ⓣ 96,819
 	const (
 		PREVSPAN = `<span class="prevalence rarechars">%s</span>&nbsp;%d`
@@ -936,7 +936,7 @@ func headwordprevalence(wc structs.DbHeadwordCount) string {
 	return p
 }
 
-func headworddistrib(wc structs.DbHeadwordCount) string {
+func headworddistrib(wc str.DbHeadwordCount) string {
 	// Weighted distribution by corpus: Ⓖ 100 / Ⓓ 14 / Ⓒ 6 / Ⓘ 2 / Ⓛ 0
 	const (
 		DIST = `<br>Distribution by corpus: `
@@ -944,11 +944,11 @@ func headworddistrib(wc structs.DbHeadwordCount) string {
 	cv := wc.CorpVal
 
 	for i, c := range cv {
-		cv[i].Count = int(float32(c.Count) * structs.CORPUSWEIGTING[c.Name])
+		cv[i].Count = int(float32(c.Count) * str.CORPUSWEIGTING[c.Name])
 	}
 
 	// descending order
-	slices.SortFunc(cv, func(a, b structs.HWData) int { return cmp.Compare(b.Count, a.Count) })
+	slices.SortFunc(cv, func(a, b str.HWData) int { return cmp.Compare(b.Count, a.Count) })
 
 	mx := cv[0].Count
 
@@ -961,7 +961,7 @@ func headworddistrib(wc structs.DbHeadwordCount) string {
 	return p
 }
 
-func headwordchronology(wc structs.DbHeadwordCount) string {
+func headwordchronology(wc str.DbHeadwordCount) string {
 	// Weighted chronological distribution: ℯ 100 / ℓ 84 / 𝓂 62
 	const (
 		DIST = `<br>Distribution by time: `
@@ -969,11 +969,11 @@ func headwordchronology(wc structs.DbHeadwordCount) string {
 	cv := wc.TimeVal
 
 	for i, c := range cv {
-		cv[i].Count = int(float32(c.Count) * structs.ERAWEIGHTING[c.Name])
+		cv[i].Count = int(float32(c.Count) * str.ERAWEIGHTING[c.Name])
 	}
 
 	// descending order
-	slices.SortFunc(cv, func(a, b structs.HWData) int { return cmp.Compare(b.Count, a.Count) })
+	slices.SortFunc(cv, func(a, b str.HWData) int { return cmp.Compare(b.Count, a.Count) })
 
 	mx := cv[0].Count
 
@@ -987,7 +987,7 @@ func headwordchronology(wc structs.DbHeadwordCount) string {
 	return p
 }
 
-func headwordgenres(wc structs.DbHeadwordCount) string {
+func headwordgenres(wc str.DbHeadwordCount) string {
 	// Predominant genres: comm (100), mech (97), jurisprud (93), med (84), mus (75), nathist (61), paroem (60), allrelig (57)
 	const (
 		DIST = `<br>Distribution by genre: `
@@ -997,9 +997,9 @@ func headwordgenres(wc structs.DbHeadwordCount) string {
 
 	wt := map[string]float32{}
 	if vv.IsGreek.MatchString(wc.Entry) {
-		wt = structs.GKGENREWEIGHT
+		wt = str.GKGENREWEIGHT
 	} else {
-		wt = structs.LATGENREWEIGHT
+		wt = str.LATGENREWEIGHT
 	}
 
 	for i, c := range cv {
@@ -1011,7 +1011,7 @@ func headwordgenres(wc structs.DbHeadwordCount) string {
 	}
 
 	// descending order
-	slices.SortFunc(cv, func(a, b structs.HWData) int { return cmp.Compare(b.Count, a.Count) })
+	slices.SortFunc(cv, func(a, b str.HWData) int { return cmp.Compare(b.Count, a.Count) })
 
 	mx := cv[0].Count
 
@@ -1027,7 +1027,7 @@ func headwordgenres(wc structs.DbHeadwordCount) string {
 }
 
 // weightedpdslice - convert count values into a formatted string slice
-func weightedpdslice(cv []structs.HWData, rare bool) []string {
+func weightedpdslice(cv []str.HWData, rare bool) []string {
 	const (
 		PREVSPANA = `<span class="rarechars prevalence">%s</span>&nbsp;%d`
 		PREVSPANB = `<span class="rarechars prevalence">%s</span>&nbsp;%d`

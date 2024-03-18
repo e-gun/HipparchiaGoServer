@@ -1,4 +1,4 @@
-package structs
+package str
 
 type CurrentConfiguration struct {
 	Authenticate    bool

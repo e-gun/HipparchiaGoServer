@@ -9,7 +9,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
@@ -22,7 +22,7 @@ import (
 // INITIAL SETUP
 //
 
-func GenerateSrchInfo(srch *structs.SearchStruct) vlt.WSSrchInfo {
+func GenerateSrchInfo(srch *str.SearchStruct) vlt.WSSrchInfo {
 	return vlt.WSSrchInfo{
 		ID:        srch.WSID,
 		User:      srch.User,
@@ -41,7 +41,7 @@ func GenerateSrchInfo(srch *structs.SearchStruct) vlt.WSSrchInfo {
 }
 
 // BuildDefaultSearch - fill out the basic values for a new search
-func BuildDefaultSearch(c echo.Context) structs.SearchStruct {
+func BuildDefaultSearch(c echo.Context) str.SearchStruct {
 	const (
 		VECTORSEARCHSUMMARY = "Acquiring a model for the selected texts"
 	)
@@ -51,7 +51,7 @@ func BuildDefaultSearch(c echo.Context) structs.SearchStruct {
 
 	// m("nonstandard BuildDefaultSearch() for testing", MSGCRIT)
 
-	var s structs.SearchStruct
+	var s str.SearchStruct
 	s.User = user
 	s.Launched = time.Now()
 	s.CurrentLimit = sess.HitLimit
@@ -135,8 +135,8 @@ func BuildDefaultSearch(c echo.Context) structs.SearchStruct {
 }
 
 // BuildHollowSearch - is really a way to grab line collections via synthetic searchlists
-func BuildHollowSearch() structs.SearchStruct {
-	s := structs.SearchStruct{
+func BuildHollowSearch() str.SearchStruct {
+	s := str.SearchStruct{
 		User:          "",
 		ID:            strings.Replace(uuid.New().String(), "-", "", -1),
 		Seeking:       "",
@@ -166,10 +166,10 @@ func BuildHollowSearch() structs.SearchStruct {
 		OriginalLimit: vv.FIRSTSEARCHLIM,
 		SkgSlice:      nil,
 		PrxSlice:      nil,
-		SearchIn:      structs.SearchIncExl{},
-		SearchEx:      structs.SearchIncExl{},
+		SearchIn:      str.SearchIncExl{},
+		SearchEx:      str.SearchIncExl{},
 		Queries:       nil,
-		Results:       structs.WorkLineBundle{},
+		Results:       str.WorkLineBundle{},
 		Launched:      time.Now(),
 		TTName:        strings.Replace(uuid.New().String(), "-", "", -1),
 		SearchSize:    0,
@@ -184,7 +184,7 @@ func BuildHollowSearch() structs.SearchStruct {
 }
 
 // CloneSearch - make a copy of a search with results and queries, inter alia, ripped out
-func CloneSearch(f *structs.SearchStruct, iteration int) structs.SearchStruct {
+func CloneSearch(f *str.SearchStruct, iteration int) str.SearchStruct {
 	// note that the clone is not accessible to RtWebsocket() because it never gets registered in the global SearchMap
 	// this means no progress for second pass SearchMap; this can be achieved, but it is not currently a priority
 
@@ -204,7 +204,7 @@ func CloneSearch(f *structs.SearchStruct, iteration int) structs.SearchStruct {
 	//s.Context
 	//s.CancelFnc
 
-	clone := structs.SearchStruct{
+	clone := str.SearchStruct{
 		User:          f.User,
 		IPAddr:        f.IPAddr,
 		ID:            id,
@@ -238,10 +238,10 @@ func CloneSearch(f *structs.SearchStruct, iteration int) structs.SearchStruct {
 		OriginalLimit: f.OriginalLimit,
 		SkgSlice:      []string{},
 		PrxSlice:      []string{},
-		SearchIn:      structs.SearchIncExl{},
-		SearchEx:      structs.SearchIncExl{},
-		Queries:       []structs.PrerolledQuery{},
-		Results:       structs.WorkLineBundle{},
+		SearchIn:      str.SearchIncExl{},
+		SearchEx:      str.SearchIncExl{},
+		Queries:       []str.PrerolledQuery{},
+		Results:       str.WorkLineBundle{},
 		Launched:      f.Launched,
 		TTName:        strings.Replace(uuid.New().String(), "-", "", -1),
 		SearchSize:    f.SearchSize,
@@ -258,12 +258,12 @@ func CloneSearch(f *structs.SearchStruct, iteration int) structs.SearchStruct {
 	return clone
 }
 
-func InsertNewContextIntoSS(ss *structs.SearchStruct) {
+func InsertNewContextIntoSS(ss *str.SearchStruct) {
 	ss.Context, ss.CancelFnc = context.WithCancel(context.Background())
 }
 
 // SessionIntoBulkSearch - grab every line of text in the currently selected set of authors, works, and passages
-func SessionIntoBulkSearch(c echo.Context, lim int) structs.SearchStruct {
+func SessionIntoBulkSearch(c echo.Context, lim int) str.SearchStruct {
 	user := vlt.ReadUUIDCookie(c)
 	sess := vlt.AllSessions.GetSess(user)
 

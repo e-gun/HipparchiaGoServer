@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"sort"
 	"strings"
 )
 
 // FindValidLevelValues - tell me some of a citation and I can tell you what is a valid choice at the next step
-func FindValidLevelValues(dbw structs.DbWork, locc []string) structs.LevelValues {
+func FindValidLevelValues(dbw str.DbWork, locc []string) str.LevelValues {
 	// curl localhost:5000/get/json/workstructure/lt0959/001
 	// {"totallevels": 3, "level": 2, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
 	// curl localhost:5000/get/json/workstructure/lt0959/001/2
@@ -45,7 +45,7 @@ func FindValidLevelValues(dbw structs.DbWork, locc []string) structs.LevelValues
 		// logic bug in here somewhere...
 		// FAIL = "FindValidLevelValues() sent negative levels"
 		// m(FAIL, MSGWARN)
-		return structs.LevelValues{}
+		return str.LevelValues{}
 	}
 
 	// [b] make a query
@@ -71,7 +71,7 @@ func FindValidLevelValues(dbw structs.DbWork, locc []string) structs.LevelValues
 	}
 	andnot := fmt.Sprintf(ANDNOT, qmap[atlvl])
 
-	var prq structs.PrerolledQuery
+	var prq str.PrerolledQuery
 	prq.PsqlQuery = fmt.Sprintf(SEL, dbw.AuID(), dbw.UID, and, andnot)
 
 	dbconn := db.GetDBConnection()
@@ -79,7 +79,7 @@ func FindValidLevelValues(dbw structs.DbWork, locc []string) structs.LevelValues
 	wlb := AcquireWorkLineBundle(prq, dbconn)
 
 	// [c] extract info from the hitlines returned
-	var vals structs.LevelValues
+	var vals str.LevelValues
 	vals.AtLvl = atlvl
 	vals.Label = lmap[atlvl]
 

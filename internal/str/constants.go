@@ -1,8 +1,8 @@
-package structs
+package str
 
 import "regexp"
 
-// avoid importing values into "structs"
+// avoid importing values into "str"
 
 const (
 	DEFAULTCOLUMN          = "stripped_line"

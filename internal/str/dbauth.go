@@ -1,4 +1,4 @@
-package structs
+package str
 
 type DbAuthor struct {
 	UID       string

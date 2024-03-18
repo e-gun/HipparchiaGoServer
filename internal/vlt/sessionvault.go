@@ -3,7 +3,7 @@ package vlt
 import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -18,18 +18,18 @@ import (
 // MakeSessionVault - called only once; yields the AllSessions vault
 func MakeSessionVault() SessionVault {
 	return SessionVault{
-		SessionMap: make(map[string]structs.ServerSession),
+		SessionMap: make(map[string]str.ServerSession),
 		mutex:      sync.RWMutex{},
 	}
 }
 
 // SessionVault - there should be only one of these; and it contains all the sessions
 type SessionVault struct {
-	SessionMap map[string]structs.ServerSession
+	SessionMap map[string]str.ServerSession
 	mutex      sync.RWMutex
 }
 
-func (sv *SessionVault) InsertSess(s structs.ServerSession) {
+func (sv *SessionVault) InsertSess(s str.ServerSession) {
 	sv.mutex.Lock()
 	defer sv.mutex.Unlock()
 	sv.SessionMap[s.ID] = s
@@ -49,7 +49,7 @@ func (sv *SessionVault) IsInVault(id string) bool {
 	return b
 }
 
-func (sv *SessionVault) GetSess(id string) structs.ServerSession {
+func (sv *SessionVault) GetSess(id string) str.ServerSession {
 	sv.mutex.Lock()
 	defer sv.mutex.Unlock()
 	s, e := sv.SessionMap[id]

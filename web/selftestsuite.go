@@ -10,6 +10,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/vec"
+	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
 	"io"
 	"net/http"
@@ -102,8 +103,8 @@ func selftestsuite() {
 	//      flat  flat%   sum%        cum   cum%
 	//  131.08MB 26.06% 26.06%   131.08MB 26.06%  github.com/e-gun/wego/pkg/model/modelutil/matrix.New
 
-	mm := m.NewMessageMaker()
-
+	mm := lnch.NewMessageMakerConfigured()
+	mm.SNm = vv.SHORTNAME + "-SELFTEST"
 	mm.LLvl = m.MSGFYI
 
 	st := []SrchTest{

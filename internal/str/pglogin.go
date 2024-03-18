@@ -1,4 +1,4 @@
-package structs
+package str
 
 type PostgresLogin struct {
 	Host   string

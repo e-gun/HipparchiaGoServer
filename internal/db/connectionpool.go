@@ -8,7 +8,7 @@ package db
 import (
 	"context"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"os"
@@ -20,7 +20,7 @@ import (
 //
 
 // FillDBConnectionPool - build the pgxpool that the whole program will Acquire() from
-func FillDBConnectionPool(cfg structs.CurrentConfiguration) *pgxpool.Pool {
+func FillDBConnectionPool(cfg str.CurrentConfiguration) *pgxpool.Pool {
 	// it is not clear that the casual user gains much from a pool; this mechanism mattered more for python
 
 	// if min < WorkerCount the search will be slowed significantly

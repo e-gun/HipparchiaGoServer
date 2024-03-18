@@ -11,7 +11,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
@@ -157,7 +157,7 @@ func GenerateBrowsedPassage(au string, wk string, fc int, ctx int) BrowsedPassag
 	wlb := search.SimpleContextGrabber(au, fc, ctx/2)
 
 	// [b1] drop wlb that are part of another work (matters in DP, IN, and CH)
-	var trimmed []structs.DbWorkline
+	var trimmed []str.DbWorkline
 
 	ll := wlb.YieldAll()
 	for l := range ll {
@@ -231,7 +231,7 @@ func GenerateBrowsedPassage(au string, wk string, fc int, ctx int) BrowsedPassag
 //
 
 // formatpublicationinfo - does just what you think it does
-func formatpublicationinfo(w structs.DbWork) string {
+func formatpublicationinfo(w str.DbWork) string {
 	// 	in:
 	//		<volumename>FHG </volumename>4 <press>Didot </press><city>Paris </city><year>1841–1870</year><pages>371 </pages><pagesintocitations>Frr. 1–2</pagesintocitations><editor>Müller, K. </editor>
 	//	out:
@@ -299,7 +299,7 @@ func formatpublicationinfo(w structs.DbWork) string {
 }
 
 // formatbrowsercitationinfo - the prolix bibliographic info for a line/work
-func formatbrowsercitationinfo(f structs.DbWorkline, l structs.DbWorkline) string {
+func formatbrowsercitationinfo(f str.DbWorkline, l str.DbWorkline) string {
 	const (
 		CV = `
 		<p class="currentlyviewing">
@@ -332,7 +332,7 @@ func formatbrowsercitationinfo(f structs.DbWorkline, l structs.DbWorkline) strin
 }
 
 // basiccitation - produce a comma-separated citation from a DbWorkline: e.g., "book 5, chapter 37, section 5, line 3"
-func basiccitation(l structs.DbWorkline) string {
+func basiccitation(l str.DbWorkline) string {
 	w := search.DbWlnMyWk(&l)
 	cf := w.CitationFormat()
 	loc := l.FindLocus()
@@ -347,7 +347,7 @@ func basiccitation(l structs.DbWorkline) string {
 }
 
 // buildbrowsertable - where the actual HTML gets generated
-func buildbrowsertable(focus int, lines []structs.DbWorkline) string {
+func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 	const (
 		OBSREGTEMPL = "(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)" + vv.TERMINATIONS
 		UIDDIV      = `<div id="browsertableuid" uid="%s"></div>`
@@ -490,7 +490,7 @@ func buildbrowsertable(focus int, lines []structs.DbWorkline) string {
 }
 
 // selectivelydisplaycitations - only show line numbers every N lines, etc.
-func selectivelydisplaycitations(theline structs.DbWorkline, previous structs.DbWorkline, focus int) string {
+func selectivelydisplaycitations(theline str.DbWorkline, previous str.DbWorkline, focus int) string {
 	// figure out whether to display a citation
 	// pulled this out because it is common with the textbuilder (who will always send "0" as the focus)
 

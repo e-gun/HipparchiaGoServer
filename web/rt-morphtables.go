@@ -11,7 +11,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
@@ -77,7 +77,7 @@ func RtMorphchart(c echo.Context) error {
 	c.Response().After(func() { msg.LogPaths("RtMorphchart()") })
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return gen.JSONresponse(c, structs.SearchOutputJSON{JS: vv.VALIDATIONBOX})
+		return gen.JSONresponse(c, str.SearchOutputJSON{JS: vv.VALIDATIONBOX})
 	}
 
 	const (
@@ -138,8 +138,8 @@ func RtMorphchart(c echo.Context) error {
 	foundrows, err := dbconn.Query(context.Background(), psq)
 	msg.EC(err)
 
-	dbmmap := make(map[string]structs.DbMorphology)
-	var thehit structs.DbMorphology
+	dbmmap := make(map[string]str.DbMorphology)
+	var thehit str.DbMorphology
 
 	foreach := []any{&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW}
 	rfnc := func() error {
@@ -244,7 +244,7 @@ func RtMorphchart(c echo.Context) error {
 	// ...
 
 	for k, v := range dbmmap {
-		vv := []structs.DbMorphology{v} // dbmorphintomorphpossib() wants a slice, we fake a slice
+		vv := []str.DbMorphology{v} // dbmorphintomorphpossib() wants a slice, we fake a slice
 		mp := dbmorphintomorphpossib(vv)
 		for _, m := range mp {
 			// item 0 is always ""; item 1 is an actual analysis
@@ -927,7 +927,7 @@ func generatedeclinedtable(lang string, words map[string]string) string {
 }
 
 // getwordcounts - return total word count figures for each word in a slice of words
-func getwordcounts(ww []string) map[string]structs.DbWordCount {
+func getwordcounts(ww []string) map[string]str.DbWordCount {
 	const (
 		TTT  = `CREATE TEMPORARY TABLE ttw_%s AS SELECT values AS wordforms FROM unnest(ARRAY[%s]) values`
 		WCQT = `SELECT entry_name, total_count FROM wordcounts_%s WHERE EXISTS 
@@ -985,8 +985,8 @@ func getwordcounts(ww []string) map[string]structs.DbWordCount {
 	// κώρα       |           9
 	//(12 rows)
 
-	wcc := make(map[string]structs.DbWordCount)
-	var wc structs.DbWordCount
+	wcc := make(map[string]str.DbWordCount)
+	var wc str.DbWordCount
 
 	each := []any{&wc.Word, &wc.Total}
 

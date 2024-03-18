@@ -12,7 +12,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5"
@@ -269,7 +269,7 @@ func RtSelectionFetch(c echo.Context) error {
 }
 
 // registerselection - do the hard work of parsing a selection
-func registerselection(user string, sv SelectionValues) structs.ServerSession {
+func registerselection(user string, sv SelectionValues) str.ServerSession {
 	// have to deal with all sorts of possibilities
 	// [a] author: "GET /selection/make/_?auth=gr7000 HTTP/1.1"
 	// [b] work: "GET /selection/make/_?auth=lt0474&work=001 HTTP/1.1"
@@ -398,7 +398,7 @@ func registerselection(user string, sv SelectionValues) structs.ServerSession {
 }
 
 // rationalizeselections - make sure that A, B, C, ... make sense as a collection of selections
-func rationalizeselections(original structs.ServerSession, sv SelectionValues) structs.ServerSession {
+func rationalizeselections(original str.ServerSession, sv SelectionValues) str.ServerSession {
 	// if you select "book 2" after selecting the whole, select only book 2
 	// if you select the whole after book 2, then the whole
 	// etc...
@@ -871,7 +871,7 @@ func reportcurrentselections(c echo.Context) SelectionData {
 	// run inclusions, then exclusions
 	var rows [2][]string
 	swap := [2]string{SL, EL}
-	for idx, v := range [2]structs.SearchIncExl{i, e} {
+	for idx, v := range [2]str.SearchIncExl{i, e} {
 		for _, ct := range cat {
 			label := catmap[ct][0]
 			using := catmap[ct][1]
@@ -949,8 +949,8 @@ func formatnewselectionjs(jsinfo []JSData) string {
 }
 
 // validateworkselection - what if you request a work that does not exist? return something...
-func validateworkselection(uid string) *structs.DbWork {
-	w := &structs.DbWork{}
+func validateworkselection(uid string) *str.DbWork {
+	w := &str.DbWork{}
 	w.UID = "work_not_found"
 	au := uid[0:vv.LENGTHOFAUTHORID]
 	if _, ok := mps.AllWorks[uid]; ok {

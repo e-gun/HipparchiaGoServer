@@ -12,7 +12,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/e-gun/nlp"
@@ -69,7 +69,7 @@ type BagWithLocus struct {
 	Bag         string
 	ModifiedBag string
 	LDAScore    float64
-	Workline    structs.DbWorkline
+	Workline    str.DbWorkline
 }
 
 func (b *BagWithLocus) GetWL() {
@@ -82,7 +82,7 @@ func (b *BagWithLocus) GetWL() {
 }
 
 // LDASearch - search via Latent Dirichlet Allocation
-func LDASearch(c echo.Context, srch structs.SearchStruct) error {
+func LDASearch(c echo.Context, srch str.SearchStruct) error {
 	const (
 		LDAMSG = `Building LDA model for the current selections`
 		ESM1   = "Preparing the text for modeling"
@@ -97,7 +97,7 @@ func LDASearch(c echo.Context, srch structs.SearchStruct) error {
 		ntopics = vv.LDATOPICS
 	}
 
-	var vs structs.SearchStruct
+	var vs str.SearchStruct
 	if srch.ID != "ldamodelbot()" {
 		vs = search.SessionIntoBulkSearch(c, lnch.Config.VectorMaxlines)
 		vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{vs.WSID, 1}
@@ -126,12 +126,12 @@ func LDASearch(c echo.Context, srch structs.SearchStruct) error {
 	// a chance to bail if you hit RtResetSession() in time
 	if lnch.Config.SelfTest == 0 && !lnch.Config.VectorBot && !vlt.AllSessions.IsInVault(vs.User) {
 		// m("LDASearch() aborting: RtResetSession switched user to "+vs.User, MSGFYI)
-		return gen.JSONresponse(c, structs.SearchOutputJSON{})
+		return gen.JSONresponse(c, str.SearchOutputJSON{})
 	}
 
 	docsOverTopics, topicsOverWords, ok := ldamodel(ntopics, corpus, vectoriser, &vs)
 	if !ok {
-		return gen.JSONresponse(c, structs.SearchOutputJSON{})
+		return gen.JSONresponse(c, str.SearchOutputJSON{})
 	}
 
 	tables = append(tables, ldatopicsummary(ntopics, topicsOverWords, vectoriser, docsOverTopics))
@@ -148,7 +148,7 @@ func LDASearch(c echo.Context, srch structs.SearchStruct) error {
 		img = ldaplot(vs.Context, se.LDA2D, ntopics, incl, se.VecTextPrep, dot, bags)
 	}
 
-	soj := structs.SearchOutputJSON{
+	soj := str.SearchOutputJSON{
 		Title:         "",
 		Searchsummary: "",
 		Found:         htmltables,
@@ -163,7 +163,7 @@ func LDASearch(c echo.Context, srch structs.SearchStruct) error {
 }
 
 // ldapreptext - prepare the WorkLineBundle of a SearchStruct for lda analysis
-func ldapreptext(bagger string, vs *structs.SearchStruct) []BagWithLocus {
+func ldapreptext(bagger string, vs *str.SearchStruct) []BagWithLocus {
 
 	var sb strings.Builder
 	preallocate := vv.CHARSPERLINE * vs.Results.Len() // NB: a long line has 60 chars
@@ -325,7 +325,7 @@ func ldamontecarlobagging(thebags []BagWithLocus, montecarlo map[string]hwguesse
 }
 
 // ldamodel - build the lda model for the corpus
-func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser, s *structs.SearchStruct) (mat.Matrix, mat.Matrix, bool) {
+func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser, s *str.SearchStruct) (mat.Matrix, mat.Matrix, bool) {
 	const (
 		FAIL = "Failed to model topics for documents"
 	)

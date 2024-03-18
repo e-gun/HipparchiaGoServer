@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"os"
 	"runtime"
@@ -26,7 +26,7 @@ import (
 var efs embed.FS
 
 var (
-	Config *structs.CurrentConfiguration
+	Config *str.CurrentConfiguration
 	// TODO: this is hollow
 	msg = m.NewMessageMaker()
 	EPD = "emb/pdf/"
@@ -171,7 +171,7 @@ func ConfigAtLaunch() {
 	}
 
 	decoderc := json.NewDecoder(loadedcfg)
-	confc := structs.CurrentConfiguration{}
+	confc := str.CurrentConfiguration{}
 	errc := decoderc.Decode(&confc)
 	_ = loadedcfg.Close()
 
@@ -298,7 +298,7 @@ func ConfigAtLaunch() {
 			CopyInstructions()
 		case "-pg":
 			js := args[i+1]
-			var pl structs.PostgresLogin
+			var pl str.PostgresLogin
 			err := json.Unmarshal([]byte(js), &pl)
 			if err != nil {
 				msg.MAND(FAIL1)
@@ -358,8 +358,8 @@ func ConfigAtLaunch() {
 }
 
 // BuildDefaultConfig - return a CurrentConfiguration filled out with various default values
-func BuildDefaultConfig() *structs.CurrentConfiguration {
-	var c structs.CurrentConfiguration
+func BuildDefaultConfig() *str.CurrentConfiguration {
+	var c str.CurrentConfiguration
 	c.Authenticate = false
 	c.BadChars = vv.UNACCEPTABLEINPUT
 	c.BlackAndWhite = vv.BLACKANDWHITE
@@ -402,7 +402,7 @@ func BuildDefaultConfig() *structs.CurrentConfiguration {
 		fmt.Println("BuildDefaultConfig() could not json.Unmarshal DEFAULTCORPORA: " + vv.DEFAULTCORPORA)
 	}
 
-	pl := structs.PostgresLogin{
+	pl := str.PostgresLogin{
 		Host:   vv.DEFAULTPSQLHOST,
 		Port:   vv.DEFAULTPSQLPORT,
 		User:   vv.DEFAULTPSQLUSER,
@@ -416,7 +416,7 @@ func BuildDefaultConfig() *structs.CurrentConfiguration {
 }
 
 // SetConfigPass - make sure that Config.PGLogin.Pass != ""
-func SetConfigPass(cfg *structs.CurrentConfiguration, cf string) {
+func SetConfigPass(cfg *str.CurrentConfiguration, cf string) {
 	const (
 		FAIL3     = "FAILED to load database credentials from any of '%s', '%s' or '%s'"
 		FAIL4     = "At a minimum be sure that a 'hgs-vv.json' file exists and that it has the following format:"
@@ -437,7 +437,7 @@ func SetConfigPass(cfg *structs.CurrentConfiguration, cf string) {
 	acf := fmt.Sprintf("%s/%s", h, vv.CONFIGBASIC)
 
 	if Config.PGLogin.Pass == "" {
-		Config.PGLogin = structs.PostgresLogin{}
+		Config.PGLogin = str.PostgresLogin{}
 		cfa, ee := os.Open(cf)
 		if ee != nil {
 			msg.TMI(fmt.Sprintf(FAIL6, cf))
@@ -483,7 +483,7 @@ func SetConfigPass(cfg *structs.CurrentConfiguration, cf string) {
 			msg.MAND(BLANKPASS)
 		}
 
-		Config.PGLogin = structs.PostgresLogin{
+		Config.PGLogin = str.PostgresLogin{
 			Host:   vv.DEFAULTPSQLHOST,
 			Port:   vv.DEFAULTPSQLPORT,
 			User:   vv.DEFAULTPSQLUSER,

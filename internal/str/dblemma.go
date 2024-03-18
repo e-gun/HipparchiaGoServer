@@ -1,4 +1,4 @@
-package structs
+package str
 
 type DbLemma struct {
 	// dictionary_entry | xref_number |    derivative_forms

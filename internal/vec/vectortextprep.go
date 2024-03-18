@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"math/rand"
 	"os"
@@ -130,9 +130,9 @@ func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string
 
 	winnermap := make(map[string]string)
 	for i := range lcparsemap {
-		var hwl structs.WHWList
+		var hwl str.WHWList
 		for j, _ := range parsemap[i] {
-			var thishw structs.WeightedHeadword
+			var thishw str.WeightedHeadword
 			thishw.Word = j
 			thishw.Count = scoremap[j]
 			hwl = append(hwl, thishw)

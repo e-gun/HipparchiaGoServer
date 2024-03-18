@@ -1,19 +1,19 @@
 package vv
 
 import (
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"regexp"
 	"time"
 )
 
 var (
-	Config structs.CurrentConfiguration
+	Config str.CurrentConfiguration
 	// SQLPool       *pgxpool.Pool
 	UserPassPairs = make(map[string]string)
-	//AllWorks      = make(map[string]*structs.DbWork)
-	//AllAuthors    = make(map[string]*structs.DbAuthor) // populated by authormap.go
-	//AllLemm       = make(map[string]*structs.DbLemma)
-	//NestedLemm    = make(map[string]map[string]*structs.DbLemma)
+	//AllWorks      = make(map[string]*str.DbWork)
+	//AllAuthors    = make(map[string]*str.DbAuthor) // populated by authormap.go
+	//AllLemm       = make(map[string]*str.DbLemma)
+	//NestedLemm    = make(map[string]map[string]*str.DbLemma)
 	//WkCorpusMap   = make(map[string][]string)
 	//AuCorpusMap   = make(map[string][]string)
 	// LoadedCorp = make(map[string]bool)
@@ -23,7 +23,7 @@ var (
 	//WkLocs        = make(map[string]bool)
 	TheCorpora    = []string{GREEKCORP, LATINCORP, INSCRIPTCORP, CHRISTINSC, PAPYRUSCORP}
 	TheLanguages  = []string{"greek", "latin"}
-	ServableFonts = map[string]structs.FontTempl{"Noto": NotoFont, "Roboto": RobotoFont, "Fira": FiraFont} // cf rt-embhcss.go
+	ServableFonts = map[string]str.FontTempl{"Noto": NotoFont, "Roboto": RobotoFont, "Fira": FiraFont} // cf rt-embhcss.go
 	LaunchTime    = time.Now()
 )
 
@@ -40,7 +40,7 @@ var (
 // NB: Inter, SourceSans and Ubuntu have been toyed with: Inter lacks both condensed and semi-condensed
 
 var (
-	NotoFont = structs.FontTempl{
+	NotoFont = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",
 		Bold:             "NotoSansDisplay-Bold.ttf",
@@ -57,7 +57,7 @@ var (
 		SemiBold:         "NotoSansDisplay-SemiBold.ttf",
 		Thin:             "NotoSansDisplay-Thin.ttf",
 	}
-	FiraFont = structs.FontTempl{
+	FiraFont = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",
 		Bold:             "FiraSans-Bold.ttf",
@@ -74,7 +74,7 @@ var (
 		SemiBold:         "FiraSans-SemiBold.ttf",
 		Thin:             "FiraSans-Thin.ttf",
 	}
-	RobotoFont = structs.FontTempl{
+	RobotoFont = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",
 		Bold:             "Roboto-Bold.ttf",

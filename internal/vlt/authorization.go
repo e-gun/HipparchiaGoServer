@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"io"
 	"os"
@@ -55,7 +55,7 @@ func (av *AuthVault) Register(u string, b bool) {
 }
 
 // BuildUserPassPairs - set up authentication map via CONFIGAUTH
-func BuildUserPassPairs(cc structs.CurrentConfiguration) {
+func BuildUserPassPairs(cc str.CurrentConfiguration) {
 	const (
 		FAIL1 = `failed to unmarshall authorization config file`
 		FAIL2 = `You are requiring authentication but there are no UserPassPairs: aborting vv`

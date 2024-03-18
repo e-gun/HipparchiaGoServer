@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"html/template"
@@ -57,7 +57,7 @@ const (
 //
 
 // SSBuildQueries - populate a SearchStruct with []PrerolledQuery
-func SSBuildQueries(s *structs.SearchStruct) {
+func SSBuildQueries(s *str.SearchStruct) {
 	const (
 		REG   = `(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
 		IDX   = `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
@@ -96,19 +96,19 @@ func SSBuildQueries(s *structs.SearchStruct) {
 
 	// [au] figure out all bounded selections
 
-	boundedincl := make(map[string][]structs.QueryBounds)
-	boundedexcl := make(map[string][]structs.QueryBounds)
+	boundedincl := make(map[string][]str.QueryBounds)
+	boundedexcl := make(map[string][]str.QueryBounds)
 
 	// [a1] individual works included/excluded
 	for _, w := range inc.Works {
 		wk := mps.AllWorks[w]
-		b := structs.QueryBounds{wk.FirstLine, wk.LastLine}
+		b := str.QueryBounds{wk.FirstLine, wk.LastLine}
 		boundedincl[wk.AuID()] = append(boundedincl[wk.AuID()], b)
 	}
 
 	for _, w := range exc.Works {
 		wk := mps.AllWorks[w]
-		b := structs.QueryBounds{wk.FirstLine, wk.LastLine}
+		b := str.QueryBounds{wk.FirstLine, wk.LastLine}
 		boundedexcl[wk.AuID()] = append(boundedexcl[wk.AuID()], b)
 	}
 	// fmt.Println(boundedincl) --> map[gr0545:[{13717 19042}]]
@@ -123,7 +123,7 @@ func SSBuildQueries(s *structs.SearchStruct) {
 		au := subs[pattern.SubexpIndex("auth")]
 		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
 		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
-		b := structs.QueryBounds{st, sp}
+		b := str.QueryBounds{st, sp}
 		boundedincl[au] = append(boundedincl[au], b)
 		// fmt.Printf("%s: %d - %d\n", au, st, sp)
 	}
@@ -133,7 +133,7 @@ func SSBuildQueries(s *structs.SearchStruct) {
 		au := subs[pattern.SubexpIndex("auth")]
 		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
 		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
-		b := structs.QueryBounds{st, sp}
+		b := str.QueryBounds{st, sp}
 		boundedexcl[au] = append(boundedexcl[au], b)
 	}
 
@@ -149,7 +149,7 @@ func SSBuildQueries(s *structs.SearchStruct) {
 
 	tails := acquiretails()
 
-	prqq := make([]structs.PrerolledQuery, len(alltables)*len(s.SkgSlice))
+	prqq := make([]str.PrerolledQuery, len(alltables)*len(s.SkgSlice))
 	count := 0
 
 	type QueryBuilder struct {
@@ -161,7 +161,7 @@ func SSBuildQueries(s *structs.SearchStruct) {
 
 	for _, au := range alltables {
 		var qb QueryBuilder
-		var prq structs.PrerolledQuery
+		var prq str.PrerolledQuery
 
 		// [b2a] check to see if bounded by inclusions
 		if bb, found := boundedincl[au]; found {
@@ -202,7 +202,7 @@ func SSBuildQueries(s *structs.SearchStruct) {
 			ntt := fmt.Sprintf("%s_%d", s.TTName, i)
 			sprq.TempTable = strings.Replace(prq.TempTable, s.TTName, ntt, -1)
 
-			var t structs.PRQTemplate
+			var t str.PRQTemplate
 			t.AU = au
 			t.COL = s.SrchColumn
 			t.SYN = syn
@@ -278,7 +278,7 @@ func acquiretails() map[string]*template.Template {
 }
 
 // basicprq - PrerolledQuery for a string in an author table as a whole
-func basicprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.PrerolledQuery {
+func basicprq(t str.PRQTemplate, prq str.PrerolledQuery) str.PrerolledQuery {
 	//
 	//		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
 	//			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations
@@ -295,7 +295,7 @@ func basicprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.Preroll
 }
 
 // basicidxprq - PrerolledQuery for a string in a subsection of an author table (word in a work, e.g.)
-func basicidxprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.PrerolledQuery {
+func basicidxprq(t str.PRQTemplate, prq str.PrerolledQuery) str.PrerolledQuery {
 	//
 	//		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
 	//			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM lt0472 WHERE stripped_line ~* 'nomen' AND (index BETWEEN 1 AND 2548) ORDER BY index ASC LIMIT 200
@@ -312,7 +312,7 @@ func basicidxprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.Prer
 }
 
 // basicwindowprq - PrerolledQuery for a phrase in an author table as a whole (i.e., a string with a whitespace)
-func basicwindowprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.PrerolledQuery {
+func basicwindowprq(t str.PRQTemplate, prq str.PrerolledQuery) str.PrerolledQuery {
 	//
 	//		SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value,
 	//			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
@@ -335,7 +335,7 @@ func basicwindowprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.P
 }
 
 // windandidxprq - PrerolledQuery for a phrase within selections of an author table
-func windandidxprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.PrerolledQuery {
+func windandidxprq(t str.PRQTemplate, prq str.PrerolledQuery) str.PrerolledQuery {
 	//
 	// 		SELECT second.wkuniversalid, second.index, second.level_05_value, second.level_04_value, second.level_03_value, second.level_02_value, second.level_01_value, second.level_00_value,
 	//			second.marked_up_line, second.accented_line, second.stripped_line, second.hyphenated_words, second.annotations FROM
@@ -359,7 +359,7 @@ func windandidxprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.Pr
 }
 
 // simplettprq - PrerolledQuery that involves a temporary table to generate author table selections (but not a phrase search)
-func simplettprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.PrerolledQuery {
+func simplettprq(t str.PRQTemplate, prq str.PrerolledQuery) str.PrerolledQuery {
 	// 	CREATE TEMPORARY TABLE lt0472_includelist_f5d653cfcdab44c6bfb662f688d47e73 AS
 	//		SELECT values AS includeindex FROM
 	//			unnest(ARRAY[2,3,4,5,6,7,8,9,...])
@@ -381,7 +381,7 @@ func simplettprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.Prer
 }
 
 // windowandttprq - PrerolledQuery that involves a temporary table to generate author table selections and is a phrase search
-func windowandttprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.PrerolledQuery {
+func windowandttprq(t str.PRQTemplate, prq str.PrerolledQuery) str.PrerolledQuery {
 	// 	CREATE TEMPORARY TABLE lt0893_includelist_fce25efdd0d4f4ecab77e636f8c512224 AS
 	//		SELECT values AS includeindex FROM
 	//			unnest(ARRAY[2,3,4,5,6,7,8,9,...])
@@ -411,7 +411,7 @@ func windowandttprq(t structs.PRQTemplate, prq structs.PrerolledQuery) structs.P
 	return prq
 }
 
-func requiresindextemptable(au string, bb []structs.QueryBounds, ss *structs.SearchStruct) string {
+func requiresindextemptable(au string, bb []str.QueryBounds, ss *str.SearchStruct) string {
 	const (
 		MSG = "%s requiresindextemptable(): %d []QueryBounds"
 		CTT = `
@@ -439,7 +439,7 @@ func requiresindextemptable(au string, bb []structs.QueryBounds, ss *structs.Sea
 	return ttsq
 }
 
-func andorwhereclause(bounds []structs.QueryBounds, templ string, negation string, syntax string) string {
+func andorwhereclause(bounds []str.QueryBounds, templ string, negation string, syntax string) string {
 	// idxtmpl := `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
 	var in []string
 	for _, v := range bounds {

@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
@@ -21,7 +21,7 @@ import (
 )
 
 // NeighborsSearch - a special case for RtSearch() where you requested vectorization of the results
-func NeighborsSearch(c echo.Context, srch structs.SearchStruct) error {
+func NeighborsSearch(c echo.Context, srch str.SearchStruct) error {
 	const (
 		NTH      = 3
 		THETABLE = `
@@ -108,7 +108,7 @@ func NeighborsSearch(c echo.Context, srch structs.SearchStruct) error {
 
 	out := fmt.Sprintf(THETABLE, term, strings.Join(tablerows, "\n"), sess.VecModeler, sess.VecTextPrep)
 
-	soj := structs.SearchOutputJSON{
+	soj := str.SearchOutputJSON{
 		Title:         fmt.Sprintf("Neighbors of '%s'", term),
 		Searchsummary: "",
 		Found:         out,
@@ -121,7 +121,7 @@ func NeighborsSearch(c echo.Context, srch structs.SearchStruct) error {
 }
 
 // FingerprintNNVectorSearch - derive a unique md5 for any given mix of search items & vector settings
-func FingerprintNNVectorSearch(srch structs.SearchStruct) string {
+func FingerprintNNVectorSearch(srch str.SearchStruct) string {
 	const (
 		MSG1 = "NeighborsSearch() fingerprint: "
 		FAIL = "FingerprintNNVectorSearch() failed to Marshal"

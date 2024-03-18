@@ -1,7 +1,7 @@
 package lnch
 
 import (
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 )
 
@@ -17,10 +17,10 @@ import (
 //}
 
 // MakeDefaultSession - fill in the blanks when setting up a new session
-func MakeDefaultSession(id string) structs.ServerSession {
+func MakeDefaultSession(id string) str.ServerSession {
 	// note that SessionMap clears every time the server restarts
 
-	var s structs.ServerSession
+	var s str.ServerSession
 	s.ID = id
 	s.ActiveCorp = Config.DefCorp
 	s.VariaOK = true

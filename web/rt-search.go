@@ -10,7 +10,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vec"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -52,7 +52,7 @@ func RtSearch(c echo.Context) error {
 	// [A] ARE WE GOING TO DO THIS AT ALL?
 
 	if !vlt.AllAuthorized.Check(user) {
-		return gen.JSONresponse(c, structs.SearchOutputJSON{JS: vv.VALIDATIONBOX})
+		return gen.JSONresponse(c, str.SearchOutputJSON{JS: vv.VALIDATIONBOX})
 	}
 
 	getsrchcount := func(ip string) int {
@@ -63,12 +63,12 @@ func RtSearch(c echo.Context) error {
 
 	if getsrchcount(c.RealIP()) >= lnch.Config.MaxSrchIP {
 		m := fmt.Sprintf(TOOMANYIP, c.RealIP(), getsrchcount(c.RealIP()))
-		return gen.JSONresponse(c, structs.SearchOutputJSON{Searchsummary: m})
+		return gen.JSONresponse(c, str.SearchOutputJSON{Searchsummary: m})
 	}
 
 	if len(vlt.WebsocketPool.ClientMap) >= lnch.Config.MaxSrchTot {
 		m := fmt.Sprintf(TOOMANYTOTAL, len(vlt.WebsocketPool.ClientMap))
-		return gen.JSONresponse(c, structs.SearchOutputJSON{Searchsummary: m})
+		return gen.JSONresponse(c, str.SearchOutputJSON{Searchsummary: m})
 	}
 
 	// [B] OK, WE ARE DOING IT
@@ -100,7 +100,7 @@ func RtSearch(c echo.Context) error {
 	// HasPhraseBoxA makes us use a fake limit temporarily
 	reallimit := srch.CurrentLimit
 
-	var completed structs.SearchStruct
+	var completed str.SearchStruct
 	if srch.Twobox {
 		if srch.ProxScope == "words" {
 			completed = search.WithinXWordsSearch(srch)
@@ -122,7 +122,7 @@ func RtSearch(c echo.Context) error {
 	// [E] DONE: TIME TO FORMAT
 
 	search.SortResults(&completed)
-	soj := structs.SearchOutputJSON{}
+	soj := str.SearchOutputJSON{}
 	if se.HitContext == 0 {
 		soj = search.FormatNoContextResults(&completed)
 	} else {

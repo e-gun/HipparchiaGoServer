@@ -5,7 +5,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"regexp"
 	"slices"
@@ -55,7 +55,7 @@ func LemmaIntoRegexSlice(hdwd string) []string {
 }
 
 // FindPhrasesAcrossLines - "one two$" + "^three four" makes a hit if you want "one two three four"
-func FindPhrasesAcrossLines(ss *structs.SearchStruct) {
+func FindPhrasesAcrossLines(ss *str.SearchStruct) {
 	// modify ss in place
 
 	const (
@@ -63,7 +63,7 @@ func FindPhrasesAcrossLines(ss *structs.SearchStruct) {
 	)
 
 	recordfailure := func() {
-		ss.Results = structs.WorkLineBundle{}
+		ss.Results = str.WorkLineBundle{}
 		ss.ExtraMsg = FAIL
 	}
 
@@ -101,7 +101,7 @@ func FindPhrasesAcrossLines(ss *structs.SearchStruct) {
 		return trimmed
 	}
 
-	var valid = make(map[string]structs.DbWorkline, ss.Results.Len())
+	var valid = make(map[string]str.DbWorkline, ss.Results.Len())
 
 	skg := ss.Seeking
 	if ss.SkgRewritten {
@@ -158,11 +158,11 @@ func FindPhrasesAcrossLines(ss *structs.SearchStruct) {
 				}
 			}
 		} else {
-			var nxt structs.DbWorkline
+			var nxt str.DbWorkline
 			if i+1 < ss.Results.Len() {
 				nxt = ss.Results.Lines[i+1]
 				if r.TbIndex+1 > mps.AllWorks[r.WkUID].LastLine {
-					nxt = structs.DbWorkline{}
+					nxt = str.DbWorkline{}
 				} else if r.WkUID != nxt.WkUID || r.TbIndex+1 != nxt.TbIndex {
 					// grab the actual next line (i.e. index = 101)
 					nxt = GrabOneLine(r.AuID(), r.TbIndex+1)
@@ -171,7 +171,7 @@ func FindPhrasesAcrossLines(ss *structs.SearchStruct) {
 				// grab the actual next line (i.e. index = 101)
 				nxt = GrabOneLine(r.AuID(), r.TbIndex+1)
 				if r.WkUID != nxt.WkUID {
-					nxt = structs.DbWorkline{}
+					nxt = str.DbWorkline{}
 				}
 			}
 
@@ -200,7 +200,7 @@ func FindPhrasesAcrossLines(ss *structs.SearchStruct) {
 		i++
 	}
 
-	slc := make([]structs.DbWorkline, len(valid))
+	slc := make([]str.DbWorkline, len(valid))
 	counter := 0
 	for _, r := range valid {
 		slc[counter] = r
@@ -211,7 +211,7 @@ func FindPhrasesAcrossLines(ss *structs.SearchStruct) {
 }
 
 // WhiteSpacer - massage search string to let regex accept start/end of a line as whitespace
-func WhiteSpacer(skg string, ss *structs.SearchStruct) string {
+func WhiteSpacer(skg string, ss *str.SearchStruct) string {
 	// whitespace issue: " ἐν Ὀρέϲτῃ " cannot be found at the start of a line where it is "ἐν Ὀρέϲτῃ "
 	// do not run this before formatinitialsummary()
 	// also used by resultformatting.go
@@ -243,7 +243,7 @@ func RestoreWhiteSpace(skg string) string {
 }
 
 // ColumnPicker - convert from db column name into struct name
-func ColumnPicker(c string, r structs.DbWorkline) string {
+func ColumnPicker(c string, r str.DbWorkline) string {
 	const (
 		MSG = "second.SrchColumn was not set; defaulting to 'stripped_line'"
 	)
@@ -288,7 +288,7 @@ func SearchTermFinder(term string) *regexp.Regexp {
 //
 
 // CleanInput - remove bad chars, etc. from the submitted data
-func CleanInput(s *structs.SearchStruct) {
+func CleanInput(s *str.SearchStruct) {
 	// address uv issues; lunate issues; ...
 	// no need to parse a lemma: this bounces if there is not a key match to a map
 	dropping := vv.USELESSINPUT + lnch.Config.BadChars
@@ -296,7 +296,7 @@ func CleanInput(s *structs.SearchStruct) {
 	s.Seeking = strings.ToLower(s.Seeking)
 	s.Proximate = strings.ToLower(s.Proximate)
 
-	if structs.HasAccent.MatchString(s.Seeking) || structs.HasAccent.MatchString(s.Proximate) {
+	if str.HasAccent.MatchString(s.Seeking) || str.HasAccent.MatchString(s.Proximate) {
 		// lemma search will select accented automatically
 		s.SrchColumn = "accented_line"
 	}
@@ -334,7 +334,7 @@ func CleanInput(s *structs.SearchStruct) {
 }
 
 // FormatInitialSummary - build HTML for the search summary
-func FormatInitialSummary(s *structs.SearchStruct) {
+func FormatInitialSummary(s *str.SearchStruct) {
 	// ex:
 	// Sought <span class="sought">»ἡμέρα«</span> within 2 lines of all 79 forms of <span class="sought">»ἀγαθόϲ«</span>
 	const (
@@ -379,7 +379,7 @@ func FormatInitialSummary(s *structs.SearchStruct) {
 }
 
 // InclusionOverview - yield a summary of the inclusions; NeighborsSearch will use this when calling buildblanknngraph()
-func InclusionOverview(s *structs.SearchStruct, sessincl structs.SearchIncExl) string {
+func InclusionOverview(s *str.SearchStruct, sessincl str.SearchIncExl) string {
 	// possible to get burned, but this cheat is "good enough"
 	// hipparchiaDB=# SELECT COUNT(universalid) FROM authors WHERE universalid LIKE 'gr%';
 	// gr: 1823
@@ -465,7 +465,7 @@ func InclusionOverview(s *structs.SearchStruct, sessincl structs.SearchIncExl) s
 	return r
 }
 
-func BuildAuByName(i *structs.SearchIncExl) {
+func BuildAuByName(i *str.SearchIncExl) {
 	bn := make(map[string]string, len(i.MappedAuthByName))
 	for _, a := range i.Authors {
 		bn[a] = mps.AllAuthors[a].Cleaname
@@ -481,7 +481,7 @@ func BuildAuByName(i *structs.SearchIncExl) {
 	i.ListedABN = nn
 }
 
-func BuildWkByName(i *structs.SearchIncExl) {
+func BuildWkByName(i *str.SearchIncExl) {
 	const (
 		TMPL = `%s, <i>%s</i>`
 	)
@@ -507,16 +507,16 @@ func BuildWkByName(i *structs.SearchIncExl) {
 // SORTING: https://pkg.go.dev/sort#example__sortMultiKeys
 //
 
-type WLLessFunc func(p1, p2 *structs.DbWorkline) bool
+type WLLessFunc func(p1, p2 *str.DbWorkline) bool
 
 // WLMultiSorter implements the Sort interface, sorting the changes within.
 type WLMultiSorter struct {
-	changes []structs.DbWorkline
+	changes []str.DbWorkline
 	less    []WLLessFunc
 }
 
 // Sort sorts the argument slice according to the less functions passed to WLOrderedBy.
-func (ms *WLMultiSorter) Sort(changes []structs.DbWorkline) {
+func (ms *WLMultiSorter) Sort(changes []str.DbWorkline) {
 	ms.changes = changes
 	sort.Sort(ms)
 }
@@ -561,7 +561,7 @@ func (ms *WLMultiSorter) Less(i, j int) bool {
 }
 
 // SortResults - sort the search results by the session's registerselection criterion
-func SortResults(s *structs.SearchStruct) {
+func SortResults(s *str.SearchStruct) {
 	// Closures that order the DbWorkline structure:
 	// see setsandslices.go and https://pkg.go.dev/sort#example__sortMultiKeys
 
@@ -569,17 +569,17 @@ func SortResults(s *structs.SearchStruct) {
 		NULL = `Unavailable`
 	)
 
-	nameIncreasing := func(one, two *structs.DbWorkline) bool {
+	nameIncreasing := func(one, two *str.DbWorkline) bool {
 		a1 := DbWlnMyAu(one).Shortname
 		a2 := DbWlnMyAu(two).Shortname
 		return a1 < a2
 	}
 
-	titleIncreasing := func(one, two *structs.DbWorkline) bool {
+	titleIncreasing := func(one, two *str.DbWorkline) bool {
 		return DbWlnMyWk(one).Title < DbWlnMyWk(two).Title
 	}
 
-	dateIncreasing := func(one, two *structs.DbWorkline) bool {
+	dateIncreasing := func(one, two *str.DbWorkline) bool {
 		d1 := DbWlnMyWk(one).RecDate
 		d2 := DbWlnMyWk(two).RecDate
 		if d1 != NULL && d2 != NULL {
@@ -593,15 +593,15 @@ func SortResults(s *structs.SearchStruct) {
 		}
 	}
 
-	increasingLines := func(one, two *structs.DbWorkline) bool {
+	increasingLines := func(one, two *str.DbWorkline) bool {
 		return one.TbIndex < two.TbIndex
 	}
 
-	increasingID := func(one, two *structs.DbWorkline) bool {
+	increasingID := func(one, two *str.DbWorkline) bool {
 		return one.BuildHyperlink() < two.BuildHyperlink()
 	}
 
-	increasingWLOC := func(one, two *structs.DbWorkline) bool {
+	increasingWLOC := func(one, two *str.DbWorkline) bool {
 		return DbWlnMyWk(one).Prov < DbWlnMyWk(two).Prov
 	}
 
@@ -624,21 +624,21 @@ func SortResults(s *structs.SearchStruct) {
 }
 
 // DbWlnMyWk - get the DbWork for this line
-func DbWlnMyWk(dbw *structs.DbWorkline) *structs.DbWork {
+func DbWlnMyWk(dbw *str.DbWorkline) *str.DbWork {
 	w, ok := mps.AllWorks[dbw.WkUID]
 	if !ok {
 		Msg.WARN(fmt.Sprintf("search.DbWlnMyWk() failed to find '%s'", dbw.AuID()))
-		w = &structs.DbWork{}
+		w = &str.DbWork{}
 	}
 	return w
 }
 
 // DbWlnMyAu - get the DbAuthor for this line
-func DbWlnMyAu(dbw *structs.DbWorkline) *structs.DbAuthor {
+func DbWlnMyAu(dbw *str.DbWorkline) *str.DbAuthor {
 	a, ok := mps.AllAuthors[dbw.AuID()]
 	if !ok {
 		Msg.WARN(fmt.Sprintf("search.DbWkMyAu() failed to find '%s'", dbw.AuID()))
-		a = &structs.DbAuthor{}
+		a = &str.DbAuthor{}
 	}
 	return a
 }

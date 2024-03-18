@@ -2,7 +2,7 @@ package lnch
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"runtime"
 )
@@ -18,7 +18,7 @@ var VersSuppl string
 var BuildDate string
 var PGOInfo string
 
-func PrintVersion(cc structs.CurrentConfiguration) {
+func PrintVersion(cc str.CurrentConfiguration) {
 	// example:
 	// [HGS] Hipparchia Golang Server (v1.2.16-pre) [git: 64974732] [default.pgo] [gl=3; el=0]
 	const (
@@ -48,7 +48,7 @@ func PrintVersion(cc structs.CurrentConfiguration) {
 	fmt.Println(versioninfo)
 }
 
-func PrintBuildInfo(cc structs.CurrentConfiguration) {
+func PrintBuildInfo(cc str.CurrentConfiguration) {
 	// example:
 	// 	Built:	2023-11-14@19:02:51		Golang:	go1.21.4
 	//	System:	darwin-arm64			WKvCPU:	20/20

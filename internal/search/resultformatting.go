@@ -11,7 +11,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"golang.org/x/text/language"
@@ -28,7 +28,7 @@ const (
 )
 
 // FormatNoContextResults - build zero context search results table
-func FormatNoContextResults(ss *structs.SearchStruct) structs.SearchOutputJSON {
+func FormatNoContextResults(ss *str.SearchStruct) str.SearchOutputJSON {
 	// EXAMPLE
 	// <tr class="nthrow">
 	//			<td>
@@ -121,7 +121,7 @@ func FormatNoContextResults(ss *structs.SearchStruct) structs.SearchOutputJSON {
 		i++
 	}
 
-	var out structs.SearchOutputJSON
+	var out str.SearchOutputJSON
 	out.JS = fmt.Sprintf(vv.BROWSERJS, "browser")
 	out.Title = ss.Seeking
 	out.Image = ""
@@ -144,7 +144,7 @@ type ResultPassageLine struct {
 }
 
 // FormatWithContextResults - build n-lines of context search results as a list
-func FormatWithContextResults(thesearch *structs.SearchStruct) structs.SearchOutputJSON {
+func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON {
 	// profiling will show that the bulk of your time is spent on (in descending order):
 	// lemmaintoregexslice(), regexp.Compile(strings.Join(re, "|")), and highlightsearchterm()
 	// the cost is not outlandish, but regex is fairly expensive
@@ -183,7 +183,7 @@ func FormatWithContextResults(thesearch *structs.SearchStruct) structs.SearchOut
 		FindURL     string
 		FindLocus   string
 		FindCity    string
-		RawCTX      []structs.DbWorkline
+		RawCTX      []str.DbWorkline
 		CookedCTX   []ResultPassageLine
 		LocusBody   string
 	}
@@ -214,12 +214,12 @@ func FormatWithContextResults(thesearch *structs.SearchStruct) structs.SearchOut
 		ii++
 	}
 
-	ctxsearch.Results.Lines = []structs.DbWorkline{}
+	ctxsearch.Results.Lines = []str.DbWorkline{}
 	SSBuildQueries(&ctxsearch)
 	SearchAndInsertResults(&ctxsearch)
 
 	// now you have all the lines you will ever need
-	linemap := make(map[string]structs.DbWorkline)
+	linemap := make(map[string]str.DbWorkline)
 
 	rr = ctxsearch.Results.YieldAll()
 	for r := range rr {
@@ -331,7 +331,7 @@ func FormatWithContextResults(thesearch *structs.SearchStruct) structs.SearchOut
 
 	// ouput
 
-	var out structs.SearchOutputJSON
+	var out str.SearchOutputJSON
 	out.JS = fmt.Sprintf(vv.BROWSERJS, "browser")
 	out.Title = RestoreWhiteSpace(thesearch.Seeking)
 	out.Image = ""
@@ -346,7 +346,7 @@ func FormatWithContextResults(thesearch *structs.SearchStruct) structs.SearchOut
 	return out
 }
 
-func formatfinalsearchsummary(s *structs.SearchStruct) string {
+func formatfinalsearchsummary(s *str.SearchStruct) string {
 	// ex:
 	//        Sought <span class="sought">»ἡμέρα«</span>
 	//        <br>
@@ -438,7 +438,7 @@ func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
 }
 
 // FormatInscriptionDates - show the years for inscriptions
-func FormatInscriptionDates(template string, dbw *structs.DbWorkline) string {
+func FormatInscriptionDates(template string, dbw *str.DbWorkline) string {
 	datestring := ""
 	fc := dbw.FindCorpus()
 	dated := fc == vv.INSCRIPTCORP || fc == vv.CHRISTINSC || fc == vv.PAPYRUSCORP
@@ -453,7 +453,7 @@ func FormatInscriptionDates(template string, dbw *structs.DbWorkline) string {
 }
 
 // formatinscriptionplaces - show the places for inscriptions
-func formatinscriptionplaces(dbw *structs.DbWorkline) string {
+func formatinscriptionplaces(dbw *str.DbWorkline) string {
 	const (
 		PLACER = ` [<span class="rust">%s</span>] `
 	)
@@ -636,7 +636,7 @@ func formatmultilinespans(html string) string {
 }
 
 // gethighlighter - set regex to highlight the search term
-func gethighlighter(ss *structs.SearchStruct) *regexp.Regexp {
+func gethighlighter(ss *str.SearchStruct) *regexp.Regexp {
 	// "s", "sp", "spa", ... will mean html gets highlighting: `<span class="xyz" ...>`
 	// there has to be a more clever way to do this...
 	const (

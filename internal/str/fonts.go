@@ -1,4 +1,4 @@
-package structs
+package str
 
 type FontTempl struct {
 	Type             string

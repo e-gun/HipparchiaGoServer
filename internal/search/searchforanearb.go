@@ -11,7 +11,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"regexp"
@@ -26,7 +26,7 @@ import (
 //
 
 // WithinXLinesSearch - find A within N lines of B
-func WithinXLinesSearch(first structs.SearchStruct) structs.SearchStruct {
+func WithinXLinesSearch(first str.SearchStruct) str.SearchStruct {
 	// after finding A, look for B within N lines of A
 
 	// (part 1)
@@ -96,7 +96,7 @@ func WithinXLinesSearch(first structs.SearchStruct) structs.SearchStruct {
 	}
 
 	if first.NotNear {
-		hitmapper := make(map[string]structs.DbWorkline)
+		hitmapper := make(map[string]str.DbWorkline)
 
 		// all the original hits start as "good"
 		rr = first.Results.YieldAll()
@@ -111,7 +111,7 @@ func WithinXLinesSearch(first structs.SearchStruct) structs.SearchStruct {
 			low := r.TbIndex - first.ProxDist
 			high := r.TbIndex + first.ProxDist
 			for i := low; i <= high; i++ {
-				hlk := fmt.Sprintf(structs.WKLNHYPERLNKTEMPL, r.AuID(), r.WkID(), i)
+				hlk := fmt.Sprintf(str.WKLNHYPERLNKTEMPL, r.AuID(), r.WkID(), i)
 				if _, ok := hitmapper[hlk]; ok {
 					delete(hitmapper, hlk)
 				}
@@ -129,7 +129,7 @@ func WithinXLinesSearch(first structs.SearchStruct) structs.SearchStruct {
 }
 
 // WithinXWordsSearch - find A within N words of B
-func WithinXWordsSearch(first structs.SearchStruct) structs.SearchStruct {
+func WithinXWordsSearch(first str.SearchStruct) str.SearchStruct {
 	// after finding A, look for B within N words of A
 
 	// (part 1)
@@ -226,7 +226,7 @@ func WithinXWordsSearch(first structs.SearchStruct) structs.SearchStruct {
 
 	// [c] convert these finds into strings and then search those strings
 	// [c1] build bundles of lines
-	bundlemapper := make(map[int][]structs.DbWorkline)
+	bundlemapper := make(map[int][]str.DbWorkline)
 
 	rr = second.Results.YieldAll()
 	for r := range rr {
@@ -328,7 +328,7 @@ func WithinXWordsSearch(first structs.SearchStruct) structs.SearchStruct {
 		resultindex = resultindex[0:second.CurrentLimit]
 	}
 
-	res := make([]structs.DbWorkline, len(resultindex))
+	res := make([]str.DbWorkline, len(resultindex))
 	for i := 0; i < len(resultindex); i++ {
 		res[i] = first.Results.Lines[resultindex[i]]
 	}
@@ -353,7 +353,7 @@ type KVPair struct {
 }
 
 // XWordsFeeder - emit items to a channel from the []KVPair that will be consumed by the XWordsConsumer
-func XWordsFeeder(ctx context.Context, kvp *[]KVPair, ss *structs.SearchStruct) (<-chan KVPair, error) {
+func XWordsFeeder(ctx context.Context, kvp *[]KVPair, ss *str.SearchStruct) (<-chan KVPair, error) {
 	emit := make(chan KVPair, lnch.Config.WorkerCount)
 	remainder := -1
 
@@ -421,7 +421,7 @@ func XWordsAggregator(ctx context.Context, findchannels ...<-chan int) <-chan in
 }
 
 // XWordsCollation - return the actual []KVPair results after pulling them from the XWordsAggregator channel
-func XWordsCollation(ctx context.Context, ss *structs.SearchStruct, hits <-chan int) []int {
+func XWordsCollation(ctx context.Context, ss *str.SearchStruct, hits <-chan int) []int {
 	var allhits []int
 	done := false
 	for {
@@ -618,16 +618,16 @@ func IterativeProxWordsMatching(text string, sought string, proximity int) []str
 //
 
 // badsearch - something went wrong, return a blank SearchStruct
-func badsearch(msg string) structs.SearchStruct {
-	var s structs.SearchStruct
-	var l structs.DbWorkline
+func badsearch(msg string) str.SearchStruct {
+	var s str.SearchStruct
+	var l str.DbWorkline
 	l.MarkedUp = msg
 	s.Results.Lines = append(s.Results.Lines, l)
 	return s
 }
 
 // pruneresultsbylemma - take a collection of results and make sure some form of X is in them
-func pruneresultsbylemma(hdwd string, ss *structs.SearchStruct) {
+func pruneresultsbylemma(hdwd string, ss *str.SearchStruct) {
 	rgx := LemmaIntoRegexSlice(hdwd)
 	pat, e := regexp.Compile(strings.Join(rgx, "|"))
 	if e != nil {
@@ -635,7 +635,7 @@ func pruneresultsbylemma(hdwd string, ss *structs.SearchStruct) {
 		Msg.WARN(fmt.Sprintf("pruneresultsbylemma() could not compile the following: %s", strings.Join(rgx, "|")))
 	}
 
-	var valid = make(map[string]structs.DbWorkline, ss.Results.Len())
+	var valid = make(map[string]str.DbWorkline, ss.Results.Len())
 
 	rr := ss.Results.YieldAll()
 	for r := range rr {
@@ -646,7 +646,7 @@ func pruneresultsbylemma(hdwd string, ss *structs.SearchStruct) {
 		}
 	}
 
-	slc := make([]structs.DbWorkline, len(valid))
+	slc := make([]str.DbWorkline, len(valid))
 	counter := 0
 	for _, r := range valid {
 		slc[counter] = r

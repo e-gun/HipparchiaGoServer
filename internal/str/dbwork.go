@@ -1,4 +1,4 @@
-package structs
+package str
 
 type DbWork struct {
 	UID       string

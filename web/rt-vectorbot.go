@@ -12,7 +12,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/m"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
-	"github.com/e-gun/HipparchiaGoServer/internal/structs"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vec"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/google/uuid"
@@ -126,7 +126,7 @@ func RtVectorBot(c echo.Context) error {
 }
 
 // ldamodelbot - automate the building of lda models
-func ldamodelbot(c echo.Context, s structs.SearchStruct, a string) {
+func ldamodelbot(c echo.Context, s str.SearchStruct, a string) {
 	// note that only the selftestsuite suite is calling this right now
 
 	// there is no storage mechanism for lda
@@ -160,7 +160,7 @@ func ldamodelbot(c echo.Context, s structs.SearchStruct, a string) {
 }
 
 // nnmodelbot - automate the building of nn models
-func nnmodelbot(c echo.Context, s structs.SearchStruct, a string) {
+func nnmodelbot(c echo.Context, s str.SearchStruct, a string) {
 	const (
 		MSG1    = "RtVectorBot() found model for %s"
 		MSG2    = "RtVectorBot() skipping %s - only %d lines found"
