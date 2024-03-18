@@ -2,10 +2,10 @@ package debug
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/m"
+	"github.com/e-gun/HipparchiaGoServer/internal/mm"
 )
 
-var Msg = m.NewMessageMaker()
+var Msg = mm.NewMessageMaker()
 
 //
 // DEBUGGING

@@ -8,7 +8,7 @@ package web
 import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/m"
+	"github.com/e-gun/HipparchiaGoServer/internal/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/vec"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
@@ -103,9 +103,9 @@ func selftestsuite() {
 	//      flat  flat%   sum%        cum   cum%
 	//  131.08MB 26.06% 26.06%   131.08MB 26.06%  github.com/e-gun/wego/pkg/model/modelutil/matrix.New
 
-	mm := lnch.NewMessageMakerConfigured()
-	mm.SNm = vv.SHORTNAME + "-SELFTEST"
-	mm.LLvl = m.MSGFYI
+	stm := lnch.NewMessageMakerConfigured()
+	stm.SNm = vv.SHORTNAME + "-SELFTEST"
+	stm.LLvl = mm.MSGFYI
 
 	st := []SrchTest{
 		{
@@ -155,7 +155,7 @@ func selftestsuite() {
 	start := time.Now()
 	previous := time.Now()
 
-	mm.Emit("entering selftestsuite mode (4 segments)", m.MSGMAND)
+	stm.Emit("entering selftestsuite mode (4 segments)", mm.MSGMAND)
 
 	u := fmt.Sprintf("http://%s:%d/", lnch.Config.HostIP, lnch.Config.HostPort)
 
@@ -173,40 +173,40 @@ func selftestsuite() {
 
 	// [I] 6 search tests
 	if tt[0] {
-		mm.Emit("[I] 6 search tests", m.MSGWARN)
+		stm.Emit("[I] 6 search tests", mm.MSGWARN)
 		for i := 0; i < len(st); i++ {
 			getter(st[i].Url())
-			mm.Timer(st[i].id, st[i].Msg(), start, previous)
+			stm.Timer(st[i].id, st[i].Msg(), start, previous)
 			previous = time.Now()
 		}
 	}
 
 	// [II] 3 text, index, and vocab maker tests
 	if tt[1] {
-		mm.Emit("[II] 3 text, index, and vocab maker tests", m.MSGWARN)
+		stm.Emit("[II] 3 text, index, and vocab maker tests", mm.MSGWARN)
 
 		getter(u + TXT)
-		mm.Timer("C1", fmt.Sprintf(MSG7, lnch.Config.MaxText), start, previous)
+		stm.Timer("C1", fmt.Sprintf(MSG7, lnch.Config.MaxText), start, previous)
 		previous = time.Now()
 
 		getter(u + IDX)
-		mm.Timer("C2", fmt.Sprintf(MSG8, lnch.Config.MaxText), start, previous)
+		stm.Timer("C2", fmt.Sprintf(MSG8, lnch.Config.MaxText), start, previous)
 		previous = time.Now()
 
 		getter(u + VOC)
-		mm.Timer("C3", fmt.Sprintf(MSG9, lnch.Config.MaxText), start, previous)
+		stm.Timer("C3", fmt.Sprintf(MSG9, lnch.Config.MaxText), start, previous)
 		previous = time.Now()
 	}
 
 	// [III] 4 browsing and lexical tests
 	if tt[2] {
-		mm.Emit("[III] 4 browsing and lexical tests", m.MSGWARN)
+		stm.Emit("[III] 4 browsing and lexical tests", mm.MSGWARN)
 
 		br := "browse/index/gr00%d/001/%d"
 		for i := 0; i < 50; i++ {
 			getter(u + fmt.Sprintf(br, i+10, 100))
 		}
-		mm.Timer("D1", MSG10, start, previous)
+		stm.Timer("D1", MSG10, start, previous)
 		previous = time.Now()
 
 		wds := "ob eiusdem hominis consulatum una cum salute obtinendum et ut vestrae mentes atque sententiae cum populi "
@@ -218,7 +218,7 @@ func selftestsuite() {
 		for i := 0; i < len(lex); i++ {
 			getter(u + "lex/findbyform/" + lex[i] + "/test")
 		}
-		mm.Timer("D2", fmt.Sprintf(MSG11, len(lex)), start, previous)
+		stm.Timer("D2", fmt.Sprintf(MSG11, len(lex)), start, previous)
 		previous = time.Now()
 
 		wds = "pud sud obse αφροδ γραμ ποικιλ pud sud obse αφροδ γραμ ποικιλ pud sud obse αφροδ γραμ ποικιλ"
@@ -227,7 +227,7 @@ func selftestsuite() {
 		for i := 0; i < len(lex); i++ {
 			getter(u + "lex/lookup/" + lex[i])
 		}
-		mm.Timer("D3", fmt.Sprintf(MSG12, len(lex)), start, previous)
+		stm.Timer("D3", fmt.Sprintf(MSG12, len(lex)), start, previous)
 		previous = time.Now()
 
 		wds = "love hate plague desire soldier horse"
@@ -237,12 +237,12 @@ func selftestsuite() {
 			getter(u + "lex/reverselookup/testing/" + lex[i])
 		}
 
-		mm.Timer("D4", fmt.Sprintf(MSG13, len(lex)), start, previous)
+		stm.Timer("D4", fmt.Sprintf(MSG13, len(lex)), start, previous)
 		previous = time.Now()
 	}
 
 	if lnch.Config.VectorsDisabled {
-		mm.Emit("exiting selftestsuite mode", m.MSGMAND)
+		stm.Emit("exiting selftestsuite mode", mm.MSGMAND)
 		return
 	}
 
@@ -274,14 +274,14 @@ func selftestsuite() {
 
 	// [IV] nearest neighbor vectorization tests
 	if tt[3] {
-		mm.Emit("[IV] nearest neighbor vectorization tests", m.MSGWARN)
+		stm.Emit("[IV] nearest neighbor vectorization tests", mm.MSGWARN)
 
 		// [iv.1]
 		buildmodel := func(m string, count int) {
 			lnch.Config.VectorModel = m
 			preptext("nn")
 			nb := fmt.Sprintf(MSG14, m, len(vauu), len(vtxp))
-			mm.Timer(fmt.Sprintf("E%d", count), nb, start, previous)
+			stm.Timer(fmt.Sprintf("E%d", count), nb, start, previous)
 			previous = time.Now()
 		}
 
@@ -295,16 +295,16 @@ func selftestsuite() {
 
 	// [V] lda vectorization tests
 	if tt[4] {
-		mm.Emit("[V] lda vectorization tests", m.MSGWARN)
+		stm.Emit("[V] lda vectorization tests", mm.MSGWARN)
 		vauu = []string{"lt0472"} // catullus
 
 		preptext("lda")
 		nb := fmt.Sprintf(MSG15, len(vauu), len(vtxp))
-		mm.Timer("F", nb, start, previous)
+		stm.Timer("F", nb, start, previous)
 	}
 
 	previous = time.Now()
-	mm.Emit("exiting selftestsuite mode", m.MSGMAND)
+	stm.MAND("exiting selftestsuite mode")
 
 	lnch.Config.VectorModel = ovm
 	lnch.Config.VectorTextPrep = otx

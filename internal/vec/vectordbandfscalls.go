@@ -218,8 +218,8 @@ func VectorDBCheckNN(fp string) bool {
 
 	ss, err := pgx.CollectOneRow(foundrow, pgx.RowToStructByPos[simplestring])
 	if err != nil {
-		// m := err.Error()
-		// m will be "no rows in result set" if you did not find the fingerprint
+		// mm := err.Error()
+		// mm will be "no rows in result set" if you did not find the fingerprint
 		return false
 	} else {
 		Msg.TMI(fmt.Sprintf(F, ss.S))
@@ -273,7 +273,7 @@ func VectorDBAddNN(fp string, embs embedding.Embeddings) {
 
 	// compressed is c. 33% of original
 	// l1 := len(eb)
-	// m(fmt.Sprintf(MSG2, fp, l1/1024/1024, l2/1024/1024, (float32(l2)/float32(l1))*100), MSGTMI)
+	// mm(fmt.Sprintf(MSG2, fp, l1/1024/1024, l2/1024/1024, (float32(l2)/float32(l1))*100), MSGTMI)
 	buf.Reset()
 }
 
@@ -316,7 +316,7 @@ func VectorDBFetchNN(fp string) embedding.Embeddings {
 		Msg.NOTE(fmt.Sprintf(MSG2, fp))
 	}
 
-	// m(MSG1+fp, MSGPEEK)
+	// mm(MSG1+fp, MSGPEEK)
 
 	return emb
 }
@@ -423,7 +423,7 @@ func ldavecconfig() LDAConfig {
 			Msg.CRIT(ERR2 + vv.CONFIGVECTORLDA)
 			vc = cfg
 		}
-		// m(MSG2+vv.CONFIGVECTORLDA, MSGTMI)
+		// mm(MSG2+vv.CONFIGVECTORLDA, MSGTMI)
 		cfg = vc
 	}
 

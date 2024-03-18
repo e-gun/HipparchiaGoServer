@@ -12,7 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
-	"github.com/e-gun/HipparchiaGoServer/internal/m"
+	"github.com/e-gun/HipparchiaGoServer/internal/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"os"
@@ -27,49 +27,12 @@ var efs embed.FS
 
 var (
 	Config *str.CurrentConfiguration
-	// TODO: this is hollow
-	msg = m.NewMessageMaker()
-	EPD = "emb/pdf/"
+	Msg    = mm.NewMessageMaker()
 )
 
-//type Poem struct {
-//	content []byte
-//	storage PoemStorage
-//}
-//type PoemStorage interface {
-//	Type() string        // Return a string describing the storage type.
-//	Load(string) []byte  // Load a poem by name.
-//	Save(string, []byte) // Save a poem by name.
-//}
-//
-//func NewPoem(ps PoemStorage) *Poem {
-//	return &Poem{
-//		content: []byte("I am a poem from a " + ps.Type() + "."),
-//		storage: ps,
-//	}
-//}
-//func (p *Poem) Save(name string) {
-//	p.storage.Save(name, p.content)
-//}
-//
-//type DBFncInjector struct {
-//	F DBFncInjectorIf
-//}
-//type DBFncInjectorIf interface {
-//	SetPostgresAdminPW() string
-//	HipparchiaDBexists(s string) bool
-//}
-//
-//func NewDBFncInj() *DBFncInjector {
-//	return &DBFncInjector{}
-//}
-//
-//func (i *DBFncInjector) iSetPostgresAdminPW() string {
-//	return i.F.SetPostgresAdminPW()
-//}
-//func (i *DBFncInjector) iHipparchiaDBexists(s string) bool {
-//	return i.F.HipparchiaDBexists(s)
-//}
+const (
+	EPD = "emb/pdf/"
+)
 
 // LookForConfigFile - test to see if we can find a config file; if not build one and check to see if the DB needs loading
 func LookForConfigFile() {
@@ -102,21 +65,21 @@ func LookForConfigFile() {
 	notfound := (a != nil) && (b != nil) && (c != nil)
 
 	if notfound {
-		msg.CRIT(WRN)
+		Msg.CRIT(WRN)
 		CopyInstructions()
 		_, e = os.Stat(fmt.Sprintf(vv.CONFIGALTAPTH, h))
 		if e != nil {
-			fmt.Println(msg.Color(fmt.Sprintf(FYI, fmt.Sprintf(vv.CONFIGALTAPTH, h))))
+			fmt.Println(Msg.Color(fmt.Sprintf(FYI, fmt.Sprintf(vv.CONFIGALTAPTH, h))))
 			ee := os.MkdirAll(fmt.Sprintf(vv.CONFIGALTAPTH, h), os.FileMode(0700))
-			msg.EC(ee)
+			Msg.EC(ee)
 		}
 
-		fmt.Println(msg.Color(fmt.Sprintf(FNF, vv.CONFIGPROLIX)))
-		fmt.Printf(msg.Color(PWD1))
+		fmt.Println(Msg.Color(fmt.Sprintf(FNF, vv.CONFIGPROLIX)))
+		fmt.Printf(Msg.Color(PWD1))
 
 		var hwrpw string
 		_, err := fmt.Scan(&hwrpw)
-		msg.EC(err)
+		Msg.EC(err)
 
 		pgpw := SetPostgresAdminPW()
 
@@ -124,24 +87,24 @@ func LookForConfigFile() {
 		cfg.PGLogin.Pass = hwrpw
 
 		content, err := json.MarshalIndent(cfg, vv.JSONINDENT, vv.JSONINDENT)
-		msg.EC(err)
+		Msg.EC(err)
 
 		err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+vv.CONFIGPROLIX, content, 0644)
-		msg.EC(err)
+		Msg.EC(err)
 
-		fmt.Println(msg.Color(fmt.Sprintf(FWR, fmt.Sprintf(vv.CONFIGALTAPTH, h)+vv.CONFIGPROLIX)))
+		fmt.Println(Msg.Color(fmt.Sprintf(FWR, fmt.Sprintf(vv.CONFIGALTAPTH, h)+vv.CONFIGPROLIX)))
 
 		// do we need to head over to selfinstaller.go and to initialize the database?
 
 		if HipparchiaDBexists(pgpw) {
-			msg.CRIT(NODB)
+			Msg.CRIT(NODB)
 			InitializeHDB(pgpw, hwrpw)
 		}
 
 		if HipparchiaDBHasData(hwrpw) {
-			msg.CRIT(FOUND)
+			Msg.CRIT(FOUND)
 		} else {
-			msg.CRIT(NOTFOUND)
+			Msg.CRIT(NOTFOUND)
 			LoadhDBfolder(hwrpw)
 		}
 	}
@@ -167,7 +130,7 @@ func ConfigAtLaunch() {
 
 	loadedcfg, e := os.Open(prolixcfg)
 	if e != nil {
-		msg.CRIT(fmt.Sprintf(FAIL6, prolixcfg))
+		Msg.CRIT(fmt.Sprintf(FAIL6, prolixcfg))
 	}
 
 	decoderc := json.NewDecoder(loadedcfg)
@@ -178,7 +141,7 @@ func ConfigAtLaunch() {
 	if errc == nil {
 		Config = &confc
 	} else {
-		msg.CRIT(fmt.Sprintf(FAIL3, prolixcfg))
+		Msg.CRIT(fmt.Sprintf(FAIL3, prolixcfg))
 	}
 
 	// on old CONFIGPROLIX might mean you set the following to zero; that is very bad...
@@ -200,7 +163,7 @@ func ConfigAtLaunch() {
 		PrintBuildInfo(*Config)
 		cwd, err := os.Getwd()
 		if err != nil {
-			msg.CRIT(FAIL8)
+			Msg.CRIT(FAIL8)
 			cwd = "(unknown)"
 		}
 
@@ -233,9 +196,9 @@ func ConfigAtLaunch() {
 
 		var b bytes.Buffer
 		if ee := t.Execute(&b, m); ee != nil {
-			msg.CRIT(FAIL7)
+			Msg.CRIT(FAIL7)
 		}
-		fmt.Println(msg.Styled(msg.Color(b.String())))
+		fmt.Println(Msg.Styled(Msg.Color(b.String())))
 
 		os.Exit(0)
 	}
@@ -255,7 +218,7 @@ func ConfigAtLaunch() {
 			Config.VectorBot = true
 		case "-bc":
 			bc, err := strconv.Atoi(args[i+1])
-			msg.EC(err)
+			Msg.EC(err)
 			Config.BrowserCtx = bc
 		case "-bw":
 			Config.BlackAndWhite = true
@@ -270,13 +233,13 @@ func ConfigAtLaunch() {
 			os.Exit(0)
 		case "-el":
 			ll, err := strconv.Atoi(args[i+1])
-			msg.EC(err)
+			Msg.EC(err)
 			Config.EchoLog = ll
 		case "-ft":
 			Config.Font = args[i+1]
 		case "-gl":
 			ll, err := strconv.Atoi(args[i+1])
-			msg.EC(err)
+			Msg.EC(err)
 			Config.LogLevel = ll
 		case "-gz":
 			Config.Gzip = true
@@ -286,11 +249,11 @@ func ConfigAtLaunch() {
 			Config.VectorModel = args[i+1]
 		case "-mi":
 			mi, err := strconv.Atoi(args[i+1])
-			msg.EC(err)
+			Msg.EC(err)
 			Config.MaxSrchIP = mi
 		case "-ms":
 			ms, err := strconv.Atoi(args[i+1])
-			msg.EC(err)
+			Msg.EC(err)
 			Config.MaxSrchTot = ms
 		case "-pc":
 			Config.ProfileCPU = true
@@ -301,8 +264,8 @@ func ConfigAtLaunch() {
 			var pl str.PostgresLogin
 			err := json.Unmarshal([]byte(js), &pl)
 			if err != nil {
-				msg.MAND(FAIL1)
-				msg.CRIT(FAIL2)
+				Msg.MAND(FAIL1)
+				Msg.CRIT(FAIL2)
 			}
 			Config.PGLogin = pl
 		case "-pm":
@@ -317,7 +280,7 @@ func ConfigAtLaunch() {
 			Config.HostIP = args[i+1]
 		case "-sp":
 			p, err := strconv.Atoi(args[i+1])
-			msg.EC(err)
+			Msg.EC(err)
 			Config.HostPort = p
 		case "-st":
 			Config.SelfTest += 1
@@ -327,7 +290,7 @@ func ConfigAtLaunch() {
 			Config.BadChars = args[i+1]
 		case "-wc":
 			wc, err := strconv.Atoi(args[i+1])
-			msg.EC(err)
+			Msg.EC(err)
 			Config.WorkerCount = wc
 		case "-zl":
 			Config.ZapLunates = true
@@ -343,7 +306,7 @@ func ConfigAtLaunch() {
 	if errc != nil {
 		y = " *not*"
 	}
-	msg.TMI(fmt.Sprintf("'%s%s'%s loaded", h, vv.CONFIGPROLIX, y))
+	Msg.TMI(fmt.Sprintf("'%s%s'%s loaded", h, vv.CONFIGPROLIX, y))
 
 	SetConfigPass(&confc, cf)
 
@@ -352,7 +315,7 @@ func ConfigAtLaunch() {
 	}
 
 	if Config.WorkerCount > runtime.NumCPU() {
-		msg.CRIT(fmt.Sprintf(FAIL5, Config.WorkerCount, runtime.NumCPU(), runtime.NumCPU()))
+		Msg.CRIT(fmt.Sprintf(FAIL5, Config.WorkerCount, runtime.NumCPU(), runtime.NumCPU()))
 		Config.WorkerCount = runtime.NumCPU()
 	}
 }
@@ -440,11 +403,11 @@ func SetConfigPass(cfg *str.CurrentConfiguration, cf string) {
 		Config.PGLogin = str.PostgresLogin{}
 		cfa, ee := os.Open(cf)
 		if ee != nil {
-			msg.TMI(fmt.Sprintf(FAIL6, cf))
+			Msg.TMI(fmt.Sprintf(FAIL6, cf))
 		}
 		cfb, ee := os.Open(acf)
 		if ee != nil {
-			msg.TMI(fmt.Sprintf(FAIL6, acf))
+			Msg.TMI(fmt.Sprintf(FAIL6, acf))
 		}
 
 		defer func(cfa *os.File) {
@@ -466,10 +429,10 @@ func SetConfigPass(cfg *str.CurrentConfiguration, cf string) {
 		confb := ConfigFile{}
 		errb := decoderb.Decode(&confb)
 		if erra != nil && errb != nil && cfg.PGLogin.DBName == "" {
-			msg.CRIT(fmt.Sprintf(FAIL3, cf, acf, fmt.Sprintf("%s/%s", h, vv.CONFIGPROLIX)))
-			msg.CRIT(fmt.Sprintf(FAIL4))
+			Msg.CRIT(fmt.Sprintf(FAIL3, cf, acf, fmt.Sprintf("%s/%s", h, vv.CONFIGPROLIX)))
+			Msg.CRIT(fmt.Sprintf(FAIL4))
 			fmt.Printf(vv.MINCONFIG)
-			msg.ExitOrHang(0)
+			Msg.ExitOrHang(0)
 		}
 
 		thecfg := ConfigFile{}
@@ -480,7 +443,7 @@ func SetConfigPass(cfg *str.CurrentConfiguration, cf string) {
 		}
 
 		if thecfg.PostgreSQLPassword == "" {
-			msg.MAND(BLANKPASS)
+			Msg.MAND(BLANKPASS)
 		}
 
 		Config.PGLogin = str.PostgresLogin{
@@ -524,18 +487,18 @@ func CopyInstructions() {
 	if f != "" {
 		data, err := efs.ReadFile(EPD + f)
 		if err != nil {
-			msg.WARN(FNF)
+			Msg.WARN(FNF)
 			return
 		}
 
-		msg.CRIT(FYI)
+		Msg.CRIT(FYI)
 
 		err = os.WriteFile(f, data, vv.WRITEPERMS)
 		if err != nil {
-			msg.WARN(FNF)
+			Msg.WARN(FNF)
 			return
 		}
-		msg.CRIT(fmt.Sprintf("\t\tWrote:\t'%s'", f))
+		Msg.CRIT(fmt.Sprintf("\t\tWrote:\t'%s'", f))
 	}
 
 	for _, info := range []string{CUST, FYIF, SEMV, BASF} {
@@ -545,9 +508,9 @@ func CopyInstructions() {
 		}
 		err = os.WriteFile(info, data, vv.WRITEPERMS)
 		if err != nil {
-			msg.WARN(FNF)
+			Msg.WARN(FNF)
 			return
 		}
-		msg.CRIT(fmt.Sprintf("\t\tWrote:\t'%s'", info))
+		Msg.CRIT(fmt.Sprintf("\t\tWrote:\t'%s'", info))
 	}
 }

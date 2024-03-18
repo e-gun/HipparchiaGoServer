@@ -1,18 +1,18 @@
 package lnch
 
 import (
-	"github.com/e-gun/HipparchiaGoServer/internal/m"
+	"github.com/e-gun/HipparchiaGoServer/internal/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"runtime"
 	"time"
 )
 
-func NewMessageMakerConfigured() *m.MessageMaker {
+func NewMessageMakerConfigured() *mm.MessageMaker {
 	w := false
 	if runtime.GOOS == "windows" {
 		w = true
 	}
-	return &m.MessageMaker{
+	return &mm.MessageMaker{
 		Lnc:  time.Now(),
 		BW:   Config.BlackAndWhite,
 		Clr:  "",
@@ -26,12 +26,12 @@ func NewMessageMakerConfigured() *m.MessageMaker {
 	}
 }
 
-func NewMessageMakerWithDefaults() *m.MessageMaker {
+func NewMessageMakerWithDefaults() *mm.MessageMaker {
 	w := false
 	if runtime.GOOS == "windows" {
 		w = true
 	}
-	return &m.MessageMaker{
+	return &mm.MessageMaker{
 		Lnc:  time.Now(),
 		BW:   false,
 		Clr:  "",

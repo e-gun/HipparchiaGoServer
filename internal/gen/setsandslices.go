@@ -17,7 +17,7 @@ import (
 // RemoveIndex - remove item #N from a slice
 func RemoveIndex[T any](s []T, index int) []T {
 	if len(s) == 0 || len(s) < index {
-		// messaging.go imports gen, so you can't 'm' this
+		// messaging.go imports gen, so you can't 'mm' this
 		fmt.Println("RemoveIndex() tried to drop an out of range element")
 		return s
 	}

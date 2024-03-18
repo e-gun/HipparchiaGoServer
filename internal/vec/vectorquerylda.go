@@ -125,7 +125,7 @@ func LDASearch(c echo.Context, srch str.SearchStruct) error {
 
 	// a chance to bail if you hit RtResetSession() in time
 	if lnch.Config.SelfTest == 0 && !lnch.Config.VectorBot && !vlt.AllSessions.IsInVault(vs.User) {
-		// m("LDASearch() aborting: RtResetSession switched user to "+vs.User, MSGFYI)
+		// mm("LDASearch() aborting: RtResetSession switched user to "+vs.User, MSGFYI)
 		return gen.JSONresponse(c, str.SearchOutputJSON{})
 	}
 

@@ -12,6 +12,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
+	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -146,7 +147,7 @@ func RtSelectionClear(c echo.Context) error {
 	id := which[1]
 
 	newsess := vlt.AllSessions.GetSess(user)
-	newsess.BuildSelectionOverview()
+	search.BuildSelectionOverview(&newsess)
 	newincl := newsess.Inclusions
 	newexcl := newsess.Exclusions
 
@@ -731,7 +732,7 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int {
 
 // endpinter - given a locus, what index values correspond to the start and end of that text segment?
 func endpointer(wuid string, locus string, sep string) ([2]int, bool) {
-	// m(fmt.Sprintf("wuid: '%s'; locus: '%s'; sep: '%s'", wuid, locus, sep), 1)
+	// mm(fmt.Sprintf("wuid: '%s'; locus: '%s'; sep: '%s'", wuid, locus, sep), 1)
 	// [HGS] wuid: 'lt0474w049'; locus: '3|14|_0'; sep: '|'
 	// [HGS] wuid: 'lt0474w049'; locus: '4:8:18'; sep: ':'
 
@@ -830,7 +831,7 @@ func reportcurrentselections(c echo.Context) SelectionData {
 
 	user := vlt.ReadUUIDCookie(c)
 	s := vlt.AllSessions.GetSess(user)
-	s.BuildSelectionOverview()
+	search.BuildSelectionOverview(&s)
 
 	i := s.Inclusions
 	e := s.Exclusions
@@ -884,7 +885,7 @@ func reportcurrentselections(c echo.Context) SelectionData {
 				for _, g := range slc {
 					// fingerprint the selection so the JS can click to drop "f6de296b2941374db110d2d3683e8ca9", vel sim
 					md := fmt.Sprintf("%x", md5.Sum([]byte(g)))
-					// m(fmt.Sprintf("g: %s\tmd: %s", g, md), 1)
+					// mm(fmt.Sprintf("g: %s\tmd: %s", g, md), 1)
 					st := fmt.Sprintf(swap[idx], ct, ct, md, g)
 					rows[idx] = append(rows[idx], st)
 					if swap[idx] == SL {

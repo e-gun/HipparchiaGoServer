@@ -44,7 +44,7 @@ func PrintVersion(cc str.CurrentConfiguration) {
 	ll := fmt.Sprintf(LL, cc.LogLevel, cc.EchoLog)
 	versioninfo := fmt.Sprintf(ME, vv.MYNAME, vv.VERSION+VersSuppl)
 	versioninfo = sn + versioninfo + gc + pg + ll
-	versioninfo = msg.ColStyle(versioninfo)
+	versioninfo = Msg.ColStyle(versioninfo)
 	fmt.Println(versioninfo)
 }
 
@@ -61,10 +61,10 @@ func PrintBuildInfo(cc str.CurrentConfiguration) {
 
 	bi := ""
 	if BuildDate != "" {
-		bi = msg.ColStyle(fmt.Sprintf(BD, BuildDate))
+		bi = Msg.ColStyle(fmt.Sprintf(BD, BuildDate))
 	}
-	bi += msg.ColStyle(fmt.Sprintf(GV, runtime.Version()))
-	bi += msg.ColStyle(fmt.Sprintf(SY, runtime.GOOS, runtime.GOARCH))
-	bi += msg.ColStyle(fmt.Sprintf(WC, cc.WorkerCount, runtime.NumCPU()))
+	bi += Msg.ColStyle(fmt.Sprintf(GV, runtime.Version()))
+	bi += Msg.ColStyle(fmt.Sprintf(SY, runtime.GOOS, runtime.GOARCH))
+	bi += Msg.ColStyle(fmt.Sprintf(WC, cc.WorkerCount, runtime.NumCPU()))
 	fmt.Println(bi)
 }

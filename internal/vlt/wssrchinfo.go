@@ -104,7 +104,7 @@ func WSSearchInfoHub() {
 			// "false" triggers a break in rt-websocket.go
 			r.Response <- WSSrchInfo{Exists: false}
 		}
-		// m(fmt.Sprintf("%d WSSearchInfoHub searches: %s", len(Allinfo), strings.Join(StringMapKeysIntoSlice(Allinfo), ", ")), MSGNOTE)
+		// mm(fmt.Sprintf("%d WSSearchInfoHub searches: %s", len(Allinfo), strings.Join(StringMapKeysIntoSlice(Allinfo), ", ")), MSGNOTE)
 	}
 
 	fetchifexists := func(id string) WSSrchInfo {
@@ -163,9 +163,9 @@ func WSSearchInfoHub() {
 	//allinfo := func() {
 	//	for {
 	//		ai := StringMapKeysIntoSlice(Allinfo)
-	//		m("ai: "+strings.Join(ai, ", "), 2)
+	//		mm("ai: "+strings.Join(ai, ", "), 2)
 	//		for f := range Finished {
-	//			m(f+" is in finished", 2)
+	//			mm(f+" is in finished", 2)
 	//		}
 	//		time.Sleep(1 * time.Second)
 	//	}

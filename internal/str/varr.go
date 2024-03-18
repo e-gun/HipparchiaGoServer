@@ -1,11 +1,11 @@
 package str
 
 import (
-	"github.com/e-gun/HipparchiaGoServer/internal/m"
+	"github.com/e-gun/HipparchiaGoServer/internal/mm"
 )
 
 // TODO: this is hollow
-var msg = m.NewMessageMaker()
+var msg = mm.NewMessageMaker()
 
 // TODO: this is hollow
 //var (

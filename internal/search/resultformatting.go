@@ -677,7 +677,7 @@ func gethighlighter(ss *str.SearchStruct) *regexp.Regexp {
 		re = lemmahighlighter(ss.LemmaTwo)
 	} else {
 		// FAIL = "gethighlighter() cannot find anything to highlight\n\t%ss"
-		// m(fmt.Sprintf(FAIL, ss.InitSum), MSGFYI)
+		// mm(fmt.Sprintf(FAIL, ss.InitSum), MSGFYI)
 		re = regexp.MustCompile(FAILURE)
 	}
 	return re

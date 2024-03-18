@@ -11117,7 +11117,7 @@ $.extend( Datepicker.prototype, {
 	 * oo - day of year (three digit)
 	 * D  - day name short
 	 * DD - day name long
-	 * m  - month of year (no leading zero)
+	 * mm  - month of year (no leading zero)
 	 * mm - month of year (two digit)
 	 * M  - month name short
 	 * MM - month name long

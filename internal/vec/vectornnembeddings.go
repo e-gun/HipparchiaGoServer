@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/m"
+	"github.com/e-gun/HipparchiaGoServer/internal/mm"
 	sr "github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
@@ -61,7 +61,7 @@ func generateneighborsdata(c echo.Context, s str.SearchStruct) map[string]search
 		embs = GenerateVectEmbeddings(c, s.VecModeler, s)
 		VectorDBAddNN(fp, embs)
 		if !embs.Empty() {
-			VectorDBSizeNN(m.MSGPEEK)
+			VectorDBSizeNN(mm.MSGPEEK)
 		}
 	}
 
@@ -226,7 +226,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s str.SearchStruct
 			case iv := <-ct:
 				in = iv
 			case st := <-rep:
-				// m(m, 2)
+				// mm(mm, 2)
 				// [HGS] trained 100062 words 529.0315ms
 				coll := strings.Split(st, " ")
 				if len(coll) == 4 {

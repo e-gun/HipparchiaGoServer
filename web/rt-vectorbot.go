@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/m"
+	"github.com/e-gun/HipparchiaGoServer/internal/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/str"
@@ -275,12 +275,12 @@ func activatevectorbot() {
 		time.Sleep(THROTTLE * time.Millisecond)
 
 		if count%SIZEVERY == 0 {
-			vec.VectorDBSizeNN(m.MSGNOTE)
+			vec.VectorDBSizeNN(mm.MSGNOTE)
 		}
 	}
 
 	msg.Timer("VB", MSG3, start, previous)
-	vec.VectorDBSizeNN(m.MSGNOTE)
-	vec.VectorDBCountNN(m.MSGNOTE)
+	vec.VectorDBSizeNN(mm.MSGNOTE)
+	vec.VectorDBCountNN(mm.MSGNOTE)
 	lnch.Config.VectorBot = false
 }

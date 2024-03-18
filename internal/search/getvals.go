@@ -44,7 +44,7 @@ func FindValidLevelValues(dbw str.DbWork, locc []string) str.LevelValues {
 	if atlvl < 0 || need < 0 {
 		// logic bug in here somewhere...
 		// FAIL = "FindValidLevelValues() sent negative levels"
-		// m(FAIL, MSGWARN)
+		// mm(FAIL, MSGWARN)
 		return str.LevelValues{}
 	}
 

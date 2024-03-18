@@ -235,7 +235,7 @@ func formatpoll(pd PollData) string {
 		case 3:
 			m = GF
 		default:
-			// no change to m
+			// no change to mm
 		}
 		return m
 	}()

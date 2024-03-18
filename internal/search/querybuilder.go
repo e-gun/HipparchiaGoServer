@@ -245,7 +245,7 @@ func SSBuildQueries(s *str.SearchStruct) {
 	s.Queries = prqq
 
 	//for _, q := range prqq {
-	//	m(q.PsqlQuery, 3)
+	//	mm(q.PsqlQuery, 3)
 	//}
 
 	vlt.WSInfo.UpdateTW <- vlt.WSSIKVi{s.WSID, len(prqq)}

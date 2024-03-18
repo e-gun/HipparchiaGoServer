@@ -10,7 +10,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/debug"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/m"
+	"github.com/e-gun/HipparchiaGoServer/internal/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vec"
@@ -45,7 +45,7 @@ func main() {
 	// "go tool pprof heap.0.pprof" -> "top 20", etc.
 
 	//go func() {
-	//	m("**THIS BUILD IS NOT FOR RELEASE** PPROF server is active", MSGCRIT)
+	//	mm("**THIS BUILD IS NOT FOR RELEASE** PPROF server is active", MSGCRIT)
 	//	http.ListenAndServe("localhost:8080", nil)
 	//}()
 
@@ -57,6 +57,7 @@ func main() {
 
 	lnch.LookForConfigFile()
 	lnch.ConfigAtLaunch()
+	lnch.Msg.LLvl = lnch.Config.LogLevel
 
 	// profiling runs are requested from the command line
 
@@ -102,7 +103,7 @@ func main() {
 	go vlt.WebsocketPool.WSPoolStartListening()
 
 	go vlt.WSSearchInfoHub()
-	go m.PathInfoHub()
+	go mm.PathInfoHub()
 
 	go msg.Ticker(vv.TICKERDELAY)
 
@@ -151,8 +152,8 @@ func main() {
 		defer awaiting.Done()
 		if lnch.Config.ResetVectors {
 			vec.VectorDBReset()
-		} else if lnch.Config.LogLevel >= m.MSGNOTE {
-			vec.VectorDBCountNN(m.MSGNOTE)
+		} else if lnch.Config.LogLevel >= mm.MSGNOTE {
+			vec.VectorDBCountNN(mm.MSGNOTE)
 		}
 	}(&awaiting)
 

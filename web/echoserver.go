@@ -9,7 +9,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/m"
+	"github.com/e-gun/HipparchiaGoServer/internal/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	msg = m.NewMessageMaker()
+	msg = mm.NewMessageMaker()
 )
 
 // StartEchoServer - start serving; this blocks and does not return while the program remains alive
@@ -180,7 +180,7 @@ func StartEchoServer() {
 	e.GET("/setoption/:opt", RtSetOption) // "u: /setoption/onehit/yes"
 
 	//
-	// [m] text and index ("rt-textindixesandvocab.go")
+	// [mm] text and index ("rt-textindixesandvocab.go")
 	//
 
 	e.GET("/text/make/:null", RtTextMaker) // "u: /text/make/_"
