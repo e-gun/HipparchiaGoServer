@@ -8,7 +8,6 @@ package search
 import (
 	"context"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
@@ -179,7 +178,7 @@ func BuildHollowSearch() str.SearchStruct {
 	InsertNewContextIntoSS(&s)
 
 	s.WSID = s.ID
-	s.StoredSession = lnch.MakeDefaultSession(s.ID)
+	s.StoredSession = vlt.MakeDefaultSession(s.ID)
 	return s
 }
 

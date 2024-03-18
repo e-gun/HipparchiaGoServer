@@ -5,8 +5,8 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 )
 
-// MakeDefaultSession - fill in the blanks when setting up a new session
-func MakeDefaultSession(id string) str.ServerSession {
+// LnchMakeDefaultSession - fill in the blanks when setting up a new session
+func LnchMakeDefaultSession(id string) str.ServerSession {
 	// note that SessionMap clears every time the server restarts
 
 	var s str.ServerSession
@@ -34,13 +34,6 @@ func MakeDefaultSession(id string) str.ServerSession {
 	s.VecTextPrep = Config.VectorTextPrep
 	s.VecLDASearch = false
 	s.LDA2D = true
-
-	// todo: refactor to avoid circularity
-	//if Config.Authenticate {
-	//	AllAuthorized.Register(id, false)
-	//} else {
-	//	AllAuthorized.Register(id, true)
-	//}
 
 	//mm("MakeDefaultSession() in non-default lnch for testing; this is not a release build of HGS", 0)
 	//

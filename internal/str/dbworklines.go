@@ -99,7 +99,7 @@ func (dbw *DbWorkline) AuID() string {
 //func (dbw *DbWorkline) MyAu() *DbAuthor {
 //	a, ok := AllAuthors[dbw.AuID()]
 //	if !ok {
-//		msg.WARN(fmt.Sprintf("DbWorkline.MyAu() failed to find '%s'", dbw.AuID()))
+//		Msg.WARN(fmt.Sprintf("DbWorkline.MyAu() failed to find '%s'", dbw.AuID()))
 //		a = &DbAuthor{}
 //	}
 //	return a
@@ -115,7 +115,7 @@ func (dbw *DbWorkline) WkID() string {
 //func (dbw *DbWorkline) MyWk() *DbWork {
 //	w, ok := AllWorks[dbw.WkUID]
 //	if !ok {
-//		msg.WARN(fmt.Sprintf("MyAu() failed to find '%s'", dbw.AuID()))
+//		Msg.WARN(fmt.Sprintf("MyAu() failed to find '%s'", dbw.AuID()))
 //		w = &DbWork{}
 //	}
 //	return w
@@ -129,7 +129,7 @@ func (dbw *DbWorkline) FindCorpus() string {
 func (dbw *DbWorkline) BuildHyperlink() string {
 	if len(dbw.WkUID) == 0 {
 		// FormatWithContextResults() will trigger this
-		msg.TMI("BuildHyperlink() on empty dbworkline")
+		Msg.TMI("BuildHyperlink() on empty dbworkline")
 		return ""
 	}
 	return fmt.Sprintf(WKLNHYPERLNKTEMPL, dbw.AuID(), dbw.WkID(), dbw.TbIndex)
@@ -251,7 +251,7 @@ func (wlb *WorkLineBundle) YieldAll() chan DbWorkline {
 
 	// a YieldSome() is not yet needed: yield some but listen on a stop channel, etc.
 
-	msg.TMI(fmt.Sprintf("WorkLineBundle.YieldAll() sending %d lines", wlb.Len()))
+	Msg.TMI(fmt.Sprintf("WorkLineBundle.YieldAll() sending %d lines", wlb.Len()))
 
 	c := make(chan DbWorkline)
 	go func() {

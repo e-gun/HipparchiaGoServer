@@ -147,7 +147,7 @@ func (s *SearchStruct) SwapPhraseAndLemma() {
 		CALLED = `SwapPhraseAndLemma() was called: lemmatized '%s' swapped with '%s'`
 	)
 
-	msg.PEEK(fmt.Sprintf(CALLED, s.LemmaOne, s.Proximate))
+	Msg.PEEK(fmt.Sprintf(CALLED, s.LemmaOne, s.Proximate))
 	s.LemmaBoxSwap()
 }
 
@@ -165,7 +165,7 @@ func (s *SearchStruct) SwapWordAndLemma() {
 		CALLED = `SwapWordAndLemma() was called: lemmatized '%s' swapped with '%s'`
 	)
 
-	msg.PEEK(fmt.Sprintf(CALLED, s.LemmaOne, s.Proximate))
+	Msg.PEEK(fmt.Sprintf(CALLED, s.LemmaOne, s.Proximate))
 	s.LemmaBoxSwap()
 }
 
@@ -193,7 +193,7 @@ func (s *SearchStruct) SearchQuickestFirst() {
 	swap := func() {
 		s.Proximate = skg
 		s.Seeking = prx
-		msg.PEEK(fmt.Sprintf(NOTE, skg, prx))
+		Msg.PEEK(fmt.Sprintf(NOTE, skg, prx))
 	}
 
 	// sequence of checks matters... test4 logic can't come until test3 has been cleared
@@ -230,7 +230,7 @@ func showinterimresults(s *SearchStruct) {
 		FMT = "[%d] %s\t%s\t%s"
 	)
 
-	msg.WARN(NB)
+	Msg.WARN(NB)
 
 	mp := make(map[string]DbWorkline, s.Results.Len())
 	kk := make([]string, s.Results.Len())
@@ -246,6 +246,6 @@ func showinterimresults(s *SearchStruct) {
 	for i, k := range kk {
 		r := mp[k]
 		v := fmt.Sprintf(FMT, i, r.BuildHyperlink(), s.Seeking, r.MarkedUp)
-		msg.NOTE(v)
+		Msg.NOTE(v)
 	}
 }

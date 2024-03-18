@@ -13,6 +13,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
+	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vec"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -83,6 +84,7 @@ func main() {
 	db.Msg.LLvl = lnch.Config.LogLevel
 	mps.Msg.LLvl = lnch.Config.LogLevel
 	search.Msg.LLvl = lnch.Config.LogLevel
+	str.Msg.LLvl = lnch.Config.LogLevel
 	vlt.Msg.LLvl = lnch.Config.LogLevel
 	vec.Msg.LLvl = lnch.Config.LogLevel
 

@@ -8,7 +8,6 @@ package web
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -107,7 +106,7 @@ func RtResetSession(c echo.Context) error {
 
 	// reset the user ID and session
 	newid := vlt.WriteUUIDCookie(c)
-	vlt.AllSessions.InsertSess(lnch.MakeDefaultSession(newid))
+	vlt.AllSessions.InsertSess(vlt.MakeDefaultSession(newid))
 
 	e := c.Redirect(http.StatusFound, "/")
 	msg.EC(e)
