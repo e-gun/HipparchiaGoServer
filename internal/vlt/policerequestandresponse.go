@@ -65,20 +65,22 @@ func PoliceRequestAndResponse(nextechohandler echo.HandlerFunc) echo.HandlerFunc
 			uri:  c.Request().RequestURI,
 		}
 
-		// is something like 'http://journalseek.net/' in the request?
-		rq := c.Request().RequestURI
-		if strings.HasPrefix(rq, "http:") || strings.HasPrefix(rq, "https:") {
-			wr := BlackListWR{ip: c.RealIP(), resp: make(chan bool)}
-			BListWR <- wr   // register a strike
-			ok := <-wr.resp // are you over the limit?
-			if !ok {
-				Msg.WARN(fmt.Sprintf(BLACK1, c.RealIP(), rq))
-			}
-		}
-
+		// already known to be bad?
 		checkblacklist := BlackListRD{ip: c.RealIP(), resp: make(chan bool)}
 		BListRD <- checkblacklist
 		ok := <-checkblacklist.resp
+
+		// is something like 'http://journalseek.net/' in the request?
+		rq := c.Request().RequestURI
+		if strings.HasPrefix(rq, "http:") || strings.HasPrefix(rq, "https:") {
+			ok = false
+			addtoblacklist := BlackListWR{ip: c.RealIP(), resp: make(chan bool)}
+			BListWR <- addtoblacklist
+			white := <-addtoblacklist.resp // are you over the limit?
+			if !white {
+				Msg.WARN(fmt.Sprintf(BLACK1, c.RealIP(), rq))
+			}
+		}
 
 		if !ok {
 			// register a 403
