@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022-24
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package lnch
 
 import (
@@ -271,14 +276,13 @@ func HipparchiaDBexists(pgpw string) bool {
 	cmd.Stderr = os.Stderr
 	out, err := cmd.Output()
 	Msg.EC(err)
+
+	// empty looks like:
+	// "(0 rows)"
 	if strings.Contains(string(out), vv.DEFAULTPSQLDB) {
 		exists = true
 	}
 
-	// empty looks like:
-	// "(0 rows)"
-
-	fmt.Println(exists)
 	return exists
 }
 

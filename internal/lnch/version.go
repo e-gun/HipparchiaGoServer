@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022-24
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package lnch
 
 import (
@@ -12,6 +17,7 @@ import (
 //
 
 // these next variables should be injected at build time: 'go build -ldflags "-X main.GitCommit=$GIT_COMMIT"', etc
+// values are loaded into this file at runtime by main.go
 
 var GitCommit string
 var VersSuppl string

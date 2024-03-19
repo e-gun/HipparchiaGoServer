@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022-24
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package vv
 
 import (
@@ -7,20 +12,6 @@ import (
 )
 
 var (
-	Config str.CurrentConfiguration
-	// SQLPool       *pgxpool.Pool
-	UserPassPairs = make(map[string]string)
-	//AllWorks      = make(map[string]*str.DbWork)
-	//AllAuthors    = make(map[string]*str.DbAuthor) // populated by authormap.go
-	//AllLemm       = make(map[string]*str.DbLemma)
-	//NestedLemm    = make(map[string]map[string]*str.DbLemma)
-	//WkCorpusMap   = make(map[string][]string)
-	//AuCorpusMap   = make(map[string][]string)
-	// LoadedCorp = make(map[string]bool)
-	//AuGenres      = make(map[string]bool)
-	//WkGenres      = make(map[string]bool)
-	//AuLocs        = make(map[string]bool)
-	//WkLocs        = make(map[string]bool)
 	TheCorpora    = []string{GREEKCORP, LATINCORP, INSCRIPTCORP, CHRISTINSC, PAPYRUSCORP}
 	TheLanguages  = []string{"greek", "latin"}
 	ServableFonts = map[string]str.FontTempl{"Noto": NotoFont, "Roboto": RobotoFont, "Fira": FiraFont} // cf rt-embhcss.go
