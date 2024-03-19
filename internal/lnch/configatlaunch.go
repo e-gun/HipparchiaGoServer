@@ -54,7 +54,7 @@ func LookForConfigFile() {
 	notfound := (a != nil) && (b != nil) && (c != nil)
 
 	if notfound {
-		FSConfig(h)
+		PGFSConfig(h)
 	}
 }
 
