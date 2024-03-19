@@ -30,7 +30,7 @@ func RtAuthLogin(c echo.Context) error {
 
 	vlt.AllSessions.InsertSess(s)
 	e := c.Redirect(http.StatusFound, "/")
-	msg.EC(e)
+	Msg.EC(e)
 	return nil
 }
 

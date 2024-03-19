@@ -139,7 +139,7 @@ func RtSelectionClear(c echo.Context) error {
 	which := strings.Split(locus, "/")
 
 	if len(which) != 2 {
-		msg.WARN(fmt.Sprintf(FAIL1, locus))
+		Msg.WARN(fmt.Sprintf(FAIL1, locus))
 		return emptyjsreturn(c)
 	}
 
@@ -250,7 +250,7 @@ func RtSelectionClear(c echo.Context) error {
 		newexcl.ListedPBN = gen.SetSubtraction(newexcl.ListedPBN, []string{foundbval})
 		delete(newexcl.MappedPsgByName, foundkey)
 	default:
-		msg.WARN(fmt.Sprintf(FAIL2, cat))
+		Msg.WARN(fmt.Sprintf(FAIL2, cat))
 	}
 
 	newsess.Inclusions = newincl
@@ -708,7 +708,7 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int {
 		// [HGS] findendpointsfromlocus() retrying endpointer(): '407e' --> '407:e'
 		r := fmt.Sprintf("$1%s$2", sep)
 		newlocus := dc.ReplaceAllString(locus, r)
-		msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
+		Msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
 		fl, success = endpointer(wuid, newlocus, sep)
 	} else {
 		// cicero, et.al
@@ -718,11 +718,11 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int {
 		ll := strings.Split(locus, sep)
 		if len(ll) > 2 {
 			newlocus := strings.Join(gen.RemoveIndex(ll, 1), ":")
-			msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
+			Msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
 			fl, success = endpointer(wuid, newlocus, sep)
 		} else if len(ll) == 2 {
 			newlocus := strings.Join(gen.RemoveIndex(ll, 0), ":")
-			msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
+			Msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
 			fl, success = endpointer(wuid, newlocus, sep)
 		}
 	}
@@ -751,7 +751,7 @@ func endpointer(wuid string, locus string, sep string) ([2]int, bool) {
 
 	wk := validateworkselection(wuid)
 	if wk.UID == "work_not_found" {
-		msg.FYI(fmt.Sprintf(WNFD, wuid))
+		Msg.FYI(fmt.Sprintf(WNFD, wuid))
 		return fl, false
 	}
 
@@ -784,14 +784,14 @@ func endpointer(wuid string, locus string, sep string) ([2]int, bool) {
 	q := fmt.Sprintf(QTMP, tb, wuid, a)
 
 	foundrows, err := db.SQLPool.Query(context.Background(), q)
-	msg.EC(err)
+	Msg.EC(err)
 
 	idx, err := pgx.CollectRows(foundrows, pgx.RowTo[int])
-	msg.EC(err)
+	Msg.EC(err)
 
 	if len(idx) == 0 {
 		// bogus input
-		msg.PEEK(fmt.Sprintf(FAIL, wuid, locus))
+		Msg.PEEK(fmt.Sprintf(FAIL, wuid, locus))
 		fl = [2]int{1, 1}
 	} else {
 		fl = [2]int{idx[0], idx[len(idx)-1]}

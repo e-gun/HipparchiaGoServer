@@ -33,7 +33,7 @@ func RtSessionSetsCookie(c echo.Context) error {
 	v, e := json.Marshal(s)
 	if e != nil {
 		v = []byte{}
-		msg.WARN(FAIL)
+		Msg.WARN(FAIL)
 	}
 	swap := strings.NewReplacer(`"`, "%22", ",", "%2C", " ", "%20")
 	vs := swap.Replace(string(v))
@@ -61,7 +61,7 @@ func RtSessionGetCookie(c echo.Context) error {
 	num := c.Param("num")
 	cookie, err := c.Cookie("session" + num)
 	if err != nil {
-		msg.WARN(fmt.Sprintf(FAIL1, num, user))
+		Msg.WARN(fmt.Sprintf(FAIL1, num, user))
 		return c.String(http.StatusOK, "")
 	}
 
@@ -74,7 +74,7 @@ func RtSessionGetCookie(c echo.Context) error {
 	err = json.Unmarshal([]byte(cv), &s)
 	if err != nil {
 		// invalid character '%' looking for beginning of object key string
-		msg.WARN(fmt.Sprintf(FAIL2, num, user))
+		Msg.WARN(fmt.Sprintf(FAIL2, num, user))
 		fmt.Println(err)
 		return c.String(http.StatusOK, "")
 	}
@@ -82,7 +82,7 @@ func RtSessionGetCookie(c echo.Context) error {
 	vlt.AllSessions.InsertSess(s)
 
 	e := c.Redirect(http.StatusFound, "/")
-	msg.EC(e)
+	Msg.EC(e)
 	return nil
 }
 
@@ -109,6 +109,6 @@ func RtResetSession(c echo.Context) error {
 	vlt.AllSessions.InsertSess(vlt.MakeDefaultSession(newid))
 
 	e := c.Redirect(http.StatusFound, "/")
-	msg.EC(e)
+	Msg.EC(e)
 	return nil
 }

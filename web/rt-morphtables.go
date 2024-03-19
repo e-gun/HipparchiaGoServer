@@ -74,7 +74,7 @@ func RtMorphchart(c echo.Context) error {
 	//    "greek_morphology_idx" btree (observed_form)
 
 	// should reach this route exclusively via a click from rt-lexica.go
-	c.Response().After(func() { msg.LogPaths("RtMorphchart()") })
+	c.Response().After(func() { Msg.LogPaths("RtMorphchart()") })
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
 		return gen.JSONresponse(c, str.SearchOutputJSON{JS: vv.VALIDATIONBOX})
@@ -136,7 +136,7 @@ func RtMorphchart(c echo.Context) error {
 	psq := fmt.Sprintf(MQT, MFLD, lg, xr)
 
 	foundrows, err := dbconn.Query(context.Background(), psq)
-	msg.EC(err)
+	Msg.EC(err)
 
 	dbmmap := make(map[string]str.DbMorphology)
 	var thehit str.DbMorphology
@@ -148,7 +148,7 @@ func RtMorphchart(c echo.Context) error {
 		return nil
 	}
 	_, e := pgx.ForEachRow(foundrows, foreach, rfnc)
-	msg.EC(e)
+	Msg.EC(e)
 
 	// [c] get all counts for all forms: [c] and [d-e] can run concurrently
 	// [c1] slice of the words; map of the first letters of those words
@@ -220,15 +220,15 @@ func RtMorphchart(c echo.Context) error {
 	//
 	//	rnd := strings.Replace(uuid.New().String(), "-", "", -1)
 	//	_, ee := dbconn.Exec(context.Background(), fmt.Sprintf(TTT, rnd, arr))
-	//	msg.EC(ee)
+	//	Msg.EC(ee)
 	//
 	//	q := fmt.Sprintf(WCQT, l, rnd, l)
 	//	rr, ee := dbconn.Query(context.Background(), q)
-	//	msg.EC(ee)
+	//	Msg.EC(ee)
 	//
 	//	// you just found »ἥρμοττ« which gives you »ἥρμοττ'«: see below for where this becomes an issue
 	//	_, er := pgx.ForEachRow(rr, each, rfnc)
-	//	msg.EC(er)
+	//	Msg.EC(er)
 	//}
 
 	wcc := getwordcounts(words)
@@ -367,7 +367,7 @@ func RtMorphchart(c echo.Context) error {
 
 		tc := arraystringcounter(GKTENSES, kk)
 		cc := arraystringcounter(LTCASES, kk)
-		msg.PEEK(fmt.Sprintf(MSG, cc, tc))
+		Msg.PEEK(fmt.Sprintf(MSG, cc, tc))
 
 		// in greek tc is 2x cc or (far) more; in latin tc can just squeak by cc: "[HGS] cc: 94; tc: 104"
 		// the "(3*tc)/2" below is required to keep ἀγαθόϲ from returning as if ἀγαθόω; otherwise "2*" would make sense
@@ -1000,15 +1000,15 @@ func getwordcounts(ww []string) map[string]str.DbWordCount {
 		arr := fmt.Sprintf("'%s'", strings.Join(byfirstlett[l], "', '"))
 		rnd := strings.Replace(uuid.New().String(), "-", "", -1)
 		_, ee := dbconn.Exec(context.Background(), fmt.Sprintf(TTT, rnd, arr))
-		msg.EC(ee)
+		Msg.EC(ee)
 
 		q := fmt.Sprintf(WCQT, l, rnd, l)
 		rr, ee := dbconn.Query(context.Background(), q)
-		msg.EC(ee)
+		Msg.EC(ee)
 
 		// you just found »ἥρμοττ« which gives you »ἥρμοττ'«: see below for where this becomes an issue
 		_, er := pgx.ForEachRow(rr, each, rfnc)
-		msg.EC(er)
+		Msg.EC(er)
 	}
 
 	return wcc

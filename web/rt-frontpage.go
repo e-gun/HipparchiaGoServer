@@ -119,14 +119,14 @@ func RtFrontpage(c echo.Context) error {
 		"proxval":       s.Proximity}
 
 	f, e := efs.ReadFile("emb/frontpage.html")
-	msg.EC(e)
+	Msg.EC(e)
 
 	tmpl, e := template.New("fp").Parse(string(f))
-	msg.EC(e)
+	Msg.EC(e)
 
 	var b bytes.Buffer
 	err := tmpl.Execute(&b, subs)
-	msg.EC(err)
+	Msg.EC(err)
 
 	return c.HTML(http.StatusOK, b.String())
 }

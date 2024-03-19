@@ -9,7 +9,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
@@ -18,7 +17,7 @@ import (
 )
 
 var (
-	msg = mm.NewMessageMaker()
+	Msg = lnch.NewMessageMakerWithDefaults()
 )
 
 // StartEchoServer - start serving; this blocks and does not return while the program remains alive

@@ -89,7 +89,7 @@ func pathembedder(c echo.Context, d string) error {
 	f := c.Param("file")
 	j, e := efs.ReadFile(d + f)
 	if e != nil {
-		msg.WARN(fmt.Sprintf(FNF, d+f))
+		Msg.WARN(fmt.Sprintf(FNF, d+f))
 		if !strings.HasSuffix(f, ".pdf") {
 			// a normal 404 error
 			return c.String(http.StatusNotFound, "")
@@ -114,7 +114,7 @@ func pathembedder(c echo.Context, d string) error {
 func fileembedder(c echo.Context, f string) error {
 	j, e := efs.ReadFile(f)
 	if e != nil {
-		msg.WARN(fmt.Sprintf("can't find %s", f))
+		Msg.WARN(fmt.Sprintf("can't find %s", f))
 		return c.String(http.StatusNotFound, "")
 	}
 

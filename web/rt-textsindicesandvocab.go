@@ -33,7 +33,7 @@ import (
 
 // RtTextMaker - make a text of whatever collection of lines you would be searching
 func RtTextMaker(c echo.Context) error {
-	c.Response().After(func() { msg.LogPaths("RtTextMaker()") })
+	c.Response().After(func() { Msg.LogPaths("RtTextMaker()") })
 	// text generation works like a simple search for "anything" in each line of the selected texts
 	// the results then gett output as a big "browser table"...
 
@@ -170,7 +170,7 @@ func RtTextMaker(c echo.Context) error {
 
 // RtVocabMaker - get the vocabulary for whatever collection of lines you would be searching
 func RtVocabMaker(c echo.Context) error {
-	c.Response().After(func() { msg.LogPaths("RtVocabMaker()") })
+	c.Response().After(func() { Msg.LogPaths("RtVocabMaker()") })
 
 	// grab lines via a simple search for "anything" in each line of the selection made and stored in the session
 	// todo: worry about γ' for γε
@@ -477,7 +477,7 @@ func RtVocabMaker(c echo.Context) error {
 
 // RtIndexMaker - build an index for whatever collection of lines you would be searching
 func RtIndexMaker(c echo.Context) error {
-	c.Response().After(func() { msg.LogPaths("RtIndexMaker()") })
+	c.Response().After(func() { Msg.LogPaths("RtIndexMaker()") })
 
 	// note that templates + bytes.Buffer is more legible than '%s' time and again BUT it is also slightly slower
 	// this was tested via a rewrite of RtIndexMaker() and other rt-textindicesandvocab functions

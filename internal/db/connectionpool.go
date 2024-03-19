@@ -8,12 +8,15 @@ package db
 import (
 	"context"
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"os"
 	"strings"
 )
+
+var Msg = lnch.NewMessageMakerWithDefaults()
 
 //
 // Note that SQLite will not really work. See the "devel-sqlite" branch for the brutal details. Way too slow...

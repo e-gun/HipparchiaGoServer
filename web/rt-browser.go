@@ -61,7 +61,7 @@ func RtBrowseRaw(c echo.Context) error {
 func RtBrowseLine(c echo.Context) error {
 	// sample input: '/browse/index/lt0550/001/1855'
 	// the one route that calls GenerateBrowsedPassage() directly
-	c.Response().After(func() { msg.LogPaths("RtBrowseLine()") })
+	c.Response().After(func() { Msg.LogPaths("RtBrowseLine()") })
 
 	const (
 		FAIL = "RtBrowseLine() could not parse %s"
@@ -80,12 +80,12 @@ func RtBrowseLine(c echo.Context) error {
 		au := elem[0]
 		wk := elem[1]
 		ln, e := strconv.Atoi(elem[2])
-		msg.EC(e)
+		Msg.EC(e)
 		ctx := s.BrowseCtx
 		bp := GenerateBrowsedPassage(au, wk, ln, ctx)
 		return gen.JSONresponse(c, bp)
 	} else {
-		msg.FYI(fmt.Sprintf(FAIL, locus))
+		Msg.FYI(fmt.Sprintf(FAIL, locus))
 		return emptyjsreturn(c)
 	}
 }
@@ -126,7 +126,7 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 
 		return GenerateBrowsedPassage(au, wk, ln[0], ctx)
 	} else {
-		msg.FYI(fmt.Sprintf(FAIL, locus))
+		Msg.FYI(fmt.Sprintf(FAIL, locus))
 		return BrowsedPassage{}
 	}
 }
@@ -148,7 +148,7 @@ func GenerateBrowsedPassage(au string, wk string, fc int, ctx int) BrowsedPassag
 	if w.UID == "work_not_found" {
 		// some problem cases (that arise via rt-lexica.go and the bad clicks embedded in the lexical data):
 		// gr0161w001
-		msg.FYI(fmt.Sprintf(FAIL1, k))
+		Msg.FYI(fmt.Sprintf(FAIL1, k))
 		return BrowsedPassage{}
 	}
 
@@ -406,7 +406,7 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 			pattern, e := regexp.Compile(r)
 			if e != nil {
 				// you will barf if w = *
-				msg.PEEK(fmt.Sprintf(FAIL, w))
+				Msg.PEEK(fmt.Sprintf(FAIL, w))
 				pattern = regexp.MustCompile("FIND_NOTHING")
 			}
 			ar[w] = pattern
@@ -436,7 +436,7 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 				// almostallregex does not contain this pattern: "ἱμα-", e.g.
 				np, e := regexp.Compile(fmt.Sprintf(OBSREGTEMPL, gen.CapsVariants(lmw)))
 				if e != nil {
-					msg.PEEK(fmt.Sprintf(FAIL, lmw))
+					Msg.PEEK(fmt.Sprintf(FAIL, lmw))
 					np = regexp.MustCompile("FIND_NOTHING")
 				}
 

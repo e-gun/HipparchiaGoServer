@@ -196,7 +196,7 @@ func RtGetJSHelpdata(c echo.Context) error {
 
 	for k, v := range fm {
 		b, e := efs.ReadFile("emb/h/" + v)
-		msg.EC(e)
+		Msg.EC(e)
 		hc[k] = string(b)
 	}
 
@@ -289,16 +289,16 @@ func RtGetJSAuthorinfo(c echo.Context) error {
 	sort.Slice(ww, func(i, j int) bool { return ww[i].ID < ww[j].ID })
 
 	mtt, e := template.New("mt").Parse(MTEMPL)
-	msg.EC(e)
+	Msg.EC(e)
 	wtt, e := template.New("wt").Parse(WTEMPL)
-	msg.EC(e)
+	Msg.EC(e)
 
 	var b bytes.Buffer
 	err := mtt.Execute(&b, at)
-	msg.EC(err)
+	Msg.EC(err)
 	for _, w := range ww {
 		err = wtt.Execute(&b, w)
-		msg.EC(err)
+		Msg.EC(err)
 	}
 
 	out := JSStruct{b.String()}

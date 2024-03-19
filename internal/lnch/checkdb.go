@@ -2,6 +2,7 @@ package lnch
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -464,4 +465,60 @@ func HipparchiaDBHasData(userpw string) bool {
 
 	return found
 
+}
+
+func FSConfig(h string) {
+	const (
+		WRN      = "Warning: unable to lnch: Cannot find a configuration file."
+		FYI      = "\tC1Creating configuration directory: 'C3%sC1'C0"
+		FNF      = "\tC1Generating a simple 'C3%sC1'C0"
+		FWR      = "\tC1Wrote configuration to 'C3%sC1'C0\n"
+		PWD1     = "\tchoose a password for the database user 'hippa_wr' ->C0 "
+		NODB     = "hipparchiaDB does not exist: executing InitializeHDB()"
+		FOUND    = "Found 'authors': skipping database loading.\n\tIf there are problems going forward you might need to reset the database: '-00'\n\n"
+		NOTFOUND = "The database exists but seems to be empty. Need to reload the data."
+	)
+
+	Msg.CRIT(WRN)
+	CopyInstructions()
+	_, e := os.Stat(fmt.Sprintf(vv.CONFIGALTAPTH, h))
+	if e != nil {
+		fmt.Println(Msg.Color(fmt.Sprintf(FYI, fmt.Sprintf(vv.CONFIGALTAPTH, h))))
+		ee := os.MkdirAll(fmt.Sprintf(vv.CONFIGALTAPTH, h), os.FileMode(0700))
+		Msg.EC(ee)
+	}
+
+	fmt.Println(Msg.Color(fmt.Sprintf(FNF, vv.CONFIGPROLIX)))
+	fmt.Printf(Msg.Color(PWD1))
+
+	var hwrpw string
+	_, err := fmt.Scan(&hwrpw)
+	Msg.EC(err)
+
+	pgpw := SetPostgresAdminPW()
+
+	cfg := BuildDefaultConfig()
+	cfg.PGLogin.Pass = hwrpw
+
+	content, err := json.MarshalIndent(cfg, vv.JSONINDENT, vv.JSONINDENT)
+	Msg.EC(err)
+
+	err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+vv.CONFIGPROLIX, content, 0644)
+	Msg.EC(err)
+
+	fmt.Println(Msg.Color(fmt.Sprintf(FWR, fmt.Sprintf(vv.CONFIGALTAPTH, h)+vv.CONFIGPROLIX)))
+
+	// do we need to head over to selfinstaller.go and to initialize the database?
+
+	if HipparchiaDBexists(pgpw) {
+		Msg.CRIT(NODB)
+		InitializeHDB(pgpw, hwrpw)
+	}
+
+	if HipparchiaDBHasData(hwrpw) {
+		Msg.CRIT(FOUND)
+	} else {
+		Msg.CRIT(NOTFOUND)
+		LoadhDBfolder(hwrpw)
+	}
 }

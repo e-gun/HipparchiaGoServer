@@ -32,7 +32,7 @@ func RtWebsocket(c echo.Context) error {
 
 	ws, err := Upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		msg.NOTE(FAILCON)
+		Msg.NOTE(FAILCON)
 		return nil
 	}
 

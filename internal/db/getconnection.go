@@ -27,7 +27,7 @@ func GetDBConnection() *pgxpool.Conn {
 
 	dbc, e := SQLPool.Acquire(context.Background())
 	if e != nil {
-		if !HipparchiaDBHasData(lnch.Config.PGLogin.Pass) {
+		if !lnch.HipparchiaDBHasData(lnch.Config.PGLogin.Pass) {
 			// you need to reset the whole application...
 			Msg.MAND(Msg.Color(fmt.Sprintf(FAIL3)))
 			h, err := os.UserHomeDir()

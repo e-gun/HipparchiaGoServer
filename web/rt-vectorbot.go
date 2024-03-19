@@ -69,7 +69,7 @@ func RtVectorBot(c echo.Context) error {
 	}
 
 	if c.RealIP() != lnch.Config.HostIP {
-		msg.NOTE(fmt.Sprintf(MSG3, c.RealIP()))
+		Msg.NOTE(fmt.Sprintf(MSG3, c.RealIP()))
 		return nil
 	}
 
@@ -105,7 +105,7 @@ func RtVectorBot(c echo.Context) error {
 	if slices.Contains(dbs, a) {
 		s.SearchIn.Authors = allof(a)
 		m := fmt.Sprintf(MSG4, a, len(s.SearchIn.Authors), lnch.Config.VectorMaxlines)
-		msg.FYI(m)
+		Msg.FYI(m)
 	} else {
 		if _, ok := mps.AllAuthors[a]; !ok {
 			return nil
@@ -155,7 +155,7 @@ func ldamodelbot(c echo.Context, s str.SearchStruct, a string) {
 	search.SearchAndInsertResults(&s)
 	e := vec.LDASearch(c, s)
 	if e != nil {
-		msg.WARN("ldamodelbot() could not execute LDASearch()")
+		Msg.WARN("ldamodelbot() could not execute LDASearch()")
 	}
 }
 
@@ -173,7 +173,7 @@ func nnmodelbot(c echo.Context, s str.SearchStruct, a string) {
 	isstored := vec.VectorDBCheckNN(fp)
 
 	if isstored {
-		msg.PEEK(fmt.Sprintf(MSG1, mps.AllAuthors[a].Name))
+		Msg.PEEK(fmt.Sprintf(MSG1, mps.AllAuthors[a].Name))
 	} else {
 		// SessionIntoBulkSearch() can't be used because there is no real session...
 		s.CurrentLimit = lnch.Config.VectorMaxlines
@@ -191,7 +191,7 @@ func nnmodelbot(c echo.Context, s str.SearchStruct, a string) {
 			embs := vec.GenerateVectEmbeddings(c, m, s)
 			vec.VectorDBAddNN(fp, embs)
 		} else {
-			msg.TMI(fmt.Sprintf(MSG2, a, s.Results.Len()))
+			Msg.TMI(fmt.Sprintf(MSG2, a, s.Results.Len()))
 		}
 	}
 }
@@ -216,7 +216,7 @@ func activatevectorbot() {
 	// currently only autovectorizes nn
 	// lda unsupported, but a possibility later
 
-	msg.NOTE(MSG1)
+	Msg.NOTE(MSG1)
 
 	time.Sleep(STARTDELAY * time.Second)
 
@@ -264,12 +264,12 @@ func activatevectorbot() {
 
 		count += 1
 		if count%COUNTEVERY == 0 || mustnotify {
-			msg.Timer("AV", fmt.Sprintf(MSG2, float32(count)/tot*100, an, a), start, previous)
+			Msg.Timer("AV", fmt.Sprintf(MSG2, float32(count)/tot*100, an, a), start, previous)
 			previous = time.Now()
 		}
 		u := fmt.Sprintf(URL, lnch.Config.HostIP, lnch.Config.HostPort, "nn", a)
 		_, err := http.Get(u)
-		msg.EC(err)
+		Msg.EC(err)
 
 		// if you do not throttle the bot it will violate MAXECHOREQPERSECONDPERIP
 		time.Sleep(THROTTLE * time.Millisecond)
@@ -279,7 +279,7 @@ func activatevectorbot() {
 		}
 	}
 
-	msg.Timer("VB", MSG3, start, previous)
+	Msg.Timer("VB", MSG3, start, previous)
 	vec.VectorDBSizeNN(mm.MSGNOTE)
 	vec.VectorDBCountNN(mm.MSGNOTE)
 	lnch.Config.VectorBot = false

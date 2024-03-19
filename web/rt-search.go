@@ -95,7 +95,7 @@ func RtSearch(c echo.Context) error {
 
 	// [D] OK, IT IS A SEARCH FOR A WORD OR PHRASE
 
-	c.Response().After(func() { msg.LogPaths("RtSearch()") })
+	c.Response().After(func() { Msg.LogPaths("RtSearch()") })
 
 	// HasPhraseBoxA makes us use a fake limit temporarily
 	reallimit := srch.CurrentLimit

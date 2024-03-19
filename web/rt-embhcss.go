@@ -42,7 +42,7 @@ func RtEmbHCSS(c echo.Context) error {
 
 	j, e := efs.ReadFile(ECSS)
 	if e != nil {
-		msg.WARN(fmt.Sprintf("RtEmbHCSS() can't find %s", ECSS))
+		Msg.WARN(fmt.Sprintf("RtEmbHCSS() can't find %s", ECSS))
 		return c.String(http.StatusNotFound, "")
 	}
 
@@ -53,11 +53,11 @@ func RtEmbHCSS(c echo.Context) error {
 	}
 
 	tmpl, e := template.New("fp").Parse(string(j))
-	msg.EC(e)
+	Msg.EC(e)
 
 	var b bytes.Buffer
 	err := tmpl.Execute(&b, subs)
-	msg.EC(err)
+	Msg.EC(err)
 
 	css := b.String()
 
@@ -82,14 +82,14 @@ func CustomCSS(c echo.Context) error {
 
 	csf, ee := os.Open(f)
 	if ee != nil {
-		msg.CRIT(fmt.Sprintf(FAIL1, h, vv.CUSTOMCSSFILENAME))
+		Msg.CRIT(fmt.Sprintf(FAIL1, h, vv.CUSTOMCSSFILENAME))
 		lnch.Config.CustomCSS = false
 		return RtEmbHCSS(c)
 	}
 
 	b, err := io.ReadAll(csf)
 	if err != nil {
-		msg.CRIT(fmt.Sprintf(FAIL2, h, vv.CUSTOMCSSFILENAME))
+		Msg.CRIT(fmt.Sprintf(FAIL2, h, vv.CUSTOMCSSFILENAME))
 		lnch.Config.CustomCSS = false
 		return RtEmbHCSS(c)
 	}
@@ -171,10 +171,10 @@ func cssfontfacedirectives(f string) string {
 	css := ""
 	if _, ok := vv.ServableFonts[f]; ok {
 		fft, e := template.New("mt").Parse(FFS)
-		msg.EC(e)
+		Msg.EC(e)
 		var b bytes.Buffer
 		err := fft.Execute(&b, vv.ServableFonts[f])
-		msg.EC(err)
+		Msg.EC(err)
 		css = b.String()
 	}
 

@@ -33,7 +33,7 @@ func RtSetOption(c echo.Context) error {
 	parsed := strings.Split(optandval, "/")
 
 	if len(parsed) != 2 {
-		msg.WARN(fmt.Sprintf(FAIL1, optandval))
+		Msg.WARN(fmt.Sprintf(FAIL1, optandval))
 		return c.String(http.StatusOK, "")
 	}
 
@@ -58,7 +58,7 @@ func RtSetOption(c echo.Context) error {
 			// re-populateglobalmaps
 			mps.RePopulateGlobalMaps()
 			d := fmt.Sprintf("modifyglobalmapsifneeded(): %.3fs", time.Now().Sub(start).Seconds())
-			msg.PEEK(d)
+			Msg.PEEK(d)
 		}
 	}
 
@@ -116,7 +116,7 @@ func RtSetOption(c echo.Context) error {
 			case "ldagraph2dimensions":
 				s.LDA2D = b
 			default:
-				msg.WARN(FAIL2)
+				Msg.WARN(FAIL2)
 			}
 		}
 	}
@@ -150,7 +150,7 @@ func RtSetOption(c echo.Context) error {
 				s.VecTextPrep = val
 			}
 		default:
-			msg.WARN(FAIL2)
+			Msg.WARN(FAIL2)
 		}
 	}
 
@@ -202,7 +202,7 @@ func RtSetOption(c echo.Context) error {
 					s.LDAtopics = vv.LDAMAXTOPICS
 				}
 			default:
-				msg.WARN(FAIL2)
+				Msg.WARN(FAIL2)
 			}
 		}
 	}
@@ -229,7 +229,7 @@ func RtSetOption(c echo.Context) error {
 					s.Latest = val
 				}
 			default:
-				msg.WARN(FAIL2)
+				Msg.WARN(FAIL2)
 			}
 		}
 
@@ -296,7 +296,7 @@ func sliceworkcorpus(corpus string) []str.DbWork {
 	err := countrow.Scan(&cc)
 
 	foundrows, err := db.SQLPool.Query(context.Background(), qq)
-	msg.EC(err)
+	Msg.EC(err)
 
 	workslice := make([]str.DbWork, cc)
 	var w str.DbWork
@@ -312,7 +312,7 @@ func sliceworkcorpus(corpus string) []str.DbWork {
 	}
 
 	_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
-	msg.EC(e)
+	Msg.EC(e)
 
 	return workslice
 }

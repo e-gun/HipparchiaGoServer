@@ -77,7 +77,7 @@ type JSB struct {
 
 // RtLexLookup - search the dictionary for a headword substring
 func RtLexLookup(c echo.Context) error {
-	c.Response().After(func() { msg.LogPaths("RtLexLookup()") })
+	c.Response().After(func() { Msg.LogPaths("RtLexLookup()") })
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
@@ -125,7 +125,7 @@ func RtLexFindByForm(c echo.Context) error {
 	if !vlt.AllAuthorized.Check(user) {
 		return gen.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
 	}
-	c.Response().After(func() { msg.LogPaths("RtLexFindByForm()") })
+	c.Response().After(func() { Msg.LogPaths("RtLexFindByForm()") })
 
 	req := c.Param("wd")
 	elem := strings.Split(req, "/")
@@ -175,7 +175,7 @@ func RtLexId(c echo.Context) error {
 	req := c.Param("wd")
 	elem := strings.Split(req, "/")
 	if len(elem) != 2 {
-		msg.WARN(fmt.Sprintf(FAIL1, req))
+		Msg.WARN(fmt.Sprintf(FAIL1, req))
 		return emptyjsreturn(c)
 	}
 	d := gen.Purgechars(lnch.Config.BadChars, elem[0])
@@ -183,7 +183,7 @@ func RtLexId(c echo.Context) error {
 
 	f := dictgrabber(w, d, "id_number", "=")
 	if len(f) == 0 {
-		msg.WARN(fmt.Sprintf(FAIL2, w))
+		Msg.WARN(fmt.Sprintf(FAIL2, w))
 		return emptyjsreturn(c)
 	}
 
@@ -200,7 +200,7 @@ func RtLexId(c echo.Context) error {
 // RtLexReverse - look for the headwords that have the sought word in their body
 func RtLexReverse(c echo.Context) error {
 	// be able to respond to "/lexica/reverselookup/0ae94619/sorrow"
-	c.Response().After(func() { msg.LogPaths("RtLexReverse()") })
+	c.Response().After(func() { Msg.LogPaths("RtLexReverse()") })
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
@@ -289,7 +289,7 @@ func findbyform(word string, author string) string {
 	ct := db.SQLPool.QueryRow(context.Background(), q)
 	e := ct.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
 	if e != nil {
-		msg.FYI(fmt.Sprintf(NOTH, word))
+		Msg.FYI(fmt.Sprintf(NOTH, word))
 	}
 
 	label := wc.Word
@@ -476,10 +476,10 @@ func dictgrabber(seeking string, dict string, col string, syntax string) []str.D
 	}
 
 	foundrows, err := db.SQLPool.Query(context.Background(), q)
-	msg.EC(err)
+	Msg.EC(err)
 
 	_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
-	msg.EC(e)
+	Msg.EC(e)
 
 	return lexicalfinds
 }
@@ -494,10 +494,10 @@ func getmorphmatch(word string, lang string) []str.DbMorphology {
 	psq := fmt.Sprintf(PSQQ, FLDS, lang, word)
 
 	foundrows, err := db.SQLPool.Query(context.Background(), psq)
-	msg.EC(err)
+	Msg.EC(err)
 
 	thesefinds, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[str.DbMorphology])
-	msg.EC(err)
+	Msg.EC(err)
 
 	return thesefinds
 }
@@ -526,7 +526,7 @@ func extractmorphpossibilities(raw string) []str.MorphPossib {
 	nested := make(map[string]str.MorphPossib)
 	e := json.Unmarshal([]byte(raw), &nested)
 	if e != nil {
-		msg.TMI(fmt.Sprintf(FAIL, raw))
+		Msg.TMI(fmt.Sprintf(FAIL, raw))
 	}
 
 	// ob-caec --> obcaec, dēmorsico --> demorsico...
@@ -582,10 +582,10 @@ func morphpossibintolexpossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 	for _, w := range hwm {
 		q := fmt.Sprintf(PSQQ, FLDS, d, COLM, w)
 		foundrows, err := db.SQLPool.Query(context.Background(), q)
-		msg.EC(err)
+		Msg.EC(err)
 
 		_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
-		msg.EC(e)
+		Msg.EC(e)
 
 	}
 	return lexicalfinds
@@ -861,14 +861,14 @@ func formatlexicaloutput(w str.DbLexicon) string {
 	p := db.SQLPool.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.GetLang(), "<", w.ID, "DESC"))
 	e := p.Scan(&prev.Entry, &prev.ID)
 	if e != nil {
-		msg.FYI(fmt.Sprintf(NOTH, "before", w.Entry))
+		Msg.FYI(fmt.Sprintf(NOTH, "before", w.Entry))
 	}
 
 	var nxt str.DbLexicon
 	n := db.SQLPool.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.GetLang(), ">", w.ID, "ASC"))
 	e = n.Scan(&nxt.Entry, &nxt.ID)
 	if e != nil {
-		msg.FYI(fmt.Sprintf(NOTH, "after", w.Entry))
+		Msg.FYI(fmt.Sprintf(NOTH, "after", w.Entry))
 	}
 
 	pn := fmt.Sprintf(NAVTABLE, prev.ID, w.GetLang(), prev.Entry, nxt.ID, w.GetLang(), nxt.Entry)
@@ -886,7 +886,7 @@ func entryqickfixes(html string) string {
 	//     "sedile" is here twice and will print as 'sedile">sedile,'
 
 	badpatt1, err := regexp.Compile("<span class=\"dictquote dictlang_la\">(\\w+)\"><span class=\"dictcit\"><span class=\"dictquote dictlang_la\">(\\w+)")
-	msg.EC(err)
+	Msg.EC(err)
 	html = badpatt1.ReplaceAllString(html, "<span class=\"dictcit\"><span class=\"dictquote dictlang_la\">$1")
 
 	// [b] ē^ -> ē̆

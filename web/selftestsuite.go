@@ -42,9 +42,9 @@ func (t *SrchTest) Msg() string {
 func runselftests() {
 	if lnch.Config.SelfTest > 0 {
 		go func() {
-			msg.SNm = vv.SHORTNAME + "-SELFTEST"
+			Msg.SNm = vv.SHORTNAME + "-SELFTEST"
 			for i := 0; i < lnch.Config.SelfTest; i++ {
-				msg.MAND(fmt.Sprintf("Running Selftest %d of %d", i+1, lnch.Config.SelfTest))
+				Msg.MAND(fmt.Sprintf("Running Selftest %d of %d", i+1, lnch.Config.SelfTest))
 				selftestsuite()
 			}
 		}()
@@ -165,11 +165,11 @@ func selftestsuite() {
 
 	getter := func(u string) {
 		res, e := http.Get(u)
-		msg.EC(e)
+		Msg.EC(e)
 		// want to get rid of pprof: "54.13MB 19.12% 38.54%    55.87MB 19.73%  main.JSONresponse.func4"
 		_, e = io.ReadAll(res.Body)
 		e = res.Body.Close()
-		msg.EC(e)
+		Msg.EC(e)
 	}
 
 	// [I] 6 search tests

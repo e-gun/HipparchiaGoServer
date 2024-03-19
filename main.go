@@ -100,6 +100,7 @@ func main() {
 	str.Msg.LLvl = lnch.Config.LogLevel
 	vlt.Msg.LLvl = lnch.Config.LogLevel
 	vec.Msg.LLvl = lnch.Config.LogLevel
+	web.Msg.LLvl = lnch.Config.LogLevel
 
 	debug.Msg = lnch.NewMessageMakerConfigured()
 
