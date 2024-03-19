@@ -25,6 +25,13 @@ import (
 	"time"
 )
 
+// these next variables should be injected at build time: 'go build -ldflags "-X main.GitCommit=$GIT_COMMIT"', etc
+
+var GitCommit string
+var VersSuppl string
+var BuildDate string
+var PGOInfo string
+
 func main() {
 	const (
 		MSG1 = "%d works built: map[string]DbWork"
@@ -35,6 +42,12 @@ func main() {
 		SUMM = "C3initialization took %.3fsC0"
 		QUIT = "to stop the server press Control-C or close this window"
 	)
+
+	// lnch.PrintVersion() needs to know this
+	lnch.GitCommit = GitCommit
+	lnch.VersSuppl = VersSuppl
+	lnch.BuildDate = BuildDate
+	lnch.PGOInfo = PGOInfo
 
 	//
 	// [0] debugging code block #1 of 2

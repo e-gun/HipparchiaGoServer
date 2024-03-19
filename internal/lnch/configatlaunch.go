@@ -48,7 +48,6 @@ func LookForConfigFile() {
 	)
 	_, a := os.Stat(vv.CONFIGBASIC)
 
-	fmt.Println(vv.CONFIGBASIC)
 	var b error
 	var c error
 

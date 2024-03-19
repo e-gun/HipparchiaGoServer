@@ -42,6 +42,7 @@ func (t *SrchTest) Msg() string {
 func runselftests() {
 	if lnch.Config.SelfTest > 0 {
 		go func() {
+			msg.SNm = vv.SHORTNAME + "-SELFTEST"
 			for i := 0; i < lnch.Config.SelfTest; i++ {
 				msg.MAND(fmt.Sprintf("Running Selftest %d of %d", i+1, lnch.Config.SelfTest))
 				selftestsuite()
