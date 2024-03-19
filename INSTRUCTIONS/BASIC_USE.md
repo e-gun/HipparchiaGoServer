@@ -36,7 +36,7 @@ selection at the moment, the current selection is `All Greek` and `All Latin`. S
 
 The basic search area looks like:
 
-![inst03](../gitimg/basic_use/01_basic_search_area.png)
+![inst03](./gitimg/basic_use/01_basic_search_area.png)
 
 ---
 [2] **Options panel**
@@ -44,7 +44,7 @@ The basic search area looks like:
 You can change the `currently active corpora` and other settings by clicking on the `gear` icon in the upper left 
 corner to open up the options panel. 
 
-![inst03](../gitimg/basic_use/02_configuration.png)
+![inst03](./gitimg/basic_use/02_configuration.png)
 
 If you check/uncheck `Ⓛ` you will activate/deactivate the Latin corpus. The `Ⓛ` on the right side of the page will be
 hidden when the Latin corpus is inactive. The other option items should be largely self-explanatory until you get 
@@ -61,7 +61,7 @@ names begin with `cic`. That would be `Cicero - Cicero, Marcus Tullius [lt0474]`
 If you select Marcus you will then see a box appear that invites you to `(Pick a work)`. At this point you can either 
 continue on and select an individual work or just click on the `+` button to add Cicero to your search list.
 
-![inst03](../gitimg/basic_use/03_one_author_selected.png)
+![inst03](./gitimg/basic_use/03_one_author_selected.png)
 
 Anything entered in `(looking for...)` at this point will initiate a search that looks inside of Cicero alone. 
 
@@ -75,18 +75,18 @@ drop Cicero and revert to a full corpus search.
 You can select individual works and portions of works by continuing on into the `(Pick a work)` box. This is also
 an autocomplete form. So if you type `pro` you will see all the works of this author that contain the substring `pro`.
 
-![inst03](../gitimg/basic_use/04_cicero_pro.png)
+![inst03](./gitimg/basic_use/04_cicero_pro.png)
 
 If you select one of these you will then see a new box appear that will show the range of items at the top level of the 
 text from which you can choose. For the *Pro Marcello* the top level is going to be a `section` and the range is 
 from 1 to 34. So you will see `(section 1 to 34)` appear in the new selection box. 
 
-![inst03](../gitimg/basic_use/04b_cicero_pro_marcello_0.png)
+![inst03](./gitimg/basic_use/04b_cicero_pro_marcello_0.png)
 
 As this too is an autocomplete box, if you type `3` into it, you will see all the valid sections that contain `3`: 
 3, 13, 23, 30, 31, ...
 
-![inst03](../gitimg/basic_use/04c_cicero_pro_marcello.png)
+![inst03](./gitimg/basic_use/04c_cicero_pro_marcello.png)
 At any point you can click on the `+` button to add the current selection to your search list.
 
 ---
@@ -97,8 +97,8 @@ by clicking on the `-` button. To see extended search options click on the `...`
 autocomplete boxes available. Below you will see two example search lists: `Three works of Cicero, less one of the 
 books of the De officiis` and `All of the Philosophici up to 200BCE less Aristotle and omit Plato's Republic`.
 
-![inst03](../gitimg/basic_use/05_multiselection_with_exclusion.png)
-![inst03](../gitimg/basic_use/05b_multiselection_with_exclusion.png)
+![inst03](./gitimg/basic_use/05_multiselection_with_exclusion.png)
+![inst03](./gitimg/basic_use/05b_multiselection_with_exclusion.png)
 
 ---
 [6] **Selecting an arbitrary subsection of a work**
@@ -107,8 +107,8 @@ If you click on the tiny `right angle bracket` next to the left of the author bo
 This will let you pick a section of a work that runs from A to B. You need to fill out the boxes for both A and B. But
 this will let you pick `De officiis 1.1-1.80` or `De officiis 1-2` or `De officiis 1.50-3.15` or... 
 
-![inst03](../gitimg/basic_use/06_span_selection_01.png)
-![inst03](../gitimg/basic_use/06b_span_selection_02.png)
+![inst03](./gitimg/basic_use/06_span_selection_01.png)
+![inst03](./gitimg/basic_use/06b_span_selection_02.png)
 
 ---
 [7] **Search for 'All forms of...'**
@@ -121,7 +121,7 @@ headword. Nevertheless, if you want to search for every form of `officium` in Ci
 The complex search area lets you search for A near B. In the example below one is looking for all forms of A
 near all forms of B in a subsection of a single work where A is `within N lines` of B.
 
-![inst03](../gitimg/basic_use/07_two_lemmata_in_selection.png)
+![inst03](./gitimg/basic_use/07_two_lemmata_in_selection.png)
 
 ---
 
@@ -150,7 +150,7 @@ Then you will see numbers: 1, 2, 3, 4, 5. If you click `Dark 1` you just saved t
 current search list, to `Save Slot #1`. If you click `White 1` you will load the settings saved into that slot as
 the new current settings. **NB:** Stored saves are wiped out when the server resets.
 
-![inst03](../gitimg/basic_use/08_load_and_save.png)
+![inst03](./gitimg/basic_use/08_load_and_save.png)
 
 ---
 [10] **Browsing**
@@ -158,7 +158,7 @@ the new current settings. **NB:** Stored saves are wiped out when the server res
 You can browse to any location in any text. Act as if you were about to add an author selection to a search list.
 You can click on the `Expand` button at any time. 
 
-![inst03](../gitimg/basic_use/09_browse.png)
+![inst03](./gitimg/basic_use/09_browse.png)
 
 If you have not picked a work, you will get the first line of the first work of that author. If you are currently 
 looking at `Xenophon, Anabasis 2` in the selection box, then you will open a browser to the first line of the 
@@ -166,7 +166,7 @@ second book of that work.
 
 The browser arrow buttons will move you forward and back in the text. One will also close the browser. The arrow keys on your keyboard will also move the browser forward/back in the text.
 
-![inst03](../gitimg/basic_use/09b_browser_xen.png)
+![inst03](./gitimg/basic_use/09b_browser_xen.png)
 
 ---
 [11] **Dictionary lookups in browsed passages**
@@ -179,7 +179,7 @@ for it.
 
 So if you click on `ἐβούλετο` at Xenophon, Anabasis 2.1.6.1 you will see the following appear on the left of the screen.
 
-![inst03](../gitimg/basic_use/10_browser_dict.png)
+![inst03](./gitimg/basic_use/10_browser_dict.png)
 
 ---
 [12] **The dictionary is linked to the browser.**
@@ -192,7 +192,7 @@ If you click on the `blue` citations in the dictionary panel, the server will at
 If a dictionary entry says `417 known forms`, for example, you can click on that text and be sent to a chart of those 
 forms. The numbers in parentheses show the count of occurrences of that form across all the data. 
 
-![inst03](../gitimg/basic_use/12_morphology.png)
+![inst03](./gitimg/basic_use/12_morphology.png)
 
 ---
 [14] **The morphology chart is linked to the searcher.**
@@ -200,7 +200,7 @@ forms. The numbers in parentheses show the count of occurrences of that form acr
 If you click on an item in a morphology chart, that word will be sought across the current search selction. So a click
 on `ἑώραϲ (57)` returns a search that has 57 results (since all 57 items appear in `Ⓖ` which was currently active...)
 
-![inst03](../gitimg/basic_use/13_morph_search.png)
+![inst03](./gitimg/basic_use/13_morph_search.png)
 
 ---
 [15] **The search results list is linked to the browser.** 
@@ -209,7 +209,7 @@ If you hover over the blue final segment of an item on a search result list cita
 shadow, and have lines appear over/under it. If you click on this the browser will open that author and work to that 
 passage.
 
-![inst03](../gitimg/basic_use/14_search_to_browse.png)
+![inst03](./gitimg/basic_use/14_search_to_browse.png)
 
 ---
 
@@ -218,7 +218,7 @@ passage.
 Click the icon and a text will be generated for whatever you have selected up to the `MaxText` configuration setting
 (default: `35000` lines)
 
-![inst03](../gitimg/basic_use/15_textmaker.png)
+![inst03](./gitimg/basic_use/15_textmaker.png)
 
 ---
 
@@ -227,7 +227,7 @@ Click the icon and a text will be generated for whatever you have selected up to
 Click the icon and an index will be generated for whatever you have selected up to the `MaxText` configuration setting
 (default: `35000` lines). If you click on a locus, a panel will open at that locus. 
 
-![inst03](../gitimg/basic_use/16_index_maker.png)
+![inst03](./gitimg/basic_use/16_index_maker.png)
 
 ---
 
@@ -236,7 +236,7 @@ Click the icon and an index will be generated for whatever you have selected up 
 Click the icon and a vocabulary list will be generated for whatever you have selected up to the `MaxText` configuration setting
 (default: `35000` lines). If you click on a headword, a panel will open with the dictionary entry for that word. 
 
-![inst03](../gitimg/basic_use/17_vocab_list.png)
+![inst03](./gitimg/basic_use/17_vocab_list.png)
 
 ---
 
@@ -246,7 +246,7 @@ Click on the circled `X` in the upper left portion of the screen. This will rese
 any searches in progress. Note that you will lose any search lists, etc. that are currently in use. 
 Most useful to people who accidentally do an `everything` request on a slow machine and are in danger of jamming their CPU for several minutes. 
 
-![inst03](../gitimg/basic_use/01_basic_search_area.png)
+![inst03](./gitimg/basic_use/01_basic_search_area.png)
 
 ---
 

@@ -8,7 +8,7 @@
 
 1. your platform will determine how to do this. Check http://postgresql.org/download for instructions
 
-![launch](../gitimg/linux/01_linux_psql.png)
+![launch](./gitimg/linux/01_linux_psql.png)
 
 * If you `Copy, paste and run` as per their instructions, you will do the four things required to move forward:
   - install the server software
@@ -48,7 +48,7 @@ CREATE EXTENSION pg_trgm;
 
 1. You can build `HipparchiaGoServer` yourself with the files in this repository (https://github.com/e-gun/HipparchiaGoServer). Or you can grab a pre-built binary from the site pictured below. Download the correct binary. 
 
-![inst12](../gitimg/windows/16_getbinary.png)
+![inst12](./gitimg/windows/16_getbinary.png)
 
 2. If you download a zipped file like, it needs to be unzipped: e.g.,  `unzip HipparchiaGoServer-1.1.5-linux-amd64.zip`
 
@@ -61,7 +61,7 @@ CREATE EXTENSION pg_trgm;
 1. Launch the binary: `./HipparchiaGoServer`. 
 2. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
 3. On the first run instruction files will be dropped into your current working directory. You will be asked for the passwords for `hippa_wr` and `postgres`.
-   ![launch](../gitimg/linux/02_linux_loading.png)
+   ![launch](./gitimg/linux/02_linux_loading.png)
 
 4. Then you will be told that the self-load is about to begin.
 5. Thousands of messages will fly across the screen.
@@ -71,4 +71,4 @@ NB: `hippa_rd` errors are safe to ignore.
    From here on out you can just double-click to launch the program. When the server is running, your browser can interact with http://127.0.0.1:8000.
    You can also leave the server running indefinitely. It does not consume many resources if not active: 0% CPU, <1% RAM.
 
-![launch](../gitimg/linux/03_linux_loaded.png)
+![launch](./gitimg/linux/03_linux_loaded.png)

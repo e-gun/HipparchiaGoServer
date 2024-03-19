@@ -8,7 +8,7 @@
 If you request a lemmatized search (λ), you will be presented with the option to convert your search to a vectorized 
 search (v⃗).
 
-![inst02](../gitimg/ready_to_vectorize.png)
+![inst02](./gitimg/ready_to_vectorize.png)
 
 The server will check to see if there is a pre-built model for the current combination of options and texts selected.
 
@@ -16,11 +16,11 @@ If there is no model, one will be built and then saved for subsequent use. Build
 
 ### Sample Simple Neighbors Output 
 
-![inst02](../gitimg/semantic_neighbors.png)
+![inst02](./gitimg/semantic_neighbors.png)
 
 ### Sample Neighbors of Neighbors Output
 
-![inst02](../gitimg/semantic_neighbors_meta.png)
+![inst02](./gitimg/semantic_neighbors_meta.png)
 
 --- 
 
@@ -93,7 +93,7 @@ underlying collection of words: "the", "this", "a", "where", "so", "under" ...
 
 ## Text Preparation
 
-![inst02](../gitimg/semantic_neighbors_text_prep.png)
+![inst02](./gitimg/semantic_neighbors_text_prep.png)
 
 The pre-modeled text can be prepared in a variety of ways. Each has its trade-offs. 
 * `Unparsed` will just model the raw text. But that means that `dedissent` and `dare` each get their own separate analysis. And so if you want to know how the verb works in general, you have only indirectly looked at that. 
@@ -282,26 +282,26 @@ See also https://nlp.stanford.edu/projects/glove/.
 
 If you expand the search options to `Complicate the search...` you will expose the topic model checkbox: `τ⃗`
 
-![inst02](../gitimg/lda_start.png)
+![inst02](./gitimg/lda_start.png)
 
 There is no need to enter any text. Just `Execute the search...`.
 
 You can set how many topics to track via the `Configuration options` panel. The default is `8`.
 
-![inst02](../gitimg/lda_model.png)
+![inst02](./gitimg/lda_model.png)
 
 You can also request a graph of your model. This can be slow to generate. The time increases significantly as the
 selection size increases: `O(n^2)`, I think. Expect to wait more than 45m to see a graph of all of Livy to appear, if your system can manage it at all. Adjust `MaxLDAGraphSize` in `hgs-vector-conf-lda.json` if you dare.
 
-![inst02](../gitimg/lda_tsne_scattergraph.png)
+![inst02](./gitimg/lda_tsne_scattergraph.png)
 
 If you hover over a point you will see the text it is drawn from. 
 
-![inst02](../gitimg/lda_hover.png)
+![inst02](./gitimg/lda_hover.png)
 
 The `Configuration options` panel also gives you the option of building a 3D graph instead of a 2D graph.
 
-![inst02](../gitimg/lda_3d.png)
+![inst02](./gitimg/lda_3d.png)
 
 There is a configuration file for LDA queries: `hgs-vector-conf-lda.json`. 
 
