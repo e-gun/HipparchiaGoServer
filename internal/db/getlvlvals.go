@@ -7,8 +7,8 @@ package db
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/gen"
-	"github.com/e-gun/HipparchiaGoServer/internal/str"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"sort"
 	"strings"
 )

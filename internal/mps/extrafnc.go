@@ -7,7 +7,7 @@ package mps
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/str"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 )
 
 //used to be a method on the struct but that yielded import problems

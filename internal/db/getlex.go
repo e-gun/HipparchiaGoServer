@@ -8,8 +8,8 @@ package db
 import (
 	"context"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/gen"
-	"github.com/e-gun/HipparchiaGoServer/internal/str"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"

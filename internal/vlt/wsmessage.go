@@ -104,7 +104,7 @@ func (c *WSClient) WSMessageLoop() {
 	for {
 		srchinfo := getsrchinfo()
 		if srchinfo.SrchCount != 0 && srchinfo.Exists {
-			Msg.FYI(fmt.Sprintf(SUCCESS, c.ID))
+			Msg.PEEK(fmt.Sprintf(SUCCESS, c.ID))
 			break
 		}
 

@@ -8,7 +8,7 @@ package search
 import (
 	"context"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/str"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"

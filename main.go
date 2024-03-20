@@ -7,13 +7,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/debug"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
-	"github.com/e-gun/HipparchiaGoServer/internal/search"
-	"github.com/e-gun/HipparchiaGoServer/internal/str"
+	src "github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vec"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -93,16 +93,11 @@ func main() {
 	msg := lnch.NewMessageMakerConfigured()
 	msg.ResetScreen()
 
-	// need to update all the message makers out there
-	db.Msg.LLvl = lnch.Config.LogLevel
-	mps.Msg.LLvl = lnch.Config.LogLevel
-	search.Msg.LLvl = lnch.Config.LogLevel
-	str.Msg.LLvl = lnch.Config.LogLevel
-	vlt.Msg.LLvl = lnch.Config.LogLevel
-	vec.Msg.LLvl = lnch.Config.LogLevel
-	web.Msg.LLvl = lnch.Config.LogLevel
-
-	debug.Msg = lnch.NewMessageMakerConfigured()
+	// need to update all the message makers out there now that Config is set
+	mkr := []*mm.MessageMaker{db.Msg, mps.Msg, src.Msg, str.Msg, vec.Msg, vlt.Msg, web.Msg, debug.Msg}
+	for _, mk := range mkr {
+		lnch.UpdateMessageMakerWithConfig(mk)
+	}
 
 	lnch.PrintVersion(*lnch.Config)
 	lnch.PrintBuildInfo(*lnch.Config)

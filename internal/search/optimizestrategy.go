@@ -2,9 +2,9 @@ package search
 
 import (
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
-	"github.com/e-gun/HipparchiaGoServer/internal/str"
 )
 
 // OptimizeSrearch - think about rewriting the search to make it faster

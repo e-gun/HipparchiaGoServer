@@ -6,7 +6,7 @@
 package vv
 
 import (
-	"github.com/e-gun/HipparchiaGoServer/internal/str"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"regexp"
 	"time"
 )

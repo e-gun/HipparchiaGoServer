@@ -7,9 +7,9 @@ package search
 
 import (
 	"context"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"sync"

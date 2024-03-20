@@ -7,7 +7,7 @@ package str
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"regexp"
 	"strings"
 )

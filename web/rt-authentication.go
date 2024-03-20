@@ -6,7 +6,7 @@
 package web
 
 import (
-	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"

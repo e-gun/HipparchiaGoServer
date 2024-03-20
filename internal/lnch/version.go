@@ -7,7 +7,7 @@ package lnch
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/str"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"runtime"
 )

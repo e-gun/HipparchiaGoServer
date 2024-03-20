@@ -7,7 +7,7 @@ package debug
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/mm"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
 )
 
 var Msg = mm.NewMessageMaker()

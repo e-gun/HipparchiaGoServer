@@ -8,9 +8,9 @@ package vec
 import (
 	"bytes"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/e-gun/wego/pkg/search"

@@ -7,10 +7,10 @@ package web
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
-	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vec"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"

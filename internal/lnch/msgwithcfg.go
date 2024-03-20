@@ -6,7 +6,7 @@
 package lnch
 
 import (
-	"github.com/e-gun/HipparchiaGoServer/internal/mm"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"runtime"
 	"time"
@@ -48,4 +48,10 @@ func NewMessageMakerWithDefaults() *mm.MessageMaker {
 		Ver:  vv.VERSION,
 		Win:  w,
 	}
+}
+
+func UpdateMessageMakerWithConfig(m *mm.MessageMaker) {
+	m.BW = Config.BlackAndWhite
+	m.GC = Config.ManualGC
+	m.LLvl = Config.LogLevel
 }

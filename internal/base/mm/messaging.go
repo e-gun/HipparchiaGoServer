@@ -7,7 +7,7 @@ package mm
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"os"
 	"runtime"
 	"sort"
@@ -49,6 +49,7 @@ const (
 )
 
 // tedious because we need to avoid circular imports
+// see also lnch.msgwithcfg.go which fleshes this out
 
 func NewMessageMaker() *MessageMaker {
 	w := false
