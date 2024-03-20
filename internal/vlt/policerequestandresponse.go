@@ -41,7 +41,7 @@ type StatListWR struct {
 	uri  string
 }
 
-// global variables to manage the RESPONSEPOLICING infrastructure
+// variables to manage the RESPONSEPOLICING infrastructure
 var (
 	BListWR         = make(chan BlackListWR)
 	BListRD         = make(chan BlackListRD)

@@ -65,36 +65,6 @@ func (sv *SessionVault) GetSess(id string) str.ServerSession {
 	return s
 }
 
-// cookies here for import issues
-
-// ReadUUIDCookie - find the ID of the client
-func ReadUUIDCookie(c echo.Context) string {
-	cookie, err := c.Cookie("ID")
-	if err != nil {
-		id := WriteUUIDCookie(c)
-		return id
-	}
-	id := cookie.Value
-
-	if !AllSessions.IsInVault(id) {
-		AllSessions.InsertSess(MakeDefaultSession(id))
-	}
-
-	return id
-}
-
-// WriteUUIDCookie - set the ID of the client
-func WriteUUIDCookie(c echo.Context) string {
-	cookie := new(http.Cookie)
-	cookie.Name = "ID"
-	cookie.Path = "/"
-	cookie.Value = uuid.New().String()
-	cookie.Expires = time.Now().Add(4800 * time.Hour)
-	c.SetCookie(cookie)
-	Msg.TMI(fmt.Sprintf("WriteUUIDCookie() - new ID set: %s", cookie.Value))
-	return cookie.Value
-}
-
 // MakeDefaultSession - fill in the blanks when setting up a new session
 func MakeDefaultSession(id string) str.ServerSession {
 	// note that SessionMap clears every time the server restarts
@@ -151,4 +121,34 @@ func MakeDefaultSession(id string) str.ServerSession {
 	//s.Inclusions.BuildPsgByName()
 
 	return s
+}
+
+// cookies here for import issues
+
+// ReadUUIDCookie - find the ID of the client
+func ReadUUIDCookie(c echo.Context) string {
+	cookie, err := c.Cookie("ID")
+	if err != nil {
+		id := WriteUUIDCookie(c)
+		return id
+	}
+	id := cookie.Value
+
+	if !AllSessions.IsInVault(id) {
+		AllSessions.InsertSess(MakeDefaultSession(id))
+	}
+
+	return id
+}
+
+// WriteUUIDCookie - set the ID of the client
+func WriteUUIDCookie(c echo.Context) string {
+	cookie := new(http.Cookie)
+	cookie.Name = "ID"
+	cookie.Path = "/"
+	cookie.Value = uuid.New().String()
+	cookie.Expires = time.Now().Add(4800 * time.Hour)
+	c.SetCookie(cookie)
+	Msg.TMI(fmt.Sprintf("WriteUUIDCookie() - new ID set: %s", cookie.Value))
+	return cookie.Value
 }

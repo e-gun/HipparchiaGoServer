@@ -41,6 +41,23 @@ func ActiveWorkMapper() map[string]*str.DbWork {
 	return workmap
 }
 
+// MapNewWorkCorpus - add a corpus to a workmap
+func MapNewWorkCorpus(corpus string, workmap map[string]*str.DbWork) map[string]*str.DbWork {
+	const (
+		MSG = "MapNewWorkCorpus() added %d works from '%s'"
+	)
+	toadd := sliceworkcorpus(corpus)
+	for i := 0; i < len(toadd); i++ {
+		w := toadd[i]
+		workmap[w.UID] = &w
+	}
+
+	LoadedCorp[corpus] = true
+
+	Msg.PEEK(fmt.Sprintf(MSG, len(toadd), corpus))
+	return workmap
+}
+
 // sliceworkcorpus - fetch all relevant works from the db as a DbWork slice
 func sliceworkcorpus(corpus string) []str.DbWork {
 	// this is far and away the "heaviest" bit of the whole program if you grab every known work

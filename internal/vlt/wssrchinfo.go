@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 	"runtime"
-	"strings"
 	"time"
 )
 
@@ -223,22 +222,4 @@ func WSFetchSrchInfo(id string) WSSrchInfo {
 	responder := WSSIReply{Key: id, Response: make(chan WSSrchInfo)}
 	WSInfo.RequestInfo <- responder
 	return <-responder.Response
-}
-
-//
-// FOR DEBUGGING ONLY
-//
-
-// wsclientreport - report the # and names of the active wsclients every N seconds
-func wsclientreport(d time.Duration) {
-	// add the following to main.go: "go wsclientreport()"
-	for {
-		cl := WebsocketPool.ClientMap
-		var cc []string
-		for k := range cl {
-			cc = append(cc, k.ID)
-		}
-		Msg.NOTE(fmt.Sprintf("%d WebsocketPool clients: %s", len(cl), strings.Join(cc, ", ")))
-		time.Sleep(d)
-	}
 }

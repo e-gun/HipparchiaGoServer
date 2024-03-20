@@ -184,7 +184,7 @@ func main() {
 	// uncomment the following but very spammy in the console...
 	//
 
-	// go wsclientreport(2 * time.Second)
+	// go debug.WSClientReport(2 * time.Second)
 
 	msg.MAND(QUIT)
 
