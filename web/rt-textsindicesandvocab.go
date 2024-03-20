@@ -8,6 +8,7 @@ package web
 import (
 	"cmp"
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
@@ -289,10 +290,10 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	// for flagging words that appear only in this selection
-	hwct := search.ArrayToGetTeadwordCounts(morphslice)
+	hwct := db.ArrayToGetTeadwordCounts(morphslice)
 
 	// [c1] get and map all the DbMorphology
-	morphmap := search.ArrayToGetRequiredMorphObjects(morphslice)
+	morphmap := db.ArrayToGetRequiredMorphObjects(morphslice)
 
 	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{id, MSG2}
 
@@ -336,7 +337,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	scansion := make(map[string]string)
 	if se.VocScansion {
-		scansion = search.ArrayToGetScansion(gen.StringMapKeysIntoSlice(vit))
+		scansion = db.ArrayToGetScansion(gen.StringMapKeysIntoSlice(vit))
 	}
 
 	// [f1] consolidate the information
@@ -606,7 +607,7 @@ func RtIndexMaker(c echo.Context) error {
 		return gen.JSONresponse(c, JSFeeder{})
 	}
 
-	morphmap := search.ArrayToGetRequiredMorphObjects(morphslice)
+	morphmap := db.ArrayToGetRequiredMorphObjects(morphslice)
 
 	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{si.ID, MSG2}
 

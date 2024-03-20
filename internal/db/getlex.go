@@ -3,12 +3,11 @@
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 
-package search
+package db
 
 import (
 	"context"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -74,7 +73,7 @@ func HeadwordLookup(word string) str.DbHeadwordCount {
 		INFO = "headwordlookup() for '%s' returned %d finds"
 	)
 
-	dbconn := db.GetDBConnection()
+	dbconn := GetDBConnection()
 	defer dbconn.Release()
 
 	q := fmt.Sprintf(QTP, word)
@@ -147,7 +146,7 @@ func ArrayToGetScansion(wordlist []string) map[string]string {
 
 	wordlist = append(wordlist, uppers...)
 
-	dbconn := db.GetDBConnection()
+	dbconn := GetDBConnection()
 	defer dbconn.Release()
 
 	foundmetrics := make(map[string]string)
@@ -202,7 +201,7 @@ func ArrayToGetRequiredMorphObjects(wordlist []string) map[string]str.DbMorpholo
 		CHUNKSIZE = 999999
 	)
 
-	dbconn := db.GetDBConnection()
+	dbconn := GetDBConnection()
 	defer dbconn.Release()
 
 	// look for the upper case matches too: Ϲωκράτηϲ and not just ϲωκρατέω (!)
@@ -270,7 +269,7 @@ func ArrayToGetTeadwordCounts(wordlist []string) map[string]int {
 				(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = dictionary_headword_wordcounts.entry_name)`
 	)
 
-	dbconn := db.GetDBConnection()
+	dbconn := GetDBConnection()
 	defer dbconn.Release()
 
 	countmap := make(map[string]int)
@@ -327,7 +326,7 @@ func FetchHeadwordCounts(headwordset map[string]bool) map[string]int {
 
 	Msg.PEEK(fmt.Sprintf(MSG1, len(headwordset)))
 
-	dbconn := db.GetDBConnection()
+	dbconn := GetDBConnection()
 	defer dbconn.Release()
 
 	arr := strings.Join(hw, "', '")

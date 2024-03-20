@@ -7,6 +7,7 @@ package web
 
 import (
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
@@ -154,7 +155,7 @@ func GenerateBrowsedPassage(au string, wk string, fc int, ctx int) BrowsedPassag
 
 	// [b] acquire the wlb we need to display in the body
 
-	wlb := search.SimpleContextGrabber(au, fc, ctx/2)
+	wlb := db.SimpleContextGrabber(au, fc, ctx/2)
 
 	// [b1] drop wlb that are part of another work (matters in DP, IN, and CH)
 	var trimmed []str.DbWorkline

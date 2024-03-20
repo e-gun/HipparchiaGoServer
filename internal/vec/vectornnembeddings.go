@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mm"
@@ -294,7 +295,7 @@ func buildtextblock(s *str.SearchStruct) string {
 	}
 
 	// [b] get basic morphology info for those words
-	morphmapdbm := sr.ArrayToGetRequiredMorphObjects(slicedwords) // map[string]DbMorphology
+	morphmapdbm := db.ArrayToGetRequiredMorphObjects(slicedwords) // map[string]DbMorphology
 
 	// [c] figure out which headwords to associate with the collection of words
 

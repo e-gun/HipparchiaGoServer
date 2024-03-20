@@ -8,6 +8,7 @@ package web
 import (
 	"bytes"
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
@@ -161,7 +162,7 @@ func RtGetJSWorksStruct(c echo.Context) error {
 		return emptyjsreturn(c)
 	} else {
 		locc := strings.Split(parsed[2], "|")
-		lvls := search.FindValidLevelValues(*w, locc)
+		lvls := db.FindValidLevelValues(*w, locc)
 		return c.JSONPretty(http.StatusOK, lvls, vv.JSONINDENT)
 	}
 }
@@ -323,7 +324,7 @@ func RtGetJSSampCit(c echo.Context) error {
 
 	w := mps.AllWorks[wkid]
 	// because "t" is going to be the first line's citation you have to hunt for the real place where the text starts
-	wlb := search.SimpleContextGrabber(w.AuID(), w.FirstLine, 2)
+	wlb := db.SimpleContextGrabber(w.AuID(), w.FirstLine, 2)
 	ff := wlb.Lines
 
 	var actualfirst str.DbWorkline
@@ -333,7 +334,7 @@ func RtGetJSSampCit(c echo.Context) error {
 			actualfirst = ff[i]
 		}
 	}
-	l := search.GrabOneLine(w.AuID(), w.LastLine)
+	l := db.GrabOneLine(w.AuID(), w.LastLine)
 
 	cf := strings.Join(actualfirst.FindLocus(), ".")
 	cl := strings.Join(l.FindLocus(), ".")
@@ -421,8 +422,8 @@ func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
 	au := subs[pattern.SubexpIndex("auth")]
 	st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
 	sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
-	f := search.GrabOneLine(au, st)
-	l := search.GrabOneLine(au, sp)
+	f := db.GrabOneLine(au, st)
+	l := db.GrabOneLine(au, sp)
 	s := search.BuildHollowSearch()
 	s.SearchIn.Passages = []string{p}
 	search.SSBuildQueries(&s)

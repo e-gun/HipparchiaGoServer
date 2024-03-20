@@ -8,8 +8,8 @@ package vec
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
-	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"math/rand"
@@ -54,7 +54,7 @@ func buildmontecarloparsemap(parsemap map[string]map[string]bool) map[string]hwg
 
 	// [b] generate scoremap and assign scores to each of the headwords
 
-	scoremap := search.FetchHeadwordCounts(allheadwords)
+	scoremap := db.FetchHeadwordCounts(allheadwords)
 
 	// [c] note that there are capital words in the parsemap that need lowering
 
@@ -107,7 +107,7 @@ func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string
 
 	// [b] generate scoremap and assign scores to each of the headwords
 
-	scoremap := search.FetchHeadwordCounts(allheadwords)
+	scoremap := db.FetchHeadwordCounts(allheadwords)
 
 	// [c] note that there are capital words in the parsemap that need lowering
 

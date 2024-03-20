@@ -14,7 +14,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
-	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -340,7 +339,7 @@ func reversefind(word string, dicts []string) string {
 	// [b] the counts for the finds
 	countmap := make(map[float32]str.DbHeadwordCount)
 	for _, f := range lexicalfinds {
-		ct := search.HeadwordLookup(f.Word)
+		ct := db.HeadwordLookup(f.Word)
 		if ct.Entry == "" {
 			ct.Entry = f.Word
 		}
@@ -417,7 +416,7 @@ func dictsearch(seeking string, dict string) string {
 
 	countmap := make(map[float32]str.DbHeadwordCount)
 	for _, f := range lexicalfinds {
-		ct := search.HeadwordLookup(f.Word)
+		ct := db.HeadwordLookup(f.Word)
 		if ct.Entry == "" {
 			ct.Entry = f.Word
 		}
@@ -827,7 +826,7 @@ func formatlexicaloutput(w str.DbLexicon) string {
 
 	// [h1a] known forms in use
 
-	hwc := search.HeadwordLookup(w.Word)
+	hwc := db.HeadwordLookup(w.Word)
 	elem = append(elem, fmt.Sprintf(FRQSUM, hwc.FrqCla))
 
 	lw := gen.UVσςϲ(w.Word) // otherwise "venio" will hit AllLemm instead of "uenio"

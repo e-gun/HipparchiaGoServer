@@ -8,6 +8,7 @@ package vec
 import (
 	"context"
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
@@ -78,7 +79,7 @@ func (b *BagWithLocus) GetWL() {
 	if e != nil {
 		Msg.NOTE("BagWithLocus.GetWL() failed to convert ascii to int")
 	}
-	b.Workline = search.GrabOneLine(tb[1][0:vv.LENGTHOFAUTHORID], ln)
+	b.Workline = db.GrabOneLine(tb[1][0:vv.LENGTHOFAUTHORID], ln)
 }
 
 // LDASearch - search via Latent Dirichlet Allocation
@@ -252,7 +253,7 @@ func ldapreptext(bagger string, vs *str.SearchStruct) []BagWithLocus {
 		return []BagWithLocus{}
 	}
 
-	morphmapdbm := search.ArrayToGetRequiredMorphObjects(slicedwords) // map[string]DbMorphology
+	morphmapdbm := db.ArrayToGetRequiredMorphObjects(slicedwords) // map[string]DbMorphology
 	morphmapstrslc := buildmorphmapstrslc(slicedwords, morphmapdbm)
 
 	switch bagger {

@@ -3,11 +3,10 @@
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 
-package search
+package db
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"sort"
@@ -27,6 +26,9 @@ func FindValidLevelValues(dbw str.DbWork, locc []string) str.LevelValues {
 	// verse          | poem           | book           |                |                |
 
 	const (
+		SELECTFROM = `
+		SELECT wkuniversalid, index, level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value, 
+			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations FROM %s`
 		SEL    = SELECTFROM + ` WHERE wkuniversalid='%s' %s %s ORDER BY index ASC`
 		ANDNOT = `AND %s NOT IN ('t')`
 	)
@@ -79,7 +81,7 @@ func FindValidLevelValues(dbw str.DbWork, locc []string) str.LevelValues {
 	var prq str.PrerolledQuery
 	prq.PsqlQuery = fmt.Sprintf(SEL, dbw.AuID(), dbw.UID, and, andnot)
 
-	dbconn := db.GetDBConnection()
+	dbconn := GetDBConnection()
 	defer dbconn.Release()
 	wlb := AcquireWorkLineBundle(prq, dbconn)
 

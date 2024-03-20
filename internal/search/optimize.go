@@ -2,6 +2,7 @@ package search
 
 import (
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/str"
 )
@@ -62,8 +63,8 @@ func PickFastestLemma(s *str.SearchStruct) {
 		NOTE2 = "PickFastestLemma() is NOT swapping %s for %s: possible hits %d vs %d; known forms %d vs %d"
 	)
 
-	hw1 := HeadwordLookup(s.LemmaOne)
-	hw2 := HeadwordLookup(s.LemmaTwo)
+	hw1 := db.HeadwordLookup(s.LemmaOne)
+	hw2 := db.HeadwordLookup(s.LemmaTwo)
 
 	// how many forms to look up?
 	fc1 := len(mps.AllLemm[s.LemmaOne].Deriv)

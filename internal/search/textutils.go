@@ -7,6 +7,7 @@ package search
 
 import (
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
@@ -154,7 +155,7 @@ func FindPhrasesAcrossLines(ss *str.SearchStruct) {
 
 			// [2.a] καὶ τῷ ἀλόγῳ ϲύγκειται γὰρ ἐκ διανοίαϲ καὶ ὀρέξιοϲ ὧν ἁ μὲν διάνοια
 			// [2.b] τῶ λόγον ἔχοντόϲ ἐντι ἁ δ ὄρεξιϲ τῶ ἀλόγω διὸ καὶ ἀρετὰ πᾶϲα ἐν
-			nxt := GrabOneLine(r.AuID(), r.TbIndex+1)
+			nxt := db.GrabOneLine(r.AuID(), r.TbIndex+1)
 			if nxt.WkUID == r.WkUID {
 				n := ColumnPicker(ss.SrchColumn, nxt)
 				if fp.MatchString(n) {
@@ -169,11 +170,11 @@ func FindPhrasesAcrossLines(ss *str.SearchStruct) {
 					nxt = str.DbWorkline{}
 				} else if r.WkUID != nxt.WkUID || r.TbIndex+1 != nxt.TbIndex {
 					// grab the actual next line (i.e. index = 101)
-					nxt = GrabOneLine(r.AuID(), r.TbIndex+1)
+					nxt = db.GrabOneLine(r.AuID(), r.TbIndex+1)
 				}
 			} else {
 				// grab the actual next line (i.e. index = 101)
-				nxt = GrabOneLine(r.AuID(), r.TbIndex+1)
+				nxt = db.GrabOneLine(r.AuID(), r.TbIndex+1)
 				if r.WkUID != nxt.WkUID {
 					nxt = str.DbWorkline{}
 				}

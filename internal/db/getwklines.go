@@ -3,12 +3,11 @@
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 
-package search
+package db
 
 import (
 	"context"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/str"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -57,7 +56,7 @@ func SimpleContextGrabber(table string, focus int, context int) *str.WorkLineBun
 		QTMPL = "SELECT %s FROM %s WHERE (index BETWEEN %d AND %d) ORDER by index"
 	)
 
-	dbconn := db.GetDBConnection()
+	dbconn := GetDBConnection()
 	defer dbconn.Release()
 
 	low := focus - context
@@ -78,7 +77,7 @@ func GrabOneLine(table string, line int) str.DbWorkline {
 		QTMPL = "SELECT %s FROM %s WHERE index = %d"
 	)
 
-	dbconn := db.GetDBConnection()
+	dbconn := GetDBConnection()
 	defer dbconn.Release()
 
 	var prq str.PrerolledQuery

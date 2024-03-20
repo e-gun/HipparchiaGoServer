@@ -105,7 +105,7 @@ func PRQSearcher(ctx context.Context, querychannel <-chan str.PrerolledQuery) (<
 				return
 			default:
 				// execute a search and send the finds over the channel
-				b := AcquireWorkLineBundle(q, dbconn)
+				b := db.AcquireWorkLineBundle(q, dbconn)
 				foundlineschannel <- b
 			}
 		}
