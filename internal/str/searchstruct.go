@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"slices"
 	"strings"
 	"time"
 )
@@ -220,32 +219,5 @@ func (s *SearchStruct) SearchQuickestFirst() {
 			// quicker to swap because single words beat phrases
 			swap()
 		}
-	}
-}
-
-// showinterimresults - print out the current results
-func showinterimresults(s *SearchStruct) {
-	const (
-		NB  = "showinterimresults()"
-		FMT = "[%d] %s\t%s\t%s"
-	)
-
-	Msg.WARN(NB)
-
-	mp := make(map[string]DbWorkline, s.Results.Len())
-	kk := make([]string, s.Results.Len())
-
-	for i := 0; i < s.Results.Len(); i++ {
-		r := s.Results.Lines[i]
-		mp[r.BuildHyperlink()] = r
-		kk[i] = r.BuildHyperlink()
-	}
-
-	slices.Sort(kk)
-
-	for i, k := range kk {
-		r := mp[k]
-		v := fmt.Sprintf(FMT, i, r.BuildHyperlink(), s.Seeking, r.MarkedUp)
-		Msg.NOTE(v)
 	}
 }

@@ -3,7 +3,7 @@
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //
 
-package web
+package debug
 
 import (
 	"fmt"
@@ -38,8 +38,8 @@ func (t *SrchTest) Msg() string {
 	return fmt.Sprintf(t.m, strings.ReplaceAll(t.t1, "%20", " "), strings.ReplaceAll(t.t2, "%20", " "))
 }
 
-// runselftests - loop selftestsuite()
-func runselftests() {
+// RunSelfTests - loop selftestsuite()
+func RunSelfTests() {
 	if lnch.Config.SelfTest > 0 {
 		go func() {
 			Msg.SNm = vv.SHORTNAME + "-SELFTEST"

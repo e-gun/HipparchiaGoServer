@@ -8,6 +8,7 @@ package web
 import (
 	"bytes"
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/debug"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -218,7 +219,7 @@ func StartEchoServer() {
 	e.GET("/vbot/:typeandselection", RtVectorBot) // only the goroutine running the vectorbot is supposed to request this
 
 	// next will do nothing if Config is not requesting these
-	go runselftests()
+	go debug.RunSelfTests()
 	go activatevectorbot()
 
 	e.HideBanner = true
