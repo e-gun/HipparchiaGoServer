@@ -85,14 +85,6 @@ type MessageMaker struct {
 	mtx  sync.RWMutex
 }
 
-//type MsgLaunchStruct struct {
-//	Name       string
-//	Version    string
-//	Shortname  string
-//	LaunchTime time.Time
-//	Caller     string
-//}
-
 func (m *MessageMaker) MAND(s string) {
 	m.Emit(s, MSGMAND)
 }
@@ -382,7 +374,7 @@ func (m *MessageMaker) Ticker(wait time.Duration) {
 }
 
 //
-// CHANNEL-BASED PATHINFO REPORTING TO COMMUNICATE STATS BETWEEN ROUTINES
+// CHANNEL-BASED PATHINFO REPORTING TO COMMUNICATE STATS BETWEEN ROUTINES; this can't go to 'vlt': circular imports
 //
 
 // PIReply - PathInfoHub helper struct for returning the PathInfo

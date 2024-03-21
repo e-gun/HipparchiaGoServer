@@ -261,6 +261,7 @@ function generateId (len) {
 $('#makeanindex').click( function() {
     $('#searchsummary').html('');
     $('#displayresults').html('');
+    $('#vectorgraphing').html('');
     let searchid = generateId(8);
     let url = '/text/index/' + searchid;
     checkactivityviawebsocket(searchid);
@@ -276,6 +277,7 @@ $('#makeanindex').click( function() {
 $('#makevocablist').click( function() {
     $('#searchsummary').html('');
     $('#displayresults').html('');
+    $('#vectorgraphing').html('');
     let searchid = generateId(8);
     let url = '/text/vocab/' + searchid;
     checkactivityviawebsocket(searchid);
@@ -293,7 +295,7 @@ $('#makevocablist').click( function() {
 $('#textofthis').click( function() {
     $('#searchsummary').html('');
     $('#displayresults').html('');
-
+    $('#vectorgraphing').html('');
     let url = '/text/make/_';
     $.getJSON(url, function (returnedtext) {
         loadintodisplayresults(returnedtext);

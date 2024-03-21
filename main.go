@@ -94,9 +94,12 @@ func main() {
 	msg.ResetScreen()
 
 	// need to update all the message makers out there now that Config is set
-	mkr := []*mm.MessageMaker{db.Msg, mps.Msg, src.Msg, str.Msg, vec.Msg, vlt.Msg, web.Msg, debug.Msg}
-	for _, mk := range mkr {
-		lnch.UpdateMessageMakerWithConfig(mk)
+	mkr := []*mm.MessageMaker{db.Msg, debug.Msg, mps.Msg, src.Msg, str.Msg, vec.Msg, vlt.Msg, web.Msg}
+	// need to keep these in the right order otherwise the coming loop will misassociate items...
+	suff := []string{"-DBI", "-DBG", "-MPS", "-SEA", "-STR", "-VEC", "-VLT", "-WEB"}
+	for i := range mkr {
+		lnch.UpdateMessageMakerWithConfig(mkr[i])
+		mkr[i].SNm = vv.SHORTNAME + suff[i]
 	}
 
 	lnch.PrintVersion(*lnch.Config)

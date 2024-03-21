@@ -173,7 +173,12 @@ func nnmodelbot(c echo.Context, s str.SearchStruct, a string) {
 	isstored := vec.VectorDBCheckNN(fp)
 
 	if isstored {
-		Msg.PEEK(fmt.Sprintf(MSG1, mps.AllAuthors[a].Name))
+		// 'gr' is a possible collection, but not a possible au name
+		nm := a
+		if _, ok := mps.AllAuthors[a]; ok {
+			nm = mps.AllAuthors[a].Name
+		}
+		Msg.PEEK(fmt.Sprintf(MSG1, nm))
 	} else {
 		// SessionIntoBulkSearch() can't be used because there is no real session...
 		s.CurrentLimit = lnch.Config.VectorMaxlines
