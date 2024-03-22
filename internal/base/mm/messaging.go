@@ -262,9 +262,9 @@ func (m *MessageMaker) LogPaths(fn string) {
 	//rt-lexica.go:	c.Response().After(func() { messenger.LogPaths("RtLexReverse()") })
 	//rt-morphtables.go:	c.Response().After(func() { messenger.LogPaths("RtMorphchart()") })
 	//rt-search.go:	c.Response().After(func() { messenger.LogPaths("RtSearch()") })
-	//rt-textsindicesandvocab.go:	c.Response().After(func() { messenger.LogPaths("RtTextMaker()") })
-	//rt-textsindicesandvocab.go:	c.Response().After(func() { messenger.LogPaths("RtVocabMaker()") })
-	//rt-textsindicesandvocab.go:	c.Response().After(func() { messenger.LogPaths("RtIndexMaker()") })
+	//rt-textmaker.go:	c.Response().After(func() { messenger.LogPaths("RtTextMaker()") })
+	//rt-textmaker.go:	c.Response().After(func() { messenger.LogPaths("RtVocabMaker()") })
+	//rt-textmaker.go:	c.Response().After(func() { messenger.LogPaths("RtIndexMaker()") })
 	//vectorquerylda.go:	c.Response().After(func() { messenger.LogPaths("LDASearch()") })
 	//vectorqueryneighbors.go:	c.Response().After(func() { messenger.LogPaths("NeighborsSearch()") })
 
