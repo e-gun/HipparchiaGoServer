@@ -180,7 +180,7 @@ func StartEchoServer() {
 	e.GET("/setoption/:opt", RtSetOption) // "u: /setoption/onehit/yes"
 
 	//
-	// [mm] text and index ("rt-textindixesandvocab.go")
+	// [m] text, vocab, and index ("rt-textmaker.go", "rt-lexica.go", "rt-vocab.go")
 	//
 
 	e.GET("/text/make/:null", RtTextMaker) // "u: /text/make/_"
