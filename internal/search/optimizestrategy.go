@@ -67,8 +67,15 @@ func PickFastestLemma(s *str.SearchStruct) {
 	hw2 := db.HeadwordLookup(s.LemmaTwo)
 
 	// how many forms to look up?
-	fc1 := len(mps.AllLemm[s.LemmaOne].Deriv)
-	fc2 := len(mps.AllLemm[s.LemmaTwo].Deriv)
+
+	fc1 := 0
+	fc2 := 0
+	if _, ok := mps.AllLemm[s.LemmaOne]; ok {
+		fc1 = len(mps.AllLemm[s.LemmaOne].Deriv)
+	}
+	if _, ok := mps.AllLemm[s.LemmaTwo]; ok {
+		fc2 = len(mps.AllLemm[s.LemmaTwo].Deriv)
+	}
 
 	// the "&&" tries to address the »πόλιϲ« vs »ὁπλίζω« problem: see the notes above
 	if (hw1.Total > hw2.Total) && (fc1 > fc2) {
