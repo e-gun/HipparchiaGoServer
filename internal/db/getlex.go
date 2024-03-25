@@ -52,7 +52,7 @@ import (
 // see CALCULATEWORDWEIGHTS in HipparchiaServer's startup.py on where these really come from
 // alternate chars: "🄶", "🄻", "🄸", "🄳", "🄲"; but these align awkwardly on the page
 
-func HeadwordLookup(word string) str.DbHeadwordCount {
+func GetHeadwordWordCount(word string) str.DbHeadwordCount {
 	// scan a headwordcount into the corresponding struct
 	// note that if you reassign a genre, this is one of the place you have to edit
 	const (
@@ -262,7 +262,52 @@ func ArrayToGetRequiredMorphObjects(wordlist []string) map[string]str.DbMorpholo
 	return foundmorph
 }
 
-func ArrayToGetTeadwordCounts(wordlist []string) map[string]int {
+// GetAllFormsOf - convert an 'xref' into a map of all possible forms of that word
+func GetAllFormsOf(lg string, xr string) map[string]str.DbMorphology {
+	const (
+		MFLD = `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
+		MQT  = `SELECT %s FROM %s_morphology WHERE xrefs ~ '%s' AND prefixrefs=''`
+	)
+	// for ἐπιγιγνώϲκω...
+	// select * from greek_morphology where greek_morphology.xrefs='37925260';
+
+	dbconn := GetDBConnection()
+	defer dbconn.Release()
+
+	// hipparchiaDB=# select observed_form, xrefs from latin_morphology where observed_form = 'crediti';
+	// observed_form |       xrefs
+	//---------------+--------------------
+	// crediti       | 19078850, 19078631
+	//
+	// [this means you need '~' and not '=' as your syntax]
+
+	// ISSUE: ὑφίϲτημι returns compound forms --> ὑφιϲτάμενοι (36) / παρυφιϲτάμενοι (1) / ϲυνυφιϲτάμενοι (2)
+	// BUT: παρυφίϲτημι has a form prevalence of 0...
+	// CHOICE: the "clean" version of ὑφίϲτημι OR recognizing the compounds at all
+
+	// SQL: "AND prefixrefs=''" cleans things out...; and that is what was chosen
+
+	psq := fmt.Sprintf(MQT, MFLD, lg, xr)
+
+	foundrows, err := dbconn.Query(context.Background(), psq)
+	Msg.EC(err)
+
+	dbmmap := make(map[string]str.DbMorphology)
+	var thehit str.DbMorphology
+
+	foreach := []any{&thehit.Observed, &thehit.Xrefs, &thehit.PrefixXrefs, &thehit.RawPossib, &thehit.RelatedHW}
+	rfnc := func() error {
+		thehit.Observed = strings.ToLower(thehit.Observed)
+		dbmmap[thehit.Observed] = thehit
+		return nil
+	}
+	_, e := pgx.ForEachRow(foundrows, foreach, rfnc)
+	Msg.EC(e)
+
+	return dbmmap
+}
+
+func ArrayToGetHeadwordCounts(wordlist []string) map[string]int {
 	const (
 		TT = `CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words`
 		QT = `SELECT entry_name , total_count FROM dictionary_headword_wordcounts WHERE EXISTS 

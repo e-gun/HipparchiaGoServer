@@ -6,14 +6,10 @@
 package web
 
 import (
-	"context"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
-	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"slices"
@@ -250,69 +246,4 @@ func RtSetOption(c echo.Context) error {
 
 	vlt.AllSessions.InsertSess(s)
 	return c.String(http.StatusOK, "")
-}
-
-// sliceworkcorpus - fetch all relevant works from the db as a DbWork slice
-func sliceworkcorpus(corpus string) []str.DbWork {
-	// this is far and away the "heaviest" bit of the whole program if you grab every known work
-	// Total: 204MB
-	// 65.35MB (flat, cum) 32.03% of Total
-
-	// hipparchiaDB-# \d works
-	//                            Table "public.works"
-	//      Column      |          Type          | Collation | Nullable | Default
-	//------------------+------------------------+-----------+----------+---------
-	// universalid      | character(10)          |           |          |
-	// title            | character varying(512) |           |          |
-	// language         | character varying(10)  |           |          |
-	// publication_info | text                   |           |          |
-	// levellabels_00   | character varying(64)  |           |          |
-	// levellabels_01   | character varying(64)  |           |          |
-	// levellabels_02   | character varying(64)  |           |          |
-	// levellabels_03   | character varying(64)  |           |          |
-	// levellabels_04   | character varying(64)  |           |          |
-	// levellabels_05   | character varying(64)  |           |          |
-	// workgenre        | character varying(32)  |           |          |
-	// transmission     | character varying(32)  |           |          |
-	// worktype         | character varying(32)  |           |          |
-	// provenance       | character varying(64)  |           |          |
-	// recorded_date    | character varying(64)  |           |          |
-	// converted_date   | integer                |           |          |
-	// wordcount        | integer                |           |          |
-	// firstline        | integer                |           |          |
-	// lastline         | integer                |           |          |
-	// authentic        | boolean                |           |          |
-
-	const (
-		CT = `SELECT count(*) FROM works WHERE universalid ~* '^%s'`
-		QT = `SELECT %s FROM works WHERE universalid ~* '^%s'`
-	)
-
-	var cc int
-	cq := fmt.Sprintf(CT, corpus)
-	qq := fmt.Sprintf(QT, mps.WORKTEMPLATE, corpus)
-
-	countrow := db.SQLPool.QueryRow(context.Background(), cq)
-	err := countrow.Scan(&cc)
-
-	foundrows, err := db.SQLPool.Query(context.Background(), qq)
-	Msg.EC(err)
-
-	workslice := make([]str.DbWork, cc)
-	var w str.DbWork
-
-	foreach := []any{&w.UID, &w.Title, &w.Language, &w.Pub, &w.LL0, &w.LL1, &w.LL2, &w.LL3, &w.LL4, &w.LL5, &w.Genre,
-		&w.Xmit, &w.Type, &w.Prov, &w.RecDate, &w.ConvDate, &w.WdCount, &w.FirstLine, &w.LastLine, &w.Authentic}
-
-	index := 0
-	rwfnc := func() error {
-		workslice[index] = w
-		index++
-		return nil
-	}
-
-	_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
-	Msg.EC(e)
-
-	return workslice
 }

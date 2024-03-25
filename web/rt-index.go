@@ -197,7 +197,7 @@ func RtIndexMaker(c echo.Context) error {
 	}
 
 	// keep track of unique values
-	globalwordcounts := getwordcounts(gen.StringMapKeysIntoSlice(distinct))
+	globalwordcounts := db.GetWordCounts(gen.StringMapKeysIntoSlice(distinct))
 	localwordcounts := make(map[string]int)
 	for _, k := range slicedwords {
 		localwordcounts[k.Word] += 1

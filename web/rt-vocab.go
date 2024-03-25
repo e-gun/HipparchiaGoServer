@@ -141,7 +141,7 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	// for flagging words that appear only in this selection
-	hwct := db.ArrayToGetTeadwordCounts(morphslice)
+	hwct := db.ArrayToGetHeadwordCounts(morphslice)
 
 	// [c1] get and map all the DbMorphology
 	morphmap := db.ArrayToGetRequiredMorphObjects(morphslice)
