@@ -159,28 +159,28 @@ self-test with vectors can be deceptive because `-wc` flag will not override con
 ## code stats
 
 ```
-% cloc --exclude-dir=z --not-match-f="^jq*" .
-     154 text files.
-     142 unique files.                                          
-     183 files ignored.
+cloc --exclude-dir=z --not-match-f="^jq*" .
+     163 text files.
+     147 unique files.                                          
+     190 files ignored.
 
-github.com/AlDanial/cloc v 2.00  T=0.12 s (1228.8 files/s, 260782.7 lines/s)
+github.com/AlDanial/cloc v 2.00  T=0.10 s (1453.6 files/s, 297460.7 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                              89           3108           3629          14241
+Go                              94           3112           3590          14245
 JavaScript                       8            310            193           1595
 CSS                              1            349             89           1567
 HTML                            12            160             18           1532
-Markdown                        11            451              0           1198
+Markdown                        11            452              0           1198
 Text                             5             90              0            412
 SVG                              1              1              1            392
 JSON                             9              0              0            386
-XML                              4              0              0            313
+XML                              4              0              0            288
 Bourne Shell                     1             13              7             63
 Python                           1              5              6              7
 -------------------------------------------------------------------------------
-SUM:                           142           4487           3943          21706
+SUM:                           147           4492           3904          21685
 -------------------------------------------------------------------------------
 
 ```
