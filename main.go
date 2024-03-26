@@ -165,9 +165,9 @@ func main() {
 	go func(awaiting *sync.WaitGroup) {
 		defer awaiting.Done()
 		if lnch.Config.ResetVectors {
-			vec.VectorDBReset()
+			db.VectorDBReset()
 		} else if lnch.Config.LogLevel >= mm.MSGNOTE {
-			vec.VectorDBCountNN(mm.MSGNOTE)
+			db.VectorDBCountNN(mm.MSGNOTE)
 		}
 	}(&awaiting)
 

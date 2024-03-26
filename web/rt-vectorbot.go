@@ -10,6 +10,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
+	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
@@ -170,7 +171,7 @@ func nnmodelbot(c echo.Context, s str.SearchStruct, a string) {
 	fp := vec.FingerprintNNVectorSearch(s)
 
 	// bot hangs here on gr0063 (Dionysius Thrax)
-	isstored := vec.VectorDBCheckNN(fp)
+	isstored := db.VectorDBCheckNN(fp)
 
 	if isstored {
 		// 'gr' is a possible collection, but not a possible au name
@@ -194,7 +195,7 @@ func nnmodelbot(c echo.Context, s str.SearchStruct, a string) {
 		search.SearchAndInsertResults(&s)
 		if s.Results.Len() > MINSIZE {
 			embs := vec.GenerateVectEmbeddings(c, m, s)
-			vec.VectorDBAddNN(fp, embs)
+			db.VectorDBAddNN(fp, embs)
 		} else {
 			Msg.TMI(fmt.Sprintf(MSG2, a, s.Results.Len()))
 		}
@@ -280,12 +281,12 @@ func activatevectorbot() {
 		time.Sleep(THROTTLE * time.Millisecond)
 
 		if count%SIZEVERY == 0 {
-			vec.VectorDBSizeNN(mm.MSGNOTE)
+			db.VectorDBSizeNN(mm.MSGNOTE)
 		}
 	}
 
 	Msg.Timer("VB", MSG3, start, previous)
-	vec.VectorDBSizeNN(mm.MSGNOTE)
-	vec.VectorDBCountNN(mm.MSGNOTE)
+	db.VectorDBSizeNN(mm.MSGNOTE)
+	db.VectorDBCountNN(mm.MSGNOTE)
 	lnch.Config.VectorBot = false
 }

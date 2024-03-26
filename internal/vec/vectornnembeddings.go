@@ -52,17 +52,17 @@ func generateneighborsdata(c echo.Context, s str.SearchStruct) map[string]search
 	)
 
 	fp := FingerprintNNVectorSearch(s)
-	isstored := VectorDBCheckNN(fp)
+	isstored := db.VectorDBCheckNN(fp)
 	var embs embedding.Embeddings
 	if isstored {
 		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, FMSG}
-		embs = VectorDBFetchNN(fp)
+		embs = db.VectorDBFetchNN(fp)
 	} else {
 		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, GMSG}
 		embs = GenerateVectEmbeddings(c, s.VecModeler, s)
-		VectorDBAddNN(fp, embs)
+		db.VectorDBAddNN(fp, embs)
 		if !embs.Empty() {
-			VectorDBSizeNN(mm.MSGPEEK)
+			db.VectorDBSizeNN(mm.MSGPEEK)
 		}
 	}
 

@@ -303,7 +303,7 @@ func BuildDefaultConfig() *str.CurrentConfiguration {
 	c.VectorNeighb = vv.VECTORNEIGHBORS
 	c.VectorsDisabled = false
 	c.VectorTextPrep = vv.VECTORTEXTPREPDEFAULT
-	c.VectorWebExt = vv.VECTROWEBEXTDEFAULT
+	c.VectorWebExt = vv.VECTORWEBEXTDEFAULT
 	c.VocabByCt = vv.VOCABBYCOUNT
 	c.VocabScans = vv.VOCABSCANSION
 	c.WorkerCount = runtime.NumCPU()

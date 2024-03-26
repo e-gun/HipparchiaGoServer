@@ -8,10 +8,6 @@ package vv
 import "time"
 
 const (
-	MYNAME    = "Hipparchia Golang Server"
-	SHORTNAME = "HGS"
-	VERSION   = "1.3.1"
-
 	GREEKCORP      = "gr"
 	LATINCORP      = "lt"
 	PAPYRUSCORP    = "dp"
@@ -19,27 +15,19 @@ const (
 	CHRISTINSC     = "ch"
 	DEFAULTCORPORA = "{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"
 
-	AVGWORDSPERLINE      = 8 // hard coding a suspect assumption
-	BLACKANDWHITE        = false
-	CHARSPERLINE         = 60 // used by vector to preallocate memory: set it closer to a max than a real average
-	CONFIGLOCATION       = "."
-	CONFIGALTAPTH        = "%s/.config/" // %s = os.UserHomeDir()
-	CONFIGAUTH           = "hgs-users.json"
-	CONFIGBASIC          = "hgs-conf.json"
-	CONFIGPROLIX         = "hgs-prolix-conf.json"
-	CONFIGVECTORW2V      = "hgs-vector-conf-w2v.json"
-	CONFIGVECTORGLOVE    = "hgs-vector-conf-glove.json"
-	CONFIGVECTORLEXVEC   = "hgs-vector-conf-lexvec.json"
-	CONFIGVECTORLDA      = "hgs-vector-conf-lda.json"
-	CONFIGVECTORSTOPSLAT = "hgs-vector-stops-latin.json"
-	CONFIGVECTORSTOPSGRK = "hgs-vector-stops-greek.json"
-	CUSTOMCSSFILENAME    = "custom-hipparchiastyles.css"
+	AVGWORDSPERLINE   = 8 // hard coding a suspect assumption
+	BLACKANDWHITE     = false
+	CHARSPERLINE      = 60 // used by vector to preallocate memory: set it closer to a max than a real average
+	CONFIGLOCATION    = "."
+	CONFIGALTAPTH     = "%s/.config/" // %s = os.UserHomeDir()
+	CONFIGAUTH        = "hgs-users.json"
+	CONFIGBASIC       = "hgs-conf.json"
+	CONFIGPROLIX      = "hgs-prolix-conf.json"
+	CUSTOMCSSFILENAME = "custom-hipparchiastyles.css"
 	// DBAUMAPSIZE              = 3455   //[HGS] [A2: 0.436s][Δ: 0.051s] 3455 authors built: map[string]DbAuthor
 	DBLMMAPSIZE = 151701 //[HGS] [B1: 0.310s][Δ: 0.310s] unnested lemma map built (151701 items)
 	// DBWKMAPSIZE              = 236835 //[HGS] [A1: 0.385s][Δ: 0.385s] 236835 works built: map[string]DbWork
 	DEFAULTBROWSERCTX        = 14
-	DEFAULTCHRTWIDTH         = "1500px"
-	DEFAULTCHRTHEIGHT        = "1200px"
 	DEFAULTCOLUMN            = "stripped_line"
 	DEFAULTECHOLOGLEVEL      = 0
 	DEFAULTGOLOGLEVEL        = 0
@@ -60,16 +48,6 @@ const (
 	JSONINDENT               = "  "
 	LENGTHOFAUTHORID         = 6
 	LENGTHOFWORKID           = 3
-	LDATOPICS                = 8
-	LDAMAXTOPICS             = 30
-	LDASENTPERBAG            = 1
-	LDAITER                  = 200
-	LDAXFORMPASSES           = 100
-	LDABURNINPASSES          = 2
-	LDACHGEVALFRQ            = 10
-	LDAPERPEVALFRQ           = 10
-	LDAPERPTOL               = 1e-2
-	LDAMAXGRAPHLINES         = 30000
 	MAXBROWSERCONTEXT        = 60
 	MAXDATE                  = 1500
 	MAXDATESTR               = "1500"
@@ -107,15 +85,6 @@ const (
 	TIMEOUTWR                = 120 * time.Second // this is *very* generous, but some searches are slow/long
 	USEGZIP                  = false
 	VARIADATE                = 2000
-	VECTORNEIGHBORS          = 16
-	VECTORNEIGHBORSMAX       = 40
-	VECTORNEIGHBORSMIN       = 4
-	VECTORTABLENAMENN        = "semantic_vectors_nn"
-	VECTORTABLENAMELDA       = "semantic_vectors_lda"
-	VECTORMAXLINES           = 1000000 // 964403 lines will get you all of Latin
-	VECTORMODELDEFAULT       = "w2v"
-	VECTORTEXTPREPDEFAULT    = "winner"
-	VECTROWEBEXTDEFAULT      = false
 	VOCABSCANSION            = false
 	VOCABBYCOUNT             = false
 	WRITEPERMS               = 0644

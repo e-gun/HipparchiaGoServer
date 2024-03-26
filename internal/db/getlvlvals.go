@@ -81,9 +81,7 @@ func FindValidLevelValues(dbw str.DbWork, locc []string) str.LevelValues {
 	var prq str.PrerolledQuery
 	prq.PsqlQuery = fmt.Sprintf(SEL, dbw.AuID(), dbw.UID, and, andnot)
 
-	dbconn := GetDBConnection()
-	defer dbconn.Release()
-	wlb := AcquireWorkLineBundle(prq, dbconn)
+	wlb := GetWorklineBundle(prq)
 
 	// [c] extract info from the hitlines returned
 	var vals str.LevelValues

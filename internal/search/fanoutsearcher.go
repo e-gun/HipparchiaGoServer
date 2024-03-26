@@ -95,9 +95,28 @@ func SearchQueryFeeder(ss *str.SearchStruct) (<-chan str.PrerolledQuery, error) 
 func PRQSearcher(ctx context.Context, querychannel <-chan str.PrerolledQuery) (<-chan *str.WorkLineBundle, error) {
 	foundlineschannel := make(chan *str.WorkLineBundle)
 
-	consume := func() {
-		dbconn := db.GetDBConnection()
-		defer dbconn.Release()
+	// below is the only call to GetDBConnection() outside of `db`; if you use db.GetWorklineBundle() instead
+	// you do not need a dbconn, this tidies up several functions, but you also will be getting/returning thousands of
+	// connections in a full corpus it is not clear that there is any real speed penalty
+
+	//consumeA := func() {
+	//	defer close(foundlineschannel)
+	//	dbconn := db.GetDBConnection()
+	//	defer dbconn.Release()
+	//
+	//	for q := range querychannel {
+	//		select {
+	//		case <-ctx.Done():
+	//			return
+	//		default:
+	//			// execute a search and send the finds over the channel
+	//			b := db.AcquireWorkLineBundle(q, dbconn)
+	//			foundlineschannel <- b
+	//		}
+	//	}
+	//}
+
+	consumeB := func() {
 		defer close(foundlineschannel)
 		for q := range querychannel {
 			select {
@@ -105,13 +124,13 @@ func PRQSearcher(ctx context.Context, querychannel <-chan str.PrerolledQuery) (<
 				return
 			default:
 				// execute a search and send the finds over the channel
-				b := db.AcquireWorkLineBundle(q, dbconn)
+				b := db.GetWorklineBundle(q)
 				foundlineschannel <- b
 			}
 		}
 	}
 
-	go consume()
+	go consumeB()
 
 	return foundlineschannel, nil
 }

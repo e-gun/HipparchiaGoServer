@@ -8,8 +8,8 @@ package debug
 import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
+	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/vec"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
 	"io"
@@ -248,7 +248,7 @@ func selftestsuite() {
 	}
 
 	// vector selftestsuite
-	vec.VectorDBReset()
+	db.VectorDBReset()
 	ovm := lnch.Config.VectorModel
 	otx := lnch.Config.VectorTextPrep
 

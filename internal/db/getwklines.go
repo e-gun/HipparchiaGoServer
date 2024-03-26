@@ -24,6 +24,16 @@ const (
 // that return either a WorkLineBundle or a DbWorkline
 //
 
+// GetWorklineBundle - AcquireWorkLineBundle, but supply a dbconn for it via this function
+func GetWorklineBundle(prq str.PrerolledQuery) *str.WorkLineBundle {
+	// fanoutsearcher.go `consumeA` does not need to get a connection for every table query
+	// it re-uses and sends its connections to AcquireWorkLineBundle(); nobody else does that
+	dbconn := GetDBConnection()
+	defer dbconn.Release()
+
+	return AcquireWorkLineBundle(prq, dbconn)
+}
+
 // AcquireWorkLineBundle - use a PrerolledQuery to acquire a *WorkLineBundle
 func AcquireWorkLineBundle(prq str.PrerolledQuery, dbconn *pgxpool.Conn) *str.WorkLineBundle {
 	// NB: you have to use a dbconn.Exec() and can't use SQLPool.Exex() because with the latter the temp table will
@@ -56,9 +66,6 @@ func SimpleContextGrabber(table string, focus int, context int) *str.WorkLineBun
 		QTMPL = "SELECT %s FROM %s WHERE (index BETWEEN %d AND %d) ORDER by index"
 	)
 
-	dbconn := GetDBConnection()
-	defer dbconn.Release()
-
 	low := focus - context
 	high := focus + context
 
@@ -66,7 +73,7 @@ func SimpleContextGrabber(table string, focus int, context int) *str.WorkLineBun
 	prq.TempTable = ""
 	prq.PsqlQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, low, high)
 
-	foundlines := AcquireWorkLineBundle(prq, dbconn)
+	foundlines := GetWorklineBundle(prq)
 
 	return foundlines
 }
@@ -77,13 +84,11 @@ func GrabOneLine(table string, line int) str.DbWorkline {
 		QTMPL = "SELECT %s FROM %s WHERE index = %d"
 	)
 
-	dbconn := GetDBConnection()
-	defer dbconn.Release()
-
 	var prq str.PrerolledQuery
 	prq.TempTable = ""
 	prq.PsqlQuery = fmt.Sprintf(QTMPL, WORLINETEMPLATE, table, line)
-	foundlines := AcquireWorkLineBundle(prq, dbconn)
+
+	foundlines := GetWorklineBundle(prq)
 	if foundlines.Len() != 0 {
 		// "index = %d" in QTMPL ought to mean you can never have len(foundlines) > 1 because index values are unique
 		return foundlines.FirstLine()
