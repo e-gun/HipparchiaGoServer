@@ -16,7 +16,10 @@ import (
 	"strings"
 )
 
-var Msg = lnch.NewMessageMakerWithDefaults()
+var (
+	SQLPool *pgxpool.Pool // filled by `main.go` and a call to FillDBConnectionPool
+	Msg     = lnch.NewMessageMakerWithDefaults()
+)
 
 //
 // Note that SQLite will not really work. See the "devel-sqlite" branch for the brutal details. Way too slow...

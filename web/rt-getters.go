@@ -27,8 +27,8 @@ import (
 	"text/template"
 )
 
-// JSStruct - this is for generating a specific ultra-boring brand of JSON that jQuery loves
-type JSStruct struct {
+// jsstruct - this is for generating a specific ultra-boring brand of JSON that jQuery loves
+type jsstruct struct {
 	V string `json:"value"`
 }
 
@@ -302,7 +302,7 @@ func RtGetJSAuthorinfo(c echo.Context) error {
 		Msg.EC(err)
 	}
 
-	out := JSStruct{b.String()}
+	out := jsstruct{b.String()}
 
 	return c.JSONPretty(http.StatusOK, out, vv.JSONINDENT)
 }
@@ -406,7 +406,7 @@ func RtGetJSSearchlist(c echo.Context) error {
 	wkk = append(wkk, m.Sprintf(SUMMARY, totalwords))
 
 	ht := strings.Join(wkk, "<br>\n")
-	var j JSStruct
+	var j jsstruct
 	j.V = ht
 
 	return c.JSONPretty(http.StatusOK, j, vv.JSONINDENT)
@@ -440,7 +440,7 @@ func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
 
 // RtGetEmptyGet - to stave off 404s
 func RtGetEmptyGet(c echo.Context) error {
-	var j JSStruct
+	var j jsstruct
 	j.V = "[the request was empty; no data returned]"
 
 	return c.JSONPretty(http.StatusOK, j, vv.JSONINDENT)

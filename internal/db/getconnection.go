@@ -15,10 +15,6 @@ import (
 	"strings"
 )
 
-var (
-	SQLPool *pgxpool.Pool
-)
-
 // GetDBConnection - Acquire() a connection from the main pgxpool; currently called only within the db package
 func GetDBConnection() *pgxpool.Conn {
 	const (

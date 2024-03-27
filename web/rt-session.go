@@ -17,10 +17,6 @@ import (
 	"time"
 )
 
-//
-// ROUTING
-//
-
 // RtSessionSetsCookie - turn the session into a cookie
 func RtSessionSetsCookie(c echo.Context) error {
 	const (

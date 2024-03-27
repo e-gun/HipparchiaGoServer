@@ -29,48 +29,14 @@ import (
 )
 
 var (
-	// IsGreek regex compiled here instead of inside various loops
-
 	// quantityfixer = strings.NewReplacer("ă_", "ā̆", "ā^", "ā̆", "ē^", "ē̆", "ĭ_", "ī̆", "ō^", "ō̆", "A_^", "Ā̆", "A^", "Ă", "A_", "Ā", "E_", "Ē", "E^", "Ĕ", "I_^", "Ī̆", "I_", "Ī", "I^", "Ĭ", "O_", "Ō", "O^", "Ŏ", "U^", "Ŭ", "U_", "Ū", "_^", "̆̄", "_", "̄", "^", "̆")
 	quantityfixer = strings.NewReplacer("_^", "̄̆", "_", "̄", "^", "̆")
 )
 
-// hipparchiaDB-# \d latin_morphology
-//                           Table "public.latin_morphology"
-//          Column           |          Type          | Collation | Nullable | Default
-//---------------------------+------------------------+-----------+----------+---------
-// observed_form             | character varying(64)  |           |          |
-// xrefs                     | character varying(128) |           |          |
-// prefixrefs                | character varying(128) |           |          |
-// possible_dictionary_forms | jsonb                  |           |          |
-// related_headwords         | character varying(256) |           |          |
-//Indexes:
-//    "latin_analysis_trgm_idx" gin (related_headwords gin_trgm_ops)
-//    "latin_morphology_idx" btree (observed_form)
-
-// hipparchiaDB-# \d latin_dictionary
-//                     Table "public.latin_dictionary"
-//     Column     |          Type          | Collation | Nullable | Default
-//----------------+------------------------+-----------+----------+---------
-// entry_name     | character varying(256) |           |          |
-// metrical_entry | character varying(256) |           |          |
-// id_number      | real                   |           |          |
-// entry_key      | character varying(64)  |           |          |
-// pos            | character varying(64)  |           |          |
-// translations   | text                   |           |          |
-// entry_body     | text                   |           |          |
-// html_body      | text                   |           |          |
-//Indexes:
-//    "latin_dictionary_idx" btree (entry_name)
-
-type JSB struct {
+type jsb struct {
 	HTML string `json:"newhtml"`
 	JS   string `json:"newjs"`
 }
-
-//
-// ROUTING
-//
 
 // RtLexLookup - search the dictionary for a headword substring
 func RtLexLookup(c echo.Context) error {
@@ -78,7 +44,7 @@ func RtLexLookup(c echo.Context) error {
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return gen.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
+		return gen.JSONresponse(c, jsb{JS: vv.JSVALIDATION})
 	}
 
 	req := c.Param("wd")
@@ -108,7 +74,7 @@ func RtLexLookup(c echo.Context) error {
 
 	html := dictsearch(seeking, dict)
 
-	var jb JSB
+	var jb jsb
 	jb.HTML = html
 	jb.JS = insertlexicaljs()
 
@@ -120,7 +86,7 @@ func RtLexFindByForm(c echo.Context) error {
 	// be able to respond to "GET /lexica/findbyform/ἀμιϲθὶ/gr0062 HTTP/1.1"
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return gen.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
+		return gen.JSONresponse(c, jsb{JS: vv.JSVALIDATION})
 	}
 	c.Response().After(func() { Msg.LogPaths("RtLexFindByForm()") })
 
@@ -149,7 +115,7 @@ func RtLexFindByForm(c echo.Context) error {
 	html := findbyform(word, au)
 	js := insertlexicaljs()
 
-	var jb JSB
+	var jb jsb
 	jb.HTML = html
 	jb.JS = js
 
@@ -166,7 +132,7 @@ func RtLexId(c echo.Context) error {
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return gen.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
+		return gen.JSONresponse(c, jsb{JS: vv.JSVALIDATION})
 	}
 
 	req := c.Param("wd")
@@ -187,7 +153,7 @@ func RtLexId(c echo.Context) error {
 	html := formatlexicaloutput(f[0])
 	js := insertlexicaljs()
 
-	var jb JSB
+	var jb jsb
 	jb.HTML = html
 	jb.JS = js
 
@@ -201,7 +167,7 @@ func RtLexReverse(c echo.Context) error {
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return gen.JSONresponse(c, JSB{JS: vv.JSVALIDATION})
+		return gen.JSONresponse(c, jsb{JS: vv.JSVALIDATION})
 	}
 
 	req := c.Param("wd")
@@ -231,7 +197,7 @@ func RtLexReverse(c echo.Context) error {
 
 	html := reversefind(word, dd)
 
-	var jb JSB
+	var jb jsb
 	jb.HTML = html
 	jb.JS = insertlexicaljs()
 

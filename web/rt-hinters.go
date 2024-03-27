@@ -154,11 +154,11 @@ func basichinter(c echo.Context, mastermap map[string]bool) error {
 	return c.JSONPretty(http.StatusOK, fs, vv.JSONINDENT)
 }
 
-// tojsstructslice - []string -> []JSStruct for web output
-func tojsstructslice(ss []string) []JSStruct {
-	jss := make([]JSStruct, len(ss))
+// tojsstructslice - []string -> []jsstruct for web output
+func tojsstructslice(ss []string) []jsstruct {
+	jss := make([]jsstruct, len(ss))
 	for i := 0; i < len(ss); i++ {
-		jss[i] = JSStruct{ss[i]}
+		jss[i] = jsstruct{ss[i]}
 	}
 	return jss
 }

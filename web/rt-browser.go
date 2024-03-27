@@ -21,8 +21,8 @@ import (
 	"strings"
 )
 
-// BrowsedPassage - a JSON output struct
-type BrowsedPassage struct {
+// browsedpassage - a JSON output struct
+type browsedpassage struct {
 	Browseforwards    string `json:"browseforwards"`
 	Browseback        string `json:"browseback"`
 	Authornumber      string `json:"authornumber"`
@@ -70,7 +70,7 @@ func RtBrowseLine(c echo.Context) error {
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		bp := BrowsedPassage{Browserhtml: vv.AUTHWARN}
+		bp := browsedpassage{Browserhtml: vv.AUTHWARN}
 		return gen.JSONresponse(c, bp)
 	}
 
@@ -96,7 +96,7 @@ func RtBrowseLine(c echo.Context) error {
 //
 
 // Browse - parse request and send a request to GenerateBrowsedPassage
-func Browse(c echo.Context, sep string) BrowsedPassage {
+func Browse(c echo.Context, sep string) browsedpassage {
 	// sample input: http://localhost:8000//browse/perseus/lt0550/001/2:717
 	const (
 		FAIL  = "Browse() could not parse %s"
@@ -107,7 +107,7 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 	s := vlt.AllSessions.GetSess(user)
 
 	if !vlt.AllAuthorized.Check(user) {
-		return BrowsedPassage{Browserhtml: vv.AUTHWARN}
+		return browsedpassage{Browserhtml: vv.AUTHWARN}
 	}
 
 	locus := c.Param("locus")
@@ -128,12 +128,12 @@ func Browse(c echo.Context, sep string) BrowsedPassage {
 		return GenerateBrowsedPassage(au, wk, ln[0], ctx)
 	} else {
 		Msg.FYI(fmt.Sprintf(FAIL, locus))
-		return BrowsedPassage{}
+		return browsedpassage{}
 	}
 }
 
 // GenerateBrowsedPassage - browse Author A at line X with a context of Y lines
-func GenerateBrowsedPassage(au string, wk string, fc int, ctx int) BrowsedPassage {
+func GenerateBrowsedPassage(au string, wk string, fc int, ctx int) browsedpassage {
 	// build a response to "GET /browse/index/gr0062/028/14672 HTTP/1.1"
 
 	const (
@@ -150,7 +150,7 @@ func GenerateBrowsedPassage(au string, wk string, fc int, ctx int) BrowsedPassag
 		// some problem cases (that arise via rt-lexica.go and the bad clicks embedded in the lexical data):
 		// gr0161w001
 		Msg.FYI(fmt.Sprintf(FAIL1, k))
-		return BrowsedPassage{}
+		return browsedpassage{}
 	}
 
 	// [b] acquire the wlb we need to display in the body
@@ -170,7 +170,7 @@ func GenerateBrowsedPassage(au string, wk string, fc int, ctx int) BrowsedPassag
 	wlb.Lines = trimmed
 
 	if wlb.Len() == 0 {
-		var bp BrowsedPassage
+		var bp browsedpassage
 		bp.Browserhtml = fmt.Sprintf(FAIL2, au, wk, fc)
 		return bp
 	}
@@ -213,7 +213,7 @@ func GenerateBrowsedPassage(au string, wk string, fc int, ctx int) BrowsedPassag
 	ab := fmt.Sprintf(`%s [%s]`, mps.AllAuthors[au].Cleaname, au)
 	wb := fmt.Sprintf(`%s (w%s)`, w.Title, w.WkID())
 
-	bp := BrowsedPassage{
+	bp := browsedpassage{
 		Browseforwards:    fw,
 		Browseback:        bw,
 		Authornumber:      au,

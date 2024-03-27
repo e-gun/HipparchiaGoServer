@@ -20,7 +20,7 @@ import (
 
 // time tests and profiling tests
 
-type SrchTest struct {
+type srchtest struct {
 	id string
 	t1 string
 	t2 string
@@ -28,13 +28,13 @@ type SrchTest struct {
 	m  string
 }
 
-func (t *SrchTest) Url() string {
+func (t *srchtest) Url() string {
 	sid := "selftest-" + strings.Replace(uuid.New().String(), "-", "", -1)
 	uri := fmt.Sprintf(t.s, sid, t.t1, t.t2)
 	return fmt.Sprintf("http://%s:%d/%s", lnch.Config.HostIP, lnch.Config.HostPort, uri)
 }
 
-func (t *SrchTest) Msg() string {
+func (t *srchtest) Msg() string {
 	return fmt.Sprintf(t.m, strings.ReplaceAll(t.t1, "%20", " "), strings.ReplaceAll(t.t2, "%20", " "))
 }
 
@@ -108,7 +108,7 @@ func selftestsuite() {
 	stm.SNm = vv.SHORTNAME + "-SELFTEST"
 	stm.LLvl = mm.MSGFYI
 
-	st := []SrchTest{
+	st := []srchtest{
 		{
 			id: "A1",
 			t1: "vervex",

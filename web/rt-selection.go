@@ -23,13 +23,13 @@ import (
 	"strings"
 )
 
-type JSData struct {
+type jsdata struct {
 	Pound string
 	Url   string
 }
 
-// SelectionValues - what was registerselection?
-type SelectionValues struct {
+// selectionvalues - what was registerselection?
+type selectionvalues struct {
 	Auth   string
 	Work   string
 	AGenre string
@@ -43,12 +43,12 @@ type SelectionValues struct {
 }
 
 // WUID - return work universalid
-func (s SelectionValues) WUID() string {
+func (s selectionvalues) WUID() string {
 	return s.Auth + "w" + s.Work
 }
 
 // AWPR - author, work, passage start, passage end
-func (s SelectionValues) AWPR() bool {
+func (s selectionvalues) AWPR() bool {
 	if len(s.Auth) > 0 && len(s.Work) > 0 && len(s.Start) > 0 && len(s.End) > 0 {
 		return true
 	} else {
@@ -57,7 +57,7 @@ func (s SelectionValues) AWPR() bool {
 }
 
 // AWP - author, work, and passage
-func (s SelectionValues) AWP() bool {
+func (s selectionvalues) AWP() bool {
 	if len(s.Auth) > 0 && len(s.Work) > 0 && len(s.Start) > 0 && len(s.End) == 0 {
 		return true
 	} else {
@@ -66,7 +66,7 @@ func (s SelectionValues) AWP() bool {
 }
 
 // AW - author, work, and not passage
-func (s SelectionValues) AW() bool {
+func (s selectionvalues) AW() bool {
 	if len(s.Auth) > 0 && len(s.Work) > 0 && len(s.Start) == 0 && len(s.End) == 0 {
 		return true
 	} else {
@@ -75,7 +75,7 @@ func (s SelectionValues) AW() bool {
 }
 
 // A - author, not work, and not passage
-func (s SelectionValues) A() bool {
+func (s selectionvalues) A() bool {
 	if len(s.Auth) > 0 && len(s.Work) == 0 && len(s.Start) == 0 && len(s.End) == 0 {
 		return true
 	} else {
@@ -92,7 +92,7 @@ func RtSelectionMake(c echo.Context) error {
 
 	user := vlt.ReadUUIDCookie(c)
 
-	var sel SelectionValues
+	var sel selectionvalues
 	sel.Auth = c.QueryParam("auth")
 	sel.Work = c.QueryParam("work")
 	sel.Start = c.QueryParam("locus")
@@ -268,7 +268,7 @@ func RtSelectionFetch(c echo.Context) error {
 }
 
 // registerselection - do the hard work of parsing a selection
-func registerselection(user string, sv SelectionValues) str.ServerSession {
+func registerselection(user string, sv selectionvalues) str.ServerSession {
 	// have to deal with all sorts of possibilities
 	// [a] author: "GET /selection/make/_?auth=gr7000 HTTP/1.1"
 	// [b] work: "GET /selection/make/_?auth=lt0474&work=001 HTTP/1.1"
@@ -397,7 +397,7 @@ func registerselection(user string, sv SelectionValues) str.ServerSession {
 }
 
 // rationalizeselections - make sure that A, B, C, ... make sense as a collection of selections
-func rationalizeselections(original str.ServerSession, sv SelectionValues) str.ServerSession {
+func rationalizeselections(original str.ServerSession, sv selectionvalues) str.ServerSession {
 	// if you select "book 2" after selecting the whole, select only book 2
 	// if you select the whole after book 2, then the whole
 	// etc...
@@ -775,7 +775,7 @@ func reportcurrentselections(c echo.Context) SelectionData {
 		"psg":  {"Passages", "ListedPBN"},
 	}
 
-	var jsinfo []JSData
+	var jsinfo []jsdata
 
 	var sd SelectionData
 
@@ -818,11 +818,11 @@ func reportcurrentselections(c echo.Context) SelectionData {
 					if swap[idx] == SL {
 						a := fmt.Sprintf(JSIN, ct, md)
 						b := fmt.Sprintf(JSINU, ct, md)
-						jsinfo = append(jsinfo, JSData{a, b})
+						jsinfo = append(jsinfo, jsdata{a, b})
 					} else {
 						a := fmt.Sprintf(JSEX, ct, md)
 						b := fmt.Sprintf(JSEXU, ct, md)
-						jsinfo = append(jsinfo, JSData{a, b})
+						jsinfo = append(jsinfo, jsdata{a, b})
 					}
 				}
 			}
@@ -850,7 +850,7 @@ func reportcurrentselections(c echo.Context) SelectionData {
 }
 
 // formatnewselectionjs - prepare the JS that the client needs in order to report the current selections
-func formatnewselectionjs(jsinfo []JSData) string {
+func formatnewselectionjs(jsinfo []jsdata) string {
 	const (
 		JSFNC = `
 		$( '#%s' ).dblclick(function() {

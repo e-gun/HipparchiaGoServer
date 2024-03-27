@@ -11,10 +11,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-var (
-	Upgrader = websocket.Upgrader{}
-)
-
 //
 // THE ROUTE
 //
@@ -23,6 +19,10 @@ var (
 func RtWebsocket(c echo.Context) error {
 	const (
 		FAILCON = "RtWebsocket(): ws connection failed"
+	)
+
+	var (
+		Upgrader = websocket.Upgrader{}
 	)
 
 	user := vlt.ReadUUIDCookie(c)

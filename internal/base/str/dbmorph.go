@@ -7,6 +7,19 @@ package str
 
 import "strings"
 
+// hipparchiaDB=# \d greek_morphology
+//                           Table "public.greek_morphology"
+//          Column           |          Type          | Collation | Nullable | Default
+//---------------------------+------------------------+-----------+----------+---------
+// observed_form             | character varying(64)  |           |          |
+// xrefs                     | character varying(128) |           |          |
+// prefixrefs                | character varying(128) |           |          |
+// possible_dictionary_forms | jsonb                  |           |          |
+// related_headwords         | character varying(256) |           |          |
+//Indexes:
+//    "greek_analysis_trgm_idx" gin (related_headwords gin_trgm_ops)
+//    "greek_morphology_idx" btree (observed_form)
+
 type DbMorphology struct {
 	Observed    string
 	Xrefs       string

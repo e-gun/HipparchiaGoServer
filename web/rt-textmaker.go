@@ -19,10 +19,6 @@ import (
 	"strings"
 )
 
-//
-// ROUTES
-//
-
 // RtTextMaker - make a text of whatever collection of lines you would be searching
 func RtTextMaker(c echo.Context) error {
 	c.Response().After(func() { Msg.LogPaths("RtTextMaker()") })
