@@ -132,69 +132,7 @@ func RtMorphchart(c echo.Context) error {
 
 	// [c2] query the database
 
-	// pgsql single quote escape: quote followed by a single quote to be escaped: κρυφθεῖϲ''
-	// but they will in fact be stored less the apostrophe...
-
-	//var esc []string
-	//for _, w := range ww {
-	//	esc = append(esc, strings.Replace(w, "'", "", -1))
-	//}
-	//arr := fmt.Sprintf("'%s'", strings.Join(esc, "', '"))
-
-	// hipparchiaDB=# CREATE TEMPORARY TABLE ttw AS
-	//    SELECT values AS wordforms FROM
-	//      unnest(ARRAY['κόραϲ', 'κόραι', 'κῶραι', 'κούρῃϲιν', 'κούραϲ', 'κούραιϲιν', 'κόραν', 'κώρα', 'κόραιϲιν', 'κόραιϲι', 'κόρα', 'κόρᾳϲ'])
-	//    values;
-	//
-	//SELECT entry_name, total_count FROM wordcounts_κ WHERE EXISTS (
-	//  (SELECT 1 FROM ttw temptable WHERE temptable.wordforms = wordcounts_κ.entry_name )
-	//);
-	//SELECT 12
-	// entry_name | total_count
-	//------------+-------------
-	// κόραν      |          59
-	// κούραιϲιν  |           1
-	// κῶραι      |           4
-	// κόρᾳϲ      |           1
-	// κούρῃϲιν   |           9
-	// κόραι      |         363
-	// κόραϲ      |         668
-	// κόραιϲιν   |           2
-	// κόραιϲι    |           8
-	// κούραϲ     |          89
-	// κόρα       |          72
-	// κώρα       |           9
-	//(12 rows)
-
-	//wcc := make(map[string]DbWordCount)
-	//var wc DbWordCount
-	//
-	//each := []any{&wc.Word, &wc.Total}
-	//
-	//rfnc = func() error {
-	//	wcc[wc.Word] = wc
-	//	return nil
-	//}
-	//
-	//for l := range lett {
-	//	if []rune(l)[0] == 0 {
-	//		continue
-	//	}
-	//
-	//	rnd := strings.Replace(uuid.New().String(), "-", "", -1)
-	//	_, ee := dbconn.Exec(context.Background(), fmt.Sprintf(TTT, rnd, arr))
-	//	Msg.EC(ee)
-	//
-	//	q := fmt.Sprintf(WCQT, l, rnd, l)
-	//	rr, ee := dbconn.Query(context.Background(), q)
-	//	Msg.EC(ee)
-	//
-	//	// you just found »ἥρμοττ« which gives you »ἥρμοττ'«: see below for where this becomes an issue
-	//	_, er := pgx.ForEachRow(rr, each, rfnc)
-	//	Msg.EC(er)
-	//}
-
-	wcc := db.GetWordCounts(words)
+	wcc := db.GetMultipleWordCounts(words)
 
 	// [d] extract parsing info for all forms
 

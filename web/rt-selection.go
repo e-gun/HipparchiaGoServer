@@ -6,7 +6,6 @@
 package web
 
 import (
-	"context"
 	"crypto/md5"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
@@ -16,7 +15,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"reflect"
@@ -690,13 +688,13 @@ func workvalueofpassage(psg string) string {
 
 // findendpointsfromlocus - given a locus, what index values correspond to the start and end of that text segment?
 func findendpointsfromlocus(wuid string, locus string, sep string) [2]int {
-	// we are wrapping endpointer() to give us a couple of bites at perseus citaiton problems
+	// we are wrapping locusendpointer() to give us a couple of bites at perseus citaiton problems
 
 	const (
-		MSG = "findendpointsfromlocus() retrying endpointer(): '%s' --> '%s'"
+		MSG = "findendpointsfromlocus() retrying locusendpointer(): '%s' --> '%s'"
 	)
 
-	fl, success := endpointer(wuid, locus, sep)
+	fl, success := locusendpointer(wuid, locus, sep)
 	if success || sep != ":" {
 		return fl
 	}
@@ -704,12 +702,12 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int {
 	dc := regexp.MustCompile("(\\d+)([a-f])$")
 	if dc.MatchString(locus) {
 		// plato, et al
-		// [HGS] endpointer() failed to find the following inside of gr0059w030: '407e'
-		// [HGS] findendpointsfromlocus() retrying endpointer(): '407e' --> '407:e'
+		// [HGS] locusendpointer() failed to find the following inside of gr0059w030: '407e'
+		// [HGS] findendpointsfromlocus() retrying locusendpointer(): '407e' --> '407:e'
 		r := fmt.Sprintf("$1%s$2", sep)
 		newlocus := dc.ReplaceAllString(locus, r)
 		Msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
-		fl, success = endpointer(wuid, newlocus, sep)
+		fl, success = locusendpointer(wuid, newlocus, sep)
 	} else {
 		// cicero, et.al
 		// [a] [HGS] findendpointsfromlocus() failed to find the following inside of lt0474w049: 4:8:18
@@ -719,86 +717,15 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int {
 		if len(ll) > 2 {
 			newlocus := strings.Join(gen.RemoveIndex(ll, 1), ":")
 			Msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
-			fl, success = endpointer(wuid, newlocus, sep)
+			fl, success = locusendpointer(wuid, newlocus, sep)
 		} else if len(ll) == 2 {
 			newlocus := strings.Join(gen.RemoveIndex(ll, 0), ":")
 			Msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
-			fl, success = endpointer(wuid, newlocus, sep)
+			fl, success = locusendpointer(wuid, newlocus, sep)
 		}
 	}
 
 	return fl
-}
-
-// endpinter - given a locus, what index values correspond to the start and end of that text segment?
-func endpointer(wuid string, locus string, sep string) ([2]int, bool) {
-	// mm(fmt.Sprintf("wuid: '%s'; locus: '%s'; sep: '%s'", wuid, locus, sep), 1)
-	// [HGS] wuid: 'lt0474w049'; locus: '3|14|_0'; sep: '|'
-	// [HGS] wuid: 'lt0474w049'; locus: '4:8:18'; sep: ':'
-
-	const (
-		QTMP = `SELECT index FROM %s WHERE wkuniversalid='%s' AND %s ORDER BY index ASC`
-		FAIL = "endpointer() failed to find the following inside of %s: '%s'"
-		WNFD = "endpointer() failed to find a work: %s"
-	)
-
-	fl := [2]int{0, 0}
-	success := false
-
-	// dictionary click inside 'τάλαντον' at end of first segment: "...δίκαϲ ῥέπει τάλαντον Bacchylides 17.25."
-	// error 500: /browse/perseus/gr0199/002/17:25
-	// but there is no work 002; the numbers start at 010
-
-	wk := validateworkselection(wuid)
-	if wk.UID == "work_not_found" {
-		Msg.FYI(fmt.Sprintf(WNFD, wuid))
-		return fl, false
-	}
-
-	wl := wk.CountLevels()
-	ll := strings.Split(locus, sep)
-	if len(ll) > wl {
-		ll = ll[0:wl]
-	}
-
-	if len(ll) == 0 || ll[0] == "_0" {
-		fl = [2]int{wk.FirstLine, wk.LastLine}
-		return fl, true
-	}
-
-	if ll[len(ll)-1] == "_0" {
-		ll = ll[0 : len(ll)-1]
-	}
-
-	col := []string{"level_00_value", "level_01_value", "level_02_value", "level_03_value", "level_04_value", "level_05_value"}
-	tem := `%s='%s'`
-	var use []string
-	for i, l := range ll {
-		s := fmt.Sprintf(tem, col[wl-i-1], l)
-		use = append(use, s)
-	}
-
-	tb := wk.AuID()
-
-	a := strings.Join(use, " AND ")
-	q := fmt.Sprintf(QTMP, tb, wuid, a)
-
-	foundrows, err := db.SQLPool.Query(context.Background(), q)
-	Msg.EC(err)
-
-	idx, err := pgx.CollectRows(foundrows, pgx.RowTo[int])
-	Msg.EC(err)
-
-	if len(idx) == 0 {
-		// bogus input
-		Msg.PEEK(fmt.Sprintf(FAIL, wuid, locus))
-		fl = [2]int{1, 1}
-	} else {
-		fl = [2]int{idx[0], idx[len(idx)-1]}
-		success = true
-	}
-
-	return fl, success
 }
 
 // SelectionData - JS output struct
@@ -947,6 +874,31 @@ func formatnewselectionjs(jsinfo []JSData) string {
 
 	script := fmt.Sprintf(SCR, strings.Join(info, ""))
 	return script
+}
+
+// locusendpointer - given a locus, what index values correspond to the start and end of that text segment?
+func locusendpointer(wuid string, locus string, sep string) ([2]int, bool) {
+	// mm(fmt.Sprintf("wuid: '%s'; locus: '%s'; sep: '%s'", wuid, locus, sep), 1)
+	// [HGS] wuid: 'lt0474w049'; locus: '3|14|_0'; sep: '|'
+	// [HGS] wuid: 'lt0474w049'; locus: '4:8:18'; sep: ':'
+
+	const (
+		WNFD = "locusendpointer() failed to find a work: %s"
+	)
+
+	// dictionary click inside 'τάλαντον' at end of first segment: "...δίκαϲ ῥέπει τάλαντον Bacchylides 17.25."
+	// error 500: /browse/perseus/gr0199/002/17:25
+	// but there is no work 002; the numbers start at 010
+
+	wk := validateworkselection(wuid)
+	if wk.UID == "work_not_found" {
+		Msg.FYI(fmt.Sprintf(WNFD, wuid))
+		return [2]int{0, 0}, false
+	}
+
+	// avoid importing `mps` into `db`: so made a check against the work map here; then we hand off valid data to `db`
+	fl, success := db.GetLocusEndpoints(wk, locus, sep)
+	return fl, success
 }
 
 // validateworkselection - what if you request a work that does not exist? return something...

@@ -49,7 +49,7 @@ func buildmontecarloparsemap(parsemap map[string]map[string]bool) map[string]hwg
 
 	// [b] generate scoremap and assign scores to each of the headwords
 
-	scoremap := db.FetchHeadwordCounts(allheadwords)
+	scoremap := db.MapHeadwordCounts(allheadwords)
 
 	// [c] note that there are capital words in the parsemap that need lowering
 
@@ -102,7 +102,7 @@ func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string
 
 	// [b] generate scoremap and assign scores to each of the headwords
 
-	scoremap := db.FetchHeadwordCounts(allheadwords)
+	scoremap := db.MapHeadwordCounts(allheadwords)
 
 	// [c] note that there are capital words in the parsemap that need lowering
 

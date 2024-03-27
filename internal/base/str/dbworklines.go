@@ -94,32 +94,10 @@ func (dbw *DbWorkline) AuID() string {
 	return dbw.WkUID[:LENGTHOFAUTHORID]
 }
 
-// Warning: circular import...
-// MyAu - get the DbAuthor for this line
-//func (dbw *DbWorkline) MyAu() *DbAuthor {
-//	a, ok := AllAuthors[dbw.AuID()]
-//	if !ok {
-//		Msg.WARN(fmt.Sprintf("DbWorkline.MyAu() failed to find '%s'", dbw.AuID()))
-//		a = &DbAuthor{}
-//	}
-//	return a
-//}
-
 // WkID - gr0001w001 --> 001
 func (dbw *DbWorkline) WkID() string {
 	return dbw.WkUID[LENGTHOFAUTHORID+1:]
 }
-
-// Warning: circular import...
-// MyWk - get the DbWork for this line
-//func (dbw *DbWorkline) MyWk() *DbWork {
-//	w, ok := AllWorks[dbw.WkUID]
-//	if !ok {
-//		Msg.WARN(fmt.Sprintf("MyAu() failed to find '%s'", dbw.AuID()))
-//		w = &DbWork{}
-//	}
-//	return w
-//}
 
 func (dbw *DbWorkline) FindCorpus() string {
 	// gr0001w001 --> gr
@@ -129,7 +107,7 @@ func (dbw *DbWorkline) FindCorpus() string {
 func (dbw *DbWorkline) BuildHyperlink() string {
 	if len(dbw.WkUID) == 0 {
 		// FormatWithContextResults() will trigger this
-		Msg.TMI("BuildHyperlink() on empty dbworkline")
+		// Msg.TMI("BuildHyperlink() on empty dbworkline")
 		return ""
 	}
 	return fmt.Sprintf(WKLNHYPERLNKTEMPL, dbw.AuID(), dbw.WkID(), dbw.TbIndex)

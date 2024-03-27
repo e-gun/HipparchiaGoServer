@@ -6,9 +6,11 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
+	"github.com/jackc/pgx/v5"
 	"sort"
 	"strings"
 )
@@ -106,4 +108,62 @@ func FindValidLevelValues(dbw str.DbWork, locc []string) str.LevelValues {
 	vals.Range = r
 
 	return vals
+}
+
+// GetLocusEndpoints - query db for index values correspond to the start and end of a text segment like "book 2"
+func GetLocusEndpoints(wk *str.DbWork, locus string, sep string) ([2]int, bool) {
+	// [HGS] wuid: 'lt0474w049'; locus: '3|14|_0'; sep: '|'
+	// [HGS] wuid: 'lt0474w049'; locus: '4:8:18'; sep: ':'
+
+	const (
+		QTMP = `SELECT index FROM %s WHERE wkuniversalid='%s' AND %s ORDER BY index ASC`
+		FAIL = "locusendpointer() failed to find the following inside of %s: '%s'"
+	)
+
+	fl := [2]int{0, 0}
+	success := false
+
+	wl := wk.CountLevels()
+	ll := strings.Split(locus, sep)
+	if len(ll) > wl {
+		ll = ll[0:wl]
+	}
+
+	if len(ll) == 0 || ll[0] == "_0" {
+		fl = [2]int{wk.FirstLine, wk.LastLine}
+		return fl, true
+	}
+
+	if ll[len(ll)-1] == "_0" {
+		ll = ll[0 : len(ll)-1]
+	}
+
+	col := []string{"level_00_value", "level_01_value", "level_02_value", "level_03_value", "level_04_value", "level_05_value"}
+	tem := `%s='%s'`
+	var use []string
+	for i, l := range ll {
+		s := fmt.Sprintf(tem, col[wl-i-1], l)
+		use = append(use, s)
+	}
+
+	tb := wk.AuID()
+
+	a := strings.Join(use, " AND ")
+	q := fmt.Sprintf(QTMP, tb, wk.UID, a)
+
+	foundrows, err := SQLPool.Query(context.Background(), q)
+	Msg.EC(err)
+
+	idx, err := pgx.CollectRows(foundrows, pgx.RowTo[int])
+	Msg.EC(err)
+
+	if len(idx) == 0 {
+		// bogus input
+		Msg.PEEK(fmt.Sprintf(FAIL, wk.UID, locus))
+		fl = [2]int{1, 1}
+	} else {
+		fl = [2]int{idx[0], idx[len(idx)-1]}
+		success = true
+	}
+	return fl, success
 }

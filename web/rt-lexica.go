@@ -7,7 +7,6 @@ package web
 
 import (
 	"cmp"
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
@@ -17,7 +16,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
@@ -180,7 +178,7 @@ func RtLexId(c echo.Context) error {
 	d := gen.Purgechars(lnch.Config.BadChars, elem[0])
 	w := gen.Purgechars(lnch.Config.BadChars, elem[1])
 
-	f := dictgrabber(w, d, "id_number", "=")
+	f := db.DictEntryGrabber(w, d, "id_number", "=")
 	if len(f) == 0 {
 		Msg.WARN(fmt.Sprintf(FAIL2, w))
 		return emptyjsreturn(c)
@@ -260,10 +258,10 @@ func findbyform(word string, author string) string {
 	}
 
 	// [a] search for morphology matches
-	thesefinds := getmorphmatch(strings.ToLower(word), d)
+	thesefinds := db.GetMorphMatch(strings.ToLower(word), d)
 	if len(thesefinds) == 0 {
 		// Νέαιρα can be found, νέαιρα can't
-		thesefinds = getmorphmatch(word, d)
+		thesefinds = db.GetMorphMatch(word, d)
 	}
 
 	if len(thesefinds) == 0 {
@@ -276,21 +274,11 @@ func findbyform(word string, author string) string {
 
 	// [c] take the []MorphPossib and find the set of headwords we are interested in; store this in a []dblexicon
 
-	lexicalfinds := morphpossibintolexpossib(d, mpp)
+	lexicalfinds := db.MorphPossibIntoLexPossib(d, mpp)
 
 	// [d] generate and format the prevalence data for this form: cf formatprevalencedata() in lexicalformatting.py
 
-	// golang hates indexing unicode strings: strings are bytes, and unicode chars take more than one byte
-	c := []rune(word)
-	q := fmt.Sprintf(PSQQ, FLDS, gen.StripaccentsSTR(string(c[0])), word)
-
-	var wc str.DbWordCount
-	ct := db.SQLPool.QueryRow(context.Background(), q)
-	e := ct.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
-	if e != nil {
-		Msg.FYI(fmt.Sprintf(NOTH, word))
-	}
-
+	wc := db.GetIndividualWordCount(word)
 	label := wc.Word
 	allformpd := formatprevalencedata(wc, label)
 
@@ -332,14 +320,14 @@ func reversefind(word string, dicts []string) string {
 	var lexicalfinds []str.DbLexicon
 	// [a] look for the words
 	for _, d := range dicts {
-		ff := dictgrabber(word, d, "translations", "~")
+		ff := db.DictEntryGrabber(word, d, "translations", "~")
 		lexicalfinds = append(lexicalfinds, ff...)
 	}
 
 	// [b] the counts for the finds
 	countmap := make(map[float32]str.DbHeadwordCount)
 	for _, f := range lexicalfinds {
-		ct := db.GetHeadwordWordCount(f.Word)
+		ct := db.GetIndividualHeadwordCount(f.Word)
 		if ct.Entry == "" {
 			ct.Entry = f.Word
 		}
@@ -397,7 +385,7 @@ func dictsearch(seeking string, dict string) string {
 		SYNTAX    = "~*"
 	)
 
-	lexicalfinds := dictgrabber(seeking, dict, COLUMN, SYNTAX)
+	lexicalfinds := db.DictEntryGrabber(seeking, dict, COLUMN, SYNTAX)
 
 	htmlmap := paralleldictformatter(lexicalfinds)
 
@@ -416,7 +404,7 @@ func dictsearch(seeking string, dict string) string {
 
 	countmap := make(map[float32]str.DbHeadwordCount)
 	for _, f := range lexicalfinds {
-		ct := db.GetHeadwordWordCount(f.Word)
+		ct := db.GetIndividualHeadwordCount(f.Word)
 		if ct.Entry == "" {
 			ct.Entry = f.Word
 		}
@@ -447,58 +435,6 @@ func dictsearch(seeking string, dict string) string {
 	}
 
 	return html
-}
-
-// dictgrabber - search postgres tables and return []DbLexicon
-func dictgrabber(seeking string, dict string, col string, syntax string) []str.DbLexicon {
-	const (
-		FLDS = `entry_name, metrical_entry, id_number, pos, translations, html_body`
-		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s %s '%s' ORDER BY id_number ASC LIMIT %d`
-	)
-
-	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
-	q := fmt.Sprintf(PSQQ, FLDS, dict, col, syntax, seeking, vv.MAXDICTLOOKUP)
-
-	var lexicalfinds []str.DbLexicon
-	var thehit str.DbLexicon
-	dedup := make(map[float32]bool)
-
-	foreach := []any{&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry}
-	rwfnc := func() error {
-		thehit.SetLang(dict)
-		if _, dup := dedup[thehit.ID]; !dup {
-			// use ID and not Lex because καρπόϲ.53442 is not καρπόϲ.53443
-			dedup[thehit.ID] = true
-			lexicalfinds = append(lexicalfinds, thehit)
-		}
-		return nil
-	}
-
-	foundrows, err := db.SQLPool.Query(context.Background(), q)
-	Msg.EC(err)
-
-	_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
-	Msg.EC(e)
-
-	return lexicalfinds
-}
-
-// getmorphmatch - word into []DbMorphology
-func getmorphmatch(word string, lang string) []str.DbMorphology {
-	const (
-		FLDS = `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
-		PSQQ = "SELECT %s FROM %s_morphology WHERE observed_form = '%s'"
-	)
-
-	psq := fmt.Sprintf(PSQQ, FLDS, lang, word)
-
-	foundrows, err := db.SQLPool.Query(context.Background(), psq)
-	Msg.EC(err)
-
-	thesefinds, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[str.DbMorphology])
-	Msg.EC(err)
-
-	return thesefinds
 }
 
 // dbmorphintomorphpossib - from []DbMorphology yield up []MorphPossib
@@ -538,56 +474,6 @@ func extractmorphpossibilities(raw string) []str.MorphPossib {
 		mpp[i].Headwd = clean.Replace(mpp[i].Headwd)
 	}
 	return mpp
-}
-
-// morphpossibintolexpossib - []MorphPossib into []DbLexicon
-func morphpossibintolexpossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
-	const (
-		FLDS = `entry_name, metrical_entry, id_number, pos, translations, html_body`
-		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴|1|2)$' ORDER BY id_number ASC`
-		COLM = "entry_name"
-	)
-	var hwm []string
-	for _, p := range mpp {
-		if strings.TrimSpace(p.Headwd) != "" {
-			hwm = append(hwm, p.Headwd)
-		}
-	}
-
-	// the next is primed to produce problems: see καρποῦ which will turn καρπόϲ1 and καρπόϲ2 into just καρπόϲ; need xref_value?
-	// but we have probably taken care of this below: see the comments
-	hwm = gen.Unique(hwm)
-
-	// [d] get the wordobjects for each Unique headword: probedictionary()
-
-	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
-
-	var lexicalfinds []str.DbLexicon
-	var thehit str.DbLexicon
-	dedup := make(map[float32]bool)
-
-	foreach := []any{&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry}
-
-	rwfnc := func() error {
-		thehit.SetLang(d)
-		if _, dup := dedup[thehit.ID]; !dup {
-			// use ID and not Lex because καρπόϲ.53442 is not καρπόϲ.53443
-			dedup[thehit.ID] = true
-			lexicalfinds = append(lexicalfinds, thehit)
-		}
-		return nil
-	}
-
-	for _, w := range hwm {
-		q := fmt.Sprintf(PSQQ, FLDS, d, COLM, w)
-		foundrows, err := db.SQLPool.Query(context.Background(), q)
-		Msg.EC(err)
-
-		_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
-		Msg.EC(e)
-
-	}
-	return lexicalfinds
 }
 
 //
@@ -808,9 +694,6 @@ func formatlexicaloutput(w str.DbLexicon) string {
 			</tr>
 			</tbody>
 		</table>`
-
-		PROXENTRYQUERY = `SELECT entry_name, id_number from %s_dictionary WHERE id_number %s %.0f ORDER BY id_number %s LIMIT 1`
-		NOTH           = `formatlexicaloutput() found no entry %s '%s'`
 	)
 
 	var elem []string
@@ -826,7 +709,7 @@ func formatlexicaloutput(w str.DbLexicon) string {
 
 	// [h1a] known forms in use
 
-	hwc := db.GetHeadwordWordCount(w.Word)
+	hwc := db.GetIndividualHeadwordCount(w.Word)
 	elem = append(elem, fmt.Sprintf(FRQSUM, hwc.FrqCla))
 
 	lw := gen.UVσςϲ(w.Word) // otherwise "venio" will hit AllLemm instead of "uenio"
@@ -855,20 +738,8 @@ func formatlexicaloutput(w str.DbLexicon) string {
 
 	// [h5] previous & next entry
 
-	// todo: push all db interaction into 'search'
-	var prev str.DbLexicon
-	p := db.SQLPool.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.GetLang(), "<", w.ID, "DESC"))
-	e := p.Scan(&prev.Entry, &prev.ID)
-	if e != nil {
-		Msg.FYI(fmt.Sprintf(NOTH, "before", w.Entry))
-	}
-
-	var nxt str.DbLexicon
-	n := db.SQLPool.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.GetLang(), ">", w.ID, "ASC"))
-	e = n.Scan(&nxt.Entry, &nxt.ID)
-	if e != nil {
-		Msg.FYI(fmt.Sprintf(NOTH, "after", w.Entry))
-	}
+	prev := db.FindProximateEntry(w, "prev")
+	nxt := db.FindProximateEntry(w, "next")
 
 	pn := fmt.Sprintf(NAVTABLE, prev.ID, w.GetLang(), prev.Entry, nxt.ID, w.GetLang(), nxt.Entry)
 	elem = append(elem, pn)

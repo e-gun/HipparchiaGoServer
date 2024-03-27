@@ -160,15 +160,15 @@ self-test with vectors can be deceptive because `-wc` flag will not override con
 
 ```
 cloc --exclude-dir=z --not-match-f="^jq*" .
-     163 text files.
-     147 unique files.                                          
+     164 text files.
+     148 unique files.                                          
      190 files ignored.
 
-github.com/AlDanial/cloc v 2.00  T=0.10 s (1453.6 files/s, 297460.7 lines/s)
+github.com/AlDanial/cloc v 2.00  T=0.12 s (1270.0 files/s, 257706.0 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                              94           3112           3590          14245
+Go                              95           3113           3524          14277
 JavaScript                       8            310            193           1595
 CSS                              1            349             89           1567
 HTML                            12            160             18           1532
@@ -176,11 +176,10 @@ Markdown                        11            452              0           1198
 Text                             5             90              0            412
 SVG                              1              1              1            392
 JSON                             9              0              0            386
-XML                              4              0              0            288
+XML                              4              0              0            272
 Bourne Shell                     1             13              7             63
 Python                           1              5              6              7
 -------------------------------------------------------------------------------
-SUM:                           147           4492           3904          21685
+SUM:                           148           4493           3838          21701
 -------------------------------------------------------------------------------
-
 ```

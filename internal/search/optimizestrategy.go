@@ -63,8 +63,8 @@ func PickFastestLemma(s *str.SearchStruct) {
 		NOTE2 = "PickFastestLemma() is NOT swapping %s for %s: possible hits %d vs %d; known forms %d vs %d"
 	)
 
-	hw1 := db.GetHeadwordWordCount(s.LemmaOne)
-	hw2 := db.GetHeadwordWordCount(s.LemmaTwo)
+	hw1 := db.GetIndividualHeadwordCount(s.LemmaOne)
+	hw2 := db.GetIndividualHeadwordCount(s.LemmaTwo)
 
 	// how many forms to look up?
 

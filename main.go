@@ -13,7 +13,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/debug"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
-	src "github.com/e-gun/HipparchiaGoServer/internal/search"
+	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vec"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -94,7 +94,7 @@ func main() {
 	msg.ResetScreen()
 
 	// need to update all the message makers out there now that Config is set
-	mkr := []*mm.MessageMaker{db.Msg, debug.Msg, lnch.Msg, mps.Msg, src.Msg, str.Msg, vec.Msg, vlt.Msg, web.Msg}
+	mkr := []*mm.MessageMaker{db.Msg, debug.Msg, lnch.Msg, mps.Msg, search.Msg, str.Msg, vec.Msg, vlt.Msg, web.Msg}
 	// need to keep these in the right order otherwise the coming loop will misassociate items...
 	suff := []string{"-DBI", "-DBG", "-LNC", "-MPS", "-SEA", "-STR", "-VEC", "-VLT", "-WEB"}
 	for i := range mkr {
