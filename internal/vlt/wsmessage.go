@@ -21,7 +21,12 @@ var Msg = lnch.NewMessageMakerWithDefaults()
 // WEBSOCKET INFRASTRUCTURE: see https://tutorialedge.net/projects/chat-system-in-go-and-react/part-4-handling-multiple-clients/
 //
 
-type PollData struct {
+type WSClient struct {
+	ID   string
+	Conn *websocket.Conn
+	Pool *wspool
+}
+type polldata struct {
 	TotalWrk  int    `json:"Poolofwork"`
 	Remain    int    `json:"Remaining"`
 	Hits      int    `json:"Hitcount"`
@@ -33,21 +38,15 @@ type PollData struct {
 	SType     string
 }
 
-type WSClient struct {
-	ID   string
-	Conn *websocket.Conn
-	Pool *WSPool
-}
-
-type WSPool struct {
+type wspool struct {
 	Add       chan *WSClient
 	Remove    chan *WSClient
 	ClientMap map[*WSClient]bool
-	JSO       chan *WSJSOut
+	JSO       chan *wsjsout
 	ReadID    chan string
 }
 
-type WSJSOut struct {
+type wsjsout struct {
 	V     string `json:"value"`
 	ID    string `json:"ID"`
 	Close string `json:"close"`
@@ -116,7 +115,7 @@ func (c *WSClient) WSMessageLoop() {
 
 	si := getsrchinfo()
 
-	var pd PollData
+	var pd polldata
 	pd.SType = si.SType
 
 	// loop until search finishes
@@ -139,7 +138,7 @@ func (c *WSClient) WSMessageLoop() {
 			pd.Extra = fmt.Sprintf(VECAPPEND, srchinfo.VProgStrg)
 		}
 
-		jso := &WSJSOut{
+		jso := &wsjsout{
 			V:     formatpoll(pd),
 			ID:    c.ID,
 			Close: "open",
@@ -151,14 +150,14 @@ func (c *WSClient) WSMessageLoop() {
 	WebsocketPool.Remove <- c
 }
 
-// WSPoolStartListening - the WSPool will listen for activity on its various channels (only called once at app vv)
-func (pool *WSPool) WSPoolStartListening() {
+// WSPoolStartListening - the wspool will listen for activity on its various channels (only called once at app vv)
+func (pool *wspool) WSPoolStartListening() {
 	const (
 		MSG1 = "Starting polling loop for %s"
-		MSG2 = "WSPool client failed on WriteMessage()"
+		MSG2 = "wspool client failed on WriteMessage()"
 	)
 
-	writemsg := func(jso *WSJSOut) {
+	writemsg := func(jso *wsjsout) {
 		for cl := range pool.ClientMap {
 			if cl.ID == jso.ID {
 				js, y := json.Marshal(jso)
@@ -186,19 +185,19 @@ func (pool *WSPool) WSPoolStartListening() {
 	}
 }
 
-// WSFillNewPool - build a new WSPool (one and only one built at app startup)
-func WSFillNewPool() *WSPool {
-	return &WSPool{
+// WSFillNewPool - build a new wspool (one and only one built at app startup)
+func WSFillNewPool() *wspool {
+	return &wspool{
 		Add:       make(chan *WSClient),
 		Remove:    make(chan *WSClient),
 		ClientMap: make(map[*WSClient]bool),
-		JSO:       make(chan *WSJSOut),
+		JSO:       make(chan *wsjsout),
 		ReadID:    make(chan string),
 	}
 }
 
 // formatpoll - build HTML to send to the JS on the other side
-func formatpoll(pd PollData) string {
+func formatpoll(pd polldata) string {
 	// example:
 	// Seeking <span class="sought">»μελιϲϲα«</span>: <span class="progress">31%</span> completed&nbsp;(0.3s)<br>
 	// (<span class="progress">199</span> found)<br>

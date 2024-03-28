@@ -65,7 +65,7 @@ import (
 //	Processes: runtime.GOMAXPROCS(0),
 //}
 
-type BagWithLocus struct {
+type bagwithlocus struct {
 	Loc         string
 	Bag         string
 	ModifiedBag string
@@ -73,11 +73,11 @@ type BagWithLocus struct {
 	Workline    str.DbWorkline
 }
 
-func (b *BagWithLocus) GetWL() {
+func (b *bagwithlocus) GetWL() {
 	tb := strings.Split(b.Loc, "/")
 	ln, e := strconv.Atoi(tb[2])
 	if e != nil {
-		Msg.NOTE("BagWithLocus.GetWL() failed to convert ascii to int")
+		Msg.NOTE("bagwithlocus.GetWL() failed to convert ascii to int")
 	}
 	b.Workline = db.GrabOneLine(tb[1][0:vv.LENGTHOFAUTHORID], ln)
 }
@@ -164,7 +164,7 @@ func LDASearch(c echo.Context, srch str.SearchStruct) error {
 }
 
 // ldapreptext - prepare the WorkLineBundle of a SearchStruct for lda analysis
-func ldapreptext(bagger string, vs *str.SearchStruct) []BagWithLocus {
+func ldapreptext(bagger string, vs *str.SearchStruct) []bagwithlocus {
 
 	var sb strings.Builder
 	preallocate := vv.CHARSPERLINE * vs.Results.Len() // NB: a long line has 60 chars
@@ -204,7 +204,7 @@ func ldapreptext(bagger string, vs *str.SearchStruct) []BagWithLocus {
 		}
 	}
 
-	var thebags []BagWithLocus
+	var thebags []bagwithlocus
 	var first string
 	var last string
 
@@ -226,7 +226,7 @@ func ldapreptext(bagger string, vs *str.SearchStruct) []BagWithLocus {
 		} else {
 			first = last
 		}
-		var sl BagWithLocus
+		var sl bagwithlocus
 		sl.Loc = first
 		sl.Bag = strings.TrimSpace(strings.ToLower(parcel))
 		sl.Bag = stripper(sl.Bag, []string{tagger, notachar})
@@ -250,7 +250,7 @@ func ldapreptext(bagger string, vs *str.SearchStruct) []BagWithLocus {
 	slicedwords := gen.StringMapKeysIntoSlice(allwords)
 	// catching resets
 	if lnch.Config.SelfTest == 0 && !lnch.Config.VectorBot && !vlt.AllSessions.IsInVault(vs.User) {
-		return []BagWithLocus{}
+		return []bagwithlocus{}
 	}
 
 	morphmapdbm := db.ArrayToGetRequiredMorphObjects(slicedwords) // map[string]DbMorphology
@@ -273,14 +273,14 @@ func ldapreptext(bagger string, vs *str.SearchStruct) []BagWithLocus {
 
 	// catching resets
 	if lnch.Config.SelfTest == 0 && !lnch.Config.VectorBot && !vlt.AllSessions.IsInVault(vs.User) {
-		return []BagWithLocus{}
+		return []bagwithlocus{}
 	}
 
 	return thebags
 }
 
 // ldaunmodifiedbagging - lda unmodified text bagger
-func ldaunmodifiedbagging(thebags []BagWithLocus) []BagWithLocus {
+func ldaunmodifiedbagging(thebags []bagwithlocus) []bagwithlocus {
 	for i := 0; i < len(thebags); i++ {
 		thebags[i].ModifiedBag = thebags[i].Bag
 	}
@@ -288,7 +288,7 @@ func ldaunmodifiedbagging(thebags []BagWithLocus) []BagWithLocus {
 }
 
 // ldayokedbagging - lda yoked headwords text bagger
-func ldayokedbagging(thebags []BagWithLocus, yokermap map[string]string) []BagWithLocus {
+func ldayokedbagging(thebags []bagwithlocus, yokermap map[string]string) []bagwithlocus {
 	stops := getstopset()
 	for i := 0; i < len(thebags); i++ {
 		var b strings.Builder
@@ -299,7 +299,7 @@ func ldayokedbagging(thebags []BagWithLocus, yokermap map[string]string) []BagWi
 }
 
 // ldawinnerbagging - lda winner takes all headwords text bagger
-func ldawinnerbagging(thebags []BagWithLocus, winnermap map[string]string) []BagWithLocus {
+func ldawinnerbagging(thebags []bagwithlocus, winnermap map[string]string) []bagwithlocus {
 	stops := getstopset()
 	for i := 0; i < len(thebags); i++ {
 		var b strings.Builder
@@ -315,7 +315,7 @@ func ldawinnerbagging(thebags []BagWithLocus, winnermap map[string]string) []Bag
 }
 
 // ldamontecarlobagging - lda monte carlo headwords text bagger
-func ldamontecarlobagging(thebags []BagWithLocus, montecarlo map[string]hwguesser) []BagWithLocus {
+func ldamontecarlobagging(thebags []bagwithlocus, montecarlo map[string]hwguesser) []bagwithlocus {
 	stops := getstopset()
 	for i := 0; i < len(thebags); i++ {
 		var b strings.Builder
@@ -368,7 +368,7 @@ func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser, s *s
 }
 
 // ldatopsentences - generate html table reporting sentences most associated with each topic
-func ldatopsentences(ntopics int, thebags []BagWithLocus, corpus []string, docsOverTopics mat.Matrix) string {
+func ldatopsentences(ntopics int, thebags []bagwithlocus, corpus []string, docsOverTopics mat.Matrix) string {
 	const (
 		NTH = 2
 
@@ -427,7 +427,7 @@ func ldatopsentences(ntopics int, thebags []BagWithLocus, corpus []string, docsO
 	}
 
 	// note that "i" is referring to the same item across slices; need this to be true...
-	winners := make([]BagWithLocus, ntopics)
+	winners := make([]bagwithlocus, ntopics)
 	for topic := 0; topic < rows; topic++ {
 		mx := float64(0)
 		winner := 0
@@ -638,7 +638,7 @@ func ldadocbyweight(ntopics int, docsOverTopics mat.Matrix) []float64 {
 // see https://pkg.go.dev/gonum.org/v1/gonum/mat@v0.12.0#pkg-index
 
 // ldaplot - plot the lda results
-func ldaplot(ctx context.Context, graph2d bool, ntopics int, incl string, bagger string, docsOverTopics mat.Matrix, bags []BagWithLocus) string {
+func ldaplot(ctx context.Context, graph2d bool, ntopics int, incl string, bagger string, docsOverTopics mat.Matrix, bags []bagwithlocus) string {
 	const (
 		PERPLEX = 150 // default 300
 		LEARNRT = 100 // default 100

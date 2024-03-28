@@ -12,7 +12,7 @@ import (
 	"slices"
 )
 
-// BuildSelectionOverview will call the relevant SearchIncExl functions: see buildesearchlist.go
+// BuildSelectionOverview will call the relevant SearchIncExl functions: see buildsearchlist.go
 func BuildSelectionOverview(s *str.ServerSession) {
 	BuildAuByName(&s.Inclusions)
 	BuildAuByName(&s.Exclusions)

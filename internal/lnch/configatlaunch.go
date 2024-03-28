@@ -70,7 +70,7 @@ func ConfigAtLaunch() {
 		FAIL8 = "Cannot find current working directory"
 	)
 
-	Config = BuildDefaultConfig()
+	Config = builddefaultconfig()
 
 	uh, _ := os.UserHomeDir()
 	h := fmt.Sprintf(vv.CONFIGALTAPTH, uh)
@@ -206,7 +206,7 @@ func ConfigAtLaunch() {
 		case "-pc":
 			Config.ProfileCPU = true
 		case "-pd":
-			CopyInstructions()
+			copyinstructions()
 		case "-pg":
 			js := args[i+1]
 			var pl str.PostgresLogin
@@ -256,7 +256,7 @@ func ConfigAtLaunch() {
 	}
 	Msg.TMI(fmt.Sprintf("'%s%s'%s loaded", h, vv.CONFIGPROLIX, y))
 
-	SetConfigPass(&confc, cf)
+	setconfigpass(&confc, cf)
 
 	if Config.VectorMaxlines == 0 {
 		Config.VectorMaxlines = vv.VECTORMAXLINES
@@ -268,8 +268,8 @@ func ConfigAtLaunch() {
 	}
 }
 
-// BuildDefaultConfig - return a CurrentConfiguration filled out with various default values
-func BuildDefaultConfig() *str.CurrentConfiguration {
+// builddefaultconfig - return a CurrentConfiguration filled out with various default values
+func builddefaultconfig() *str.CurrentConfiguration {
 	var c str.CurrentConfiguration
 	c.Authenticate = false
 	c.BadChars = vv.UNACCEPTABLEINPUT
@@ -310,7 +310,7 @@ func BuildDefaultConfig() *str.CurrentConfiguration {
 	c.ZapLunates = false
 	e := json.Unmarshal([]byte(vv.DEFAULTCORPORA), &c.DefCorp)
 	if e != nil {
-		fmt.Println("BuildDefaultConfig() could not json.Unmarshal DEFAULTCORPORA: " + vv.DEFAULTCORPORA)
+		fmt.Println("builddefaultconfig() could not json.Unmarshal DEFAULTCORPORA: " + vv.DEFAULTCORPORA)
 	}
 
 	pl := str.PostgresLogin{
@@ -326,8 +326,8 @@ func BuildDefaultConfig() *str.CurrentConfiguration {
 	return &c
 }
 
-// SetConfigPass - make sure that Config.PGLogin.Pass != ""
-func SetConfigPass(cfg *str.CurrentConfiguration, cf string) {
+// setconfigpass - make sure that Config.PGLogin.Pass != ""
+func setconfigpass(cfg *str.CurrentConfiguration, cf string) {
 	const (
 		FAIL3     = "FAILED to load database credentials from any of '%s', '%s' or '%s'"
 		FAIL4     = "At a minimum be sure that a 'hgs-vv.json' file exists and that it has the following format:"
@@ -404,8 +404,8 @@ func SetConfigPass(cfg *str.CurrentConfiguration, cf string) {
 	}
 }
 
-// CopyInstructions - write the embedded PDF to the filesystem
-func CopyInstructions() {
+// copyinstructions - write the embedded PDF to the filesystem
+func copyinstructions() {
 	const (
 		FYI  = "Writing instruction files to the current working directory."
 		MACI = "HGS_INSTALLATION_MacOS.pdf"
@@ -415,7 +415,7 @@ func CopyInstructions() {
 		SEMV = "HGS_SEMANTICVECTORS.pdf"
 		FYIF = "HGS_FYI.pdf"
 		BASF = "HGS_BASIC_USE.pdf"
-		FNF  = "CopyInstructions(): Embedded PDF not found. This function will now return."
+		FNF  = "copyinstructions(): Embedded PDF not found. This function will now return."
 	)
 
 	var f string

@@ -65,8 +65,6 @@ func RtMorphchart(c echo.Context) error {
 	}
 
 	const (
-		MFLD  = `observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords`
-		MQT   = `SELECT %s FROM %s_morphology WHERE xrefs ~ '%s' AND prefixrefs=''`
 		CTM   = `<verbform searchterm="%s">%s</verbform> (<span class="counter">%d</span>)`
 		TBTOP = `
 		<div class="center">
@@ -230,11 +228,11 @@ func RtMorphchart(c echo.Context) error {
 	// [e4] add markup and format the counts
 	pdxm := make(map[string]string)
 	for kk, pd := range pdcm {
-		var vv []string
+		var vcc []string
 		for k, v := range pd {
-			vv = append(vv, fmt.Sprintf(CTM, k, k, v))
+			vcc = append(vcc, fmt.Sprintf(CTM, k, k, v))
 		}
-		pdxm[kk] = strings.Join(vv, " / ")
+		pdxm[kk] = strings.Join(vcc, " / ")
 
 		// tense_mood_voice_pers_numb_dial
 		//aor_imperat_act_2nd_pl_attic: παραθλίψατε (1)

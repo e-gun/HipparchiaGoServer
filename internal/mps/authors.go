@@ -119,8 +119,8 @@ func sliceauthorcorpus(corpus string) []str.DbAuthor {
 	return authslice
 }
 
-// Buildaucorpusmap - populate global variable used by SessionIntoSearchlist()
-func Buildaucorpusmap() map[string][]string {
+// buildaucorpusmap - populate global variable used by SessionIntoSearchlist()
+func buildaucorpusmap() map[string][]string {
 	// SessionIntoSearchlist() could just grab a pre-rolled list instead of calculating every time...
 	aucorpusmap := make(map[string][]string)
 	for _, a := range AllAuthors {
@@ -133,8 +133,8 @@ func Buildaucorpusmap() map[string][]string {
 	return aucorpusmap
 }
 
-// Buildaugenresmap - populate global variable used by hinter
-func Buildaugenresmap() map[string]bool {
+// buildaugenresmap - populate global variable used by hinter
+func buildaugenresmap() map[string]bool {
 	genres := make(map[string]bool)
 	for _, a := range AllAuthors {
 		gg := strings.Split(a.Genres, ",")

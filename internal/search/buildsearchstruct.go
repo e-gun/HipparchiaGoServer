@@ -79,8 +79,8 @@ func BuildDefaultSearch(c echo.Context) str.SearchStruct {
 	s.IPAddr = c.RealIP()
 
 	CleanInput(&s)
-	s.SetType()         // must happen before SSBuildQueries()
-	OptimizeSrearch(&s) // maybe rewrite the search to make it faster
+	s.SetType()        // must happen before SSBuildQueries()
+	optimizesearch(&s) // maybe rewrite the search to make it faster
 	FormatInitialSummary(&s)
 
 	if s.Type == "vector" {

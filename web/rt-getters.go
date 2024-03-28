@@ -412,6 +412,14 @@ func RtGetJSSearchlist(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, j, vv.JSONINDENT)
 }
 
+// RtGetEmptyGet - to stave off 404s
+func RtGetEmptyGet(c echo.Context) error {
+	var j jsstruct
+	j.V = "[the request was empty; no data returned]"
+
+	return c.JSONPretty(http.StatusOK, j, vv.JSONINDENT)
+}
+
 func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
 	const (
 		PSGTEMPL = `%s, <span class="italic">%s</span> %s - %s [%d words]`
@@ -436,12 +444,4 @@ func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
 
 	ct := m.Sprintf(PSGTEMPL, mps.AllAuthors[au].Cleaname, mps.AllWorks[f.WkUID].Title, f.Citation(), l.Citation(), count)
 	return ct, count
-}
-
-// RtGetEmptyGet - to stave off 404s
-func RtGetEmptyGet(c echo.Context) error {
-	var j jsstruct
-	j.V = "[the request was empty; no data returned]"
-
-	return c.JSONPretty(http.StatusOK, j, vv.JSONINDENT)
 }

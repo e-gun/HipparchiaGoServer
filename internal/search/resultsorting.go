@@ -10,63 +10,6 @@ import (
 	"sort"
 )
 
-//
-// SORTING: https://pkg.go.dev/sort#example__sortMultiKeys
-//
-
-type WLLessFunc func(p1, p2 *str.DbWorkline) bool
-
-// WLMultiSorter implements the Sort interface, sorting the changes within.
-type WLMultiSorter struct {
-	changes []str.DbWorkline
-	less    []WLLessFunc
-}
-
-// Sort sorts the argument slice according to the less functions passed to WLOrderedBy.
-func (ms *WLMultiSorter) Sort(changes []str.DbWorkline) {
-	ms.changes = changes
-	sort.Sort(ms)
-}
-
-// WLOrderedBy returns a Sorter that sorts using the less functions, in order.
-// Call its Sort method to sort the data.
-func WLOrderedBy(less ...WLLessFunc) *WLMultiSorter {
-	return &WLMultiSorter{
-		less: less,
-	}
-}
-
-// Len is part of sort.Interface.
-func (ms *WLMultiSorter) Len() int {
-	return len(ms.changes)
-}
-
-// Swap is part of sort.Interface.
-func (ms *WLMultiSorter) Swap(i, j int) {
-	ms.changes[i], ms.changes[j] = ms.changes[j], ms.changes[i]
-}
-
-func (ms *WLMultiSorter) Less(i, j int) bool {
-	p, q := &ms.changes[i], &ms.changes[j]
-	// Try all but the last comparison.
-	var k int
-	for k = 0; k < len(ms.less)-1; k++ {
-		less := ms.less[k]
-		switch {
-		case less(p, q):
-			// p < q, so we have a decision.
-			return true
-		case less(q, p):
-			// p > q, so we have a decision.
-			return false
-		}
-		// p == q; try the next comparison.
-	}
-	// All comparisons to here said "equal", so just return whatever
-	// the final comparison reports.
-	return ms.less[k](p, q)
-}
-
 // SortResults - sort the search results by the session's registerselection criterion
 func SortResults(s *str.SearchStruct) {
 	// Closures that order the DbWorkline structure:
@@ -128,4 +71,61 @@ func SortResults(s *str.SearchStruct) {
 		// author nameIncreasing
 		WLOrderedBy(nameIncreasing, increasingLines).Sort(s.Results.Lines)
 	}
+}
+
+//
+// SORTING: https://pkg.go.dev/sort#example__sortMultiKeys
+//
+
+type wllessfunc func(p1, p2 *str.DbWorkline) bool
+
+// wlmultisorter implements the Sort interface, sorting the changes within.
+type wlmultisorter struct {
+	changes []str.DbWorkline
+	less    []wllessfunc
+}
+
+// Sort sorts the argument slice according to the less functions passed to WLOrderedBy.
+func (ms *wlmultisorter) Sort(changes []str.DbWorkline) {
+	ms.changes = changes
+	sort.Sort(ms)
+}
+
+// WLOrderedBy returns a Sorter that sorts using the less functions, in order.
+// Call its Sort method to sort the data.
+func WLOrderedBy(less ...wllessfunc) *wlmultisorter {
+	return &wlmultisorter{
+		less: less,
+	}
+}
+
+// Len is part of sort.Interface.
+func (ms *wlmultisorter) Len() int {
+	return len(ms.changes)
+}
+
+// Swap is part of sort.Interface.
+func (ms *wlmultisorter) Swap(i, j int) {
+	ms.changes[i], ms.changes[j] = ms.changes[j], ms.changes[i]
+}
+
+func (ms *wlmultisorter) Less(i, j int) bool {
+	p, q := &ms.changes[i], &ms.changes[j]
+	// Try all but the last comparison.
+	var k int
+	for k = 0; k < len(ms.less)-1; k++ {
+		less := ms.less[k]
+		switch {
+		case less(p, q):
+			// p < q, so we have a decision.
+			return true
+		case less(q, p):
+			// p > q, so we have a decision.
+			return false
+		}
+		// p == q; try the next comparison.
+	}
+	// All comparisons to here said "equal", so just return whatever
+	// the final comparison reports.
+	return ms.less[k](p, q)
 }

@@ -399,7 +399,7 @@ func getchartitemstyle(top int) opts.ItemStyle {
 	return is
 }
 
-func getdotcitation(idx int, bags []BagWithLocus) string {
+func getdotcitation(idx int, bags []bagwithlocus) string {
 	const (
 		NAMETMPL = "%s: %s"
 		SAMPSIZE = 9
@@ -420,7 +420,7 @@ func getdotcitation(idx int, bags []BagWithLocus) string {
 // LDA SCATTER GRAPHS
 //
 
-func lda2dscatter(ntopics int, incl string, bagger string, Y, labels mat.Matrix, bags []BagWithLocus) string {
+func lda2dscatter(ntopics int, incl string, bagger string, Y, labels mat.Matrix, bags []bagwithlocus) string {
 	const (
 		DOTSIZE  = 8
 		DOTSTYLE = "triangle"
@@ -484,7 +484,7 @@ func lda2dscatter(ntopics int, incl string, bagger string, Y, labels mat.Matrix,
 	return htmlandjs
 }
 
-func lda3dscatter(ntopics int, incl string, bagger string, Y, labels mat.Matrix, bags []BagWithLocus) string {
+func lda3dscatter(ntopics int, incl string, bagger string, Y, labels mat.Matrix, bags []bagwithlocus) string {
 	const (
 		TITLE    = "t-SNE scattergraph of %s"
 		SAVEFILE = "lda_tsne_3d_scattergraph"

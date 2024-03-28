@@ -26,8 +26,8 @@ var (
 // RePopulateGlobalMaps - full up WkCorpusMap, AuCorpusMap, ...
 func RePopulateGlobalMaps() {
 	WkCorpusMap = Buildwkcorpusmap()
-	AuCorpusMap = Buildaucorpusmap()
-	AuGenres = Buildaugenresmap()
+	AuCorpusMap = buildaucorpusmap()
+	AuGenres = buildaugenresmap()
 	WkGenres = Buildwkgenresmap()
 	AuLocs = Buildaulocationmap()
 	WkLocs = Buildwklocationmap()

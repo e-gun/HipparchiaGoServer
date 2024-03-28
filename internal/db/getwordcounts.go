@@ -24,7 +24,7 @@ func GetMultipleWordCounts(ww []string) map[string]str.DbWordCount {
 		CHARR = `abcdefghijklmnopqrstuvwxyzαβψδεφγηιξκλμνοπρτυωχθζϲ`
 	)
 
-	dbconn := GetDBConnection()
+	dbconn := getdbconnection()
 	defer dbconn.Release()
 
 	byfirstlett := make(map[string][]string)
@@ -145,7 +145,7 @@ func GetIndividualHeadwordCount(word string) str.DbHeadwordCount {
 		INFO = "headwordlookup() for '%s' returned %d finds"
 	)
 
-	dbconn := GetDBConnection()
+	dbconn := getdbconnection()
 	defer dbconn.Release()
 
 	q := fmt.Sprintf(QTP, word)
@@ -219,7 +219,7 @@ func MapHeadwordCounts(headwordset map[string]bool) map[string]int {
 
 	Msg.PEEK(fmt.Sprintf(MSG1, len(headwordset)))
 
-	dbconn := GetDBConnection()
+	dbconn := getdbconnection()
 	defer dbconn.Release()
 
 	arr := strings.Join(hw, "', '")

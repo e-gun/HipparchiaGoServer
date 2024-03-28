@@ -18,30 +18,6 @@ import (
 	"strings"
 )
 
-// VectorDBInitNN - initialize vv.VECTORTABLENAMENN
-func VectorDBInitNN() {
-	const (
-		CREATE = `
-			CREATE TABLE %s
-			(
-			  fingerprint character(32),
-			  vectorsize  int,
-			  vectordata  bytea
-			)`
-		EXISTS = "already exists"
-	)
-	ex := fmt.Sprintf(CREATE, vv.VECTORTABLENAMENN)
-	_, err := SQLPool.Exec(context.Background(), ex)
-	if err != nil {
-		m := err.Error()
-		if !strings.Contains(m, EXISTS) {
-			Msg.EC(err)
-		}
-	} else {
-		Msg.FYI("VectorDBInitNN(): success")
-	}
-}
-
 // VectorDBCheckNN - has a search with this fingerprint already been stored?
 func VectorDBCheckNN(fp string) bool {
 	const (
@@ -55,7 +31,7 @@ func VectorDBCheckNN(fp string) bool {
 	if err != nil {
 		m := err.Error()
 		if strings.Contains(m, DNE) {
-			VectorDBInitNN()
+			vectordbinitnn()
 		}
 		return false
 	}
@@ -187,7 +163,7 @@ func VectorDBReset() {
 	}
 }
 
-// VectorDBSizeNN - how much space is the vectordb using?
+// VectorDBSizeNN - how much space is the vectordb using? send to terminal
 func VectorDBSizeNN(priority int) {
 	const (
 		SZQ  = "SELECT SUM(vectorsize) AS total FROM " + vv.VECTORTABLENAMENN
@@ -200,6 +176,7 @@ func VectorDBSizeNN(priority int) {
 	Msg.Emit(fmt.Sprintf(MSG4, size/1024/1024), priority)
 }
 
+// VectorDBCountNN - how many authors vectorized? send to terminal
 func VectorDBCountNN(priority int) {
 	const (
 		SZQ  = "SELECT COUNT(vectorsize) AS total FROM " + vv.VECTORTABLENAMENN
@@ -212,9 +189,33 @@ func VectorDBCountNN(priority int) {
 	if err != nil {
 		m := err.Error()
 		if strings.Contains(m, DNE) {
-			VectorDBInitNN()
+			vectordbinitnn()
 		}
 		size = 0
 	}
 	Msg.Emit(fmt.Sprintf(MSG4, size), priority)
+}
+
+// vectordbinitnn - initialize vv.VECTORTABLENAMENN
+func vectordbinitnn() {
+	const (
+		CREATE = `
+			CREATE TABLE %s
+			(
+			  fingerprint character(32),
+			  vectorsize  int,
+			  vectordata  bytea
+			)`
+		EXISTS = "already exists"
+	)
+	ex := fmt.Sprintf(CREATE, vv.VECTORTABLENAMENN)
+	_, err := SQLPool.Exec(context.Background(), ex)
+	if err != nil {
+		m := err.Error()
+		if !strings.Contains(m, EXISTS) {
+			Msg.EC(err)
+		}
+	} else {
+		Msg.FYI("vectordbinitnn(): success")
+	}
 }

@@ -40,71 +40,6 @@ import (
 //		buildparsemap() data
 //
 
-// generateneighborsdata - generate the Neighbors data for a headword within a search
-func generateneighborsdata(c echo.Context, s str.SearchStruct) map[string]search.Neighbors {
-	const (
-		FMSG  = `Fetching a stored model`
-		GMSG  = `Generating a model`
-		FAIL1 = "generateneighborsdata() could not find neighbors of a neighbor: '%s' neighbors (via '%s')"
-		FAIL2 = "generateneighborsdata() failed to produce a Searcher"
-		FAIL3 = "generateneighborsdata() failed to yield Neighbors"
-		MQMEG = `Querying the model`
-	)
-
-	fp := FingerprintNNVectorSearch(s)
-	isstored := db.VectorDBCheckNN(fp)
-	var embs embedding.Embeddings
-	if isstored {
-		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, FMSG}
-		embs = db.VectorDBFetchNN(fp)
-	} else {
-		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, GMSG}
-		embs = GenerateVectEmbeddings(c, s.VecModeler, s)
-		db.VectorDBAddNN(fp, embs)
-		if !embs.Empty() {
-			db.VectorDBSizeNN(mm.MSGPEEK)
-		}
-	}
-
-	// [b] make a query against the model
-
-	// len(s.Results) is zero, so it is OK to UpdateSS() without copying 500k lines
-	vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, MQMEG}
-
-	searcher, err := search.New(embs...)
-	if err != nil {
-		Msg.FYI(FAIL2)
-		searcher = func() *search.Searcher { return &search.Searcher{} }()
-	}
-
-	se := s.StoredSession
-	ncount := se.VecNeighbCt // how many neighbors to output; min is 1
-	if ncount < vv.VECTORNEIGHBORSMIN || ncount > vv.VECTORNEIGHBORSMAX {
-		ncount = vv.VECTORNEIGHBORS
-	}
-
-	word := s.LemmaOne
-	nn := make(map[string]search.Neighbors)
-	neighbors, err := searcher.SearchInternal(word, ncount)
-	if err != nil {
-		Msg.FYI(FAIL3)
-		neighbors = search.Neighbors{}
-	}
-
-	nn[word] = neighbors
-	for _, n := range neighbors {
-		meta, e := searcher.SearchInternal(n.Word, ncount)
-		if e != nil {
-			Msg.FYI(fmt.Sprintf(FAIL1, n.Word, word))
-		} else {
-			nn[n.Word] = meta
-		}
-	}
-
-	vlt.WSInfo.Del <- s.ID
-	return nn
-}
-
 // GenerateVectEmbeddings - turn a search into a collection of semantic vector embeddings
 func GenerateVectEmbeddings(c echo.Context, modeltype string, s str.SearchStruct) embedding.Embeddings {
 	const (
@@ -277,6 +212,71 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s str.SearchStruct
 	vlt.WSInfo.Del <- s.ID
 
 	return embs
+}
+
+// generateneighborsdata - generate the Neighbors data for a headword within a search
+func generateneighborsdata(c echo.Context, s str.SearchStruct) map[string]search.Neighbors {
+	const (
+		FMSG  = `Fetching a stored model`
+		GMSG  = `Generating a model`
+		FAIL1 = "generateneighborsdata() could not find neighbors of a neighbor: '%s' neighbors (via '%s')"
+		FAIL2 = "generateneighborsdata() failed to produce a Searcher"
+		FAIL3 = "generateneighborsdata() failed to yield Neighbors"
+		MQMEG = `Querying the model`
+	)
+
+	fp := FingerprintNNVectorSearch(s)
+	isstored := db.VectorDBCheckNN(fp)
+	var embs embedding.Embeddings
+	if isstored {
+		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, FMSG}
+		embs = db.VectorDBFetchNN(fp)
+	} else {
+		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, GMSG}
+		embs = GenerateVectEmbeddings(c, s.VecModeler, s)
+		db.VectorDBAddNN(fp, embs)
+		if !embs.Empty() {
+			db.VectorDBSizeNN(mm.MSGPEEK)
+		}
+	}
+
+	// [b] make a query against the model
+
+	// len(s.Results) is zero, so it is OK to UpdateSS() without copying 500k lines
+	vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, MQMEG}
+
+	searcher, err := search.New(embs...)
+	if err != nil {
+		Msg.FYI(FAIL2)
+		searcher = func() *search.Searcher { return &search.Searcher{} }()
+	}
+
+	se := s.StoredSession
+	ncount := se.VecNeighbCt // how many neighbors to output; min is 1
+	if ncount < vv.VECTORNEIGHBORSMIN || ncount > vv.VECTORNEIGHBORSMAX {
+		ncount = vv.VECTORNEIGHBORS
+	}
+
+	word := s.LemmaOne
+	nn := make(map[string]search.Neighbors)
+	neighbors, err := searcher.SearchInternal(word, ncount)
+	if err != nil {
+		Msg.FYI(FAIL3)
+		neighbors = search.Neighbors{}
+	}
+
+	nn[word] = neighbors
+	for _, n := range neighbors {
+		meta, e := searcher.SearchInternal(n.Word, ncount)
+		if e != nil {
+			Msg.FYI(fmt.Sprintf(FAIL1, n.Word, word))
+		} else {
+			nn[n.Word] = meta
+		}
+	}
+
+	vlt.WSInfo.Del <- s.ID
+	return nn
 }
 
 // buildtextblock - turn []DbWorkline into a single long string

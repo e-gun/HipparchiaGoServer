@@ -86,7 +86,7 @@ var (
 		Xmax:               90,
 	}
 
-	DefaultLDAVectors = LDAConfig{
+	DefaultLDAVectors = ldaconfig{
 		SentencesPerBag: vv.LDASENTPERBAG,
 		LDAIterations:   vv.LDAITER,
 		LDAXformPasses:  vv.LDAXFORMPASSES,
@@ -102,7 +102,7 @@ var (
 // LDA vv.CONFIGURATION
 //
 
-type LDAConfig struct {
+type ldaconfig struct {
 	SentencesPerBag int
 	LDAIterations   int
 	LDAXformPasses  int
@@ -114,7 +114,7 @@ type LDAConfig struct {
 	MaxLDAGraphSize int
 }
 
-func ldavecconfig() LDAConfig {
+func ldavecconfig() ldaconfig {
 	const (
 		ERR1 = "ldavecconfig() cannot find UserHomeDir"
 		ERR2 = "ldavecconfig() failed to parse "
@@ -143,7 +143,7 @@ func ldavecconfig() LDAConfig {
 	} else {
 		loadedcfg, _ := os.Open(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vv.CONFIGVECTORLDA)
 		decoderc := json.NewDecoder(loadedcfg)
-		vc := LDAConfig{}
+		vc := ldaconfig{}
 		errc := decoderc.Decode(&vc)
 		_ = loadedcfg.Close()
 		if errc != nil {

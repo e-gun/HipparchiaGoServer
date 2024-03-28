@@ -39,7 +39,7 @@ func PGFSConfig(h string) {
 	)
 
 	Msg.CRIT(WRN)
-	CopyInstructions()
+	copyinstructions()
 	_, e := os.Stat(fmt.Sprintf(vv.CONFIGALTAPTH, h))
 	if e != nil {
 		fmt.Println(Msg.Color(fmt.Sprintf(FYI, fmt.Sprintf(vv.CONFIGALTAPTH, h))))
@@ -56,7 +56,7 @@ func PGFSConfig(h string) {
 
 	pgpw := RequestPostgresAdminPW()
 
-	cfg := BuildDefaultConfig()
+	cfg := builddefaultconfig()
 	cfg.PGLogin.Pass = hwrpw
 
 	content, err := json.MarshalIndent(cfg, vv.JSONINDENT, vv.JSONINDENT)
@@ -347,7 +347,7 @@ func ArchiveDB() {
 	// panic: runtime error: invalid memory address or nil pointer dereference
 
 	// highly likely that you do not have a value for Config.PGLogin.Pass yet, but you need one...
-	SetConfigPass(Config, "")
+	setconfigpass(Config, "")
 
 	binary := GetPGBinaryPath("pg_dump")
 	url := GetHippaWRURI(Config.PGLogin.Pass)

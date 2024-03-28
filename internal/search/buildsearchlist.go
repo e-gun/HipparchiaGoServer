@@ -14,14 +14,14 @@ import (
 	"strings"
 )
 
-type ProcessedList struct {
+type processedlist struct {
 	Inc  str.SearchIncExl
 	Excl str.SearchIncExl
 	Size int
 }
 
 // SessionIntoSearchlist - converts the stored set of selections into a calculated pair of SearchIncExl w/ Authors, Works, Passages
-func SessionIntoSearchlist(s str.ServerSession) ProcessedList {
+func SessionIntoSearchlist(s str.ServerSession) processedlist {
 	// https://medium.com/scum-gazeta/golang-simple-optimization-notes-70bc64673980
 
 	var inc str.SearchIncExl
@@ -232,7 +232,7 @@ func SessionIntoSearchlist(s str.ServerSession) ProcessedList {
 	exc.Works = gen.Unique(exc.Works)
 	exc.Authors = gen.Unique(exc.Authors)
 
-	var proc ProcessedList
+	var proc processedlist
 	proc.Inc = inc
 	proc.Excl = exc
 	proc.Size = sl

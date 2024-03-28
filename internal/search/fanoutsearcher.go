@@ -35,7 +35,7 @@ func SearchAndInsertResults(ss *str.SearchStruct) {
 	defer ss.CancelFnc()
 
 	// [a] load the queries into a channel
-	querychannel, err := SearchQueryFeeder(ss)
+	querychannel, err := searchqueryfeeder(ss)
 	Msg.EC(err)
 
 	// [b] fan out to run searches in parallel; searches fed by the query channel
@@ -43,7 +43,7 @@ func SearchAndInsertResults(ss *str.SearchStruct) {
 	searchchannels := make([]<-chan *str.WorkLineBundle, workers)
 
 	for i := 0; i < workers; i++ {
-		foundlineschannel, e := PRQSearcher(ss.Context, querychannel)
+		foundlineschannel, e := prqsearcher(ss.Context, querychannel)
 		Msg.EC(e)
 		searchchannels[i] = foundlineschannel
 	}
@@ -55,14 +55,14 @@ func SearchAndInsertResults(ss *str.SearchStruct) {
 	}
 
 	// [c] fan in to gather the results into a single channel
-	resultchan := ResultChannelAggregator(ss.Context, searchchannels...)
+	resultchan := resultchannelaggregator(ss.Context, searchchannels...)
 
 	// [d] pull the results off of the result channel and collate them
-	FinalResultCollation(ss, mx, resultchan)
+	finalresultcollation(ss, mx, resultchan)
 }
 
-// SearchQueryFeeder - emit items to a channel from the []PrerolledQuery; they will be consumed by the PRQSearcher
-func SearchQueryFeeder(ss *str.SearchStruct) (<-chan str.PrerolledQuery, error) {
+// searchqueryfeeder - emit items to a channel from the []PrerolledQuery; they will be consumed by the prqsearcher
+func searchqueryfeeder(ss *str.SearchStruct) (<-chan str.PrerolledQuery, error) {
 	emitqueries := make(chan str.PrerolledQuery, lnch.Config.WorkerCount)
 	remainder := -1
 
@@ -91,17 +91,17 @@ func SearchQueryFeeder(ss *str.SearchStruct) (<-chan str.PrerolledQuery, error) 
 	return emitqueries, nil
 }
 
-// PRQSearcher - this is where the search happens... grab a PrerolledQuery; execute search; emit finds to a channel
-func PRQSearcher(ctx context.Context, querychannel <-chan str.PrerolledQuery) (<-chan *str.WorkLineBundle, error) {
+// prqsearcher - this is where the search happens... grab a PrerolledQuery; execute search; emit finds to a channel
+func prqsearcher(ctx context.Context, querychannel <-chan str.PrerolledQuery) (<-chan *str.WorkLineBundle, error) {
 	foundlineschannel := make(chan *str.WorkLineBundle)
 
-	// below is the only call to GetDBConnection() outside of `db`; if you use db.GetWorklineBundle() instead
+	// below is the only call to getdbconnection() outside of `db`; if you use db.GetWorklineBundle() instead
 	// you do not need a dbconn, this tidies up several functions, but you also will be getting/returning thousands of
 	// connections in a full corpus it is not clear that there is any real speed penalty
 
 	//consumeA := func() {
 	//	defer close(foundlineschannel)
-	//	dbconn := db.GetDBConnection()
+	//	dbconn := db.getdbconnection()
 	//	defer dbconn.Release()
 	//
 	//	for q := range querychannel {
@@ -135,8 +135,8 @@ func PRQSearcher(ctx context.Context, querychannel <-chan str.PrerolledQuery) (<
 	return foundlineschannel, nil
 }
 
-// ResultChannelAggregator - gather all hits from the searchchannels into one place and then feed them to FinalResultCollation
-func ResultChannelAggregator(ctx context.Context, searchchannels ...<-chan *str.WorkLineBundle) <-chan *str.WorkLineBundle {
+// resultchannelaggregator - gather all hits from the searchchannels into one place and then feed them to finalresultcollation
+func resultchannelaggregator(ctx context.Context, searchchannels ...<-chan *str.WorkLineBundle) <-chan *str.WorkLineBundle {
 	var wg sync.WaitGroup
 	resultchann := make(chan *str.WorkLineBundle)
 
@@ -164,8 +164,8 @@ func ResultChannelAggregator(ctx context.Context, searchchannels ...<-chan *str.
 	return resultchann
 }
 
-// FinalResultCollation - insert the actual WorkLineBundle results into the SearchStruct after pulling them from the ResultChannelAggregator channel
-func FinalResultCollation(ss *str.SearchStruct, maxhits int, foundbundle <-chan *str.WorkLineBundle) {
+// finalresultcollation - insert the actual WorkLineBundle results into the SearchStruct after pulling them from the resultchannelaggregator channel
+func finalresultcollation(ss *str.SearchStruct, maxhits int, foundbundle <-chan *str.WorkLineBundle) {
 	var collated str.WorkLineBundle
 
 	addhits := func(foundbundle *str.WorkLineBundle) {

@@ -57,7 +57,7 @@ func ArrayToGetRequiredMorphObjects(wordlist []string) map[string]str.DbMorpholo
 		CHUNKSIZE = 999999
 	)
 
-	dbconn := GetDBConnection()
+	dbconn := getdbconnection()
 	defer dbconn.Release()
 
 	// look for the upper case matches too: Ϲωκράτηϲ and not just ϲωκρατέω (!)
@@ -127,7 +127,7 @@ func GetAllFormsOf(lg string, xr string) map[string]str.DbMorphology {
 	// for ἐπιγιγνώϲκω...
 	// select * from greek_morphology where greek_morphology.xrefs='37925260';
 
-	dbconn := GetDBConnection()
+	dbconn := getdbconnection()
 	defer dbconn.Release()
 
 	// hipparchiaDB=# select observed_form, xrefs from latin_morphology where observed_form = 'crediti';

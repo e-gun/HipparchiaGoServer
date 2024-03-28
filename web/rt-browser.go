@@ -40,28 +40,28 @@ type browsedpassage struct {
 // RtBrowseLocus - open a browser if sent '/browse/locus/gr0086/025/999a|_0'
 func RtBrowseLocus(c echo.Context) error {
 	sep := "|"
-	bp := Browse(c, sep)
+	bp := browse(c, sep)
 	return gen.JSONresponse(c, bp)
 }
 
 // RtBrowsePerseus - open a browser if sent '/browse/perseus/lt0550/001/2:717'
 func RtBrowsePerseus(c echo.Context) error {
 	sep := ":"
-	bp := Browse(c, sep)
+	bp := browse(c, sep)
 	return gen.JSONresponse(c, bp)
 }
 
 // RtBrowseRaw - open a browser if sent '/browse/rawlocus/lt0474/055/1.1.1'
 func RtBrowseRaw(c echo.Context) error {
 	sep := "."
-	bp := Browse(c, sep)
+	bp := browse(c, sep)
 	return gen.JSONresponse(c, bp)
 }
 
 // RtBrowseLine - open a browser if sent '/browse/index/lt0550/001/1855'
 func RtBrowseLine(c echo.Context) error {
 	// sample input: '/browse/index/lt0550/001/1855'
-	// the one route that calls GenerateBrowsedPassage() directly
+	// the one route that calls generatebrowsedpassage() directly
 	c.Response().After(func() { Msg.LogPaths("RtBrowseLine()") })
 
 	const (
@@ -83,7 +83,7 @@ func RtBrowseLine(c echo.Context) error {
 		ln, e := strconv.Atoi(elem[2])
 		Msg.EC(e)
 		ctx := s.BrowseCtx
-		bp := GenerateBrowsedPassage(au, wk, ln, ctx)
+		bp := generatebrowsedpassage(au, wk, ln, ctx)
 		return gen.JSONresponse(c, bp)
 	} else {
 		Msg.FYI(fmt.Sprintf(FAIL, locus))
@@ -95,11 +95,11 @@ func RtBrowseLine(c echo.Context) error {
 // BROWSING
 //
 
-// Browse - parse request and send a request to GenerateBrowsedPassage
-func Browse(c echo.Context, sep string) browsedpassage {
+// browse - parse request and send a request to generatebrowsedpassage
+func browse(c echo.Context, sep string) browsedpassage {
 	// sample input: http://localhost:8000//browse/perseus/lt0550/001/2:717
 	const (
-		FAIL  = "Browse() could not parse %s"
+		FAIL  = "browse() could not parse %s"
 		FIRST = "_firstwork"
 	)
 
@@ -125,15 +125,15 @@ func Browse(c echo.Context, sep string) browsedpassage {
 		ln := findendpointsfromlocus(uid, elem[2], sep)
 		ctx := s.BrowseCtx
 
-		return GenerateBrowsedPassage(au, wk, ln[0], ctx)
+		return generatebrowsedpassage(au, wk, ln[0], ctx)
 	} else {
 		Msg.FYI(fmt.Sprintf(FAIL, locus))
 		return browsedpassage{}
 	}
 }
 
-// GenerateBrowsedPassage - browse Author A at line X with a context of Y lines
-func GenerateBrowsedPassage(au string, wk string, fc int, ctx int) browsedpassage {
+// generatebrowsedpassage - browse Author A at line X with a context of Y lines
+func generatebrowsedpassage(au string, wk string, fc int, ctx int) browsedpassage {
 	// build a response to "GET /browse/index/gr0062/028/14672 HTTP/1.1"
 
 	const (

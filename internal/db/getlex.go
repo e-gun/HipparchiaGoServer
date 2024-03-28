@@ -71,7 +71,7 @@ func ArrayToGetScansion(wordlist []string) map[string]string {
 
 	wordlist = append(wordlist, uppers...)
 
-	dbconn := GetDBConnection()
+	dbconn := getdbconnection()
 	defer dbconn.Release()
 
 	foundmetrics := make(map[string]string)
@@ -111,7 +111,7 @@ func ArrayToGetHeadwordCounts(wordlist []string) map[string]int {
 				(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = dictionary_headword_wordcounts.entry_name)`
 	)
 
-	dbconn := GetDBConnection()
+	dbconn := getdbconnection()
 	defer dbconn.Release()
 
 	countmap := make(map[string]int)

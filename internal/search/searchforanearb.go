@@ -138,7 +138,7 @@ func WithinXWordsSearch(first str.SearchStruct) str.SearchStruct {
 	// (part 2)
 	// 		grab the neighborhoods of these hits
 	//		build long strings from the neighborhoods
-	//		(fan out to XWordsCheckFinds())
+	//		(fan out to xwordscheckfinds())
 	//		center self on A and then trim strings to "within N words"
 	//      look for B in that zone
 
@@ -240,16 +240,16 @@ func WithinXWordsSearch(first str.SearchStruct) str.SearchStruct {
 		bundlemapper[k] = b
 	}
 
-	// [c2] decompose them into long strings and assign to a KVPair (K will let you get back to first.Results[i])
+	// [c2] decompose them into long strings and assign to a kvpair (K will let you get back to first.Results[i])
 
-	kvp := make([]KVPair, len(bundlemapper))
+	kvp := make([]kvpair, len(bundlemapper))
 	count = 0
 	for idx, lines := range bundlemapper {
 		var bundle []string
 		for i := 0; i < len(lines); i++ {
 			bundle = append(bundle, ColumnPicker(first.SrchColumn, lines[i]))
 		}
-		kvp[count] = KVPair{K: idx, V: strings.Join(bundle, " ")}
+		kvp[count] = kvpair{K: idx, V: strings.Join(bundle, " ")}
 		count += 1
 	}
 
@@ -311,19 +311,19 @@ func WithinXWordsSearch(first str.SearchStruct) str.SearchStruct {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	emit, err := XWordsFeeder(ctx, &kvp, &second)
+	emit, err := xwordsfeeder(ctx, &kvp, &second)
 	Msg.EC(err)
 
 	workers := lnch.Config.WorkerCount
 	findchannels := make([]<-chan int, workers)
 
 	for i := 0; i < workers; i++ {
-		fc, ee := XWordsConsumer(ctx, emit, basicprxfinder, submatchsrchfinder, pd, first.NotNear)
+		fc, ee := xwordsconsumer(ctx, emit, basicprxfinder, submatchsrchfinder, pd, first.NotNear)
 		Msg.EC(ee)
 		findchannels[i] = fc
 	}
 
-	resultindex := XWordsCollation(ctx, &second, XWordsAggregator(ctx, findchannels...))
+	resultindex := xwordscollation(ctx, &second, xwordsaggregator(ctx, findchannels...))
 	if len(resultindex) > second.CurrentLimit {
 		resultindex = resultindex[0:second.CurrentLimit]
 	}
@@ -347,14 +347,14 @@ func WithinXWordsSearch(first str.SearchStruct) str.SearchStruct {
 // FAN-OUT AND FAN-IN SECOND HALF OF WithinXWordsSearch()
 //
 
-type KVPair struct {
+type kvpair struct {
 	K int
 	V string
 }
 
-// XWordsFeeder - emit items to a channel from the []KVPair that will be consumed by the XWordsConsumer
-func XWordsFeeder(ctx context.Context, kvp *[]KVPair, ss *str.SearchStruct) (<-chan KVPair, error) {
-	emit := make(chan KVPair, lnch.Config.WorkerCount)
+// xwordsfeeder - emit items to a channel from the []kvpair that will be consumed by the xwordsconsumer
+func xwordsfeeder(ctx context.Context, kvp *[]kvpair, ss *str.SearchStruct) (<-chan kvpair, error) {
+	emit := make(chan kvpair, lnch.Config.WorkerCount)
 	remainder := -1
 
 	go func() {
@@ -376,8 +376,8 @@ func XWordsFeeder(ctx context.Context, kvp *[]KVPair, ss *str.SearchStruct) (<-c
 	return emit, nil
 }
 
-// XWordsConsumer - grab a KVPair; check to see if it is a hit; emit the valid hits to a channel
-func XWordsConsumer(ctx context.Context, kvp <-chan KVPair, bf *regexp.Regexp, sf *regexp.Regexp, dist int, notnear bool) (<-chan int, error) {
+// xwordsconsumer - grab a kvpair; check to see if it is a hit; emit the valid hits to a channel
+func xwordsconsumer(ctx context.Context, kvp <-chan kvpair, bf *regexp.Regexp, sf *regexp.Regexp, dist int, notnear bool) (<-chan int, error) {
 	emitfinds := make(chan int)
 	go func() {
 		defer close(emitfinds)
@@ -386,15 +386,15 @@ func XWordsConsumer(ctx context.Context, kvp <-chan KVPair, bf *regexp.Regexp, s
 			case <-ctx.Done():
 				return
 			default:
-				emitfinds <- XWordsCheckFinds(p, bf, sf, dist, notnear)
+				emitfinds <- xwordscheckfinds(p, bf, sf, dist, notnear)
 			}
 		}
 	}()
 	return emitfinds, nil
 }
 
-// XWordsAggregator - gather all hits from the findchannels into one place and then feed them to XWordsCollation
-func XWordsAggregator(ctx context.Context, findchannels ...<-chan int) <-chan int {
+// xwordsaggregator - gather all hits from the findchannels into one place and then feed them to xwordscollation
+func xwordsaggregator(ctx context.Context, findchannels ...<-chan int) <-chan int {
 	var wg sync.WaitGroup
 	emitaggregate := make(chan int)
 	broadcast := func(hits <-chan int) {
@@ -420,8 +420,8 @@ func XWordsAggregator(ctx context.Context, findchannels ...<-chan int) <-chan in
 	return emitaggregate
 }
 
-// XWordsCollation - return the actual []KVPair results after pulling them from the XWordsAggregator channel
-func XWordsCollation(ctx context.Context, ss *str.SearchStruct, hits <-chan int) []int {
+// xwordscollation - return the actual []kvpair results after pulling them from the xwordsaggregator channel
+func xwordscollation(ctx context.Context, ss *str.SearchStruct, hits <-chan int) []int {
 	var allhits []int
 	done := false
 	for {
@@ -434,7 +434,7 @@ func XWordsCollation(ctx context.Context, ss *str.SearchStruct, hits <-chan int)
 		case h, ok := <-hits:
 			if ok {
 				if h != -1 {
-					// *something* came back from XWordsCheckFinds; a negative result is {-1, ""}
+					// *something* came back from xwordscheckfinds; a negative result is {-1, ""}
 					allhits = append(allhits, h)
 					vlt.WSInfo.UpdateHits <- vlt.WSSIKVi{ss.WSID, len(allhits)}
 				}
@@ -449,8 +449,8 @@ func XWordsCollation(ctx context.Context, ss *str.SearchStruct, hits <-chan int)
 	return allhits
 }
 
-// XWordsCheckFinds - parallel hit checker logic for WithinXWordsSearch
-func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinder *regexp.Regexp, proximity int, notnear bool) int {
+// xwordscheckfinds - parallel hit checker logic for WithinXWordsSearch
+func xwordscheckfinds(p kvpair, basicprxfinder *regexp.Regexp, submatchsrchfinder *regexp.Regexp, proximity int, notnear bool) int {
 	const (
 		CUTPRE = `^(?P<head>.*?)`
 		CUTSUF = `(?P<tail>.*?)$`
@@ -500,7 +500,7 @@ func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinde
 	//        h	false    νεῖλον θαλάϲϲῃ καθὰ καὶ αἰϲχύλοϲ εἰπών ἔϲτιν πόλιϲ κάνωβοϲ
 	//        t	false    πᾶϲα γὰρ ἀγχίαλοϲ ἐϲχάτη χθονόϲ διὸ καὶ μενελαϊ/τηϲ
 
-	// IterativeProxWordsMatching() constructs the solution: if there are N versions of the initial term, build and merge
+	// iterativeproxwordsmatching() constructs the solution: if there are N versions of the initial term, build and merge
 	// N mini environs and return this as the "tail"
 
 	checkfordupes := submatchsrchfinder.FindStringSubmatch(tail)
@@ -518,7 +518,7 @@ func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinde
 		srchtrm, _ = strings.CutSuffix(srchtrm, CUTSUF)
 
 		// calculate the new tail
-		tt = IterativeProxWordsMatching(tail, srchtrm, proximity)
+		tt = iterativeproxwordsmatching(tail, srchtrm, proximity)
 	}
 
 	tail = strings.Join(tt, " ") + " "
@@ -537,8 +537,8 @@ func XWordsCheckFinds(p KVPair, basicprxfinder *regexp.Regexp, submatchsrchfinde
 	return result
 }
 
-// IterativeProxWordsMatching - multiple hits for a search term are right on top of one another...
-func IterativeProxWordsMatching(text string, sought string, proximity int) []string {
+// iterativeproxwordsmatching - multiple hits for a search term are right on top of one another...
+func iterativeproxwordsmatching(text string, sought string, proximity int) []string {
 	// [HGS] phr:       ἐϲχάτη χθονόϲ
 	// [HGS] headinsidethetail:     πᾶϲα γὰρ ἀγχίαλοϲ
 	// [HGS] tail2:     διὸ καὶ μενελαϊ/τηϲ νομὸϲ ἐκεῖ ὡϲ τοιαύτηϲ γῆϲ ὑπὸ μενελάῳ ποτὲ γενομένηϲ  steph byz ἀπόλλωνοϲ πόλιϲ ἐν αἰγύπτῳ πρὸϲ

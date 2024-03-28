@@ -28,7 +28,7 @@ const (
 func GetWorklineBundle(prq str.PrerolledQuery) *str.WorkLineBundle {
 	// fanoutsearcher.go `consumeA` does not need to get a connection for every table query
 	// it re-uses and sends its connections to AcquireWorkLineBundle(); nobody else does that
-	dbconn := GetDBConnection()
+	dbconn := getdbconnection()
 	defer dbconn.Release()
 
 	return AcquireWorkLineBundle(prq, dbconn)

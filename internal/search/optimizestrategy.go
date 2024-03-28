@@ -7,8 +7,8 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 )
 
-// OptimizeSrearch - think about rewriting the search to make it faster
-func OptimizeSrearch(s *str.SearchStruct) {
+// optimizesearch - think about rewriting the search to make it faster
+func optimizesearch(s *str.SearchStruct) {
 	// only zero or one of the following should be true
 
 	// if BoxA has a lemma and BoxB has a phrase, it is almost certainly faster to search B, then A...
@@ -19,7 +19,7 @@ func OptimizeSrearch(s *str.SearchStruct) {
 
 	// all forms of an uncommon word should (usually) be sought before all forms of a common word...
 	if s.HasLemmaBoxA && s.HasLemmaBoxB {
-		PickFastestLemma(s)
+		pickfastestlemma(s)
 		return
 	}
 
@@ -36,8 +36,8 @@ func OptimizeSrearch(s *str.SearchStruct) {
 	}
 }
 
-// PickFastestLemma - all forms of an uncommon word should (usually) be sought before all forms of a common word
-func PickFastestLemma(s *str.SearchStruct) {
+// pickfastestlemma - all forms of an uncommon word should (usually) be sought before all forms of a common word
+func pickfastestlemma(s *str.SearchStruct) {
 	// Sought all 65 forms of »δημηγορέω« within 1 lines of all 386 forms of »γιγνώϲκω«
 	// swapped: 20s vs 80s
 
@@ -59,8 +59,8 @@ func PickFastestLemma(s *str.SearchStruct) {
 	// the penalty for being wrong is relatively low; the savings when you get this right can be significant
 
 	const (
-		NOTE1 = "PickFastestLemma() is swapping %s for %s: possible hits %d < %d; known forms %d < %d"
-		NOTE2 = "PickFastestLemma() is NOT swapping %s for %s: possible hits %d vs %d; known forms %d vs %d"
+		NOTE1 = "pickfastestlemma() is swapping %s for %s: possible hits %d < %d; known forms %d < %d"
+		NOTE2 = "pickfastestlemma() is NOT swapping %s for %s: possible hits %d vs %d; known forms %d vs %d"
 	)
 
 	hw1 := db.GetIndividualHeadwordCount(s.LemmaOne)

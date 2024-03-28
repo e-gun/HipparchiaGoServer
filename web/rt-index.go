@@ -34,10 +34,6 @@ func RtIndexMaker(c echo.Context) error {
 
 	// a lot of code duplication with RtVocabMaker() but consolidation is not as direct a matter as one might guess
 
-	// THIS HOGS MEMORY DURING SELFTEST(): runtime.GC() does not catch jso data which is still "around" after the function
-	// exits (it seems) textindexvocab and vectors are the places where one sees this; anything with a big JSON payload
-	// seems to be a problem but a lot of this is hard to reproduce outside of the selftest()
-
 	//[HGS] main() post-initialization runtime.GC() 249M --> 207M
 	//[HGS] ArrayToGetRequiredMorphObjects() will search among 86067 words
 	//[HGS] RtIndexMaker() runtime.GC() 394M --> 245M

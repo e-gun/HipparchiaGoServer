@@ -122,7 +122,7 @@ func sliceworkcorpus(corpus string) []str.DbWork {
 	return workslice
 }
 
-// Buildaucorpusmap - populate global variable used by SessionIntoSearchlist()
+// buildaucorpusmap - populate global variable used by SessionIntoSearchlist()
 func Buildwkcorpusmap() map[string][]string {
 	// SessionIntoSearchlist() could just grab a pre-rolled list instead of calculating every time...
 	wkcorpusmap := make(map[string][]string)

@@ -15,10 +15,10 @@ import (
 	"strings"
 )
 
-// GetDBConnection - Acquire() a connection from the main pgxpool; currently called only within the db package
-func GetDBConnection() *pgxpool.Conn {
+// getdbconnection - Acquire() a connection from the main pgxpool; currently called only within the db package
+func getdbconnection() *pgxpool.Conn {
 	const (
-		FAIL1   = "GetDBConnection() could not Acquire() from the DBConnectionPool."
+		FAIL1   = "getdbconnection() could not Acquire() from the DBConnectionPool."
 		FAIL2   = `Your password in '%s' is incorrect? Too many connections to the server?`
 		FAIL3   = `The database is empty. Deleting any configuration files so you can reset the server.`
 		FAIL4   = `Failed to delete %s`
