@@ -160,26 +160,27 @@ self-test with vectors can be deceptive because `-wc` flag will not override con
 
 ```
 cloc --exclude-dir=z --not-match-f="^jq*" .
-     164 text files.
-     148 unique files.                                          
-     190 files ignored.
+     165 text files.
+     149 unique files.                                          
+     192 files ignored.
 
-github.com/AlDanial/cloc v 2.00  T=0.12 s (1270.0 files/s, 257706.0 lines/s)
+github.com/AlDanial/cloc v 2.00  T=0.12 s (1243.2 files/s, 250431.9 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                              95           3113           3524          14277
+Go                              96           3105           3501          14280
 JavaScript                       8            310            193           1595
 CSS                              1            349             89           1567
 HTML                            12            160             18           1532
-Markdown                        11            452              0           1198
+Markdown                        11            451              0           1198
 Text                             5             90              0            412
 SVG                              1              1              1            392
 JSON                             9              0              0            386
-XML                              4              0              0            272
+XML                              4              0              0            283
 Bourne Shell                     1             13              7             63
 Python                           1              5              6              7
 -------------------------------------------------------------------------------
-SUM:                           148           4493           3838          21701
+SUM:                           149           4484           3815          21715
 -------------------------------------------------------------------------------
+
 ```

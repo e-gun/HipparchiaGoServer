@@ -90,7 +90,7 @@ func LDASearch(c echo.Context, srch str.SearchStruct) error {
 		ESM2   = "Building topic models"
 		ESM3   = "Building the graph (please be patient this can be very slow...)"
 	)
-	c.Response().After(func() { Msg.LogPaths("LDASearch()") })
+	c.Response().After(func() { vlt.LogPaths("LDASearch()") })
 
 	se := srch.StoredSession
 	ntopics := se.LDAtopics

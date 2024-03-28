@@ -9,7 +9,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -75,8 +74,8 @@ func RtFrontpage(c echo.Context) error {
 
 	// svd() will report what requests have been made
 	svd := func() string {
-		responder := mm.PIReply{Request: true, Response: make(chan map[string]int)}
-		mm.PIRequest <- responder
+		responder := vlt.PIReply{Request: true, Response: make(chan map[string]int)}
+		vlt.PIRequest <- responder
 		ctr := <-responder.Response
 
 		exclude := []string{"main() post-initialization"}

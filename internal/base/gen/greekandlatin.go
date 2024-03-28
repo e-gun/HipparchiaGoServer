@@ -19,11 +19,11 @@ const (
 )
 
 var (
-	// RuneFd etc. to avoid looping this in hot code
-	RuneFd  = getrunefeeder()
-	ERuneFd = extendedrunefeeder()
-	RuneRed = getrunereducer()
-	UvRed   = uvσςϲreducer()
+	// runefd etc. to avoid looping this in hot code
+	runefd     = getrunefeeder()
+	exrunefd   = extendedrunefeeder()
+	runereduce = getrunereducer()
+	uvreduce   = uvσςϲreducer()
 )
 
 //
@@ -36,7 +36,7 @@ func StripaccentsSTR(u string) string {
 	ru := []rune(u)
 	stripped := make([]rune, len(ru))
 	for i, x := range ru {
-		stripped[i] = RuneRed[x]
+		stripped[i] = runereduce[x]
 	}
 	s := string(stripped)
 	return s
@@ -47,7 +47,7 @@ func StripaccentsRUNE(u []rune) []rune {
 	// reducer := getrunereducer()
 	stripped := make([]rune, len(u))
 	for i, x := range u {
-		stripped[i] = RuneRed[x]
+		stripped[i] = runereduce[x]
 	}
 	return stripped
 }
@@ -87,8 +87,8 @@ func UVσςϲ(u string) string {
 	ru := []rune(u)
 	stripped := make([]rune, len(ru))
 	for i, x := range ru {
-		if _, ok := UvRed[x]; ok {
-			stripped[i] = UvRed[x]
+		if _, ok := uvreduce[x]; ok {
+			stripped[i] = uvreduce[x]
 		} else {
 			stripped[i] = x
 		}
@@ -213,12 +213,12 @@ func PolytonicSort(pt []string) []string {
 
 func getrunereducer() map[rune]rune {
 	// because we don't have access to python's transtable function
-	// RuneFd := getrunefeeder()
-	// RuneFd now a var at top of file
+	// runefd := getrunefeeder()
+	// runefd now a var at top of file
 
 	reducer := make(map[rune]rune)
-	for f, _ := range RuneFd {
-		for _, r := range RuneFd[f] {
+	for f, _ := range runefd {
+		for _, r := range runefd[f] {
 			reducer[r] = f
 		}
 	}

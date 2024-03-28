@@ -58,7 +58,7 @@ func RtMorphchart(c echo.Context) error {
 	// /lexica/morphologychart/greek/39046.0/37925260/ἐπιγιγνώϲκω
 
 	// should reach this route exclusively via a click from rt-lexica.go
-	c.Response().After(func() { Msg.LogPaths("RtMorphchart()") })
+	c.Response().After(func() { vlt.LogPaths("RtMorphchart()") })
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
 		return gen.JSONresponse(c, str.SearchOutputJSON{JS: vv.VALIDATIONBOX})

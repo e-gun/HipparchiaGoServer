@@ -54,4 +54,5 @@ func UpdateMessageMakerWithConfig(m *mm.MessageMaker) {
 	m.BW = Config.BlackAndWhite
 	m.GC = Config.ManualGC
 	m.LLvl = Config.LogLevel
+	m.Tick = Config.TickerActive
 }

@@ -58,7 +58,7 @@ func NeighborsSearch(c echo.Context, srch str.SearchStruct) error {
 		SETTINGS = `model type: %s; text prep: %s`
 	)
 
-	c.Response().After(func() { Msg.LogPaths("NeighborsSearch()") })
+	c.Response().After(func() { vlt.LogPaths("NeighborsSearch()") })
 	sess := srch.StoredSession
 
 	term := srch.LemmaOne

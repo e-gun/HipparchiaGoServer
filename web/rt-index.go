@@ -24,7 +24,7 @@ import (
 
 // RtIndexMaker - build an index for whatever collection of lines you would be searching
 func RtIndexMaker(c echo.Context) error {
-	c.Response().After(func() { Msg.LogPaths("RtIndexMaker()") })
+	c.Response().After(func() { vlt.LogPaths("RtIndexMaker()") })
 
 	// note that templates + bytes.Buffer is more legible than '%s' time and again BUT it is also slightly slower
 	// this was tested via a rewrite of RtIndexMaker() and other rt-textindicesandvocab functions

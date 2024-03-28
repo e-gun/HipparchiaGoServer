@@ -36,7 +36,7 @@ func AvoidLongLines(untrimmed string, maxlen int) string {
 func UniversalPatternMaker(term string) string {
 	// also used by resultformatting.go
 	// converter := extendedrunefeeder()
-	converter := ERuneFd // see top of setsandslices.go
+	converter := exrunefd // see top of setsandslices.go
 	st := []rune(term)
 	var stre string
 	for _, r := range st {

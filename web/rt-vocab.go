@@ -22,7 +22,7 @@ import (
 
 // RtVocabMaker - get the vocabulary for whatever collection of lines you would be searching
 func RtVocabMaker(c echo.Context) error {
-	c.Response().After(func() { Msg.LogPaths("RtVocabMaker()") })
+	c.Response().After(func() { vlt.LogPaths("RtVocabMaker()") })
 
 	// grab lines via a simple search for "anything" in each line of the selection made and stored in the session
 	// todo: worry about γ' for γε

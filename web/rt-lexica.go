@@ -40,7 +40,7 @@ type jsb struct {
 
 // RtLexLookup - search the dictionary for a headword substring
 func RtLexLookup(c echo.Context) error {
-	c.Response().After(func() { Msg.LogPaths("RtLexLookup()") })
+	c.Response().After(func() { vlt.LogPaths("RtLexLookup()") })
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
@@ -88,7 +88,7 @@ func RtLexFindByForm(c echo.Context) error {
 	if !vlt.AllAuthorized.Check(user) {
 		return gen.JSONresponse(c, jsb{JS: vv.JSVALIDATION})
 	}
-	c.Response().After(func() { Msg.LogPaths("RtLexFindByForm()") })
+	c.Response().After(func() { vlt.LogPaths("RtLexFindByForm()") })
 
 	req := c.Param("wd")
 	elem := strings.Split(req, "/")
@@ -163,7 +163,7 @@ func RtLexId(c echo.Context) error {
 // RtLexReverse - look for the headwords that have the sought word in their body
 func RtLexReverse(c echo.Context) error {
 	// be able to respond to "/lexica/reverselookup/0ae94619/sorrow"
-	c.Response().After(func() { Msg.LogPaths("RtLexReverse()") })
+	c.Response().After(func() { vlt.LogPaths("RtLexReverse()") })
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {

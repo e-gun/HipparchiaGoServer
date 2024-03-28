@@ -117,9 +117,8 @@ func main() {
 	go vlt.WebsocketPool.WSPoolStartListening()
 
 	go vlt.WSSearchInfoHub()
-	go mm.PathInfoHub()
-
-	go msg.Ticker(vv.TICKERDELAY)
+	go vlt.PathInfoHub()
+	go vlt.TerminalTicker(vv.TICKERDELAY)
 
 	//
 	// [3] concurrent loading of the core data
@@ -174,7 +173,6 @@ func main() {
 	awaiting.Wait()
 
 	runtime.GC()
-	msg.LogPaths("main() post-initialization")
 	msg.Emit(msg.ColStyle(fmt.Sprintf(SUMM, time.Now().Sub(vv.LaunchTime).Seconds())), -999)
 
 	//

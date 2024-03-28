@@ -62,7 +62,7 @@ func RtBrowseRaw(c echo.Context) error {
 func RtBrowseLine(c echo.Context) error {
 	// sample input: '/browse/index/lt0550/001/1855'
 	// the one route that calls generatebrowsedpassage() directly
-	c.Response().After(func() { Msg.LogPaths("RtBrowseLine()") })
+	c.Response().After(func() { vlt.LogPaths("RtBrowseLine()") })
 
 	const (
 		FAIL = "RtBrowseLine() could not parse %s"
