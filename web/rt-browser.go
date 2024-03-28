@@ -41,21 +41,21 @@ type browsedpassage struct {
 func RtBrowseLocus(c echo.Context) error {
 	sep := "|"
 	bp := browse(c, sep)
-	return gen.JSONresponse(c, bp)
+	return jsonresponse(c, bp)
 }
 
 // RtBrowsePerseus - open a browser if sent '/browse/perseus/lt0550/001/2:717'
 func RtBrowsePerseus(c echo.Context) error {
 	sep := ":"
 	bp := browse(c, sep)
-	return gen.JSONresponse(c, bp)
+	return jsonresponse(c, bp)
 }
 
 // RtBrowseRaw - open a browser if sent '/browse/rawlocus/lt0474/055/1.1.1'
 func RtBrowseRaw(c echo.Context) error {
 	sep := "."
 	bp := browse(c, sep)
-	return gen.JSONresponse(c, bp)
+	return jsonresponse(c, bp)
 }
 
 // RtBrowseLine - open a browser if sent '/browse/index/lt0550/001/1855'
@@ -71,7 +71,7 @@ func RtBrowseLine(c echo.Context) error {
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
 		bp := browsedpassage{Browserhtml: vv.AUTHWARN}
-		return gen.JSONresponse(c, bp)
+		return jsonresponse(c, bp)
 	}
 
 	s := vlt.AllSessions.GetSess(user)
@@ -84,7 +84,7 @@ func RtBrowseLine(c echo.Context) error {
 		Msg.EC(e)
 		ctx := s.BrowseCtx
 		bp := generatebrowsedpassage(au, wk, ln, ctx)
-		return gen.JSONresponse(c, bp)
+		return jsonresponse(c, bp)
 	} else {
 		Msg.FYI(fmt.Sprintf(FAIL, locus))
 		return emptyjsreturn(c)

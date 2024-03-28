@@ -728,8 +728,8 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int {
 	return fl
 }
 
-// SelectionData - JS output struct
-type SelectionData struct {
+// selectiondata - JS output struct
+type selectiondata struct {
 	TimeRestr string `json:"timeexclusions"`
 	Select    string `json:"selections"`
 	Exclude   string `json:"exclusions"`
@@ -738,7 +738,7 @@ type SelectionData struct {
 }
 
 // reportcurrentselections - prepare JSON for the page re. current selections
-func reportcurrentselections(c echo.Context) SelectionData {
+func reportcurrentselections(c echo.Context) selectiondata {
 	// ultimately feeding autocomplete.js
 	//    $('#timerestrictions').html(selectiondata.timeexclusions);
 	//    $('#selectioninfocell').html(selectiondata.selections);
@@ -777,7 +777,7 @@ func reportcurrentselections(c echo.Context) SelectionData {
 
 	var jsinfo []jsdata
 
-	var sd SelectionData
+	var sd selectiondata
 
 	// note that there can be a problem coordinating the selections with the add/drop clicks
 	// this is a list + order-of-arrival problem at its core: was #1 on the reported list #1 to be selected?

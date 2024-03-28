@@ -213,8 +213,8 @@ func StartEchoServer() {
 	e.GET("/sc/set/:num", RtSessionSetsCookie)
 	e.GET("/sc/get/:num", RtSessionGetCookie)
 
-	// [q] vectors ("vectorqueryneighbors.go")
-	// pseudo-route RtVectors in vectorqueryneighbors.go is called by RtSearch() if the current session has VecNNSearch set to true
+	// [q] vectors ("vectorfingerprints.go")
+	// pseudo-route RtVectors in vectorfingerprints.go is called by RtSearch() if the current session has VecNNSearch set to true
 
 	e.GET("/vbot/:typeandselection", RtVectorBot) // only the goroutine running the vectorbot is supposed to request this
 

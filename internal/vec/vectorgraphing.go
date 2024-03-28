@@ -43,8 +43,8 @@ var (
 // NEAREST NEIGHBORS FORCE GRAPHS
 //
 
-// buildblanknngraph - return a pre-formatted charts.Graph
-func buildblanknngraph(settings string, coreword string, incl string) *charts.Graph {
+// BuildBlankNNGraph - return a pre-formatted charts.Graph
+func BuildBlankNNGraph(settings string, coreword string, incl string) *charts.Graph {
 	const (
 		TITLESTR = "Nearest neighbors of »%s« in %s"
 		SAVEFILE = "nearest_neighbors_of_%s"
@@ -71,8 +71,8 @@ func buildblanknngraph(settings string, coreword string, incl string) *charts.Gr
 	return graph
 }
 
-// formatnngraph - fill out a blank graph
-func formatnngraph(c echo.Context, graph *charts.Graph, coreword string, nn map[string]search.Neighbors) *charts.Graph {
+// FormatNNGraph - fill out a blank graph
+func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[string]search.Neighbors) *charts.Graph {
 	const (
 		SYMSIZE       = 25
 		PERIPHSYMSZ   = 15
@@ -221,8 +221,8 @@ func formatnngraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 	return graph
 }
 
-// customnngraphhtmlandjs - generate the html and js for a nearest neighbors search
-func customnngraphhtmlandjs(g *charts.Graph) string {
+// CustomNNGraphHTMLandJS - generate the html and js for a nearest neighbors search
+func CustomNNGraphHTMLandJS(g *charts.Graph) string {
 	// go-echarts is "too clever" and opaque about how to not do things its way
 	// we override their page.Render() to yield html+js (see the ModX and CustomX code below)
 	// this gets injected to the "vectorgraphing" div on frontpage.html

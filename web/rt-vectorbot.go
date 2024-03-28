@@ -154,9 +154,9 @@ func ldamodelbot(c echo.Context, s str.SearchStruct, a string) {
 	s.IsActive = true
 	s.TableSize = 1
 	search.SearchAndInsertResults(&s)
-	e := vec.LDASearch(c, s)
+	e := RtLDASearch(c, s)
 	if e != nil {
-		Msg.WARN("ldamodelbot() could not execute LDASearch()")
+		Msg.WARN("ldamodelbot() could not execute RtLDASearch()")
 	}
 }
 

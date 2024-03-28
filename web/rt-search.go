@@ -7,11 +7,9 @@ package web
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
-	"github.com/e-gun/HipparchiaGoServer/internal/vec"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
@@ -52,7 +50,7 @@ func RtSearch(c echo.Context) error {
 	// [A] ARE WE GOING TO DO THIS AT ALL?
 
 	if !vlt.AllAuthorized.Check(user) {
-		return gen.JSONresponse(c, str.SearchOutputJSON{JS: vv.VALIDATIONBOX})
+		return jsonresponse(c, str.SearchOutputJSON{JS: vv.VALIDATIONBOX})
 	}
 
 	getsrchcount := func(ip string) int {
@@ -63,12 +61,12 @@ func RtSearch(c echo.Context) error {
 
 	if getsrchcount(c.RealIP()) >= lnch.Config.MaxSrchIP {
 		m := fmt.Sprintf(TOOMANYIP, c.RealIP(), getsrchcount(c.RealIP()))
-		return gen.JSONresponse(c, str.SearchOutputJSON{Searchsummary: m})
+		return jsonresponse(c, str.SearchOutputJSON{Searchsummary: m})
 	}
 
 	if len(vlt.WebsocketPool.ClientMap) >= lnch.Config.MaxSrchTot {
 		m := fmt.Sprintf(TOOMANYTOTAL, len(vlt.WebsocketPool.ClientMap))
-		return gen.JSONresponse(c, str.SearchOutputJSON{Searchsummary: m})
+		return jsonresponse(c, str.SearchOutputJSON{Searchsummary: m})
 	}
 
 	// [B] OK, WE ARE DOING IT
@@ -84,13 +82,13 @@ func RtSearch(c echo.Context) error {
 	// ...
 
 	if se.VecNNSearch && !lnch.Config.VectorsDisabled {
-		// not a normal search: jump to "vectorqueryneighbors.go" where we grab all lines; build a model; query against the model; return html
-		return vec.NeighborsSearch(c, srch)
+		// not a normal search: jump to "vectorfingerprints.go" where we grab all lines; build a model; query against the model; return html
+		return RtNeighborsSearch(c, srch)
 	}
 
 	if se.VecLDASearch && !lnch.Config.VectorsDisabled {
 		// not a normal search: jump to "vectorquerylda.go"
-		return vec.LDASearch(c, srch)
+		return RtLDASearch(c, srch)
 	}
 
 	// [D] OK, IT IS A SEARCH FOR A WORD OR PHRASE
@@ -130,5 +128,5 @@ func RtSearch(c echo.Context) error {
 	}
 
 	vlt.WSInfo.Del <- srch.WSID
-	return gen.JSONresponse(c, soj)
+	return jsonresponse(c, soj)
 }

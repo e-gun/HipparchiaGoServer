@@ -34,7 +34,7 @@ import (
 
 //
 // FLOW:
-// 	generateneighborsdata() which means you need to...
+// 	GenerateNeighborsData() which means you need to...
 //  	GenerateVectEmbeddings() which relies upon...
 //		buildtextblock() with help of ...
 //		buildparsemap() data
@@ -214,14 +214,14 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s str.SearchStruct
 	return embs
 }
 
-// generateneighborsdata - generate the Neighbors data for a headword within a search
-func generateneighborsdata(c echo.Context, s str.SearchStruct) map[string]search.Neighbors {
+// GenerateNeighborsData - generate the Neighbors data for a headword within a search
+func GenerateNeighborsData(c echo.Context, s str.SearchStruct) map[string]search.Neighbors {
 	const (
 		FMSG  = `Fetching a stored model`
 		GMSG  = `Generating a model`
-		FAIL1 = "generateneighborsdata() could not find neighbors of a neighbor: '%s' neighbors (via '%s')"
-		FAIL2 = "generateneighborsdata() failed to produce a Searcher"
-		FAIL3 = "generateneighborsdata() failed to yield Neighbors"
+		FAIL1 = "GenerateNeighborsData() could not find neighbors of a neighbor: '%s' neighbors (via '%s')"
+		FAIL2 = "GenerateNeighborsData() failed to produce a Searcher"
+		FAIL3 = "GenerateNeighborsData() failed to yield Neighbors"
 		MQMEG = `Querying the model`
 	)
 
@@ -318,7 +318,7 @@ func buildtextblock(s *str.SearchStruct) string {
 	preallocate := vv.CHARSPERLINE * s.Results.Len() // NB: a long line has 60 chars
 	sb.Grow(preallocate)
 
-	stops := getstopset()
+	stops := GetStopSet()
 
 	switch s.VecTextPrep {
 	case "unparsed":

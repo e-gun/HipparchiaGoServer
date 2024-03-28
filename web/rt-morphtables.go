@@ -61,7 +61,7 @@ func RtMorphchart(c echo.Context) error {
 	c.Response().After(func() { vlt.LogPaths("RtMorphchart()") })
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return gen.JSONresponse(c, str.SearchOutputJSON{JS: vv.VALIDATIONBOX})
+		return jsonresponse(c, str.SearchOutputJSON{JS: vv.VALIDATIONBOX})
 	}
 
 	const (
@@ -282,7 +282,7 @@ func RtMorphchart(c echo.Context) error {
 		jb.HTML = gen.DeLunate(jb.HTML)
 	}
 
-	return gen.JSONresponse(c, jb)
+	return jsonresponse(c, jb)
 }
 
 // generateverbtable - given a map of grammar IDs to words, build a verb table

@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022-24
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package web
 
 import (
@@ -324,5 +329,5 @@ func RtVocabMaker(c echo.Context) error {
 	vlt.WSInfo.Del <- si.WSID
 	vlt.WSInfo.Del <- vocabsrch.WSID
 
-	return gen.JSONresponse(c, jso)
+	return jsonresponse(c, jso)
 }

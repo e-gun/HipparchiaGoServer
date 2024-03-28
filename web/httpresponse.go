@@ -3,15 +3,15 @@
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 
-package gen
+package web
 
 import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
-// JSONresponse - send the JSON; this function lets one test and document different strategies; jsr should be a json-ready struct
-func JSONresponse(c echo.Context, jsr any) error {
+// jsonresponse - send the JSON; this function lets one test and document different strategies; jsr should be a json-ready struct
+func jsonresponse(c echo.Context, jsr any) error {
 
 	return c.JSON(http.StatusOK, jsr)
 

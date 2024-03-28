@@ -193,7 +193,7 @@ func buildyokedparsemap(parsemap map[string]map[string]bool) map[string]string {
 
 // flatstring - helper for buildtextblock() to generate unmodified text
 func flatstring(sb *strings.Builder, slicedwords []string) {
-	stops := getstopset()
+	stops := GetStopSet()
 	for i := 0; i < len(slicedwords); i++ {
 		// drop skipwords
 		_, s := stops[slicedwords[i]]

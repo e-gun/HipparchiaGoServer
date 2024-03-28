@@ -17,7 +17,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/e-gun/nlp"
-	"github.com/labstack/echo/v4"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"gonum.org/v1/gonum/mat"
@@ -82,89 +81,8 @@ func (b *bagwithlocus) GetWL() {
 	b.Workline = db.GrabOneLine(tb[1][0:vv.LENGTHOFAUTHORID], ln)
 }
 
-// LDASearch - search via Latent Dirichlet Allocation
-func LDASearch(c echo.Context, srch str.SearchStruct) error {
-	const (
-		LDAMSG = `Building LDA model for the current selections`
-		ESM1   = "Preparing the text for modeling"
-		ESM2   = "Building topic models"
-		ESM3   = "Building the graph (please be patient this can be very slow...)"
-	)
-	c.Response().After(func() { vlt.LogPaths("LDASearch()") })
-
-	se := srch.StoredSession
-	ntopics := se.LDAtopics
-	if ntopics < 1 {
-		ntopics = vv.LDATOPICS
-	}
-
-	var vs str.SearchStruct
-	if srch.ID != "ldamodelbot()" {
-		vs = search.SessionIntoBulkSearch(c, lnch.Config.VectorMaxlines)
-		vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{vs.WSID, 1}
-		vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{vs.WSID, LDAMSG}
-		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{vs.WSID, fmt.Sprintf(ESM1)}
-	} else {
-		vs = srch
-	}
-
-	bags := ldapreptext(se.VecTextPrep, &vs)
-
-	corpus := make([]string, len(bags))
-	for i := 0; i < len(bags); i++ {
-		corpus[i] = bags[i].ModifiedBag
-	}
-
-	stops := gen.StringMapKeysIntoSlice(getstopset())
-	vectoriser := nlp.NewCountVectoriser(stops...)
-
-	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{vs.WSID, fmt.Sprintf(ESM2)}
-
-	// consider building TESTITERATIONS models and making a table for each
-	var dot mat.Matrix
-	var tables []string
-
-	// a chance to bail if you hit RtResetSession() in time
-	if lnch.Config.SelfTest == 0 && !lnch.Config.VectorBot && !vlt.AllSessions.IsInVault(vs.User) {
-		// mm("LDASearch() aborting: RtResetSession switched user to "+vs.User, MSGFYI)
-		return gen.JSONresponse(c, str.SearchOutputJSON{})
-	}
-
-	docsOverTopics, topicsOverWords, ok := ldamodel(ntopics, corpus, vectoriser, &vs)
-	if !ok {
-		return gen.JSONresponse(c, str.SearchOutputJSON{})
-	}
-
-	tables = append(tables, ldatopicsummary(ntopics, topicsOverWords, vectoriser, docsOverTopics))
-	tables = append(tables, ldatopsentences(ntopics, bags, corpus, docsOverTopics))
-	dot = docsOverTopics
-
-	htmltables := strings.Join(tables, "")
-
-	incl := search.InclusionOverview(&srch, se.Inclusions)
-
-	var img string
-	if se.LDAgraph || srch.ID == "ldamodelbot()" {
-		vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{vs.WSID, fmt.Sprintf(ESM3)}
-		img = ldaplot(vs.Context, se.LDA2D, ntopics, incl, se.VecTextPrep, dot, bags)
-	}
-
-	soj := str.SearchOutputJSON{
-		Title:         "",
-		Searchsummary: "",
-		Found:         htmltables,
-		Image:         img,
-		JS:            vv.VECTORJS,
-	}
-
-	vlt.WSInfo.Del <- srch.ID
-	vlt.WSInfo.Del <- vs.ID
-
-	return gen.JSONresponse(c, soj)
-}
-
-// ldapreptext - prepare the WorkLineBundle of a SearchStruct for lda analysis
-func ldapreptext(bagger string, vs *str.SearchStruct) []bagwithlocus {
+// LDAPrepText - prepare the WorkLineBundle of a SearchStruct for lda analysis
+func LDAPrepText(bagger string, vs *str.SearchStruct) []bagwithlocus {
 
 	var sb strings.Builder
 	preallocate := vv.CHARSPERLINE * vs.Results.Len() // NB: a long line has 60 chars
@@ -279,59 +197,13 @@ func ldapreptext(bagger string, vs *str.SearchStruct) []bagwithlocus {
 	return thebags
 }
 
-// ldaunmodifiedbagging - lda unmodified text bagger
-func ldaunmodifiedbagging(thebags []bagwithlocus) []bagwithlocus {
-	for i := 0; i < len(thebags); i++ {
-		thebags[i].ModifiedBag = thebags[i].Bag
-	}
-	return thebags
-}
-
-// ldayokedbagging - lda yoked headwords text bagger
-func ldayokedbagging(thebags []bagwithlocus, yokermap map[string]string) []bagwithlocus {
-	stops := getstopset()
-	for i := 0; i < len(thebags); i++ {
-		var b strings.Builder
-		yokedstring(&b, strings.Split(thebags[i].Bag, " "), yokermap, stops)
-		thebags[i].ModifiedBag = b.String()
-	}
-	return thebags
-}
-
-// ldawinnerbagging - lda winner takes all headwords text bagger
-func ldawinnerbagging(thebags []bagwithlocus, winnermap map[string]string) []bagwithlocus {
-	stops := getstopset()
-	for i := 0; i < len(thebags); i++ {
-		var b strings.Builder
-		winnerstring(&b, strings.Split(thebags[i].Bag, " "), winnermap, stops)
-		thebags[i].ModifiedBag = b.String()
-
-		// fmt.Printf("%s\t%s\n", thebags[i].Loc, thebags[i].ModifiedBag)
-		//line/lt0959w014/34502	halieuticus    accipio mundus lego¹
-		//line/lt0959w014/34505	 arma admoneo
-		//line/lt0959w014/34506	 vitulus mino nondum gero¹ tener cornu frons² damma fugio pugno virtus leo² mordeo canae cauda scorpius ictus² concutio levis¹ pinnis evolo alo
-	}
-	return thebags
-}
-
-// ldamontecarlobagging - lda monte carlo headwords text bagger
-func ldamontecarlobagging(thebags []bagwithlocus, montecarlo map[string]hwguesser) []bagwithlocus {
-	stops := getstopset()
-	for i := 0; i < len(thebags); i++ {
-		var b strings.Builder
-		montecarlostring(&b, strings.Split(thebags[i].Bag, " "), montecarlo, stops)
-		thebags[i].ModifiedBag = b.String()
-	}
-	return thebags
-}
-
-// ldamodel - build the lda model for the corpus
-func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser, s *str.SearchStruct) (mat.Matrix, mat.Matrix, bool) {
+// LDAModel - build the lda model for the corpus
+func LDAModel(topics int, corpus []string, vectoriser *nlp.CountVectoriser, s *str.SearchStruct) (mat.Matrix, mat.Matrix, bool) {
 	const (
 		FAIL = "Failed to model topics for documents"
 	)
 
-	// cancellation is not a big deal: models are fairly fast; ldaplot() is where you can get stuck
+	// cancellation is not a big deal: models are fairly fast; LDAPlot() is where you can get stuck
 	enablecancellation := func(l *nlp.LatentDirichletAllocation) {
 		search.InsertNewContextIntoSS(s)
 		l.Ctx = s.Context
@@ -367,8 +239,8 @@ func ldamodel(topics int, corpus []string, vectoriser *nlp.CountVectoriser, s *s
 	return docsOverTopics, topicsOverWords, true
 }
 
-// ldatopsentences - generate html table reporting sentences most associated with each topic
-func ldatopsentences(ntopics int, thebags []bagwithlocus, corpus []string, docsOverTopics mat.Matrix) string {
+// LDATopicSentences - generate html table reporting sentences most associated with each topic
+func LDATopicSentences(ntopics int, thebags []bagwithlocus, corpus []string, docsOverTopics mat.Matrix) string {
 	const (
 		NTH = 2
 
@@ -474,8 +346,8 @@ func ldatopsentences(ntopics int, thebags []bagwithlocus, corpus []string, docsO
 	return tableout
 }
 
-// ldatopicsummary - html table that reports on top words and topic weights in the model
-func ldatopicsummary(ntopics int, topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser, docsOverTopics mat.Matrix) string {
+// LDATopicSummary - html table that reports on top words and topic weights in the model
+func LDATopicSummary(ntopics int, topicsOverWords mat.Matrix, vectoriser *nlp.CountVectoriser, docsOverTopics mat.Matrix) string {
 	const (
 		TOPN = 8
 		NTH  = 2
@@ -546,6 +418,52 @@ func ldatopicsummary(ntopics int, topicsOverWords mat.Matrix, vectoriser *nlp.Co
 	tableout := fmt.Sprintf(TABLETOP, topn, strings.Join(tablerows, "\n"))
 	tableout = fmt.Sprintf(FULLTABLE, tableout)
 	return tableout
+}
+
+// ldaunmodifiedbagging - lda unmodified text bagger
+func ldaunmodifiedbagging(thebags []bagwithlocus) []bagwithlocus {
+	for i := 0; i < len(thebags); i++ {
+		thebags[i].ModifiedBag = thebags[i].Bag
+	}
+	return thebags
+}
+
+// ldayokedbagging - lda yoked headwords text bagger
+func ldayokedbagging(thebags []bagwithlocus, yokermap map[string]string) []bagwithlocus {
+	stops := GetStopSet()
+	for i := 0; i < len(thebags); i++ {
+		var b strings.Builder
+		yokedstring(&b, strings.Split(thebags[i].Bag, " "), yokermap, stops)
+		thebags[i].ModifiedBag = b.String()
+	}
+	return thebags
+}
+
+// ldawinnerbagging - lda winner takes all headwords text bagger
+func ldawinnerbagging(thebags []bagwithlocus, winnermap map[string]string) []bagwithlocus {
+	stops := GetStopSet()
+	for i := 0; i < len(thebags); i++ {
+		var b strings.Builder
+		winnerstring(&b, strings.Split(thebags[i].Bag, " "), winnermap, stops)
+		thebags[i].ModifiedBag = b.String()
+
+		// fmt.Printf("%s\t%s\n", thebags[i].Loc, thebags[i].ModifiedBag)
+		//line/lt0959w014/34502	halieuticus    accipio mundus lego¹
+		//line/lt0959w014/34505	 arma admoneo
+		//line/lt0959w014/34506	 vitulus mino nondum gero¹ tener cornu frons² damma fugio pugno virtus leo² mordeo canae cauda scorpius ictus² concutio levis¹ pinnis evolo alo
+	}
+	return thebags
+}
+
+// ldamontecarlobagging - lda monte carlo headwords text bagger
+func ldamontecarlobagging(thebags []bagwithlocus, montecarlo map[string]hwguesser) []bagwithlocus {
+	stops := GetStopSet()
+	for i := 0; i < len(thebags); i++ {
+		var b strings.Builder
+		montecarlostring(&b, strings.Split(thebags[i].Bag, " "), montecarlo, stops)
+		thebags[i].ModifiedBag = b.String()
+	}
+	return thebags
 }
 
 type topicsorter struct {
@@ -637,8 +555,8 @@ func ldadocbyweight(ntopics int, docsOverTopics mat.Matrix) []float64 {
 
 // see https://pkg.go.dev/gonum.org/v1/gonum/mat@v0.12.0#pkg-index
 
-// ldaplot - plot the lda results
-func ldaplot(ctx context.Context, graph2d bool, ntopics int, incl string, bagger string, docsOverTopics mat.Matrix, bags []bagwithlocus) string {
+// LDAPlot - plot the lda results
+func LDAPlot(ctx context.Context, graph2d bool, ntopics int, incl string, bagger string, docsOverTopics mat.Matrix, bags []bagwithlocus) string {
 	const (
 		PERPLEX = 150 // default 300
 		LEARNRT = 100 // default 100
@@ -710,7 +628,7 @@ func ldaplot(ctx context.Context, graph2d bool, ntopics int, incl string, bagger
 		p := message.NewPrinter(language.English)
 		htmlandjs = p.Sprintf(SKIPPED, dc, cfg.MaxLDAGraphSize)
 	}
-	Msg.PEEK(fmt.Sprintf("ldaplot() EmbedData required %.3fs", time.Now().Sub(vv.LaunchTime).Seconds()))
+	Msg.PEEK(fmt.Sprintf("LDAPlot() EmbedData required %.3fs", time.Now().Sub(vv.LaunchTime).Seconds()))
 
 	return htmlandjs
 }
@@ -757,21 +675,21 @@ func splitonpunctuaton(thetext string) []string {
 
 // the third is interesting: beginnings and endings are being found...
 
-// [HGS] TESTING: NeighborsSearch rerouting to LDASearch()
+// [HGS] TESTING: RtNeighborsSearch rerouting to LDASearch()
 //topic 1:	0.993753.3	Apuleius Madaurensis, Metamorphoses 9.12.11	 dii boni quales illic homunculi uibicibus liuidis totam cutem depicti dorsumque plagosum scissili centunculo magis inumbrati quam obtecti nonnulli exiguo tegili tantum modo pubem iniecti cuncti tamen sic tunicati ut essent per pannulos manifesti frontes litterati et capillum semirasi et pedes anulati tum lurore deformes et fumosis tenebris uaporosae caliginis palpebras adesi atque adeo male luminati et in modum pugilum qui puluisculo perspersi dimicant farinulenta cinere sordide candidati
 //topic 2:	0.994870.3	Apuleius Madaurensis, Metamorphoses 11.3.15	 corona multiformis uariis floribus sublimem destrinxerat uerticem cuius media quidem super frontem plana rutunditas in modum speculi uel immo argumentum lunae candidum lumen emicabat dextra laeuaque sulcis insurgentium uiperarum cohibita spicis etiam cerialibus desuper porrectis conspicuante tunica multicolor bysso tenui pertexta nunc albo candore lucida nunc croceo flore lutea nunc roseo rubore flammida et quae longe longeque etiam meum confutabat optutum palla nigerrima splendescens atro nitore quae circumcirca remeans et sub dexterum latus ad umerum laeuum recurrens umbonis uicem deiecta parte laciniae multiplici contabulatione dependula ad ultimas oras nodulis fimbriarum decoriter confluctuabat
 //topic 3:	0.994591.3	Apuleius Madaurensis, Metamorphoses 10.20.5	 quattuor eunuchi confestim puluillis compluribus uentose tumentibus pluma delicata terrestrem nobis cubitum praestruunt sed et stragula ueste auro ac murice tyrio depicta probe consternunt ac desuper breuibus admodum sed satis copiosis puluillis aliis nimis modicis quis maxillas et ceruices delicatae mulieres suffulcire consuerunt superstruunt
 //topic 4:	0.993883.3	Apuleius Madaurensis, Metamorphoses 11.30.3	 nec deinceps postposito uel in supinam procrastinationem reiecto negotio statim sacerdoti meo relatis quae uideram inanimae protinus castimoniae iugum subeo et lege perpetua praescriptis illis decem diebus spontali sobrietate multiplicatis instructum teletae comparo largitus omnibus ex studio pietatis magis quam mensura rerum mearum collatis
 //topic 5:	0.992361.3	Apuleius Madaurensis, Metamorphoses 6.12.1	 perrexit psyche uolenter non obsequium quidem illa functura sed requiem malorum praecipitio fluuialis rupis habiturante sed inde de fluuio musicae suauis nutricula leni crepitu dulcis aurae diuinitus inspirata sic uaticinatur harundo uiridis psyche tantis aerumnis exercita neque tua miserrima morte meas sanctas aquas polluas nec uero istud horae con tra formidabiles oues feras aditum quoad de solis fraglantia mutuatae calorem truci rabie solent efferri cornuque acuto et fronte saxea et non nunquam uenenatis morsibus in exitium saeuire mortalium
 //
-//[HGS] TESTING: NeighborsSearch rerouting to LDASearch()
+//[HGS] TESTING: RtNeighborsSearch rerouting to LDASearch()
 //topic 1:	0.993477.3	Apuleius Madaurensis, Metamorphoses 4.8.9	 estur ac potatur incondite pulmentis aceruatim panibus aggeratim poculis agminatim ingestis
 //topic 2:	0.996230.3	Apuleius Madaurensis, Metamorphoses 5.20.6	 nouaculam praeacutam adpulsu etiam palmulae lenientis exasperatam tori qua parte cubare consuesti latenter absconde lucernamque concinnem completam oleo claro lumine praemicantem subde aliquo claudentis aululae tegmine omnique isto apparatu tenacissime dissimulato postquam sulcatum trahens gressum cubile solitum conscenderit iamque porrectus et exordio somni prementis implicitus altum soporem flare coeperit toro delapsa nudoque uestigio pensilem gradum paullulatim minuens cae cae tenebrae custodia liberata lucerna praeclari tui facinoris opportunitatem de luminis consilio mutuare et ancipiti telo illo audaciter prius dextera sursum elata nisu quam ualido noxii serpentis nodum ceruicis et capitis abscide
 //topic 3:	0.993673.3	Apuleius Madaurensis, Metamorphoses 9.32.9	 sed ecce siderum ordinatis ambagibus per numeros dierum ac mensuum remeans annus post mustulentas autumni delicias ad hibernas capricorni pruinas deflexerat et adsiduis pluuiis noctur nisque rorationibus sub dio et intecto conclusus stabulo continuo discruciabar frigore quippe cum meus dominus prae nimia paupertate ne sibi quidem nedum mihi posset stramen aliquod uel exiguum tegimen parare sed frondoso casulae contentus umbraculo degeret
 //topic 4:	0.996601.3	Apuleius Madaurensis, Metamorphoses 11.28.3	 nam et uiriculas patrimonii peregrinationis adtriuerant impensae et erogationes urbicae pristinis illis prouincialibus antistabant plurimum
 //topic 5:	0.993569.3	Apuleius Madaurensis, Metamorphoses 8.27.1	 die sequenti uariis coloribus indusiati et deformiter quisque formati facie caenoso pigmento delita et oculis obunctis graphice prodeunt mitellis et crocotis et carbasinis et bombycinis iniecti quidam tunicas albas in modum lanciolarum quoquouersum fluente purpura depictas cingulo subligati pedes luteis induti calceis
 //
-//[HGS] TESTING: NeighborsSearch rerouting to LDASearch()
+//[HGS] TESTING: RtNeighborsSearch rerouting to LDASearch()
 //topic 1:	0.994495.3	Apuleius Madaurensis, Metamorphoses 11.25.13	 tiberiusbi respondent sidera redeunt tempora gaudent numina seruiunt elementante tuo nutu spirant flamina nutriunt nubila germinant semina crescunt germinante tuam maiestatem perhorrescunt aues caelo meantes ferae montibus errantes serpentes solo latentes beluae ponto natantes
 //topic 2:	0.995036.3	Apuleius Madaurensis, Metamorphoses 1.2.5	 postquam ardua montium et lubrica uallium et roscida cespitum et glebosa camporum emensus emersi in equo indigena peralbo uehens iam eo quoque admodum fesso ut ipse etiam fatigationem sedentariam incessus uegetatione discuterem in pedes desilio equi sudorem fronde detergeo frontem curiose exfrico auris remulceo frenos detraho in gradum lenem sensim proueho quoad lassitudinis incommodum alui solitum ac naturale praesidium eliquaret
 //topic 3:	0.992108.3	Apuleius Madaurensis, Metamorphoses 1.6.9	 at uero domi tuae iam defletus et conclamatus es liberis tuis tutores iuridici prouincialis decreto dati uxor persolutis feralibus officiis luctu et maerore diuturno deformata diffletis paene ad extremam captiuitatem oculis suis domus infortunium nouarum nuptiarum gaudiis a suis sibi parentibus hilarare compellitur
@@ -796,7 +714,7 @@ func splitonpunctuaton(thetext string) []string {
 //topic 5:        0.999668.3      Apuleius Madaurensis, Metamorphoses 2.18.18      nec tamen incomitatus ibo
 
 // 100 iterations
-// [HGS] TESTING: NeighborsSearch rerouting to LDASearch()
+// [HGS] TESTING: RtNeighborsSearch rerouting to LDASearch()
 //topic 1:        0.995875.3      Apuleius Madaurensis, Metamorphoses 1.1.7        exordior
 //topic 2:        0.994873.3      Apuleius Madaurensis, Metamorphoses 6.6.14       cedunt nubes et caelum filiae panditur et summus aether cum gaudio suscipit deam nec obuias aquilas uel accipitres rapaces pertimescit magnae veneris canora familiante tunc se protinus ad iouis regias arces dirigit et petitu superbo mercuri dei uocalis operae necessa riam usuram postulat
 //topic 3:        0.995717.3      Apuleius Madaurensis, Metamorphoses 4.21.20      sic etiam thrasyleon nobis periuit sed a gloria non peribit
@@ -811,7 +729,7 @@ func splitonpunctuaton(thetext string) []string {
 //topic 5:        0.994164.3      Apuleius Madaurensis, Metamorphoses 11.30.3      nec deinceps postposito uel in supinam procrastinationem reiecto negotio statim sacerdoti meo relatis quae uideram inanimae protinus castimoniae iugum subeo et lege perpetua praescriptis illis decem diebus spontali sobrietate multiplicatis instructum teletae comparo largitus omnibus ex studio pietatis magis quam mensura rerum mearum collatis
 
 // 25 iterations
-//[HGS] TESTING: NeighborsSearch rerouting to LDASearch()
+//[HGS] TESTING: RtNeighborsSearch rerouting to LDASearch()
 //topic 1:        0.995270.3      Apuleius Madaurensis, Metamorphoses 10.18.15     spretis luculentis illis suis uehiculis ac posthabitis decoris raedarum carpentis quae partim contecta partim reuelata frustra nouissimis trahebantur consequiis equis etiam thessalicis et aliis iumentis gallicanis quibus generosa suboles perhibet pretiosam dignitatem me phaleris aureis et fucatis ephippiis et purpureis tapetis et frenis argenteis et pictilibus balteis et tintinnabulis perargutis exornatum ipse residens amantissime nonnunquam comissimis adfatur sermonibus atque inter alia pleraque summe se delectari  profitebatur quod haberet in me simul et conuiuam et uectorem
 //topic 2:        0.994604.3      Apuleius Madaurensis, Metamorphoses 11.3.15      corona multiformis uariis floribus sublimem destrinxerat uerticem cuius media quidem super frontem plana rutunditas in modum speculi uel immo argumentum lunae candidum lumen emicabat dextra laeuaque sulcis insurgentium uiperarum cohibita spicis etiam cerialibus desuper porrectis conspicuante tunica multicolor bysso tenui pertexta nunc albo candore lucida nunc croceo flore lutea nunc roseo rubore flammida et quae longe longeque etiam meum confutabat optutum palla nigerrima splendescens atro nitore quae circumcirca remeans et sub dexterum latus ad umerum laeuum recurrens umbonis uicem deiecta parte laciniae multiplici contabulatione dependula ad ultimas oras nodulis fimbriarum decoriter confluctuabat
 //topic 3:        0.995729.3      Apuleius Madaurensis, Metamorphoses 10.5.14      sed dira illa femina et malitiae nouercalis exemplar unicum non acerba filii morte non parricidii conscientia non infortunio domus non luctu mariti uel aerumna funeris commota cladem familiae in uindictae compendium traxit missoque protinus cursore qui uianti marito domus expugnationem nuntiaret ac mox eodem ocius ab itinere regresso personata nimia temeritate insimulat priuigni ueneno filium suum interceptum

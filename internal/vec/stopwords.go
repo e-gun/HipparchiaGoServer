@@ -123,7 +123,7 @@ func getlatinstops() map[string]struct{} {
 	return gen.ToSet(ls)
 }
 
-func getstopset() map[string]struct{} {
+func GetStopSet() map[string]struct{} {
 	ls := readstopconfig("latin")
 	gs := readstopconfig("greek")
 	ss := append(gs, ls...)

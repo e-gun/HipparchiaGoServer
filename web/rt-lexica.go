@@ -44,7 +44,7 @@ func RtLexLookup(c echo.Context) error {
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return gen.JSONresponse(c, jsb{JS: vv.JSVALIDATION})
+		return jsonresponse(c, jsb{JS: vv.JSVALIDATION})
 	}
 
 	req := c.Param("wd")
@@ -78,7 +78,7 @@ func RtLexLookup(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = insertlexicaljs()
 
-	return gen.JSONresponse(c, jb)
+	return jsonresponse(c, jb)
 }
 
 // RtLexFindByForm - search the dictionary for a specific headword
@@ -86,7 +86,7 @@ func RtLexFindByForm(c echo.Context) error {
 	// be able to respond to "GET /lexica/findbyform/ἀμιϲθὶ/gr0062 HTTP/1.1"
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return gen.JSONresponse(c, jsb{JS: vv.JSVALIDATION})
+		return jsonresponse(c, jsb{JS: vv.JSVALIDATION})
 	}
 	c.Response().After(func() { vlt.LogPaths("RtLexFindByForm()") })
 
@@ -119,7 +119,7 @@ func RtLexFindByForm(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = js
 
-	return gen.JSONresponse(c, jb)
+	return jsonresponse(c, jb)
 }
 
 // RtLexId - grab a word by its entry value
@@ -132,7 +132,7 @@ func RtLexId(c echo.Context) error {
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return gen.JSONresponse(c, jsb{JS: vv.JSVALIDATION})
+		return jsonresponse(c, jsb{JS: vv.JSVALIDATION})
 	}
 
 	req := c.Param("wd")
@@ -157,7 +157,7 @@ func RtLexId(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = js
 
-	return gen.JSONresponse(c, jb)
+	return jsonresponse(c, jb)
 }
 
 // RtLexReverse - look for the headwords that have the sought word in their body
@@ -167,7 +167,7 @@ func RtLexReverse(c echo.Context) error {
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return gen.JSONresponse(c, jsb{JS: vv.JSVALIDATION})
+		return jsonresponse(c, jsb{JS: vv.JSVALIDATION})
 	}
 
 	req := c.Param("wd")
@@ -201,7 +201,7 @@ func RtLexReverse(c echo.Context) error {
 	jb.HTML = html
 	jb.JS = insertlexicaljs()
 
-	return gen.JSONresponse(c, jb)
+	return jsonresponse(c, jb)
 }
 
 //

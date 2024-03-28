@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022-24
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package web
 
 import (
@@ -146,7 +151,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {
-		return gen.JSONresponse(c, JSFeeder{})
+		return jsonresponse(c, JSFeeder{})
 	}
 
 	morphmap := db.ArrayToGetRequiredMorphObjects(morphslice)
@@ -189,7 +194,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {
-		return gen.JSONresponse(c, JSFeeder{})
+		return jsonresponse(c, JSFeeder{})
 	}
 
 	// keep track of unique values
@@ -256,7 +261,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {
-		return gen.JSONresponse(c, JSFeeder{})
+		return jsonresponse(c, JSFeeder{})
 	}
 
 	// [d] the final map
@@ -343,7 +348,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {
-		return gen.JSONresponse(c, JSFeeder{})
+		return jsonresponse(c, JSFeeder{})
 	}
 
 	ky := multiworkkeymaker(mp, &srch)
@@ -380,7 +385,7 @@ func RtIndexMaker(c echo.Context) error {
 	vlt.WSInfo.Del <- si.WSID
 	vlt.WSInfo.Del <- srch.WSID
 
-	return gen.JSONresponse(c, jso)
+	return jsonresponse(c, jso)
 }
 
 //

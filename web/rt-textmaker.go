@@ -153,5 +153,5 @@ func RtTextMaker(c echo.Context) error {
 
 	vlt.WSInfo.Del <- srch.WSID
 
-	return gen.JSONresponse(c, jso)
+	return jsonresponse(c, jso)
 }
