@@ -142,11 +142,11 @@ func (m *MessageMaker) Emit(message string, threshold int) {
 		}
 		fmt.Printf("[%s%s%s] %s%s%s\n", YELLOW1, m.SNm, RESET, color, message, RESET)
 	} else {
-		// terminal color codes not w's friend
+		// terminal color codes not win's friend
 		if threshold < 0 {
 			fmt.Printf("[%s] %s\n", m.SNm, message)
 		} else {
-			fmt.Printf("[%s] [LL%d] %s\n", m.SNm, threshold, message)
+			fmt.Printf("[%s] [%d] %s\n", m.SNm, threshold, message)
 		}
 	}
 }

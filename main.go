@@ -72,7 +72,10 @@ func main() {
 	lnch.LookForConfigFile()
 	lnch.ConfigAtLaunch()
 	lnch.Msg.LLvl = lnch.Config.LogLevel
+	msg := lnch.NewMessageMakerConfigured()
+	msg.ResetScreen()
 
+	// [1a] maybe we are profiling
 	// profiling runs are requested from the command line
 
 	// e.g. running: ./HipparchiaGoServer -pc -st
@@ -90,10 +93,8 @@ func main() {
 		// mem profile:
 		defer profile.Start(profile.MemProfile).Stop()
 	}
-	msg := lnch.NewMessageMakerConfigured()
-	msg.ResetScreen()
 
-	// need to update all the message makers out there now that Config is set
+	// [1b] need to update all the message makers out there now that Config is set
 	mkr := []*mm.MessageMaker{db.Msg, debug.Msg, lnch.Msg, mps.Msg, search.Msg, str.Msg, vec.Msg, vlt.Msg, web.Msg}
 	// need to keep these in the right order otherwise the coming loop will misassociate items...
 	suff := []string{"-DBI", "-DBG", "-LNC", "-MPS", "-SEA", "-STR", "-VEC", "-VLT", "-WEB"}
