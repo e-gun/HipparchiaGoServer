@@ -18,6 +18,13 @@ import (
 // STOPWORDS
 //
 
+func GetStopSet() map[string]struct{} {
+	ls := readstopconfig("latin")
+	gs := readstopconfig("greek")
+	ss := append(gs, ls...)
+	return gen.ToSet(ss)
+}
+
 // readstopconfig - read the vv.CONFIGVECTORSTOP file and return []stopwords; if it does not exist, generate it
 func readstopconfig(fn string) []string {
 	const (
@@ -121,11 +128,4 @@ func getgreekstops() map[string]struct{} {
 func getlatinstops() map[string]struct{} {
 	ls := gen.SetSubtraction(LatStop, LatinKeep)
 	return gen.ToSet(ls)
-}
-
-func GetStopSet() map[string]struct{} {
-	ls := readstopconfig("latin")
-	gs := readstopconfig("greek")
-	ss := append(gs, ls...)
-	return gen.ToSet(ss)
 }

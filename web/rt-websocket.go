@@ -22,7 +22,7 @@ func RtWebsocket(c echo.Context) error {
 	)
 
 	var (
-		Upgrader = websocket.Upgrader{}
+		up = websocket.Upgrader{}
 	)
 
 	user := vlt.ReadUUIDCookie(c)
@@ -30,7 +30,7 @@ func RtWebsocket(c echo.Context) error {
 		return nil
 	}
 
-	ws, err := Upgrader.Upgrade(c.Response(), c.Request(), nil)
+	ws, err := up.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		Msg.NOTE(FAILCON)
 		return nil

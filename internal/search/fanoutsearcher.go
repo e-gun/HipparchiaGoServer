@@ -97,7 +97,7 @@ func prqsearcher(ctx context.Context, querychannel <-chan str.PrerolledQuery) (<
 
 	// below is the only call to getdbconnection() outside of `db`; if you use db.GetWorklineBundle() instead
 	// you do not need a dbconn, this tidies up several functions, but you also will be getting/returning thousands of
-	// connections in a full corpus it is not clear that there is any real speed penalty
+	// connections in a full corpus; it is not clear that there is any real speed penalty
 
 	//consumeA := func() {
 	//	defer close(foundlineschannel)

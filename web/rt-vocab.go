@@ -88,6 +88,7 @@ func RtVocabMaker(c echo.Context) error {
 		HT string `json:"thehtml"`
 		NJ string `json:"newjs"`
 	}
+
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, JSFeeder{NJ: vv.JSVALIDATION}, vv.JSONINDENT)

@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
-	"os"
 	"slices"
 )
 
@@ -25,31 +24,15 @@ func FingerprintNNVectorSearch(srch str.SearchStruct) string {
 
 	// unless you sort, you do not get repeatable results with a md5sum of srch.SearchIn if you look at "all latin"
 
-	var fp []string
-
 	// [1] start with the searchlist + the stoplists + VecTextPrep (which are all collections of strings + one string)
 
-	// includes
-	fp = append(fp, srch.SearchIn.AuGenres...)
-	fp = append(fp, srch.SearchIn.WkGenres...)
-	fp = append(fp, srch.SearchIn.AuLocations...)
-	fp = append(fp, srch.SearchIn.WkLocations...)
-	fp = append(fp, srch.SearchIn.Authors...)
-	fp = append(fp, srch.SearchIn.Works...)
-	fp = append(fp, srch.SearchIn.Passages...)
+	in := srch.SearchIn
+	ex := srch.SearchEx
 
-	// excludes
-	fp = append(fp, srch.SearchEx.AuGenres...)
-	fp = append(fp, srch.SearchEx.WkGenres...)
-	fp = append(fp, srch.SearchEx.AuLocations...)
-	fp = append(fp, srch.SearchEx.WkLocations...)
-	fp = append(fp, srch.SearchEx.Authors...)
-	fp = append(fp, srch.SearchEx.Works...)
-	fp = append(fp, srch.SearchEx.Passages...)
+	incat := slices.Concat(in.Authors, in.AuGenres, in.AuLocations, in.Works, in.WkLocations, in.WkGenres, in.Passages)
+	excat := slices.Concat(ex.Authors, ex.AuGenres, ex.AuLocations, ex.Works, ex.WkLocations, ex.WkGenres, ex.Passages)
 
-	// stops
-	fp = append(fp, readstopconfig("greek")...)
-	fp = append(fp, readstopconfig("latin")...)
+	fp := slices.Concat(incat, excat, readstopconfig("greek"), readstopconfig("latin"))
 
 	// one last item...
 	fp = append(fp, srch.VecTextPrep)
@@ -79,7 +62,8 @@ func FingerprintNNVectorSearch(srch str.SearchStruct) string {
 
 	if e1 != nil || e2 != nil {
 		Msg.MAND(FAIL)
-		os.Exit(1)
+		// os.Exit(1)
+		f2 = []byte{}
 	}
 
 	// [3] merge the previous two into a single byte array
