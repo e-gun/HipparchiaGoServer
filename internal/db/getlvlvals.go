@@ -120,6 +120,9 @@ func GetLocusEndpoints(wk *str.DbWork, locus string, sep string) ([2]int, bool) 
 		FAIL = "locusendpointer() failed to find the following inside of %s: '%s'"
 	)
 
+	dbconn := getdbconnection()
+	defer dbconn.Release()
+
 	fl := [2]int{0, 0}
 	success := false
 
@@ -151,7 +154,7 @@ func GetLocusEndpoints(wk *str.DbWork, locus string, sep string) ([2]int, bool) 
 	a := strings.Join(use, " AND ")
 	q := fmt.Sprintf(QTMP, tb, wk.UID, a)
 
-	foundrows, err := SQLPool.Query(context.Background(), q)
+	foundrows, err := dbconn.Query(context.Background(), q)
 	Msg.EC(err)
 
 	idx, err := pgx.CollectRows(foundrows, pgx.RowTo[int])

@@ -110,12 +110,16 @@ func GetIndividualWordCount(wd string) str.DbWordCount {
 		PSQQ = `SELECT %s FROM wordcounts_%s where entry_name = '%s'`
 		NOTH = `findbyform() found no results for '%s'`
 	)
+
+	dbconn := getdbconnection()
+	defer dbconn.Release()
+
 	// golang hates indexing unicode strings: strings are bytes, and unicode chars take more than one byte
 	c := []rune(wd)
 	q := fmt.Sprintf(PSQQ, FLDS, gen.StripaccentsSTR(string(c[0])), wd)
 
 	var wc str.DbWordCount
-	ct := SQLPool.QueryRow(context.Background(), q)
+	ct := dbconn.QueryRow(context.Background(), q)
 	e := ct.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
 	if e != nil {
 		Msg.FYI(fmt.Sprintf(NOTH, wd))
@@ -206,6 +210,9 @@ func MapHeadwordCounts(headwordset map[string]bool) map[string]int {
 		return make(map[string]int)
 	}
 
+	dbconn := getdbconnection()
+	defer dbconn.Release()
+
 	tt := "CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words"
 	qt := "SELECT entry_name, total_count FROM dictionary_headword_wordcounts WHERE EXISTS " +
 		"(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = dictionary_headword_wordcounts.entry_name)"
@@ -218,9 +225,6 @@ func MapHeadwordCounts(headwordset map[string]bool) map[string]int {
 	}
 
 	Msg.PEEK(fmt.Sprintf(MSG1, len(headwordset)))
-
-	dbconn := getdbconnection()
-	defer dbconn.Release()
 
 	arr := strings.Join(hw, "', '")
 	arr = fmt.Sprintf("'%s'", arr)

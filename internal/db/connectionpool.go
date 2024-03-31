@@ -12,7 +12,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"os"
 	"strings"
 )
 
@@ -56,7 +55,7 @@ func FillDBConnectionPool(cfg str.CurrentConfiguration) *pgxpool.Pool {
 	config, e := pgxpool.ParseConfig(url)
 	if e != nil {
 		Msg.MAND(fmt.Sprintf(FAIL1, url))
-		os.Exit(0)
+		Msg.ExitOrHang(0)
 	}
 
 	thepool, e := pgxpool.NewWithConfig(context.Background(), config)

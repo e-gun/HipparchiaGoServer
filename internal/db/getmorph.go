@@ -23,9 +23,12 @@ func GetMorphMatch(word string, lang string) []str.DbMorphology {
 		PSQQ = "SELECT %s FROM %s_morphology WHERE observed_form = '%s'"
 	)
 
+	dbconn := getdbconnection()
+	defer dbconn.Release()
+
 	psq := fmt.Sprintf(PSQQ, FLDS, lang, word)
 
-	foundrows, err := SQLPool.Query(context.Background(), psq)
+	foundrows, err := dbconn.Query(context.Background(), psq)
 	Msg.EC(err)
 
 	thesefinds, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[str.DbMorphology])

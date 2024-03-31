@@ -26,8 +26,11 @@ func VectorDBCheckNN(fp string) bool {
 		DNE = "does not exist"
 	)
 
+	dbconn := getdbconnection()
+	defer dbconn.Release()
+
 	q := fmt.Sprintf(Q, vv.VECTORTABLENAMENN, fp)
-	foundrow, err := SQLPool.Query(context.Background(), q)
+	foundrow, err := dbconn.Query(context.Background(), q)
 	if err != nil {
 		m := err.Error()
 		if strings.Contains(m, DNE) {
@@ -70,6 +73,9 @@ func VectorDBAddNN(fp string, embs embedding.Embeddings) {
 		return
 	}
 
+	dbconn := getdbconnection()
+	defer dbconn.Release()
+
 	// json vs jsi: jsoniter.ConfigFastest, this will marshal the float with 6 digits precision (lossy)
 	eb, err := json.Marshal(embs)
 	if err != nil {
@@ -91,7 +97,7 @@ func VectorDBAddNN(fp string, embs embedding.Embeddings) {
 
 	ex := fmt.Sprintf(INS, vv.VECTORTABLENAMENN, fp)
 
-	_, err = SQLPool.Exec(context.Background(), ex, l2, b)
+	_, err = dbconn.Exec(context.Background(), ex, l2, b)
 	Msg.EC(err)
 	Msg.TMI(MSG1 + fp)
 
@@ -109,9 +115,12 @@ func VectorDBFetchNN(fp string) embedding.Embeddings {
 		Q    = `SELECT vectordata FROM %s WHERE fingerprint = '%s' LIMIT 1`
 	)
 
+	dbconn := getdbconnection()
+	defer dbconn.Release()
+
 	q := fmt.Sprintf(Q, vv.VECTORTABLENAMENN, fp)
 	var vect []byte
-	foundrow, err := SQLPool.Query(context.Background(), q)
+	foundrow, err := dbconn.Query(context.Background(), q)
 	Msg.EC(err)
 
 	defer foundrow.Close()
@@ -152,9 +161,13 @@ func VectorDBReset() {
 		MSG2 = "VectorDBReset(): 'DROP TABLE %s' returned an (ignored) error: \n\t%s"
 		E    = `DROP TABLE %s`
 	)
+
+	dbconn := getdbconnection()
+	defer dbconn.Release()
+
 	ex := fmt.Sprintf(E, vv.VECTORTABLENAMENN)
 
-	_, err := SQLPool.Exec(context.Background(), ex)
+	_, err := dbconn.Exec(context.Background(), ex)
 	if err != nil {
 		ms := err.Error()
 		Msg.TMI(fmt.Sprintf(MSG2, vv.VECTORTABLENAMENN, ms))
@@ -169,9 +182,13 @@ func VectorDBSizeNN(priority int) {
 		SZQ  = "SELECT SUM(vectorsize) AS total FROM " + vv.VECTORTABLENAMENN
 		MSG4 = "Disk space used by stored vectors is currently %dMB"
 	)
+
+	dbconn := getdbconnection()
+	defer dbconn.Release()
+
 	var size int64
 
-	err := SQLPool.QueryRow(context.Background(), SZQ).Scan(&size)
+	err := dbconn.QueryRow(context.Background(), SZQ).Scan(&size)
 	Msg.EC(err)
 	Msg.Emit(fmt.Sprintf(MSG4, size/1024/1024), priority)
 }
@@ -183,9 +200,13 @@ func VectorDBCountNN(priority int) {
 		MSG4 = "Number of stored vector models: %d"
 		DNE  = "does not exist"
 	)
+
+	dbconn := getdbconnection()
+	defer dbconn.Release()
+
 	var size int64
 
-	err := SQLPool.QueryRow(context.Background(), SZQ).Scan(&size)
+	err := dbconn.QueryRow(context.Background(), SZQ).Scan(&size)
 	if err != nil {
 		m := err.Error()
 		if strings.Contains(m, DNE) {
@@ -208,8 +229,12 @@ func vectordbinitnn() {
 			)`
 		EXISTS = "already exists"
 	)
+
+	dbconn := getdbconnection()
+	defer dbconn.Release()
+
 	ex := fmt.Sprintf(CREATE, vv.VECTORTABLENAMENN)
-	_, err := SQLPool.Exec(context.Background(), ex)
+	_, err := dbconn.Exec(context.Background(), ex)
 	if err != nil {
 		m := err.Error()
 		if !strings.Contains(m, EXISTS) {

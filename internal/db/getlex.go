@@ -23,6 +23,9 @@ func DictEntryGrabber(seeking string, dict string, col string, syntax string) []
 		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s %s '%s' ORDER BY id_number ASC LIMIT %d`
 	)
 
+	dbconn := getdbconnection()
+	defer dbconn.Release()
+
 	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
 	q := fmt.Sprintf(PSQQ, FLDS, dict, col, syntax, seeking, vv.MAXDICTLOOKUP)
 
@@ -41,7 +44,7 @@ func DictEntryGrabber(seeking string, dict string, col string, syntax string) []
 		return nil
 	}
 
-	foundrows, err := SQLPool.Query(context.Background(), q)
+	foundrows, err := dbconn.Query(context.Background(), q)
 	Msg.EC(err)
 
 	_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
@@ -160,6 +163,9 @@ func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 		}
 	}
 
+	dbconn := getdbconnection()
+	defer dbconn.Release()
+
 	// the next is primed to produce problems: see καρποῦ which will turn καρπόϲ1 and καρπόϲ2 into just καρπόϲ; need xref_value?
 	// but we have probably taken care of this below: see the comments
 	hwm = gen.Unique(hwm)
@@ -186,7 +192,7 @@ func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 
 	for _, w := range hwm {
 		q := fmt.Sprintf(PSQQ, FLDS, d, COLM, w)
-		foundrows, err := SQLPool.Query(context.Background(), q)
+		foundrows, err := dbconn.Query(context.Background(), q)
 		Msg.EC(err)
 
 		_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
@@ -203,6 +209,9 @@ func FindProximateEntry(w str.DbLexicon, nxt string) str.DbLexicon {
 		NOTH           = `formatlexicaloutput() found no entry %s '%s'`
 	)
 
+	dbconn := getdbconnection()
+	defer dbconn.Release()
+
 	oper := ">"
 	ord := "ASC"
 	em := "after"
@@ -214,7 +223,7 @@ func FindProximateEntry(w str.DbLexicon, nxt string) str.DbLexicon {
 	}
 
 	var prx str.DbLexicon
-	p := SQLPool.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.GetLang(), oper, w.ID, ord))
+	p := dbconn.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.GetLang(), oper, w.ID, ord))
 	e := p.Scan(&prx.Entry, &prx.ID)
 	if e != nil {
 		Msg.FYI(fmt.Sprintf(NOTH, em, w.Entry))

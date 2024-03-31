@@ -75,16 +75,6 @@ func ContainsN[T comparable](sl []T, seek T) int {
 	return count
 }
 
-// FlattenSlices - turn a slice of slices into a slice: [][]T --> []T
-func FlattenSlices[T any](lists [][]T) []T {
-	// https://stackoverflow.com/questions/59579121/how-to-flatten-a-2d-slice-into-1d-slice
-	var res []T
-	for _, list := range lists {
-		res = append(res, list...)
-	}
-	return res
-}
-
 // StringMapIntoSlice - convert map[string]T to []T
 func StringMapIntoSlice[T any](mp map[string]T) []T {
 	sl := make([]T, len(mp))
