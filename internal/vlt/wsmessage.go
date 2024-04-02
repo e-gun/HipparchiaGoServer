@@ -26,6 +26,7 @@ type WSClient struct {
 	Conn *websocket.Conn
 	Pool *wspool
 }
+
 type polldata struct {
 	TotalWrk  int    `json:"Poolofwork"`
 	Remain    int    `json:"Remaining"`

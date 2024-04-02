@@ -17,7 +17,7 @@ import (
 // RESPONSEPOLICING is only active if Config.Authenticate is "true"
 //
 
-type EchoResponseStats struct {
+type echoresponsestats struct {
 	TwoHundred  uint64
 	FourOhThree uint64
 	FourOhFour  uint64
@@ -25,17 +25,17 @@ type EchoResponseStats struct {
 	FiveHundred uint64
 }
 
-type BlackListRD struct {
+type readblacklist struct {
 	ip   string
 	resp chan bool
 }
 
-type BlackListWR struct {
+type writeblacklist struct {
 	ip   string
 	resp chan bool
 }
 
-type StatListWR struct {
+type writestats struct {
 	code int
 	ip   string
 	uri  string
@@ -43,10 +43,10 @@ type StatListWR struct {
 
 // variables to manage the RESPONSEPOLICING infrastructure
 var (
-	BListWR         = make(chan BlackListWR)
-	BListRD         = make(chan BlackListRD)
-	SListWR         = make(chan StatListWR)
-	EchoServerStats = NewEchoResponseStats()
+	blistwr         = make(chan writeblacklist)
+	blistrd         = make(chan readblacklist)
+	slistwr         = make(chan writestats)
+	echoserverstats = newechoresponsestats()
 )
 
 // PoliceRequestAndResponse - track Response code counts + block repeat 404 offenders; this is custom middleware for an *echo.Echo
@@ -59,24 +59,24 @@ func PoliceRequestAndResponse(nextechohandler echo.HandlerFunc) echo.HandlerFunc
 
 	return func(c echo.Context) error {
 		// presumed guilty: 403
-		registerresult := StatListWR{
+		registerresult := writestats{
 			code: 403,
 			ip:   c.RealIP(),
 			uri:  c.Request().RequestURI,
 		}
 
 		// already known to be bad?
-		checkblacklist := BlackListRD{ip: c.RealIP(), resp: make(chan bool)}
-		BListRD <- checkblacklist
+		checkblacklist := readblacklist{ip: c.RealIP(), resp: make(chan bool)}
+		blistrd <- checkblacklist
 		ok := <-checkblacklist.resp
 
 		// is something like 'http://journalseek.net/' in the request?
 		rq := c.Request().RequestURI
 		if strings.HasPrefix(rq, "http:") || strings.HasPrefix(rq, "https:") {
 			ok = false
-			addtoblacklist := BlackListWR{ip: c.RealIP(), resp: make(chan bool)}
-			BListWR <- addtoblacklist
-			white := <-addtoblacklist.resp // are you over the limit?
+			addtoblacklist := writeblacklist{ip: c.RealIP(), resp: make(chan bool)}
+			blistwr <- addtoblacklist
+			white := <-addtoblacklist.resp
 			if !white {
 				Msg.WARN(fmt.Sprintf(BLACK1, c.RealIP(), rq))
 			}
@@ -84,7 +84,7 @@ func PoliceRequestAndResponse(nextechohandler echo.HandlerFunc) echo.HandlerFunc
 
 		if !ok {
 			// register a 403
-			SListWR <- registerresult
+			slistwr <- registerresult
 			time.Sleep(SLOWDN * time.Second)
 			e := echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf(BLACK0, c.RealIP()))
 			return e
@@ -95,7 +95,7 @@ func PoliceRequestAndResponse(nextechohandler echo.HandlerFunc) echo.HandlerFunc
 			}
 			// register some other result code
 			registerresult.code = c.Response().Status
-			SListWR <- registerresult
+			slistwr <- registerresult
 			return nil
 		}
 	}
@@ -115,14 +115,14 @@ func IPBlacklistKeeper() {
 	// the channels are returning 'bool'
 	for {
 		select {
-		case rd := <-BListRD: // read from the blacklist
+		case rd := <-blistrd: // read from the blacklist
 			valid := true
 			if _, ok := blacklist[rd.ip]; ok {
 				// you are on the blacklist...
 				valid = false
 			}
 			rd.resp <- valid
-		case wr := <-BListWR: // check strikes; maybe write to the blacklist
+		case wr := <-blistwr: // check strikes; maybe write to the blacklist
 			ret := false
 			if _, ok := strikecount[wr.ip]; !ok {
 				strikecount[wr.ip] = 1
@@ -138,7 +138,7 @@ func IPBlacklistKeeper() {
 	}
 }
 
-// ResponseStatsKeeper - log echo responses; should have exclusive r/w access to EchoServerStats
+// ResponseStatsKeeper - log echo responses; should have exclusive r/w access to echoserverstats
 func ResponseStatsKeeper() {
 	const (
 		BLACK1 = `IP address %s received a strike: StatusNotFound error for URI "%s"`
@@ -162,10 +162,10 @@ func ResponseStatsKeeper() {
 		}
 	}
 
-	blacklist := func(status StatListWR, note string) {
+	blacklist := func(status writestats, note string) {
 		// you need to be logged on the blacklist...
-		wr := BlackListWR{ip: status.ip, resp: make(chan bool)}
-		BListWR <- wr
+		wr := writeblacklist{ip: status.ip, resp: make(chan bool)}
+		blistwr <- wr
 		ok := <-wr.resp
 		if !ok {
 			Msg.WARN(fmt.Sprintf(BLACK1, status.ip, status.uri))
@@ -174,31 +174,31 @@ func ResponseStatsKeeper() {
 
 	// NB: this loop will never exit
 	for {
-		status := <-SListWR
+		status := <-slistwr
 		when := time.Now().Format(time.RFC822)
 		switch status.code {
 		case 200:
-			EchoServerStats.TwoHundred++
-			warn(EchoServerStats.TwoHundred, FRQ200, FYI200)
+			echoserverstats.TwoHundred++
+			warn(echoserverstats.TwoHundred, FRQ200, FYI200)
 		case 403:
 			// you are already on the blacklist...
-			EchoServerStats.FourOhThree++
+			echoserverstats.FourOhThree++
 			// use of 'when' makes this different...
-			if EchoServerStats.FourOhThree%FRQ403 == 0 {
-				Msg.NOTE(fmt.Sprintf(FYI403, when, EchoServerStats.FourOhThree, status.ip, status.uri))
+			if echoserverstats.FourOhThree%FRQ403 == 0 {
+				Msg.NOTE(fmt.Sprintf(FYI403, when, echoserverstats.FourOhThree, status.ip, status.uri))
 			}
 		case 404:
-			EchoServerStats.FourOhFour++
-			warn(EchoServerStats.FourOhFour, FRQ404, FYI404)
+			echoserverstats.FourOhFour++
+			warn(echoserverstats.FourOhFour, FRQ404, FYI404)
 			blacklist(status, BLACK1)
 		case 405:
 			// these seem to come only from hostile scanners; it is a bug that needs fixing if a real user sees this
-			EchoServerStats.FourOhFive++
-			warn(EchoServerStats.FourOhFive, FRQ405, FYI405)
+			echoserverstats.FourOhFive++
+			warn(echoserverstats.FourOhFive, FRQ405, FYI405)
 			blacklist(status, BLACK3)
 		case 500:
-			EchoServerStats.FiveHundred++
-			warn(EchoServerStats.FiveHundred, FRQ500, FYI500)
+			echoserverstats.FiveHundred++
+			warn(echoserverstats.FiveHundred, FRQ500, FYI500)
 			blacklist(status, BLACK2)
 		default:
 			// do nothing: not interested
@@ -208,9 +208,9 @@ func ResponseStatsKeeper() {
 	}
 }
 
-// NewEchoResponseStats - return the one and only copy of EchoResponseStats, i.e. the EchoServerStats global variable
-func NewEchoResponseStats() *EchoResponseStats {
-	return &EchoResponseStats{
+// newechoresponsestats - return the one and only copy of echoresponsestats, i.e. the echoserverstats global variable
+func newechoresponsestats() *echoresponsestats {
+	return &echoresponsestats{
 		TwoHundred:  0,
 		FourOhThree: 0,
 		FourOhFour:  0,

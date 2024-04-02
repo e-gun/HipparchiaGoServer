@@ -17,54 +17,6 @@ import (
 	"time"
 )
 
-//
-// THREAD SAFE INFRASTRUCTURE: MUTEX
-//
-
-// MakeSessionVault - called only once; yields the AllSessions vault
-func MakeSessionVault() SessionVault {
-	return SessionVault{
-		SessionMap: make(map[string]str.ServerSession),
-		mutex:      sync.RWMutex{},
-	}
-}
-
-// SessionVault - there should be only one of these; and it contains all the sessions
-type SessionVault struct {
-	SessionMap map[string]str.ServerSession
-	mutex      sync.RWMutex
-}
-
-func (sv *SessionVault) InsertSess(s str.ServerSession) {
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
-	sv.SessionMap[s.ID] = s
-}
-
-func (sv *SessionVault) Delete(id string) {
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
-	delete(sv.SessionMap, id)
-}
-
-func (sv *SessionVault) IsInVault(id string) bool {
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
-	_, b := sv.SessionMap[id]
-	// fmt.Println(StringMapKeysIntoSlice(sv.SessionMap))
-	return b
-}
-
-func (sv *SessionVault) GetSess(id string) str.ServerSession {
-	sv.mutex.Lock()
-	defer sv.mutex.Unlock()
-	s, e := sv.SessionMap[id]
-	if e != true {
-		s = MakeDefaultSession(id)
-	}
-	return s
-}
-
 // MakeDefaultSession - fill in the blanks when setting up a new session
 func MakeDefaultSession(id string) str.ServerSession {
 	// note that SessionMap clears every time the server restarts
@@ -123,7 +75,9 @@ func MakeDefaultSession(id string) str.ServerSession {
 	return s
 }
 
-// cookies here for import issues
+//
+// cookies here because of import issues
+//
 
 // ReadUUIDCookie - find the ID of the client
 func ReadUUIDCookie(c echo.Context) string {
@@ -151,4 +105,52 @@ func WriteUUIDCookie(c echo.Context) string {
 	c.SetCookie(cookie)
 	Msg.TMI(fmt.Sprintf("WriteUUIDCookie() - new ID set: %s", cookie.Value))
 	return cookie.Value
+}
+
+//
+// THREAD SAFE INFRASTRUCTURE: MUTEX
+//
+
+// makesessionvault - called only once; yields the AllSessions vault
+func makesessionvault() sessionvault {
+	return sessionvault{
+		SessionMap: make(map[string]str.ServerSession),
+		mutex:      sync.RWMutex{},
+	}
+}
+
+// sessionvault - there should be only one of these; and it contains all the sessions
+type sessionvault struct {
+	SessionMap map[string]str.ServerSession
+	mutex      sync.RWMutex
+}
+
+func (sv *sessionvault) InsertSess(s str.ServerSession) {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
+	sv.SessionMap[s.ID] = s
+}
+
+func (sv *sessionvault) Delete(id string) {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
+	delete(sv.SessionMap, id)
+}
+
+func (sv *sessionvault) IsInVault(id string) bool {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
+	_, b := sv.SessionMap[id]
+	// fmt.Println(StringMapKeysIntoSlice(sv.SessionMap))
+	return b
+}
+
+func (sv *sessionvault) GetSess(id string) str.ServerSession {
+	sv.mutex.Lock()
+	defer sv.mutex.Unlock()
+	s, e := sv.SessionMap[id]
+	if e != true {
+		s = MakeDefaultSession(id)
+	}
+	return s
 }

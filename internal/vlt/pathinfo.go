@@ -93,7 +93,7 @@ func LogPaths(fn string) {
 	)
 
 	// GENERAL STATS
-	PIUpdate <- fn
+	piupdate <- fn
 
 	// GC INFO
 
@@ -124,7 +124,7 @@ type PIReply struct {
 }
 
 var (
-	PIUpdate  = make(chan string, 2*runtime.NumCPU())
+	piupdate  = make(chan string, 2*runtime.NumCPU())
 	PIRequest = make(chan PIReply)
 )
 
@@ -145,7 +145,7 @@ func PathInfoHub() {
 	// the main loop; it will never exit
 	for {
 		select {
-		case upd := <-PIUpdate:
+		case upd := <-piupdate:
 			increm(upd)
 		case req := <-PIRequest:
 			req.Response <- PathsCalled

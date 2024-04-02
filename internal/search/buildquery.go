@@ -61,7 +61,7 @@ func SSBuildQueries(s *str.SearchStruct) {
 	const (
 		REG   = `(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
 		IDX   = `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
-		ABORT = "SSBuildQueries() aborting: the ID '%s' is not in the SessionVault"
+		ABORT = "SSBuildQueries() aborting: the ID '%s' is not in the sessionvault"
 	)
 
 	// check to see if RtResetSession() was called in the middle of a search

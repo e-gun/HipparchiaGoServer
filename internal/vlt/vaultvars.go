@@ -6,8 +6,8 @@
 package vlt
 
 var (
-	AllSessions   = MakeSessionVault()
-	AllAuthorized = MakeAuthorizedVault()
+	AllSessions   = makesessionvault()
+	AllAuthorized = makeauthorizedvault()
 	WebsocketPool = WSFillNewPool()
 	WSInfo        = BuildWSInfoHubIf()
 )

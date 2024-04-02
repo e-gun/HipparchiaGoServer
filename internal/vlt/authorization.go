@@ -20,45 +20,6 @@ var (
 	UserPassPairs = make(map[string]string)
 )
 
-//
-// THREAD SAFE INFRASTRUCTURE: MUTEX
-//
-
-// MakeAuthorizedVault - called only once; yields the AllAuthorized vault
-func MakeAuthorizedVault() AuthVault {
-	return AuthVault{
-		UserMap: make(map[string]bool),
-		mutex:   sync.RWMutex{},
-	}
-}
-
-// AuthVault - there should be only one of these; and it contains all the authorization info
-type AuthVault struct {
-	UserMap map[string]bool
-	mutex   sync.RWMutex
-}
-
-func (av *AuthVault) Check(u string) bool {
-	if !lnch.Config.Authenticate {
-		return true
-	}
-	av.mutex.Lock()
-	defer av.mutex.Unlock()
-	s, e := av.UserMap[u]
-	if e != true {
-		av.UserMap[u] = false
-		s = false
-	}
-	return s
-}
-
-func (av *AuthVault) Register(u string, b bool) {
-	av.mutex.Lock()
-	defer av.mutex.Unlock()
-	av.UserMap[u] = b
-	return
-}
-
 // BuildUserPassPairs - set up authentication map via CONFIGAUTH
 func BuildUserPassPairs(cc str.CurrentConfiguration) {
 	const (
@@ -100,6 +61,45 @@ func BuildUserPassPairs(cc str.CurrentConfiguration) {
 
 	if cc.Authenticate && len(UserPassPairs) == 0 {
 		Msg.CRIT(FAIL2)
-		os.Exit(1)
+		Msg.ExitOrHang(1)
 	}
+}
+
+//
+// THREAD SAFE INFRASTRUCTURE: MUTEX
+//
+
+// makeauthorizedvault - called only once; yields the AllAuthorized vault
+func makeauthorizedvault() authvault {
+	return authvault{
+		UserMap: make(map[string]bool),
+		mutex:   sync.RWMutex{},
+	}
+}
+
+// authvault - there should be only one of these; and it contains all the authorization info
+type authvault struct {
+	UserMap map[string]bool
+	mutex   sync.RWMutex
+}
+
+func (av *authvault) Check(u string) bool {
+	if !lnch.Config.Authenticate {
+		return true
+	}
+	av.mutex.Lock()
+	defer av.mutex.Unlock()
+	s, e := av.UserMap[u]
+	if e != true {
+		av.UserMap[u] = false
+		s = false
+	}
+	return s
+}
+
+func (av *authvault) Register(u string, b bool) {
+	av.mutex.Lock()
+	defer av.mutex.Unlock()
+	av.UserMap[u] = b
+	return
 }

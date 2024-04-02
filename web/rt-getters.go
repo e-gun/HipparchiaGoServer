@@ -397,6 +397,8 @@ func RtGetJSSearchlist(c echo.Context) error {
 		totalwords -= count
 	}
 
+	slices.Sort(wkk)
+
 	if len(wkk) > vv.MAXSEARCHINFOLISTLEN {
 		diff := len(wkk) - vv.MAXSEARCHINFOLISTLEN
 		wkk = wkk[0:vv.MAXSEARCHINFOLISTLEN]
@@ -438,8 +440,8 @@ func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
 	search.SearchAndInsertResults(&s)
 	count := 0
 	ll := s.Results.YieldAll()
-	for l := range ll {
-		count += len(strings.Split(l.Stripped, " "))
+	for ln := range ll {
+		count += len(strings.Split(ln.Stripped, " "))
 	}
 
 	ct := m.Sprintf(PSGTEMPL, mps.AllAuthors[au].Cleaname, mps.AllWorks[f.WkUID].Title, f.Citation(), l.Citation(), count)
