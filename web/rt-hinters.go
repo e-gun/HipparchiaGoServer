@@ -13,6 +13,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"regexp"
 	"slices"
 	"strings"
 )
@@ -31,24 +32,10 @@ func RtAuthorHints(c echo.Context) error {
 
 	// is what we have a match?
 	var auu [][2]string
-	for _, a := range mps.AllAuthors {
-		var who string
-		var an string
-
-		// [sosthenes], et al. can be found via "sos" or "[so"
-		if strings.Contains(skg, "[") {
-			who = a.Cleaname
-		} else {
-			who = strings.Replace(a.Cleaname, "[", "", 1)
-		}
-
-		if len(who) >= len(skg) {
-			an = strings.ToLower(who[0:len(skg)])
-		}
-		if an == skg {
-			ai := [2]string{a.Cleaname, a.UID}
-			auu = append(auu, ai)
-		}
+	if isidhint(skg) {
+		auu = auidhint(skg)
+	} else {
+		auu = aunamehint(skg)
 	}
 
 	// trim by active corpora
@@ -161,4 +148,72 @@ func tojsstructslice(ss []string) []jsstruct {
 		jss[i] = jsstruct{ss[i]}
 	}
 	return jss
+}
+
+//
+// HELPERS for RtAuthorHints
+//
+
+// isidhint - is the author hint in the format of a UID?
+func isidhint(skg string) bool {
+	if len(skg) < 3 {
+		return false
+	}
+	// note that ids for papyrus, etc are not necc. going to have a digit in third place...
+	// this is a to-do of sorts; but we are aiming for 'good enough' right now
+	// preff := []string{vv.GREEKCORP, vv.LATINCORP, vv.PAPYRUSCORP, vv.INSCRIPTCORP, vv.CHRISTINSC}
+	preff := []string{vv.GREEKCORP, vv.LATINCORP}
+	pref := fmt.Sprintf("(%s)", strings.Join(preff, ")|("))
+	r := fmt.Sprintf("%s[0-9]", pref)
+	re, e := regexp.Compile(r)
+	Msg.EC(e)
+	if re.MatchString(skg) {
+		return true
+	} else {
+		return false
+	}
+}
+
+// aunamehint - which authors names start with the letters you have sent? "Plat..."
+func aunamehint(skg string) [][2]string {
+	var auu [][2]string
+	for _, a := range mps.AllAuthors {
+		var who string
+		var an string
+
+		// [sosthenes], et al. can be found via "sos" or "[so"
+		if strings.Contains(skg, "[") {
+			who = a.Cleaname
+		} else {
+			who = strings.Replace(a.Cleaname, "[", "", 1)
+		}
+
+		if len(who) >= len(skg) {
+			an = strings.ToLower(who[0:len(skg)])
+		}
+		if an == skg {
+			ai := [2]string{a.Cleaname, a.UID}
+			auu = append(auu, ai)
+		}
+	}
+	return auu
+}
+
+// auidhint - which authors ids start with the letters you have sent? "gr00..."
+func auidhint(skg string) [][2]string {
+	var auu [][2]string
+	for _, a := range mps.AllAuthors {
+		var who string
+		var an string
+
+		who = a.UID
+		if len(who) >= len(skg) {
+			an = strings.ToLower(who[0:len(skg)])
+		}
+		if an == skg {
+			ai := [2]string{a.Cleaname, a.UID}
+			auu = append(auu, ai)
+		}
+	}
+	return auu
 }
