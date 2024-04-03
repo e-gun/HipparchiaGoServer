@@ -65,8 +65,8 @@ func RtAuthorHints(c echo.Context) error {
 // RtLemmaHints - /hints/lemmata/_?term=dol --> [{"value": "dolabella\u00b9"}, {"value": "dolabra"}, {"value": "dolamen"}, ... ]
 func RtLemmaHints(c echo.Context) error {
 	const (
-		MAXRETURN = 33 // hates "προ" and "προτ": so many come back that you will lag the DOM
-		MAXMSG    = "... (and %d more) ..."
+		MAXLEMMARETURN = 33 // hates "προ" and "προτ": so many come back that you will lag the DOM
+		MAXMSG         = "... (and %d more) ..."
 	)
 
 	term := c.QueryParam("term")
@@ -102,9 +102,9 @@ func RtLemmaHints(c echo.Context) error {
 
 	matches = gen.PolytonicSort(matches)
 
-	if len(matches) > MAXRETURN {
-		diff := len(matches) - MAXRETURN
-		matches = matches[0:MAXRETURN]
+	if len(matches) > MAXLEMMARETURN {
+		diff := len(matches) - MAXLEMMARETURN
+		matches = matches[0:MAXLEMMARETURN]
 		matches = append(matches, fmt.Sprintf(MAXMSG, diff))
 	}
 

@@ -162,7 +162,7 @@ func StartEchoServer() {
 	// [j] searching ("rt-search.go")
 	//
 
-	e.GET("/srch/vv/:id", RtSearchConfirm) // "GET /srch/vv/1f8f1d22 HTTP/1.1"
+	e.GET("/srch/ws/:id", RtSearchConfirm) // "GET /srch/vv/1f8f1d22 HTTP/1.1"
 	e.GET("/srch/exec/:id", RtSearch)      // "GET /srch/exec/1f8f1d22?skg=dolor HTTP/1.1"
 
 	//

@@ -110,8 +110,8 @@ func WithinXLinesSearch(first str.SearchStruct) str.SearchStruct {
 		for r := range rr {
 			low := r.TbIndex - first.ProxDist
 			high := r.TbIndex + first.ProxDist
-			for i := low; i <= high; i++ {
-				hlk := fmt.Sprintf(str.WKLNHYPERLNKTEMPL, r.AuID(), r.WkID(), i)
+			for j := low; j <= high; j++ {
+				hlk := fmt.Sprintf(str.WKLNHYPERLNKTEMPL, r.AuID(), r.WkID(), j)
 				if _, ok := hitmapper[hlk]; ok {
 					delete(hitmapper, hlk)
 				}

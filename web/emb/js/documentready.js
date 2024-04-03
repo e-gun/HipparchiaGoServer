@@ -190,7 +190,7 @@ if ($('#vectorsearch').is(":checked")) {
 //
 
 function checkactivityviawebsocket(searchid) {
-    $.getJSON('/srch/vv/'+searchid, function(portnumber) {
+    $.getJSON('/srch/ws/'+searchid, function(portnumber) {
         let pd = $('#pollingdata');
         pd.html('');
         pd.show();

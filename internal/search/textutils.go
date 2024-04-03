@@ -203,6 +203,9 @@ func FindPhrasesAcrossLines(ss *str.SearchStruct) {
 			}
 		}
 		i++
+		if len(valid) >= ss.CurrentLimit {
+			break
+		}
 	}
 
 	slc := make([]str.DbWorkline, len(valid))
