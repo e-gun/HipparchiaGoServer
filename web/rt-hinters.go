@@ -64,7 +64,11 @@ func RtAuthorHints(c echo.Context) error {
 
 // RtLemmaHints - /hints/lemmata/_?term=dol --> [{"value": "dolabella\u00b9"}, {"value": "dolabra"}, {"value": "dolamen"}, ... ]
 func RtLemmaHints(c echo.Context) error {
-	// note that this hates "προ" and "προτ": so many come back that you will lag the system
+	const (
+		MAXRETURN = 33 // hates "προ" and "προτ": so many come back that you will lag the DOM
+		MAXMSG    = "... (and %d more) ..."
+	)
+
 	term := c.QueryParam("term")
 	// can't slice a unicode string...
 	skg := []rune(term)
@@ -77,6 +81,7 @@ func RtLemmaHints(c echo.Context) error {
 	nl := string(skg[0:2])
 
 	var matches []string
+
 	if _, ok := mps.NestedLemm[nl]; ok {
 		for _, l := range mps.NestedLemm[nl] {
 			er := l.EntryRune()
@@ -96,6 +101,13 @@ func RtLemmaHints(c echo.Context) error {
 	}
 
 	matches = gen.PolytonicSort(matches)
+
+	if len(matches) > MAXRETURN {
+		diff := len(matches) - MAXRETURN
+		matches = matches[0:MAXRETURN]
+		matches = append(matches, fmt.Sprintf(MAXMSG, diff))
+	}
+
 	jss := tojsstructslice(matches)
 
 	return c.JSONPretty(http.StatusOK, jss, vv.JSONINDENT)
@@ -159,10 +171,11 @@ func isidhint(skg string) bool {
 	if len(skg) < 3 {
 		return false
 	}
-	// note that ids for papyrus, etc are not necc. going to have a digit in third place...
-	// this is a to-do of sorts; but we are aiming for 'good enough' right now
-	// preff := []string{vv.GREEKCORP, vv.LATINCORP, vv.PAPYRUSCORP, vv.INSCRIPTCORP, vv.CHRISTINSC}
-	preff := []string{vv.GREEKCORP, vv.LATINCORP}
+	// note that ids for papyrus, etc are not necc. going to have a digit in third place; many will be unfindable
+	// this is a to-do of sorts; but we are aiming for 'good enough' right now; nobody is really using this as it
+	// is basically a debugger's function
+	preff := []string{vv.GREEKCORP, vv.LATINCORP, vv.PAPYRUSCORP, vv.INSCRIPTCORP, vv.CHRISTINSC}
+
 	pref := fmt.Sprintf("(%s)", strings.Join(preff, ")|("))
 	r := fmt.Sprintf("%s[0-9]", pref)
 	re, e := regexp.Compile(r)
