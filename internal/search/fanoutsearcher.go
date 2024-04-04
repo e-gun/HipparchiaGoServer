@@ -51,6 +51,8 @@ func SearchAndInsertResults(ss *str.SearchStruct) {
 	mx := ss.CurrentLimit
 	if ss.HasPhraseBoxA {
 		// windowing generates double-hits; c. 55% are valid; these get pared via FindPhrasesAcrossLines()
+		// note that FindPhrasesAcrossLines() can now blast past CurrentLimit unless you do something
+		// that 'something' is wlb.YieldSome()
 		mx = ss.CurrentLimit * 3
 	}
 

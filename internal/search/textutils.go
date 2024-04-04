@@ -131,7 +131,8 @@ func FindPhrasesAcrossLines(ss *str.SearchStruct) {
 		return
 	}
 
-	rr := ss.Results.YieldAll()
+	stopyielding := make(chan struct{})
+	rr := ss.Results.YieldSome(stopyielding)
 	i := 0
 	for r := range rr {
 		// do the "it's all on this line" case separately
@@ -204,6 +205,8 @@ func FindPhrasesAcrossLines(ss *str.SearchStruct) {
 		}
 		i++
 		if len(valid) >= ss.CurrentLimit {
+			Msg.TMI(fmt.Sprintf("FindPhrasesAcrossLines Aborting after %d", i))
+			close(stopyielding)
 			break
 		}
 	}

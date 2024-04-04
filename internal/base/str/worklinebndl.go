@@ -30,6 +30,29 @@ func (wlb *WorkLineBundle) YieldAll() chan DbWorkline {
 	return c
 }
 
+// YieldSome - maybe send everything over a channel
+func (wlb *WorkLineBundle) YieldSome(abort <-chan struct{}) chan DbWorkline {
+	// see notes at SearchAndInsertResults()
+	// temporary bump in maxresults means FindPhrasesAcrossLines() can overshoot
+	// this stops that
+
+	Msg.TMI(fmt.Sprintf("WorkLineBundle.YieldSome() has %d lines available", wlb.Len()))
+
+	c := make(chan DbWorkline)
+	go func() {
+		defer close(c)
+		for i := 0; i < len(wlb.Lines); i++ {
+			select {
+			case <-abort: // receive on closed channel can proceed immediately
+				return
+			default:
+				c <- wlb.Lines[i]
+			}
+		}
+	}()
+	return c
+}
+
 func (wlb *WorkLineBundle) ResizeTo(i int) {
 	if i < len(wlb.Lines) {
 		wlb.Lines = wlb.Lines[0:i]
