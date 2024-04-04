@@ -97,9 +97,10 @@ func searchqueryfeeder(ss *str.SearchStruct) (<-chan str.PrerolledQuery, error) 
 func prqsearcher(ctx context.Context, querychannel <-chan str.PrerolledQuery) (<-chan *str.WorkLineBundle, error) {
 	foundlineschannel := make(chan *str.WorkLineBundle)
 
-	// below is the only call to getdbconnection() outside of `db`; if you use db.GetWorklineBundle() instead
-	// you do not need a dbconn, this tidies up several functions, but you also will be getting/returning thousands of
-	// connections in a full corpus; it is not clear that there is any real speed penalty
+	// consumeA offers the only call to db.getdbconnection() outside of `db`; if you use db.GetWorklineBundle() instead
+	// you do not need a dbconn; this tidies up several functions, but you also will be getting/returning thousands of
+	// connections in a full corpus; it is not clear that there is any real penalty for doing this (esp. in a
+	// single-user environment
 
 	//consumeA := func() {
 	//	defer close(foundlineschannel)

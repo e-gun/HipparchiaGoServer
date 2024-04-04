@@ -9,14 +9,13 @@ import "fmt"
 
 type WorkLineBundle struct {
 	Lines []DbWorkline
+	Abort chan struct{} // YieldSome() uses this; and only YieldSome() should initialize it
 }
 
 // YieldAll - don't copy everything at once; send everything over a channel
 func (wlb *WorkLineBundle) YieldAll() chan DbWorkline {
-	// assuming the receiver will grab everything
+	// assuming the receiver will grab everything; this is everywhere true with one exception
 	// the code is always of the following format: `ll = wlb.YieldAll()` + `for l := range ll { ... }`
-
-	// a YieldSome() is not yet needed: yield some but listen on a stop channel, etc.
 
 	Msg.TMI(fmt.Sprintf("WorkLineBundle.YieldAll() sending %d lines", wlb.Len()))
 
@@ -31,24 +30,29 @@ func (wlb *WorkLineBundle) YieldAll() chan DbWorkline {
 }
 
 // YieldSome - maybe send everything over a channel
-func (wlb *WorkLineBundle) YieldSome(abort <-chan struct{}) chan DbWorkline {
-	// see notes at SearchAndInsertResults()
-	// temporary bump in maxresults means FindPhrasesAcrossLines() can overshoot
-	// this stops that
+func (wlb *WorkLineBundle) YieldSome() chan DbWorkline {
+	// see notes at SearchAndInsertResults() and FindPhrasesAcrossLines() on why not YieldAll()
+	wlb.Abort = make(chan struct{})
 
-	Msg.TMI(fmt.Sprintf("WorkLineBundle.YieldSome() has %d lines available", wlb.Len()))
+	const (
+		MSG1 = "WorkLineBundle.YieldSome() has %d lines available"
+		MSG2 = "WorkLineBundle.YieldSome() yielded all"
+	)
+
+	Msg.TMI(fmt.Sprintf(MSG1, wlb.Len()))
 
 	c := make(chan DbWorkline)
 	go func() {
 		defer close(c)
 		for i := 0; i < len(wlb.Lines); i++ {
 			select {
-			case <-abort: // receive on closed channel can proceed immediately
+			case <-wlb.Abort:
 				return
 			default:
 				c <- wlb.Lines[i]
 			}
 		}
+		Msg.TMI(MSG2)
 	}()
 	return c
 }

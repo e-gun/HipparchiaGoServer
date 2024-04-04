@@ -1,6 +1,19 @@
 
 # HipparchiaGoServer FYI
 
+## Frontpage size
+
+`25 requests | 4.86 MB / 4.86 MB transferred`
+
+the fonts are the real culprits
+
+comparanda:
+
+* `nytimes.com` is c. 7MB.
+* `amazon.com` is c. 7MB.
+* `instagram.com` is c. 8.75MB.
+* `bing.com` is c. 9.5MB.
+
 ## CLI
 
 ![options](../gitimg/hgscli.png)
