@@ -116,7 +116,7 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	var slicedwords []str.WordInfo
-	rr := vocabsrch.Results.YieldAll()
+	rr := vocabsrch.Results.Yield()
 	for r := range rr {
 		wds := r.AccentedSlice()
 		for _, w := range wds {

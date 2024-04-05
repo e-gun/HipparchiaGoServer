@@ -225,6 +225,6 @@ func StartEchoServer() {
 	e.HideBanner = true
 	e.HidePort = false
 	e.Debug = false
-	e.DisableHTTP2 = true
+	e.DisableHTTP2 = true // HTTP2 would require a lot of pain (certs, etc) for virtually no gain
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", lnch.Config.HostIP, lnch.Config.HostPort)))
 }

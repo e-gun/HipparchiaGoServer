@@ -88,7 +88,7 @@ func LDAPrepText(bagger string, vs *str.SearchStruct) []bagwithlocus {
 	preallocate := vv.CHARSPERLINE * vs.Results.Len() // NB: a long line has 60 chars
 	sb.Grow(preallocate)
 
-	rr := vs.Results.YieldAll()
+	rr := vs.Results.Yield()
 	for r := range rr {
 		newtxt := fmt.Sprintf("⊏line/%s/%d⊐%s ", r.WkUID, r.TbIndex, r.MarkedUp)
 		sb.WriteString(newtxt)

@@ -439,7 +439,7 @@ func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
 	search.SSBuildQueries(&s)
 	search.SearchAndInsertResults(&s)
 	count := 0
-	ll := s.Results.YieldAll()
+	ll := s.Results.Yield()
 	for ln := range ll {
 		count += len(strings.Split(ln.Stripped, " "))
 	}

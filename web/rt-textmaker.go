@@ -64,7 +64,7 @@ func RtTextMaker(c echo.Context) error {
 	firstwork := search.DbWlnMyWk(&firstline)
 	firstauth := search.DbWlnMyAu(&firstline)
 
-	lines := srch.Results.YieldAll()
+	lines := srch.Results.Yield()
 	block := make([]string, srch.Results.Len())
 
 	i := 0
@@ -91,7 +91,7 @@ func RtTextMaker(c echo.Context) error {
 	workcount := 1
 
 	i = 0
-	lines = srch.Results.YieldAll()
+	lines = srch.Results.Yield()
 	for l := range lines {
 		cit := selectivelydisplaycitations(l, previous, -1)
 		trr[i] = fmt.Sprintf(TBLRW, l.Annotations, l.MarkedUp, cit)

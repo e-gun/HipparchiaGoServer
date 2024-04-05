@@ -113,7 +113,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	var slicedwords []str.WordInfo
 
-	rr := srch.Results.YieldAll()
+	rr := srch.Results.Yield()
 	for r := range rr {
 		wds := r.AccentedSlice()
 		for _, w := range wds {

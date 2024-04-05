@@ -285,7 +285,7 @@ func buildtextblock(s *str.SearchStruct) string {
 	// [a] get all the words we need
 	var slicedwords []string
 
-	rr := s.Results.YieldAll()
+	rr := s.Results.Yield()
 
 	for r := range rr {
 		wds := r.AccentedSlice()

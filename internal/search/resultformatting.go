@@ -72,7 +72,7 @@ func FormatNoContextResults(ss *str.SearchStruct) str.SearchOutputJSON {
 
 	var b bytes.Buffer
 
-	rr := ss.Results.YieldAll()
+	rr := ss.Results.Yield()
 	i := 0
 	for r := range rr {
 		r.PurgeMetadata()
@@ -202,7 +202,7 @@ func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON 
 
 	ctxsearch.SearchIn.Passages = make([]string, ctxsearch.Results.Len())
 	ii := 0
-	rr := ctxsearch.Results.YieldAll()
+	rr := ctxsearch.Results.Yield()
 	for r := range rr {
 		low := r.TbIndex - context
 		high := r.TbIndex + context
@@ -221,7 +221,7 @@ func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON 
 	// now you have all the lines you will ever need
 	linemap := make(map[string]str.DbWorkline)
 
-	rr = ctxsearch.Results.YieldAll()
+	rr = ctxsearch.Results.Yield()
 	for r := range rr {
 		linemap[r.BuildHyperlink()] = r
 	}
@@ -230,7 +230,7 @@ func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON 
 
 	allpassages := make([]PsgFormattingTemplate, thesearch.Results.Len())
 
-	rr = thesearch.Results.YieldAll()
+	rr = thesearch.Results.Yield()
 	kk := 0
 	for r := range rr {
 		var psg PsgFormattingTemplate

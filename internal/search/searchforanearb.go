@@ -65,7 +65,7 @@ func WithinXLinesSearch(first str.SearchStruct) str.SearchStruct {
 	second.SetType()
 
 	newpsg := make([]string, first.Results.Len())
-	rr := first.Results.YieldAll()
+	rr := first.Results.Yield()
 	i := 0
 	for r := range rr {
 		// avoid "gr0028_FROM_-1_TO_5"
@@ -99,14 +99,14 @@ func WithinXLinesSearch(first str.SearchStruct) str.SearchStruct {
 		hitmapper := make(map[string]str.DbWorkline)
 
 		// all the original hits start as "good"
-		rr = first.Results.YieldAll()
+		rr = first.Results.Yield()
 		for r := range rr {
 			hitmapper[r.BuildHyperlink()] = r
 		}
 
 		// delete any hit that is within N-lines of any second hit
 		// hence "second.NotNear = false" above vs "first.NotNear" to get here: need matches, not misses
-		rr = second.Results.YieldAll()
+		rr = second.Results.Yield()
 		for r := range rr {
 			low := r.TbIndex - first.ProxDist
 			high := r.TbIndex + first.ProxDist
@@ -197,7 +197,7 @@ func WithinXWordsSearch(first str.SearchStruct) str.SearchStruct {
 	// map[index/gr0007/018/15195:93 index/gr0007/018/15196:93 index/gr0007/018/15197:93 index/gr0007/018/15198:93 ...
 
 	count := 0
-	rr := first.Results.YieldAll()
+	rr := first.Results.Yield()
 	for r := range rr {
 		low := r.TbIndex - need
 		if low < 1 {
@@ -228,7 +228,7 @@ func WithinXWordsSearch(first str.SearchStruct) str.SearchStruct {
 	// [c1] build bundles of lines
 	bundlemapper := make(map[int][]str.DbWorkline)
 
-	rr = second.Results.YieldAll()
+	rr = second.Results.Yield()
 	for r := range rr {
 		url := r.BuildHyperlink()
 		bun := resultmapper[url]
@@ -637,7 +637,7 @@ func pruneresultsbylemma(hdwd string, ss *str.SearchStruct) {
 
 	var valid = make(map[string]str.DbWorkline, ss.Results.Len())
 
-	rr := ss.Results.YieldAll()
+	rr := ss.Results.Yield()
 	for r := range rr {
 		// do the "it's all on this line" case separately
 		li := ColumnPicker(ss.SrchColumn, r)
