@@ -8,7 +8,6 @@ package str
 import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
-	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"regexp"
 	"strings"
 )
@@ -38,6 +37,7 @@ import (
 const (
 	WKLNHYPERLNKTEMPL = `index/%s/%s/%d`
 	WLNMETADATATEMPL  = `<span class="embeddedannotations foundwork">$1</span>`
+	EMPTYLEVELINFO    = "-1"
 )
 
 var (
@@ -83,7 +83,7 @@ func (dbw *DbWorkline) FindLocus() []string {
 
 	var trim []string
 	for _, l := range loc {
-		if l != vv.EMPTYLEVELINFO {
+		if l != EMPTYLEVELINFO {
 			trim = append(trim, l)
 		}
 	}
@@ -184,7 +184,7 @@ func (dbw *DbWorkline) Citation() string {
 func (dbw *DbWorkline) Lvls() int {
 	//alternate is: "return dbw.MyWk().CountLevels()"
 	vl := []string{dbw.Lvl0Value, dbw.Lvl1Value, dbw.Lvl2Value, dbw.Lvl3Value, dbw.Lvl4Value, dbw.Lvl5Value}
-	empty := gen.ContainsN(vl, vv.EMPTYLEVELINFO)
+	empty := gen.ContainsN(vl, EMPTYLEVELINFO)
 	return NUMBEROFCITATIONLEVELS - empty
 }
 
