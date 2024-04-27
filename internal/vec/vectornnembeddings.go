@@ -53,6 +53,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s str.SearchStruct
 		TBMSG  = `Turning %d lines into a unified text block`
 		VMSG   = `Training run <code>#%d</code> out of <code>%d</code> total iterations.`
 		DBMSG  = `Storing the model in the database. Then fetching it again.`
+		ABORT  = "GenerateVectEmbeddings() aborting: RtResetSession switched user to %s"
 	)
 
 	// vectorbot sends a search with pre-generated results:
@@ -131,7 +132,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s str.SearchStruct
 
 	// a chance to bail before training if you hit RtResetSession() in time
 	if lnch.Config.SelfTest == 0 && !lnch.Config.VectorBot && !vlt.AllSessions.IsInVault(s.User) {
-		Msg.FYI("GenerateVectEmbeddings() aborting: RtResetSession switched user to " + s.User)
+		Msg.FYI(fmt.Sprintf(ABORT, s.User))
 		return embedding.Embeddings{}
 	}
 

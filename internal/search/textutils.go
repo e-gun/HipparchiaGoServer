@@ -59,7 +59,7 @@ func LemmaIntoRegexSlice(hdwd string) []string {
 	return qq
 }
 
-// FindPhrasesAcrossLines - "one two$" + "^three four" makes a hit if you want "one two three four"
+// FindPhrasesAcrossLines - enable "one two$" + "^three four" to count as a hit if you want "one two three four"
 func FindPhrasesAcrossLines(ss *str.SearchStruct) {
 	// modify ss in place
 

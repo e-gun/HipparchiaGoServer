@@ -21,16 +21,13 @@ func RtWebsocket(c echo.Context) error {
 		FAILCON = "RtWebsocket(): ws connection failed"
 	)
 
-	var (
-		up = websocket.Upgrader{}
-	)
-
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
 		return nil
 	}
 
-	ws, err := up.Upgrade(c.Response(), c.Request(), nil)
+	wsug := websocket.Upgrader{}
+	ws, err := wsug.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		Msg.NOTE(FAILCON)
 		return nil

@@ -28,9 +28,27 @@ import (
 // RtVocabMaker - get the vocabulary for whatever collection of lines you would be searching
 func RtVocabMaker(c echo.Context) error {
 	c.Response().After(func() { vlt.LogPaths("RtVocabMaker()") })
-
-	// grab lines via a simple search for "anything" in each line of the selection made and stored in the session
 	// todo: worry about γ' for γε
+
+	// item example: <indexedlocation id="index/lt1351/004/4180">⒟ 1.82.18</indexedlocation>
+
+	// big lists become unclickable: "RangeError: Maximum call stack size exceeded" in jquery.min.js
+	// see "https://codewithleo.com/rangeerror-maximum-call-stack-size-exceeded/"
+	//
+	// looking at jquery-3.7.1.js: the error is flagged at line 865
+	// RangeError: Maximum call stack size exceeded
+	//    at Function.find (jquery.js:865:11) ["push.apply( results, context.getElementsByTagName( selector ) );"]
+	//    at jQuery.fn.init.find (jquery.js:2822:11) ["jQuery.find( selector, self[ i ], ret );"]
+	//    at jQuery.fn.init (jquery.js:2932:32) ["return ( context || root ).find( selector );"]
+	//    at jQuery (jquery.js:159:10)
+	//    at <anonymous>:26:2
+	//    at DOMEval (jquery.js:130:12)
+	//    at domManip (jquery.js:5951:8) ["DOMEval( node.textContent.replace( rcleanScript, "" ), node, doc );"]
+	//    at jQuery.fn.init.append (jquery.js:6088:10)
+	//    at jQuery.fn.init.<anonymous> (jquery.js:6182:18) ["this.empty().append( value )"]
+	//    at access (jquery.js:3905:8) [a bulk caller; "fn.call( elems, value );"]
+	//
+	// only a major rewrite of jquery would work? pure js in LEXFINDJS is the other alternative...
 
 	const (
 		SUMM = `

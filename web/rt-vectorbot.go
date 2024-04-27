@@ -36,7 +36,10 @@ func RtVectorBot(c echo.Context) error {
 		MSG4 = "RtVectorBot() building a model for '%s' (%d tables) [maxlines=%d]"
 	)
 
-	// the question is how much time are you saving vs how much space are you wasting
+	// testable via:
+	// curl localhost:8000/vbot/nn/gr0011
+
+	// WHAT AND WHY: the question is how much time are you saving vs how much space are you wasting
 	// Catullus is 2555 lines and can be vectorized in just a couple of seconds: easy to leave this as ad hoc
 	// Caesar is 11038 lines and requires 5s or so on a fast machine; 10s on a 'medium' machine
 
@@ -61,9 +64,6 @@ func RtVectorBot(c echo.Context) error {
 
 	// 6 cores of intel 9900k
 	// [HGS] [VB: 7602.934s][Δ: 877.251s] The vectorbot has checked all authors and is now shutting down
-
-	// testable via:
-	// curl localhost:8000/vbot/nn/gr0011
 
 	if lnch.Config.VectorsDisabled {
 		return nil

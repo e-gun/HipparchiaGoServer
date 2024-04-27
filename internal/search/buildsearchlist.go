@@ -305,9 +305,6 @@ func calculatewholeauthorsearches(sl []string) [2][]string {
 	//
 	//	this function will figure out if the list of work uids contains all the works for an author and can accordingly be collapsed
 
-	//start := time.Now()
-	//previous := time.Now()
-
 	var wholes []string
 	var pruner []string
 

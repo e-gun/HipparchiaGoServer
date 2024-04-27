@@ -38,8 +38,8 @@ func FillDBConnectionPool(cfg str.CurrentConfiguration) *pgxpool.Pool {
 
 	const (
 		UTPL    = "postgres://%s:%s@%s:%d/%s?pool_min_conns=%d&pool_max_conns=%d"
-		FAIL1   = "Configuration error. Could not execute ParseConfig(url) via '%s'"
-		FAIL2   = "Could not connect to PostgreSQL"
+		FAIL1   = "FillDBConnectionPool() Configuration error. Could not execute ParseConfig(url) via '%s'"
+		FAIL2   = "FillDBConnectionPool() could not connect to PostgreSQL"
 		ERRRUN  = `dial error`
 		FAILRUN = `'%s': the PostgreSQL server cannot be found; check that it is running and serving on port %d`
 		ERRSRV  = `server error`

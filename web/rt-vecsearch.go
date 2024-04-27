@@ -21,7 +21,7 @@ import (
 )
 
 //
-// these are two pseudo-routes: RtSearch() will send you here conditionally
+// these are two pseudo-routes: RtSearch() will send you here conditionally before you exit via jsonresponse()
 //
 
 // RtLDASearch - a special case for RtSearch() where you requested Latent Dirichlet Allocation vectorization of the results

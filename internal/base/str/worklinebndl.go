@@ -12,7 +12,7 @@ type WorkLineBundle struct {
 
 // Yield - don't copy everything at once; send everything over a channel
 func (wlb *WorkLineBundle) Yield() chan DbWorkline {
-	wlb.Halt = make(chan struct{}) // only FindPhrasesAcrossLines() uses this channel; everyone else ask for all
+	wlb.Halt = make(chan struct{}) // only FindPhrasesAcrossLines() uses this channel; everyone else asks for all
 	c := make(chan DbWorkline)
 	go func() {
 		defer close(c)

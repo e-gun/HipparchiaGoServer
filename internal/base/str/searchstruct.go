@@ -71,6 +71,8 @@ func (s *SearchStruct) SetType() {
 	const (
 		ACC = `ϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ`
 		REG = `a-zα-ω`
+		TWO = `[%s%s]\s[%s%s]`
+		ALN = "accented_line"
 	)
 	ps := s.Proximate != ""
 	psl := s.LemmaTwo != ""
@@ -79,7 +81,7 @@ func (s *SearchStruct) SetType() {
 		s.Twobox = true
 	}
 
-	comp := fmt.Sprintf(`[%s%s]\s[%s%s]`, REG, ACC, REG, ACC)
+	comp := fmt.Sprintf(TWO, REG, ACC, REG, ACC)
 	twowords := regexp.MustCompile(comp)
 
 	if twowords.MatchString(s.Seeking) {
@@ -94,7 +96,7 @@ func (s *SearchStruct) SetType() {
 		s.HasLemmaBoxA = true
 		// accented line has "volat" in latin; and "uolo" will not find it
 		if IsGreek.MatchString(s.LemmaOne) {
-			s.SrchColumn = "accented_line"
+			s.SrchColumn = ALN
 		}
 	}
 

@@ -9,6 +9,7 @@
 
 function reloadselections(selectiondata){
     hidemany(endpointbuttons);
+    let holder = $('#selectionscriptholder');
     // the data comes back from the server as a dict with three keys: timeexclusions, selections, exclusions
     if (selectiondata.numberofselections > 0) {
             $('#selectionstable').show();
@@ -18,9 +19,8 @@ function reloadselections(selectiondata){
     $('#timerestrictions').html(selectiondata.timeexclusions);
     $('#selectioninfocell').html(selectiondata.selections);
     $('#exclusioninfocell').html(selectiondata.exclusions);
-    let holder = document.getElementById('selectionscriptholder');
-    if (holder.hasChildNodes()) { holder.removeChild(holder.firstChild); }
-    $('#selectionscriptholder').html(selectiondata['newjs']);
+    holder.children().remove();
+    holder.html(selectiondata['newjs']);
     }
 
 function reloadAuthorlist(){

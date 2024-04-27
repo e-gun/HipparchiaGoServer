@@ -117,7 +117,7 @@ func GetLocusEndpoints(wk *str.DbWork, locus string, sep string) ([2]int, bool) 
 
 	const (
 		QTMP = `SELECT index FROM %s WHERE wkuniversalid='%s' AND %s ORDER BY index ASC`
-		FAIL = "locusendpointer() failed to find the following inside of %s: '%s'"
+		FAIL = "GetLocusEndpoints() failed to find the following inside of %s: '%s'"
 	)
 
 	dbconn := getdbconnection()

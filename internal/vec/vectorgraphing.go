@@ -592,6 +592,10 @@ func customscatterhtmlandjs(s *charts.Scatter) string {
 	// we override their page.Render() to yield html+js (see the ModX and CustomX code below)
 	// this gets injected to the "vectorgraphing" div on frontpage.html
 
+	const (
+		WARN = "vec.customscatterhtmlandjs() failed to render the page template"
+	)
+
 	s.Validate()
 
 	// [a] we are building a page with only one chart and doing it by hand
@@ -616,7 +620,7 @@ func customscatterhtmlandjs(s *charts.Scatter) string {
 	var buf bytes.Buffer
 	err := p.Render(&buf)
 	if err != nil {
-		Msg.WARN("customscatterhtmlandjs() failed to render the page template")
+		Msg.WARN(WARN)
 	}
 
 	htmlandjs := string(buf.Bytes())
@@ -626,6 +630,7 @@ func customscatterhtmlandjs(s *charts.Scatter) string {
 
 func custom3dscatterhtmlandjs(s *charts.Scatter3D) string {
 	// WARNING: this will not produce a chart right now
+	// work has been suspended indefinitely...
 
 	s.Validate()
 

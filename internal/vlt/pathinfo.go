@@ -37,7 +37,7 @@ func TerminalTicker(wait time.Duration) {
 	var mem runtime.MemStats
 
 	// the uptime line
-	t := func(up time.Duration) {
+	uptimer := func(up time.Duration) {
 		runtime.ReadMemStats(&mem)
 		heap := fmt.Sprintf("%dM", mem.HeapAlloc/1024/1024)
 		// stack := fmt.Sprintf("%dM", mem.StackInuse/1024/1024)
@@ -47,7 +47,7 @@ func TerminalTicker(wait time.Duration) {
 	}
 
 	// the searches run line
-	s := func() {
+	srchinfo := func() {
 		responder := PIReply{Request: true, Response: make(chan map[string]int)}
 		PIRequest <- responder
 		ctr := <-responder.Response
@@ -75,8 +75,8 @@ func TerminalTicker(wait time.Duration) {
 	// this loop will never exit
 	for {
 		up := time.Since(Msg.Lnc)
-		t(up)
-		s()
+		uptimer(up)
+		srchinfo()
 		time.Sleep(wait)
 	}
 }

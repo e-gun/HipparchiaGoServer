@@ -22,6 +22,7 @@ import (
 // RtTextMaker - make a text of whatever collection of lines you would be searching
 func RtTextMaker(c echo.Context) error {
 	c.Response().After(func() { vlt.LogPaths("RtTextMaker()") })
+
 	// text generation works like a simple search for "anything" in each line of the selected texts
 	// the results then gett output as a big "browser table"...
 

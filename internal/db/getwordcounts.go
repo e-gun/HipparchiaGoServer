@@ -108,7 +108,7 @@ func GetIndividualWordCount(wd string) str.DbWordCount {
 	const (
 		FLDS = `entry_name, total_count, gr_count, lt_count, dp_count, in_count, ch_count`
 		PSQQ = `SELECT %s FROM wordcounts_%s where entry_name = '%s'`
-		NOTH = `findbyform() found no results for '%s'`
+		NOTH = `GetIndividualWordCount() found no results for '%s'`
 	)
 
 	dbconn := getdbconnection()
@@ -116,14 +116,29 @@ func GetIndividualWordCount(wd string) str.DbWordCount {
 
 	// golang hates indexing unicode strings: strings are bytes, and unicode chars take more than one byte
 	c := []rune(wd)
-	q := fmt.Sprintf(PSQQ, FLDS, gen.StripaccentsSTR(string(c[0])), wd)
+	q1 := fmt.Sprintf(PSQQ, FLDS, gen.StripaccentsSTR(string(c[0])), wd)
+	q2 := fmt.Sprintf(PSQQ, FLDS, gen.StripaccentsSTR(string(c[0])), strings.ToLower(wd))
 
-	var wc str.DbWordCount
-	ct := dbconn.QueryRow(context.Background(), q)
-	e := ct.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
+	try := func(query string) (str.DbWordCount, error) {
+		var wc str.DbWordCount
+		ct := dbconn.QueryRow(context.Background(), query)
+		e := ct.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
+		return wc, e
+	}
+
+	//var wc str.DbWordCount
+	//ct := dbconn.QueryRow(context.Background(), q)
+	//e := ct.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
+	wc, e := try(q1)
+	if e != nil {
+		// often a capitalized word that is in fact known: 'Πάντα', e.g.
+		wc, e = try(q2)
+	}
+
 	if e != nil {
 		Msg.FYI(fmt.Sprintf(NOTH, wd))
 	}
+
 	return wc
 }
 
@@ -145,8 +160,8 @@ func GetIndividualHeadwordCount(word string) str.DbHeadwordCount {
 			satura, satyr, schol, tact, test, theol, trag
 		FROM dictionary_headword_wordcounts WHERE entry_name='%s'`
 
-		FAIL = "headwordlookup() returned 'nil' when looking for '%s'"
-		INFO = "headwordlookup() for '%s' returned %d finds"
+		FAIL = "GetIndividualHeadwordCount() returned 'nil' when looking for '%s'"
+		INFO = "GetIndividualHeadwordCount() for '%s' returned %d finds"
 	)
 
 	dbconn := getdbconnection()

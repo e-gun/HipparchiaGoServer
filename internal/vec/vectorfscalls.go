@@ -119,7 +119,6 @@ func ldavecconfig() ldaconfig {
 		ERR1 = "ldavecconfig() cannot find UserHomeDir"
 		ERR2 = "ldavecconfig() failed to parse "
 		MSG1 = "wrote default vector configuration file "
-		MSG2 = "read vector configuration from "
 	)
 
 	cfg := DefaultLDAVectors
@@ -150,7 +149,6 @@ func ldavecconfig() ldaconfig {
 			Msg.CRIT(ERR2 + vv.CONFIGVECTORLDA)
 			vc = cfg
 		}
-		// mm(MSG2+vv.CONFIGVECTORLDA, MSGTMI)
 		cfg = vc
 	}
 
@@ -173,7 +171,6 @@ func w2vvectorconfig() word2vec.Options {
 		MSG2 = "read vector configuration from "
 	)
 
-	// cfg := word2vec.DefaultOptions()
 	cfg := DefaultW2VVectors
 	cfg.Goroutines = runtime.NumCPU()
 

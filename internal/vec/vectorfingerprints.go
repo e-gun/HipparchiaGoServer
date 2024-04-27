@@ -16,7 +16,7 @@ import (
 // FingerprintNNVectorSearch - derive a unique md5 for any given mix of search items & vector settings
 func FingerprintNNVectorSearch(srch str.SearchStruct) string {
 	const (
-		MSG1 = "RtNeighborsSearch() fingerprint: "
+		MSG1 = "FingerprintNNVectorSearch() fingerprint: "
 		FAIL = "FingerprintNNVectorSearch() failed to Marshal"
 	)
 

@@ -13,16 +13,16 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+//
+// This file should contain the *exhaustive* collection of functions that execute searches
+// that return either a WorkLineBundle or a DbWorkline
+//
+
 const (
 	WORLINETEMPLATE = `wkuniversalid, index,
 			level_05_value, level_04_value, level_03_value, level_02_value, level_01_value, level_00_value,
 			marked_up_line, accented_line, stripped_line, hyphenated_words, annotations`
 )
-
-//
-// This file should contain the *exhaustive* collection of functions that execute searches
-// that return either a WorkLineBundle or a DbWorkline
-//
 
 // GetWorklineBundle - AcquireWorkLineBundle, but supply a dbconn for it via this function
 func GetWorklineBundle(prq str.PrerolledQuery) *str.WorkLineBundle {

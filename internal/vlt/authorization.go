@@ -23,7 +23,7 @@ var (
 // BuildUserPassPairs - set up authentication map via CONFIGAUTH
 func BuildUserPassPairs(cc str.CurrentConfiguration) {
 	const (
-		FAIL1 = `failed to unmarshall authorization config file`
+		FAIL1 = `BuildUserPassPairs() failed to unmarshall authorization config file`
 		FAIL2 = `You are requiring authentication but there are no UserPassPairs: aborting vv`
 		FAIL3 = "Could not open '%s'"
 	)

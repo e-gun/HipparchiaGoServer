@@ -211,11 +211,9 @@ func RtLexReverse(c echo.Context) error {
 // findbyform - observed word into HTML dictionary entry
 func findbyform(word string, author string) string {
 	const (
-		FLDS = `entry_name, total_count, gr_count, lt_count, dp_count, in_count, ch_count`
-		PSQQ = `SELECT %s FROM wordcounts_%s where entry_name = '%s'`
 		SRCH = `<bibl id="perseus/%s/`
 		REPL = `<bibl class="flagged" id="perseus/%s/`
-		NOTH = `findbyform() found no results for '%s'`
+		NOTH = "(no match for '%s' in the morphology lookup tables)"
 	)
 
 	d := "latin"
@@ -224,14 +222,15 @@ func findbyform(word string, author string) string {
 	}
 
 	// [a] search for morphology matches
-	thesefinds := db.GetMorphMatch(strings.ToLower(word), d)
+	thesefinds := db.GetMorphMatch(word, d)
 	if len(thesefinds) == 0 {
-		// Νέαιρα can be found, νέαιρα can't
-		thesefinds = db.GetMorphMatch(word, d)
+		// was it a capitalization issue...
+		// there is an argument for doing the ToLower version first, but we will stick with this for now
+		thesefinds = db.GetMorphMatch(strings.ToLower(word), d)
 	}
 
 	if len(thesefinds) == 0 {
-		return fmt.Sprintf("(no match for '%s' in the morphology lookup tables)", word)
+		return fmt.Sprintf(NOTH, word)
 	}
 
 	// [b] turn morph matches into []MorphPossib
@@ -421,7 +420,7 @@ func extractmorphpossibilities(raw string) []str.MorphPossib {
 	// Unmarshal: map[1:{A.I. stem, tree; II. shaft of a spear neut nom/voc/acc sg δόρυ  9 26874791}]
 
 	const (
-		FAIL = "dbmorphintomorphpossib() could not unmarshal %s"
+		FAIL = "extractmorphpossibilities() could not unmarshal %s"
 	)
 
 	nested := make(map[string]str.MorphPossib)
