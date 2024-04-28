@@ -155,7 +155,9 @@ func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 		FLDS = `entry_name, metrical_entry, id_number, pos, translations, html_body`
 		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴|1|2)$' ORDER BY id_number ASC`
 		COLM = "entry_name"
+		SQLE = "MorphPossibIntoLexPossib() sent a bad query: \n\t%s"
 	)
+
 	var hwm []string
 	for _, p := range mpp {
 		if strings.TrimSpace(p.Headwd) != "" {
@@ -195,9 +197,17 @@ func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 		foundrows, err := dbconn.Query(context.Background(), q)
 		Msg.EC(err)
 
-		_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
-		Msg.EC(e)
+		// nb: there is some wonky data in the morph possibilities because of some corner cases not caught by the builder
+		// [HGS-DBI] SELECT entry_name, metrical_entry, id_number, pos, translations, html_body FROM greek_dictionary WHERE entry_name ~* '^ὀμβρόω(|¹|²|³|⁴|1|2)$' ORDER BY id_number ASC
+		// [HGS-DBI] SELECT entry_name, metrical_entry, id_number, pos, translations, html_body FROM greek_dictionary WHERE entry_name ~* '^ό)μβροϲ(|¹|²|³|⁴|1|2)$' ORDER BY id_number ASC
+		// the second has a ')' that yields an error
+		// "ERROR: invalid regular expression: parentheses () not balanced (SQLSTATE 2201B)"
 
+		_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
+		if e != nil {
+			// you can survive this error... log it
+			Msg.FYI(fmt.Sprintf(SQLE, q))
+		}
 	}
 	return lexicalfinds
 }
