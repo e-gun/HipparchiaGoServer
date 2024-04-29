@@ -45,4 +45,4 @@
 * a very heavy search like `all forms of πόλιϲ near...` can kick you up into 660MB
 
 ### MINIMUM VERSION OF GOLANG REQUIRED TO BUILD
-* go 1.21 because `slices` package is called
+* go 1.22 because `slices.Concat` is called
