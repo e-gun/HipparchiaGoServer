@@ -71,8 +71,8 @@ type WSInfoHubInterface struct {
 	Reset           chan string
 }
 
-// BuildWSInfoHubIf - build the WSInfoHubInterface that will interact with WSSearchInfoHub (one and only one built at app startup)
-func BuildWSInfoHubIf() *WSInfoHubInterface {
+// buildwsinfohubif - build the WSInfoHubInterface that will interact with WSSearchInfoHub (one and only one built at app startup)
+func buildwsinfohubif() *WSInfoHubInterface {
 	return &WSInfoHubInterface{
 		UpdateHits:      make(chan WSSIKVi, 2*runtime.NumCPU()),
 		UpdateRemain:    make(chan WSSIKVi, 2*runtime.NumCPU()),

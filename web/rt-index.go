@@ -178,12 +178,12 @@ func RtIndexMaker(c echo.Context) error {
 		}
 
 		if emm {
-			mps := extractmorphpossibilities(morphmap[mme].RawPossib)
-			if len(mps) > 1 {
-				for i := 0; i < len(mps); i++ {
+			mpp := extractmorphpossibilities(morphmap[mme].RawPossib)
+			if len(mpp) > 1 {
+				for i := 0; i < len(mpp); i++ {
 					var additionalword str.WordInfo
 					additionalword = w
-					additionalword.HeadWd = mps[i].Headwd
+					additionalword.HeadWd = mpp[i].Headwd
 					slicedlookups = append(slicedlookups, additionalword)
 				}
 			}

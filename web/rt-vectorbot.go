@@ -45,7 +45,7 @@ func RtVectorBot(c echo.Context) error {
 
 	// first 500 will take 13MG if MINSIZE = 10000; 118MB if MINSIZE = 1000...
 	// if MINSIZE = 10000: 170MB @ 1000; 319MB @ 2000; 729MB @ 2500; 930MB @ 3000; 1021MB @ 3456
-	// if VectorMaxlines = 1M, then 'gr' adds only 58MB to the db and takes 365s
+	// if VectorMaxlines = 1M, then 'gr' adds only 58MB to the d and takes 365s
 	// all authors and all categories: 1311MB after 4804.478s (i.e. 80min) on a mac studio
 
 	// the default is just 'gr' and 'lt'; and this yields different results
@@ -99,8 +99,8 @@ func RtVectorBot(c echo.Context) error {
 	}
 
 	var dbs []string
-	for db := range mps.LoadedCorp {
-		dbs = append(dbs, db)
+	for d := range mps.LoadedCorp {
+		dbs = append(dbs, d)
 	}
 
 	if slices.Contains(dbs, a) {
@@ -233,8 +233,8 @@ func activatevectorbot() {
 	sort.Strings(auu)
 
 	var dbs []string
-	for db := range mps.LoadedCorp {
-		dbs = append(dbs, db)
+	for d := range mps.LoadedCorp {
+		dbs = append(dbs, d)
 	}
 
 	var trimmedauu []string

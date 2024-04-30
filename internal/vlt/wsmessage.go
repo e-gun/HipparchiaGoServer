@@ -186,8 +186,8 @@ func (pool *wspool) WSPoolStartListening() {
 	}
 }
 
-// WSFillNewPool - build a new wspool (one and only one built at app startup)
-func WSFillNewPool() *wspool {
+// wsfillnewpool - build a new wspool (one and only one built at app startup)
+func wsfillnewpool() *wspool {
 	return &wspool{
 		Add:       make(chan *WSClient),
 		Remove:    make(chan *WSClient),

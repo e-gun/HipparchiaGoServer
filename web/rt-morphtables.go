@@ -130,8 +130,8 @@ func RtMorphchart(c echo.Context) error {
 	// ...
 
 	for k, v := range dbmmap {
-		vv := []str.DbMorphology{v} // dbmorphintomorphpossib() wants a slice, we fake a slice
-		mp := dbmorphintomorphpossib(vv)
+		vall := []str.DbMorphology{v} // dbmorphintomorphpossib() wants a slice, we fake a slice
+		mp := dbmorphintomorphpossib(vall)
 		for _, m := range mp {
 			// item 0 is always ""; item 1 is an actual analysis
 			mpp[k] = append(mpp[k], m.Anal)
@@ -153,8 +153,8 @@ func RtMorphchart(c echo.Context) error {
 
 	pdm := make(map[string]string)
 
-	for k, vv := range mpp {
-		for _, v := range vv {
+	for k, vall := range mpp {
+		for _, v := range vall {
 			if len(v) == 0 {
 				continue
 			}

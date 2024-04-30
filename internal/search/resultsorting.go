@@ -59,17 +59,17 @@ func SortResults(s *str.SearchStruct) {
 
 	switch {
 	case sortby == "shortname":
-		WLOrderedBy(nameIncreasing, titleIncreasing, increasingLines).Sort(s.Results.Lines)
+		wlorderedby(nameIncreasing, titleIncreasing, increasingLines).Sort(s.Results.Lines)
 	case sortby == "converted_date":
-		WLOrderedBy(dateIncreasing, nameIncreasing, titleIncreasing, increasingLines).Sort(s.Results.Lines)
+		wlorderedby(dateIncreasing, nameIncreasing, titleIncreasing, increasingLines).Sort(s.Results.Lines)
 	case sortby == "universalid":
-		WLOrderedBy(increasingID).Sort(s.Results.Lines)
+		wlorderedby(increasingID).Sort(s.Results.Lines)
 	case sortby == "provenance":
 		// as this is likely an inscription search, why not sort next by date?
-		WLOrderedBy(increasingWLOC, dateIncreasing).Sort(s.Results.Lines)
+		wlorderedby(increasingWLOC, dateIncreasing).Sort(s.Results.Lines)
 	default:
 		// author nameIncreasing
-		WLOrderedBy(nameIncreasing, increasingLines).Sort(s.Results.Lines)
+		wlorderedby(nameIncreasing, increasingLines).Sort(s.Results.Lines)
 	}
 }
 
@@ -85,15 +85,15 @@ type wlmultisorter struct {
 	less    []wllessfunc
 }
 
-// Sort sorts the argument slice according to the less functions passed to WLOrderedBy.
+// Sort sorts the argument slice according to the less functions passed to wlorderedby.
 func (ms *wlmultisorter) Sort(changes []str.DbWorkline) {
 	ms.changes = changes
 	sort.Sort(ms)
 }
 
-// WLOrderedBy returns a Sorter that sorts using the less functions, in order.
+// wlorderedby returns a Sorter that sorts using the less functions, in order.
 // Call its Sort method to sort the data.
-func WLOrderedBy(less ...wllessfunc) *wlmultisorter {
+func wlorderedby(less ...wllessfunc) *wlmultisorter {
 	return &wlmultisorter{
 		less: less,
 	}
