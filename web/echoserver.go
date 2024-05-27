@@ -98,7 +98,8 @@ func StartEchoServer() {
 	e.GET("/browse/perseus/:locus", RtBrowsePerseus) // '/browse/perseus/lt0550/001/2:717'
 	e.GET("/browse/rawlocus/:locus", RtBrowseRaw)    // '/browse/rawlocus/lt0474/037/2.10.4'
 
-	e.GET("/browse/", RtGetEmptyGet) // dictionary can send an empty string instead of a value
+	e.GET("/browse/undefined", RtEmptyBrowse) // bad user input can generate this
+	e.GET("/browse/", RtGetEmptyGet)          // dictionary can send an empty string instead of a value
 
 	// [c] css ("rt-embedding.go")
 
