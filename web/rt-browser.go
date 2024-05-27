@@ -91,6 +91,12 @@ func RtBrowseLine(c echo.Context) error {
 	}
 }
 
+// RtEmptyBrowse - to stave off 404s
+func RtEmptyBrowse(c echo.Context) error {
+	bp := browsedpassage{}
+	return jsonresponse(c, bp)
+}
+
 //
 // BROWSING
 //
