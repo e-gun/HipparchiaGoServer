@@ -106,6 +106,9 @@ func RtFrontpage(c echo.Context) error {
 	//    Search: 4
 
 	subs := map[string]interface{}{
+		"myname":        vv.MYNAME,
+		"copyright":     fmt.Sprintf(vv.TERMINALTEXT, vv.PROJYEAR, vv.PROJAUTH, vv.PROJMAIL),
+		"source":        vv.PROJURL,
 		"version":       vv.VERSION + lnch.VersSuppl,
 		"longver":       ver,
 		"authhtm":       ahtm,

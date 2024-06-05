@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
@@ -47,10 +48,10 @@ func RtSessionSetsCookie(c echo.Context) error {
 
 // RtSessionGetCookie - turn a stored cookie into a session
 func RtSessionGetCookie(c echo.Context) error {
-	// this code has input trust issues...
 	const (
 		FAIL1 = "RtSessionGetCookie failed to read cookie %s for %s"
 		FAIL2 = "RtSessionGetCookie failed to unmarshal cookie %s for %s"
+		FAIL3 = "RtSessionGetCookie aborted because user '%s' not logged in"
 	)
 
 	user := vlt.ReadUUIDCookie(c)
@@ -73,6 +74,18 @@ func RtSessionGetCookie(c echo.Context) error {
 		Msg.WARN(fmt.Sprintf(FAIL2, num, user))
 		fmt.Println(err)
 		return c.String(http.StatusOK, "")
+	}
+
+	// this code has input trust issues...
+	// specifically, if you read a cookie that says "IsLoggedIn%22:true", should you just believe that?
+	if lnch.Config.Authenticate {
+		currentuser := vlt.ReadUUIDCookie(c)
+		if !vlt.AllAuthorized.Check(currentuser) {
+			Msg.WARN(fmt.Sprintf(FAIL3, user))
+			return nil
+		}
+		cs := vlt.AllSessions.GetSess(currentuser)
+		s.ID = cs.ID
 	}
 
 	vlt.AllSessions.InsertSess(s)

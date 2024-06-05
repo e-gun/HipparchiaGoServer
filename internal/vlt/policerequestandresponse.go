@@ -17,14 +17,6 @@ import (
 // RESPONSEPOLICING is only active if Config.Authenticate is "true"
 //
 
-type echoresponsestats struct {
-	TwoHundred  uint64
-	FourOhThree uint64
-	FourOhFour  uint64
-	FourOhFive  uint64
-	FiveHundred uint64
-}
-
 type readblacklist struct {
 	ip   string
 	resp chan bool
@@ -43,10 +35,9 @@ type writestats struct {
 
 // variables to manage the RESPONSEPOLICING infrastructure
 var (
-	blistwr         = make(chan writeblacklist)
-	blistrd         = make(chan readblacklist)
-	slistwr         = make(chan writestats)
-	echoserverstats = newechoresponsestats()
+	blistwr = make(chan writeblacklist)
+	blistrd = make(chan readblacklist)
+	slistwr = make(chan writestats)
 )
 
 // PoliceRequestAndResponse - track Response code counts + block repeat 404 offenders; this is custom middleware for an *echo.Echo
@@ -138,7 +129,7 @@ func IPBlacklistKeeper() {
 	}
 }
 
-// ResponseStatsKeeper - log echo responses; should have exclusive r/w access to echoserverstats
+// ResponseStatsKeeper - log echo responses
 func ResponseStatsKeeper() {
 	const (
 		BLACK1 = `IP address %s received a strike: StatusNotFound error for URI "%s"`
@@ -156,7 +147,15 @@ func ResponseStatsKeeper() {
 		FRQ500 = 1
 	)
 
-	warn := func(v uint64, frq uint64, fyi string) {
+	var (
+		TwoHundred  = 0
+		FourOhThree = 0
+		FourOhFour  = 0
+		FourOhFive  = 0
+		FiveHundred = 0
+	)
+
+	warn := func(v int, frq int, fyi string) {
 		if v%frq == 0 {
 			Msg.NOTE(fmt.Sprintf(fyi, v))
 		}
@@ -178,43 +177,32 @@ func ResponseStatsKeeper() {
 		when := time.Now().Format(time.RFC822)
 		switch status.code {
 		case 200:
-			echoserverstats.TwoHundred++
-			warn(echoserverstats.TwoHundred, FRQ200, FYI200)
+			TwoHundred++
+			warn(TwoHundred, FRQ200, FYI200)
 		case 403:
 			// you are already on the blacklist...
-			echoserverstats.FourOhThree++
+			FourOhThree++
 			// use of 'when' makes this different...
-			if echoserverstats.FourOhThree%FRQ403 == 0 {
-				Msg.NOTE(fmt.Sprintf(FYI403, when, echoserverstats.FourOhThree, status.ip, status.uri))
+			if FourOhThree%FRQ403 == 0 {
+				Msg.NOTE(fmt.Sprintf(FYI403, when, FourOhThree, status.ip, status.uri))
 			}
 		case 404:
-			echoserverstats.FourOhFour++
-			warn(echoserverstats.FourOhFour, FRQ404, FYI404)
+			FourOhFour++
+			warn(FourOhFour, FRQ404, FYI404)
 			blacklist(status, BLACK1)
 		case 405:
 			// these seem to come only from hostile scanners; it is a bug that needs fixing if a real user sees this
-			echoserverstats.FourOhFive++
-			warn(echoserverstats.FourOhFive, FRQ405, FYI405)
+			FourOhFive++
+			warn(FourOhFive, FRQ405, FYI405)
 			blacklist(status, BLACK3)
 		case 500:
-			echoserverstats.FiveHundred++
-			warn(echoserverstats.FiveHundred, FRQ500, FYI500)
+			FiveHundred++
+			warn(FiveHundred, FRQ500, FYI500)
 			blacklist(status, BLACK2)
 		default:
 			// do nothing: not interested
 			// 302 from "/reset/session"
 			// 101 from "/ws"
 		}
-	}
-}
-
-// newechoresponsestats - return the one and only copy of echoresponsestats, i.e. the echoserverstats global variable
-func newechoresponsestats() *echoresponsestats {
-	return &echoresponsestats{
-		TwoHundred:  0,
-		FourOhThree: 0,
-		FourOhFour:  0,
-		FourOhFive:  0,
-		FiveHundred: 0,
 	}
 }
