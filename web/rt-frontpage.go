@@ -92,11 +92,6 @@ func RtFrontpage(c echo.Context) error {
 		return strings.Join(pairs, "\n")
 	}
 
-	vec := ""
-	if !lnch.Config.VectorsDisabled {
-		vec = VECTORS
-	}
-
 	// sample ticker output
 
 	//      ----------------- [13:29:41] HGS uptime: 1m0s -----------------
@@ -104,6 +99,11 @@ func RtFrontpage(c echo.Context) error {
 	//    BrowseLine: 5
 	//    LexFindByForm: 2
 	//    Search: 4
+
+	vec := ""
+	if !lnch.Config.VectorsDisabled {
+		vec = VECTORS
+	}
 
 	subs := map[string]interface{}{
 		"myname":        vv.MYNAME,

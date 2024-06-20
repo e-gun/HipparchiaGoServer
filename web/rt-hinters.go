@@ -177,7 +177,9 @@ func isidhint(skg string) bool {
 	preff := []string{vv.GREEKCORP, vv.LATINCORP, vv.PAPYRUSCORP, vv.INSCRIPTCORP, vv.CHRISTINSC}
 
 	pref := fmt.Sprintf("(%s)", strings.Join(preff, ")|("))
-	r := fmt.Sprintf("%s[0-9]", pref)
+	r := fmt.Sprintf("(%s)[0-9]", pref) // --> ((gr)|(lt)|(dp)|(in)|(ch))[0-9]
+	// nb: the next is Sprintf "%s[0-9]" and is bad; will yield 'true' below for 'pindar': (gr)|(lt)|(dp)|(in)|(ch)[0-9]
+
 	re, e := regexp.Compile(r)
 	Msg.EC(e)
 	if re.MatchString(skg) {
@@ -189,6 +191,11 @@ func isidhint(skg string) bool {
 
 // aunamehint - which authors names start with the letters you have sent? "Plat..."
 func aunamehint(skg string) [][2]string {
+	// 'pis' yields:
+	// [Pisander (Epic.) gr0522]
+	// [Pisistrati Epistula gr0049]
+	// [Pisander (Epic.) gr0288]
+
 	var auu [][2]string
 	for _, a := range mps.AllAuthors {
 		var who string

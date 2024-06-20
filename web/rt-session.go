@@ -51,7 +51,7 @@ func RtSessionGetCookie(c echo.Context) error {
 	const (
 		FAIL1 = "RtSessionGetCookie failed to read cookie %s for %s"
 		FAIL2 = "RtSessionGetCookie failed to unmarshal cookie %s for %s"
-		FAIL3 = "RtSessionGetCookie aborted because user '%s' not logged in"
+		FAIL3 = "RtSessionGetCookie aborted because user %s not logged in"
 	)
 
 	user := vlt.ReadUUIDCookie(c)
@@ -78,15 +78,14 @@ func RtSessionGetCookie(c echo.Context) error {
 
 	// this code has input trust issues...
 	// specifically, if you read a cookie that says "IsLoggedIn%22:true", should you just believe that?
-	if lnch.Config.Authenticate {
-		currentuser := vlt.ReadUUIDCookie(c)
-		if !vlt.AllAuthorized.Check(currentuser) {
-			Msg.WARN(fmt.Sprintf(FAIL3, user))
-			return nil
-		}
-		cs := vlt.AllSessions.GetSess(currentuser)
-		s.ID = cs.ID
+	currentuser := vlt.ReadUUIDCookie(c)
+	if lnch.Config.Authenticate && !vlt.AllAuthorized.Check(currentuser) {
+		Msg.WARN(fmt.Sprintf(FAIL3, user))
+		return nil
 	}
+
+	cs := vlt.AllSessions.GetSess(currentuser)
+	s.ID = cs.ID
 
 	vlt.AllSessions.InsertSess(s)
 

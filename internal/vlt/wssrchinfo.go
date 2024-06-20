@@ -93,12 +93,11 @@ func WSSearchInfoHub() {
 	const (
 		CANC    = "WSSearchInfoHub() reports that '%s' was cancelled"
 		FINWAIT = 10
-		FINCHK  = 60
 	)
 
 	var (
-		Allinfo  = make(map[string]WSSrchInfo)
-		Finished = make(map[string]time.Time)
+		Allinfo  = make(map[string]WSSrchInfo) // a race candidate if add/delete in diff threads
+		Finished = make(map[string]time.Time)  // idem
 	)
 
 	reporter := func(r WSSIReply) {
@@ -146,22 +145,6 @@ func WSSearchInfoHub() {
 			Allinfo[si.ID] = si
 		}
 	}
-
-	// storeunlessfinished() requires a cleanup function too...
-	cleanfinished := func() {
-		for {
-			for f := range Finished {
-				ft := Finished[f]
-				later := ft.Add(time.Second * FINWAIT)
-				if time.Now().After(later) {
-					delete(Finished, f)
-				}
-			}
-			time.Sleep(time.Second * FINCHK)
-		}
-	}
-
-	go cleanfinished()
 
 	//UNCOMMENT FOR DEBUGGING BUILDS
 	//allinfo := func() {
@@ -212,7 +195,15 @@ func WSSearchInfoHub() {
 		case reset := <-WSInfo.Reset:
 			cancelall(reset)
 		case del := <-WSInfo.Del:
+			// stupid storeunlessfinished() requires a cleanup loop too unless it is ok for Finished to grow infinitely
 			Finished[del] = time.Now()
+			for f := range Finished {
+				ft := Finished[f]
+				later := ft.Add(time.Second * FINWAIT)
+				if time.Now().After(later) {
+					delete(Finished, f)
+				}
+			}
 			delete(Allinfo, del)
 		}
 	}

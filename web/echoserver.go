@@ -28,7 +28,7 @@ func StartEchoServer() {
 		RLOGFMT = "${remote_ip}\t${custom}\t${status}\t${bytes_out}\t${uri}\n"
 	)
 
-	// ctf - a CustomTagFunc return a short user agent
+	// ctf - a CustomTagFunc to return a short user agent
 	ctf := func(c echo.Context, buf *bytes.Buffer) (int, error) {
 		ua := strings.Split(c.Request().UserAgent(), " ")
 		if len(ua) == 0 {
@@ -219,7 +219,7 @@ func StartEchoServer() {
 
 	e.GET("/vbot/:typeandselection", RtVectorBot) // only the goroutine running the vectorbot is supposed to request this
 
-	// next will do nothing if Config is not requesting these
+	// next will do nothing if Config is not activating these features
 	go debug.RunSelfTests()
 	go activatevectorbot()
 

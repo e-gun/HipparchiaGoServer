@@ -98,8 +98,10 @@ func (c *WSClient) WSMessageLoop() {
 		return <-responder.Response
 	}
 
-	// wait for the search to exist
-	quit := time.Now().Add(time.Second * 1)
+	// wait for the search to exist; then run the message loop
+
+	// [a] wait
+	maxwait := time.Now().Add(time.Millisecond * 50)
 
 	for {
 		srchinfo := getsrchinfo()
@@ -108,7 +110,8 @@ func (c *WSClient) WSMessageLoop() {
 			break
 		}
 
-		if time.Now().After(quit) {
+		if time.Now().After(maxwait) {
+			// only very fast searches that finish in a tiny fraction of a second  (c. 0.01s) should hit maxwait
 			Msg.FYI(fmt.Sprintf(FAIL, c.ID))
 			break
 		}
@@ -119,7 +122,7 @@ func (c *WSClient) WSMessageLoop() {
 	var pd polldata
 	pd.SType = si.SType
 
-	// loop until search finishes
+	// [b] loop until search finishes (but it might already be over...)
 	for {
 		srchinfo := getsrchinfo()
 		if srchinfo.Exists {
