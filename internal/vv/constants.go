@@ -46,6 +46,8 @@ const (
 	GENRESTOCOUNT            = 5
 	HDBFOLDER                = "hDB"
 	INCERTADATE              = 2500
+	LOGFILEEL                = "hgs-echo-log.txt"
+	LOGFILEML                = "hgs-msg-log.txt" // circular import problem; need to edit "messaging.go" too if changing this
 	JSONINDENT               = "  "
 	LENGTHOFAUTHORID         = 6
 	LENGTHOFWORKID           = 3

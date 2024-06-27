@@ -127,6 +127,8 @@ func ConfigAtLaunch() {
 			"ctxlines":   Config.BrowserCtx,
 			"dbf":        vv.HDBFOLDER,
 			"echoll":     Config.EchoLog,
+			"loge":       vv.LOGFILEEL,
+			"logm":       vv.LOGFILEML,
 			"hdbf":       vv.HDBFOLDER,
 			"hgsll":      Config.LogLevel,
 			"home":       h,
@@ -193,6 +195,8 @@ func ConfigAtLaunch() {
 			Config.Gzip = true
 		case "-h":
 			help()
+		case "-lf":
+			Config.LogToFile = true
 		case "-md":
 			Config.VectorModel = args[i+1]
 		case "-mi":
@@ -284,6 +288,7 @@ func builddefaultconfig() *str.CurrentConfiguration {
 	c.LdaTopics = vv.LDATOPICS
 	c.LdaGraph = false
 	c.LogLevel = vv.DEFAULTGOLOGLEVEL
+	c.LogToFile = false
 	c.EchoLog = vv.DEFAULTECHOLOGLEVEL
 	c.ManualGC = false
 	c.MaxText = vv.MAXTEXTLINEGENERATION

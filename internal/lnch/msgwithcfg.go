@@ -18,16 +18,17 @@ func NewMessageMakerConfigured() *mm.MessageMaker {
 		w = true
 	}
 	return &mm.MessageMaker{
-		Lnc:  time.Now(),
-		BW:   Config.BlackAndWhite,
-		Clr:  "",
-		GC:   Config.ManualGC,
-		LLvl: Config.LogLevel,
-		LNm:  vv.MYNAME,
-		SNm:  vv.SHORTNAME,
-		Tick: Config.TickerActive,
-		Ver:  vv.VERSION,
-		Win:  w,
+		Lnc:    time.Now(),
+		BW:     Config.BlackAndWhite,
+		Clr:    "",
+		GC:     Config.ManualGC,
+		LLvl:   Config.LogLevel,
+		LNm:    vv.MYNAME,
+		SNm:    vv.SHORTNAME,
+		Tick:   Config.TickerActive,
+		Ver:    vv.VERSION,
+		Win:    w,
+		ToFile: Config.LogToFile,
 	}
 }
 
@@ -37,16 +38,17 @@ func NewMessageMakerWithDefaults() *mm.MessageMaker {
 		w = true
 	}
 	return &mm.MessageMaker{
-		Lnc:  time.Now(),
-		BW:   false,
-		Clr:  "",
-		GC:   false,
-		LLvl: 0,
-		LNm:  vv.MYNAME,
-		SNm:  vv.SHORTNAME,
-		Tick: false,
-		Ver:  vv.VERSION,
-		Win:  w,
+		Lnc:    time.Now(),
+		BW:     false,
+		Clr:    "",
+		GC:     false,
+		LLvl:   0,
+		LNm:    vv.MYNAME,
+		SNm:    vv.SHORTNAME,
+		Tick:   false,
+		Ver:    vv.VERSION,
+		Win:    w,
+		ToFile: false,
 	}
 }
 
@@ -55,4 +57,5 @@ func UpdateMessageMakerWithConfig(m *mm.MessageMaker) {
 	m.GC = Config.ManualGC
 	m.LLvl = Config.LogLevel
 	m.Tick = Config.TickerActive
+	m.ToFile = Config.LogToFile
 }

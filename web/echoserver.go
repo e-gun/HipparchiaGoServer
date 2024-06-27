@@ -14,6 +14,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"os"
 	"strings"
 )
 
@@ -58,15 +59,32 @@ func StartEchoServer() {
 		e.Use(vlt.PoliceRequestAndResponse)
 	}
 
-	switch lnch.Config.EchoLog {
-	case 3:
-		e.Use(middleware.Logger())
-	case 2:
-		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: RLOGFMT, CustomTagFunc: ctf}))
-	case 1:
-		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: LLOGFMT}))
-	default:
-		// do nothing
+	if lnch.Config.EchoLog > 0 {
+		lwc := middleware.LoggerConfig{}
+		switch lnch.Config.EchoLog {
+		case 3:
+			lwc = middleware.LoggerConfig{}
+		case 2:
+			lwc = middleware.LoggerConfig{Format: RLOGFMT, CustomTagFunc: ctf}
+		case 1:
+			lwc = middleware.LoggerConfig{Format: LLOGFMT}
+		default:
+			// do nothing; but this is effectively "3"
+		}
+
+		if lnch.Config.LogToFile {
+			// LoggerConfig
+			// 	// Output is a writer where logs in JSON format are written.
+			//	// Optional. Default value os.Stdout.
+			//	Output io.Writer
+			f, err := os.Create(vv.LOGFILEEL)
+			if err != nil {
+				os.Exit(1)
+			}
+			defer f.Close()
+			lwc.Output = f
+		}
+		e.Use(middleware.LoggerWithConfig(lwc))
 	}
 
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(vv.MAXECHOREQPERSECONDPERIP)))

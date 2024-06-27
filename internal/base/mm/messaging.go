@@ -55,32 +55,34 @@ func NewMessageMaker() *MessageMaker {
 		w = true
 	}
 	return &MessageMaker{
-		Lnc:  time.Now(),
-		BW:   false,
-		Clr:  "",
-		GC:   false,
-		LLvl: 0,
-		LNm:  "",
-		SNm:  "",
-		Tick: false,
-		Ver:  "",
-		Win:  w,
-		mtx:  sync.RWMutex{},
+		Lnc:    time.Now(),
+		BW:     false,
+		Clr:    "",
+		GC:     false,
+		LLvl:   0,
+		LNm:    "",
+		SNm:    "",
+		Tick:   false,
+		Ver:    "",
+		Win:    w,
+		ToFile: false,
+		mtx:    sync.RWMutex{},
 	}
 }
 
 type MessageMaker struct {
-	Lnc  time.Time
-	BW   bool
-	Clr  string
-	GC   bool
-	LLvl int
-	LNm  string
-	SNm  string
-	Tick bool
-	Ver  string
-	Win  bool
-	mtx  sync.RWMutex
+	Lnc    time.Time
+	BW     bool
+	Clr    string
+	GC     bool
+	LLvl   int
+	LNm    string
+	SNm    string
+	Tick   bool
+	Ver    string
+	Win    bool
+	ToFile bool
+	mtx    sync.RWMutex
 }
 
 func (m *MessageMaker) MAND(s string) {
@@ -111,7 +113,7 @@ func (m *MessageMaker) TMI(s string) {
 	m.Emit(s, MSGTMI)
 }
 
-// Emit - send a message to the terminal, perhaps adding color and style to it
+// Emit - send a message to the terminal or to the logfile, perhaps adding color and style to it
 func (m *MessageMaker) Emit(message string, threshold int) {
 	// sample output: "[HGS] findbyform() found no results for 'Romani'"
 
@@ -119,36 +121,68 @@ func (m *MessageMaker) Emit(message string, threshold int) {
 		return
 	}
 
-	if !m.Win && !m.BW {
-		var color string
-
-		switch threshold {
-		case MSGMAND:
-			color = GREEN
-		case MSGCRIT:
-			color = RED1
-		case MSGWARN:
-			color = YELLOW2
-		case MSGNOTE:
-			color = YELLOW1
-		case MSGFYI:
-			color = CYAN2
-		case MSGPEEK:
-			color = BLUE2
-		case MSGTMI:
-			color = GREY3
-		default:
-			color = WHITE
-		}
-		fmt.Printf("[%s%s%s] %s%s%s\n", YELLOW1, m.SNm, RESET, color, message, RESET)
-	} else {
-		// terminal color codes not win's friend
-		if threshold < 0 {
-			fmt.Printf("[%s] %s\n", m.SNm, message)
-		} else {
-			fmt.Printf("[%s] [%d] %s\n", m.SNm, threshold, message)
-		}
+	if m.ToFile {
+		m.EmitToFile(message, threshold)
+		return
 	}
+
+	if !m.Win && !m.BW {
+		m.EmitColor(message, threshold)
+	} else {
+		m.EmitBW(message, threshold)
+	}
+}
+
+// EmitBW - send a black and white message to the console
+func (m *MessageMaker) EmitBW(message string, threshold int) {
+	// terminal color codes not win's friend
+	if threshold < 0 {
+		fmt.Printf("[%s] %s\n", m.SNm, message)
+	} else {
+		fmt.Printf("[%s] [%d] %s\n", m.SNm, threshold, message)
+	}
+}
+
+// EmitColor - send a color message to the console
+func (m *MessageMaker) EmitColor(message string, threshold int) {
+	var color string
+
+	switch threshold {
+	case MSGMAND:
+		color = GREEN
+	case MSGCRIT:
+		color = RED1
+	case MSGWARN:
+		color = YELLOW2
+	case MSGNOTE:
+		color = YELLOW1
+	case MSGFYI:
+		color = CYAN2
+	case MSGPEEK:
+		color = BLUE2
+	case MSGTMI:
+		color = GREY3
+	default:
+		color = WHITE
+	}
+	fmt.Printf("[%s%s%s] %s%s%s\n", YELLOW1, m.SNm, RESET, color, message, RESET)
+}
+
+// EmitToFile - send the message to a file
+func (m *MessageMaker) EmitToFile(message string, threshold int) {
+	tn := time.Now().Format(time.RFC3339)
+	ms := fmt.Sprintf("[%s] [%s] [%d] %s\n", tn, m.SNm, threshold, message)
+	// circular import if vv.LOGFILEML
+	// f, err := os.OpenFile(vv.LOGFILEML, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	f, err := os.OpenFile("hgs-msg-log.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	if _, err = f.WriteString(ms); err != nil {
+		panic(err)
+	}
+	return
 }
 
 // Color - color text with ANSI codes by swapping out pseudo-tags

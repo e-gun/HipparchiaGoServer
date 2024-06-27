@@ -20,6 +20,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/web"
 	"github.com/pkg/profile"
 	_ "net/http/pprof"
+	"os"
 	"runtime"
 	"sync"
 	"time"
@@ -101,6 +102,13 @@ func main() {
 	for i := range mkr {
 		lnch.UpdateMessageMakerWithConfig(mkr[i])
 		mkr[i].SNm = vv.SHORTNAME + suff[i]
+	}
+
+	// blank out the old message file
+	if lnch.Config.LogToFile {
+		f, err := os.Create(vv.LOGFILEML)
+		msg.EC(err)
+		f.Close()
 	}
 
 	lnch.PrintVersion(*lnch.Config)

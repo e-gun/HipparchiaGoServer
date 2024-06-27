@@ -21,6 +21,7 @@ type CurrentConfiguration struct {
 	LdaGraph        bool
 	LdaTopics       int
 	LogLevel        int
+	LogToFile       bool
 	ManualGC        bool // see messenger.LogPaths()
 	MaxText         int
 	MaxSrchIP       int
