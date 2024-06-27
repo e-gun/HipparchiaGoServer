@@ -25,7 +25,7 @@ const (
 	PROJURL  = "https://github.com/e-gun/HipparchiaGoServer"
 
 	HELPTEXTTEMPLATE = `S3command line optionsS0:
-   C1-auC0          require authentication; also implies "C3{{.confauth}}C0" exists and has been properly configured
+   C1-auC0          toggle authentication relative to the config file; "on" implies "C3{{.confauth}}C0" exists and has been properly configured
    C1-avC0          automatically generate vector models for every author in the database
                    default settings will consume c. C11.3GBC0 of extra disk space
    C1-bcC0 C2{num}C0    default lines of browser context to display [C6currentC0: C3{{.ctxlines}}C0]
@@ -40,7 +40,7 @@ const (
    C1-glC0 C2{num}C0    set golang log level (C10-5C0) [C6currentC0: C3{{.hgsll}}C0]
    C1-gzC0          enable gzip compression of the server's output
    C1-hC0           print this help information
-   C1-lfC0          log to texfiles in C1os.UserHomeDir()C0: "C3{{.loge}}C0" and "C3{{.logm}}C0"
+   C1-lfC0          toggle logging to textfiles in C1os.UserHomeDir()C0 relative to the config file: "C3{{.loge}}C0" and "C3{{.logm}}C0"
    C1-mdC0 C2{string}C0 set the default vector model type; available: C3gloveC0, C3lexvecC0, and C3w2vC0 [C6currentC0: C3{{.vmodel}}C0]
    C1-miC0 C2{num}C0    maximum number of concurrent searches per IP address [C6currentC0: C3{{.maxipsrch}}C0]
    C1-msC0 C2{num}C0    maximum total number of concurrent searches [C6currentC0: C3{{.maxtotscrh}}C0]
@@ -67,7 +67,7 @@ const (
          C4"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"C0
      
      S1NB:S0 a properly formatted version of "C3{{.conffile}}C0" in "C3{{.home}}C0" configures everything for you. 
-         See "C3sample_hgs-prolix-vv.jsonC0"" as well as other sample configuration files at
+         See "C3sample_hgs-prolix.jsonC0"" as well as other sample configuration files at
              C3{{.projurl}}C0
 `
 )

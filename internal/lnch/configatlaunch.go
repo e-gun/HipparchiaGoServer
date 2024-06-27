@@ -163,7 +163,8 @@ func ConfigAtLaunch() {
 			fmt.Println(vv.VERSION + VersSuppl)
 			os.Exit(1)
 		case "-au":
-			Config.Authenticate = true
+			// toggle...
+			Config.Authenticate = !Config.Authenticate
 		case "-av":
 			Config.VectorBot = true
 		case "-bc":
@@ -196,7 +197,8 @@ func ConfigAtLaunch() {
 		case "-h":
 			help()
 		case "-lf":
-			Config.LogToFile = true
+			// toggle...
+			Config.LogToFile = !Config.LogToFile
 		case "-md":
 			Config.VectorModel = args[i+1]
 		case "-mi":
