@@ -106,7 +106,8 @@ func main() {
 
 	// blank out the old message file
 	if lnch.Config.LogToFile {
-		f, err := os.Create(vv.LOGFILEML)
+		uh, _ := os.UserHomeDir()
+		f, err := os.Create(uh + "/" + vv.LOGFILEML)
 		msg.EC(err)
 		f.Close()
 	}

@@ -174,7 +174,8 @@ func (m *MessageMaker) EmitToFile(message string, threshold int) {
 	ms := fmt.Sprintf("[%s] [%s] [%d] %s\n", tn, m.SNm, threshold, message)
 	// circular import if vv.LOGFILEML
 	// f, err := os.OpenFile(vv.LOGFILEML, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-	f, err := os.OpenFile("hgs-msg-log.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	uh, _ := os.UserHomeDir()
+	f, err := os.OpenFile(uh+"/hgs-msg-log.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		panic(err)
 	}

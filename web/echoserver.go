@@ -77,7 +77,8 @@ func StartEchoServer() {
 			// 	// Output is a writer where logs in JSON format are written.
 			//	// Optional. Default value os.Stdout.
 			//	Output io.Writer
-			f, err := os.Create(vv.LOGFILEEL)
+			uh, _ := os.UserHomeDir()
+			f, err := os.Create(uh + "/" + vv.LOGFILEEL)
 			if err != nil {
 				os.Exit(1)
 			}
