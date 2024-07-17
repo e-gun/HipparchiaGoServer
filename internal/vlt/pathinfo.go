@@ -3,6 +3,8 @@ package vlt
 import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/vv"
+	"math"
 	"runtime"
 	"sort"
 	"strings"
@@ -13,7 +15,7 @@ import (
 func TerminalTicker(wait time.Duration) {
 	// sample output:
 
-	//  ----------------- [10:24:28] HGS uptime: 1m0s -----------------
+	//   -----------------  [11:24:34]  HGS uptime: 00d 01h 24m 17s  [87M]  -----------------
 	//BrowseLine: 51 * LexFindByForm: 48 * LexLookup: 6 * LexReverse: 6 * NeighborsSearch: 1 * Search: 7
 
 	const (
@@ -26,27 +28,42 @@ func TerminalTicker(wait time.Duration) {
 		CURSREST  = "\033[u"
 		PADDING   = "  -----------------  "
 		STATTMPL  = "%s: C2%dC0"
-		UPTIME    = "[S1C6%vC0]  C5S1HGS uptime: C1%vC0  [S1C6%sC0]"
+		UPTIME    = "[S1C6%vC0]  C5S1%s uptime: C1%vC0  [S1C6%sC0]"
+		TIMESTR   = "%02dd %02dh %02dm %02ds"
 	)
 
-	// ANSI escape codes do not work in windows
-	if !Msg.Tick || Msg.Win {
-		return
-	}
+	Msg.Tick = true
 
 	var mem runtime.MemStats
 
+	// --> "00d 01h 24m 17s"
+	formattime := func(t time.Duration) string {
+		// test := time.Date(2024, 7, 11, 9, 20, 0, 0, time.UTC)
+		// t = time.Since(test)
+		raws := float64(t.Seconds())
+		s := int(math.Mod(raws, 60))
+		rawm := float64(t.Minutes())
+		m := int(math.Mod(rawm, 60))
+		rawh := float64(t.Hours())
+		h := int(math.Mod(rawh, 24))
+		d := int(rawh / 24)
+		return fmt.Sprintf(TIMESTR, d, h, m, s)
+	}
+
 	// the uptime line
+	//   -----------------  [11:24:34]  HGS uptime: 00d 01h 24m 17s  [87M]  -----------------
 	uptimer := func(up time.Duration) {
 		runtime.ReadMemStats(&mem)
 		heap := fmt.Sprintf("%dM", mem.HeapAlloc/1024/1024)
 		// stack := fmt.Sprintf("%dM", mem.StackInuse/1024/1024)
-		tick := fmt.Sprintf(UPTIME, time.Now().Format(time.TimeOnly), up.Truncate(time.Second), heap)
+		tick := fmt.Sprintf(UPTIME, time.Now().Format(time.TimeOnly), vv.SHORTNAME, formattime(up), heap)
 		tick = Msg.ColStyle(PADDING + tick + PADDING)
-		fmt.Printf(CURSSAVE + CURSHOME + CLEAR + HEAD + tick + CURSREST)
+		fmt.Printf(CURSSAVE + CURSHOME + CLEAR + HEAD)
+		fmt.Printf(tick + CURSREST)
 	}
 
 	// the searches run line
+	// BrowseLine: 51 * LexFindByForm: 48 * LexLookup: 6 * LexReverse: 6 * NeighborsSearch: 1 * Search: 7
 	srchinfo := func() {
 		responder := PIReply{Request: true, Response: make(chan map[string]int)}
 		PIRequest <- responder
@@ -68,6 +85,7 @@ func TerminalTicker(wait time.Duration) {
 		fmt.Printf(CURSSAVE + FIRSTLINE)
 		out := Msg.Color(strings.Join(pairs, " C6*C0 "))
 		fmt.Printf(out + CLEARRT)
+		fmt.Println()
 		fmt.Println()
 		fmt.Printf(CLEAR + CURSREST)
 	}
