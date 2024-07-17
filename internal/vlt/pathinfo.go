@@ -32,7 +32,10 @@ func TerminalTicker(wait time.Duration) {
 		TIMESTR   = "%02dd %02dh %02dm %02ds"
 	)
 
-	Msg.Tick = true
+	// ANSI escape codes do not work in windows
+	if !Msg.Tick || Msg.Win {
+		return
+	}
 
 	var mem runtime.MemStats
 
