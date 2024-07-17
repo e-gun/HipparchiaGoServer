@@ -19,11 +19,9 @@ import (
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/labstack/echo/v4"
 	"gonum.org/v1/gonum/mat"
-	"html/template"
 	"io"
 	"math"
 	"math/rand"
-	"regexp"
 	"strings"
 )
 
@@ -95,8 +93,8 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 
 	var gnn []opts.GraphNode
 	var gll []opts.GraphLink
-	valuelabel := opts.EdgeLabel{Show: true, FontSize: EDGEFNTSZ, Formatter: "{c}"}
-	hiddenvals := opts.EdgeLabel{Show: false, FontSize: EDGEFNTSZ, Formatter: "{c}"}
+	valuelabel := opts.EdgeLabel{Show: opts.Bool(true), FontSize: EDGEFNTSZ, Formatter: "{c}"}
+	hiddenvals := opts.EdgeLabel{Show: opts.Bool(false), FontSize: EDGEFNTSZ, Formatter: "{c}"}
 
 	round := func(val float64) float32 {
 		ratio := math.Pow(10, float64(PRECISON))
@@ -192,7 +190,7 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 	graph.AddSeries(SERIESNAME, gnn, gll,
 		charts.WithLabelOpts(
 			opts.Label{
-				Show:       true,
+				Show:       opts.Bool(true),
 				Position:   LABELPOSITON,
 				FontFamily: ft,
 				FontSize:   LABELFTSIZE,
@@ -213,8 +211,8 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 					Gravity:    GRAVITY,
 					EdgeLength: EDGELEN,
 				},
-				Roam:               true,
-				FocusNodeAdjacency: true,
+				Roam:               opts.Bool(true),
+				FocusNodeAdjacency: opts.Bool(true),
 			},
 		),
 	)
@@ -295,10 +293,10 @@ func getcharttooltip() opts.Tooltip {
 	// could use this to actually give a real location, etc. via a get()
 
 	return opts.Tooltip{
-		Show:        true,
+		Show:        opts.Bool(true),
 		Trigger:     "item",      // item, axis, none
 		TriggerOn:   "mousemove", // mousemove, click, mousemove|click, none
-		Enterable:   false,
+		Enterable:   opts.Bool(false),
 		Formatter:   TTF,
 		AxisPointer: nil,
 	}
@@ -318,7 +316,7 @@ func getcharttoolboxopts(sfn string) opts.Toolbox {
 	// SO, at the end of the day, you do not want to use SVG
 
 	tbs := opts.ToolBoxFeatureSaveAsImage{
-		Show:  true,
+		Show:  opts.Bool(true),
 		Type:  SAVETYPE,
 		Name:  sfn,
 		Title: SAVESTR, // get chinese if ""
@@ -329,7 +327,7 @@ func getcharttoolboxopts(sfn string) opts.Toolbox {
 	}
 
 	tbo := opts.Toolbox{
-		Show:    true,
+		Show:    opts.Bool(true),
 		Orient:  "vertical",
 		Left:    LEFTALIGN,
 		Top:     "",
@@ -494,7 +492,7 @@ func lda3dscatter(ntopics int, incl string, bagger string, Y, labels mat.Matrix,
 
 	scatter := charts.NewScatter3D()
 	scatter.SetGlobalOptions(
-		charts.WithXAxis3DOpts(opts.XAxis3D{Name: "X-AXIS", Show: true}),
+		charts.WithXAxis3DOpts(opts.XAxis3D{Name: "X-AXIS", Show: opts.Bool(true)}),
 		charts.WithYAxis3DOpts(opts.YAxis3D{Name: "Y-AXIS"}),
 		charts.WithZAxis3DOpts(opts.ZAxis3D{Name: "Z-AXIS"}),
 	)
@@ -593,7 +591,7 @@ func customscatterhtmlandjs(s *charts.Scatter) string {
 	// this gets injected to the "vectorgraphing" div on frontpage.html
 
 	const (
-		WARN = "vec.customscatterhtmlandjs() failed to render the page template"
+		WARN = "customscatterhtmlandjs() failed to render the page template"
 	)
 
 	s.Validate()
@@ -675,134 +673,3 @@ func getvecchrtwdht() (string, string) {
 	}
 	return wd, ht
 }
-
-//
-// OVERRIDE GO-ECHARTS [original code at https://github.com/go-echarts/go-echarts]
-//
-
-// ModRenderer etc modified from https://github.com/go-echarts/go-echarts/render/engine.go
-type ModRenderer interface {
-	Render(w io.Writer) error
-}
-
-type CustomPageRender struct {
-	c      interface{}
-	before []func()
-}
-
-// NewCustomPageRender returns a render implementation for Page.
-func NewCustomPageRender(c interface{}, before ...func()) ModRenderer {
-	return &CustomPageRender{c: c, before: before}
-}
-
-// Render renders the page into the given io.Writer.
-func (r *CustomPageRender) Render(w io.Writer) error {
-	const (
-		TEMPLNAME = "chart"
-		PATTERN   = `(__f__")|("__f__)|(__f__)`
-	)
-
-	for _, fn := range r.before {
-		fn()
-	}
-
-	contents := []string{CustomHeaderTpl, CustomBaseTpl, CustomPageTpl}
-	tpl := ModMustTemplate(TEMPLNAME, contents)
-
-	var buf bytes.Buffer
-	if err := tpl.ExecuteTemplate(&buf, TEMPLNAME, r.c); err != nil {
-		return err
-	}
-
-	pat := regexp.MustCompile(PATTERN)
-	content := pat.ReplaceAll(buf.Bytes(), []byte(""))
-
-	_, err := w.Write(content)
-	return err
-}
-
-// ModMustTemplate creates a new template with the given name and parsed contents.
-func ModMustTemplate(name string, contents []string) *template.Template {
-	const (
-		JSNAME = "safeJS"
-	)
-
-	tpl := template.Must(template.New(name).Parse(contents[0])).Funcs(template.FuncMap{
-		JSNAME: func(s interface{}) template.JS {
-			return template.JS(fmt.Sprint(s))
-		},
-	})
-
-	for _, cont := range contents[1:] {
-		tpl = template.Must(tpl.Parse(cont))
-	}
-	return tpl
-}
-
-// CustomHeaderTpl etc. adapted from https://github.com/go-echarts/go-echarts/templates/
-var CustomHeaderTpl = `
-{{ define "header" }}
-<head>
-	<!-- CustomHeaderTpl -->
-    <!-- Note that all of these comments get nuked and will not be sent out to the page. Alas... -->
-    <meta charset="utf-8">
-    <title>{{ .PageTitle }} [CustomHeaderTpl]</title>
-{{- range .JSAssets.Values }}
-    <script src="{{ . }}"></script>
-{{- end }}
-{{- range .CustomizedJSAssets.Values }}
-    <script src="{{ . }}"></script>
-{{- end }}
-{{- range .CSSAssets.Values }}
-    <link href="{{ . }}" rel="stylesheet">
-{{- end }}
-{{- range .CustomizedCSSAssets.Values }}
-    <link href="{{ . }}" rel="stylesheet">
-{{- end }}
-</head>
-{{ end }}
-`
-
-// note that BaseTpl has since changed at https://github.com/go-echarts/go-echarts/blob/master/charts/base.go
-
-// CustomBaseTpl - to enable svg, add the following to "let goecharts_...": `, {renderer: "svg"}`; but the fonts will break
-var CustomBaseTpl = `
-{{- define "base" }}
-<!-- CustomBaseTpl -->
-<div class="container">
-    <div class="item" id="{{ .ChartID }}" style="width:{{ .Initialization.Width }};height:{{ .Initialization.Height }};"></div>
-</div>
-<script type="text/javascript">
-    "use strict";
-    let goecharts_{{ .ChartID | safeJS }} = echarts.init(document.getElementById('{{ .ChartID | safeJS }}'), "{{ .Theme }}");
-    let option_{{ .ChartID | safeJS }} = {{ .JSONNotEscaped | safeJS }};
-	let action_{{ .ChartID | safeJS }} = {{ .JSONNotEscapedAction | safeJS }};
-    goecharts_{{ .ChartID | safeJS }}.setOption(option_{{ .ChartID | safeJS }});
- 	goecharts_{{ .ChartID | safeJS }}.dispatchAction(action_{{ .ChartID | safeJS }});
-
-    {{- range .JSFunctions.Fns }}
-    {{ . | safeJS }}
-    {{- end }}
-</script>
-{{ end }}
-`
-
-var CustomPageTpl = `
-{{- define "chart" }}
-	<!-- "style" overridden because it is set in hgs.css -->
-	<!-- CustomPageTpl -->
-	{{ if eq .Layout "none" }}
-		{{- range .Charts }} {{ template "base" . }} {{- end }}
-	{{ end }}
-	
-	{{ if eq .Layout "center" }}
-		<!-- <style> .container {display: flex;justify-content: center;align-items: center; } .item {margin: auto;} </style> -->
-		{{- range .Charts }} {{ template "base" . }} {{- end }}
-	{{ end }}
-	
-	{{ if eq .Layout "flex" }}
-		<!--  <style> .box { justify-content:center; display:flex; flex-wrap:wrap } </style> -->
-		<div class="box"> {{- range .Charts }} {{ template "base" . }} {{- end }} </div>
-	{{ end }}
-{{ end }}
-`
