@@ -77,9 +77,13 @@ const (
 	POLLEVERYNTABLES         = 34 // 3455 is the max number of tables in a search...
 	SERVEDFROMHOST           = "127.0.0.1"
 	SERVEDFROMPORT           = 8000
+	SERVEDFROMSSLPORT        = 4443
 	SIMULTANEOUSSEARCHES     = 3 // cap on the number of db connections at (S * Config.WorkerCount)
 	SHOWCITATIONEVERYNLINES  = 10
 	SORTBY                   = "shortname"
+	SSLCERTDIR               = "./sslcerts/"
+	SSLCPEM                  = "cert.pem"
+	SSLPPEM                  = "privkey.pem"
 	TEMPTABLETHRESHOLD       = 100 // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
 	TERMINATIONS             = `(\s|\.|\]|\<|⟩|’|”|\!|,|:|;|\?|·|$)`
 	TICKERISACTIVE           = false

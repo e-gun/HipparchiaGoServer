@@ -7,6 +7,7 @@ package web
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/debug"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
@@ -14,6 +15,8 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"log"
+	"net/http"
 	"os"
 	"strings"
 )
@@ -246,5 +249,37 @@ func StartEchoServer() {
 	e.HidePort = false
 	e.Debug = false
 	e.DisableHTTP2 = true // HTTP2 would require a lot of pain (certs, etc) for virtually no gain
-	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", lnch.Config.HostIP, lnch.Config.HostPort)))
+
+	if candossl() {
+		saddr := fmt.Sprintf("%s:%d", lnch.Config.HostIP, lnch.Config.HostSSLPort)
+		fmt.Printf("⇨ https server started on %s\n", saddr)
+		s := http.Server{
+			Addr:      saddr,
+			Handler:   e, // set Echo as handler
+			TLSConfig: &tls.Config{
+				//Certificates: nil, // <-- s.ListenAndServeTLS will populate this field
+			},
+			ReadTimeout:  vv.TIMEOUTRD,
+			WriteTimeout: vv.TIMEOUTWR,
+		}
+		if err := s.ListenAndServeTLS(lnch.Config.SSLCertDir+vv.SSLCPEM, lnch.Config.SSLCertDir+vv.SSLPPEM); err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	} else {
+		Msg.WARN("(ssl unavailable)")
+		e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", lnch.Config.HostIP, lnch.Config.HostPort)))
+	}
+}
+
+func candossl() bool {
+	ok1 := false
+	if _, err := os.Stat(lnch.Config.SSLCertDir + vv.SSLCPEM); err == nil {
+		ok1 = true
+	}
+	ok2 := false
+	if _, err := os.Stat(lnch.Config.SSLCertDir + vv.SSLPPEM); err == nil {
+		ok2 = true
+	}
+	ok := ok1 && ok2
+	return ok
 }

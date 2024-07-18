@@ -12,7 +12,7 @@ require (
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/pkg/profile v1.7.0
-	golang.org/x/exp v0.0.0-20240716160929-1d5bc16f04a8
+	golang.org/x/exp v0.0.0-20240716175740-e3f259677ff7
 	golang.org/x/text v0.16.0
 	gonum.org/v1/gonum v0.15.0
 )

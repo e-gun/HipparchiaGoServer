@@ -52,7 +52,9 @@ const (
    C1-rlC0          reload the database tables; data will be read from: "C3{{.dbf}}C0" in "C3{{.cwd}}C0"
    C1-rvC0          reset the stored semantic vector table
    C1-saC0 C2{string}C0 server IP address [C6currentC0: C3{{.host}}C0]
-   C1-spC0 C2{num}C0    server port [C6currentC0: C3{{.port}}C0]
+   C1-sdC0 C2{string}C0 ssl certificate directory [C6currentC0: C3{{.ssldir}}C0] (requires "C4{{.sslcert}}C0" and "C4{{.sslpriv}}C0")
+   C1-spC0 C2{num}C0    server http port [C6currentC0: C3{{.port}}C0]
+   C1-ssC0 C2{num}C0    server https port [C6currentC0: C3{{.sslport}}C0]
    C1-stC0          run the self-test suite at vv; repeat the flag to iterate: e.g., "C1-st -stC0" will run twice
    C1-tkC0          turn on the uptime UptimeTicker [unavailable if OS is Windows]
    C1-uiC0 C2{string}C0 unacceptable input characters [C6currentC0: C3{{.badchars}}C0]

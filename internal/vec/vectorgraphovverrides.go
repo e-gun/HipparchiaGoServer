@@ -16,8 +16,11 @@ import (
 // OVERRIDE GO-ECHARTS [original code at https://github.com/go-echarts/go-echarts]
 //
 
-// this is klugy and likely to be a source of ongoing pain: v2.4.0 broke the api of v.2.3.3
-// any/all of the following could break again
+// this is kludgy and likely to be a source of ongoing pain: v2.4.0 broke the api of v2.3.3
+// any/all of the following could break again; the code are scattered across the go-echarts repo too
+
+// 9cde6a4b was the last time HipparchiaGoServer used v2.3.3
+// the material below used to be provided by the bottom of vectorgraphing.go
 
 // ModRenderer etc modified from https://github.com/go-echarts/go-echarts/blob/master/render/engine.go
 type ModRenderer interface {

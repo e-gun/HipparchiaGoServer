@@ -18,6 +18,7 @@ type CurrentConfiguration struct {
 	Gzip            bool
 	HostIP          string
 	HostPort        int
+	HostSSLPort     int
 	LdaGraph        bool
 	LdaTopics       int
 	LogLevel        int
@@ -32,6 +33,7 @@ type CurrentConfiguration struct {
 	ResetVectors    bool
 	QuietStart      bool
 	SelfTest        int
+	SSLCertDir      string
 	TickerActive    bool
 	VectorsDisabled bool
 	VectorBot       bool

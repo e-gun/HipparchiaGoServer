@@ -117,6 +117,7 @@ func ConfigAtLaunch() {
 
 		kff := gen.StringMapKeysIntoSlice(vv.ServableFonts)
 
+		// see HELPTEXTTEMPLATE in vv.terminalconst.go
 		m := map[string]interface{}{
 			"badchars":   Config.BadChars,
 			"confauth":   vv.CONFIGAUTH,
@@ -136,6 +137,10 @@ func ConfigAtLaunch() {
 			"maxipsrch":  Config.MaxSrchIP,
 			"maxtotscrh": Config.MaxSrchTot,
 			"port":       Config.HostPort,
+			"sslport":    Config.HostSSLPort,
+			"ssldir":     Config.SSLCertDir,
+			"sslcert":    vv.SSLCPEM,
+			"sslpriv":    vv.SSLPPEM,
 			"projurl":    vv.PROJURL,
 			"vmodel":     Config.VectorModel,
 			"workers":    Config.WorkerCount,
@@ -232,10 +237,16 @@ func ConfigAtLaunch() {
 			Config.ResetVectors = true
 		case "-sa":
 			Config.HostIP = args[i+1]
+		case "-sd":
+			Config.SSLCertDir = args[i+1]
 		case "-sp":
 			p, err := strconv.Atoi(args[i+1])
 			Msg.EC(err)
 			Config.HostPort = p
+		case "-ss":
+			p, err := strconv.Atoi(args[i+1])
+			Msg.EC(err)
+			Config.HostSSLPort = p
 		case "-st":
 			Config.SelfTest += 1
 		case "-tk":
@@ -287,6 +298,7 @@ func builddefaultconfig() *str.CurrentConfiguration {
 	c.Gzip = vv.USEGZIP
 	c.HostIP = vv.SERVEDFROMHOST
 	c.HostPort = vv.SERVEDFROMPORT
+	c.HostSSLPort = vv.SERVEDFROMSSLPORT
 	c.LdaTopics = vv.LDATOPICS
 	c.LdaGraph = false
 	c.LogLevel = vv.DEFAULTGOLOGLEVEL
@@ -301,6 +313,7 @@ func builddefaultconfig() *str.CurrentConfiguration {
 	c.QuietStart = false
 	c.ResetVectors = false
 	c.SelfTest = 0
+	c.SSLCertDir = vv.SSLCERTDIR
 	c.TickerActive = vv.TICKERISACTIVE
 	c.VectorBot = false
 	c.VectorChtHt = vv.DEFAULTCHRTHEIGHT
