@@ -60,7 +60,7 @@ func main() {
 	// "go tool pprof heap.0.pprof" -> "top 20", etc.
 
 	//go func() {
-	//	mm("**THIS BUILD IS NOT FOR RELEASE** PPROF server is active", MSGCRIT)
+	//	lnch.Msg.CRIT("**THIS BUILD IS NOT FOR RELEASE** PPROF server is active")
 	//	http.ListenAndServe("localhost:8080", nil)
 	//}()
 
@@ -183,7 +183,7 @@ func main() {
 	awaiting.Wait()
 
 	runtime.GC()
-	msg.Emit(msg.ColStyle(fmt.Sprintf(SUMM, time.Now().Sub(vv.LaunchTime).Seconds())), -999)
+	msg.Emit(msg.ColStyle(fmt.Sprintf(SUMM, time.Now().Sub(vv.LaunchTime).Seconds())), -1)
 
 	//
 	// [4] debugging code block #2 of 2

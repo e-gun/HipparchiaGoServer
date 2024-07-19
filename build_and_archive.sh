@@ -38,13 +38,13 @@ if hash mdpdf &> /dev/null
     mdpdf INSTRUCTIONS/BASIC_USE.md web/emb/pdf/HGS_BASIC_USE.pdf
     cp web/emb/pdf/*.pdf internal/lnch/efs/pdf/
   else
-    cp emb/pdf/oops.pdf emb/pdf/HGS_INSTALLATION_MacOS.pdf
-    cp emb/pdf/oops.pdf emb/pdf/HGS_INSTALLATION_Windows.pdf
-    cp emb/pdf/oops.pdf emb/pdf/HGS_INSTALLATION_Nix.pdf
-    cp emb/pdf/oops.pdf emb/pdf/HGS_CUSTOMIZATION.pdf
-    cp emb/pdf/oops.pdf emb/pdf/HGS_SEMANTICVECTORS.pdf
-    cp emb/pdf/oops.pdf emb/pdf/HGS_FYI.pdf
-    cp emb/pdf/oops.pdf emb/pdf/HGS_BASIC_USE.pdf
+    cp web/emb/pdf/oops.pdf web/emb/pdf/HGS_INSTALLATION_MacOS.pdf
+    cp web/emb/pdf/oops.pdf web/emb/pdf/HGS_INSTALLATION_Windows.pdf
+    cp web/emb/pdf/oops.pdf web/emb/pdf/HGS_INSTALLATION_Nix.pdf
+    cp web/emb/pdf/oops.pdf web/emb/pdf/HGS_CUSTOMIZATION.pdf
+    cp web/emb/pdf/oops.pdf web/emb/pdf/HGS_SEMANTICVECTORS.pdf
+    cp web/emb/pdf/oops.pdf web/emb/pdf/HGS_FYI.pdf
+    cp web/emb/pdf/oops.pdf web/emb/pdf/HGS_BASIC_USE.pdf
 fi
 
 oss=(linux windows darwin freebsd)

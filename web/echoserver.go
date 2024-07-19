@@ -27,78 +27,24 @@ var (
 
 // StartEchoServer - start serving; this blocks and does not return while the program remains alive
 func StartEchoServer() {
-	const (
-		LLOGFMT = "r: ${status}\tt: ${latency_human}\tu: ${uri}\n"
-		RLOGFMT = "${remote_ip}\t${custom}\t${status}\t${bytes_out}\t${uri}\n"
-	)
-
-	// ctf - a CustomTagFunc to return a short user agent
-	ctf := func(c echo.Context, buf *bytes.Buffer) (int, error) {
-		ua := strings.Split(c.Request().UserAgent(), " ")
-		if len(ua) == 0 {
-			return 0, nil
-		} else {
-			last := ua[len(ua)-1]
-			buf.Write([]byte(last))
-			return 1, nil
-		}
-	}
-
-	//
-	// SETUP
-	//
-
 	e := echo.New()
 
-	if lnch.Config.Authenticate {
-		// assume that anyone who is using authentication is serving via the internet and so set timeouts
-		e.Server.ReadTimeout = vv.TIMEOUTRD
-		e.Server.WriteTimeout = vv.TIMEOUTWR
+	configureecho(e)
+	buildroutes(e)
 
-		// also assume that internet exposure yields scanning attempts that will spam 404s & 500s; block IPs that do this
-		// see "policerequestandresponse.go" for these functions
-		go vlt.IPBlacklistKeeper()
-		go vlt.ResponseStatsKeeper()
-		e.Use(vlt.PoliceRequestAndResponse)
+	// next will do nothing if Config is not activating these features
+	go debug.RunSelfTests()
+	go activatevectorbot()
+
+	if candossl() {
+		starttlsserver(e)
+	} else {
+		Msg.WARN("(tls unavailable)")
+		e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", lnch.Config.HostIP, lnch.Config.HostPort)))
 	}
+}
 
-	if lnch.Config.EchoLog > 0 {
-		lwc := middleware.LoggerConfig{}
-		switch lnch.Config.EchoLog {
-		case 3:
-			lwc = middleware.LoggerConfig{}
-		case 2:
-			lwc = middleware.LoggerConfig{Format: RLOGFMT, CustomTagFunc: ctf}
-		case 1:
-			lwc = middleware.LoggerConfig{Format: LLOGFMT}
-		default:
-			// do nothing; but this is effectively "3"
-		}
-
-		if lnch.Config.LogToFile {
-			// LoggerConfig
-			// 	// Output is a writer where logs in JSON format are written.
-			//	// Optional. Default value os.Stdout.
-			//	Output io.Writer
-			uh, _ := os.UserHomeDir()
-			f, err := os.Create(uh + "/" + vv.LOGFILEEL)
-			if err != nil {
-				os.Exit(1)
-			}
-			defer f.Close()
-			lwc.Output = f
-		}
-		e.Use(middleware.LoggerWithConfig(lwc))
-	}
-
-	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(vv.MAXECHOREQPERSECONDPERIP)))
-
-	e.Use(middleware.Recover())
-
-	if lnch.Config.Gzip {
-		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
-	}
-
+func buildroutes(e *echo.Echo) {
 	//
 	// HIPPARCHIA ROUTES
 	//
@@ -240,34 +186,78 @@ func StartEchoServer() {
 	// pseudo-route RtVectors in vectorfingerprints.go is called by RtSearch() if the current session has VecNNSearch set to true
 
 	e.GET("/vbot/:typeandselection", RtVectorBot) // only the goroutine running the vectorbot is supposed to request this
+}
 
-	// next will do nothing if Config is not activating these features
-	go debug.RunSelfTests()
-	go activatevectorbot()
+func configureecho(e *echo.Echo) {
+	const (
+		LLOGFMT = "r: ${status}\tt: ${latency_human}\tu: ${uri}\n"
+		RLOGFMT = "${remote_ip}\t${custom}\t${status}\t${bytes_out}\t${uri}\n"
+	)
 
 	e.HideBanner = true
 	e.HidePort = false
 	e.Debug = false
 	e.DisableHTTP2 = true // HTTP2 would require a lot of pain (certs, etc) for virtually no gain
 
-	if candossl() {
-		saddr := fmt.Sprintf("%s:%d", lnch.Config.HostIP, lnch.Config.HostSSLPort)
-		fmt.Printf("⇨ https server started on %s\n", saddr)
-		s := http.Server{
-			Addr:      saddr,
-			Handler:   e, // set Echo as handler
-			TLSConfig: &tls.Config{
-				//Certificates: nil, // <-- s.ListenAndServeTLS will populate this field
-			},
-			ReadTimeout:  vv.TIMEOUTRD,
-			WriteTimeout: vv.TIMEOUTWR,
+	// ctf - a CustomTagFunc to return a short user agent
+	ctf := func(c echo.Context, buf *bytes.Buffer) (int, error) {
+		ua := strings.Split(c.Request().UserAgent(), " ")
+		if len(ua) == 0 {
+			return 0, nil
+		} else {
+			last := ua[len(ua)-1]
+			buf.Write([]byte(last))
+			return 1, nil
 		}
-		if err := s.ListenAndServeTLS(lnch.Config.SSLCertDir+vv.SSLCPEM, lnch.Config.SSLCertDir+vv.SSLPPEM); err != http.ErrServerClosed {
-			log.Fatal(err)
+	}
+
+	if lnch.Config.Authenticate {
+		// assume that anyone who is using authentication is serving via the internet and so set timeouts
+		e.Server.ReadTimeout = vv.TIMEOUTRD
+		e.Server.WriteTimeout = vv.TIMEOUTWR
+
+		// also assume that internet exposure yields scanning attempts that will spam 404s & 500s; block IPs that do this
+		// see "policerequestandresponse.go" for these functions
+		go vlt.IPBlacklistKeeper()
+		go vlt.ResponseStatsKeeper()
+		e.Use(vlt.PoliceRequestAndResponse)
+	}
+
+	if lnch.Config.EchoLog > 0 {
+		lwc := middleware.LoggerConfig{}
+		switch lnch.Config.EchoLog {
+		case 3:
+			lwc = middleware.LoggerConfig{}
+		case 2:
+			lwc = middleware.LoggerConfig{Format: RLOGFMT, CustomTagFunc: ctf}
+		case 1:
+			lwc = middleware.LoggerConfig{Format: LLOGFMT}
+		default:
+			// do nothing; but this is effectively "3"
 		}
-	} else {
-		Msg.WARN("(ssl unavailable)")
-		e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", lnch.Config.HostIP, lnch.Config.HostPort)))
+
+		if lnch.Config.LogToFile {
+			// LoggerConfig
+			// 	// Output is a writer where logs in JSON format are written.
+			//	// Optional. Default value os.Stdout.
+			//	Output io.Writer
+			uh, _ := os.UserHomeDir()
+			f, err := os.Create(uh + "/" + vv.LOGFILEEL)
+			if err != nil {
+				os.Exit(1)
+			}
+			defer f.Close()
+			lwc.Output = f
+		}
+		e.Use(middleware.LoggerWithConfig(lwc))
+	}
+
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(vv.MAXECHOREQPERSECONDPERIP)))
+
+	e.Use(middleware.Recover())
+
+	if lnch.Config.Gzip {
+		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
 	}
 }
 
@@ -282,4 +272,21 @@ func candossl() bool {
 	}
 	ok := ok1 && ok2
 	return ok
+}
+
+func starttlsserver(e *echo.Echo) {
+	saddr := fmt.Sprintf("%s:%d", lnch.Config.HostIP, lnch.Config.HostSSLPort)
+	fmt.Printf("⇨ https server started on %s\n", saddr)
+	s := http.Server{
+		Addr:      saddr,
+		Handler:   e, // set Echo as handler
+		TLSConfig: &tls.Config{
+			//Certificates: nil, // <-- s.ListenAndServeTLS will populate this field
+		},
+		ReadTimeout:  vv.TIMEOUTRD,
+		WriteTimeout: vv.TIMEOUTWR,
+	}
+	if err := s.ListenAndServeTLS(lnch.Config.SSLCertDir+vv.SSLCPEM, lnch.Config.SSLCertDir+vv.SSLPPEM); err != http.ErrServerClosed {
+		log.Fatal(err)
+	}
 }

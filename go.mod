@@ -1,6 +1,6 @@
 module github.com/e-gun/HipparchiaGoServer
 
-go 1.21
+go 1.22
 
 require (
 	github.com/e-gun/nlp v0.0.2
