@@ -27,9 +27,53 @@ var (
 
 // StartEchoServer - start serving; this blocks and does not return while the program remains alive
 func StartEchoServer() {
+	const (
+		LLOGFMT = "r: ${status}\tt: ${latency_human}\tu: ${uri}\n"
+		RLOGFMT = "${remote_ip}\t${custom}\t${status}\t${bytes_out}\t${uri}\n"
+	)
+
 	e := echo.New()
 
 	configureecho(e)
+
+	// if you log to a file, then there is a "f.Close()", and it has to be inside this code block
+	// ctf - a CustomTagFunc to return a short user agent
+	ctf := func(c echo.Context, buf *bytes.Buffer) (int, error) {
+		ua := strings.Split(c.Request().UserAgent(), " ")
+		if len(ua) == 0 {
+			return 0, nil
+		} else {
+			last := ua[len(ua)-1]
+			buf.Write([]byte(last))
+			return 1, nil
+		}
+	}
+
+	if lnch.Config.EchoLog > 0 {
+		lwc := middleware.LoggerConfig{}
+		switch lnch.Config.EchoLog {
+		case 3:
+			lwc = middleware.LoggerConfig{}
+		case 2:
+			lwc = middleware.LoggerConfig{Format: RLOGFMT, CustomTagFunc: ctf}
+		case 1:
+			lwc = middleware.LoggerConfig{Format: LLOGFMT}
+		default:
+			// do nothing; but this is effectively "3"
+		}
+
+		if lnch.Config.LogToFile {
+			uh, _ := os.UserHomeDir()
+			f, err := os.Create(uh + "/" + vv.LOGFILEEL)
+			if err != nil {
+				os.Exit(1)
+			}
+			defer f.Close() // this line implies that all logging config has to be kept inside StartEchoServer()
+			lwc.Output = f
+		}
+		e.Use(middleware.LoggerWithConfig(lwc))
+	}
+
 	buildroutes(e)
 
 	// next will do nothing if Config is not activating these features
@@ -189,27 +233,10 @@ func buildroutes(e *echo.Echo) {
 }
 
 func configureecho(e *echo.Echo) {
-	const (
-		LLOGFMT = "r: ${status}\tt: ${latency_human}\tu: ${uri}\n"
-		RLOGFMT = "${remote_ip}\t${custom}\t${status}\t${bytes_out}\t${uri}\n"
-	)
-
 	e.HideBanner = true
 	e.HidePort = false
 	e.Debug = false
 	e.DisableHTTP2 = true // HTTP2 would require a lot of pain (certs, etc) for virtually no gain
-
-	// ctf - a CustomTagFunc to return a short user agent
-	ctf := func(c echo.Context, buf *bytes.Buffer) (int, error) {
-		ua := strings.Split(c.Request().UserAgent(), " ")
-		if len(ua) == 0 {
-			return 0, nil
-		} else {
-			last := ua[len(ua)-1]
-			buf.Write([]byte(last))
-			return 1, nil
-		}
-	}
 
 	if lnch.Config.Authenticate {
 		// assume that anyone who is using authentication is serving via the internet and so set timeouts
@@ -221,35 +248,6 @@ func configureecho(e *echo.Echo) {
 		go vlt.IPBlacklistKeeper()
 		go vlt.ResponseStatsKeeper()
 		e.Use(vlt.PoliceRequestAndResponse)
-	}
-
-	if lnch.Config.EchoLog > 0 {
-		lwc := middleware.LoggerConfig{}
-		switch lnch.Config.EchoLog {
-		case 3:
-			lwc = middleware.LoggerConfig{}
-		case 2:
-			lwc = middleware.LoggerConfig{Format: RLOGFMT, CustomTagFunc: ctf}
-		case 1:
-			lwc = middleware.LoggerConfig{Format: LLOGFMT}
-		default:
-			// do nothing; but this is effectively "3"
-		}
-
-		if lnch.Config.LogToFile {
-			// LoggerConfig
-			// 	// Output is a writer where logs in JSON format are written.
-			//	// Optional. Default value os.Stdout.
-			//	Output io.Writer
-			uh, _ := os.UserHomeDir()
-			f, err := os.Create(uh + "/" + vv.LOGFILEEL)
-			if err != nil {
-				os.Exit(1)
-			}
-			defer f.Close()
-			lwc.Output = f
-		}
-		e.Use(middleware.LoggerWithConfig(lwc))
 	}
 
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(vv.MAXECHOREQPERSECONDPERIP)))
