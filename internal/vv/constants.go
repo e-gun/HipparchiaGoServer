@@ -46,8 +46,8 @@ const (
 	GENRESTOCOUNT            = 5
 	HDBFOLDER                = "hDB"
 	INCERTADATE              = 2500
-	LOGFILEEL                = "hgs-echo-log.txt"
-	LOGFILEML                = "hgs-msg-log.txt" // circular import problem; need to edit "messaging.go" too if changing this
+	LOGFILEEL                = "hgs-echo.log"
+	LOGFILEML                = "hgs-msg.log" // circular import problem; need to edit "messaging.go" too if changing this
 	JSONINDENT               = "  "
 	LENGTHOFAUTHORID         = 6
 	LENGTHOFWORKID           = 3
@@ -87,7 +87,8 @@ const (
 	TEMPTABLETHRESHOLD       = 100 // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
 	TERMINATIONS             = `(\s|\.|\]|\<|⟩|’|”|\!|,|:|;|\?|·|$)`
 	TICKERISACTIVE           = false
-	TICKERDELAY              = 30 * time.Second
+	TICKERDELAY              = 3 * time.Second
+	TICKERLINES              = 25
 	TIMEOUTRD                = 15 * time.Second  // only set if Config.Authenticate is true (and so in a "serve the net" situation)
 	TIMEOUTWR                = 120 * time.Second // this is *very* generous, but some searches are slow/long
 	USEGZIP                  = false

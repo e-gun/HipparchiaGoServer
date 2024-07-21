@@ -19,6 +19,7 @@ import (
 //
 
 const (
+	LOGFILE              = "hgs-msg.log" // circular import problem; need to edit "vv.constants.go" too if changing this
 	MSGMAND              = -1
 	MSGCRIT              = 0
 	MSGWARN              = 1
@@ -175,7 +176,7 @@ func (m *MessageMaker) EmitToFile(message string, threshold int) {
 	// circular import if vv.LOGFILEML
 	// f, err := os.OpenFile(vv.LOGFILEML, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	uh, _ := os.UserHomeDir()
-	f, err := os.OpenFile(uh+"/hgs-msg-log.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	f, err := os.OpenFile(uh+"/"+LOGFILE, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		panic(err)
 	}

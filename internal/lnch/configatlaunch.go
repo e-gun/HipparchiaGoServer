@@ -251,6 +251,14 @@ func ConfigAtLaunch() {
 			Config.SelfTest += 1
 		case "-tk":
 			Config.TickerActive = true
+			Config.LogToFile = true
+		case "-tl":
+			ll, err := strconv.Atoi(args[i+1])
+			if err != nil {
+				fmt.Println("Invalid port number")
+				os.Exit(1)
+			}
+			Config.TickerLines = ll
 		case "-ui":
 			Config.BadChars = args[i+1]
 		case "-wc":
@@ -315,6 +323,7 @@ func builddefaultconfig() *str.CurrentConfiguration {
 	c.SelfTest = 0
 	c.SSLCertDir = vv.SSLCERTDIR
 	c.TickerActive = vv.TICKERISACTIVE
+	c.TickerLines = vv.TICKERLINES
 	c.VectorBot = false
 	c.VectorChtHt = vv.DEFAULTCHRTHEIGHT
 	c.VectorChtWd = vv.DEFAULTCHRTWIDTH

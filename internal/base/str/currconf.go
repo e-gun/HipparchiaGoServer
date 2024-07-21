@@ -35,6 +35,7 @@ type CurrentConfiguration struct {
 	SelfTest        int
 	SSLCertDir      string
 	TickerActive    bool
+	TickerLines     int
 	VectorsDisabled bool
 	VectorBot       bool
 	VectorChtHt     string

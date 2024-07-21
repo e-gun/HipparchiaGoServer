@@ -3,8 +3,11 @@ package vlt
 import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
+	"github.com/e-gun/lastnlines"
 	"math"
+	"os"
 	"runtime"
 	"sort"
 	"strings"
@@ -19,17 +22,20 @@ func TerminalTicker(wait time.Duration) {
 	//BrowseLine: 51 * LexFindByForm: 48 * LexLookup: 6 * LexReverse: 6 * NeighborsSearch: 1 * Search: 7
 
 	const (
-		CLEAR     = "\033[2K"
-		CLEARRT   = "\033[0K"
-		HEAD      = "\r"
-		CURSHOME  = "\033[1;1H"
-		FIRSTLINE = "\033[2;1H"
-		CURSSAVE  = "\033[s"
-		CURSREST  = "\033[u"
-		PADDING   = "  -----------------  "
-		STATTMPL  = "%s: C2%dC0"
-		UPTIME    = "[S1C6%vC0]  C5S1%s uptime: C1%vC0  [S1C6%sC0]"
-		TIMESTR   = "%02dd %02dh %02dm %02ds"
+		CLEAR      = "\033[2K"
+		CLEARLN    = "\033[2K"
+		CLEARRT    = "\033[0K"
+		CLEARSCR   = "\033[2J"
+		HEAD       = "\r"
+		CURSHOME   = "\033[1;1H"
+		FIRSTLINE  = "\033[2;1H"
+		FOURTHLINE = "\033[4;1H"
+		CURSSAVE   = "\033[s"
+		CURSREST   = "\033[u"
+		PADDING    = "  -----------------  "
+		STATTMPL   = "%s: C2%dC0"
+		UPTIME     = "[S1C6%vC0]  C5S1%s uptime: C1%vC0  [S1C6%sC0]"
+		TIMESTR    = "%02dd %02dh %02dm %02ds"
 	)
 
 	// ANSI escape codes do not work in windows
@@ -93,11 +99,44 @@ func TerminalTicker(wait time.Duration) {
 		fmt.Printf(CLEAR + CURSREST)
 	}
 
+	// start collecting tails of the two logfiles
+	uh, _ := os.UserHomeDir()
+
+	lnl1 := lastnlines.NewMutexLNL(uh + "/" + vv.LOGFILEEL)
+	lnl1.SetDepth(lnch.Config.TickerLines)
+	lnl1.Start()
+	defer lnl1.Stop()
+
+	lnl2 := lastnlines.NewMutexLNL(uh + "/" + vv.LOGFILEML)
+	lnl2.SetDepth(lnch.Config.TickerLines)
+	lnl2.Start()
+	defer lnl2.Stop()
+
+	// output the tails
+	tailinfo := func(info []string) {
+		for i := 0; i < len(info); i++ {
+			fmt.Printf(CLEARLN)
+			fmt.Println(info[i])
+		}
+
+	}
+
+	hdr := func(f string) {
+		fmt.Printf(Msg.ColStyle("C6((C0 C1%sC0 C6))C0\n"), f)
+	}
+
 	// this loop will never exit
+	fmt.Printf(CLEARSCR)
 	for {
 		up := time.Since(Msg.Lnc)
 		uptimer(up)
 		srchinfo()
+		fmt.Printf(CURSSAVE + FOURTHLINE)
+		hdr(vv.LOGFILEEL)
+		tailinfo(lnl1.Get())
+		fmt.Printf(CLEARLN)
+		hdr(vv.LOGFILEML)
+		tailinfo(lnl2.Get())
 		time.Sleep(wait)
 	}
 }
