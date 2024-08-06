@@ -122,9 +122,13 @@ func (m *MessageMaker) Emit(message string, threshold int) {
 		return
 	}
 
-	if m.ToFile {
-		m.EmitToFile(message, threshold)
+	if m.ToFile && !m.BW {
+		msg := m.ColorMessage(message, threshold)
+		m.EmitToFile(msg)
 		return
+	} else if m.ToFile {
+		msg := m.BWMessage(message, threshold)
+		m.EmitToFile(msg)
 	}
 
 	if !m.Win && !m.BW {
@@ -146,6 +150,10 @@ func (m *MessageMaker) EmitBW(message string, threshold int) {
 
 // EmitColor - send a color message to the console
 func (m *MessageMaker) EmitColor(message string, threshold int) {
+	fmt.Printf(m.ColorMessage(message, threshold))
+}
+
+func (m *MessageMaker) ColorMessage(message string, threshold int) string {
 	var color string
 
 	switch threshold {
@@ -166,22 +174,23 @@ func (m *MessageMaker) EmitColor(message string, threshold int) {
 	default:
 		color = WHITE
 	}
-	fmt.Printf("[%s%s%s] %s%s%s\n", YELLOW1, m.SNm, RESET, color, message, RESET)
+	return fmt.Sprintf("[%s%s%s] %s%s%s\n", YELLOW1, m.SNm, RESET, color, message, RESET)
+}
+
+func (m *MessageMaker) BWMessage(message string, threshold int) string {
+	tn := time.Now().Format(time.RFC3339)
+	return fmt.Sprintf("[%s] [%s] [%d] %s\n", tn, m.SNm, threshold, message)
 }
 
 // EmitToFile - send the message to a file
-func (m *MessageMaker) EmitToFile(message string, threshold int) {
-	tn := time.Now().Format(time.RFC3339)
-	ms := fmt.Sprintf("[%s] [%s] [%d] %s\n", tn, m.SNm, threshold, message)
-	// circular import if vv.LOGFILEML
-	// f, err := os.OpenFile(vv.LOGFILEML, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+func (m *MessageMaker) EmitToFile(message string) {
 	uh, _ := os.UserHomeDir()
 	f, err := os.OpenFile(uh+"/"+LOGFILE, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
-	if _, err = f.WriteString(ms); err != nil {
+	if _, err = f.WriteString(message); err != nil {
 		panic(err)
 	}
 	return

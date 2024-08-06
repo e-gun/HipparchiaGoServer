@@ -22,20 +22,21 @@ func TerminalTicker(wait time.Duration) {
 	//BrowseLine: 51 * LexFindByForm: 48 * LexLookup: 6 * LexReverse: 6 * NeighborsSearch: 1 * Search: 7
 
 	const (
-		CLEAR      = "\033[2K"
-		CLEARLN    = "\033[2K"
-		CLEARRT    = "\033[0K"
-		CLEARSCR   = "\033[2J"
-		HEAD       = "\r"
-		CURSHOME   = "\033[1;1H"
-		FIRSTLINE  = "\033[2;1H"
-		FOURTHLINE = "\033[4;1H"
-		CURSSAVE   = "\033[s"
-		CURSREST   = "\033[u"
-		PADDING    = "  -----------------  "
-		STATTMPL   = "%s: C2%dC0"
-		UPTIME     = "[S1C6%vC0]  C5S1%s uptime: C1%vC0  [S1C6%sC0]"
-		TIMESTR    = "%02dd %02dh %02dm %02ds"
+		CLEAR     = "\033[2K"
+		CLEARLN   = "\033[2K"
+		CLEARRT   = "\033[0K"
+		CLEARSCR  = "\033[2J"
+		HEAD      = "\r"
+		CURSHOME  = "\033[1;1H"
+		FIRSTLINE = "\033[2;1H"
+		FROMTOP   = 4
+		NLINE     = "\033[%d;1H"
+		CURSSAVE  = "\033[s"
+		CURSREST  = "\033[u"
+		PADDING   = "  -----------------  "
+		STATTMPL  = "%s: C2%dC0"
+		UPTIME    = "[S1C6%vC0]  C5S1%s uptime: C1%vC0  [S1C6%sC0]"
+		TIMESTR   = "%02dd %02dh %02dm %02ds"
 	)
 
 	// ANSI escape codes do not work in windows
@@ -102,12 +103,12 @@ func TerminalTicker(wait time.Duration) {
 	// start collecting tails of the two logfiles
 	uh, _ := os.UserHomeDir()
 
-	lnl1 := lastnlines.NewMutexLNL(uh + "/" + vv.LOGFILEEL)
+	lnl1 := lastnlines.NewLNL(uh + "/" + vv.LOGFILEEL)
 	lnl1.SetDepth(lnch.Config.TickerLines)
 	lnl1.Start()
 	defer lnl1.Stop()
 
-	lnl2 := lastnlines.NewMutexLNL(uh + "/" + vv.LOGFILEML)
+	lnl2 := lastnlines.NewLNL(uh + "/" + vv.LOGFILEML)
 	lnl2.SetDepth(lnch.Config.TickerLines)
 	lnl2.Start()
 	defer lnl2.Stop()
@@ -131,10 +132,11 @@ func TerminalTicker(wait time.Duration) {
 		up := time.Since(Msg.Lnc)
 		uptimer(up)
 		srchinfo()
-		fmt.Printf(CURSSAVE + FOURTHLINE)
+		fmt.Printf(CURSSAVE + fmt.Sprintf(NLINE, FROMTOP))
 		hdr(vv.LOGFILEEL)
 		tailinfo(lnl1.Get())
-		fmt.Printf(CLEARLN)
+		fmt.Printf(CURSSAVE + fmt.Sprintf(NLINE, FROMTOP+lnch.Config.TickerLines))
+		fmt.Println()
 		hdr(vv.LOGFILEML)
 		tailinfo(lnl2.Get())
 		time.Sleep(wait)

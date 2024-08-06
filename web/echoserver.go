@@ -11,14 +11,15 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/debug"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
+	pr "github.com/e-gun/policeresponses"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 var (
@@ -244,10 +245,13 @@ func configureecho(e *echo.Echo) {
 		e.Server.WriteTimeout = vv.TIMEOUTWR
 
 		// also assume that internet exposure yields scanning attempts that will spam 404s & 500s; block IPs that do this
-		// see "policerequestandresponse.go" for these functions
-		go vlt.IPBlacklistKeeper()
-		go vlt.ResponseStatsKeeper()
-		e.Use(vlt.PoliceRequestAndResponse)
+		e.Use(pr.PoliceRequestAndResponse)
+		go pr.ResponseStatsKeeper()
+		go pr.IPBlacklistKeeper()
+		pr.Emit.ColorOn()
+		if lnch.Config.TickerActive || lnch.Config.LogToFile {
+			pr.Emit.E = emittofile
+		}
 	}
 
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(vv.MAXECHOREQPERSECONDPERIP)))
@@ -287,4 +291,20 @@ func starttlsserver(e *echo.Echo) {
 	if err := s.ListenAndServeTLS(lnch.Config.SSLCertDir+vv.SSLCPEM, lnch.Config.SSLCertDir+vv.SSLPPEM); err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
+}
+
+// emittofile - send the message to a file
+func emittofile(message string) {
+	tn := time.Now().Format(time.RFC850)
+	ms := fmt.Sprintf("[%s] %s\n", tn, message)
+	uh, _ := os.UserHomeDir()
+	f, err := os.OpenFile(uh+"/"+vv.LOGFILEML, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	if _, err = f.WriteString(ms); err != nil {
+		panic(err)
+	}
+	return
 }

@@ -54,7 +54,7 @@ func PrintVersion(cc str.CurrentConfiguration) {
 	if !Config.LogToFile {
 		fmt.Println(versioninfo)
 	} else {
-		Msg.EmitToFile(versioninfo, 0)
+		Msg.EmitToFile(versioninfo)
 	}
 }
 
@@ -80,7 +80,7 @@ func PrintBuildInfo(cc str.CurrentConfiguration) {
 	if !Config.LogToFile {
 		fmt.Println(bi)
 	} else {
-		Msg.EmitToFile(bi, 0)
+		Msg.EmitToFile(bi)
 	}
 
 }

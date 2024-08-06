@@ -145,6 +145,7 @@ func ConfigAtLaunch() {
 			"vmodel":     Config.VectorModel,
 			"workers":    Config.WorkerCount,
 			"knownfnts":  strings.Join(kff, "C0, C3"),
+			"tlines":     Config.TickerLines,
 			"deffnt":     Config.Font}
 
 		t := template.Must(template.New("").Parse(vv.HELPTEXTTEMPLATE))
@@ -255,7 +256,7 @@ func ConfigAtLaunch() {
 		case "-tl":
 			ll, err := strconv.Atoi(args[i+1])
 			if err != nil {
-				fmt.Println("Invalid port number")
+				fmt.Println("number not found after '-tl'")
 				os.Exit(1)
 			}
 			Config.TickerLines = ll
