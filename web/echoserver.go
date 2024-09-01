@@ -19,7 +19,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 )
 
 var (
@@ -30,7 +29,7 @@ var (
 func StartEchoServer() {
 	const (
 		LLOGFMT = "r: ${status}\tt: ${latency_human}\tu: ${uri}\n"
-		RLOGFMT = "${remote_ip}\t${custom}\t${status}\t${bytes_out}\t${uri}\n"
+		RLOGFMT = "${time_rfc3339}\t${remote_ip}\t${custom}\t${status}\t${bytes_out}\t${uri}\n"
 	)
 
 	e := echo.New()
@@ -243,15 +242,8 @@ func configureecho(e *echo.Echo) {
 		// assume that anyone who is using authentication is serving via the internet and so set timeouts
 		e.Server.ReadTimeout = vv.TIMEOUTRD
 		e.Server.WriteTimeout = vv.TIMEOUTWR
-
 		// also assume that internet exposure yields scanning attempts that will spam 404s & 500s; block IPs that do this
-		e.Use(pr.PoliceRequestAndResponse)
-		go pr.ResponseStatsKeeper()
-		go pr.IPBlacklistKeeper()
-		pr.Emit.ColorOn()
-		if lnch.Config.TickerActive || lnch.Config.LogToFile {
-			pr.Emit.E = emittofile
-		}
+		policing(e)
 	}
 
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(vv.MAXECHOREQPERSECONDPERIP)))
@@ -260,6 +252,20 @@ func configureecho(e *echo.Echo) {
 
 	if lnch.Config.Gzip {
 		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
+	}
+}
+
+func policing(e *echo.Echo) {
+	e.Use(pr.PoliceRequestAndResponse)
+	go pr.ResponseStatsKeeper()
+	go pr.IPBlacklistKeeper()
+	if !lnch.Config.BlackAndWhite {
+		pr.Emit.ColorOn()
+	}
+	if lnch.Config.TickerActive || lnch.Config.LogToFile {
+		pr.Emit.E = Msg.EmitToFile
+	} else {
+		pr.Emit.E = Msg.AlwaysEmit
 	}
 }
 
@@ -291,20 +297,4 @@ func starttlsserver(e *echo.Echo) {
 	if err := s.ListenAndServeTLS(lnch.Config.SSLCertDir+vv.SSLCPEM, lnch.Config.SSLCertDir+vv.SSLPPEM); err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
-}
-
-// emittofile - send the message to a file
-func emittofile(message string) {
-	tn := time.Now().Format(time.RFC850)
-	ms := fmt.Sprintf("[%s] %s\n", tn, message)
-	uh, _ := os.UserHomeDir()
-	f, err := os.OpenFile(uh+"/"+vv.LOGFILEML, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	if _, err = f.WriteString(ms); err != nil {
-		panic(err)
-	}
-	return
 }

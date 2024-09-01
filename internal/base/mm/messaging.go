@@ -20,6 +20,7 @@ import (
 
 const (
 	LOGFILE              = "hgs-msg.log" // circular import problem; need to edit "vv.constants.go" too if changing this
+	UNCOLORED            = -9
 	MSGMAND              = -1
 	MSGCRIT              = 0
 	MSGWARN              = 1
@@ -114,6 +115,11 @@ func (m *MessageMaker) TMI(s string) {
 	m.Emit(s, MSGTMI)
 }
 
+// AlwaysEmit - - send a message to the terminal or to the logfile; ignore threshold check
+func (m *MessageMaker) AlwaysEmit(s string) {
+	m.Emit(s, UNCOLORED)
+}
+
 // Emit - send a message to the terminal or to the logfile, perhaps adding color and style to it
 func (m *MessageMaker) Emit(message string, threshold int) {
 	// sample output: "[HGS] findbyform() found no results for 'Romani'"
@@ -157,6 +163,8 @@ func (m *MessageMaker) ColorMessage(message string, threshold int) string {
 	var color string
 
 	switch threshold {
+	case UNCOLORED:
+		// leave color as ""
 	case MSGMAND:
 		color = GREEN
 	case MSGCRIT:

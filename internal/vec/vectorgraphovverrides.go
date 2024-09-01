@@ -17,7 +17,7 @@ import (
 //
 
 // this is kludgy and likely to be a source of ongoing pain: v2.4.0 broke the api of v2.3.3
-// any/all of the following could break again; the code are scattered across the go-echarts repo too
+// any/all of the following could break again; the code is scattered across the go-echarts repo too
 
 // 9cde6a4b was the last time HipparchiaGoServer used v2.3.3
 // the material below used to be provided by the bottom of vectorgraphing.go

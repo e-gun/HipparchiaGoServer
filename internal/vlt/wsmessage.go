@@ -158,7 +158,7 @@ func (c *WSClient) WSMessageLoop() {
 func (pool *wspool) WSPoolStartListening() {
 	const (
 		MSG1 = "Starting polling loop for %s"
-		MSG2 = "wspool client failed on WriteMessage()"
+		MSG2 = "WSPoolStartListening(): wspool client %s failed on WriteMessage()"
 	)
 
 	writemsg := func(jso *wsjsout) {
@@ -168,7 +168,7 @@ func (pool *wspool) WSPoolStartListening() {
 				Msg.EC(y)
 				e := cl.Conn.WriteMessage(websocket.TextMessage, js)
 				if e != nil {
-					Msg.WARN(MSG2)
+					Msg.WARN(fmt.Sprintf(MSG2, jso.ID))
 					delete(pool.ClientMap, cl)
 				}
 			}

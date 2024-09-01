@@ -218,7 +218,7 @@ func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON 
 	SSBuildQueries(&ctxsearch)
 	SearchAndInsertResults(&ctxsearch)
 
-	// now you have all the lines you will ever need
+	// now you have all the lines you will ever need; map those lines for subsequent lookup
 	linemap := make(map[string]str.DbWorkline)
 
 	rr = ctxsearch.Results.Yield()
@@ -266,7 +266,7 @@ func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON 
 		kk++
 	}
 
-	// fix the unmattched spans
+	// fix the unmatched spans
 	for _, p := range allpassages {
 		// at the top
 		p.CookedCTX[0].Contents = unbalancedspancleaner(p.CookedCTX[0].Contents)

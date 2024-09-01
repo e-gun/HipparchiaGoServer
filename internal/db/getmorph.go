@@ -8,11 +8,11 @@ package db
 import (
 	"context"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"slices"
 	"strings"
 )
 
@@ -57,7 +57,7 @@ func ArrayToGetRequiredMorphObjects(wordlist []string) map[string]str.DbMorpholo
 		QT = `SELECT observed_form, xrefs, prefixrefs, possible_dictionary_forms, related_headwords FROM %s_morphology WHERE EXISTS 
 				(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = %s_morphology.observed_form)`
 		MSG1      = "ArrayToGetRequiredMorphObjects() will search among %d words"
-		CHUNKSIZE = 999999
+		CHUNKSIZE = 500000
 	)
 
 	dbconn := getdbconnection()
@@ -99,8 +99,7 @@ func ArrayToGetRequiredMorphObjects(wordlist []string) map[string]str.DbMorpholo
 
 	// this could be parallelized...
 
-	chunkedlist := gen.ChunkSlice(wordlist, CHUNKSIZE)
-	for _, cl := range chunkedlist {
+	for cl := range slices.Chunk(wordlist, CHUNKSIZE) {
 		// a waste of time to check the language on every word; just flail/fail once
 		for _, uselang := range vv.TheLanguages {
 			u := strings.Replace(uuid.New().String(), "-", "", -1)

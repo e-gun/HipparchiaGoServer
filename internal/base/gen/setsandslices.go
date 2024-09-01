@@ -39,9 +39,16 @@ func Unique[T comparable](s []T) []T {
 
 	set := ToSet(s)
 
-	var result []T
+	//var result []T
+	//for k := range set {
+	//	result = append(result, k)
+	//}
+
+	result := make([]T, len(set))
+	count := 0
 	for k := range set {
-		result = append(result, k)
+		result[count] = k
+		count += 1
 	}
 
 	return result
@@ -95,12 +102,4 @@ func StringMapKeysIntoSlice[T any](mp map[string]T) []string {
 		i += 1
 	}
 	return sl
-}
-
-// ChunkSlice - turn a slice into a slice of slices of size N; thanks to https://stackoverflow.com/questions/35179656/slice-chunking-in-go
-func ChunkSlice[T any](items []T, size int) (chunks [][]T) {
-	for size < len(items) {
-		items, chunks = items[size:], append(chunks, items[0:size:size])
-	}
-	return append(chunks, items)
 }

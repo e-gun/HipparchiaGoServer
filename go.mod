@@ -1,10 +1,11 @@
 module github.com/e-gun/HipparchiaGoServer
 
-go 1.22
+go 1.23
 
 require (
 	github.com/e-gun/lastnlines v0.1.0
 	github.com/e-gun/nlp v0.0.2
+	github.com/e-gun/policeresponses v0.0.2
 	github.com/e-gun/tsnemp v0.1.7
 	github.com/e-gun/wego v0.1.0
 	github.com/go-echarts/go-echarts/v2 v2.4.1 // v2.4 breaks the api
@@ -13,20 +14,19 @@ require (
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/pkg/profile v1.7.0
-	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
-	golang.org/x/text v0.16.0
-	gonum.org/v1/gonum v0.15.0
+	golang.org/x/exp v0.0.0-20240823005443-9b4947da3948
+	golang.org/x/text v0.17.0
+	gonum.org/v1/gonum v0.15.1
 )
 
 require (
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/e-gun/policeresponses v0.0.1 // indirect
 	github.com/e-gun/safestack v0.1.1 // indirect
 	github.com/e-gun/sparse v0.0.0-20230418220937-07063da15582 // indirect
-	github.com/felixge/fgprof v0.9.4 // indirect
+	github.com/felixge/fgprof v0.9.5 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	github.com/google/pprof v0.0.0-20240727154555-813a5fbdbec8 // indirect
+	github.com/google/pprof v0.0.0-20240829160300-da1f7e9f2b25 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
@@ -44,10 +44,10 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
-	golang.org/x/crypto v0.25.0 // indirect
-	golang.org/x/net v0.27.0 // indirect
+	golang.org/x/crypto v0.26.0 // indirect
+	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.23.0 // indirect
+	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 )
