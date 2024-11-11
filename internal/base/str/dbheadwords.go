@@ -45,7 +45,7 @@ import "reflect"
 
 var (
 	CORPUSWEIGTING = map[string]float32{"Ⓖ": 1.0, "Ⓛ": 12.7, "Ⓘ": 15.19, "Ⓓ": 18.14, "Ⓒ": 85.78}
-	ERAWEIGHTING   = map[string]float32{"ℯ": 6.93, "𝓂": 1.87, "ℓ": 1}
+	ERAWEIGHTING   = map[string]float32{"e": 6.93, "m": 1.87, "l": 1}
 	GKGENREWEIGHT  = map[string]float32{"Acta": 85.38, "Alchem": 72.13, "Anthol": 17.68, "Apocal": 117.69, "Apocr": 89.77,
 		"Apol": 7.0, "Astrol": 20.68, "Astron": 44.72, "Biogr": 6.39, "Bucol": 416.66, "Caten": 5.21,
 		"Chron": 4.55, "Comic": 29.61, "Comm": 1.0, "Concil": 16.75, "Coq": 532.74, "Dial": 7.1,
@@ -208,9 +208,9 @@ func (hw *DbHeadwordCount) LoadCorpVals() {
 func (hw *DbHeadwordCount) LoadTimeVals() {
 	// Weighted chronological distribution: ℯ 100 / ℓ 84 / 𝓂 62
 	var vv []HWData
-	vv = append(vv, HWData{"ℯ", hw.Chron.Early})
-	vv = append(vv, HWData{"ℓ", hw.Chron.Late})
-	vv = append(vv, HWData{"𝓂", hw.Chron.Middle})
+	vv = append(vv, HWData{"e", hw.Chron.Early})
+	vv = append(vv, HWData{"l", hw.Chron.Late})
+	vv = append(vv, HWData{"m", hw.Chron.Middle})
 	hw.TimeVal = vv
 }
 

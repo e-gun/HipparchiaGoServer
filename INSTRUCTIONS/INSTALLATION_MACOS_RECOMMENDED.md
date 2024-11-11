@@ -103,7 +103,23 @@ running indefinitely. It does not consume many resources if not active: 0% CPU, 
 
 ### [E] [FYI] Troubleshooting / Resetting
 
-#### [E1] easier
+#### [E0] diagnostics 
+
+Make sure to read all of the terminal output and scan for these tell-tale error messages.
+
+##### [E0a] *You see*: `ERROR: relation "works" does not exist (SQLSTATE 42P01)`
+
+*The problem is*: the database tables do not exist.
+
+*The solution*: (1) `reset` + (2) `run`; after a `reset` [see `E1` below] the next launch is a `first launch` [see `C` above and note that you have to meet the requirements there for this second step to succeed]
+
+##### [E0b] *You see*: `could not open input file "/Users/YOURUSER/hDB/toc.dat"`
+
+*The problem is*: the `hDB` folder cannot be found.
+
+*The solution*: make sure that the `hDB` folder is in the same folder as `HipparchiaGoServer`. [see `C0` above]
+
+#### [E1] easier reset
 
 1. Move `HipparchiaGoServer` into your home directory. Launch `Terminal.App`
 
@@ -113,7 +129,10 @@ running indefinitely. It does not consume many resources if not active: 0% CPU, 
 
 ![inst13](./gitimg/macos_posgresapp/07b_selfreset_done.png)
 
-#### [E2] less easy
+3. The next time you run `HipparchiaGoServer` will be like a first launch as per the above.
+
+
+#### [E2] less easy reset
 
 1. You will be working with `Terminal.app`. Launch it.
 

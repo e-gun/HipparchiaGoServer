@@ -53,6 +53,7 @@ func AcquireWorkLineBundle(prq str.PrerolledQuery, dbconn *pgxpool.Conn) *str.Wo
 	Msg.EC(err)
 
 	// [c] convert the finds into []DbWorkline
+	// not possible to convert this to []*DbWorkline; panic if pgx.RowToStructByPos[*str.DbWorkline])
 
 	thesefinds, err := pgx.CollectRows(foundrows, pgx.RowToStructByPos[str.DbWorkline])
 	Msg.EC(err)

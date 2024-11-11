@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/gorilla/websocket"
+	"github.com/gorilla/websocket" // consider "github.com/coder/websocket" instead as gorilla is marked as unmaintained
 	"strings"
 	"time"
 )
