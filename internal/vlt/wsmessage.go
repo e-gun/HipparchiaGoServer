@@ -6,11 +6,12 @@
 package vlt
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/coder/websocket"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/gorilla/websocket" // consider "github.com/coder/websocket" instead as gorilla is marked as unmaintained
 	"strings"
 	"time"
 )
@@ -62,8 +63,11 @@ func (c *WSClient) ReceiveID() {
 
 	quit := time.Now().Add(time.Second * 1)
 
+	ctx := context.Background()
+	defer ctx.Done()
+
 	for {
-		_, m, err := c.Conn.ReadMessage()
+		_, m, err := c.Conn.Read(ctx)
 		if err != nil {
 			Msg.FYI(FAIL1)
 			return
@@ -161,12 +165,15 @@ func (pool *wspool) WSPoolStartListening() {
 		MSG2 = "WSPoolStartListening(): wspool client %s failed on WriteMessage()"
 	)
 
+	ctx := context.Background()
+	defer ctx.Done()
+
 	writemsg := func(jso *wsjsout) {
 		for cl := range pool.ClientMap {
 			if cl.ID == jso.ID {
 				js, y := json.Marshal(jso)
 				Msg.EC(y)
-				e := cl.Conn.WriteMessage(websocket.TextMessage, js)
+				e := cl.Conn.Write(ctx, websocket.MessageText, js)
 				if e != nil {
 					Msg.WARN(fmt.Sprintf(MSG2, jso.ID))
 					delete(pool.ClientMap, cl)
