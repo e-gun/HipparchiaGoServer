@@ -3,7 +3,6 @@ module github.com/e-gun/HipparchiaGoServer
 go 1.23
 
 require (
-	github.com/coder/websocket v1.8.12
 	github.com/e-gun/lastnlines v0.1.0
 	github.com/e-gun/nlp v0.0.2
 	github.com/e-gun/policeresponses v0.0.3
