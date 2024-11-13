@@ -6,15 +6,20 @@
 package vlt
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/coder/websocket"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
+	"github.com/gorilla/websocket"
 	"strings"
 	"time"
 )
+
+// consider "github.com/coder/websocket" instead as gorilla is marked as unmaintained
+// but see commit 4f055e3 which implements it with minor changes to "wsmessage.go" and "rt-websocket.go"
+// a build from that code will have websockets that work on macOS locally but show now WS data on freebsd networked
+// AND the completed search does not get pulled from the map so you will get maxsearches errors really fast
+// a very odd/surprising result; not exactly worth tracking down at the moment since just retaining gorilla is fine
 
 var Msg = lnch.NewMessageMakerWithDefaults()
 
@@ -63,11 +68,8 @@ func (c *WSClient) ReceiveID() {
 
 	quit := time.Now().Add(time.Second * 1)
 
-	ctx := context.Background()
-	defer ctx.Done()
-
 	for {
-		_, m, err := c.Conn.Read(ctx)
+		_, m, err := c.Conn.ReadMessage()
 		if err != nil {
 			Msg.FYI(FAIL1)
 			return
@@ -165,15 +167,12 @@ func (pool *wspool) WSPoolStartListening() {
 		MSG2 = "WSPoolStartListening(): wspool client %s failed on WriteMessage()"
 	)
 
-	ctx := context.Background()
-	defer ctx.Done()
-
 	writemsg := func(jso *wsjsout) {
 		for cl := range pool.ClientMap {
 			if cl.ID == jso.ID {
 				js, y := json.Marshal(jso)
 				Msg.EC(y)
-				e := cl.Conn.Write(ctx, websocket.MessageText, js)
+				e := cl.Conn.WriteMessage(websocket.TextMessage, js)
 				if e != nil {
 					Msg.WARN(fmt.Sprintf(MSG2, jso.ID))
 					delete(pool.ClientMap, cl)

@@ -6,8 +6,8 @@
 package web
 
 import (
-	"github.com/coder/websocket"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
+	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 )
 
@@ -26,7 +26,8 @@ func RtWebsocket(c echo.Context) error {
 		return nil
 	}
 
-	ws, err := websocket.Accept(c.Response(), c.Request(), nil)
+	wsug := websocket.Upgrader{}
+	ws, err := wsug.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		Msg.NOTE(FAILCON)
 		return nil
