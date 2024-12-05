@@ -12,10 +12,10 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/jackc/pgx/v5 v5.7.1
-	github.com/labstack/echo/v4 v4.12.0
+	github.com/labstack/echo/v4 v4.13.0
 	github.com/pkg/profile v1.7.0
-	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f
-	golang.org/x/text v0.20.0
+	golang.org/x/exp v0.0.0-20241204233417-43b7b7cde48d
+	golang.org/x/text v0.21.0
 	gonum.org/v1/gonum v0.15.1
 )
 
@@ -26,7 +26,7 @@ require (
 	github.com/felixge/fgprof v0.9.5 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	github.com/google/pprof v0.0.0-20241101162523-b92577c0c142 // indirect
+	github.com/google/pprof v0.0.0-20241203143554-1e3fdc7de467 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
@@ -44,10 +44,10 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
-	golang.org/x/crypto v0.29.0 // indirect
-	golang.org/x/net v0.31.0 // indirect
-	golang.org/x/sync v0.9.0 // indirect
-	golang.org/x/sys v0.27.0 // indirect
+	golang.org/x/crypto v0.30.0 // indirect
+	golang.org/x/net v0.32.0 // indirect
+	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/time v0.8.0 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 )

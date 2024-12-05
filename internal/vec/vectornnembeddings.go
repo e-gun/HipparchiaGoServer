@@ -40,6 +40,9 @@ import (
 //		buildparsemap() data
 //
 
+// consider looking more closely at https://pkg.go.dev/github.com/tmc/langchaingo/embeddings and /vectorstores/pgvector
+// some (python) tips at https://github.com/langchain-ai/langchain/discussions/8707
+
 // GenerateVectEmbeddings - turn a search into a collection of semantic vector embeddings
 func GenerateVectEmbeddings(c echo.Context, modeltype string, s str.SearchStruct) embedding.Embeddings {
 	const (

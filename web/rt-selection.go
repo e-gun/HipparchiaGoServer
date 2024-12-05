@@ -11,6 +11,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
@@ -40,6 +41,22 @@ type selectionvalues struct {
 	IsRaw  bool
 	Start  string
 	End    string
+}
+
+// Clean - remove suspect characters
+func (s selectionvalues) Clean() {
+	dropping := vv.USELESSINPUT + lnch.Config.BadChars
+	// there are unintended consequences here if lnch.Config.BadChars  contains "|" which we have to have available
+	dropping = strings.Replace(dropping, "|", "", -1)
+
+	s.Auth = gen.Purgechars(dropping, s.Auth)
+	s.Work = gen.Purgechars(dropping, s.Work)
+	s.AGenre = gen.Purgechars(dropping, s.AGenre)
+	s.WGenre = gen.Purgechars(dropping, s.WGenre)
+	s.ALoc = gen.Purgechars(dropping, s.ALoc)
+	s.WLoc = gen.Purgechars(dropping, s.WLoc)
+	s.Start = gen.Purgechars(dropping, s.Start)
+	s.End = gen.Purgechars(dropping, s.End)
 }
 
 // WUID - return work universalid
@@ -114,6 +131,7 @@ func RtSelectionMake(c echo.Context) error {
 		sel.IsExcl = false
 	}
 
+	sel.Clean()
 	ns := registerselection(user, sel)
 	vlt.AllSessions.InsertSess(ns)
 

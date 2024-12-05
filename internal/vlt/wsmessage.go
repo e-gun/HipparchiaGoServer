@@ -17,7 +17,7 @@ import (
 
 // consider "github.com/coder/websocket" instead as gorilla is marked as unmaintained
 // but see commit 4f055e3 which implements it with minor changes to "wsmessage.go" and "rt-websocket.go"
-// a build from that code will have websockets that work on macOS locally but show now WS data on freebsd networked
+// a build from that code will have websockets that work on macOS locally but show no WS data on freebsd networked
 // AND the completed search does not get pulled from the map so you will get maxsearches errors really fast
 // a very odd/surprising result; not exactly worth tracking down at the moment since just retaining gorilla is fine
 

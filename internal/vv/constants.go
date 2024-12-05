@@ -99,7 +99,7 @@ const (
 	WSPOLLINGPAUSE           = 10000000 * 10 // 10000000 * 10 = every .1s
 
 	// UNACCEPTABLEINPUT       = `|"'!@:,=+_\/`
-	UNACCEPTABLEINPUT = `"'!@:,=_/` // we want to be able to do regex...; echo+net/url means some can't even make it into a parser: #%&;
-	USELESSINPUT      = `’“”̣`      // these can't be found and so should be dropped; note the subscript dot at the end
+	UNACCEPTABLEINPUT = `"'!@:,=_/#%&;` // we want to be able to do regex...; echo+net/url means some can't even make it into a parser: #%&;
+	USELESSINPUT      = `’“”̣`          // these can't be found and so should be dropped; note the subscript dot at the end
 
 )
