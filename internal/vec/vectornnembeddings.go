@@ -1,5 +1,5 @@
 //    HipparchiaGoServer
-//    Copyright: E Gunderson 2022-24
+//    Copyright: E Gunderson 2022-25
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 
@@ -42,6 +42,8 @@ import (
 
 // consider looking more closely at https://pkg.go.dev/github.com/tmc/langchaingo/embeddings and /vectorstores/pgvector
 // some (python) tips at https://github.com/langchain-ai/langchain/discussions/8707
+
+// see also https://github.com/fogfish/word2vec (but then you need cgo and cross-compiling will be a problem)
 
 // GenerateVectEmbeddings - turn a search into a collection of semantic vector embeddings
 func GenerateVectEmbeddings(c echo.Context, modeltype string, s str.SearchStruct) embedding.Embeddings {

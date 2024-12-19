@@ -84,7 +84,11 @@ NB: `hippa_rd` errors are safe to ignore.
 
 ![inst02](./gitimg/macos_posgresapp/06b_selfload_done.png)
 
-7. When you see `http server started on 127.0.0.1:8000` you are up and running. Now you can point a browser at http://127.0.0.1:8000.
+7. You may see a number of dialog boxes that ask for permission for Terminal.app to access Postgres. You need to allow this. 
+Irritatingly, you will be asked *once per client* (i.e. CPU core) and so maybe 20+ times. MacOS security policies are
+somewhat out of control...
+
+8. When you see `http server started on 127.0.0.1:8000` you are up and running. Now you can point a browser at http://127.0.0.1:8000.
 Whenever the server is running, your browser can interact with http://127.0.0.1:8000. You can also leave the server 
 running indefinitely. It does not consume many resources if not active: 0% CPU, <1% RAM.
 

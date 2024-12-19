@@ -1,5 +1,5 @@
 //    HipparchiaGoServer
-//    Copyright: E Gunderson 2022-24
+//    Copyright: E Gunderson 2022-25
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 
@@ -19,7 +19,7 @@ const (
 	This is free software, and you are welcome to redistribute it and/or 
 	modify it under the terms of the GNU General Public License version 3.`
 
-	PROJYEAR = "2022-24"
+	PROJYEAR = "2022-25"
 	PROJAUTH = "E. Gunderson"
 	PROJMAIL = "Department of Classics, 125 Queen’s Park, Toronto, ON  M5S 2C7 Canada"
 	PROJURL  = "https://github.com/e-gun/HipparchiaGoServer"

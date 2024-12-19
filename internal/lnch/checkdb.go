@@ -1,5 +1,5 @@
 //    HipparchiaGoServer
-//    Copyright: E Gunderson 2022-24
+//    Copyright: E Gunderson 2022-25
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 
@@ -36,6 +36,7 @@ func PGFSConfig(h string) {
 		YESDB    = "hipparchiaDB already exists"
 		FOUND    = "Found 'authors': skipping database loading.\n\tIf there are problems going forward you might need to reset the database: '-00'\n\n"
 		NOTFOUND = "The database exists but seems to be empty. Need to reload the data."
+		REWRITE  = "You cannot use '&' in your password. Rewriting it as '%s'"
 	)
 
 	Msg.CRIT(WRN)
@@ -53,6 +54,11 @@ func PGFSConfig(h string) {
 	var hwrpw string
 	_, err := fmt.Scan(&hwrpw)
 	Msg.EC(err)
+
+	if strings.Contains(hwrpw, "&") {
+		hwrpw = strings.Replace(hwrpw, "&", "", -1)
+		Msg.CRIT(fmt.Sprintf(REWRITE, hwrpw))
+	}
 
 	pgpw := RequestPostgresAdminPW()
 

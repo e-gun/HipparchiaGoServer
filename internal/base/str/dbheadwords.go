@@ -1,5 +1,5 @@
 //    HipparchiaGoServer
-//    Copyright: E Gunderson 2022-24
+//    Copyright: E Gunderson 2022-25
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 

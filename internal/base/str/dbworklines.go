@@ -1,5 +1,5 @@
 //    HipparchiaGoServer
-//    Copyright: E Gunderson 2022-24
+//    Copyright: E Gunderson 2022-25
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 
@@ -121,6 +121,7 @@ func (dbw *DbWorkline) GatherMetadata() {
 		for _, m := range mm {
 			// sample location:
 			// hipparchiaDB=# select index, marked_up_line from lt0474 where index = 116946;
+			//  <hmu_metadata_documentnumber value="177" /><hmu_metadata_provenance value="in Cumano" /><hmu_metadata_date value="xiii Kal. Dec.(?) 46" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CICERO PAETO
 			md[m[1]] = m[2]
 		}
 
