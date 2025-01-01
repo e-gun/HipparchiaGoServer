@@ -11,8 +11,8 @@ require (
 	github.com/go-echarts/go-echarts/v2 v2.4.6
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
-	github.com/jackc/pgx/v5 v5.7.1
-	github.com/labstack/echo/v4 v4.13.2
+	github.com/jackc/pgx/v5 v5.7.2
+	github.com/labstack/echo/v4 v4.13.3
 	github.com/pkg/profile v1.7.0
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67
 	golang.org/x/text v0.21.0
@@ -45,7 +45,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
-	golang.org/x/net v0.32.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/time v0.8.0 // indirect
