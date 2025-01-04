@@ -87,7 +87,7 @@ func FormatNoContextResults(ss *str.SearchStruct) str.SearchOutputJSON {
 			}
 		}
 
-		mu := formateditorialbrackets(r.MarkedUp)
+		mu := formateditorialbrackets(r.GetMarked())
 
 		rc := ""
 		if i%3 == 2 {
@@ -258,7 +258,7 @@ func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON 
 				c.IsHighlight = false
 			}
 			psg.RawCTX[j].PurgeMetadata()
-			c.Contents = psg.RawCTX[j].MarkedUp
+			c.Contents = psg.RawCTX[j].GetMarked()
 			c.Hyphenated = psg.RawCTX[j].Hyphenated
 			psg.CookedCTX[j] = c
 		}

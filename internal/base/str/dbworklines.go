@@ -144,6 +144,16 @@ func (dbw *DbWorkline) PurgeMetadata() {
 	}
 }
 
+// GetMarked - return a cleaner dbw.MarkedUp
+func (dbw *DbWorkline) GetMarked() string {
+	// do a v --> u transformation on the marked up line
+
+	// NB: no checks for inside/outside the markup and so a real chance of generating invalid markup
+	// the penalty should only be a failure to format/display correctly; and the fix can be made in the CSS rules
+	// u/v vigilance there is probably a better idea than regex on all the embedded html...
+	return gen.UVσςϲcaps(dbw.MarkedUp)
+}
+
 // ShowMarkup - reveal markup in a line
 func (dbw *DbWorkline) ShowMarkup() string {
 	clean := strings.NewReplacer("<", "&lt;", ">", "&gt;")

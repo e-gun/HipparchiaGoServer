@@ -71,7 +71,7 @@ func RtTextMaker(c echo.Context) error {
 	i := 0
 	for l := range lines {
 		l.PurgeMetadata()
-		block[i] = l.MarkedUp
+		block[i] = l.GetMarked()
 		i++
 	}
 
@@ -95,7 +95,7 @@ func RtTextMaker(c echo.Context) error {
 	lines = srch.Results.Yield()
 	for l := range lines {
 		cit := selectivelydisplaycitations(l, previous, -1)
-		trr[i] = fmt.Sprintf(TBLRW, l.Annotations, l.MarkedUp, cit)
+		trr[i] = fmt.Sprintf(TBLRW, l.Annotations, l.GetMarked(), cit)
 		if l.WkUID != previous.WkUID {
 			// you were doing multi-text generation
 			workcount += 1

@@ -24,6 +24,7 @@ var (
 	exrunefd   = extendedrunefeeder()
 	runereduce = getrunereducer()
 	uvreduce   = uvσςϲreducer()
+	uvcaps     = uvσςϲcapsreducer()
 )
 
 //
@@ -89,6 +90,21 @@ func UVσςϲ(u string) string {
 	for i, x := range ru {
 		if _, ok := uvreduce[x]; ok {
 			stripped[i] = uvreduce[x]
+		} else {
+			stripped[i] = x
+		}
+	}
+	s := string(stripped)
+	return s
+}
+
+// UVσςϲcaps - v to u, etc
+func UVσςϲcaps(u string) string {
+	ru := []rune(u)
+	stripped := make([]rune, len(ru))
+	for i, x := range ru {
+		if _, ok := uvcaps[x]; ok {
+			stripped[i] = uvcaps[x]
 		} else {
 			stripped[i] = x
 		}
@@ -323,6 +339,28 @@ func uvσςϲreducer() map[rune]rune {
 	feeder['u'] = []rune("uUvVÜÚüú")
 	feeder['ϲ'] = []rune("ϲσΣςϹ")
 	feeder['i'] = []rune("iIÍÏíïJj")
+
+	reducer := make(map[rune]rune)
+	for f, _ := range feeder {
+		for _, r := range feeder[f] {
+			reducer[r] = f
+		}
+	}
+	return reducer
+}
+
+// uvσςϲcapsreducer - provide map to UVσςϲcaps
+func uvσςϲcapsreducer() map[rune]rune {
+	// map[73:105 74:105 85:117 86:117 105:105 106:105 ...]
+	feeder := make(map[rune][]rune)
+
+	feeder['u'] = []rune("uv")
+	feeder['ϲ'] = []rune("ϲσς")
+	feeder['i'] = []rune("ij")
+	feeder['U'] = []rune("ÜÚ")
+	feeder['V'] = []rune("U")
+	feeder['Ϲ'] = []rune("ΣϹ")
+	feeder['I'] = []rune("IJ")
 
 	reducer := make(map[rune]rune)
 	for f, _ := range feeder {

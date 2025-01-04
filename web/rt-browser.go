@@ -373,7 +373,7 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 
 	block := make([]string, len(lines))
 	for i, l := range lines {
-		block[i] = l.MarkedUp
+		block[i] = l.GetMarked()
 	}
 
 	whole := strings.Join(block, SNIP)
@@ -432,8 +432,8 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 		lwd := wds[lastwordindex] // preserve this before potentially shrinking wds
 		wds = gen.Unique(wds)
 
-		newline := lines[i].MarkedUp
-		mw := strings.Split(lines[i].MarkedUp, " ")
+		newline := lines[i].GetMarked()
+		mw := strings.Split(lines[i].GetMarked(), " ")
 		lmw := mw[len(mw)-1]
 
 		for j := range wds {
