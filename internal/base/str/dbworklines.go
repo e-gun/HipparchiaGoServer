@@ -12,6 +12,10 @@ import (
 	"strings"
 )
 
+var (
+	UVSubs = true //to enable setting dbw.GetMarked() outside the module; configatlaunch.go sets the real value
+)
+
 // hipparchiaDB-# \d gr0001
 //                                     Table "public.gr0001"
 //      Column      |          Type          | Collation | Nullable |           Default
@@ -144,14 +148,33 @@ func (dbw *DbWorkline) PurgeMetadata() {
 	}
 }
 
-// GetMarked - return a cleaner dbw.MarkedUp
+// GetMarked - do a v --> u transformation on the marked up line
 func (dbw *DbWorkline) GetMarked() string {
-	// do a v --> u transformation on the marked up line
+
+	if !UVSubs {
+		return dbw.MarkedUp
+	}
+
+	// toggling this via lnch.Config is not possible since that would lead to circular imports
 
 	// NB: no checks for inside/outside the markup and so a real chance of generating invalid markup
 	// the penalty should only be a failure to format/display correctly; and the fix can be made in the CSS rules
 	// u/v vigilance there is probably a better idea than regex on all the embedded html...
-	return gen.UVσςϲcaps(dbw.MarkedUp)
+
+	// negative side-effect is that all-caps CSS will now look like ADUOCATI instead of ADVOCATI (Pl., Poen. 515)
+	// as the underlying text is "Advocati" before you rewrite
+
+	// but, relatively speaking, you have gained more than you have lost here?
+
+	// another issue: roman numerals...
+	// if level_00_value ends in "t", then this is something like III.iv as an act marker or letter number
+	// but there is no way to check for internal numbers in Pliny the Elder, et al.
+
+	if strings.HasSuffix(dbw.Lvl0Value, "t") {
+		return dbw.MarkedUp
+	} else {
+		return gen.UVcaps(dbw.MarkedUp)
+	}
 }
 
 // ShowMarkup - reveal markup in a line

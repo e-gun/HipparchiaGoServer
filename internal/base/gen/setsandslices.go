@@ -39,11 +39,6 @@ func Unique[T comparable](s []T) []T {
 
 	set := ToSet(s)
 
-	//var result []T
-	//for k := range set {
-	//	result = append(result, k)
-	//}
-
 	result := make([]T, len(set))
 	count := 0
 	for k := range set {

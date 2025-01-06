@@ -1,6 +1,6 @@
 {
   "Authenticate": false,
-  "BadChars": "\"'!@:,=_/",
+  "BadChars": "\"'!@:,=_/#%&;",
   "BlackAndWhite": false,
   "BrowserCtx": 14,
   "CustomCSS": false,
@@ -30,7 +30,7 @@
     "Host": "127.0.0.1",
     "Port": 5432,
     "User": "hippa_wr",
-    "Pass": "<mypasswd>",
+    "Pass": "yourpasswordhere",
     "DBName": "hipparchiaDB"
   },
   "ProfileCPU": false,
@@ -40,6 +40,8 @@
   "SelfTest": 0,
   "SSLCertDir": "./sslcerts/",
   "TickerActive": false,
+  "TickerLines": 25,
+  "UVSub": true,
   "VectorsDisabled": false,
   "VectorBot": false,
   "VectorChtHt": "1200px",
@@ -51,6 +53,6 @@
   "VectorWebExt": false,
   "VocabByCt": false,
   "VocabScans": false,
-  "WorkerCount": 8,
+  "WorkerCount": 20,
   "ZapLunates": false
 }

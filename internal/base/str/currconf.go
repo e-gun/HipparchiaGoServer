@@ -36,6 +36,7 @@ type CurrentConfiguration struct {
 	SSLCertDir      string
 	TickerActive    bool
 	TickerLines     int
+	UVSub           bool
 	VectorsDisabled bool
 	VectorBot       bool
 	VectorChtHt     string

@@ -262,6 +262,9 @@ func ConfigAtLaunch() {
 			Config.TickerLines = ll
 		case "-ui":
 			Config.BadChars = args[i+1]
+		case "-uv":
+			// toggle...
+			Config.UVSub = !Config.UVSub
 		case "-wc":
 			wc, err := strconv.Atoi(args[i+1])
 			Msg.EC(err)
@@ -275,6 +278,9 @@ func ConfigAtLaunch() {
 			// do nothing
 		}
 	}
+
+	// the package needs an injection...
+	str.UVSubs = Config.UVSub
 
 	y := ""
 	if errc != nil {
@@ -325,6 +331,7 @@ func builddefaultconfig() *str.CurrentConfiguration {
 	c.SSLCertDir = vv.SSLCERTDIR
 	c.TickerActive = vv.TICKERISACTIVE
 	c.TickerLines = vv.TICKERLINES
+	c.UVSub = vv.UVSUBSINDISPLAY
 	c.VectorBot = false
 	c.VectorChtHt = vv.DEFAULTCHRTHEIGHT
 	c.VectorChtWd = vv.DEFAULTCHRTWIDTH
