@@ -397,7 +397,7 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 	allwords := func() []string {
 		wm := make(map[string]bool)
 		for i := range lines {
-			wds := strings.Split(lines[i].Accented, " ")
+			wds := strings.Split(lines[i].GetAccented(), " ")
 			for _, w := range wds {
 				wm[w] = true
 			}
@@ -426,8 +426,7 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 		// the complication is that x.MarkedUp contains html; use x.Accented to find the words
 
 		// further complications: hyphenated words & capitalized words
-
-		wds := strings.Split(lines[i].Accented, " ")
+		wds := strings.Split(lines[i].GetAccented(), " ")
 		lastwordindex := len(wds) - 1
 		lwd := wds[lastwordindex] // preserve this before potentially shrinking wds
 		wds = gen.Unique(wds)
@@ -454,9 +453,8 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 				newline = np.ReplaceAllString(newline, r)
 				newline = strings.Replace(newline, "<span_", "<span ", -1)
 			} else {
-				newline = p.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
+				newline = p.ReplaceAllString(newline, `$1< id="$2">$2</observed>$3`)
 			}
-
 			// complication: elision: <observed id="ἀλλ">ἀλλ</observed>’
 			// but you can't deal with that here: the ’ will not turn up a find in the dictionary; the ' will yield bad SQL
 			// so the dictionary lookup has to be reworked

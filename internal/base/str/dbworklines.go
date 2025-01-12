@@ -150,9 +150,17 @@ func (dbw *DbWorkline) PurgeMetadata() {
 
 // GetMarked - do a v --> u transformation on the marked up line
 func (dbw *DbWorkline) GetMarked() string {
+	return dbw.UVXform(dbw.MarkedUp)
+}
 
+// GetAccented - do a v --> u transformation on the accented up line (rt-browser.go needs this for clicks)
+func (dbw *DbWorkline) GetAccented() string {
+	return dbw.UVXform(dbw.Accented)
+}
+
+func (dbw *DbWorkline) UVXform(s string) string {
 	if !UVSubs {
-		return dbw.MarkedUp
+		return s
 	}
 
 	// toggling this via lnch.Config is not possible since that would lead to circular imports
@@ -171,9 +179,9 @@ func (dbw *DbWorkline) GetMarked() string {
 	// but there is no way to check for internal numbers in Pliny the Elder, et al.
 
 	if strings.HasSuffix(dbw.Lvl0Value, "t") {
-		return dbw.MarkedUp
+		return s
 	} else {
-		return gen.UVcaps(dbw.MarkedUp)
+		return gen.UVcaps(s)
 	}
 }
 
