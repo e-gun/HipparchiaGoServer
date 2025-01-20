@@ -453,7 +453,7 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 				newline = np.ReplaceAllString(newline, r)
 				newline = strings.Replace(newline, "<span_", "<span ", -1)
 			} else {
-				newline = p.ReplaceAllString(newline, `$1< id="$2">$2</observed>$3`)
+				newline = p.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
 			}
 			// complication: elision: <observed id="ἀλλ">ἀλλ</observed>’
 			// but you can't deal with that here: the ’ will not turn up a find in the dictionary; the ' will yield bad SQL

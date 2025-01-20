@@ -47,6 +47,23 @@ var (
 		SemiBold:         "NotoSansDisplay-SemiBold.ttf",
 		Thin:             "NotoSansDisplay-Thin.ttf",
 	}
+	NotoFontSS = str.FontTempl{
+		Type:             "truetype",
+		ShrtType:         "ttf",
+		Bold:             "NotoSansDisplay-BoldSubset.ttf",
+		BoldItalic:       "NotoSansDisplay-BoldItalicSubset.ttf",
+		CondensedBold:    "NotoSansDisplay_Condensed-SemiBoldSubset.ttf",
+		CondensedItalic:  "NotoSansDisplay_Condensed-ItalicSubset.ttf",
+		CondensedRegular: "NotoSansDisplay_Condensed-RegularSubset.ttf",
+		SemiCondRegular:  "NotoSansDisplay_SemiCondensed-RegularSubset.ttf",
+		SemiCondItalic:   "NotoSansDisplay_SemiCondensed-ItalicSubset.ttf",
+		Italic:           "NotoSansDisplay-ItalicSubset.ttf",
+		Light:            "NotoSansDisplay-ExtraLightSubset.ttf",
+		Mono:             "NotoSansMono_Condensed-RegularSubset.ttf",
+		Regular:          "NotoSansDisplay-RegularSubset.ttf",
+		SemiBold:         "NotoSansDisplay-SemiBoldSubset.ttf",
+		Thin:             "NotoSansDisplay-ThinSubset.ttf",
+	}
 	FiraFont = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",
@@ -63,6 +80,23 @@ var (
 		Regular:          "FiraSans-Regular.ttf",
 		SemiBold:         "FiraSans-SemiBold.ttf",
 		Thin:             "FiraSans-Thin.ttf",
+	}
+	FiraFontSS = str.FontTempl{
+		Type:             "truetype",
+		ShrtType:         "ttf",
+		Bold:             "FiraSans-BoldSubset.ttf",
+		BoldItalic:       "FiraSans-BoldItalicSubset.ttf",
+		CondensedBold:    "FiraSansCondensed-BoldSubset.ttf",
+		CondensedItalic:  "FiraSansCondensed-ItalicSubset.ttf",
+		CondensedRegular: "FiraSansCondensed-RegularSubset.ttf",
+		SemiCondRegular:  "FiraSansCondensed-RegularSubset.ttf", // semi dne
+		SemiCondItalic:   "FiraSansCondensed-ItalicSubset.ttf",
+		Italic:           "FiraSans-ItalicSubset.ttf",
+		Light:            "FiraSans-LightSubset.ttf",
+		Mono:             "FiraMono-RegularSubset.ttf",
+		Regular:          "FiraSans-RegularSubset.ttf",
+		SemiBold:         "FiraSans-SemiBoldSubset.ttf",
+		Thin:             "FiraSans-ThinSubset.ttf",
 	}
 	RobotoFont = str.FontTempl{
 		Type:             "truetype",

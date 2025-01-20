@@ -192,6 +192,9 @@ func main() {
 
 	// go debug.WSClientReport(2 * time.Second)
 
+	// [5] uncomment to generate "fontsubsetting.txt" (once in a very blue moon)
+	// 	mps.SubsetChars()
+
 	msg.MAND(QUIT)
 
 	if lnch.Config.Authenticate {
@@ -199,7 +202,7 @@ func main() {
 	}
 
 	//
-	// [5] done: start the server (which will never return)
+	// [6] done: start the server (which will never return)
 	//
 
 	web.StartEchoServer()
