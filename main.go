@@ -193,7 +193,7 @@ func main() {
 	// go debug.WSClientReport(2 * time.Second)
 
 	// [5] uncomment to generate "fontsubsetting.txt" (once in a very blue moon)
-	// 	mps.SubsetChars()
+	// mps.SubsetChars()
 
 	msg.MAND(QUIT)
 

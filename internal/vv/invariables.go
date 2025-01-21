@@ -30,7 +30,7 @@ var (
 // NB: Inter, SourceSans and Ubuntu have been toyed with: Inter lacks both condensed and semi-condensed
 
 var (
-	NotoFont = str.FontTempl{
+	NotoFontR = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",
 		Bold:             "NotoSansDisplay-Bold.ttf",
@@ -47,7 +47,7 @@ var (
 		SemiBold:         "NotoSansDisplay-SemiBold.ttf",
 		Thin:             "NotoSansDisplay-Thin.ttf",
 	}
-	NotoFontSS = str.FontTempl{
+	NotoFont = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",
 		Bold:             "NotoSansDisplay-BoldSubset.ttf",
@@ -64,7 +64,7 @@ var (
 		SemiBold:         "NotoSansDisplay-SemiBoldSubset.ttf",
 		Thin:             "NotoSansDisplay-ThinSubset.ttf",
 	}
-	FiraFont = str.FontTempl{
+	FiraFontR = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",
 		Bold:             "FiraSans-Bold.ttf",
@@ -81,7 +81,7 @@ var (
 		SemiBold:         "FiraSans-SemiBold.ttf",
 		Thin:             "FiraSans-Thin.ttf",
 	}
-	FiraFontSS = str.FontTempl{
+	FiraFont = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",
 		Bold:             "FiraSans-BoldSubset.ttf",
@@ -98,7 +98,7 @@ var (
 		SemiBold:         "FiraSans-SemiBoldSubset.ttf",
 		Thin:             "FiraSans-ThinSubset.ttf",
 	}
-	RobotoFont = str.FontTempl{
+	RobotoFontR = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",
 		Bold:             "Roboto-Bold.ttf",
@@ -114,5 +114,22 @@ var (
 		Regular:          "Roboto-Regular.ttf",
 		SemiBold:         "Roboto-Medium.ttf",
 		Thin:             "Roboto-Thin.ttf",
+	}
+	RobotoFont = str.FontTempl{
+		Type:             "truetype",
+		ShrtType:         "ttf",
+		Bold:             "Roboto-BoldSubset.ttf",
+		BoldItalic:       "Roboto-BoldItalicSubset.ttf",
+		CondensedBold:    "RobotoCondensed-BoldSubset.ttf",
+		CondensedItalic:  "RobotoCondensed-ItalicSubset.ttf",
+		CondensedRegular: "RobotoCondensed-RegularSubset.ttf",
+		SemiCondRegular:  "RobotoCondensed-RegularSubset.ttf", // semi dne
+		SemiCondItalic:   "RobotoCondensed-ItalicSubset.ttf",
+		Italic:           "Roboto-ItalicSubset.ttf",
+		Light:            "Roboto-LightSubset.ttf",
+		Mono:             "RobotoMono-RegularSubset.ttf",
+		Regular:          "Roboto-RegularSubset.ttf",
+		SemiBold:         "Roboto-MediumSubset.ttf",
+		Thin:             "Roboto-ThinSubset.ttf",
 	}
 )

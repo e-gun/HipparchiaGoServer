@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
+	"golang.org/x/exp/maps"
 	"os"
 	"slices"
 )
@@ -21,12 +22,19 @@ import (
 
 func SubsetChars() {
 	m := graballtables()
+	l := grabsomelexrunes()
+	f := grabthefrontpage()
+	maps.Copy(m, l) // (dst, src)
+	maps.Copy(m, f)
 	s := mapintostring(m)
+	kludge := ""
+	s = s + kludge
 	outputtofile("fontsubsetting/inuse.txt", s)
 }
 
 // graballtables
 func graballtables() map[rune]bool {
+	fmt.Println("graballtables start")
 	var maps []map[rune]bool
 	count := 0
 	for _, a := range AllAuthors {
@@ -54,6 +62,45 @@ func grabonetable(table string) *str.WorkLineBundle {
 
 	foundlines := db.GetWorklineBundle(prq)
 	return foundlines
+}
+
+func grabsomelexrunes() map[rune]bool {
+	fmt.Println("grabsomelexrunes")
+	// vv.MAXDICTLOOKUP will cap this; but you should see everything there is to see
+	gl := db.DictEntryGrabber("", "greek", "html_body", "~*")
+	lt := db.DictEntryGrabber("", "latin", "html_body", "~*")
+
+	chars := map[rune]bool{}
+	for _, l := range gl {
+		runes := []rune(l.Entry)
+		for _, c := range runes {
+			chars[c] = true
+		}
+	}
+
+	for _, l := range lt {
+		runes := []rune(l.Entry)
+		for _, c := range runes {
+			chars[c] = true
+		}
+	}
+	fmt.Println(len(chars))
+	return chars
+}
+
+func grabthefrontpage() map[rune]bool {
+	fp, err := os.ReadFile("fontsubsetting/fp-html.txt")
+	if err != nil {
+		fmt.Println(err)
+		fp = []byte{}
+	}
+
+	st := string(fp)
+	chars := map[rune]bool{}
+	for _, l := range st {
+		chars[l] = true
+	}
+	return chars
 }
 
 func allunicodeinuse(wlb *str.WorkLineBundle) map[rune]bool {

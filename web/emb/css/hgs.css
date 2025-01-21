@@ -75,7 +75,7 @@
 	font-display: swap;
 	font-stretch: normal;
 	font-style: normal;
-	src: url('/emb/wof/iosevka-regular.woff2') format('woff2');
+	src: url('/emb/wof/iosevka-regularSubset.woff2') format('woff2');
 }
 
 .rarechars {
