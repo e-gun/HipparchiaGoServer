@@ -192,7 +192,9 @@ func main() {
 
 	// go debug.WSClientReport(2 * time.Second)
 
-	// [5] uncomment to generate "fontsubsetting.txt" (once in a very blue moon)
+	// [5] uncomment the next to generate "fontsubsetting/inuse.txt" (once in a very blue moon)
+	// (after that you should run "fontsubsetting/pyftsubset.sh" and regenerate the embedded filesystem fonts
+
 	// mps.SubsetChars()
 
 	msg.MAND(QUIT)

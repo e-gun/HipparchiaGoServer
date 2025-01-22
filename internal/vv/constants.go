@@ -54,7 +54,7 @@ const (
 	MAXBROWSERCONTEXT        = 60
 	MAXDATE                  = 1500
 	MAXDATESTR               = "1500"
-	MAXDICTLOOKUP            = 125
+	MAXDICTLOOKUP            = 150
 	MAXDISTANCE              = 10
 	MAXECHOREQPERSECONDPERIP = 60 // it takes c. 20 to load the front page for the first time; 40 lets you double-load; selftestsuite needs 60
 	MAXHITLIMIT              = 2500

@@ -21,4 +21,6 @@ type FontTempl struct {
 	Regular          string
 	SemiBold         string
 	Thin             string
+	HasLunateSigma   bool
+	NeedsManualStyle []string
 }

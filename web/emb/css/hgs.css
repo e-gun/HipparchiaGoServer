@@ -1502,6 +1502,7 @@ bibl:hover{
 }
 
 browser {
+	font-family: 'hipparchiacondensedstatic', sans-serif;
 	font-size: 110%;
 	color: var(--brtblue);
 }
