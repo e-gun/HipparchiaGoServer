@@ -34,7 +34,7 @@ func SubsetChars() {
 	// stringify and output
 	s := mapintostring(m)
 	// rare dictionary chars that might not get caught, etc
-	kludge := "ṛṣ"
+	kludge := "ṛṣσ"
 	s = s + kludge
 	outputtofile("fontsubsetting/inuse.txt", s)
 }

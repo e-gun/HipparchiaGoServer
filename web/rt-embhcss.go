@@ -139,67 +139,67 @@ func cssfontfacedirectives(f string) string {
 		FFS = `
 	@font-face {
 		font-family: 'hipparchiasansstatic';
-		src: url('/emb/{{.ShrtType}}/{{.Regular}}') format('{{.Type}}');
+		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.Regular}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiamonostatic';
-		src: url('/emb/{{.ShrtType}}/{{.Mono}}') format('{{.Type}}');
+		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.Mono}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchialightstatic';
-		src: url('/emb/{{.ShrtType}}/{{.Light}}') format('{{.Type}}');
+		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.Light}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiaboldstatic';
-		src: url('/emb/{{.ShrtType}}/{{.Bold}}') format('{{.Type}}');
+		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.Bold}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiaobliquestatic';
-		src: url('/emb/{{.ShrtType}}/{{.Italic}}') format('{{.Type}}');
+		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.Italic}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiabolditalicstatic';
-		src: url('/emb/{{.ShrtType}}/{{.BoldItalic}}') format('{{.Type}}');
+		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.BoldItalic}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiasemicondensedstatic';
-		src: url('/emb/{{.ShrtType}}/{{.SemiCondRegular}}') format('{{.Type}}');
+		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.SemiCondRegular}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiasemicondenseditalicstatic';
-		src: url('/emb/{{.ShrtType}}/{{.SemiCondItalic}}') format('{{.Type}}');
+		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.SemiCondItalic}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiacondensedstatic';
-		src: url('/emb/{{.ShrtType}}/{{.CondensedRegular}}') format('{{.Type}}');
+		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.CondensedRegular}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiacondensedboldstatic';
-		src: url('/emb/{{.ShrtType}}/{{.CondensedBold}}') format('{{.Type}}');
+		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.CondensedBold}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiacondenseditalicstatic';
-		src: url('/emb/{{.ShrtType}}/{{.CondensedItalic}}') format('{{.Type}}');
+		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.CondensedItalic}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiasemiboldstatic';
-		src: url('/emb/{{.ShrtType}}/{{.SemiBold}}') format('{{.Type}}');
+		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.SemiBold}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiathinstatic';
-		src: url('/emb/{{.ShrtType}}/{{.Thin}}') format('{{.Type}}');
+		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.Thin}}') format('{{.Type}}');
 		}`
 	)
 
@@ -255,5 +255,8 @@ func fleshoutcss(f str.FontTempl, css string) string {
 		css = strings.ReplaceAll(css, o, i)
 	}
 
+	bad := "font-family: var(--systemdefaultfont), sans-serif;"
+	good := "font-family: 'hipparchiasansstatic';"
+	css = strings.ReplaceAll(css, bad, good)
 	return css
 }

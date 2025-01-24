@@ -14,8 +14,8 @@ import (
 var (
 	TheCorpora    = []string{GREEKCORP, LATINCORP, INSCRIPTCORP, CHRISTINSC, PAPYRUSCORP}
 	TheLanguages  = []string{"greek", "latin"}
-	ServableFonts = map[string]str.FontTempl{"Noto": NotoFont, "Roboto": RobotoFont, "Fira": FiraFont,
-		"Inter": InterFont, "Brill": BrillFont} // cf rt-embhcss.go
+	ServableFonts = map[string]str.FontTempl{"Brill": BrillFont, "Fira": FiraFont, "Gentium": GentiumFont,
+		"Inter": InterFont, "Noto": NotoFont, "Roboto": RobotoFont, "SourceSans": SourceSansFont, "Ubuntu": UbuntuFont} // cf rt-embhcss.go
 	LaunchTime = time.Now()
 )
 
@@ -27,9 +27,7 @@ var (
 // FONTS
 //
 
-// the fonts we know how to serve
-// NB: Inter, SourceSans and Ubuntu have been toyed with: Inter lacks both condensed and semi-condensed
-// now serving subsetted fonts; used to serve whole fonts: NotoFontR, etc.
+// the fonts we know how to serve; need to run "pyftsubset.sh" to generate these
 
 var (
 	BrillFont = str.FontTempl{
@@ -37,8 +35,8 @@ var (
 		ShrtType:         "ttf",
 		Bold:             "Brill-BoldSubset.ttf",
 		BoldItalic:       "Brill-BoldItalicSubset.ttf",
-		CondensedBold:    "Brill-RomanSubset.ttf",
-		CondensedItalic:  "Brill-RomanSubset.ttf",
+		CondensedBold:    "Brill-BoldSubset.ttf",
+		CondensedItalic:  "Brill-ItalicSubset.ttf",
 		CondensedRegular: "Brill-RomanSubset.ttf",
 		SemiCondRegular:  "Brill-RomanSubset.ttf",
 		SemiCondItalic:   "Brill-RomanSubset.ttf",
@@ -46,11 +44,12 @@ var (
 		Light:            "Brill-RomanSubset.ttf",
 		Mono:             "NotoSansMono_Condensed-RegularSubset.ttf",
 		Regular:          "Brill-RomanSubset.ttf",
-		SemiBold:         "Brill-RomanSubset.ttf",
+		SemiBold:         "Brill-BoldSubset.ttf",
 		Thin:             "Brill-RomanSubset.ttf",
 		HasLunateSigma:   true,
 		NeedsManualStyle: []string{"hipparchialightstatic", "hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
-			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic", "hipparchiathinstatic"},
+			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic", "hipparchiathinstatic", "hipparchiacondensedstatic"},
+		SubFolder: "brill",
 	}
 	FiraFont = str.FontTempl{
 		Type:             "truetype",
@@ -70,6 +69,28 @@ var (
 		Thin:             "FiraSans-ThinSubset.ttf",
 		HasLunateSigma:   true,
 		NeedsManualStyle: []string{},
+		SubFolder:        "fira",
+	}
+	GentiumFont = str.FontTempl{
+		Type:             "truetype",
+		ShrtType:         "ttf",
+		Bold:             "GentiumPlus-BoldSubset.ttf",
+		BoldItalic:       "GentiumPlus-BoldItalicSubset.ttf",
+		CondensedBold:    "GentiumPlus-BoldSubset.ttf",
+		CondensedItalic:  "GentiumPlus-ItalicSubset.ttf",
+		CondensedRegular: "GentiumPlus-RegularSubset.ttf",
+		SemiCondRegular:  "GentiumPlus-RegularSubset.ttf",
+		SemiCondItalic:   "GentiumPlus-RegularSubset.ttf",
+		Italic:           "GentiumPlus-ItalicSubset.ttf",
+		Light:            "GentiumPlus-RegularSubset.ttf",
+		Mono:             "NotoSansMono_Condensed-RegularSubset.ttf",
+		Regular:          "GentiumPlus-RegularSubset.ttf",
+		SemiBold:         "GentiumPlus-BoldSubset.ttf",
+		Thin:             "GentiumPlus-RegularSubset.ttf",
+		HasLunateSigma:   true,
+		NeedsManualStyle: []string{"hipparchialightstatic", "hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
+			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic", "hipparchiathinstatic", "hipparchiacondensedstatic"},
+		SubFolder: "gentium",
 	}
 	NotoFont = str.FontTempl{
 		Type:             "truetype",
@@ -89,6 +110,7 @@ var (
 		Thin:             "NotoSansDisplay-ThinSubset.ttf",
 		HasLunateSigma:   true,
 		NeedsManualStyle: []string{},
+		SubFolder:        "noto",
 	}
 	InterFont = str.FontTempl{
 		Type:             "truetype",
@@ -104,10 +126,11 @@ var (
 		Light:            "Inter_18pt-LightSubset.ttf",
 		Mono:             "iosevka-regularSubset.woff2",
 		Regular:          "Inter_18pt-RegularSubset.ttf",
-		SemiBold:         "Inter_18pt-MediumSubset.ttf",
+		SemiBold:         "InterTight-BoldSubset.ttf", // Inter_18pt-MediumSubset.ttf is too light?
 		Thin:             "Inter_18pt-ThinSubset.ttf",
 		HasLunateSigma:   true,
 		NeedsManualStyle: []string{},
+		SubFolder:        "inter",
 	}
 	RobotoFont = str.FontTempl{
 		Type:             "truetype",
@@ -127,62 +150,49 @@ var (
 		Thin:             "Roboto-ThinSubset.ttf",
 		HasLunateSigma:   true,
 		NeedsManualStyle: []string{},
+		SubFolder:        "roboto",
 	}
-	NotoFontR = str.FontTempl{
+	SourceSansFont = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",
-		Bold:             "NotoSansDisplay-Bold.ttf",
-		BoldItalic:       "NotoSansDisplay-BoldItalic.ttf",
-		CondensedBold:    "NotoSansDisplay_Condensed-SemiBold.ttf",
-		CondensedItalic:  "NotoSansDisplay_Condensed-Italic.ttf",
-		CondensedRegular: "NotoSansDisplay_Condensed-Regular.ttf",
-		SemiCondRegular:  "NotoSansDisplay_SemiCondensed-Regular.ttf",
-		SemiCondItalic:   "NotoSansDisplay_SemiCondensed-Italic.ttf",
-		Italic:           "NotoSansDisplay-Italic.ttf",
-		Light:            "NotoSansDisplay-ExtraLight.ttf",
-		Mono:             "NotoSansMono_Condensed-Regular.ttf",
-		Regular:          "NotoSansDisplay-Regular.ttf",
-		SemiBold:         "NotoSansDisplay-SemiBold.ttf",
-		Thin:             "NotoSansDisplay-Thin.ttf",
-		HasLunateSigma:   true,
-		NeedsManualStyle: []string{},
+		Bold:             "SourceSans3-VariableFont_wghtSubset.ttf",
+		BoldItalic:       "SourceSans3-Italic-VariableFont_wghtSubset.ttf",
+		CondensedBold:    "SourceSans3-VariableFont_wghtSubset.ttf",
+		CondensedItalic:  "SourceSans3-Italic-VariableFont_wghtSubset.ttf",
+		CondensedRegular: "SourceSans3-VariableFont_wghtSubset.ttf",
+		SemiCondRegular:  "SourceSans3-VariableFont_wghtSubset.ttf",
+		SemiCondItalic:   "SourceSans3-Italic-VariableFont_wghtSubset.ttf",
+		Italic:           "SourceSans3-Italic-VariableFont_wghtSubset.ttf",
+		Light:            "SourceSans3-VariableFont_wghtSubset.ttf",
+		Mono:             "SourceCodePro-VariableFont_wghtSubset.ttf",
+		Regular:          "SourceSans3-VariableFont_wghtSubset.ttf",
+		SemiBold:         "SourceSans3-VariableFont_wghtSubset.ttf",
+		Thin:             "SourceSans3-VariableFont_wghtSubset.ttf",
+		HasLunateSigma:   false,
+		NeedsManualStyle: []string{"hipparchialightstatic", "hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
+			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic", "hipparchiathinstatic", "hipparchiaboldstatic",
+			"hipparchiasemiboldstatic"},
+		SubFolder: "source",
 	}
-	FiraFontR = str.FontTempl{
+	UbuntuFont = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",
-		Bold:             "FiraSans-Bold.ttf",
-		BoldItalic:       "FiraSans-BoldItalic.ttf",
-		CondensedBold:    "FiraSansCondensed-Bold.ttf",
-		CondensedItalic:  "FiraSansCondensed-Italic.ttf",
-		CondensedRegular: "FiraSansCondensed-Regular.ttf",
-		SemiCondRegular:  "FiraSansCondensed-Regular.ttf", // semi dne
-		SemiCondItalic:   "FiraSansCondensed-Italic.ttf",
-		Italic:           "FiraSans-Italic.ttf",
-		Light:            "FiraSans-Light.ttf",
-		Mono:             "FiraMono-Regular.ttf",
-		Regular:          "FiraSans-Regular.ttf",
-		SemiBold:         "FiraSans-SemiBold.ttf",
-		Thin:             "FiraSans-Thin.ttf",
-		HasLunateSigma:   true,
-		NeedsManualStyle: []string{},
-	}
-	RobotoFontR = str.FontTempl{
-		Type:             "truetype",
-		ShrtType:         "ttf",
-		Bold:             "Roboto-Bold.ttf",
-		BoldItalic:       "Roboto-BoldItalic.ttf",
-		CondensedBold:    "RobotoCondensed-Bold.ttf",
-		CondensedItalic:  "RobotoCondensed-Italic.ttf",
-		CondensedRegular: "RobotoCondensed-Regular.ttf",
-		SemiCondRegular:  "RobotoCondensed-Regular.ttf", // semi dne
-		SemiCondItalic:   "RobotoCondensed-Italic.ttf",
-		Italic:           "Roboto-Italic.ttf",
-		Light:            "Roboto-Light.ttf",
-		Mono:             "RobotoMono-Regular.ttf",
-		Regular:          "Roboto-Regular.ttf",
-		SemiBold:         "Roboto-Medium.ttf",
-		Thin:             "Roboto-Thin.ttf",
-		HasLunateSigma:   true,
-		NeedsManualStyle: []string{},
+		Bold:             "Ubuntu-BoldSubset.ttf",
+		BoldItalic:       "Ubuntu-BoldItalicSubset.ttf",
+		CondensedBold:    "Ubuntu-RegularSubset.ttf",
+		CondensedItalic:  "Ubuntu-RegularSubset.ttf",
+		CondensedRegular: "Ubuntu-RegularSubset.ttf",
+		SemiCondRegular:  "Ubuntu-RegularSubset.ttf", // semi dne
+		SemiCondItalic:   "Ubuntu-RegularSubset.ttf",
+		Italic:           "Ubuntu-ItalicSubset.ttf",
+		Light:            "Ubuntu-LightSubset.ttf",
+		Mono:             "UbuntuMono-RegularSubset.ttf",
+		Regular:          "Ubuntu-RegularSubset.ttf",
+		SemiBold:         "Ubuntu-MediumSubset.ttf",
+		Thin:             "Ubuntu-LightSubset.ttf",
+		HasLunateSigma:   false,
+		NeedsManualStyle: []string{"hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
+			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic"},
+		SubFolder: "ubuntu",
 	}
 )

@@ -26,6 +26,7 @@
 # see "mps.fontsubsettingcheck.go" which is only executed if you uncomment a line in "main.go"
 
 # NOTOFONT
+fld="noto"
 declare -a arr=("NotoSansDisplay-Bold" "NotoSansDisplay-Italic" "NotoSansDisplay-Thin"
 "NotoSansDisplay_Condensed-SemiBold" "NotoSansMono_Condensed-Regular" "NotoSansDisplay-BoldItalic"
 "NotoSansDisplay-Regular" "NotoSansDisplay_Condensed-Italic" "NotoSansDisplay_SemiCondensed-Italic"
@@ -34,9 +35,9 @@ declare -a arr=("NotoSansDisplay-Bold" "NotoSansDisplay-Italic" "NotoSansDisplay
 
 for i in "${arr[@]}"
 do
-   pyftsubset ./in/${i}.ttf \
+   pyftsubset ./in/${fld}/${i}.ttf \
    --text-file="inuse.txt" \
-   --output-file=./out/${i}Subset.ttf \
+   --output-file=./out/${fld}/${i}Subset.ttf \
    --layout-features='*' \
    --glyph-names \
    --hinting-tables= \
@@ -46,6 +47,7 @@ do
 done
 
 # FIRAFONT
+fld="fira"
 declare -a arr=("FiraMono-Regular" "FiraSans-Bold" "FiraSans-BoldItalic"
 "FiraSans-Italic" "FiraSans-Light" "FiraSans-Regular"
 "FiraSans-SemiBold" "FiraSans-Thin" "FiraSansCondensed-Bold"
@@ -53,9 +55,9 @@ declare -a arr=("FiraMono-Regular" "FiraSans-Bold" "FiraSans-BoldItalic"
 
 for i in "${arr[@]}"
 do
-   pyftsubset ./in/${i}.ttf \
+   pyftsubset ./in/${fld}/${i}.ttf \
    --text-file="inuse.txt" \
-   --output-file=./out/${i}Subset.ttf \
+   --output-file=./out/${fld}/${i}Subset.ttf \
    --layout-features='*' \
    --glyph-names \
    --hinting-tables= \
@@ -65,6 +67,7 @@ do
 done
 
 # ROBOTOFONT
+fld="roboto"
 declare -a arr=("Roboto-Bold" "Roboto-BoldItalic" "Roboto-Italic"
 "Roboto-Light" "Roboto-Thin" "Roboto-Medium"
 "Roboto-Regular" "RobotoCondensed-Bold"
@@ -72,9 +75,9 @@ declare -a arr=("Roboto-Bold" "Roboto-BoldItalic" "Roboto-Italic"
 
 for i in "${arr[@]}"
 do
-   pyftsubset ./in/${i}.ttf \
+   pyftsubset ./in/${fld}/${i}.ttf \
    --text-file="inuse.txt" \
-   --output-file=./out/${i}Subset.ttf \
+   --output-file=./out/${fld}/${i}Subset.ttf \
    --layout-features='*' \
    --glyph-names \
    --hinting-tables= \
@@ -84,16 +87,16 @@ do
 done
 
 # INTERFONT
+fld="inter"
 declare -a arr=("Inter_18pt-Bold" "Inter_18pt-BoldItalic" "Inter_18pt-Italic"
-"Inter_18pt-Light" "Inter_18pt-Thin" "Inter_18pt-Medium"
-"Inter_18pt-Regular" "InterTight-Bold"
+"Inter_18pt-Light" "Inter_18pt-Thin" "Inter_18pt-Medium" "Inter_18pt-Regular" "InterTight-Bold"
 "InterTight-Italic" "InterTight-Regular")
 
 for i in "${arr[@]}"
 do
-   pyftsubset ./in/${i}.ttf \
+   pyftsubset ./in/${fld}/${i}.ttf \
    --text-file="inuse.txt" \
-   --output-file=./out/${i}Subset.ttf \
+   --output-file=./out/${fld}/${i}Subset.ttf \
    --layout-features='*' \
    --glyph-names \
    --hinting-tables= \
@@ -103,13 +106,14 @@ do
 done
 
 # BRILLFONT
+fld="brill"
 declare -a arr=("Brill-Bold" "Brill-BoldItalic" "Brill-Italic" "Brill-Roman")
 
 for i in "${arr[@]}"
 do
-   pyftsubset ./in/${i}.ttf \
+   pyftsubset ./in/${fld}/${i}.ttf \
    --text-file="inuse.txt" \
-   --output-file=./out/${i}Subset.ttf \
+   --output-file=./out/${fld}/${i}Subset.ttf \
    --layout-features='*' \
    --glyph-names \
    --hinting-tables= \
@@ -118,6 +122,57 @@ do
    --ignore-missing-glyphs
 done
 
+# SOURCEFONT
+fld="source"
+declare -a arr=("SourceSans3-VariableFont_wght" "SourceSans3-Italic-VariableFont_wght" "SourceCodePro-VariableFont_wght")
+
+for i in "${arr[@]}"
+do
+   pyftsubset ./in/${fld}/${i}.ttf \
+   --text-file="inuse.txt" \
+   --output-file=./out/${fld}/${i}Subset.ttf \
+   --layout-features='*' \
+   --glyph-names \
+   --hinting-tables= \
+   --recommended-glyphs \
+   --ignore-missing-unicodes \
+   --ignore-missing-glyphs
+done
+
+# GENTIUMPLUS
+fld="gentium"
+declare -a arr=("GentiumPlus-Bold" "GentiumPlus-BoldItalic" "GentiumPlus-Italic" "GentiumPlus-Regular")
+
+for i in "${arr[@]}"
+do
+   pyftsubset ./in/${fld}/${i}.ttf \
+   --text-file="inuse.txt" \
+   --output-file=./out/${fld}/${i}Subset.ttf \
+   --layout-features='*' \
+   --glyph-names \
+   --hinting-tables= \
+   --recommended-glyphs \
+   --ignore-missing-unicodes \
+   --ignore-missing-glyphs
+done
+
+# UBUNTU
+fld="ubuntu"
+declare -a arr=("Ubuntu-Bold" "Ubuntu-BoldItalic" "Ubuntu-Italic" "Ubuntu-Light" "Ubuntu-LightItalic" "Ubuntu-Medium"
+"Ubuntu-MediumItalic" "Ubuntu-Regular" "UbuntuMono-Regular")
+
+for i in "${arr[@]}"
+do
+   pyftsubset ./in/${fld}/${i}.ttf \
+   --text-file="inuse.txt" \
+   --output-file=./out/${fld}/${i}Subset.ttf \
+   --layout-features='*' \
+   --glyph-names \
+   --hinting-tables= \
+   --recommended-glyphs \
+   --ignore-missing-unicodes \
+   --ignore-missing-glyphs
+done
 
 i="iosevka-regular"
 pyftsubset ./in/${i}.woff2 \
@@ -130,12 +185,8 @@ pyftsubset ./in/${i}.woff2 \
    --ignore-missing-unicodes \
    --ignore-missing-glyphs
 
-#txt=`cat inuse.txt`
-#for i in "${arr[@]}"
-#do
-#   pyftsubset ../web/emb/ttf/${i}.ttf \
-#   --text= ${txt}\
-#   --output-file=./out/${i}Subset.ttf \
-#   --layout-features=* \
-#   --ignore-missing-glyphs
-#done
+declare -a arr=("brill" "fira" "gentium" "inter" "noto" "roboto" "source" "ubuntu")
+for i in "${arr[@]}"
+do
+  cp ./out/${i}/*ttf ../web/emb/ttf/${i}
+done

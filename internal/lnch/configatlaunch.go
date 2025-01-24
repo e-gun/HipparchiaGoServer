@@ -17,6 +17,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"os"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"text/template"
@@ -298,6 +299,14 @@ func ConfigAtLaunch() {
 		Msg.CRIT(fmt.Sprintf(FAIL5, Config.WorkerCount, runtime.NumCPU(), runtime.NumCPU()))
 		Config.WorkerCount = runtime.NumCPU()
 	}
+
+	if slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), Config.Font) {
+		f := vv.ServableFonts[Config.Font]
+		if !f.HasLunateSigma {
+			Config.ZapLunates = true
+		}
+	}
+
 }
 
 // builddefaultconfig - return a CurrentConfiguration filled out with various default values

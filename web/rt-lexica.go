@@ -637,7 +637,7 @@ func formatparsingdata(mpp []str.MorphPossib) string {
 func formatlexicaloutput(w str.DbLexicon) string {
 	const (
 		HEADTEMPL = `<div id="%s_%f"><hr>
-		<p class="dictionaryheading" id="%s_%.1f">%s&nbsp;<span class="metrics">%s</span></p>
+		<p class="dictionaryheading" id="%s_%.1f">%s &nbsp;<span class="metrics">%s</span></p>
 	`
 		FORMSUMM = `<formsummary parserxref="%d" lexicalid="%.1f" headword="%s" lang="%s">%d known forms</formsummary>`
 
