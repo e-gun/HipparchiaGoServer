@@ -21,6 +21,11 @@ import (
 	"strings"
 )
 
+var (
+	noteregex        = regexp.MustCompile("<hmu_metadata_([^\\s]*) value=\"([^\"]*)\" />")
+	noteandlineregex = regexp.MustCompile("<hmu_metadata_.* value=.* />(.*)")
+)
+
 // browsedpassage - a JSON output struct
 type browsedpassage struct {
 	Browseforwards    string `json:"browseforwards"`
@@ -353,7 +358,7 @@ func basiccitation(l str.DbWorkline) string {
 	return fullcit
 }
 
-// buildbrowsertable - where the actual HTML gets generated
+// buildbrowsertable - where the actual HTML gets generated; this table is better for cut-and-paste...
 func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 	const (
 		OBSREGTEMPL = "(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)" + vv.TERMINATIONS
@@ -371,6 +376,14 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 		FAIL = "buildbrowsertable() could not regex compile %s"
 	)
 
+	// the builder has failed to parse some notes; do something...
+	for i, l := range lines {
+		cln, en := tempfixforbadannotations(l.MarkedUp)
+		lines[i].MarkedUp = cln
+		lines[i].Annotations += en
+
+	}
+
 	block := make([]string, len(lines))
 	for i, l := range lines {
 		block[i] = l.GetMarked()
@@ -386,7 +399,9 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 		lines[i].MarkedUp = b
 	}
 
-	trr := make([]string, len(lines))
+	blines := make([]string, len(lines))
+	bnotes := make([]string, len(lines))
+	bcites := make([]string, len(lines))
 	previous := lines[0]
 
 	// complication: hyphenated words at the end of a line
@@ -475,10 +490,21 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 			// bl = fmt.Sprintf(`<span class="small">%s</span>`, lines[i].ShowMarkup())
 		}
 
-		trr[i] = fmt.Sprintf(TRTMPL, an, bl, cit)
+		//bl, extranotes := tempfixforbadannotations(bl)
+		//an += extranotes
+
+		blines[i] = bl
+		bcites[i] = fmt.Sprintf("&nbsp;<span class=\"smallerthannormal\">%s</span>", cit)
+		bnotes[i] = fmt.Sprintf("&nbsp;<span class=\"smallerthannormal\">%s</span>", an)
 		previous = lines[i]
 	}
-	tab := strings.Join(trr, "")
+
+	// note that font/style differences can/will throw these out of visual alignment unless something is done
+	ll := strings.Join(blines, "<br>\n")
+	cc := strings.Join(bcites, "<br>\n")
+	nn := strings.Join(bnotes, "<br>\n")
+
+	tab := fmt.Sprintf(TRTMPL, nn, ll, cc)
 
 	// that was the body, now do the head and tail
 	top := fmt.Sprintf(UIDDIV, lines[0].AuID())
@@ -515,4 +541,30 @@ func selectivelydisplaycitations(theline str.DbWorkline, previous str.DbWorkline
 		citation = ""
 	}
 	return citation
+}
+
+func tempfixforbadannotations(line string) (string, string) {
+	// lt0474w057 138013 has not annotations in the database, but there are notes up front
+	// <hmu_metadata_documentnumber value="445" /><hmu_metadata_date value="prid.(?) Id. Nov. 44" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⟨CICERO ATTICO SAL.⟩
+
+	// 	noteregex := regexp.MustCompile("<hmu_metadata_([^\\s]*) value=\"([^\"]*)\" />")
+	//	noteandlineregex := regexp.MustCompile("<hmu_metadata_.* value=.* />(.*)")
+
+	finds := noteregex.FindAllStringSubmatch(line, -1)
+	if len(finds) == 0 {
+		return line, ""
+	}
+
+	// fmt.Println("tempfixforbadannotations hit")
+	nl := noteandlineregex.FindAllStringSubmatch(line, -1)
+	cleanline := nl[0][1]
+
+	var notes []string
+	for _, find := range finds {
+		// notes = append(notes, fmt.Sprintf("%s: %s", find[1], find[2]))
+		notes = append(notes, fmt.Sprintf("%s", find[2]))
+	}
+	nn := strings.Join(notes, "; ") //
+
+	return cleanline, nn
 }
