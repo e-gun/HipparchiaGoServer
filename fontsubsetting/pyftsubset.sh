@@ -174,6 +174,24 @@ do
    --ignore-missing-glyphs
 done
 
+# ALEGREYA
+fld="alegreya"
+declare -a arr=("AlegreyaSans-Bold" "AlegreyaSans-BoldItalic" "AlegreyaSans-Italic" "AlegreyaSans-Light" "AlegreyaSans-LightItalic" "AlegreyaSans-Medium"
+"AlegreyaSans-MediumItalic" "AlegreyaSans-Regular")
+
+for i in "${arr[@]}"
+do
+   pyftsubset ./in/${fld}/${i}.ttf \
+   --text-file="inuse.txt" \
+   --output-file=./out/${fld}/${i}Subset.ttf \
+   --layout-features='*' \
+   --glyph-names \
+   --hinting-tables= \
+   --recommended-glyphs \
+   --ignore-missing-unicodes \
+   --ignore-missing-glyphs
+done
+
 i="iosevka-regular"
 pyftsubset ./in/${i}.woff2 \
    --text-file="inuse.txt" \
@@ -185,7 +203,7 @@ pyftsubset ./in/${i}.woff2 \
    --ignore-missing-unicodes \
    --ignore-missing-glyphs
 
-declare -a arr=("brill" "fira" "gentium" "inter" "noto" "roboto" "source" "ubuntu")
+declare -a arr=("alegreya" "brill" "fira" "gentium" "inter" "noto" "roboto" "source" "ubuntu")
 for i in "${arr[@]}"
 do
   cp ./out/${i}/*ttf ../web/emb/ttf/${i}

@@ -14,7 +14,7 @@ import (
 var (
 	TheCorpora    = []string{GREEKCORP, LATINCORP, INSCRIPTCORP, CHRISTINSC, PAPYRUSCORP}
 	TheLanguages  = []string{"greek", "latin"}
-	ServableFonts = map[string]str.FontTempl{"Brill": BrillFont, "Fira": FiraFont, "Gentium": GentiumFont,
+	ServableFonts = map[string]str.FontTempl{"Alegreya": AlegreyaFont, "Brill": BrillFont, "Fira": FiraFont, "Gentium": GentiumFont,
 		"Inter": InterFont, "Noto": NotoFont, "Roboto": RobotoFont, "SourceSans": SourceSansFont, "Ubuntu": UbuntuFont} // cf rt-embhcss.go
 	LaunchTime = time.Now()
 )
@@ -30,6 +30,27 @@ var (
 // the fonts we know how to serve; need to run "pyftsubset.sh" to generate these
 
 var (
+	AlegreyaFont = str.FontTempl{
+		Type:             "truetype",
+		ShrtType:         "ttf",
+		Bold:             "AlegreyaSans-BoldSubset.ttf",
+		BoldItalic:       "AlegreyaSans-BoldItalicSubset.ttf",
+		CondensedBold:    "AlegreyaSans-BoldSubset.ttf",
+		CondensedItalic:  "AlegreyaSans-ItalicSubset.ttf",
+		CondensedRegular: "AlegreyaSans-RegularSubset.ttf",
+		SemiCondRegular:  "AlegreyaSans-RegularSubset.ttf",
+		SemiCondItalic:   "AlegreyaSans-RegularSubset.ttf",
+		Italic:           "AlegreyaSans-ItalicSubset.ttf",
+		Light:            "AlegreyaSans-LightSubset.ttf",
+		Mono:             "NotoSansMono_Condensed-RegularSubset.ttf",
+		Regular:          "AlegreyaSans-RegularSubset.ttf",
+		SemiBold:         "AlegreyaSans-MediumSubset.ttf",
+		Thin:             "AlegreyaSans-ThinSubset.ttf",
+		HasLunateSigma:   false,
+		NeedsManualStyle: []string{"hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
+			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic", "hipparchiacondensedstatic"},
+		SubFolder: "alegreya",
+	}
 	BrillFont = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",

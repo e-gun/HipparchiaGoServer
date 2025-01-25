@@ -22,6 +22,9 @@ import (
 )
 
 var (
+	// lt0474w057 138013 has no annotations registered in the database, but there are notes still in the line proper
+	// <hmu_metadata_documentnumber value="445" /><hmu_metadata_date value="prid.(?) Id. Nov. 44" /> ... ⟨CICERO ATTICO SAL.⟩
+	// so this and similar lines need patching; these precompiled values are used by adhocfixforbadannotations() below
 	noteregex        = regexp.MustCompile("<hmu_metadata_([^\\s]*) value=\"([^\"]*)\" />")
 	noteandlineregex = regexp.MustCompile("<hmu_metadata_.* value=.* />(.*)")
 )
@@ -376,12 +379,19 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 		FAIL = "buildbrowsertable() could not regex compile %s"
 	)
 
-	// the builder has failed to parse some notes; do something...
+	// the builder has failed to parse some notes; do something about that
 	for i, l := range lines {
-		cln, en := tempfixforbadannotations(l.MarkedUp)
+		cln, en := adhocfixforbadannotations(l.MarkedUp)
 		lines[i].MarkedUp = cln
-		lines[i].Annotations += en
-
+		if isoktoshownotes(l) {
+			// the original data also reset the notes at block ends so you can re-see them in the middle of a text
+			// should really only display notes that go with "t" or "sa" lines, vel sim
+			if lines[i].Annotations == "" {
+				lines[i].Annotations = en
+			} else {
+				lines[i].Annotations += "; " + en
+			}
+		}
 	}
 
 	block := make([]string, len(lines))
@@ -490,16 +500,16 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 			// bl = fmt.Sprintf(`<span class="small">%s</span>`, lines[i].ShowMarkup())
 		}
 
-		//bl, extranotes := tempfixforbadannotations(bl)
-		//an += extranotes
-
 		blines[i] = bl
 		bcites[i] = fmt.Sprintf("&nbsp;<span class=\"smallerthannormal\">%s</span>", cit)
 		bnotes[i] = fmt.Sprintf("&nbsp;<span class=\"smallerthannormal\">%s</span>", an)
 		previous = lines[i]
 	}
 
-	// note that font/style differences can/will throw these out of visual alignment unless something is done
+	// we are building a table with one row and three columns; the pre v1.3.8 way was len(lines) rows
+	// but if you want to cut and paste from the browser, that is not so good
+
+	// note that font/style differences can/will throw these out of visual alignment unless something is done in the CSS
 	ll := strings.Join(blines, "<br>\n")
 	cc := strings.Join(bcites, "<br>\n")
 	nn := strings.Join(bnotes, "<br>\n")
@@ -543,28 +553,59 @@ func selectivelydisplaycitations(theline str.DbWorkline, previous str.DbWorkline
 	return citation
 }
 
-func tempfixforbadannotations(line string) (string, string) {
-	// lt0474w057 138013 has not annotations in the database, but there are notes up front
-	// <hmu_metadata_documentnumber value="445" /><hmu_metadata_date value="prid.(?) Id. Nov. 44" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⟨CICERO ATTICO SAL.⟩
+// adhocfixforbadannotations - the current build of the data has errors in its hmu_metadata handling; patch them
+func adhocfixforbadannotations(line string) (string, string) {
+	// lt0474w057 138013 has no annotations in the database, but there are notes up front
+
+	// have:
+	// <hmu_metadata_documentnumber value="445" /><hmu_metadata_date value="prid.(?) Id. Nov. 44" / ... ⟨CICERO ATTICO SAL.⟩
+
+	// want:
+	// "445; prid.(?) Id. Nov. 44"
 
 	// 	noteregex := regexp.MustCompile("<hmu_metadata_([^\\s]*) value=\"([^\"]*)\" />")
 	//	noteandlineregex := regexp.MustCompile("<hmu_metadata_.* value=.* />(.*)")
+
+	const (
+		LONGLINE = 30
+	)
 
 	finds := noteregex.FindAllStringSubmatch(line, -1)
 	if len(finds) == 0 {
 		return line, ""
 	}
 
-	// fmt.Println("tempfixforbadannotations hit")
 	nl := noteandlineregex.FindAllStringSubmatch(line, -1)
-	cleanline := nl[0][1]
+	strippedline := nl[0][1]
 
-	var notes []string
+	var hmu []string
 	for _, find := range finds {
-		// notes = append(notes, fmt.Sprintf("%s: %s", find[1], find[2]))
-		notes = append(notes, fmt.Sprintf("%s", find[2]))
+		// if you include "documentnumber" and "date" the lines can get very long...
+		// hmu = append(hmu, fmt.Sprintf("%s: %s", find[1], find[2]))
+		hmu = append(hmu, fmt.Sprintf("%s", find[2]))
 	}
-	nn := strings.Join(notes, "; ") //
+	metadata := strings.Join(hmu, "; ")
 
-	return cleanline, nn
+	// insert "<br>" to avoid hogging the screen; lots on the same sheet will ntl see the notes cluster around the right spot
+	metadata = gen.AvoidLongLines(metadata, LONGLINE)
+
+	return strippedline, metadata
+}
+
+// isoktoshownotes - try to avoid re-showing notes that pop-up mid-text owing to original data block reset issue
+func isoktoshownotes(l str.DbWorkline) bool {
+	// the original data also reset the notes at block ends so you can re-see them in the middle of a text
+	// should really only display notes that go with "t" or "sa" lines, vel sim
+	w := mps.AllWorks[l.WkUID]
+
+	// inscriptions, etc
+	if l.TbIndex == w.FirstLine {
+		return true
+	}
+
+	// letters of cicero (and who else?)
+	if l.Lvl1Value == "sa" || l.Lvl0Value == "t" {
+		return true
+	}
+	return false
 }
