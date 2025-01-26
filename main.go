@@ -70,6 +70,8 @@ func main() {
 	// [1] set up the runtime configuration
 	//
 
+	vv.ServableFonts = web.CheckFontsAvailable(vv.ServableFonts)
+
 	lnch.LookForConfigFile()
 	lnch.ConfigAtLaunch()
 	lnch.Msg.LLvl = lnch.Config.LogLevel

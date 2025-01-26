@@ -260,3 +260,38 @@ func fleshoutcss(f str.FontTempl, css string) string {
 	css = strings.ReplaceAll(css, bad, good)
 	return css
 }
+
+func CheckFontsAvailable(tocheck map[string]str.FontTempl) map[string]str.FontTempl {
+	var (
+		embfontdir  = "emb/ttf"
+		mincontents = 3 // six font files min; anything less is likely just a comment that the folder was skipped...
+	)
+
+	entries, err := efs.ReadDir(embfontdir)
+	if err != nil {
+		Msg.CRIT(fmt.Sprintf("Embedded font folder '%s' does not exist", embfontdir))
+	}
+
+	avail := make(map[string]str.FontTempl)
+	emap := make(map[string]bool)
+
+	for _, e := range entries {
+		ff, ee := efs.ReadDir(embfontdir + "/" + e.Name())
+		if ee != nil {
+			Msg.CRIT(fmt.Sprintf("Cannot read contents of font folder '%s'", embfontdir+"/"+e.Name()))
+		}
+		if len(ff) > mincontents {
+			emap[e.Name()] = true
+		}
+	}
+
+	for k, v := range tocheck {
+		if emap[v.SubFolder] {
+			avail[k] = v
+		} else {
+			// Msg.MAND(fmt.Sprintf("Font folder '%s' unavailable", v.SubFolder))
+		}
+	}
+
+	return avail
+}
