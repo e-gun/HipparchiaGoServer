@@ -14,8 +14,9 @@ import (
 var (
 	TheCorpora    = []string{GREEKCORP, LATINCORP, INSCRIPTCORP, CHRISTINSC, PAPYRUSCORP}
 	TheLanguages  = []string{"greek", "latin"}
-	ServableFonts = map[string]str.FontTempl{"Alegreya": AlegreyaFont, "Brill": BrillFont, "Fira": FiraFont, "Gentium": GentiumFont,
-		"Inter": InterFont, "Noto": NotoFont, "Roboto": RobotoFont, "SourceSans": SourceSansFont, "Ubuntu": UbuntuFont} // cf rt-embhcss.go
+	ServableFonts = map[string]str.FontTempl{"Alegreya": AlegreyaFont, "Brill": BrillFont, "Fira": FiraFont,
+		"Gentium": GentiumFont, "Inter": InterFont, "Lato": LatoFont, "Noto": NotoFont, "Roboto": RobotoFont,
+		"SourceSans": SourceSansFont, "Ubuntu": UbuntuFont} // cf rt-embhcss.go
 	LaunchTime = time.Now()
 )
 
@@ -28,6 +29,9 @@ var (
 //
 
 // the fonts we know how to serve; need to run "pyftsubset.sh" to generate these
+
+// note that a search for "Ͻ" or "⏙" is a good way to peek at support for obscure chars
+// even Noto and Brill will fail a lot inside of Aristides Quintilianus
 
 var (
 	AlegreyaFont = str.FontTempl{
@@ -133,6 +137,26 @@ var (
 		NeedsManualStyle: []string{},
 		SubFolder:        "noto",
 	}
+	PlexFont = str.FontTempl{
+		Type:             "truetype",
+		ShrtType:         "ttf",
+		Bold:             "IBMPlexSans-BoldSubset.ttf",
+		BoldItalic:       "IBMPlexSans-BoldItalicSubset.ttf",
+		CondensedBold:    "IBMPlexSansCondensed-SemiBoldSubset.ttf",
+		CondensedItalic:  "IBMPlexSansCondensed-ItalicSubset.ttf",
+		CondensedRegular: "IBMPlexSansCondensed-RegularSubset.ttf",
+		SemiCondRegular:  "IBMPlexSansCondensed-LightSubset.ttf",
+		SemiCondItalic:   "IBMPlexSansCondensed-LightItalicSubset.ttf",
+		Italic:           "IBMPlexSans-ItalicSubset.ttf",
+		Light:            "IBMPlexSans-ExtraLightSubset.ttf",
+		Mono:             "IBMPlexMono-LightSubset.ttf",
+		Regular:          "IBMPlexSans-RegularSubset.ttf",
+		SemiBold:         "IBMPlexSans-SemiBoldSubset.ttf",
+		Thin:             "IBMPlexSans-ThinSubset.ttf",
+		HasLunateSigma:   true,
+		NeedsManualStyle: []string{},
+		SubFolder:        "plex",
+	}
 	InterFont = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",
@@ -152,6 +176,27 @@ var (
 		HasLunateSigma:   true,
 		NeedsManualStyle: []string{},
 		SubFolder:        "inter",
+	}
+	LatoFont = str.FontTempl{
+		Type:             "truetype",
+		ShrtType:         "ttf",
+		Bold:             "Lato-BoldSubset.ttf",
+		BoldItalic:       "Lato-BoldItalicSubset.ttf",
+		CondensedBold:    "Lato-BoldSubset.ttf",
+		CondensedItalic:  "Lato-ItalicSubset.ttf",
+		CondensedRegular: "Lato-RegularSubset.ttf",
+		SemiCondRegular:  "Lato-RegularSubset.ttf",
+		SemiCondItalic:   "Lato-ItalicSubset.ttf",
+		Italic:           "Lato-ItalicSubset.ttf",
+		Light:            "Lato-LightSubset.ttf",
+		Mono:             "iosevka-regularSubset.woff2",
+		Regular:          "Lato-RegularSubset.ttf",
+		SemiBold:         "Lato-MediumSubset.ttf", // Inter_18pt-MediumSubset.ttf is too light?
+		Thin:             "Lato-ThinSubset.ttf",
+		HasLunateSigma:   true,
+		NeedsManualStyle: []string{"hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
+			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic"},
+		SubFolder: "lato",
 	}
 	RobotoFont = str.FontTempl{
 		Type:             "truetype",
