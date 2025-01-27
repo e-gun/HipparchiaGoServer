@@ -18,6 +18,7 @@ import (
 	"os"
 	"runtime"
 	"slices"
+	"sort"
 	"strconv"
 	"strings"
 	"text/template"
@@ -117,6 +118,7 @@ func ConfigAtLaunch() {
 		}
 
 		kff := gen.StringMapKeysIntoSlice(vv.ServableFonts)
+		sort.Strings(kff)
 
 		// see HELPTEXTTEMPLATE in vv.terminalconst.go
 		m := map[string]interface{}{

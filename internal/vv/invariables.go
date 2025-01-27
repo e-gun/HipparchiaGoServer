@@ -12,26 +12,25 @@ import (
 )
 
 var (
+	IsGreek       = regexp.MustCompile("[α-ωϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ]")
 	TheCorpora    = []string{GREEKCORP, LATINCORP, INSCRIPTCORP, CHRISTINSC, PAPYRUSCORP}
 	TheLanguages  = []string{"greek", "latin"}
+	LaunchTime    = time.Now()
 	ServableFonts = map[string]str.FontTempl{"Alegreya": AlegreyaFont, "Brill": BrillFont, "Fira": FiraFont,
-		"Gentium": GentiumFont, "Inter": InterFont, "Lato": LatoFont, "Noto": NotoFont, "Roboto": RobotoFont,
-		"SourceSans": SourceSansFont, "Ubuntu": UbuntuFont} // cf rt-embhcss.go
-	LaunchTime = time.Now()
-)
-
-var (
-	IsGreek = regexp.MustCompile("[α-ωϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ]")
+		"Gentium": GentiumFont, "Inter": InterFont, "Lato": LatoFont, "Noto": NotoFont, "NotoDisp": NotoDispFont,
+		"Roboto": RobotoFont, "SourceSans": SourceSansFont, "Ubuntu": UbuntuFont} // cf rt-embhcss.go
 )
 
 //
 // FONTS
 //
 
-// the fonts we know how to serve; need to run "pyftsubset.sh" to generate these
+// the fonts we know how to serve; need to look at https://github.com/e-gun/fontsubsetting for how to generate the ttf files
 
-// note that a search for "Ͻ" or "⏙" is a good way to peek at support for obscure chars
+// note that a search for "Ͻ" or "⏙" is a good way to peek at support for obscure chars as others cluster near them
 // even Noto and Brill will fail a lot inside of Aristides Quintilianus
+
+// IMBPlex is missing GreekExtended?
 
 var (
 	AlegreyaFont = str.FontTempl{
@@ -117,7 +116,7 @@ var (
 			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic", "hipparchiathinstatic", "hipparchiacondensedstatic"},
 		SubFolder: "gentium",
 	}
-	NotoFont = str.FontTempl{
+	NotoDispFont = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",
 		Bold:             "NotoSansDisplay-BoldSubset.ttf",
@@ -135,27 +134,47 @@ var (
 		Thin:             "NotoSansDisplay-ThinSubset.ttf",
 		HasLunateSigma:   true,
 		NeedsManualStyle: []string{},
-		SubFolder:        "noto",
+		SubFolder:        "notodisplay",
 	}
-	PlexFont = str.FontTempl{
+	NotoFontTTF = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",
-		Bold:             "IBMPlexSans-BoldSubset.ttf",
-		BoldItalic:       "IBMPlexSans-BoldItalicSubset.ttf",
-		CondensedBold:    "IBMPlexSansCondensed-SemiBoldSubset.ttf",
-		CondensedItalic:  "IBMPlexSansCondensed-ItalicSubset.ttf",
-		CondensedRegular: "IBMPlexSansCondensed-RegularSubset.ttf",
-		SemiCondRegular:  "IBMPlexSansCondensed-LightSubset.ttf",
-		SemiCondItalic:   "IBMPlexSansCondensed-LightItalicSubset.ttf",
-		Italic:           "IBMPlexSans-ItalicSubset.ttf",
-		Light:            "IBMPlexSans-ExtraLightSubset.ttf",
-		Mono:             "IBMPlexMono-LightSubset.ttf",
-		Regular:          "IBMPlexSans-RegularSubset.ttf",
-		SemiBold:         "IBMPlexSans-SemiBoldSubset.ttf",
-		Thin:             "IBMPlexSans-ThinSubset.ttf",
+		Bold:             "NotoSans-BoldSubset.ttf",
+		BoldItalic:       "NotoSans-BoldItalicSubset.ttf",
+		CondensedBold:    "NotoSans-CondensedSemiBoldSubset.ttf",
+		CondensedItalic:  "NotoSans-CondensedItalicSubset.ttf",
+		CondensedRegular: "NotoSans-CondensedSubset.ttf",
+		SemiCondRegular:  "NotoSans-SemiCondensedSubset.ttf",
+		SemiCondItalic:   "NotoSans-SemiCondensedItalicSubset.ttf",
+		Italic:           "NotoSans-ItalicSubset.ttf",
+		Light:            "NotoSans-LightSubset.ttf",
+		Mono:             "NotoSansMono-SemiCondensedSubset.ttf",
+		Regular:          "NotoSans-RegularSubset.ttf",
+		SemiBold:         "NotoSans-SemiBoldSubset.ttf",
+		Thin:             "NotoSans-ThinSubset.ttf",
 		HasLunateSigma:   true,
 		NeedsManualStyle: []string{},
-		SubFolder:        "plex",
+		SubFolder:        "noto",
+	}
+	NotoFont = str.FontTempl{
+		Type:             "opentype",
+		ShrtType:         "ttf", // a lie to get it to look into the ttf folder
+		Bold:             "NotoSans-BoldSubset.otf",
+		BoldItalic:       "NotoSans-BoldItalicSubset.otf",
+		CondensedBold:    "NotoSans-CondensedSemiBoldSubset.otf",
+		CondensedItalic:  "NotoSans-CondensedItalicSubset.otf",
+		CondensedRegular: "NotoSans-CondensedSubset.otf",
+		SemiCondRegular:  "NotoSans-SemiCondensedSubset.otf",
+		SemiCondItalic:   "NotoSans-SemiCondensedItalicSubset.otf",
+		Italic:           "NotoSans-ItalicSubset.otf",
+		Light:            "NotoSans-LightSubset.otf",
+		Mono:             "NotoSansMono-SemiCondensedSubset.otf",
+		Regular:          "NotoSans-RegularSubset.otf",
+		SemiBold:         "NotoSans-SemiBoldSubset.otf",
+		Thin:             "NotoSans-ThinSubset.otf",
+		HasLunateSigma:   true,
+		NeedsManualStyle: []string{},
+		SubFolder:        "noto-otf",
 	}
 	InterFont = str.FontTempl{
 		Type:             "truetype",

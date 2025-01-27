@@ -177,6 +177,7 @@ func (dbw *DbWorkline) UVXform(s string) string {
 	// another issue: roman numerals...
 	// if level_00_value ends in "t", then this is something like III.iv as an act marker or letter number
 	// but there is no way to check for internal numbers in Pliny the Elder, et al.
+	// "number" passages will look bad as "v" for 5 turns into "u": "O casum mirificum! u Id. cum ante lucem..."
 
 	if strings.HasSuffix(dbw.Lvl0Value, "t") {
 		return s
