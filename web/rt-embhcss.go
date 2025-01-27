@@ -14,6 +14,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"slices"
@@ -139,67 +140,67 @@ func cssfontfacedirectives(f string) string {
 		FFS = `
 	@font-face {
 		font-family: 'hipparchiasansstatic';
-		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.Regular}}') format('{{.Type}}');
+		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.Regular}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiamonostatic';
-		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.Mono}}') format('{{.Type}}');
+		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.Mono}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchialightstatic';
-		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.Light}}') format('{{.Type}}');
+		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.Light}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiaboldstatic';
-		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.Bold}}') format('{{.Type}}');
+		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.Bold}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiaobliquestatic';
-		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.Italic}}') format('{{.Type}}');
+		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.Italic}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiabolditalicstatic';
-		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.BoldItalic}}') format('{{.Type}}');
+		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.BoldItalic}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiasemicondensedstatic';
-		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.SemiCondRegular}}') format('{{.Type}}');
+		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.SemiCondRegular}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiasemicondenseditalicstatic';
-		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.SemiCondItalic}}') format('{{.Type}}');
+		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.SemiCondItalic}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiacondensedstatic';
-		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.CondensedRegular}}') format('{{.Type}}');
+		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.CondensedRegular}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiacondensedboldstatic';
-		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.CondensedBold}}') format('{{.Type}}');
+		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.CondensedBold}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiacondenseditalicstatic';
-		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.CondensedItalic}}') format('{{.Type}}');
+		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.CondensedItalic}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiasemiboldstatic';
-		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.SemiBold}}') format('{{.Type}}');
+		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.SemiBold}}') format('{{.Type}}');
 		}
 
 	@font-face {
 		font-family: 'hipparchiathinstatic';
-		src: url('/emb/{{.ShrtType}}/{{.SubFolder}}/{{.Thin}}') format('{{.Type}}');
+		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.Thin}}') format('{{.Type}}');
 		}`
 	)
 
@@ -215,6 +216,7 @@ func cssfontfacedirectives(f string) string {
 
 	// note that incomplete fonts like Brill will have incomplete @font-face information
 	// this can and will be checked
+	// fmt.Println(css)
 
 	return css
 }
@@ -263,25 +265,41 @@ func fleshoutcss(f str.FontTempl, css string) string {
 
 func CheckFontsAvailable(tocheck map[string]str.FontTempl) map[string]str.FontTempl {
 	var (
-		embfontdir  = "emb/ttf"
+		embfontdir  = "emb/fnt/"
 		mincontents = 3 // six font files min; anything less is likely just a comment that the folder was skipped...
+		subfolders  = []string{"ttf", "otf"}
 	)
 
-	entries, err := efs.ReadDir(embfontdir)
-	if err != nil {
-		Msg.CRIT(fmt.Sprintf("Embedded font folder '%s' does not exist", embfontdir))
+	// this will purge available fonts atm: subfolder issue
+
+	type fse struct {
+		de fs.DirEntry
+		fd string
+	}
+
+	var allentries []fse
+	for _, sf := range subfolders {
+		entries, err := efs.ReadDir(embfontdir + sf)
+		if err != nil {
+			Msg.CRIT(fmt.Sprintf("CheckFontsAvailable(): Embedded font folder '%s' does not exist", embfontdir+"/"+sf))
+		}
+		newentries := make([]fse, 0, len(entries))
+		for _, entry := range entries {
+			newentries = append(newentries, fse{entry, embfontdir + sf + "/"})
+		}
+		allentries = append(allentries, newentries...)
 	}
 
 	avail := make(map[string]str.FontTempl)
 	emap := make(map[string]bool)
 
-	for _, e := range entries {
-		ff, ee := efs.ReadDir(embfontdir + "/" + e.Name())
+	for _, e := range allentries {
+		ff, ee := efs.ReadDir(e.fd + e.de.Name())
 		if ee != nil {
-			Msg.CRIT(fmt.Sprintf("Cannot read contents of font folder '%s'", embfontdir+"/"+e.Name()))
+			Msg.CRIT(fmt.Sprintf("CheckFontsAvailable(): Cannot read contents of font folder '%s'", e.fd+e.de.Name()))
 		}
 		if len(ff) > mincontents {
-			emap[e.Name()] = true
+			emap[e.de.Name()] = true
 		}
 	}
 
@@ -289,9 +307,8 @@ func CheckFontsAvailable(tocheck map[string]str.FontTempl) map[string]str.FontTe
 		if emap[v.SubFolder] {
 			avail[k] = v
 		} else {
-			// Msg.MAND(fmt.Sprintf("Font folder '%s' unavailable", v.SubFolder))
+			Msg.MAND(fmt.Sprintf("CheckFontsAvailable(): Font folder '%s' unavailable", v.SubFolder))
 		}
 	}
-
 	return avail
 }

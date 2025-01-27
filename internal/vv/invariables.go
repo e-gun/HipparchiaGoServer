@@ -17,8 +17,8 @@ var (
 	TheLanguages  = []string{"greek", "latin"}
 	LaunchTime    = time.Now()
 	ServableFonts = map[string]str.FontTempl{"Alegreya": AlegreyaFont, "Brill": BrillFont, "Fira": FiraFont,
-		"Gentium": GentiumFont, "Inter": InterFont, "Lato": LatoFont, "Noto": NotoFont, "NotoDisp": NotoDispFont,
-		"Roboto": RobotoFont, "SourceSans": SourceSansFont, "Ubuntu": UbuntuFont} // cf rt-embhcss.go
+		"Gentium": GentiumFont, "Inter": InterFont, "Lato": LatoFont, "Noto": NotoFont, "Roboto": RobotoFont,
+		"SourceSans": SourceSansFont, "Ubuntu": UbuntuFont} // cf rt-embhcss.go
 )
 
 //
@@ -116,49 +116,9 @@ var (
 			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic", "hipparchiathinstatic", "hipparchiacondensedstatic"},
 		SubFolder: "gentium",
 	}
-	NotoDispFont = str.FontTempl{
-		Type:             "truetype",
-		ShrtType:         "ttf",
-		Bold:             "NotoSansDisplay-BoldSubset.ttf",
-		BoldItalic:       "NotoSansDisplay-BoldItalicSubset.ttf",
-		CondensedBold:    "NotoSansDisplay_Condensed-SemiBoldSubset.ttf",
-		CondensedItalic:  "NotoSansDisplay_Condensed-ItalicSubset.ttf",
-		CondensedRegular: "NotoSansDisplay_Condensed-RegularSubset.ttf",
-		SemiCondRegular:  "NotoSansDisplay_SemiCondensed-RegularSubset.ttf",
-		SemiCondItalic:   "NotoSansDisplay_SemiCondensed-ItalicSubset.ttf",
-		Italic:           "NotoSansDisplay-ItalicSubset.ttf",
-		Light:            "NotoSansDisplay-ExtraLightSubset.ttf",
-		Mono:             "NotoSansMono_Condensed-RegularSubset.ttf",
-		Regular:          "NotoSansDisplay-RegularSubset.ttf",
-		SemiBold:         "NotoSansDisplay-SemiBoldSubset.ttf",
-		Thin:             "NotoSansDisplay-ThinSubset.ttf",
-		HasLunateSigma:   true,
-		NeedsManualStyle: []string{},
-		SubFolder:        "notodisplay",
-	}
-	NotoFontTTF = str.FontTempl{
-		Type:             "truetype",
-		ShrtType:         "ttf",
-		Bold:             "NotoSans-BoldSubset.ttf",
-		BoldItalic:       "NotoSans-BoldItalicSubset.ttf",
-		CondensedBold:    "NotoSans-CondensedSemiBoldSubset.ttf",
-		CondensedItalic:  "NotoSans-CondensedItalicSubset.ttf",
-		CondensedRegular: "NotoSans-CondensedSubset.ttf",
-		SemiCondRegular:  "NotoSans-SemiCondensedSubset.ttf",
-		SemiCondItalic:   "NotoSans-SemiCondensedItalicSubset.ttf",
-		Italic:           "NotoSans-ItalicSubset.ttf",
-		Light:            "NotoSans-LightSubset.ttf",
-		Mono:             "NotoSansMono-SemiCondensedSubset.ttf",
-		Regular:          "NotoSans-RegularSubset.ttf",
-		SemiBold:         "NotoSans-SemiBoldSubset.ttf",
-		Thin:             "NotoSans-ThinSubset.ttf",
-		HasLunateSigma:   true,
-		NeedsManualStyle: []string{},
-		SubFolder:        "noto",
-	}
 	NotoFont = str.FontTempl{
 		Type:             "opentype",
-		ShrtType:         "ttf", // a lie to get it to look into the ttf folder
+		ShrtType:         "otf", // a lie to get it to look into the ttf folder
 		Bold:             "NotoSans-BoldSubset.otf",
 		BoldItalic:       "NotoSans-BoldItalicSubset.otf",
 		CondensedBold:    "NotoSans-CondensedSemiBoldSubset.otf",
@@ -174,27 +134,28 @@ var (
 		Thin:             "NotoSans-ThinSubset.otf",
 		HasLunateSigma:   true,
 		NeedsManualStyle: []string{},
-		SubFolder:        "noto-otf",
+		SubFolder:        "noto",
 	}
 	InterFont = str.FontTempl{
-		Type:             "truetype",
-		ShrtType:         "ttf",
-		Bold:             "Inter_18pt-BoldSubset.ttf",
-		BoldItalic:       "Inter_18pt-BoldItalicSubset.ttf",
-		CondensedBold:    "InterTight-BoldSubset.ttf",
-		CondensedItalic:  "InterTight-ItalicSubset.ttf",
-		CondensedRegular: "InterTight-RegularSubset.ttf",
-		SemiCondRegular:  "InterTight-RegularSubset.ttf",
-		SemiCondItalic:   "InterTight-ItalicSubset.ttf",
-		Italic:           "Inter_18pt-ItalicSubset.ttf",
-		Light:            "Inter_18pt-LightSubset.ttf",
+		Type:             "opentype",
+		ShrtType:         "otf",
+		Bold:             "Inter-BoldSubset.otf",
+		BoldItalic:       "Inter-BoldItalicSubset.otf",
+		CondensedBold:    "InterTight-BoldSubset.otf",
+		CondensedItalic:  "Inter-ItalicSubset.otf",
+		CondensedRegular: "Inter-RegularSubset.otf",
+		SemiCondRegular:  "Inter-RegularSubset.otf",
+		SemiCondItalic:   "Inter-RegularSubset.otf",
+		Italic:           "Inter-ItalicSubset.otf",
+		Light:            "Inter-LightSubset.otf",
 		Mono:             "iosevka-regularSubset.woff2",
-		Regular:          "Inter_18pt-RegularSubset.ttf",
-		SemiBold:         "InterTight-BoldSubset.ttf", // Inter_18pt-MediumSubset.ttf is too light?
-		Thin:             "Inter_18pt-ThinSubset.ttf",
+		Regular:          "Inter-RegularSubset.otf",
+		SemiBold:         "Inter-SemiBoldSubset.otf",
+		Thin:             "Inter-ThinSubset.otf",
 		HasLunateSigma:   true,
-		NeedsManualStyle: []string{},
-		SubFolder:        "inter",
+		NeedsManualStyle: []string{"hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
+			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic", "hipparchiacondensedstatic"},
+		SubFolder: "inter",
 	}
 	LatoFont = str.FontTempl{
 		Type:             "truetype",
@@ -279,5 +240,68 @@ var (
 		NeedsManualStyle: []string{"hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
 			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic"},
 		SubFolder: "ubuntu",
+	}
+
+	// inactive / unused
+
+	NotoDispFont = str.FontTempl{
+		Type:             "truetype",
+		ShrtType:         "ttf",
+		Bold:             "NotoSansDisplay-BoldSubset.ttf",
+		BoldItalic:       "NotoSansDisplay-BoldItalicSubset.ttf",
+		CondensedBold:    "NotoSansDisplay_Condensed-SemiBoldSubset.ttf",
+		CondensedItalic:  "NotoSansDisplay_Condensed-ItalicSubset.ttf",
+		CondensedRegular: "NotoSansDisplay_Condensed-RegularSubset.ttf",
+		SemiCondRegular:  "NotoSansDisplay_SemiCondensed-RegularSubset.ttf",
+		SemiCondItalic:   "NotoSansDisplay_SemiCondensed-ItalicSubset.ttf",
+		Italic:           "NotoSansDisplay-ItalicSubset.ttf",
+		Light:            "NotoSansDisplay-ExtraLightSubset.ttf",
+		Mono:             "NotoSansMono_Condensed-RegularSubset.ttf",
+		Regular:          "NotoSansDisplay-RegularSubset.ttf",
+		SemiBold:         "NotoSansDisplay-SemiBoldSubset.ttf",
+		Thin:             "NotoSansDisplay-ThinSubset.ttf",
+		HasLunateSigma:   true,
+		NeedsManualStyle: []string{},
+		SubFolder:        "notodisplay",
+	}
+	NotoFontTTF = str.FontTempl{
+		Type:             "truetype",
+		ShrtType:         "ttf",
+		Bold:             "NotoSans-BoldSubset.ttf",
+		BoldItalic:       "NotoSans-BoldItalicSubset.ttf",
+		CondensedBold:    "NotoSans-CondensedSemiBoldSubset.ttf",
+		CondensedItalic:  "NotoSans-CondensedItalicSubset.ttf",
+		CondensedRegular: "NotoSans-CondensedSubset.ttf",
+		SemiCondRegular:  "NotoSans-SemiCondensedSubset.ttf",
+		SemiCondItalic:   "NotoSans-SemiCondensedItalicSubset.ttf",
+		Italic:           "NotoSans-ItalicSubset.ttf",
+		Light:            "NotoSans-LightSubset.ttf",
+		Mono:             "NotoSansMono-SemiCondensedSubset.ttf",
+		Regular:          "NotoSans-RegularSubset.ttf",
+		SemiBold:         "NotoSans-SemiBoldSubset.ttf",
+		Thin:             "NotoSans-ThinSubset.ttf",
+		HasLunateSigma:   true,
+		NeedsManualStyle: []string{},
+		SubFolder:        "noto",
+	}
+	InterFontTTF = str.FontTempl{
+		Type:             "truetype",
+		ShrtType:         "ttf",
+		Bold:             "Inter_18pt-BoldSubset.ttf",
+		BoldItalic:       "Inter_18pt-BoldItalicSubset.ttf",
+		CondensedBold:    "InterTight-BoldSubset.ttf",
+		CondensedItalic:  "InterTight-ItalicSubset.ttf",
+		CondensedRegular: "InterTight-RegularSubset.ttf",
+		SemiCondRegular:  "InterTight-RegularSubset.ttf",
+		SemiCondItalic:   "InterTight-ItalicSubset.ttf",
+		Italic:           "Inter_18pt-ItalicSubset.ttf",
+		Light:            "Inter_18pt-LightSubset.ttf",
+		Mono:             "iosevka-regularSubset.woff2",
+		Regular:          "Inter_18pt-RegularSubset.ttf",
+		SemiBold:         "InterTight-BoldSubset.ttf", // Inter_18pt-MediumSubset.ttf is too light?
+		Thin:             "Inter_18pt-ThinSubset.ttf",
+		HasLunateSigma:   true,
+		NeedsManualStyle: []string{},
+		SubFolder:        "inter",
 	}
 )

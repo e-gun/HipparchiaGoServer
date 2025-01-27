@@ -59,11 +59,11 @@ const (
    C1-tkC0          turn on the uptime UptimeTicker [unavailable if OS is Windows]
    C1-tlC0          log lines to display in UptimeTicker [C6currentC0: C3{{.tlines}}C0]
    C1-uiC0 C2{string}C0 unacceptable input characters; be hesitant to remove items from it [C6currentC0: C3{{.badchars}}C0]
-   C1-uvC0          toggle the forced formatting of u for v in the output relative to the config file
+   C1-uvC0          toggle the forced formatting of u for v in the output relative to the config file [C6currentC0: C3{{.uv}}C0]
    C1-vC0           print version info and exit
    C1-vvC0          print full version info and exit
    C1-wcC0 C2{int}C0    number of workers [C1cpu_countC0 is C3{{.cpus}}C0][C6currentC0: C3{{.workers}}C0]
-   C1-zlC0          zap lunate sigmas and replace them with C1σ/ςC0
+   C1-zlC0          zap lunate sigmas and replace them with C1σ/ςC0 (automatically set if a built-in font lacks lunates)
    C1-00C0          completely erase the database and reset the tables
                    the application cannot run again until you restore its data from an archive 
                    you probably want to run with the "C1-exC0" flag before you try this.

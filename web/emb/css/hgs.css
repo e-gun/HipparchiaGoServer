@@ -58,7 +58,7 @@
 	font-weight: 400;
 	src: local('Material Icons'),
 	local('MaterialIcons-Regular'),
-	url('/emb/wof/material-icons-round.woff2') format('woff2');
+	url('/emb/fnt/wof/material-icons-round.woff2') format('woff2');
 }
 
 @font-face {
@@ -67,7 +67,7 @@
 	font-weight: 400;
 	src: local('Material Icons Outlined'),
 	local('MaterialIcons-Outlined'),
-	url('/emb/wof/material-icons-outlined.woff2') format('woff2');
+	url('/emb/fnt/wof/material-icons-outlined.woff2') format('woff2');
 }
 
 @font-face {
@@ -75,7 +75,7 @@
 	font-display: swap;
 	font-stretch: normal;
 	font-style: normal;
-	src: url('/emb/wof/iosevka-regularSubset.woff2') format('woff2');
+	src: url('/emb/fnt/wof/iosevka-regularSubset.woff2') format('woff2');
 }
 
 .rarechars {

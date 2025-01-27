@@ -149,6 +149,7 @@ func ConfigAtLaunch() {
 			"workers":    Config.WorkerCount,
 			"knownfnts":  strings.Join(kff, "C0, C3"),
 			"tlines":     Config.TickerLines,
+			"uv":         Config.UVSub,
 			"deffnt":     Config.Font}
 
 		t := template.Must(template.New("").Parse(vv.HELPTEXTTEMPLATE))
