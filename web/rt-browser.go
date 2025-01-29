@@ -380,19 +380,8 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 	)
 
 	// the builder has failed to parse some notes; do something about that
-	for i, l := range lines {
-		cln, en := adhocfixforbadannotations(l.MarkedUp)
-		lines[i].MarkedUp = cln
-		if isoktoshownotes(l) {
-			// the original data also reset the notes at block ends so you can re-see them in the middle of a text
-			// should really only display notes that go with "t" or "sa" lines, vel sim
-			if lines[i].Annotations == "" {
-				lines[i].Annotations = en
-			} else {
-				lines[i].Annotations += "; " + en
-			}
-		}
-	}
+	longnotes := false // cap chars per line in notes
+	lines = reannotatelines(lines, longnotes)
 
 	block := make([]string, len(lines))
 	for i, l := range lines {
@@ -554,7 +543,7 @@ func selectivelydisplaycitations(theline str.DbWorkline, previous str.DbWorkline
 }
 
 // adhocfixforbadannotations - the current build of the data has errors in its hmu_metadata handling; patch them
-func adhocfixforbadannotations(line string) (string, string) {
+func adhocfixforbadannotations(line string, longlines bool) (string, string) {
 	// lt0474w057 138013 has no annotations in the database, but there are notes up front
 
 	// have:
@@ -584,12 +573,35 @@ func adhocfixforbadannotations(line string) (string, string) {
 		// hmu = append(hmu, fmt.Sprintf("%s: %s", find[1], find[2]))
 		hmu = append(hmu, fmt.Sprintf("%s", find[2]))
 	}
+
 	metadata := strings.Join(hmu, "; ")
 
 	// insert "<br>" to avoid hogging the screen; lots on the same sheet will ntl see the notes cluster around the right spot
-	metadata = gen.AvoidLongLines(metadata, LONGLINE)
+	// not so hot for the textmaker, though
+	if !longlines {
+		metadata = gen.AvoidLongLines(metadata, LONGLINE)
+	}
 
 	return strippedline, metadata
+}
+
+// reannotatelines - bulk apply adhocfixforbadannotations()
+func reannotatelines(lines []str.DbWorkline, longlines bool) []str.DbWorkline {
+	// the builder has failed to parse some notes; do something about that
+	for i, l := range lines {
+		cln, en := adhocfixforbadannotations(l.MarkedUp, longlines)
+		lines[i].MarkedUp = cln
+		if isoktoshownotes(l) {
+			// the original data also reset the notes at block ends so you can re-see them in the middle of a text
+			// should really only display notes that go with "t" or "sa" lines, vel sim
+			if lines[i].Annotations == "" {
+				lines[i].Annotations = en
+			} else {
+				lines[i].Annotations += "; " + en
+			}
+		}
+	}
+	return lines
 }
 
 // isoktoshownotes - try to avoid re-showing notes that pop-up mid-text owing to original data block reset issue

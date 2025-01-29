@@ -18,6 +18,7 @@
 * vocabulary list generation (+ flag unique headwords)
 * morphology tables
 * embedded help files
+* variety of embedded fonts
 * semantic vectors 
   * general
     * configurable model parameters
