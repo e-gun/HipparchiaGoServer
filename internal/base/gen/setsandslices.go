@@ -98,3 +98,12 @@ func StringMapKeysIntoSlice[T any](mp map[string]T) []string {
 	}
 	return sl
 }
+
+// ChunkSlice - a slice into n subslices of size x
+func ChunkSlice[T any](items []T, size int) (chunks [][]T) {
+	// see https://stackoverflow.com/questions/35179656/slice-chunking-in-go
+	for size < len(items) {
+		items, chunks = items[size:], append(chunks, items[0:size:size])
+	}
+	return append(chunks, items)
+}

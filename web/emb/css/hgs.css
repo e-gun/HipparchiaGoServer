@@ -175,11 +175,6 @@ body {
 	color: var(--skyblue);
 }
 
-.browsercite {
-	color: var(--huedgrey);
-	font-weight: normal;
-}
-
 .bold {
 	font-family: 'hipparchiaboldstatic', sans-serif;
 }
@@ -1585,6 +1580,10 @@ formsummary:hover{
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
+.invistext {
+	color: var(--invisible);
+}
+
 hmutitle {
 	font-family: 'hipparchiabolditalicstatic', sans-serif;
 }
@@ -1769,7 +1768,7 @@ td.alignright {
 td.browsedline {
 	padding-right: 10px;
 	padding-left: 10px;
-	padding-bottom: 8px;
+	padding-bottom: 6px;
 	line-height: 1.7;
 }
 
@@ -1777,7 +1776,7 @@ td.browserembeddedannotations {
 	font-family: 'hipparchiacondensedstatic', sans-serif;
 	padding-right: 10px;
 	padding-left: 15px;
-	padding-bottom: 8px;
+	padding-bottom: 6px;
 	color: var(--teal);
 	vertical-align: middle;
 	line-height: 1.7;
@@ -1787,7 +1786,7 @@ td.textembeddedannotations {
 	font-family: 'hipparchiacondensedstatic', sans-serif;
 	padding-right: 10px;
 	padding-left: 15px;
-	padding-bottom: 8px;
+	padding-bottom: 6px;
 	color: var(--teal);
 	vertical-align: middle;
 	line-height: 1.7;
@@ -1847,7 +1846,6 @@ td.textmakerembeddedannotations {
 	padding-right: 10px;
 	padding-left: 15px;
 	color: var(--huedgrey);
-	font-size: 80%;
 	vertical-align: middle;
 }
 

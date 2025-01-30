@@ -490,15 +490,15 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 		}
 
 		blines[i] = bl
-		bcites[i] = fmt.Sprintf("&nbsp;<span class=\"smallerthannormal\">%s</span>", cit)
-		bnotes[i] = fmt.Sprintf("&nbsp;<span class=\"smallerthannormal\">%s</span>", an)
+		bcites[i] = fmt.Sprintf("%s&nbsp;", cit) // the space is to maintain vertical alignment
+		bnotes[i] = fmt.Sprintf("%s&nbsp;", an)
 		previous = lines[i]
 	}
 
 	// we are building a table with one row and three columns; the pre v1.3.8 way was len(lines) rows
 	// but if you want to cut and paste from the browser, that is not so good
 
-	// note that font/style differences can/will throw these out of visual alignment unless something is done in the CSS
+	// note that font/style differences can/will throw these out of visual alignment unless something is done...
 	ll := strings.Join(blines, "<br>\n")
 	cc := strings.Join(bcites, "<br>\n")
 	nn := strings.Join(bnotes, "<br>\n")
@@ -556,7 +556,7 @@ func adhocfixforbadannotations(line string, longlines bool) (string, string) {
 	//	noteandlineregex := regexp.MustCompile("<hmu_metadata_.* value=.* />(.*)")
 
 	const (
-		LONGLINE = 30
+		LONGLINE = 25
 	)
 
 	finds := noteregex.FindAllStringSubmatch(line, -1)
@@ -597,7 +597,8 @@ func reannotatelines(lines []str.DbWorkline, longlines bool) []str.DbWorkline {
 			if lines[i].Annotations == "" {
 				lines[i].Annotations = en
 			} else {
-				lines[i].Annotations += "; " + en
+				an := strings.ReplaceAll(lines[i].Annotations, "documentnumber: ", "")
+				lines[i].Annotations += an + "; " + en
 			}
 		}
 	}
