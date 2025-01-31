@@ -24,18 +24,23 @@ func RtTextMaker(c echo.Context) error {
 	c.Response().After(func() { vlt.LogPaths("RtTextMaker()") })
 
 	// text generation works like a simple search for "anything" in each line of the selected texts
-	// the results then gett output as a big "browser table"...
+	// the results then get output as a big "browser table"...
 
 	// it would be nice to make this into three columns so cut-and-paste was easy like the revised browser
 	// but keeping the notes and citations aligned over hundreds/thousands of lines is not at all trivial
+
 	// multiple stabs at this added a lot of complexity while still exposing tons of corner cases, etc.
+
+	// things also got very slow... not much gain; much pain
+
+	// for a working-ish draft see dbacac7cc06a1c2ce67efb3b1cb69df363c7cfa1
 
 	const (
 		TBLRW = `
             <tr class="browser">
-                <td class="browserembeddedannotations">%s&nbsp;</td>
-                <td class="browsedline">%s</td>
-                <td class="browsercite">%s&nbsp;</td>
+                <td class="textcite">%s</td>
+                <td class="textline">%s</td>
+                <td class="textembeddedannotations">%s</td>
             </tr>
 		`
 		SUMM = `
@@ -103,7 +108,7 @@ func RtTextMaker(c echo.Context) error {
 	lines = srch.Results.Yield()
 	for l := range lines {
 		cit := selectivelydisplaycitations(l, previous, -1)
-		trr[i] = fmt.Sprintf(TBLRW, l.Annotations, l.MarkedUp, cit)
+		trr[i] = fmt.Sprintf(TBLRW, cit, l.MarkedUp, strings.Replace(l.Annotations, "documentnumber: ", "#", 1))
 		if l.WkUID != previous.WkUID {
 			// you were doing multi-text generation
 			workcount += 1

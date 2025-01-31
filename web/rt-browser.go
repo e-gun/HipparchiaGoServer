@@ -483,15 +483,15 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 
 		cit := selectivelydisplaycitations(lines[i], previous, focus)
 
-		an := lines[i].Annotations
+		an := strings.Replace(lines[i].Annotations, "documentnumber: ", "#", 1)
 		if lnch.Config.DbDebug {
 			an = fmt.Sprintf("%s: %d", lines[i].AuID(), lines[i].TbIndex)
 			// bl = fmt.Sprintf(`<span class="small">%s</span>`, lines[i].ShowMarkup())
 		}
 
 		blines[i] = bl
-		bcites[i] = fmt.Sprintf("%s&nbsp;", cit) // the space is to maintain vertical alignment
-		bnotes[i] = fmt.Sprintf("%s&nbsp;", an)
+		bcites[i] = fmt.Sprintf("<span class=\"eighty\">%s</span>&nbsp;", cit) // the "normal" sized space is to maintain vertical alignment
+		bnotes[i] = fmt.Sprintf("<span class=\"eighty\">%s</span>&nbsp;", an)
 		previous = lines[i]
 	}
 

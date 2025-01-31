@@ -1554,6 +1554,10 @@ div.threecolumn {
 	column-count: 3;
 }
 
+.eighty {
+	font-size: 80%;
+}
+
 fieldset {
 	display: inline-block;
 	border-width: 1px;
@@ -1768,28 +1772,48 @@ td.alignright {
 td.browsedline {
 	padding-right: 10px;
 	padding-left: 10px;
-	padding-bottom: 6px;
 	line-height: 1.7;
+}
+
+td.browsercite {
+	font-family: 'hipparchiacondensedstatic', sans-serif;
+	padding-right: 10px;
+	padding-left: 10px;
+	vertical-align: middle;
+	line-height: 1.7;
+	color: var(--huedgrey);
 }
 
 td.browserembeddedannotations {
 	font-family: 'hipparchiacondensedstatic', sans-serif;
 	padding-right: 10px;
 	padding-left: 15px;
-	padding-bottom: 6px;
 	color: var(--teal);
 	vertical-align: middle;
 	line-height: 1.7;
 }
 
+td.textline {
+	padding-right: 10px;
+	padding-left: 10px;
+}
+
+td.textcite {
+	font-family: 'hipparchiacondensedstatic', sans-serif;
+	font-size: 80%;
+	padding-right: 10px;
+	padding-left: 10px;
+	vertical-align: middle;
+	color: var(--huedgrey);
+}
+
 td.textembeddedannotations {
 	font-family: 'hipparchiacondensedstatic', sans-serif;
+	font-size: 80%;
 	padding-right: 10px;
 	padding-left: 15px;
-	padding-bottom: 6px;
 	color: var(--teal);
 	vertical-align: middle;
-	line-height: 1.7;
 }
 
 td.dialectlabel {
@@ -1839,23 +1863,6 @@ td.morphrow.emph.center {
 td.tensecell {
 	color: var(--huedgrey);
 	font-family: 'hipparchiaboldstatic', sans-serif;
-}
-
-td.textmakerembeddedannotations {
-	font-family: 'hipparchiacondensedstatic', sans-serif;
-	padding-right: 10px;
-	padding-left: 15px;
-	color: var(--huedgrey);
-	vertical-align: middle;
-}
-
-td.browsercite {
-	font-family: 'hipparchiacondensedstatic', sans-serif;
-	padding-right: 10px;
-	padding-left: 10px;
-	vertical-align: middle;
-	line-height: 1.7;
-	color: var(--huedgrey);
 }
 
 td.count {
