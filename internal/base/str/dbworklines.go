@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	UVSubs = true //to enable setting dbw.GetMarked() outside the module; configatlaunch.go sets the real value
+	UVSubs         = true //to enable setting dbw.GetMarked() outside the module; configatlaunch.go sets the real value
+	smallcapsregex = regexp.MustCompile("(<span class=\"smallcapitals\">)([^<]*)(</span>)")
 )
 
 // hipparchiaDB-# \d gr0001
@@ -182,7 +183,9 @@ func (dbw *DbWorkline) UVXform(s string) string {
 	if strings.HasSuffix(dbw.Lvl0Value, "t") {
 		return s
 	} else {
-		return gen.UVcaps(s)
+		// preserve smallcaps V
+		s = gen.UVcaps(s)
+		return smallcapsuv(s)
 	}
 }
 
@@ -260,4 +263,23 @@ type LevelValues struct {
 	Low   string   `json:"low"`
 	High  string   `json:"high"`
 	Range []string `json:"range"`
+}
+
+// smallcapsuv - preserve V in Roman numerals
+func smallcapsuv(s string) string {
+	// this is a roman numeral...: <span class="smallcapitals">u</span>
+	if !strings.Contains(s, "<span class=\"smallcapitals\">") {
+		return s
+	}
+
+	replacer := func(match string) string {
+		f := smallcapsregex.FindStringSubmatch(match)
+		if len(f) == 0 {
+			fmt.Println("smallcapsuv failed FindStringSubmatch(): " + match)
+		}
+		// f[2] is the thing inside the span
+		vv := strings.ReplaceAll(f[2], "u", "v")
+		return f[1] + vv + f[3]
+	}
+	return smallcapsregex.ReplaceAllStringFunc(s, replacer)
 }
