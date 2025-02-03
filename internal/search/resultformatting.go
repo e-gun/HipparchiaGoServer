@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
-	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -128,9 +127,6 @@ func FormatNoContextResults(ss *str.SearchStruct) str.SearchOutputJSON {
 	out.Searchsummary = formatfinalsearchsummary(ss)
 
 	out.Found = "<tbody>" + b.String() + "</tbody>"
-	if lnch.Config.ZapLunates {
-		out.Found = gen.DeLunate(out.Found)
-	}
 
 	return out
 }
@@ -337,10 +333,6 @@ func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON 
 	out.Image = ""
 	out.Searchsummary = formatfinalsearchsummary(thesearch)
 	out.Found = b.String()
-
-	if lnch.Config.ZapLunates {
-		out.Found = gen.DeLunate(out.Found)
-	}
 
 	vlt.WSInfo.Del <- ctxsearch.ID
 	return out

@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	TERMINATIONS = `(\s|\.|\]|\<|⟩|’|”|\!|,|:|;|\?|·|$)` // circular imports means this is declared 2x...
+	TERMINATIONS = `(\s|\.|\]|\<|⟩|\)|’|”|\!|,|:|;|\?|·|$)` // circular imports means this is declared 2x...
 )
 
 var (
@@ -25,6 +25,7 @@ var (
 	runereduce = getrunereducer()
 	uvreduce   = uvσςϲreducer()
 	uvcaps     = uvcapsreducer()
+	LunateSwap = regexp.MustCompile("σ" + TERMINATIONS)
 )
 
 //
@@ -170,11 +171,9 @@ func FindAcuteOrGrave(s string) string {
 
 // DeLunate - Τὴν οὖν τῶν ϲωμάτων ϲύνταξιν ϲκεψαμένουϲ πρὸϲ --> Τὴν οὖν τῶν σωμάτων σύνταξιν σκεψαμένους πρὸς
 func DeLunate(txt string) string {
-	// be careful not to loop regexp.MustCompile; this function should be called on text blocks not single lines
-	swap := regexp.MustCompile("σ" + TERMINATIONS)
 	txt = strings.Replace(txt, "ϲ", "σ", -1)
 	txt = strings.Replace(txt, "Ϲ", "Σ", -1)
-	txt = swap.ReplaceAllString(txt, "ς$1")
+	txt = LunateSwap.ReplaceAllString(txt, "ς$1")
 	return txt
 }
 

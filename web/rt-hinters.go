@@ -8,6 +8,7 @@ package web
 import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -106,6 +107,12 @@ func RtLemmaHints(c echo.Context) error {
 		diff := len(matches) - MAXLEMMARETURN
 		matches = matches[0:MAXLEMMARETURN]
 		matches = append(matches, fmt.Sprintf(MAXMSG, diff))
+	}
+
+	if lnch.Config.ZapLunates {
+		for i, m := range matches {
+			matches[i] = gen.DeLunate(m)
+		}
 	}
 
 	jss := tojsstructslice(matches)

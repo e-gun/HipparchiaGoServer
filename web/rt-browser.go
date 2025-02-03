@@ -514,6 +514,8 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 
 	if lnch.Config.ZapLunates {
 		tab = gen.DeLunate(tab)
+		// overshot in DeLunate...: ς’ for σ’
+		tab = strings.Replace(tab, "id=\"σ\">ς</observed>’ ", "id=\"σ\">σ</observed>’ ", -1)
 	}
 
 	return tab

@@ -57,7 +57,7 @@ const (
 	MAXDICTLOOKUP            = 150
 	MAXDISTANCE              = 10
 	MAXECHOREQPERSECONDPERIP = 60 // it takes c. 20 to load the front page for the first time; 40 lets you double-load; selftestsuite needs 60
-	MAXHITLIMIT              = 2500
+	MAXHITLIMIT              = 4000
 	MAXINPUTLEN              = 64
 	MAXLEMMACHUNKSIZE        = 25
 	MAXLINESHITCONTEXT       = 30

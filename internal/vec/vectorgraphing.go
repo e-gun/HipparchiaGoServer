@@ -126,14 +126,22 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 	used := make(map[string]bool)
 
 	// the center point
-	gnn = append(gnn, opts.GraphNode{Name: coreword, Value: 0, SymbolSize: fmt.Sprintf("%.4f", SYMSIZE*SIZEDISTORT), ItemStyle: vardot(-1)})
+	ctr := coreword
+	if lnch.Config.ZapLunates {
+		ctr = gen.DeLunate(ctr)
+	}
+	gnn = append(gnn, opts.GraphNode{Name: ctr, Value: 0, SymbolSize: fmt.Sprintf("%.4f", SYMSIZE*SIZEDISTORT), ItemStyle: vardot(-1)})
 	used[coreword] = true
 
 	// the words directly related to this word
 	for i, w := range nn[coreword] {
+		wd := w.Word
+		if lnch.Config.ZapLunates {
+			wd = gen.DeLunate(wd)
+		}
 		sizemod := fmt.Sprintf("%.4f", ((w.Similarity/maxsim)*SIZEDISTORT)*SYMSIZE)
-		gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: round(w.Similarity), SymbolSize: sizemod, ItemStyle: vardot(i)})
-		gll = append(gll, opts.GraphLink{Source: coreword, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
+		gnn = append(gnn, opts.GraphNode{Name: wd, Value: round(w.Similarity), SymbolSize: sizemod, ItemStyle: vardot(i)})
+		gll = append(gll, opts.GraphLink{Source: coreword, Target: wd, Value: round(w.Similarity), Label: &valuelabel})
 		used[w.Word] = true
 	}
 
@@ -148,7 +156,11 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 			}
 			for _, w := range nn[t] {
 				if _, ok := coreterms[w.Word]; ok {
-					gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
+					wd := w.Word
+					if lnch.Config.ZapLunates {
+						wd = gen.DeLunate(wd)
+					}
+					gll = append(gll, opts.GraphLink{Source: t, Target: wd, Value: round(w.Similarity), Label: &valuelabel})
 				}
 			}
 		}
@@ -164,6 +176,10 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 				continue
 			}
 			for _, w := range nn[t] {
+				wd := w.Word
+				if lnch.Config.ZapLunates {
+					wd = gen.DeLunate(wd)
+				}
 				if _, ok := coreterms[w.Word]; ok {
 					gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
 				}

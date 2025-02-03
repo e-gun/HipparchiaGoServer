@@ -172,28 +172,28 @@ self-test with vectors can be deceptive because `-wc` flag will not override con
 ## code stats
 
 ```
-e-gun/HipparchiaGoServer/ % cloc --exclude-dir=z --not-match-f="^jq*" .
-     172 text files.
-     154 unique files.                                          
-     191 files ignored.
+% cloc --exclude-dir=z --not-match-f="^jq*" .
+     174 text files.
+     156 unique files.                                          
+     266 files ignored.
 
-github.com/AlDanial/cloc v 2.00  T=0.12 s (1277.3 files/s, 254441.3 lines/s)
+github.com/AlDanial/cloc v 2.04  T=0.18 s (847.6 files/s, 171229.0 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                              98           3182           3580          14646
+Go                              98           3266           3692          15098
 JavaScript                       8            310            193           1595
-CSS                              1            349             89           1567
+CSS                              1            352             89           1582
 HTML                            12            160             17           1532
-Markdown                        11            458              0           1206
-JSON                             9              0              0            414
-Text                             5             90              0            412
+Markdown                        11            468              0           1219
+Text                             6            108              0            487
+JSON                             9              0              0            416
+XML                              7              0              0            415
 SVG                              1              1              1            392
-XML                              7              0              0            382
-Bourne Shell                     1             13              7             63
+Bourne Shell                     2             19              7             76
 Python                           1              5              6              7
 -------------------------------------------------------------------------------
-SUM:                           154           4568           3893          22216
+SUM:                           156           4689           4005          22819
 -------------------------------------------------------------------------------
 
 ```

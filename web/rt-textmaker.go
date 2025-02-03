@@ -84,7 +84,7 @@ func RtTextMaker(c echo.Context) error {
 	i := 0
 	for l := range lines {
 		l.PurgeMetadata()
-		block[i] = l.MarkedUp
+		block[i] = l.GetMarked()
 		i++
 	}
 
@@ -108,7 +108,7 @@ func RtTextMaker(c echo.Context) error {
 	lines = srch.Results.Yield()
 	for l := range lines {
 		cit := selectivelydisplaycitations(l, previous, -1)
-		trr[i] = fmt.Sprintf(TBLRW, cit, l.MarkedUp, strings.Replace(l.Annotations, "documentnumber: ", "#", 1))
+		trr[i] = fmt.Sprintf(TBLRW, cit, l.GetMarked(), strings.Replace(l.Annotations, "documentnumber: ", "#", 1))
 		if l.WkUID != previous.WkUID {
 			// you were doing multi-text generation
 			workcount += 1
@@ -158,6 +158,8 @@ func RtTextMaker(c echo.Context) error {
 
 	if lnch.Config.ZapLunates {
 		tab = gen.DeLunate(tab)
+		// overshot in DeLunate...: ς’ for σ’
+		tab = strings.Replace(tab, " ς’ ", " σ’ ", -1)
 	}
 
 	var jso JSFeeder

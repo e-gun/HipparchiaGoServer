@@ -15,6 +15,7 @@ import (
 var (
 	UVSubs         = true //to enable setting dbw.GetMarked() outside the module; configatlaunch.go sets the real value
 	smallcapsregex = regexp.MustCompile("(<span class=\"smallcapitals\">)([^<]*)(</span>)")
+	latnorm        = regexp.MustCompile("(<span class=\"latin normal\">)([^<]*)(</span>)")
 )
 
 // hipparchiaDB-# \d gr0001
@@ -180,11 +181,18 @@ func (dbw *DbWorkline) UVXform(s string) string {
 	// but there is no way to check for internal numbers in Pliny the Elder, et al.
 	// "number" passages will look bad as "v" for 5 turns into "u": "O casum mirificum! u Id. cum ante lucem..."
 
+	// "latin normal/smallerthannormal/italic" spans are in the Greek data; but you might just be seeing German...
+	// "latin italic" should typically be latin, though
+	// in any case, it is probably best to leave it alone...
+	if strings.Contains(s, "<span class=\"latin ") {
+		return s
+	}
+
 	if strings.HasSuffix(dbw.Lvl0Value, "t") {
 		return s
 	} else {
-		// preserve smallcaps V
 		s = gen.UVcaps(s)
+		// preserve smallcaps V
 		return smallcapsuv(s)
 	}
 }

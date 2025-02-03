@@ -173,7 +173,11 @@ func RtNeighborsSearch(c echo.Context, srch str.SearchStruct) error {
 
 	half := len(neighbors) / 2
 	for i, n := range neighbors {
-		r := fmt.Sprintf(TABLEELEM, n.Rank, n.Similarity, n.Word, n.Word)
+		show := n.Word
+		if lnch.Config.ZapLunates {
+			show = gen.DeLunate(show)
+		}
+		r := fmt.Sprintf(TABLEELEM, n.Rank, n.Similarity, n.Word, show)
 		if i < half {
 			columnone = append(columnone, r)
 		} else {

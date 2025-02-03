@@ -7,6 +7,7 @@ package web
 
 import (
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
@@ -14,6 +15,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strings"
 )
 
 //
@@ -125,6 +127,14 @@ func RtSearch(c echo.Context) error {
 		soj = search.FormatNoContextResults(&completed)
 	} else {
 		soj = search.FormatWithContextResults(&completed)
+	}
+
+	if lnch.Config.ZapLunates {
+		soj.Title = gen.DeLunate(soj.Title)
+		soj.Found = gen.DeLunate(soj.Found)
+		// overshot in DeLunate...: ς’ for σ’
+		soj.Found = strings.Replace(soj.Found, " ς’ ", " σ’ ", -1)
+		soj.Searchsummary = gen.DeLunate(soj.Searchsummary)
 	}
 
 	vlt.WSInfo.Del <- srch.WSID
