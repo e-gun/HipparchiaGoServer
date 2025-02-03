@@ -175,19 +175,23 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 			if t == coreword {
 				continue
 			}
+			if lnch.Config.ZapLunates {
+				t = gen.DeLunate(t)
+			}
+
 			for _, w := range nn[t] {
 				wd := w.Word
 				if lnch.Config.ZapLunates {
 					wd = gen.DeLunate(wd)
 				}
 				if _, ok := coreterms[w.Word]; ok {
-					gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
+					gll = append(gll, opts.GraphLink{Source: t, Target: wd, Value: round(w.Similarity), Label: &valuelabel})
 				}
 				if _, ok := used[w.Word]; !ok {
-					gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: round(w.Similarity), SymbolSize: PERIPHSYMSZ, ItemStyle: periphvardot(i)})
+					gnn = append(gnn, opts.GraphNode{Name: wd, Value: round(w.Similarity), SymbolSize: PERIPHSYMSZ, ItemStyle: periphvardot(i)})
 					used[w.Word] = true
 				}
-				gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &hiddenvals})
+				gll = append(gll, opts.GraphLink{Source: t, Target: wd, Value: round(w.Similarity), Label: &hiddenvals})
 			}
 		}
 	}
