@@ -48,6 +48,92 @@ var (
 	}
 )
 
+const (
+	LIGHTCOLORS = `
+	--main-body-color: hsla(0, 0%, 98%, 1);
+	--main-font-color: hsla(0, 0%, 6%, 1);
+
+	--buttoncolor: hsla(0, 0%, 93%, 1);
+	--button-hover: hsla(0, 0%, 90%, 1);
+	--fieldset-background: hsla(0, 0%, 98%, 1);
+	--focus-shadow: rgba(0, 0, 0, 0.5);
+	--icons-color: rgba(0, 0, 0, 0.54);
+
+	--black: hsla(0, 0%, 0%, 1);
+	--blue: hsla(240, 100%, 27%, 1);
+	--brown: hsla(22, 22%, 26%, 1);
+	--brtblue: hsla(236, 44%, 40%, 1);
+	--copper: hsla(11, 53%, 30%);
+	--deepblue: hsla(233, 77%, 26%, 1);
+	--dkbabyblue: hsla(237, 43%, 57%, 1);
+	--dkgreen: hsla(120, 80%, 20%, 1);
+	--dkgrey: hsla(0, 0%, 33%, 1);
+	--dkteal: hsla(203, 22%, 26%, 1);
+	--huedgrey: hsl(240, 10%, 61%);
+	--invisible: hsla(0, 100%, 100%, 0);
+	--lessoffwhite: hsla(0, 0%, 98%, 1);
+	--ltbabyblue: hsla(200, 33%, 95%, 1);
+	--ltgrey: hsla(0, 0%, 90%, 1);
+	--midgrey: hsla(0, 0%, 67%, 1);
+	--offwhite: hsla(0, 0%, 99%, 1);
+	--orange: hsla(47, 100%, 30%, 1);
+	--pink: hsla(0, 33%, 96%, 1);
+	--pinker: hsl(0, 73%, 80%);
+	--plum: hsla(291, 15%, 38%);
+	--pukegreen: hsl(71, 95%, 22%);
+	--red: hsla(346, 77%, 26%, 1);
+	--rustedorange: hsla(23, 37%, 39%, 1);
+	--sicklyyellow: hsl(45, 16%, 53%);
+	--skyblue: hsla(205, 92%, 37%, 1);
+	--teal: hsla(196, 14%, 39%, 1);
+	--transparentgrey: hsla(0, 0%, 67%, .8);
+	--vdkteal: hsla(196, 27%, 20%, 1);
+	--vdkgrey: hsla(0, 0%, 20%, 1);
+	--vltgrey: hsla(0, 0%, 96%, 1);`
+
+	DARKCOLORS = `
+	--main-body-color: hsla(0, 0%, 8%, 1);
+	--main-font-color: hsla(0, 0%, 95%, 1);
+
+	--buttoncolor: hsla(0, 0%, 20%, 1);
+	--button-hover: hsla(0, 0%, 10%, 1);
+	--fieldset-background: hsla(0, 0%, 2%, 1);
+	--focus-shadow: rgba(0, 0, 0, 0.5);
+	--icons-color: rgba(0, 0, 0, 0.54);
+
+	--black: hsla(0, 0%, 100%, 1);
+	--blue: hsla(64, 75%, 84%, 1);  /* yellow... */
+	--brown: hsla(22, 22%, 74%, 1);
+	--brtblue: hsla(236, 44%, 85%, 1);
+	--copper: hsla(11, 53%, 85%);
+	--deepblue: hsla(64, 88%, 84%, 1);  /* yellow... */
+	--dkbabyblue:  hsla(64, 52%, 84%, 1);  /* yellow... */
+	--dkgreen: hsla(120, 80%, 80%, 1);
+	--dkgrey: hsla(0, 0%, 82%, 1);
+	--dkteal: hsla(203, 22%, 82%, 1);
+	--huedgrey: hsl(113, 35%, 79%);
+	--invisible: hsla(0, 100%, 0%, 0);
+	--lessoffwhite: hsla(0, 0%, 2%, 1);
+	--ltbabyblue: hsla(200, 33%, 5%, 1);
+	--ltgrey: hsla(0, 0%, 53%, 1);
+	--midgrey: hsla(0, 0%, 53%, 1);
+	--offwhite: hsla(0, 0%, 1%, 1);
+	--orange: hsla(47, 100%, 70%, 1);
+	--pink: hsla(0, 33%, 4%, 1);
+	--pinker: hsl(0, 73%, 20%);
+	--plum: hsla(291, 15%, 62%);
+	--pukegreen: hsl(71, 95%, 78%);
+	--red: hsla(346, 77%, 84%, 1);
+	--rustedorange: hsla(23, 37%, 71%, 1);
+	--sicklyyellow: hsl(45, 16%, 57%);
+	--skyblue: hsla(205, 92%, 73%, 1);
+	--teal: hsla(196, 14%, 71%, 1);
+	--transparentgrey: hsla(0, 0%, 23%, .8);
+	--vdkteal: hsla(196, 27%, 80%, 1);
+	--vdkgrey: hsla(0, 0%, 80%, 1);
+	--vltgrey: hsla(0, 0%, 4%, 1);`
+)
+
 // RtEmbHCSS - send "hipparchiastyles.css" after building it as per the configured font settings
 func RtEmbHCSS(c echo.Context) error {
 	const (
@@ -78,6 +164,7 @@ func RtEmbHCSS(c echo.Context) error {
 		"fontname":     fsub,
 		"sdf":          sdf,
 		"fontfaceinfo": cssfontfacedirectives(lnch.Config.Font),
+		"colorinfo":    DARKCOLORS,
 	}
 
 	tmpl, e := template.New("fp").Parse(string(j))

@@ -3,9 +3,9 @@
 
 ## Frontpage size
 
-`25 requests | 4.86 MB / 4.86 MB transferred`
+`10 requests 1.46 MB / 1.47 MB transferred`
 
-the fonts are the real culprits
+the fonts are most of the data, but they have been subsetted (but `iosevka` is 756k of the above)
 
 comparanda:
 

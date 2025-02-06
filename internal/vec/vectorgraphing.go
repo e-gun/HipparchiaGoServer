@@ -89,6 +89,10 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 		NOTOFONT      = "'hipparchiasemiboldstatic', sans-serif"
 	)
 
+	if lnch.Config.ZapLunates {
+		coreword, nn = delunateneighbors(coreword, nn)
+	}
+
 	se := vlt.AllSessions.GetSess(vlt.ReadUUIDCookie(c))
 
 	var gnn []opts.GraphNode
@@ -135,13 +139,9 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 
 	// the words directly related to this word
 	for i, w := range nn[coreword] {
-		wd := w.Word
-		if lnch.Config.ZapLunates {
-			wd = gen.DeLunate(wd)
-		}
 		sizemod := fmt.Sprintf("%.4f", ((w.Similarity/maxsim)*SIZEDISTORT)*SYMSIZE)
-		gnn = append(gnn, opts.GraphNode{Name: wd, Value: round(w.Similarity), SymbolSize: sizemod, ItemStyle: vardot(i)})
-		gll = append(gll, opts.GraphLink{Source: coreword, Target: wd, Value: round(w.Similarity), Label: &valuelabel})
+		gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: round(w.Similarity), SymbolSize: sizemod, ItemStyle: vardot(i)})
+		gll = append(gll, opts.GraphLink{Source: coreword, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
 		used[w.Word] = true
 	}
 
@@ -156,11 +156,7 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 			}
 			for _, w := range nn[t] {
 				if _, ok := coreterms[w.Word]; ok {
-					wd := w.Word
-					if lnch.Config.ZapLunates {
-						wd = gen.DeLunate(wd)
-					}
-					gll = append(gll, opts.GraphLink{Source: t, Target: wd, Value: round(w.Similarity), Label: &valuelabel})
+					gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
 				}
 			}
 		}
@@ -175,23 +171,16 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 			if t == coreword {
 				continue
 			}
-			if lnch.Config.ZapLunates {
-				t = gen.DeLunate(t)
-			}
 
 			for _, w := range nn[t] {
-				wd := w.Word
-				if lnch.Config.ZapLunates {
-					wd = gen.DeLunate(wd)
-				}
 				if _, ok := coreterms[w.Word]; ok {
-					gll = append(gll, opts.GraphLink{Source: t, Target: wd, Value: round(w.Similarity), Label: &valuelabel})
+					gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
 				}
 				if _, ok := used[w.Word]; !ok {
-					gnn = append(gnn, opts.GraphNode{Name: wd, Value: round(w.Similarity), SymbolSize: PERIPHSYMSZ, ItemStyle: periphvardot(i)})
+					gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: round(w.Similarity), SymbolSize: PERIPHSYMSZ, ItemStyle: periphvardot(i)})
 					used[w.Word] = true
 				}
-				gll = append(gll, opts.GraphLink{Source: t, Target: wd, Value: round(w.Similarity), Label: &hiddenvals})
+				gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &hiddenvals})
 			}
 		}
 	}
@@ -692,4 +681,18 @@ func getvecchrtwdht() (string, string) {
 		ht = vv.DEFAULTCHRTHEIGHT
 	}
 	return wd, ht
+}
+func delunateneighbors(coreword string, nn map[string]search.Neighbors) (string, map[string]search.Neighbors) {
+	newmap := make(map[string]search.Neighbors)
+	coreword = gen.DeLunate(coreword)
+	for k, sn := range nn {
+		newneeighb := make(search.Neighbors, len(sn))
+		for i, n := range sn {
+			thisneighb := n
+			thisneighb.Word = gen.DeLunate(thisneighb.Word)
+			newneeighb[i] = thisneighb
+		}
+		newmap[gen.DeLunate(k)] = newneeighb
+	}
+	return coreword, newmap
 }

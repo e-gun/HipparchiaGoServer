@@ -161,7 +161,7 @@ func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON 
 		</locus>
 		{{.LocusBody}}`
 
-		FOUNDLINE = `<span class="locus">%s</span>&nbsp;<span class="foundtext">%s</span><br>
+		FOUNDLINE = `<span class="resultlocus">%s</span>&nbsp;<span class="foundtext">%s</span><br>
 		`
 		PSGTEMPL    = `%s_FROM_%d_TO_%d`
 		URT         = `index/%s/%s/%d`
