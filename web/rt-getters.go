@@ -43,6 +43,7 @@ func RtGetJSSession(c echo.Context) error {
 		// what the JS is looking for; note that vector stuff, etc is being skipped vs the python session dump
 		Browsercontext    string `json:"browsercontext"`
 		Christiancorpus   string `json:"christiancorpus"`
+		DarkMode          string `json:"darkmode"`
 		Earliestdate      string `json:"earliestdate"`
 		Greekcorpus       string `json:"greekcorpus"`
 		Headwordindexing  string `json:"headwordindexing"`
@@ -88,6 +89,7 @@ func RtGetJSSession(c echo.Context) error {
 	var jso JSO
 	jso.Browsercontext = i2s(s.BrowseCtx)
 	jso.Christiancorpus = t2y(s.ActiveCorp["ch"])
+	jso.DarkMode = t2y(s.DarkMode)
 	jso.Earliestdate = s.Earliest
 	jso.Greekcorpus = t2y(s.ActiveCorp["gr"])
 	jso.Headwordindexing = t2y(s.HeadwordIdx)

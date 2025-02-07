@@ -11,6 +11,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"io"
@@ -89,7 +90,8 @@ const (
 	--transparentgrey: hsla(0, 0%, 67%, .8);
 	--vdkteal: hsla(196, 27%, 20%, 1);
 	--vdkgrey: hsla(0, 0%, 20%, 1);
-	--vltgrey: hsla(0, 0%, 96%, 1);`
+	--vltgrey: hsla(0, 0%, 96%, 1);
+    --white: hsla(0, 0%, 100%, 1);`
 
 	DARKCOLORS = `
 	--main-body-color: hsla(0, 0%, 8%, 1);
@@ -99,7 +101,7 @@ const (
 	--button-hover: hsla(0, 0%, 10%, 1);
 	--fieldset-background: hsla(0, 0%, 2%, 1);
 	--focus-shadow: rgba(0, 0, 0, 0.5);
-	--icons-color: rgba(0, 0, 0, 0.54);
+	--icons-color: rgba(255, 255, 255, 0.54);
 
 	--black: hsla(0, 0%, 100%, 1);
 	--blue: hsla(64, 75%, 84%, 1);  /* yellow... */
@@ -114,12 +116,12 @@ const (
 	--huedgrey: hsl(113, 35%, 79%);
 	--invisible: hsla(0, 100%, 0%, 0);
 	--lessoffwhite: hsla(0, 0%, 2%, 1);
-	--ltbabyblue: hsla(200, 33%, 5%, 1);
-	--ltgrey: hsla(0, 0%, 53%, 1);
+	--ltbabyblue: hsla(200, 33%, 15%, 1);
+	--ltgrey: hsla(0, 0%, 20%, 1);
 	--midgrey: hsla(0, 0%, 53%, 1);
 	--offwhite: hsla(0, 0%, 1%, 1);
 	--orange: hsla(47, 100%, 70%, 1);
-	--pink: hsla(0, 33%, 4%, 1);
+	--pink: hsla(0, 33%, 15%, 1);
 	--pinker: hsl(0, 73%, 20%);
 	--plum: hsla(291, 15%, 62%);
 	--pukegreen: hsl(71, 95%, 78%);
@@ -131,7 +133,8 @@ const (
 	--transparentgrey: hsla(0, 0%, 23%, .8);
 	--vdkteal: hsla(196, 27%, 80%, 1);
 	--vdkgrey: hsla(0, 0%, 80%, 1);
-	--vltgrey: hsla(0, 0%, 4%, 1);`
+	--vltgrey: hsla(0, 0%, 4%, 1);
+    --white: hsla(0, 0%, 0%, 1);`
 )
 
 // RtEmbHCSS - send "hipparchiastyles.css" after building it as per the configured font settings
@@ -143,6 +146,9 @@ func RtEmbHCSS(c echo.Context) error {
 	if lnch.Config.CustomCSS {
 		return CustomCSS(c)
 	}
+
+	user := vlt.ReadUUIDCookie(c)
+	s := vlt.AllSessions.GetSess(user)
 
 	// if you asked for a font on the command line, the next two lines will do something about that
 	fsub := lnch.Config.Font
@@ -160,11 +166,15 @@ func RtEmbHCSS(c echo.Context) error {
 		return c.String(http.StatusNotFound, "")
 	}
 
+	colors := LIGHTCOLORS
+	if s.DarkMode {
+		colors = DARKCOLORS
+	}
 	subs := map[string]interface{}{
 		"fontname":     fsub,
 		"sdf":          sdf,
 		"fontfaceinfo": cssfontfacedirectives(lnch.Config.Font),
-		"colorinfo":    DARKCOLORS,
+		"colorinfo":    colors,
 	}
 
 	tmpl, e := template.New("fp").Parse(string(j))

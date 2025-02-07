@@ -71,7 +71,7 @@
 
     <p class="optionlabel">Sort results by</p>
     <p class="optionitem">
-        <select name="sortresults" id="sortresults">
+        <select name="sortresults" id="sortresults" class="chosen">
             <option value="shortname">Name</option>
             <option value="converted_date">Date</option>
             <option value="provenance">Work Provenance</option>
@@ -106,7 +106,7 @@
 
     <p class="optionlabel">Neighbors modeler</p>
     <p class="optionitem">
-        <select name="modeler" id="modeler">
+        <select name="modeler" id="modeler" class="chosen">
             <option value="w2v">Word2Vec</option>
             <option value="lexvec">LexVec</option>
             <option value="glove">GloVe</option>
@@ -115,7 +115,7 @@
 
     <p class="optionlabel">Vectorization text preparation</p>
     <p class="optionitem">
-        <select name="vtextprep" id="vtextprep">
+        <select name="vtextprep" id="vtextprep" class="chosen">
             <option value="winner">Winner takes all</option>
             <option value="montecarlo">Weighted chance headwords</option>
             <option value="yoked">Yoked headwords</option>
@@ -140,6 +140,14 @@
             <input name="ldagraph2dimensions" id="ldagraph_2d" value="yes" type="radio"></label>
         <label for="ldagraph_3d">3D
             <input name="ldagraph2dimensions" id="ldagraph_3d" value="no" type="radio"></label>
+    </p>
+
+    <p class="optionlabel">Darkmode</p>
+    <p class="optionitem">
+        <label for="darkmode_on">yes
+            <input name="darkmode" id="darkmode_on" value="yes" type="radio"></label>
+        <label for="darkmode_off">no
+            <input name="darkmode" id="darkmode_off" value="no" type="radio"></label>
     </p>
 </div>
 
@@ -423,6 +431,7 @@
         '#ddpisactive', '#insisactive', '#chrisactive');
 
     for (var i = 0; i < optionids.length; i++) { $(optionids[i]).hide(); }
+
 </script>
 
 <div id="helptabs">

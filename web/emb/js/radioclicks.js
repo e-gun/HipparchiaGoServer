@@ -15,6 +15,16 @@ $('#headwordindexing_n').click( function(){
     setoptions('headwordindexing', 'no'); $('#headwordindexinginactive').show(); $('#headwordindexingactive').hide();
 });
 
+$('#darkmode_on').click( function(){
+    setoptions('darkmode', 'yes');
+    window.location.reload();
+});
+
+$('#darkmode_off').click( function(){
+    setoptions('darkmode', 'no');
+    window.location.reload();
+});
+
 $('#frequencyindexing_y').click( function(){
     setoptions('indexbyfrequency', 'yes'); $('#frequencyindexingactive').show(); $('#frequencyindexinginactive').hide();
 });

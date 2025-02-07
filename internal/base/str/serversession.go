@@ -14,6 +14,7 @@ type ServerSession struct {
 	Inclusions   SearchIncExl
 	Exclusions   SearchIncExl
 	ActiveCorp   map[string]bool
+	DarkMode     bool   `json:"darkmode"`
 	VariaOK      bool   `json:"varia"`
 	IncertaOK    bool   `json:"incerta"`
 	SpuriaOK     bool   `json:"spuria"`

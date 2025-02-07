@@ -46,6 +46,7 @@ func MakeDefaultSession(id string) str.ServerSession {
 	s.VecTextPrep = lnch.Config.VectorTextPrep
 	s.VecLDASearch = false
 	s.LDA2D = true
+	s.DarkMode = lnch.Config.DarkMode
 
 	if lnch.Config.Authenticate {
 		AllAuthorized.Register(id, false)

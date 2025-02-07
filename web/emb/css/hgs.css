@@ -501,7 +501,7 @@ body {
 }
 
 .foundtext {
-	color: var(--dkteal);
+
 }
 
 .foundwork {
@@ -1498,6 +1498,22 @@ code {
 	font-family: 'hipparchiamonostatic', monospace;
 }
 
+.custom-select {
+
+}
+
+.custom-select select {
+	appearance: none;
+	width: 100%;
+	font-size: 1.15rem;
+	padding: 0.675em 6em 0.675em 1em;
+	border: 1px solid #caced1;
+	border-radius: 0.25rem;
+	background-color: var(--main-body-color);
+	color: var(--main-font-color);
+	cursor: pointer;
+}
+
 dictionaryentry{
 	color: var(--rustedorange);
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
@@ -1590,6 +1606,9 @@ input[type="text"] {
 	font-size: 85%;
 	/* font-family: inherit; */
 	font-family: 'hipparchiasemicondensedstatic', sans-serif;
+	border: 1px solid var(--icons-color);
+	background-color: var(--main-body-color);
+	color: var(--main-font-color);
 }
 
 latinfont {
@@ -1902,6 +1921,23 @@ tr.spacing {
 transl {
 	padding-right: 20px;
 }
+
+
+/* for styling jquery 'select' menus:  https://stackoverflow.com/questions/41570175/how-set-individual-styles-css-for-option-in-selectmenu-jquery-ui-selectmenu */
+
+.ui-menu-item {
+	background-color: var(--main-body-color);
+	color: var(--main-font-color);
+}
+
+
+/*
+.ui-menu {
+	background-color: var(--main-body-color);
+	color: var(--main-font-color);
+}
+*/
+
 
 ul {
 	list-style-type: none;

@@ -24,6 +24,7 @@ func RtSetOption(c echo.Context) error {
 		FAIL1 = "RtSetOption() was given bad input: %s"
 		FAIL2 = "RtSetOption() hit an impossible case"
 	)
+
 	user := vlt.ReadUUIDCookie(c)
 	optandval := c.Param("opt")
 	parsed := strings.Split(optandval, "/")
@@ -38,7 +39,7 @@ func RtSetOption(c echo.Context) error {
 
 	ynoptionlist := []string{"greekcorpus", "latincorpus", "papyruscorpus", "inscriptioncorpus", "christiancorpus",
 		"rawinputstyle", "onehit", "headwordindexing", "indexbyfrequency", "spuria", "incerta", "varia", "vocbycount",
-		"vocscansion", "isvectorsearch", "extendedgraph", "ldagraph", "isldasearch", "ldagraph2dimensions"}
+		"vocscansion", "isvectorsearch", "extendedgraph", "ldagraph", "isldasearch", "ldagraph2dimensions", "darkmode"}
 
 	s := vlt.AllSessions.GetSess(user)
 
@@ -111,6 +112,8 @@ func RtSetOption(c echo.Context) error {
 				s.LDAgraph = b
 			case "ldagraph2dimensions":
 				s.LDA2D = b
+			case "darkmode":
+				s.DarkMode = b
 			default:
 				Msg.WARN(FAIL2)
 			}
@@ -245,5 +248,6 @@ func RtSetOption(c echo.Context) error {
 	}
 
 	vlt.AllSessions.InsertSess(s)
+
 	return c.String(http.StatusOK, "")
 }

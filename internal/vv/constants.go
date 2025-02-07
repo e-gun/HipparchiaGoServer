@@ -40,6 +40,7 @@ const (
 	DEFAULTPSQLPORT       = 5432
 	DEFAULTPSQLDB         = "hipparchiaDB"
 	DEFAULTQUERYSYNTAX    = "~"
+	DEFAULTTODARK         = false
 	// EMPTYLEVELINFO           = "-1"
 	FIRSTSEARCHLIM           = 750000 // 149570 lines in Cicero (lt0474); all 485 forms of »δείκνυμι« will pass 50k
 	FONTSETTING              = "Noto"

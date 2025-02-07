@@ -320,6 +320,7 @@ func builddefaultconfig() *str.CurrentConfiguration {
 	c.BlackAndWhite = vv.BLACKANDWHITE
 	c.BrowserCtx = vv.DEFAULTBROWSERCTX
 	c.CustomCSS = false
+	c.DarkMode = vv.DEFAULTTODARK
 	c.DbDebug = false
 	c.Font = vv.FONTSETTING
 	c.Gzip = vv.USEGZIP
