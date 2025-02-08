@@ -2014,53 +2014,63 @@ dictionaryidsearch:hover{
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
-/* Dropdown Button */
-.dropbtn {
-	background-color: #3498DB;
-	color: white;
-	padding: 16px;
-	font-size: 16px;
-	border: none;
-	cursor: pointer;
-}
-
-/* Dropdown button on hover & focus */
-.dropbtn:hover, .dropbtn:focus {
-	background-color: #2980B9;
-}
-
 /* The container <div> - needed to position the dropdown content */
 .dropdown {
 	position: relative;
 	display: inline-block;
-	border-top: 1px dotted var(--dkgrey);
-	font-size: 70%;
-	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	padding-left: 5px;
+	padding-left: 20px;
 	padding-right: 10px;
 	margin: 3px;
+}
+
+/* Dropdown Button */
+.dropbtn {
+	background-color: var(--main-body-color);
+	color: var(--main-font-color);
+	font-family: 'hipparchiasansstatic', sans-serif;
+	font-size: 70%;
+	padding-left: 10px;
+	padding-right: 10px;
+	margin: 3px;
+	border: 1px;
+	cursor: pointer;
+	text-align: left;
+	width: 120px;
+}
+
+/* Dropdown button on hover & focus */
+.dropbtn:hover, .dropbtn:focus {
+	background-color:  var(--teal);
+	color: var(--main-body-color);
 }
 
 /* Dropdown Content (Hidden by Default) */
 .dropdown-content {
 	display: none;
 	position: absolute;
-	background-color: #f1f1f1;
+	font-family: 'hipparchiasansstatic', sans-serif;
+	font-size: 70%;
+	padding: 10px;
+	margin: 3px;
+	border: 1px;
+	background-color: var(--ltbabyblue);
 	min-width: 160px;
-	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+	box-shadow:1px 1px 3px var(--transparentgrey);
 	z-index: 1;
 }
 
 /* Links inside the dropdown */
 .dropdown-content a {
-	color: black;
-	padding: 12px 16px;
+	color: var(--black);
 	text-decoration: none;
 	display: block;
 }
 
 /* Change color of dropdown links on hover */
-.dropdown-content a:hover {background-color: #ddd;}
+.dropdown-content a:hover {
+	background-color:  var(--teal);
+	color: var(--main-body-color);
+}
 
 /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
 .show {display:block;}

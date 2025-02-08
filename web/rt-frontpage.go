@@ -153,7 +153,7 @@ func fontoptionshtml() string {
 
 func fontdropdownhtml() string {
 	const (
-		FO = "\t\t\t<a id=\"fontsel_%s\" onclick=\"setfont('%s')\" href=\"#\">%s</a>"
+		FO = "\t\t\t<a id=\"fontsel_%s\" onclick=\"dropdownoptionsetterwithreload('fontsel', '%s')\" href=\"#\">%s</a>"
 	)
 
 	kff := gen.StringMapKeysIntoSlice(vv.ServableFonts)

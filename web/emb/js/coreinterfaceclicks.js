@@ -132,6 +132,11 @@ function loadoptions() {
 
         $('#fontsel').val(data.fontsel);
         $('#fontsel').selectmenu('refresh');
+
+        dropdownbuttonsetter('vecddbuttontext', data.vtextprep);
+        dropdownbuttonsetter('fontddbuttontext', data.fontsel);
+        dropdownbuttonsetter('nnmodelddtext', data.vecmodeler);
+        dropdownbuttonsetter('sortbuttontext', data.sortorder);
     });
 }
 
@@ -188,13 +193,11 @@ $('#close_vector_options_button').click(function(){
 
 $('#vector_options_button').click(function(){
     loadoptions();
-    loadvectorspinners();
     openvectoroptionsslider();
 });
 
 $('#alt_vector_options_button').click(function(){
     loadoptions();
-    loadvectorspinners();
     openvectoroptionsslider();
 });
 
@@ -416,8 +419,20 @@ $(function() {
     });
 });
 
-function dropdowndisplay() {
+function fontdropdowndisplay() {
     document.getElementById("displayfont").classList.toggle("show");
+}
+
+function nnmodeldowndisplay() {
+    document.getElementById("nnmodeldd").classList.toggle("show");
+}
+
+function vecdropdowndisplay() {
+    document.getElementById("vtextprepdd").classList.toggle("show");
+}
+
+function sortdropdowndisplay() {
+    document.getElementById("sortdd").classList.toggle("show");
 }
 
 // Close the dropdown menu if the user clicks outside of it
@@ -434,9 +449,19 @@ window.onclick = function(event) {
     }
 }
 
-function setfont(value) {
-    setoptions('fontsel', String(value));
-    window.location.reload(); }
+function dropdownoptionsetterwithreload(o, v) {
+    setoptions(String(o), String(v));
+    window.location.reload();
+}
+
+function dropdownoptionsetter(b, t, o, v) {
+    document.getElementById(b).textContent=String(t);
+    setoptions(String(o), String(v));
+}
+
+function dropdownbuttonsetter(b, v) {
+    document.getElementById(b).textContent=String(v);
+}
 
 //
 // info
