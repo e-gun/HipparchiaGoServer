@@ -161,10 +161,6 @@ func RtEmbHCSS(c echo.Context) error {
 	if slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), lnch.Config.Font) {
 		fsub = ""
 		sdf = ""
-	} else {
-		// allow the UI font selector
-		fsub = s.FontSel
-		Msg.WARN(fsub)
 	}
 
 	j, e := efs.ReadFile(ECSS)
@@ -194,12 +190,12 @@ func RtEmbHCSS(c echo.Context) error {
 	css := b.String()
 
 	// if the font is not being served, then replace font names with explicit style directives
-	if !slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), fsub) {
+	if !slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), s.FontSel) {
 		css = cssmanualfontstyling(css)
 	}
 
 	// if the font is being served, but it is relatively hollow when it comes to styles, patch things
-	if slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), fsub) {
+	if slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), s.FontSel) {
 		f := vv.ServableFonts[fsub]
 		if len(f.NeedsManualStyle) != 0 {
 			css = fleshoutcss(f, css)
@@ -331,15 +327,15 @@ func cssmanualfontstyling(css string) string {
 	// swap out: "font-family: 'hipparchiabolditalicstatic', sans-serif;" for explicit style directives
 	outtmpl := "font-family: '%s', sans-serif;"
 	intempl := "font-family: %s;\n\tfont-weight: %s;\n\tfont-style: %s;\n\tfont-stretch: %s;"
-	for n, fs := range cssswaps {
-		i := fmt.Sprintf(intempl, fs.familiy, fs.weight, fs.style, fs.stretch)
+	for n, sw := range cssswaps {
+		i := fmt.Sprintf(intempl, sw.familiy, sw.weight, sw.style, sw.stretch)
 		o := fmt.Sprintf(outtmpl, n)
 		css = strings.ReplaceAll(css, o, i)
 	}
 
 	// the above will have missed hipparchiamonostatic
-	fs := cssswaps["hipparchiamonostatic"]
-	i := fmt.Sprintf(intempl, fs.familiy, fs.weight, fs.style, fs.stretch)
+	fswap := cssswaps["hipparchiamonostatic"]
+	i := fmt.Sprintf(intempl, fswap.familiy, fswap.weight, fswap.style, fswap.stretch)
 	o := fmt.Sprintf("font-family: '%s', monospace;", "hipparchiamonostatic")
 	css = strings.ReplaceAll(css, o, i)
 

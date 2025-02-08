@@ -7,7 +7,7 @@
     <script src="/emb/echarts/echarts.min.js"></script>
     <script src="/emb/echarts/echarts-gl.min.js"></script>
     <title>Hipparchia</title>
-    <link rel=stylesheet type=text/css href="/emb/css/hipparchiastyles.css?t=000">
+    <link rel=stylesheet type=text/css href="/emb/css/hipparchiastyles.css">
     <link rel=stylesheet type=text/css href="/emb/jq/jquery-ui.css">
 </head>
 <body>
@@ -156,6 +156,13 @@
         <label for="darkmode_off">light
             <input name="darkmode" id="darkmode_off" value="no" type="radio"></label>
     </p>
+
+    <div class="dropdown">
+        <button onclick="dropdowndisplay()" class="dropbtn">Display Font</button>
+        <div id="displayfont" class="dropdown-content">
+            {{index . "fontdropdown"}}
+        </div>
+    </div>
 
 </div>
 

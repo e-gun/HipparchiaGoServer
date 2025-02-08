@@ -101,12 +101,14 @@ func RtSessionGetCookie(c echo.Context) error {
 
 // RtResetSession - delete and then reset the session
 func RtResetSession(c echo.Context) error {
-	id := vlt.ReadUUIDCookie(c)
 
-	vlt.AllSessions.Delete(id)
+	user := vlt.ReadUUIDCookie(c)
+	oldsess := vlt.AllSessions.GetSess(user)
+
+	vlt.AllSessions.Delete(user)
 
 	// cancel any searches in progress: you are about to do a .CancelFnc()
-	vlt.WSInfo.Reset <- id
+	vlt.WSInfo.Reset <- user
 
 	// [a] two-part searches are not canceled yet; and the incomplete results will be handed to the next function
 	// canceling the subsequent parts happens via SSBuildQueries()
@@ -119,7 +121,14 @@ func RtResetSession(c echo.Context) error {
 
 	// reset the user ID and session
 	newid := vlt.WriteUUIDCookie(c)
-	vlt.AllSessions.InsertSess(vlt.MakeDefaultSession(newid))
+	newsess := vlt.AllSessions.GetSess(newid)
+
+	// let's retain font and color info...
+	newsess.FontSel = oldsess.FontSel
+	newsess.ZapLunates = oldsess.ZapLunates
+	newsess.DarkMode = oldsess.DarkMode
+
+	vlt.AllSessions.InsertSess(newsess)
 
 	e := c.Redirect(http.StatusFound, "/")
 	Msg.EC(e)

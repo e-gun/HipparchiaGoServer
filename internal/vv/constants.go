@@ -62,7 +62,7 @@ const (
 	MAXINPUTLEN              = 64
 	MAXLEMMACHUNKSIZE        = 25
 	MAXLINESHITCONTEXT       = 30
-	MAXSEARCHINFOLISTLEN     = 100
+	MAXSEARCHINFOLISTLEN     = 125
 	MAXSEARCHPERIPADDR       = 2
 	MAXSEARCHTOTAL           = 4     // note that vectors and two-part searches generate subsearches and kick your total active search count over the number of "clicked" searches from RtSearch()
 	MAXTEXTLINEGENERATION    = 40000 // euripides is 33517 lines, sophocles is 15729, cicero is 149570, e.g.; jQuery slows exponentially as lines increase

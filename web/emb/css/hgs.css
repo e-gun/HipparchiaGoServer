@@ -494,8 +494,8 @@ body {
 }
 
 .foundlocus:hover{
-	border-bottom: 1px dotted black;
-	border-top: 1px dotted black;
+	border-bottom: 1px dotted var(--black);
+	border-top: 1px dotted var(--black);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
@@ -828,7 +828,7 @@ body {
 .match, .proximate {
 	color: var(--red);
 	font-weight: normal;
-	border: 1px dotted black;
+	border: 1px dotted var(--black);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
@@ -866,7 +866,7 @@ body {
 }
 
 .outline {
-	border: 1px dotted black;
+	border: 1px dotted var(--black);
 }
 
 .overline {
@@ -1227,7 +1227,7 @@ body {
 
 #authorholdings {
 	background-color: var(--offwhite);
-	border: 1px dotted black;
+	border: 1px dotted var(--black);
 	width: 50%;
 	margin: auto;
 }
@@ -1386,7 +1386,7 @@ body {
 	padding-left: 20px;
 	padding-right: 20px;
 	background-color: var(--offwhite);
-	border: 1px dotted black;
+	border: 1px dotted var(--black);
 	width: 50%;
 	margin: auto;
 }
@@ -1453,8 +1453,8 @@ a.lex, a.nounderline {
 }
 
 a.lex:hover, a.nounderline:hover {
-	border-bottom: 1px dotted black;
-	border-top: 1px dotted black;
+	border-bottom: 1px dotted var(--black);
+	border-top: 1px dotted var(--black);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
@@ -1465,8 +1465,8 @@ bibl {
 }
 
 bibl:hover{
-	border-bottom: 1px dotted black;
-	border-top: 1px dotted black;
+	border-bottom: 1px dotted var(--black);
+	border-top: 1px dotted var(--black);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
@@ -1529,8 +1529,8 @@ dictionaryentry{
 }
 
 dictionaryentry:hover{
-	border-bottom: 1px dotted black;
-	border-top: 1px dotted black;
+	border-bottom: 1px dotted var(--black);
+	border-top: 1px dotted var(--black);
 	color: var(--dkbabyblue);
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	text-shadow: 1px 1px 3px var(--transparentgrey);
@@ -1567,8 +1567,8 @@ formsummary{
 }
 
 formsummary:hover{
-	border-bottom: 1px dotted black;
-	border-top: 1px dotted black;
+	border-bottom: 1px dotted var(--black);
+	border-top: 1px dotted var(--black);
 	color: var(--dkbabyblue);
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	text-shadow: 1px 1px 3px var(--transparentgrey);
@@ -1592,15 +1592,15 @@ hr {
 }
 
 indexedlocation:hover{
-	border-bottom: 1px dotted black;
-	border-top: 1px dotted black;
+	border-bottom: 1px dotted var(--black);
+	border-top: 1px dotted var(--black);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
 indexobserved:hover{
-	border-bottom: 1px dotted black;
-	border-top: 1px dotted black;
+	border-bottom: 1px dotted var(--black);
+	border-top: 1px dotted var(--black);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
@@ -1639,8 +1639,8 @@ locus {
 }
 
 observed:hover{
-	border-bottom: 1px dotted black;
-	border-top: 1px dotted black;
+	border-bottom: 1px dotted var(--black);
+	border-top: 1px dotted var(--black);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
@@ -1968,8 +1968,8 @@ ul.roman {
 }
 
 vectorheadword:hover{
-	border-bottom: 1px dotted black;
-	border-top: 1px dotted black;
+	border-bottom: 1px dotted var(--black);
+	border-top: 1px dotted var(--black);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
@@ -1979,15 +1979,15 @@ unclickablebibl {
 }
 
 verbform:hover{
-	border-bottom: 1px dotted black;
-	border-top: 1px dotted black;
+	border-bottom: 1px dotted var(--black);
+	border-top: 1px dotted var(--black);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
 vocabobserved:hover{
-	border-bottom: 1px dotted black;
-	border-top: 1px dotted black;
+	border-bottom: 1px dotted var(--black);
+	border-top: 1px dotted var(--black);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
@@ -1997,8 +1997,8 @@ lemmatizable {
 }
 
 lemmatizable:hover{
-	border-bottom: 1px dotted black;
-	border-top: 1px dotted black;
+	border-bottom: 1px dotted var(--black);
+	border-top: 1px dotted var(--black);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
@@ -2008,9 +2008,59 @@ dictionaryidsearch {
 }
 
 dictionaryidsearch:hover{
-	border-bottom: 1px dotted black;
-	border-top: 1px dotted black;
+	border-bottom: 1px dotted var(--black);
+	border-top: 1px dotted var(--black);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
+/* Dropdown Button */
+.dropbtn {
+	background-color: #3498DB;
+	color: white;
+	padding: 16px;
+	font-size: 16px;
+	border: none;
+	cursor: pointer;
+}
+
+/* Dropdown button on hover & focus */
+.dropbtn:hover, .dropbtn:focus {
+	background-color: #2980B9;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+	position: relative;
+	display: inline-block;
+	border-top: 1px dotted var(--dkgrey);
+	font-size: 70%;
+	font-family: 'hipparchiasemiboldstatic', sans-serif;
+	padding-left: 5px;
+	padding-right: 10px;
+	margin: 3px;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+	display: none;
+	position: absolute;
+	background-color: #f1f1f1;
+	min-width: 160px;
+	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+	z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+	color: black;
+	padding: 12px 16px;
+	text-decoration: none;
+	display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #ddd;}
+
+/* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
+.show {display:block;}

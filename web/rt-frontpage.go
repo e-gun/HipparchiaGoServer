@@ -119,7 +119,8 @@ func RtFrontpage(c echo.Context) error {
 		"resultcontext": s.HitContext,
 		"browsecontext": s.BrowseCtx,
 		"proxval":       s.Proximity,
-		"fontoptions":   fontoptionshtml()}
+		"fontoptions":   fontoptionshtml(),
+		"fontdropdown":  fontdropdownhtml()}
 
 	f, e := efs.ReadFile("emb/frontpage.html")
 	Msg.EC(e)
@@ -146,6 +147,22 @@ func fontoptionshtml() string {
 
 	for _, k := range kff {
 		known = append(known, fmt.Sprintf(FO, k, k))
+	}
+	return strings.Join(known, "\n")
+}
+
+func fontdropdownhtml() string {
+	const (
+		FO = "\t\t\t<a id=\"fontsel_%s\" onclick=\"setfont('%s')\" href=\"#\">%s</a>"
+	)
+
+	kff := gen.StringMapKeysIntoSlice(vv.ServableFonts)
+	sort.Strings(kff)
+
+	var known []string
+
+	for _, k := range kff {
+		known = append(known, fmt.Sprintf(FO, k, k, k))
 	}
 	return strings.Join(known, "\n")
 }
