@@ -113,7 +113,7 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	start := time.Now()
-	se := vlt.AllSessions.GetSess(user)
+	s := vlt.AllSessions.GetSess(user)
 
 	id := c.Param("id")
 	id = gen.Purgechars(lnch.Config.BadChars, id)
@@ -211,7 +211,7 @@ func RtVocabMaker(c echo.Context) error {
 	}
 
 	scansion := make(map[string]string)
-	if se.VocScansion {
+	if s.VocScansion {
 		scansion = db.ArrayToGetScansion(gen.StringMapKeysIntoSlice(vit))
 	}
 
@@ -257,7 +257,7 @@ func RtVocabMaker(c echo.Context) error {
 	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{id, MSG3}
 
 	// [f2] sort the results
-	if se.VocByCount {
+	if s.VocByCount {
 		countDecreasing := func(one, two *str.VocInfo) bool {
 			return one.C > two.C
 		}
@@ -274,7 +274,7 @@ func RtVocabMaker(c echo.Context) error {
 	// [g] format the output
 
 	headtempl := THH
-	if se.VocScansion {
+	if s.VocScansion {
 		headtempl = THHS
 	}
 
@@ -282,7 +282,7 @@ func RtVocabMaker(c echo.Context) error {
 	trr[0] = headtempl
 	for i, v := range vis {
 		var nt string
-		if se.VocScansion {
+		if s.VocScansion {
 			nt = fmt.Sprintf(TRRS, v.Word, v.Word, v.Metr, v.C, v.TR)
 		} else {
 			nt = fmt.Sprintf(TRR, v.Word, v.Word, v.C, v.TR)
@@ -334,7 +334,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	sum := fmt.Sprintf(SUMM, an, wn, cit, wf, u, uw, el, cp, ky)
 
-	if lnch.Config.ZapLunates {
+	if s.ZapLunates {
 		htm = gen.DeLunate(htm)
 	}
 

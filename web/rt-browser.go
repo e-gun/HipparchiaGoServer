@@ -91,7 +91,7 @@ func RtBrowseLine(c echo.Context) error {
 		ln, e := strconv.Atoi(elem[2])
 		Msg.EC(e)
 		ctx := s.BrowseCtx
-		bp := generatebrowsedpassage(au, wk, ln, ctx)
+		bp := generatebrowsedpassage(au, wk, ln, ctx, s.ZapLunates)
 		return jsonresponse(c, bp)
 	} else {
 		Msg.FYI(fmt.Sprintf(FAIL, locus))
@@ -139,7 +139,7 @@ func browse(c echo.Context, sep string) browsedpassage {
 		ln := findendpointsfromlocus(uid, elem[2], sep)
 		ctx := s.BrowseCtx
 
-		return generatebrowsedpassage(au, wk, ln[0], ctx)
+		return generatebrowsedpassage(au, wk, ln[0], ctx, s.ZapLunates)
 	} else {
 		Msg.FYI(fmt.Sprintf(FAIL, locus))
 		return browsedpassage{}
@@ -147,7 +147,7 @@ func browse(c echo.Context, sep string) browsedpassage {
 }
 
 // generatebrowsedpassage - browse Author A at line X with a context of Y lines
-func generatebrowsedpassage(au string, wk string, fc int, ctx int) browsedpassage {
+func generatebrowsedpassage(au string, wk string, fc int, ctx int, zaplunates bool) browsedpassage {
 	// build a response to "GET /browse/index/gr0062/028/14672 HTTP/1.1"
 
 	const (
@@ -209,7 +209,7 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int) browsedpassag
 	// [c] acquire and format the HTML
 
 	ci := formatbrowsercitationinfo(wlb.FirstLine(), wlb.Lines[wlb.Len()-1])
-	tr := buildbrowsertable(fc, wlb.Lines)
+	tr := buildbrowsertable(fc, wlb.Lines, zaplunates)
 
 	// [d] fill out the JSON-ready struct
 	p := fc - ctx
@@ -362,7 +362,7 @@ func basiccitation(l str.DbWorkline) string {
 }
 
 // buildbrowsertable - where the actual HTML gets generated; this table is better for cut-and-paste...
-func buildbrowsertable(focus int, lines []str.DbWorkline) string {
+func buildbrowsertable(focus int, lines []str.DbWorkline, zaplunates bool) string {
 	const (
 		OBSREGTEMPL = "(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)" + vv.TERMINATIONS
 		UIDDIV      = `<div id="browsertableuid" uid="%s"></div>`
@@ -512,7 +512,7 @@ func buildbrowsertable(focus int, lines []str.DbWorkline) string {
 
 	tab = top + tab + `</tbody></table>`
 
-	if lnch.Config.ZapLunates {
+	if zaplunates {
 		tab = gen.DeLunate(tab)
 		// overshot in DeLunate...: ς’ for σ’
 		tab = strings.Replace(tab, "id=\"σ\">ς</observed>’ ", "id=\"σ\">σ</observed>’ ", -1)

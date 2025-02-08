@@ -1153,7 +1153,16 @@ body {
 	clip: rect(1px, 1px, 1px, 1px);
 }
 
-.ui-autocomplete, .ui-autocomplete-input, .ui-autocomplete-loading, .ui-menu, .ui-menu-item {
+/* for styling jquery 'select' menus:  https://stackoverflow.com/questions/41570175/how-set-individual-styles-css-for-option-in-selectmenu-jquery-ui-selectmenu */
+
+.ui-menu, .ui-menu-item {
+	font-family: 'hipparchiasemicondensedstatic', sans-serif;
+	font-size: 80%;
+	background-color: var(--main-body-color);
+	color: var(--main-font-color);
+}
+
+.ui-autocomplete, .ui-autocomplete-input, .ui-autocomplete-loading {
 	font-family: 'hipparchiasemicondensedstatic', sans-serif;
 	font-size: 80%;
 }
@@ -1470,12 +1479,12 @@ browser {
 button {
 	background: var(--buttoncolor);
 	color: var(--main-font-color);
-	box-shadow: 1px 1px 1px var(--transparentgrey);
 	border: var(--black);
 	-webkit-border-radius: 1px;
 	-moz-border-radius: 1px;
-	border-radius: 2px;
+	border-radius: 1px;
 	text-align: center;
+	box-shadow: 1px 1px 1px var(--transparentgrey);
 	padding: 5px 4px 4px 5px; /* the box shadow creates the illusion of mis-centering for button icons */
 	margin-bottom: 1px; /* line height for the buttons needs to match the input boxes; box shadow tweak... */
 }
@@ -1606,7 +1615,7 @@ input[type="text"] {
 	font-size: 85%;
 	/* font-family: inherit; */
 	font-family: 'hipparchiasemicondensedstatic', sans-serif;
-	border: 1px solid var(--icons-color);
+	border: 1px solid var(--input-border-color);
 	background-color: var(--main-body-color);
 	color: var(--main-font-color);
 }
@@ -1921,23 +1930,6 @@ tr.spacing {
 transl {
 	padding-right: 20px;
 }
-
-
-/* for styling jquery 'select' menus:  https://stackoverflow.com/questions/41570175/how-set-individual-styles-css-for-option-in-selectmenu-jquery-ui-selectmenu */
-
-.ui-menu-item {
-	background-color: var(--main-body-color);
-	color: var(--main-font-color);
-}
-
-
-/*
-.ui-menu {
-	background-color: var(--main-body-color);
-	color: var(--main-font-color);
-}
-*/
-
 
 ul {
 	list-style-type: none;

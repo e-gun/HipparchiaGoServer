@@ -48,6 +48,7 @@ func RtSearch(c echo.Context) error {
 	)
 
 	user := vlt.ReadUUIDCookie(c)
+	s := vlt.AllSessions.GetSess(user)
 
 	// [A] ARE WE GOING TO DO THIS AT ALL?
 
@@ -129,7 +130,7 @@ func RtSearch(c echo.Context) error {
 		soj = search.FormatWithContextResults(&completed)
 	}
 
-	if lnch.Config.ZapLunates {
+	if s.ZapLunates {
 		soj.Title = gen.DeLunate(soj.Title)
 		soj.Found = gen.DeLunate(soj.Found)
 		// overshot in DeLunate...: ς’ for σ’

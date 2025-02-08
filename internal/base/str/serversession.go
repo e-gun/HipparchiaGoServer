@@ -15,6 +15,7 @@ type ServerSession struct {
 	Exclusions   SearchIncExl
 	ActiveCorp   map[string]bool
 	DarkMode     bool   `json:"darkmode"`
+	FontSel      string `json:"fontsel"`
 	VariaOK      bool   `json:"varia"`
 	IncertaOK    bool   `json:"incerta"`
 	SpuriaOK     bool   `json:"spuria"`
@@ -46,4 +47,5 @@ type ServerSession struct {
 	LDAgraph     bool
 	LDAtopics    int
 	LDA2D        bool
+	ZapLunates   bool
 }

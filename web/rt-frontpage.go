@@ -118,7 +118,8 @@ func RtFrontpage(c echo.Context) error {
 		"user":          "Anonymous",
 		"resultcontext": s.HitContext,
 		"browsecontext": s.BrowseCtx,
-		"proxval":       s.Proximity}
+		"proxval":       s.Proximity,
+		"fontoptions":   fontoptionshtml()}
 
 	f, e := efs.ReadFile("emb/frontpage.html")
 	Msg.EC(e)
@@ -131,4 +132,20 @@ func RtFrontpage(c echo.Context) error {
 	Msg.EC(err)
 
 	return c.HTML(http.StatusOK, b.String())
+}
+
+func fontoptionshtml() string {
+	const (
+		FO = "\t\t\t<option value=\"%s\">%s</option>"
+	)
+
+	kff := gen.StringMapKeysIntoSlice(vv.ServableFonts)
+	sort.Strings(kff)
+
+	var known []string
+
+	for _, k := range kff {
+		known = append(known, fmt.Sprintf(FO, k, k))
+	}
+	return strings.Join(known, "\n")
 }

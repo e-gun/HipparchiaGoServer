@@ -47,6 +47,8 @@ func MakeDefaultSession(id string) str.ServerSession {
 	s.VecLDASearch = false
 	s.LDA2D = true
 	s.DarkMode = lnch.Config.DarkMode
+	s.FontSel = lnch.Config.Font
+	s.ZapLunates = lnch.Config.ZapLunates
 
 	if lnch.Config.Authenticate {
 		AllAuthorized.Register(id, false)

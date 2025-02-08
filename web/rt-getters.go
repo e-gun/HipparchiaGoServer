@@ -45,6 +45,7 @@ func RtGetJSSession(c echo.Context) error {
 		Christiancorpus   string `json:"christiancorpus"`
 		DarkMode          string `json:"darkmode"`
 		Earliestdate      string `json:"earliestdate"`
+		FontSelected      string `json:"fontsel"`
 		Greekcorpus       string `json:"greekcorpus"`
 		Headwordindexing  string `json:"headwordindexing"`
 		Incerta           string `json:"incerta"`
@@ -91,6 +92,7 @@ func RtGetJSSession(c echo.Context) error {
 	jso.Christiancorpus = t2y(s.ActiveCorp["ch"])
 	jso.DarkMode = t2y(s.DarkMode)
 	jso.Earliestdate = s.Earliest
+	jso.FontSelected = s.FontSel
 	jso.Greekcorpus = t2y(s.ActiveCorp["gr"])
 	jso.Headwordindexing = t2y(s.HeadwordIdx)
 	jso.Incerta = t2y(s.IncertaOK)

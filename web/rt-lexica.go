@@ -46,6 +46,7 @@ func RtLexLookup(c echo.Context) error {
 	if !vlt.AllAuthorized.Check(user) {
 		return jsonresponse(c, jsb{JS: vv.JSVALIDATION})
 	}
+	s := vlt.AllSessions.GetSess(user)
 
 	req := c.Param("wd")
 	seeking := gen.Purgechars(lnch.Config.BadChars, req)
@@ -72,7 +73,7 @@ func RtLexLookup(c echo.Context) error {
 		seeking = terminalspace.ReplaceAllString(seeking, "") + "$"
 	}
 
-	html := dictsearch(seeking, dict)
+	html := dictsearch(seeking, dict, s.ZapLunates)
 
 	var jb jsb
 	jb.HTML = html
@@ -88,6 +89,7 @@ func RtLexFindByForm(c echo.Context) error {
 	if !vlt.AllAuthorized.Check(user) {
 		return jsonresponse(c, jsb{JS: vv.JSVALIDATION})
 	}
+	s := vlt.AllSessions.GetSess(user)
 	c.Response().After(func() { vlt.LogPaths("RtLexFindByForm()") })
 
 	req := c.Param("wd")
@@ -112,7 +114,7 @@ func RtLexFindByForm(c echo.Context) error {
 	word = gen.SwapAcuteForGrave(word)
 	word = gen.UVσςϲ(word)
 
-	html := findbyform(word, au)
+	html := findbyform(word, au, s.ZapLunates)
 	js := insertlexicaljs()
 
 	var jb jsb
@@ -209,7 +211,7 @@ func RtLexReverse(c echo.Context) error {
 //
 
 // findbyform - observed word into HTML dictionary entry
-func findbyform(word string, author string) string {
+func findbyform(word string, author string, zaplunates bool) string {
 	const (
 		SRCH = `<bibl id="perseus/%s/`
 		REPL = `<bibl class="flagged" id="perseus/%s/`
@@ -263,7 +265,7 @@ func findbyform(word string, author string) string {
 	html := allformpd + parsing + entries
 
 	// [h] conditionally rewrite the html
-	if lnch.Config.ZapLunates {
+	if zaplunates {
 		html = gen.DeLunate(html)
 	}
 
@@ -338,7 +340,7 @@ func reversefind(word string, dicts []string) string {
 }
 
 // dictsearch - word into HTML dictionary entry
-func dictsearch(seeking string, dict string) string {
+func dictsearch(seeking string, dict string, zaplunates bool) string {
 	// this is pretty slow if you do 100 entries... so run it in parallel
 
 	const (
@@ -395,7 +397,7 @@ func dictsearch(seeking string, dict string) string {
 		html = "(nothing found)"
 	}
 
-	if lnch.Config.ZapLunates {
+	if zaplunates {
 		html = gen.DeLunate(html)
 	}
 

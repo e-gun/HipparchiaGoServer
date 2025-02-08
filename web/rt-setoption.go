@@ -7,6 +7,8 @@ package web
 
 import (
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -245,6 +247,20 @@ func RtSetOption(c echo.Context) error {
 				s.Earliest = s.Latest
 			}
 		}
+	}
+
+	fontoptionlist := gen.StringMapKeysIntoSlice(vv.ServableFonts)
+	if slices.Contains(fontoptionlist, val) {
+		s.FontSel = val
+		f := vv.ServableFonts[val]
+		if !f.HasLunateSigma {
+			s.ZapLunates = true
+		} else {
+			s.ZapLunates = lnch.Config.ZapLunates
+		}
+	} else {
+		Msg.WARN(fmt.Sprintf("RtSetOption(): Font not found for '%s'", val))
+		return c.String(http.StatusNotFound, "")
 	}
 
 	vlt.AllSessions.InsertSess(s)

@@ -53,6 +53,7 @@ const (
 	LIGHTCOLORS = `
 	--main-body-color: hsla(0, 0%, 98%, 1);
 	--main-font-color: hsla(0, 0%, 6%, 1);
+    --input-border-color: hsla(0, 0%, 92%, 1);
 
 	--buttoncolor: hsla(0, 0%, 93%, 1);
 	--button-hover: hsla(0, 0%, 90%, 1);
@@ -96,6 +97,7 @@ const (
 	DARKCOLORS = `
 	--main-body-color: hsla(0, 0%, 8%, 1);
 	--main-font-color: hsla(0, 0%, 95%, 1);
+    --input-border-color: hsla(0, 0%, 16%, 1);
 
 	--buttoncolor: hsla(0, 0%, 20%, 1);
 	--button-hover: hsla(0, 0%, 10%, 1);
@@ -155,9 +157,14 @@ func RtEmbHCSS(c echo.Context) error {
 	sdf := "var(--systemdefaultfont), "
 
 	// if the font is being served, then blank out "--systemdefaultfont" and get ready to map the font files into the CSS
+	// note that that option will nullify the UI font selection
 	if slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), lnch.Config.Font) {
 		fsub = ""
 		sdf = ""
+	} else {
+		// allow the UI font selector
+		fsub = s.FontSel
+		Msg.WARN(fsub)
 	}
 
 	j, e := efs.ReadFile(ECSS)
@@ -173,7 +180,7 @@ func RtEmbHCSS(c echo.Context) error {
 	subs := map[string]interface{}{
 		"fontname":     fsub,
 		"sdf":          sdf,
-		"fontfaceinfo": cssfontfacedirectives(lnch.Config.Font),
+		"fontfaceinfo": cssfontfacedirectives(s.FontSel),
 		"colorinfo":    colors,
 	}
 
@@ -187,13 +194,13 @@ func RtEmbHCSS(c echo.Context) error {
 	css := b.String()
 
 	// if the font is not being served, then replace font names with explicit style directives
-	if !slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), lnch.Config.Font) {
+	if !slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), fsub) {
 		css = cssmanualfontstyling(css)
 	}
 
 	// if the font is being served, but it is relatively hollow when it comes to styles, patch things
-	if slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), lnch.Config.Font) {
-		f := vv.ServableFonts[lnch.Config.Font]
+	if slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), fsub) {
+		f := vv.ServableFonts[fsub]
 		if len(f.NeedsManualStyle) != 0 {
 			css = fleshoutcss(f, css)
 		}

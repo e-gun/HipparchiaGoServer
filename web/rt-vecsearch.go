@@ -143,7 +143,7 @@ func RtNeighborsSearch(c echo.Context, srch str.SearchStruct) error {
 	)
 
 	c.Response().After(func() { vlt.LogPaths("RtNeighborsSearch()") })
-	sess := srch.StoredSession
+	s := srch.StoredSession
 
 	term := srch.LemmaOne
 	if term == "" {
@@ -157,10 +157,10 @@ func RtNeighborsSearch(c echo.Context, srch str.SearchStruct) error {
 	srch.LemmaOne = term
 
 	nn := vec.GenerateNeighborsData(c, srch)
-	set := fmt.Sprintf(SETTINGS, sess.VecModeler, sess.VecTextPrep)
+	set := fmt.Sprintf(SETTINGS, s.VecModeler, s.VecTextPrep)
 
 	// [a] prepare the image output
-	io := search.InclusionOverview(&srch, sess.Inclusions)
+	io := search.InclusionOverview(&srch, s.Inclusions)
 	blank := vec.BuildBlankNNGraph(set, term, io)
 	graph := vec.FormatNNGraph(c, blank, term, nn)
 	img := vec.CustomNNGraphHTMLandJS(graph)
@@ -174,7 +174,7 @@ func RtNeighborsSearch(c echo.Context, srch str.SearchStruct) error {
 	half := len(neighbors) / 2
 	for i, n := range neighbors {
 		show := n.Word
-		if lnch.Config.ZapLunates {
+		if s.ZapLunates {
 			show = gen.DeLunate(show)
 		}
 		r := fmt.Sprintf(TABLEELEM, n.Rank, n.Similarity, n.Word, show)
@@ -194,7 +194,7 @@ func RtNeighborsSearch(c echo.Context, srch str.SearchStruct) error {
 		tablerows = append(tablerows, fmt.Sprintf(TABLEROW, rn, columnone[i], columntwo[i]))
 	}
 
-	out := fmt.Sprintf(THETABLE, term, strings.Join(tablerows, "\n"), sess.VecModeler, sess.VecTextPrep)
+	out := fmt.Sprintf(THETABLE, term, strings.Join(tablerows, "\n"), s.VecModeler, s.VecTextPrep)
 
 	soj := str.SearchOutputJSON{
 		Title:         fmt.Sprintf("Neighbors of '%s'", term),

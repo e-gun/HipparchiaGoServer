@@ -370,7 +370,8 @@ func RtIndexMaker(c echo.Context) error {
 
 	htm += oh
 
-	if lnch.Config.ZapLunates {
+	s := vlt.AllSessions.GetSess(user)
+	if s.ZapLunates {
 		htm = gen.DeLunate(htm)
 	}
 

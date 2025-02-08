@@ -10,7 +10,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
-	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
@@ -63,6 +62,7 @@ func RtMorphchart(c echo.Context) error {
 	if !vlt.AllAuthorized.Check(user) {
 		return jsonresponse(c, str.SearchOutputJSON{JS: vv.VALIDATIONBOX})
 	}
+	s := vlt.AllSessions.GetSess(user)
 
 	const (
 		CTM   = `<verbform searchterm="%s">%s</verbform> (<span class="counter">%d</span>)`
@@ -278,7 +278,7 @@ func RtMorphchart(c echo.Context) error {
 
 	jb.JS = vv.MORPHJS
 
-	if lnch.Config.ZapLunates {
+	if s.ZapLunates {
 		jb.HTML = gen.DeLunate(jb.HTML)
 	}
 

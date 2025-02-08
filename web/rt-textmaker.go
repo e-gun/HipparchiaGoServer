@@ -8,7 +8,6 @@ package web
 import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
-	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -62,7 +61,7 @@ func RtTextMaker(c echo.Context) error {
 		return c.JSONPretty(http.StatusOK, JSFeeder{JS: vv.JSVALIDATION}, vv.JSONINDENT)
 	}
 
-	sess := vlt.AllSessions.GetSess(user)
+	s := vlt.AllSessions.GetSess(user)
 	srch := search.SessionIntoBulkSearch(c, vv.MAXTEXTLINEGENERATION)
 
 	if srch.Results.Len() == 0 {
@@ -133,7 +132,7 @@ func RtTextMaker(c echo.Context) error {
 
 	// <div id="searchsummary">Cicero,&nbsp;<span class="foundwork">Philippicae</span><br><br>citation format:&nbsp;oration 3, section 13, line 1<br></div>
 
-	sui := sess.Inclusions
+	sui := s.Inclusions
 
 	au := firstauth.Shortname
 	if len(sui.Authors) > 1 || len(sui.AuGenres) > 0 || len(sui.AuLocations) > 0 {
@@ -156,7 +155,7 @@ func RtTextMaker(c echo.Context) error {
 	}
 	sum = sum + cp
 
-	if lnch.Config.ZapLunates {
+	if s.ZapLunates {
 		tab = gen.DeLunate(tab)
 		// overshot in DeLunate...: ς’ for σ’
 		tab = strings.Replace(tab, " ς’ ", " σ’ ", -1)

@@ -8,7 +8,6 @@ package web
 import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
-	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -70,6 +69,9 @@ func RtLemmaHints(c echo.Context) error {
 		MAXMSG         = "... (and %d more) ..."
 	)
 
+	user := vlt.ReadUUIDCookie(c)
+	s := vlt.AllSessions.GetSess(user)
+
 	term := c.QueryParam("term")
 	// can't slice a unicode string...
 	skg := []rune(term)
@@ -109,7 +111,7 @@ func RtLemmaHints(c echo.Context) error {
 		matches = append(matches, fmt.Sprintf(MAXMSG, diff))
 	}
 
-	if lnch.Config.ZapLunates {
+	if s.ZapLunates {
 		for i, m := range matches {
 			matches[i] = gen.DeLunate(m)
 		}

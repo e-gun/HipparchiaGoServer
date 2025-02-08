@@ -130,6 +130,8 @@ function loadoptions() {
         $('#vtextprep').val(data.vtextprep);
         $('#vtextprep').selectmenu('refresh');
 
+        $('#fontsel').val(data.fontsel);
+        $('#fontsel').selectmenu('refresh');
     });
 }
 
@@ -398,6 +400,18 @@ $(function() {
         change: function() {
             let result = $('#vtextprep').val();
             setoptions('vtextprep', String(result));
+        }
+    });
+});
+
+$('#fontsel').selectmenu({ width: 120});
+
+$(function() {
+    $('#fontsel').selectmenu({
+        change: function() {
+            let result = $('#fontsel').val();
+            setoptions('fontsel', String(result));
+            window.location.reload()
         }
     });
 });
