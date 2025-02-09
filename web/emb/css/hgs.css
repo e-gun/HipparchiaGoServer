@@ -479,7 +479,7 @@ body {
 }
 
 .flagged {
-	border-bottom: 1px dotted darkred;
+	border-bottom: 1px dotted var(--plum);
 }
 
 .focusline {
@@ -1142,35 +1142,6 @@ body {
 
 .transtree {
 	color: var(--skyblue);
-}
-
-.ui-button {
-	margin-bottom: 3px;
-}
-
-.ui-helper-hidden-accessible {
-	position: absolute !important;
-	clip: rect(1px, 1px, 1px, 1px);
-}
-
-/* for styling jquery 'select' menus:  https://stackoverflow.com/questions/41570175/how-set-individual-styles-css-for-option-in-selectmenu-jquery-ui-selectmenu */
-
-.ui-menu, .ui-menu-item {
-	font-family: 'hipparchiasemicondensedstatic', sans-serif;
-	font-size: 80%;
-	background-color: var(--main-body-color);
-	color: var(--main-font-color);
-}
-
-.ui-autocomplete, .ui-autocomplete-input, .ui-autocomplete-loading {
-	font-family: 'hipparchiasemicondensedstatic', sans-serif;
-	font-size: 80%;
-}
-
-.ui-spinner-input[type="text"] {
-	font-size: 80%;
-	font-family: 'hipparchiasemicondensedstatic', sans-serif;
-	padding: 3px;
 }
 
 .undocumentedfontshift{
@@ -2012,6 +1983,68 @@ dictionaryidsearch:hover{
 	border-top: 1px dotted var(--black);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
+
+/* https://api.jqueryui.com/theming/css-framework/  */
+
+.ui-widget, .ui-widget-header, .ui-widget-content, .ui-icon {
+	background-color: var(--main-body-color);
+	color: var(--main-font-color);
+}
+
+.ui-widget.ui-widget-content {
+	border: 1px solid var(--dkgrey);
+}
+
+.ui-widget-content {
+	border: 1px solid var(--dkgrey);
+	background: var(--main-body-color);
+	color: var(--main-font-color);
+}
+.ui-widget-content a {
+	color: var(--main-font-color);
+}
+
+.ui-widget-header {
+	border: 1px solid var(--dkgrey);
+	background: var(--dkgrey);
+	color: var(--main-font-color);
+	font-weight: bold;
+}
+.ui-widget-header a {
+	color: var(--main-font-color);
+}
+
+.ui-button {
+	margin-bottom: 3px;
+}
+
+.ui-helper-hidden-accessible {
+	position: absolute !important;
+	clip: rect(1px, 1px, 1px, 1px);
+}
+
+/* for styling jquery 'select' menus:  https://stackoverflow.com/questions/41570175/how-set-individual-styles-css-for-option-in-selectmenu-jquery-ui-selectmenu */
+
+.ui-menu, .ui-menu-item {
+	font-family: 'hipparchiasemicondensedstatic', sans-serif;
+	font-size: 80%;
+	background-color: var(--main-body-color);
+	color: var(--main-font-color);
+}
+
+.ui-autocomplete, .ui-autocomplete-input, .ui-autocomplete-loading {
+	font-family: 'hipparchiasemicondensedstatic', sans-serif;
+	font-size: 80%;
+}
+
+.ui-spinner-input[type="text"] {
+	font-size: 80%;
+	font-family: 'hipparchiasemicondensedstatic', sans-serif;
+	background-color: var(--main-body-color);
+	color: var(--main-font-color);
+	padding: 2px;
 }
 
 /* The container <div> - needed to position the dropdown content */

@@ -118,21 +118,6 @@ function loadoptions() {
             setspinnervalues[key].spinner('value', data[key]);
         });
 
-        $('#sortresults').val(data.sortorder);
-        $('#sortresults').selectmenu('refresh');
-
-        $('#fontchoice').val(data.fontchoice);
-        $('#fontchoice').selectmenu('refresh');
-
-        $('#modeler').val(data.vecmodeler);
-        $('#modeler').selectmenu('refresh');
-
-        $('#vtextprep').val(data.vtextprep);
-        $('#vtextprep').selectmenu('refresh');
-
-        $('#fontsel').val(data.fontsel);
-        $('#fontsel').selectmenu('refresh');
-
         dropdownbuttonsetter('vecddbutton', '⇣ '+vtpdecoder[data.vtextprep]);
         dropdownbuttonsetter('fontddbutton', '⇣ '+data.fontsel);
         dropdownbuttonsetter('nnmodelbutton', '⇣ '+nnsdecoder[data.vecmodeler]);
@@ -362,76 +347,9 @@ function lexsrch() {
     });
 }
 
-///
-/// selectmenu
-///
 //
-// $('#sortresults').selectmenu({ width: 120});
+// DROPDOWNS
 //
-// $(function() {
-//         $('#sortresults').selectmenu({
-//             change: function() {
-//                 let result = $('#sortresults').val();
-//                 setoptions('sortorder', String(result));
-//             }
-//         });
-// });
-//
-//
-// $('#fontchoice').selectmenu({ width: 120});
-// $(function() {
-//         $('#fontchoice').selectmenu({
-//             change: function() {
-//                 let result = $('#fontchoice').val();
-//                 setoptions('fontchoice', String(result));
-//                 window.location.reload();
-//             }
-//         });
-// });
-//
-// $('#modeler').selectmenu({ width: 120});
-//
-// $(function() {
-//     $('#modeler').selectmenu({
-//         change: function() {
-//             let result = $('#modeler').val();
-//             setoptions('modeler', String(result));
-//         }
-//     });
-// });
-//
-// $('#vtextprep').selectmenu({ width: 120});
-//
-// $(function() {
-//     $('#vtextprep').selectmenu({
-//         change: function() {
-//             let result = $('#vtextprep').val();
-//             setoptions('vtextprep', String(result));
-//         }
-//     });
-// });
-//
-// $('#fontsel').selectmenu({ width: 120});
-//
-// $(function() {
-//     $('#fontsel').selectmenu({
-//         change: function() {
-//             let result = $('#fontsel').val();
-//             setoptions('fontsel', String(result));
-//             window.location.reload()
-//         }
-//     });
-// });
-
-// const sortbutton = document.getElementById('sortbutton');
-// sortbutton.addEventListener('click', function handleClick() {
-//     sortdropdowndisplay();
-// });
-//
-// const sortbuttontext = document.getElementById('sortbuttontext');
-// sortbutton.addEventListener('click', function handleClick() {
-//     sortdropdowndisplay();
-// });
 
 function fontdropdowndisplay() {
     document.getElementById("displayfont").classList.toggle("show");

@@ -108,10 +108,10 @@ const (
 	--icons-color: rgba(255, 255, 255, 0.54);
 
 	--black: hsla(0, 0%, 95%, 1);
-	--blue: hsla(64, 75%, 84%, 1);  /* yellow... */
+	--blue: hsl(167, 35%, 77%);  /* pea green... */
 	--brown: hsla(22, 22%, 74%, 1);
 	--brtblue: hsla(236, 44%, 85%, 1);
-	--copper: hsla(11, 53%, 88%);
+	--copper: hsla(11, 53%, 83%);
 	--deepblue: hsla(64, 88%, 84%, 1);  /* yellow... */
 	--dkbabyblue:  hsla(64, 52%, 84%, 1);  /* yellow... */
 	--dkgreen: hsla(120, 80%, 80%, 1);
@@ -125,14 +125,15 @@ const (
     --ltgrey2: hsl(206, 7%, 11%);
 	--midgrey: hsla(0, 0%, 53%, 1);
 	--offwhite: hsla(0, 0%, 1%, 1);
-	--orange: hsla(47, 100%, 70%, 1);
+	--orange: hsla(47, 100%, 75%, 1);
 	--pink: hsla(0, 33%, 15%, 1);
 	--pinker: hsl(0, 73%, 20%);
-	--plum: hsla(291, 15%, 62%);
+	--plum: hsla(291, 15%, 72%);
 	--pukegreen: hsl(71, 95%, 78%);
-	--red: hsla(346, 77%, 84%, 1);
+	--red: hsl(258, 35%, 83%); /* lt purple... */
+	--dkgreen: hsla(120, 80%, 80%, 1);
 	--rustedorange: hsla(23, 37%, 71%, 1);
-	--sicklyyellow: hsl(45, 16%, 57%);
+	--sicklyyellow: hsl(45, 16%, 67%);
 	--skyblue: hsla(205, 92%, 73%, 1);
 	--teal: hsla(196, 14%, 71%, 1);
 	--transparentgrey: hsla(0, 0%, 23%, .8);

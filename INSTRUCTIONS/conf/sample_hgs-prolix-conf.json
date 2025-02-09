@@ -4,6 +4,7 @@
   "BlackAndWhite": false,
   "BrowserCtx": 14,
   "CustomCSS": false,
+  "DarkMode": false,
   "DbDebug": false,
   "DefCorp": {
     "ch": false,
@@ -53,6 +54,6 @@
   "VectorWebExt": false,
   "VocabByCt": false,
   "VocabScans": false,
-  "WorkerCount": 20,
+  "WorkerCount": 8,
   "ZapLunates": false
 }

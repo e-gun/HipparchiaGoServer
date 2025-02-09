@@ -1,4 +1,4 @@
-## HipparchiaGoServer v1.3.8
+## HipparchiaGoServer v1.4.0
 
 ### FEATURES
 
@@ -19,6 +19,7 @@
 * morphology tables
 * embedded help files
 * variety of embedded fonts
+* light and dark modes
 * semantic vectors 
   * general
     * configurable model parameters

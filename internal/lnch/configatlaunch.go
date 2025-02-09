@@ -187,6 +187,9 @@ func ConfigAtLaunch() {
 			Config.CustomCSS = true
 		case "-db":
 			Config.DbDebug = true
+		case "-dk":
+			// toggle...
+			Config.DarkMode = !Config.DarkMode
 		case "-dv":
 			Config.VectorsDisabled = true
 		case "-ex":
