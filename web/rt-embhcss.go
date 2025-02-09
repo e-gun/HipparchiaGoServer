@@ -76,6 +76,7 @@ const (
 	--lessoffwhite: hsla(0, 0%, 98%, 1);
 	--ltbabyblue: hsla(200, 33%, 95%, 1);
 	--ltgrey: hsla(0, 0%, 90%, 1);
+    --ltgrey2: hsl(206, 7%, 81%);
 	--midgrey: hsla(0, 0%, 67%, 1);
 	--offwhite: hsla(0, 0%, 99%, 1);
 	--orange: hsla(47, 100%, 30%, 1);
@@ -95,21 +96,22 @@ const (
     --white: hsla(0, 0%, 100%, 1);`
 
 	DARKCOLORS = `
-	--main-body-color: hsla(0, 0%, 8%, 1);
+	--main-body-color: hsla(0, 0%, 10%, 1);
 	--main-font-color: hsla(0, 0%, 95%, 1);
-    --input-border-color: hsla(0, 0%, 16%, 1);
+    --input-border-color: hsla(0, 0%, 20%, 1);
 
 	--buttoncolor: hsla(0, 0%, 20%, 1);
 	--button-hover: hsla(0, 0%, 10%, 1);
+
 	--fieldset-background: hsla(0, 0%, 2%, 1);
 	--focus-shadow: rgba(0, 0, 0, 0.5);
 	--icons-color: rgba(255, 255, 255, 0.54);
 
-	--black: hsla(0, 0%, 100%, 1);
+	--black: hsla(0, 0%, 95%, 1);
 	--blue: hsla(64, 75%, 84%, 1);  /* yellow... */
 	--brown: hsla(22, 22%, 74%, 1);
 	--brtblue: hsla(236, 44%, 85%, 1);
-	--copper: hsla(11, 53%, 85%);
+	--copper: hsla(11, 53%, 88%);
 	--deepblue: hsla(64, 88%, 84%, 1);  /* yellow... */
 	--dkbabyblue:  hsla(64, 52%, 84%, 1);  /* yellow... */
 	--dkgreen: hsla(120, 80%, 80%, 1);
@@ -120,6 +122,7 @@ const (
 	--lessoffwhite: hsla(0, 0%, 2%, 1);
 	--ltbabyblue: hsla(200, 33%, 15%, 1);
 	--ltgrey: hsla(0, 0%, 20%, 1);
+    --ltgrey2: hsl(206, 7%, 11%);
 	--midgrey: hsla(0, 0%, 53%, 1);
 	--offwhite: hsla(0, 0%, 1%, 1);
 	--orange: hsla(47, 100%, 70%, 1);

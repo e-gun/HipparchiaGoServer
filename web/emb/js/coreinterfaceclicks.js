@@ -133,12 +133,16 @@ function loadoptions() {
         $('#fontsel').val(data.fontsel);
         $('#fontsel').selectmenu('refresh');
 
-        dropdownbuttonsetter('vecddbuttontext', data.vtextprep);
-        dropdownbuttonsetter('fontddbuttontext', data.fontsel);
-        dropdownbuttonsetter('nnmodelddtext', data.vecmodeler);
-        dropdownbuttonsetter('sortbuttontext', data.sortorder);
+        dropdownbuttonsetter('vecddbutton', '⇣ '+vtpdecoder[data.vtextprep]);
+        dropdownbuttonsetter('fontddbutton', '⇣ '+data.fontsel);
+        dropdownbuttonsetter('nnmodelbutton', '⇣ '+nnsdecoder[data.vecmodeler]);
+        dropdownbuttonsetter('sortbutton', '⇣ '+sortsdecoder[data.sortorder]);
     });
 }
+
+const vtpdecoder = {'winner': 'Winner takes all', 'montecarlo': 'Weighted chance', 'yoked' : 'Yoked headwords', 'unparsed': 'Unparsed'};
+const nnsdecoder = {'w2v': 'Word2Vec', 'lexvec': 'LexVec', 'glove' : 'GloVe'};
+const sortsdecoder = {'shortname': 'Name', 'converted_date': 'Date', 'provenance' : 'Work Provenance', 'universalid': 'ID Number'};
 
 // UPPER LEFT OPTIONS PANEL CLICKS
 
@@ -361,63 +365,73 @@ function lexsrch() {
 ///
 /// selectmenu
 ///
+//
+// $('#sortresults').selectmenu({ width: 120});
+//
+// $(function() {
+//         $('#sortresults').selectmenu({
+//             change: function() {
+//                 let result = $('#sortresults').val();
+//                 setoptions('sortorder', String(result));
+//             }
+//         });
+// });
+//
+//
+// $('#fontchoice').selectmenu({ width: 120});
+// $(function() {
+//         $('#fontchoice').selectmenu({
+//             change: function() {
+//                 let result = $('#fontchoice').val();
+//                 setoptions('fontchoice', String(result));
+//                 window.location.reload();
+//             }
+//         });
+// });
+//
+// $('#modeler').selectmenu({ width: 120});
+//
+// $(function() {
+//     $('#modeler').selectmenu({
+//         change: function() {
+//             let result = $('#modeler').val();
+//             setoptions('modeler', String(result));
+//         }
+//     });
+// });
+//
+// $('#vtextprep').selectmenu({ width: 120});
+//
+// $(function() {
+//     $('#vtextprep').selectmenu({
+//         change: function() {
+//             let result = $('#vtextprep').val();
+//             setoptions('vtextprep', String(result));
+//         }
+//     });
+// });
+//
+// $('#fontsel').selectmenu({ width: 120});
+//
+// $(function() {
+//     $('#fontsel').selectmenu({
+//         change: function() {
+//             let result = $('#fontsel').val();
+//             setoptions('fontsel', String(result));
+//             window.location.reload()
+//         }
+//     });
+// });
 
-$('#sortresults').selectmenu({ width: 120});
-
-$(function() {
-        $('#sortresults').selectmenu({
-            change: function() {
-                let result = $('#sortresults').val();
-                setoptions('sortorder', String(result));
-            }
-        });
-});
-
-
-$('#fontchoice').selectmenu({ width: 120});
-$(function() {
-        $('#fontchoice').selectmenu({
-            change: function() {
-                let result = $('#fontchoice').val();
-                setoptions('fontchoice', String(result));
-                window.location.reload();
-            }
-        });
-});
-
-$('#modeler').selectmenu({ width: 120});
-
-$(function() {
-    $('#modeler').selectmenu({
-        change: function() {
-            let result = $('#modeler').val();
-            setoptions('modeler', String(result));
-        }
-    });
-});
-
-$('#vtextprep').selectmenu({ width: 120});
-
-$(function() {
-    $('#vtextprep').selectmenu({
-        change: function() {
-            let result = $('#vtextprep').val();
-            setoptions('vtextprep', String(result));
-        }
-    });
-});
-
-$('#fontsel').selectmenu({ width: 120});
-
-$(function() {
-    $('#fontsel').selectmenu({
-        change: function() {
-            let result = $('#fontsel').val();
-            setoptions('fontsel', String(result));
-            window.location.reload()
-        }
-    });
-});
+// const sortbutton = document.getElementById('sortbutton');
+// sortbutton.addEventListener('click', function handleClick() {
+//     sortdropdowndisplay();
+// });
+//
+// const sortbuttontext = document.getElementById('sortbuttontext');
+// sortbutton.addEventListener('click', function handleClick() {
+//     sortdropdowndisplay();
+// });
 
 function fontdropdowndisplay() {
     document.getElementById("displayfont").classList.toggle("show");

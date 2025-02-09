@@ -70,14 +70,17 @@
     </p>
 
     <p class="optionlabel">Sort results by</p>
-    <p class="optionitem">
-        <select name="sortresults" id="sortresults" class="chosen">
-            <option value="shortname">Name</option>
-            <option value="converted_date">Date</option>
-            <option value="provenance">Work Provenance</option>
-            <option value="universalid">ID Number</option>
-        </select>
-    </p>
+    <div class="dropdown">
+        <button id="sortbutton" onclick="sortdropdowndisplay()" class="dropbtn">
+            (texttoswap)
+        </button>
+        <div id="sortdd" class="dropdown-content">
+            <a id="sort1" onclick="dropdownoptionsetter('sortbutton', 'Name', 'sortorder', 'shortname')" href="#">Name</a>
+            <a id="sort2" onclick="dropdownoptionsetter('sortbutton', 'Date', 'sortorder', 'converted_date')" href="#">Date</a>
+            <a id="sort3" onclick="dropdownoptionsetter('sortbutton', 'Work Provenance', 'sortorder', 'provenance')" href="#">Work Provenance</a>
+            <a id="sort4" onclick="dropdownoptionsetter('sortbutton', 'ID Number', 'sortorder', 'universalid')" href="#">ID Number</a>
+        </div>
+    </div>
 
     <p class="optionlabel">Lines of context in the browser window</p>
     <p class="optionitem">
@@ -105,23 +108,29 @@
     </p>
 
     <p class="optionlabel">Neighbors modeler</p>
-    <p class="optionitem">
-        <select name="modeler" id="modeler" class="chosen">
-            <option value="w2v">Word2Vec</option>
-            <option value="lexvec">LexVec</option>
-            <option value="glove">GloVe</option>
-        </select>
-    </p>
+    <div class="dropdown">
+        <button id="nnmodelbutton" onclick="nnmodeldowndisplay()" class="dropbtn">
+            (texttoswap)
+        </button>
+        <div id="nnmodeldd" class="dropdown-content">
+            <a id="nnmodel1" onclick="dropdownoptionsetter('nnmodelbutton', '⇣ Word2Vec', 'modeler', 'w2v')" href="#">Word2Vec</a>
+            <a id="nnmodel2" onclick="dropdownoptionsetter('nnmodelbutton', '⇣ LexVec', 'modeler', 'lexvec')" href="#">LexVec</a>
+            <a id="nnmodel3" onclick="dropdownoptionsetter('nnmodelbutton', '⇣ GloVe', 'modeler', 'glove')" href="#">GloVe</a>
+        </div>
+    </div>
 
     <p class="optionlabel">Vectorization text preparation</p>
-    <p class="optionitem">
-        <select name="vtextprep" id="vtextprep" class="chosen">
-            <option value="winner">Winner takes all</option>
-            <option value="montecarlo">Weighted chance headwords</option>
-            <option value="yoked">Yoked headwords</option>
-            <option value="unparsed">Unparsed</option>
-        </select>
-    </p>
+    <div class="dropdown">
+        <button id="vecddbutton" onclick="vecdropdowndisplay()" class="dropbtn">
+            (texttoswap)
+        </button>
+        <div id="vtextprepdd" class="dropdown-content">
+            <a id="vtextprep1" onclick="dropdownoptionsetter('vecddbutton', '⇣ Winner takes all', 'vtextprep', 'winner')" href="#">Winner takes all</a>
+            <a id="vtextprep2" onclick="dropdownoptionsetter('vecddbutton', '⇣ Weighted chance', 'vtextprep', 'montecarlo')" href="#">Weighted chance headwords</a>
+            <a id="vtextprep3" onclick="dropdownoptionsetter('vecddbutton', '⇣ Yoked headwords', 'vtextprep', 'yoked')" href="#">Yoked headwords</a>
+            <a id="vtextprep4" onclick="dropdownoptionsetter('vecddbutton', '⇣ Unparsed', 'vtextprep', 'unparsed')" href="#">Unparsed</a>
+        </div>
+    </div>
 
     <p class="optionlabel">LDA topics to generate</p>
     <p class="optionitem">
@@ -142,13 +151,6 @@
             <input name="ldagraph2dimensions" id="ldagraph_3d" value="no" type="radio"></label>
     </p>
 
-    <p class="optionlabel">Display font</p>
-    <p class="optionitem">
-        <select name="fontsel" id="fontsel" class="chosen">
-            {{index . "fontoptions"}}
-        </select>
-    </p>
-
     <p class="optionlabel">Colors</p>
     <p class="optionitem">
         <label for="darkmode_on">dark
@@ -160,54 +162,13 @@
     <p class="optionlabel">Display Font</p>
     <div class="dropdown">
         <button id="fontddbutton" onclick="fontdropdowndisplay()" class="dropbtn">
-            <span class="material-icons">expand_more</span>
-            <span id="fontddbuttontext">(texttoswap)</span>
+            (texttoswap)
         </button>
         <div id="displayfont" class="dropdown-content">
             {{index . "fontdropdown"}}
         </div>
     </div>
 
-    <p class="optionlabel">Vectorization text preparation</p>
-    <div class="dropdown">
-        <button id="vecddbutton" onclick="vecdropdowndisplay()" class="dropbtn">
-            <span class="material-icons">expand_more</span>
-            <span id="vecddbuttontext">(texttoswap)</span>
-        </button>
-        <div id="vtextprepdd" class="dropdown-content">
-            <a id="vtextprep1" onclick="dropdownoptionsetter('vecddbutton', 'Winner takes all', 'vtextprep', 'winner')" href="#">Winner takes all</a>
-            <a id="vtextprep2" onclick="dropdownoptionsetter('vecddbutton', 'Weighted chance headwords', 'vtextprep', 'montecarlo')" href="#">Weighted chance headwords</a>
-            <a id="vtextprep3" onclick="dropdownoptionsetter('vecddbutton', 'Yoked headwords', 'vtextprep', 'yoked')" href="#">Yoked headwords</a>
-            <a id="vtextprep4" onclick="dropdownoptionsetter('vecddbutton', 'Unparsed', 'vtextprep', 'unparsed')" href="#">Unparsed</a>
-        </div>
-    </div>
-
-    <p class="optionlabel">Neighbors modeler</p>
-    <div class="dropdown">
-        <button id="nnmodelbutton" onclick="nnmodeldowndisplay()" class="dropbtn">
-            <span class="material-icons">expand_more</span>
-            <span id="nnmodelddtext">(texttoswap)</span>
-        </button>
-        <div id="nnmodeldd" class="dropdown-content">
-            <a id="nnmodel1" onclick="dropdownoptionsetter('nnmodelbutton', 'Word2Vec', 'modeler', 'w2v')" href="#">Word2Vec</a>
-            <a id="nnmodel2" onclick="dropdownoptionsetter('nnmodelbutton', 'LexVec', 'modeler', 'lexvec')" href="#">LexVec</a>
-            <a id="nnmodel3" onclick="dropdownoptionsetter('nnmodelbutton', 'GloVe', 'modeler', 'glove')" href="#">GloVe</a>
-        </div>
-    </div>
-
-    <p class="optionlabel">Sort results by</p>
-    <div class="dropdown">
-        <button id="sortbutton" onclick="sortdropdowndisplay()" class="dropbtn">
-            <span class="material-icons">expand_more</span>
-            <span id="sortbuttontext">(texttoswap)</span>
-        </button>
-        <div id="sortdd" class="dropdown-content">
-            <a id="sort1" onclick="dropdownoptionsetter('sortbutton', 'Name', 'sortorder', 'shortname')" href="#">Name</a>
-            <a id="sort2" onclick="dropdownoptionsetter('sortbutton', 'Date', 'sortorder', 'converted_date')" href="#">Date</a>
-            <a id="sort3" onclick="dropdownoptionsetter('sortbutton', 'Work Provenance', 'sortorder', 'provenance')" href="#">Work Provenance</a>
-            <a id="sort4" onclick="dropdownoptionsetter('sortbutton', 'ID Number', 'sortorder', 'universalid')" href="#">ID Number</a>
-        </div>
-    </div>
 </div>
 
 <!-- left and right side modal boxes for lexica and morphology maps -->

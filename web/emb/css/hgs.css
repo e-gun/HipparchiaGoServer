@@ -1348,7 +1348,7 @@ body {
 	right: 125px;
 	left: 125px;
 	bottom: 125px;
-	box-shadow: 5px 5px 2px #999;
+	box-shadow: 5px 5px 2px var(--midgrey);
 	padding: 10px;
 	background-color: var(--lessoffwhite);
 	overflow: auto;
@@ -1516,7 +1516,7 @@ code {
 	width: 100%;
 	font-size: 1.15rem;
 	padding: 0.675em 6em 0.675em 1em;
-	border: 1px solid #caced1;
+	border: 1px solid var(--ltgrey2);
 	border-radius: 0.25rem;
 	background-color: var(--main-body-color);
 	color: var(--main-font-color);
@@ -1750,7 +1750,7 @@ table.verbanalysis {
 }
 
 table.showborders, td.showborders {
-	border: 1px solid black;
+	border: 1px solid var(--black);
 	font-family: 'hipparchiamonostatic', monospace;
 }
 
