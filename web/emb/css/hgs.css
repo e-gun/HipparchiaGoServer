@@ -490,6 +490,7 @@ body {
 }
 
 .foundlocus {
+	color: var(--brtblue);
 	font-family: 'hipparchiacondensedstatic', sans-serif;
 }
 
