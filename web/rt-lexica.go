@@ -36,6 +36,7 @@ var (
 type jsb struct {
 	HTML string `json:"newhtml"`
 	JS   string `json:"newjs"`
+	ST   string `json:"entryname"`
 }
 
 // RtLexLookup - search the dictionary for a headword substring
@@ -75,9 +76,14 @@ func RtLexLookup(c echo.Context) error {
 
 	html := dictsearch(seeking, dict, s.ZapLunates)
 
+	if s.ZapLunates {
+		seeking = gen.DeLunate(seeking)
+	}
+
 	var jb jsb
 	jb.HTML = html
 	jb.JS = insertlexicaljs()
+	jb.ST = seeking
 
 	return jsonresponse(c, jb)
 }
@@ -117,9 +123,14 @@ func RtLexFindByForm(c echo.Context) error {
 	html := findbyform(word, au, s.ZapLunates)
 	js := insertlexicaljs()
 
+	if s.ZapLunates {
+		word = gen.DeLunate(word)
+	}
+
 	var jb jsb
 	jb.HTML = html
 	jb.JS = js
+	jb.ST = word
 
 	return jsonresponse(c, jb)
 }
@@ -136,6 +147,8 @@ func RtLexId(c echo.Context) error {
 	if !vlt.AllAuthorized.Check(user) {
 		return jsonresponse(c, jsb{JS: vv.JSVALIDATION})
 	}
+
+	s := vlt.AllSessions.GetSess(user)
 
 	req := c.Param("wd")
 	elem := strings.Split(req, "/")
@@ -154,6 +167,10 @@ func RtLexId(c echo.Context) error {
 
 	html := formatlexicaloutput(f[0])
 	js := insertlexicaljs()
+
+	if s.ZapLunates {
+		w = gen.DeLunate(w)
+	}
 
 	var jb jsb
 	jb.HTML = html

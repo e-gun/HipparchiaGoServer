@@ -44,7 +44,6 @@ function rawlocusbrowseuponclick(url){
 
 function parsepassagereturned(passagereturned) {
     const bdt = $('#browserdialogtext');
-    const ldt = $('#lexicadialogtext');
     const aac = $('#authorsautocomplete');
     const wac = $('#worksautocomplete');
     const jshld = $('#lexicaljsscriptholder');
@@ -74,9 +73,8 @@ function parsepassagereturned(passagereturned) {
     $('observed').click( function(e) {
         e.preventDefault();
         let browsedauthorid = document.getElementById('browsertableuid').attributes.uid.value;
-        var htxt = this.id;
         $.getJSON('/lex/findbyform/' + this.id + '/' + browsedauthorid, function (definitionreturned) {
-            document.getElementById('leftmodalheadertext').innerHTML = htxt;
+            document.getElementById('leftmodalheadertext').innerHTML = definitionreturned['entryname'];
             document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml'];
             document.getElementById('lexmodal').style.display = "block";
             jshld.html(definitionreturned['newjs']);

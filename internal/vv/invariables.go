@@ -16,8 +16,8 @@ var (
 	TheCorpora    = []string{GREEKCORP, LATINCORP, INSCRIPTCORP, CHRISTINSC, PAPYRUSCORP}
 	TheLanguages  = []string{"greek", "latin"}
 	LaunchTime    = time.Now()
-	ServableFonts = map[string]str.FontTempl{"Alegreya": AlegreyaFont, "Brill": BrillFont, "Fira": FiraFont,
-		"Gentium": GentiumFont, "Inter": InterFont, "Lato": LatoFont, "Noto": NotoFont, "Roboto": RobotoFont,
+	ServableFonts = map[string]str.FontTempl{"Alegreya": AlegreyaFont, "Brill": BrillFont, "CMU": CMUFont, "Fira": FiraFont,
+		"Gentium": GentiumFont, "Inter": InterFont, "Lato": LatoFont, "MPlus1": MPlusOneFont, "Noto": NotoFont, "Roboto": RobotoFont,
 		"SourceSans": SourceSansFont, "Ubuntu": UbuntuFont} // cf rt-embhcss.go
 )
 
@@ -32,6 +32,8 @@ var (
 
 // IMBPlex is missing GreekExtended?
 
+// hipparchiasemicondenseditalicstatic, etc: setting font-style as oblique on a Regular src file will not give you oblique...
+
 var (
 	AlegreyaFont = str.FontTempl{
 		Type:             "truetype",
@@ -42,7 +44,7 @@ var (
 		CondensedItalic:  "AlegreyaSans-ItalicSubset.ttf",
 		CondensedRegular: "AlegreyaSans-RegularSubset.ttf",
 		SemiCondRegular:  "AlegreyaSans-RegularSubset.ttf",
-		SemiCondItalic:   "AlegreyaSans-RegularSubset.ttf",
+		SemiCondItalic:   "AlegreyaSans-ItalicSubset.ttf",
 		Italic:           "AlegreyaSans-ItalicSubset.ttf",
 		Light:            "AlegreyaSans-LightSubset.ttf",
 		Mono:             "NotoSansMono_Condensed-RegularSubset.ttf",
@@ -63,7 +65,7 @@ var (
 		CondensedItalic:  "Brill-ItalicSubset.ttf",
 		CondensedRegular: "Brill-RomanSubset.ttf",
 		SemiCondRegular:  "Brill-RomanSubset.ttf",
-		SemiCondItalic:   "Brill-RomanSubset.ttf",
+		SemiCondItalic:   "Brill-ItalicSubset.ttf",
 		Italic:           "Brill-ItalicSubset.ttf",
 		Light:            "Brill-RomanSubset.ttf",
 		Mono:             "NotoSansMono_Condensed-RegularSubset.ttf",
@@ -74,6 +76,27 @@ var (
 		NeedsManualStyle: []string{"hipparchialightstatic", "hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
 			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic", "hipparchiathinstatic", "hipparchiacondensedstatic"},
 		SubFolder: "brill",
+	}
+	CMUFont = str.FontTempl{
+		Type:             "opentype",
+		ShrtType:         "otf",
+		Bold:             "cmunsxSubset.otf",
+		BoldItalic:       "cmunsoSubset.otf",
+		CondensedBold:    "cmunssdcSubset.otf",
+		CondensedItalic:  "cmunsiSubset.otf",
+		CondensedRegular: "cmunssdcSubset.otf",
+		SemiCondRegular:  "cmunssdcSubset.otf", // semi dne
+		SemiCondItalic:   "cmunsiSubset.otf",
+		Italic:           "cmunsiSubset.otf",
+		Light:            "cmunssSubset.otf",
+		Mono:             "cmunbtlSubset.otf",
+		Regular:          "cmunssSubset.otf",
+		SemiBold:         "cmunsxSubset.otf",
+		Thin:             "cmunsxSubset.otf",
+		HasLunateSigma:   false,
+		NeedsManualStyle: []string{"hipparchiathinstatic", "hipparchialightstatic", "hipparchiacondenseditalicstatic",
+			"hipparchiacondensedboldstatic", "hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic"},
+		SubFolder: "cmu",
 	}
 	FiraFont = str.FontTempl{
 		Type:             "opentype",
@@ -104,7 +127,7 @@ var (
 		CondensedItalic:  "GentiumPlusCompact-ItalicSubset.ttf",
 		CondensedRegular: "GentiumPlusCompact-RegularSubset.ttf",
 		SemiCondRegular:  "GentiumPlusCompact-RegularSubset.ttf",
-		SemiCondItalic:   "GentiumPlusCompact-RegularSubset.ttf",
+		SemiCondItalic:   "GentiumPlusCompact-ItalicSubset.ttf",
 		Italic:           "GentiumPlusCompact-ItalicSubset.ttf",
 		Light:            "GentiumPlusCompact-RegularSubset.ttf",
 		Mono:             "NotoSansMono_Condensed-RegularSubset.ttf",
@@ -146,7 +169,7 @@ var (
 		CondensedItalic:  "Inter-ItalicSubset.otf",
 		CondensedRegular: "Inter-RegularSubset.otf",
 		SemiCondRegular:  "Inter-RegularSubset.otf",
-		SemiCondItalic:   "Inter-RegularSubset.otf",
+		SemiCondItalic:   "Inter-ItalicSubset.otf",
 		Italic:           "Inter-ItalicSubset.otf",
 		Light:            "Inter-LightSubset.otf",
 		Mono:             "NotoSansMono-SemiCondensedSubset.otf",
@@ -179,6 +202,29 @@ var (
 			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic"},
 		SubFolder: "lato",
 	}
+	// MPlusOneFont - has not Italic ...
+	MPlusOneFont = str.FontTempl{
+		Type:             "opentype",
+		ShrtType:         "otf",
+		Bold:             "Mplus1-BoldSubset.otf",
+		BoldItalic:       "Mplus1-BoldSubset.otf",
+		CondensedBold:    "Mplus1-RegularSubset.otf",
+		CondensedItalic:  "Mplus1-RegularSubset.otf",
+		CondensedRegular: "Mplus1-RegularSubset.otf",
+		SemiCondRegular:  "Mplus1-RegularSubset.otf",
+		SemiCondItalic:   "Mplus1-RegularSubset.otf",
+		Italic:           "Mplus1-RegularSubset.otf",
+		Light:            "Mplus1-LightSubset.otf",
+		Mono:             "Mplus1Code-RegulaSubset.otf",
+		Regular:          "Mplus1-RegularSubset.otf",
+		SemiBold:         "Mplus1-SemiBoldSubset.otf",
+		Thin:             "Mplus1-ThinSubset.otf",
+		HasLunateSigma:   true,
+		NeedsManualStyle: []string{"hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
+			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic", "hipparchiacondensedstatic",
+			"hipparchiabolditalicstatic", "hipparchiaobliquestatic"},
+		SubFolder: "mplus1",
+	}
 	RobotoFont = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",
@@ -205,10 +251,10 @@ var (
 		Bold:             "SourceSans3-BoldSubset.ttf",
 		BoldItalic:       "SourceSans3-BoldItalicSubset.ttf",
 		CondensedBold:    "SourceSans3-RegularSubset.ttf",
-		CondensedItalic:  "SourceSans3-RegularSubset.ttf",
+		CondensedItalic:  "SourceSans3-ItalicSubset.ttf",
 		CondensedRegular: "SourceSans3-RegularSubset.ttf",
 		SemiCondRegular:  "SourceSans3-RegularSubset.ttf",
-		SemiCondItalic:   "SourceSans3-RegularSubset.ttf",
+		SemiCondItalic:   "SourceSans3-ItalicSubset.ttf",
 		Italic:           "SourceSans3-ItalicSubset.ttf",
 		Light:            "SourceSans3-LightSubset.ttf",
 		Mono:             "SourceCodePro-VariableFont_wghtSubset.ttf",

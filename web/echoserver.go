@@ -219,6 +219,7 @@ func buildroutes(e *echo.Echo) {
 	e.GET("/emb/fnt/wof/:file", RtEmbWOF)
 	e.GET("/favicon.ico", RtEbmFavicon)
 	e.GET("/apple-touch-icon-precomposed.png", RtEbmTouchIcon)
+	e.GET("/apple-touch-icon.png", RtEbmTouchIcon)
 	e.GET("/emb/pdf/:file", RtEmbPDFHelp)
 
 	// [p] cookies ("rt-session.go")

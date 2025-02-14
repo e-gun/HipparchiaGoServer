@@ -157,9 +157,9 @@ func basichinter(c echo.Context, mastermap map[string]bool) error {
 
 	// not really needed in practice?
 	ff = gen.PolytonicSort(ff)
-	fs := tojsstructslice(ff)
+	jsstr := tojsstructslice(ff)
 
-	return c.JSONPretty(http.StatusOK, fs, vv.JSONINDENT)
+	return c.JSONPretty(http.StatusOK, jsstr, vv.JSONINDENT)
 }
 
 // tojsstructslice - []string -> []jsstruct for web output

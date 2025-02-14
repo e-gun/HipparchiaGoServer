@@ -298,21 +298,17 @@ function lexsrch() {
     // note that modifications to this script should be kept in sync with dictionaryentryjs() in jsformatting.py
     let dictterm = $('#lexicon').val();
     let restoreme = dictterm;
-    // trailing space will be lost unless you do this: ' gladiator ' --> ' gladiator' and so you can't spearch for only that word...
+    // trailing space will be lost unless you do this: ' gladiator ' --> ' gladiator' and so you can't sperch for only that word...
     if (dictterm.slice(-1) === ' ') { dictterm = dictterm.slice(0, -1) + '%20'; }
     let reverseterm = $('#reverselexicon').val();
-    let windowWidth = $(window).width();
-    let windowHeight = $(window).height();
     let searchterm = '';
     let url = '';
-    let dialogtitle = '';
     let mydictfield = '';
 
     // if you have toggled any of the boxes off, then $('#parser').val(), etc. will be 'undefined'
     if ( typeof dictterm !== 'undefined' && dictterm.length > 0) {
         searchterm = dictterm;
         url = '/lex/lookup/';
-        dialogtitle = restoreme;
         mydictfield = '#lexicon';
     } else if ( typeof reverseterm !== 'undefined' && reverseterm.length > 0 ) {
         $('#searchsummary').html('');
@@ -321,25 +317,21 @@ function lexsrch() {
         pd.show();
         let searchid = generateId(8);
         checkactivityviawebsocket(searchid);
-        let originalterm = reverseterm;
         // disgustingly, if you send 'STRING ' to window.location it strips the whitespace and turns it into 'STRING'
         if (reverseterm.slice(-1) === ' ') { reverseterm = reverseterm.slice(0, -1) + '%20'; }
         searchterm = reverseterm;
         url = '/lex/reverselookup/' + searchid + '/';
-        dialogtitle = originalterm;
         mydictfield = '#reverselexicon';
         restoreme = searchterm;
     } else {
         searchterm = 'nihil';
         url = '/lex/lookup/';
-        dialogtitle = searchterm;
     }
 
     $(mydictfield).val('[Working on it...]');
     $.getJSON(url + searchterm, function (definitionreturned) {
-        let ldt = $('#lexicadialogtext');
         let jshld = $('#lexicaljsscriptholder');
-        document.getElementById('leftmodalheadertext').innerHTML = searchterm;
+        document.getElementById('leftmodalheadertext').innerHTML = definitionreturned['entryname'];
         document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml'];
         document.getElementById('lexmodal').style.display = "block";
         jshld.html(definitionreturned['newjs']);

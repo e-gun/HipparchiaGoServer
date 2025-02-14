@@ -53,14 +53,14 @@ const (
 	LIGHTCOLORS = `
 	--main-body-color: hsla(0, 0%, 98%, 1);
 	--main-font-color: hsla(0, 0%, 6%, 1);
-    --input-border-color: hsla(0, 0%, 92%, 1);
-
+	--input-border-color: hsla(0, 0%, 92%, 1);
+	
 	--buttoncolor: hsla(0, 0%, 93%, 1);
 	--button-hover: hsla(0, 0%, 90%, 1);
 	--fieldset-background: hsla(0, 0%, 98%, 1);
 	--focus-shadow: rgba(0, 0, 0, 0.5);
 	--icons-color: rgba(0, 0, 0, 0.54);
-
+	
 	--black: hsla(0, 0%, 0%, 1);
 	--blue: hsla(240, 100%, 27%, 1);
 	--brown: hsla(22, 22%, 26%, 1);
@@ -76,7 +76,7 @@ const (
 	--lessoffwhite: hsla(0, 0%, 98%, 1);
 	--ltbabyblue: hsla(200, 33%, 95%, 1);
 	--ltgrey: hsla(0, 0%, 90%, 1);
-    --ltgrey2: hsl(206, 7%, 81%);
+	--ltgrey2: hsl(206, 7%, 81%);
 	--midgrey: hsla(0, 0%, 67%, 1);
 	--offwhite: hsla(0, 0%, 99%, 1);
 	--orange: hsla(47, 100%, 30%, 1);
@@ -93,20 +93,20 @@ const (
 	--vdkteal: hsla(196, 27%, 20%, 1);
 	--vdkgrey: hsla(0, 0%, 20%, 1);
 	--vltgrey: hsla(0, 0%, 96%, 1);
-    --white: hsla(0, 0%, 100%, 1);`
+	--white: hsla(0, 0%, 100%, 1);`
 
 	DARKCOLORS = `
 	--main-body-color: hsla(0, 0%, 10%, 1);
 	--main-font-color: hsla(0, 0%, 95%, 1);
-    --input-border-color: hsla(0, 0%, 20%, 1);
-
+	--input-border-color: hsla(0, 0%, 20%, 1);
+	
 	--buttoncolor: hsla(0, 0%, 20%, 1);
 	--button-hover: hsla(0, 0%, 10%, 1);
-
+	
 	--fieldset-background: hsla(0, 0%, 2%, 1);
 	--focus-shadow: rgba(0, 0, 0, 0.5);
 	--icons-color: rgba(255, 255, 255, 0.54);
-
+	
 	--black: hsla(0, 0%, 95%, 1);
 	--blue: hsl(167, 35%, 77%);  /* pea green... */
 	--brown: hsla(22, 22%, 74%, 1);
@@ -122,7 +122,7 @@ const (
 	--lessoffwhite: hsla(0, 0%, 2%, 1);
 	--ltbabyblue: hsla(200, 33%, 15%, 1);
 	--ltgrey: hsla(0, 0%, 20%, 1);
-    --ltgrey2: hsl(206, 7%, 11%);
+	--ltgrey2: hsl(206, 7%, 11%);
 	--midgrey: hsla(0, 0%, 53%, 1);
 	--offwhite: hsla(0, 0%, 1%, 1);
 	--orange: hsla(47, 100%, 75%, 1);
@@ -140,7 +140,7 @@ const (
 	--vdkteal: hsla(196, 27%, 80%, 1);
 	--vdkgrey: hsla(0, 0%, 80%, 1);
 	--vltgrey: hsla(0, 0%, 4%, 1);
-    --white: hsla(0, 0%, 0%, 1);`
+	--white: hsla(0, 0%, 0%, 1);`
 )
 
 // RtEmbHCSS - send "hipparchiastyles.css" after building it as per the configured font settings
@@ -200,7 +200,7 @@ func RtEmbHCSS(c echo.Context) error {
 
 	// if the font is being served, but it is relatively hollow when it comes to styles, patch things
 	if slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), s.FontSel) {
-		f := vv.ServableFonts[fsub]
+		f := vv.ServableFonts[s.FontSel]
 		if len(f.NeedsManualStyle) != 0 {
 			css = fleshoutcss(f, css)
 		}
@@ -245,66 +245,79 @@ func cssfontfacedirectives(f string) string {
 	@font-face {
 		font-family: 'hipparchiasansstatic';
 		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.Regular}}') format('{{.Type}}');
+		font-display: swap;
 		}
 
 	@font-face {
 		font-family: 'hipparchiamonostatic';
 		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.Mono}}') format('{{.Type}}');
+		font-display: swap;
 		}
 
 	@font-face {
 		font-family: 'hipparchialightstatic';
 		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.Light}}') format('{{.Type}}');
+		font-display: swap;
 		}
 
 	@font-face {
 		font-family: 'hipparchiaboldstatic';
 		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.Bold}}') format('{{.Type}}');
+		font-display: swap;
 		}
 
 	@font-face {
 		font-family: 'hipparchiaobliquestatic';
 		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.Italic}}') format('{{.Type}}');
+		font-display: swap;
 		}
 
 	@font-face {
 		font-family: 'hipparchiabolditalicstatic';
 		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.BoldItalic}}') format('{{.Type}}');
+		font-display: swap;
 		}
 
 	@font-face {
 		font-family: 'hipparchiasemicondensedstatic';
 		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.SemiCondRegular}}') format('{{.Type}}');
+		font-display: swap;
 		}
 
 	@font-face {
 		font-family: 'hipparchiasemicondenseditalicstatic';
 		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.SemiCondItalic}}') format('{{.Type}}');
+		font-display: swap;
 		}
 
 	@font-face {
 		font-family: 'hipparchiacondensedstatic';
 		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.CondensedRegular}}') format('{{.Type}}');
+		font-display: swap;
 		}
 
 	@font-face {
 		font-family: 'hipparchiacondensedboldstatic';
 		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.CondensedBold}}') format('{{.Type}}');
+		font-display: swap;
 		}
 
 	@font-face {
 		font-family: 'hipparchiacondenseditalicstatic';
 		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.CondensedItalic}}') format('{{.Type}}');
+		font-display: swap;
 		}
 
 	@font-face {
 		font-family: 'hipparchiasemiboldstatic';
 		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.SemiBold}}') format('{{.Type}}');
+		font-display: swap;
 		}
 
 	@font-face {
 		font-family: 'hipparchiathinstatic';
 		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.Thin}}') format('{{.Type}}');
+		font-display: swap;
 		}`
 	)
 
@@ -327,7 +340,6 @@ func cssfontfacedirectives(f string) string {
 
 // cssmanualfontstyling - swap out: "font-family: 'hipparchiabolditalicstatic', sans-serif;" for explicit style directives
 func cssmanualfontstyling(css string) string {
-
 	// swap out: "font-family: 'hipparchiabolditalicstatic', sans-serif;" for explicit style directives
 	outtmpl := "font-family: '%s', sans-serif;"
 	intempl := "font-family: %s;\n\tfont-weight: %s;\n\tfont-style: %s;\n\tfont-stretch: %s;"
@@ -351,14 +363,14 @@ func fleshoutcss(f str.FontTempl, css string) string {
 	//                font-family: 'hipparchialightstatic';
 	//                src: url('/emb/ttf/') format('truetype');
 
-	outtmpl := "font-family: '%s', sans-serif;"
-	intempl := "font-family: %s;\n\tfont-weight: %s;\n\tfont-style: %s;\n\tfont-stretch: %s;"
+	have := "font-family: '%s';"
+	want := "font-family: '%s';\n\t\tfont-weight: %s;\n\t\tfont-style: %s;\n\t\tfont-stretch: %s;"
 
 	for _, n := range f.NeedsManualStyle {
-		fs := cssswaps[n]
-		i := fmt.Sprintf(intempl, fs.familiy, fs.weight, fs.style, fs.stretch)
-		o := fmt.Sprintf(outtmpl, n)
-		css = strings.ReplaceAll(css, o, i)
+		sw := cssswaps[n]
+		w := fmt.Sprintf(want, n, sw.weight, sw.style, sw.stretch)
+		h := fmt.Sprintf(have, n)
+		css = strings.ReplaceAll(css, h, w)
 	}
 
 	bad := "font-family: var(--systemdefaultfont), sans-serif;"

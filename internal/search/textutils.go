@@ -385,6 +385,11 @@ func FormatInitialSummary(s *str.SearchStruct) {
 	if sk != "" {
 		sum = fmt.Sprintf(TPM, af1, sk, two)
 	}
+
+	if s.StoredSession.ZapLunates {
+		sum = gen.DeLunate(sum)
+	}
+
 	s.InitSum = sum
 }
 

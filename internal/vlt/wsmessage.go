@@ -117,8 +117,8 @@ func (c *WSClient) WSMessageLoop() {
 		}
 
 		if time.Now().After(maxwait) {
-			// only very fast searches that finish in a tiny fraction of a second  (c. 0.01s) should hit maxwait
-			Msg.FYI(fmt.Sprintf(FAIL, c.ID))
+			// only very fast searches that finish in a tiny fraction of a second (c. 0.01s) should hit maxwait
+			// Msg.FYI(fmt.Sprintf(FAIL, c.ID))
 			break
 		}
 	}
