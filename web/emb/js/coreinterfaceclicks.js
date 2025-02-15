@@ -120,6 +120,7 @@ function loadoptions() {
 
         dropdownbuttonsetter('vecddbutton', '⇣ '+vtpdecoder[data.vtextprep]);
         dropdownbuttonsetter('fontddbutton', '⇣ '+data.fontsel);
+        dropdownbuttonsetter('cssmodebutton', '⇣ '+data.csscolors);
         dropdownbuttonsetter('nnmodelbutton', '⇣ '+nnsdecoder[data.vecmodeler]);
         dropdownbuttonsetter('sortbutton', '⇣ '+sortsdecoder[data.sortorder]);
     });
@@ -342,6 +343,10 @@ function lexsrch() {
 //
 // DROPDOWNS
 //
+
+function csscolordropdowndisplay() {
+    document.getElementById("cssmode").classList.toggle("show");
+}
 
 function fontdropdowndisplay() {
     document.getElementById("displayfont").classList.toggle("show");

@@ -46,7 +46,7 @@ func MakeDefaultSession(id string) str.ServerSession {
 	s.VecTextPrep = lnch.Config.VectorTextPrep
 	s.VecLDASearch = false
 	s.LDA2D = true
-	s.DarkMode = lnch.Config.DarkMode
+	s.CssColors = lnch.Config.CssColors
 	s.FontSel = lnch.Config.Font
 	s.ZapLunates = lnch.Config.ZapLunates
 

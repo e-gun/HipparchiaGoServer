@@ -151,13 +151,15 @@
             <input name="ldagraph2dimensions" id="ldagraph_3d" value="no" type="radio"></label>
     </p>
 
-    <p class="optionlabel">Colors</p>
-    <p class="optionitem">
-        <label for="darkmode_on">dark
-            <input name="darkmode" id="darkmode_on" value="yes" type="radio"></label>
-        <label for="darkmode_off">light
-            <input name="darkmode" id="darkmode_off" value="no" type="radio"></label>
-    </p>
+    <p class="optionlabel">Color Scheme</p>
+    <div class="dropdown">
+        <button id="cssmodebutton" onclick="csscolordropdowndisplay()" class="dropbtn">
+            (texttoswap)
+        </button>
+        <div id="cssmode" class="dropdown-content">
+            {{index . "csscolordropdown"}}
+        </div>
+    </div>
 
     <p class="optionlabel">Display Font</p>
     <div class="dropdown">

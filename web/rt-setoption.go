@@ -114,8 +114,6 @@ func RtSetOption(c echo.Context) error {
 				s.LDAgraph = b
 			case "ldagraph2dimensions":
 				s.LDA2D = b
-			case "darkmode":
-				s.DarkMode = b
 			default:
 				Msg.WARN(FAIL2)
 			}
@@ -259,6 +257,13 @@ func RtSetOption(c echo.Context) error {
 			} else {
 				s.ZapLunates = lnch.Config.ZapLunates
 			}
+		}
+	}
+
+	if opt == "colorsel" {
+		cmm := gen.StringMapKeysIntoSlice(vv.CssColorModes)
+		if slices.Contains(cmm, val) {
+			s.CssColors = val
 		}
 	}
 

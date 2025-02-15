@@ -14,7 +14,7 @@ type ServerSession struct {
 	Inclusions   SearchIncExl
 	Exclusions   SearchIncExl
 	ActiveCorp   map[string]bool
-	DarkMode     bool   `json:"darkmode"`
+	CssColors    string
 	FontSel      string `json:"fontsel"`
 	VariaOK      bool   `json:"varia"`
 	IncertaOK    bool   `json:"incerta"`

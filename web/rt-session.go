@@ -126,7 +126,7 @@ func RtResetSession(c echo.Context) error {
 	// let's retain font and color info...
 	newsess.FontSel = oldsess.FontSel
 	newsess.ZapLunates = oldsess.ZapLunates
-	newsess.DarkMode = oldsess.DarkMode
+	newsess.CssColors = oldsess.CssColors
 
 	vlt.AllSessions.InsertSess(newsess)
 

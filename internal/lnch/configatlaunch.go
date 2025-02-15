@@ -183,13 +183,12 @@ func ConfigAtLaunch() {
 			Config.BrowserCtx = bc
 		case "-bw":
 			Config.BlackAndWhite = true
+		case "-cm":
+			Config.CssColors = args[i+1]
 		case "-cs":
 			Config.CustomCSS = true
 		case "-db":
 			Config.DbDebug = true
-		case "-dk":
-			// toggle...
-			Config.DarkMode = !Config.DarkMode
 		case "-dv":
 			Config.VectorsDisabled = true
 		case "-ex":
@@ -313,6 +312,10 @@ func ConfigAtLaunch() {
 		}
 	}
 
+	if slices.Contains(gen.StringMapKeysIntoSlice(vv.CssColorModes), Config.Font) {
+		Config.CssColors = vv.DEFAULCOLORS
+	}
+
 }
 
 // builddefaultconfig - return a CurrentConfiguration filled out with various default values
@@ -323,7 +326,7 @@ func builddefaultconfig() *str.CurrentConfiguration {
 	c.BlackAndWhite = vv.BLACKANDWHITE
 	c.BrowserCtx = vv.DEFAULTBROWSERCTX
 	c.CustomCSS = false
-	c.DarkMode = vv.DEFAULTTODARK
+	c.CssColors = vv.DEFAULCOLORS
 	c.DbDebug = false
 	c.Font = vv.FONTSETTING
 	c.Gzip = vv.USEGZIP

@@ -11,7 +11,7 @@ type CurrentConfiguration struct {
 	BlackAndWhite   bool
 	BrowserCtx      int
 	CustomCSS       bool
-	DarkMode        bool
+	CssColors       string
 	DbDebug         bool
 	DefCorp         map[string]bool
 	EchoLog         int // 0: "none", 1: "terse", 2: "prolix", 3: "prolix+remoteip"

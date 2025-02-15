@@ -106,20 +106,22 @@ func RtFrontpage(c echo.Context) error {
 	}
 
 	subs := map[string]interface{}{
-		"myname":        vv.MYNAME,
-		"copyright":     fmt.Sprintf(vv.TERMINALTEXT, vv.PROJYEAR, vv.PROJAUTH, vv.PROJMAIL),
-		"source":        vv.PROJURL,
-		"version":       vv.VERSION + lnch.VersSuppl,
-		"longver":       ver,
-		"authhtm":       ahtm,
-		"vec":           vec,
-		"env":           env,
-		"ticker":        t(time.Since(vv.LaunchTime)) + "\n\n" + svd(),
-		"user":          "Anonymous",
-		"resultcontext": s.HitContext,
-		"browsecontext": s.BrowseCtx,
-		"proxval":       s.Proximity,
-		"fontdropdown":  fontdropdownhtml()}
+		"myname":           vv.MYNAME,
+		"copyright":        fmt.Sprintf(vv.TERMINALTEXT, vv.PROJYEAR, vv.PROJAUTH, vv.PROJMAIL),
+		"source":           vv.PROJURL,
+		"version":          vv.VERSION + lnch.VersSuppl,
+		"longver":          ver,
+		"authhtm":          ahtm,
+		"vec":              vec,
+		"env":              env,
+		"ticker":           t(time.Since(vv.LaunchTime)) + "\n\n" + svd(),
+		"user":             "Anonymous",
+		"resultcontext":    s.HitContext,
+		"browsecontext":    s.BrowseCtx,
+		"proxval":          s.Proximity,
+		"fontdropdown":     fontdropdownhtml(),
+		"csscolordropdown": colorschemedropdownhtml(),
+	}
 
 	f, e := efs.ReadFile("emb/frontpage.html")
 	Msg.EC(e)
@@ -132,6 +134,21 @@ func RtFrontpage(c echo.Context) error {
 	Msg.EC(err)
 
 	return c.HTML(http.StatusOK, b.String())
+}
+
+func colorschemedropdownhtml() string {
+	const (
+		FO = "\t\t\t<a id=\"colorsel_%s\" onclick=\"dropdownoptionsetterwithreload('colorsel', '%s')\" href=\"#\">%s</a>"
+	)
+	cmm := gen.StringMapKeysIntoSlice(vv.CssColorModes)
+	sort.Strings(cmm)
+
+	var known []string
+
+	for _, c := range cmm {
+		known = append(known, fmt.Sprintf(FO, c, c, c))
+	}
+	return strings.Join(known, "\n")
 }
 
 func fontdropdownhtml() string {
