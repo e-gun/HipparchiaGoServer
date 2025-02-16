@@ -120,37 +120,43 @@ func ConfigAtLaunch() {
 		kff := gen.StringMapKeysIntoSlice(vv.ServableFonts)
 		sort.Strings(kff)
 
+		kcc := gen.StringMapKeysIntoSlice(vv.CssColorModes)
+		sort.Strings(kcc)
+
 		// see HELPTEXTTEMPLATE in vv.terminalconst.go
 		m := map[string]interface{}{
-			"badchars":   Config.BadChars,
-			"confauth":   vv.CONFIGAUTH,
-			"conffile":   vv.CONFIGPROLIX,
-			"cpus":       runtime.NumCPU(),
-			"css":        vv.CUSTOMCSSFILENAME,
-			"cwd":        cwd,
-			"ctxlines":   Config.BrowserCtx,
-			"dbf":        vv.HDBFOLDER,
-			"echoll":     Config.EchoLog,
-			"loge":       vv.LOGFILEEL,
-			"logm":       vv.LOGFILEML,
-			"hdbf":       vv.HDBFOLDER,
-			"hgsll":      Config.LogLevel,
-			"home":       h,
-			"host":       Config.HostIP,
-			"maxipsrch":  Config.MaxSrchIP,
-			"maxtotscrh": Config.MaxSrchTot,
-			"port":       Config.HostPort,
-			"sslport":    Config.HostSSLPort,
-			"ssldir":     Config.SSLCertDir,
-			"sslcert":    vv.SSLCPEM,
-			"sslpriv":    vv.SSLPPEM,
-			"projurl":    vv.PROJURL,
-			"vmodel":     Config.VectorModel,
-			"workers":    Config.WorkerCount,
-			"knownfnts":  strings.Join(kff, "C0, C3"),
-			"tlines":     Config.TickerLines,
-			"uv":         Config.UVSub,
-			"deffnt":     Config.Font}
+			"badchars":    Config.BadChars,
+			"confauth":    vv.CONFIGAUTH,
+			"conffile":    vv.CONFIGPROLIX,
+			"cpus":        runtime.NumCPU(),
+			"css":         vv.CUSTOMCSSFILENAME,
+			"cwd":         cwd,
+			"ctxlines":    Config.BrowserCtx,
+			"dbf":         vv.HDBFOLDER,
+			"echoll":      Config.EchoLog,
+			"loge":        vv.LOGFILEEL,
+			"logm":        vv.LOGFILEML,
+			"hdbf":        vv.HDBFOLDER,
+			"hgsll":       Config.LogLevel,
+			"home":        h,
+			"host":        Config.HostIP,
+			"maxipsrch":   Config.MaxSrchIP,
+			"maxtotscrh":  Config.MaxSrchTot,
+			"port":        Config.HostPort,
+			"sslport":     Config.HostSSLPort,
+			"ssldir":      Config.SSLCertDir,
+			"sslcert":     vv.SSLCPEM,
+			"sslpriv":     vv.SSLPPEM,
+			"projurl":     vv.PROJURL,
+			"vmodel":      Config.VectorModel,
+			"workers":     Config.WorkerCount,
+			"knownfnts":   strings.Join(kff, "C0, C3"),
+			"tlines":      Config.TickerLines,
+			"uv":          Config.UVSub,
+			"deffnt":      Config.Font,
+			"knowncolors": strings.Join(kcc, "C0, C3"),
+			"defcol":      Config.CssColors,
+		}
 
 		t := template.Must(template.New("").Parse(vv.HELPTEXTTEMPLATE))
 

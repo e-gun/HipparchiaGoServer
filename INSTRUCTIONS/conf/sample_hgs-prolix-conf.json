@@ -4,7 +4,7 @@
   "BlackAndWhite": false,
   "BrowserCtx": 14,
   "CustomCSS": false,
-  "DarkMode": false,
+  "CssColors": "Light",
   "DbDebug": false,
   "DefCorp": {
     "ch": false,

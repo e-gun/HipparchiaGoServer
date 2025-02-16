@@ -19,7 +19,7 @@
 * morphology tables
 * embedded help files
 * variety of embedded fonts
-* light and dark modes
+* selectable css color themes
 * semantic vectors 
   * general
     * configurable model parameters

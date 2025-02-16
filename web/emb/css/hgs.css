@@ -7,15 +7,15 @@
 	/* formula to invert HEX: amount*(255-value)+(1-amount)*value */
 	/* colorsys.hls_to_rgb(h, l, s) */
 
-	/* core interface font info begins; inserted by rt-embhcss.go */
+	/* begin core interface color info; inserted by rt-embhcss.go */
     {{index . "colorinfo"}}
-	/* core interface font info ends; inserted by rt-embhcss.go */
+	/* end core interface color info; inserted by rt-embhcss.go */
 
 }
 
-/* core interface font info begins; inserted by rt-embhcss.go */
+/* begin core interface font info; inserted by rt-embhcss.go */
 {{index . "fontfaceinfo"}}
-/* core interface font info ends; inserted by rt-embhcss.go */
+/* end core interface font info ends; inserted by rt-embhcss.go */
 
 @font-face {
 	font-family: 'Material Icons';
@@ -343,7 +343,7 @@ body {
 }
 
 .dictquote {
-	color: var(--black);
+	color: var(--dkgrey);
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 }
 
