@@ -2,10 +2,11 @@ package vv
 
 var (
 	CssColorModes = map[string]string{
-		"Light": LIGHTCOLORS,
-		"Dark":  DARKCOLORS,
-		"Sand":  MONOCHROMESANDY,
-		"Ash":   MONOCHROMEASH,
+		"Light":    LIGHTCOLORS,
+		"Dark":     DARKCOLORS,
+		"Sand":     MONOCHROMESANDY,
+		"Ash":      MONOCHROMEASH,
+		"Tetradic": TETRADIC,
 	}
 )
 
@@ -213,4 +214,67 @@ const (
     --vdkgrey: #C6D2F3;
     --vltgrey: #C6D2F3;
     --white: #141518;`
+	// TETRADIC - a tatradic + a mono scheme
+	// tetradic:
+	//
+	// #E1E1F5
+	// #F5E1EB
+	// #F5F5E1
+	// #E1F5EB
+	//
+	// + mono:
+	//
+	// #19191B
+	// #3A3A3F
+	// #5C5C64
+	// #7D7D88
+	// #9F9FAD
+	// #C0C0D1
+	// #E1E1F5
+	TETRADIC = `
+	--main-body-color: #3A3A3F;
+	--main-font-color: #E1E1F5;
+	--input-border-color: #5C5C64;
+	
+	--buttoncolor: #7D7D88;
+	--button-hover: #C0C0D1;
+	
+	--fieldset-background: #5C5C64;
+	--focus-shadow: rgba(0, 0, 0, 0.5);
+	--icons-color: #9F9FAD;
+	
+	--black: #19191B;
+	--blue: #F5F5E1; 
+	--brown: #E1F5EB;
+	--brtblue: #F5F5E1;
+	--copper: #E1E1F5;
+	--deepblue: #F5E1EB; 
+	--dkbabyblue:  #F5F5E1;  
+	--dkgreen: #E1E1F5;
+	--dkgrey: #F5F5E1;
+	--dkteal: #E1E1F5;
+	--huedgrey: #E1E1F5;
+	--invisible: hsla(0, 100%, 0%, 0);
+	--lessoffwhite: #5C5C64;
+	--ltbabyblue: #7D7D88;
+	--ltgrey: #5C5C64;
+	--ltgrey2: #F5F5E1;
+	--midgrey: #F5F5E1;
+	--offwhite: #E1E1F5;
+	--orange: #E1F5EB;
+	--pink: #E1F5EB;
+	--pinker: #7D7D88;
+	--plum: #3A3A3F;
+	--pukegreen: #F5F5E1;
+	--red: #E1F5EB; 
+	--dkgreen: #E1E1F5;
+	--rustedorange: #9F9FAD; 
+	--sicklyyellow: #E1F5EB;
+	--skyblue: #E1F5EB;
+	--teal: #E1F5EB;
+	--transparentgrey: hsla(0, 0%, 10%, .7);
+	--vdkteal: #F5E1EB;
+	--vdkgrey: #E1E1F5;
+	--vltgrey: #F5E1EB;
+	--white: #E1E1F5;`
 )

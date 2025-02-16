@@ -254,7 +254,7 @@ body {
  */
 
 .dictauthor {
-	/* color: var(--dkbabyblue); */
+	color: var(--dkbabyblue);
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 }
 
@@ -1947,7 +1947,7 @@ vectorheadword:hover{
 }
 
 unclickablebibl {
-	color: var(--black);
+	color: var(--main-font-color);
 }
 
 verbform:hover{
