@@ -70,6 +70,7 @@ func ConfigAtLaunch() {
 		FAIL6 = "Could not open '%s'"
 		FAIL7 = "ConfigAtLaunch() failed to execute help text template"
 		FAIL8 = "Cannot find current working directory"
+		FAIL9 = "Could not find css color scheme '%s'"
 	)
 
 	Config = builddefaultconfig()
@@ -318,7 +319,8 @@ func ConfigAtLaunch() {
 		}
 	}
 
-	if slices.Contains(gen.StringMapKeysIntoSlice(vv.CssColorModes), Config.Font) {
+	if !slices.Contains(gen.StringMapKeysIntoSlice(vv.CssColorModes), Config.CssColors) {
+		Msg.WARN(fmt.Sprintf(FAIL9, Config.Font))
 		Config.CssColors = vv.DEFAULCOLORS
 	}
 

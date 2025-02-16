@@ -2,11 +2,13 @@ package vv
 
 var (
 	CssColorModes = map[string]string{
-		"Light":    LIGHTCOLORS,
-		"Dark":     DARKCOLORS,
-		"Sand":     MONOCHROMESANDY,
-		"Ash":      MONOCHROMEASH,
-		"Tetradic": TETRADIC,
+		"Light":     LIGHTCOLORS,
+		"Dark":      DARKCOLORS,
+		"MonoSand":  MONOCHROMESANDY,
+		"MonoAsh":   MONOCHROMEASH,
+		"Tetradic":  TETRADIC,
+		"Splitcomp": SPLITCOMP,
+		"Tridaic":   TRIADIC,
 	}
 )
 
@@ -214,6 +216,7 @@ const (
     --vdkgrey: #C6D2F3;
     --vltgrey: #C6D2F3;
     --white: #141518;`
+
 	// TETRADIC - a tatradic + a mono scheme
 	// tetradic:
 	//
@@ -277,4 +280,122 @@ const (
 	--vdkgrey: #E1E1F5;
 	--vltgrey: #F5E1EB;
 	--white: #E1E1F5;`
+
+	// SPLITCOMP - a spit complementary + a mono scheme
+	// #DCF2F1
+	// #DFDCF2
+	// #F2E8DC
+	//
+	// #151717
+	// #363C3C
+	// #586060
+	// #798584
+	// #9AA9A8
+	// #BBCECD
+	// #DCF2F1
+	SPLITCOMP = `
+	--main-body-color: #363C3C;
+	--main-font-color: #DCF2F1;
+	--input-border-color: #586060;
+	
+	--buttoncolor: #798584;
+	--button-hover: #9AA9A8;
+	
+	--fieldset-background: #586060;
+	--focus-shadow: rgba(0, 0, 0, 0.5);
+	--icons-color: #9AA9A8;
+
+	--black: #151717;
+	--blue: #F2E8DC; 
+	--brown: #F2E8DC;
+	--brtblue: #F2E8DC;
+	--copper: #DCF2F1;
+	--deepblue: #DFDCF2; 
+	--dkbabyblue:  #F2E8DC;  
+	--dkgreen: #DCF2F1;
+	--dkgrey: #F2E8DC;
+	--dkteal: #DCF2F1;
+	--huedgrey: #DCF2F1;
+	--invisible: hsla(0, 100%, 0%, 0);
+	--lessoffwhite: #586060;
+	--ltbabyblue: #798584;
+	--ltgrey: #586060;
+	--ltgrey2: #F2E8DC;
+	--midgrey: #F2E8DC;
+	--offwhite: #DCF2F1;
+	--orange: #F2E8DC;
+	--pink: #F2E8DC;
+	--pinker: #798584;
+	--plum: #363C3C;
+	--pukegreen: #F2E8DC;
+	--red: #F2E8DC; 
+	--dkgreen: #DCF2F1;
+	--rustedorange: #9AA9A8; 
+	--sicklyyellow: #F2E8DC;
+	--skyblue: #F2E8DC;
+	--teal: #F2E8DC;
+	--transparentgrey: hsla(0, 0%, 10%, .7);
+	--vdkteal: #DFDCF2;
+	--vdkgrey: #DCF2F1;
+	--vltgrey: #DFDCF2;
+	--white: #DCF2F1;`
+
+	// TRIADIC - triadic + monochrome
+	// #FFFFD6
+	// #D6FFFF
+	// #FFD6FF
+	//
+	// #24241F
+	// #49493D
+	// #6D6D5C
+	// #92927A
+	// #B6B699
+	// #DBDBB7
+	// #FFFFD6
+	TRIADIC = `
+	--main-body-color: #49493D;
+	--main-font-color: #FFFFD6;
+	--input-border-color: #6D6D5C;
+	
+	--buttoncolor: #92927A;
+	--button-hover: #DBDBB7;
+	
+	--fieldset-background: #6D6D5C;
+	--focus-shadow: rgba(0, 0, 0, 0.5);
+	--icons-color: #B6B699;
+	
+	--black: #24241F;
+	--blue: #F2E8DC; 
+	--brown: #F2E8DC;
+	--brtblue: #F2E8DC;
+	--copper: #FFFFD6;
+	--deepblue: #D6FFFF; 
+	--dkbabyblue:  #F2E8DC;  
+	--dkgreen: #FFFFD6;
+	--dkgrey: #F2E8DC;
+	--dkteal: #FFFFD6;
+	--huedgrey: #FFFFD6;
+	--invisible: hsla(0, 100%, 0%, 0);
+	--lessoffwhite: #6D6D5C;
+	--ltbabyblue: #92927A;
+	--ltgrey: #6D6D5C;
+	--ltgrey2: #F2E8DC;
+	--midgrey: #F2E8DC;
+	--offwhite: #FFFFD6;
+	--orange: #F2E8DC;
+	--pink: #F2E8DC;
+	--pinker: #92927A;
+	--plum: #49493D;
+	--pukegreen: #F2E8DC;
+	--red: #F2E8DC; 
+	--dkgreen: #FFFFD6;
+	--rustedorange: #B6B699; 
+	--sicklyyellow: #F2E8DC;
+	--skyblue: #F2E8DC;
+	--teal: #F2E8DC;
+	--transparentgrey: hsla(0, 0%, 10%, .7);
+	--vdkteal: #D6FFFF;
+	--vdkgrey: #FFFFD6;
+	--vltgrey: #D6FFFF;
+	--white: #FFFFD6;`
 )
