@@ -1,6 +1,8 @@
 module github.com/e-gun/HipparchiaGoServer
 
-go 1.23
+go 1.23.0
+
+toolchain go1.24.0
 
 require (
 	github.com/e-gun/lastnlines v0.1.0
@@ -8,13 +10,13 @@ require (
 	github.com/e-gun/policeresponses v0.0.3
 	github.com/e-gun/tsnemp v0.1.7
 	github.com/e-gun/wego v0.1.0
-	github.com/go-echarts/go-echarts/v2 v2.5.0
+	github.com/go-echarts/go-echarts/v2 v2.5.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/pkg/profile v1.7.0
-	golang.org/x/exp v0.0.0-20250210185358-939b2ce775ac
+	golang.org/x/exp v0.0.0-20250215185904-eff6e970281f
 	golang.org/x/text v0.22.0
 	gonum.org/v1/gonum v0.15.1
 )
@@ -39,7 +41,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
-	github.com/spf13/cobra v1.8.1 // indirect
+	github.com/spf13/cobra v1.9.1 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect

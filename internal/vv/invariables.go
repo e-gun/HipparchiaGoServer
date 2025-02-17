@@ -176,7 +176,7 @@ var (
 		Regular:          "Inter-RegularSubset.otf",
 		SemiBold:         "Inter-SemiBoldSubset.otf",
 		Thin:             "Inter-ThinSubset.otf",
-		HasLunateSigma:   true,
+		HasLunateSigma:   false,
 		NeedsManualStyle: []string{"hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
 			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic", "hipparchiacondensedstatic"},
 		SubFolder: "inter",

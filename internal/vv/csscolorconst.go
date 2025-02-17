@@ -114,21 +114,21 @@ const (
 	// #89897E
 	// #ADAD9F
 	// #D1D1C0
-	// #F6F6E2
+	// #FAFAE5 - cheated up from F6F6E2...
 	MONOCHROMESANDY = `
 	--main-body-color: #D1D1C0;
 	--main-font-color: #1B1B19;
 	--input-border-color: #ADAD9F;
 	
-	--buttoncolor: #F6F6E2;
-	--button-hover: #89897E;
+	--buttoncolor: #FAFAE5;
+	--button-hover: #ADAD9F;
 	
 	--fieldset-background: #ADAD9F;
 	--focus-shadow: rgba(0, 0, 0, 0.5);
 	--icons-color: #3F3F3A;
 	
-	--black: #F6F6E2;
-	--blue: #F6F6E2; 
+	--black: #FAFAE5;
+	--blue: #FAFAE5; 
 	--brown: #D1D1C0;
 	--brtblue: #64645C;
 	--copper: #1B1B19;
@@ -137,14 +137,14 @@ const (
 	--dkgreen: #1B1B19;
 	--dkgrey: #1B1B19;
 	--dkteal: #1B1B19;
-	--huedgrey: #F6F6E2;
+	--huedgrey: #FAFAE5;
 	--invisible: hsla(0, 100%, 0%, 0);
 	--lessoffwhite: #ADAD9F;
 	--ltbabyblue: #89897E;
-	--ltgrey: #F6F6E2;
-	--ltgrey2: #F6F6E2;
-	--midgrey: #F6F6E2;
-	--offwhite: #F6F6E2;
+	--ltgrey: #FAFAE5;
+	--ltgrey2: #FAFAE5;
+	--midgrey: #FAFAE5;
+	--offwhite: #FAFAE5;
 	--orange: #89897E;
 	--pink: #89897E;
 	--pinker: #89897E;
@@ -152,14 +152,14 @@ const (
 	--pukegreen: #D1D1C0;
 	--red: #64645C; 
 	--dkgreen: #D1D1C0;
-	--rustedorange: #64645C; 
+	--rustedorange: #1B1B19; 
 	--sicklyyellow: #89897E;
 	--skyblue: #D1D1C0;
 	--teal: #89897E;
 	--transparentgrey: hsla(0, 0%, 10%, .7);
-	--vdkteal: #F6F6E2;
-	--vdkgrey: #F6F6E2;
-	--vltgrey: #F6F6E2;
+	--vdkteal: #FAFAE5;
+	--vdkgrey: #FAFAE5;
+	--vltgrey: #FAFAE5;
 	--white: #1B1B19;`
 
 	// MONOCHROMEASH - from dark to light...
@@ -169,21 +169,21 @@ const (
 	// #6D7485
 	// #8A93AA
 	// #A8B3CE
-	// #C6D2F3
+	// #D0DCFF - cheated up from C6D2F3
 	MONOCHROMEASH = `
     --main-body-color: #A8B3CE;
     --main-font-color: #141518;
     --input-border-color: #8A93AA;
     
-    --buttoncolor: #C6D2F3;
-    --button-hover: #6D7485;
+    --buttoncolor: #D0DCFF;
+    --button-hover: #8A93AA;
     
     --fieldset-background: #8A93AA;
     --focus-shadow: rgba(0, 0, 0, 0.5);
     --icons-color: #3F3F3A;
     
-    --black: #C6D2F3;
-    --blue: #C6D2F3;
+    --black: #D0DCFF;
+    --blue: #D0DCFF;
     --brown: #A8B3CE;
     --brtblue: #4F5461;
     --copper: #141518;
@@ -192,14 +192,14 @@ const (
     --dkgreen: #141518;
     --dkgrey: #141518;
     --dkteal: #141518;
-    --huedgrey: #C6D2F3;
+    --huedgrey: #D0DCFF;
     --invisible: hsla(0, 100%, 0%, 0);
     --lessoffwhite: #8A93AA;
     --ltbabyblue: #6D7485;
-    --ltgrey: #C6D2F3;
-    --ltgrey2: #C6D2F3;
-    --midgrey: #C6D2F3;
-    --offwhite: #C6D2F3;
+    --ltgrey: #D0DCFF;
+    --ltgrey2: #D0DCFF;
+    --midgrey: #D0DCFF;
+    --offwhite: #D0DCFF;
     --orange: #6D7485;
     --pink: #6D7485;
     --pinker: #6D7485;
@@ -207,14 +207,14 @@ const (
     --pukegreen: #A8B3CE;
     --red: #4F5461;
     --dkgreen: #A8B3CE;
-    --rustedorange: #4F5461;
+    --rustedorange: #141518;
     --sicklyyellow: #6D7485;
     --skyblue: #A8B3CE;
     --teal: #6D7485;
     --transparentgrey: hsla(0, 0%, 10%, .7);
-    --vdkteal: #C6D2F3;
-    --vdkgrey: #C6D2F3;
-    --vltgrey: #C6D2F3;
+    --vdkteal: #D0DCFF;
+    --vdkgrey: #D0DCFF;
+    --vltgrey: #D0DCFF;
     --white: #141518;`
 
 	// TETRADIC - a tatradic + a mono scheme
@@ -256,7 +256,7 @@ const (
 	--dkgreen: #E1E1F5;
 	--dkgrey: #F5F5E1;
 	--dkteal: #E1E1F5;
-	--huedgrey: #E1E1F5;
+	--huedgrey: #E1F5EB;
 	--invisible: hsla(0, 100%, 0%, 0);
 	--lessoffwhite: #5C5C64;
 	--ltbabyblue: #7D7D88;
@@ -277,7 +277,7 @@ const (
 	--teal: #E1F5EB;
 	--transparentgrey: hsla(0, 0%, 10%, .7);
 	--vdkteal: #F5E1EB;
-	--vdkgrey: #E1E1F5;
+	--vdkgrey: #E1F5EB;
 	--vltgrey: #F5E1EB;
 	--white: #E1E1F5;`
 
@@ -374,7 +374,7 @@ const (
 	--dkgreen: #FFFFD6;
 	--dkgrey: #F2E8DC;
 	--dkteal: #FFFFD6;
-	--huedgrey: #FFFFD6;
+	--huedgrey: #D6FFFF;
 	--invisible: hsla(0, 100%, 0%, 0);
 	--lessoffwhite: #6D6D5C;
 	--ltbabyblue: #92927A;
@@ -395,7 +395,7 @@ const (
 	--teal: #F2E8DC;
 	--transparentgrey: hsla(0, 0%, 10%, .7);
 	--vdkteal: #D6FFFF;
-	--vdkgrey: #FFFFD6;
+	--vdkgrey: #D6FFFF;
 	--vltgrey: #D6FFFF;
 	--white: #FFFFD6;`
 )
