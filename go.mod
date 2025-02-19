@@ -16,7 +16,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/pkg/profile v1.7.0
-	golang.org/x/exp v0.0.0-20250215185904-eff6e970281f
+	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa
 	golang.org/x/text v0.22.0
 	gonum.org/v1/gonum v0.15.1
 )
