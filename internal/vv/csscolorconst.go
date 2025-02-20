@@ -1,14 +1,16 @@
 package vv
 
+import "github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+
 var (
 	CssColorModes = map[string]string{
 		"Light":     LIGHTCOLORS,
 		"Dark":      DARKCOLORS,
-		"MonoSand":  MONOCHROMESANDY,
-		"MonoAsh":   MONOCHROMEASH,
-		"Tetradic":  TETRADIC,
+		"MonoSand":  gen.GenerateMonoScheme(60, 15, 80),
+		"MonoAsh":   gen.GenerateMonoScheme(220, 15, 80),
+		"Tetradic":  gen.GenerateTetradScheme(250, 15, 70),
 		"Splitcomp": SPLITCOMP,
-		"Tridaic":   TRIADIC,
+		"Tridaic":   gen.GenerateTriadScheme(10, 25, 75),
 	}
 )
 
