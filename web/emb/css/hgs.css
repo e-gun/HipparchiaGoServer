@@ -120,13 +120,13 @@
 
 .material-icons.md-mid { color: var(--icons-color); }
 .material-icons.md-mid:hover{
-	color: var(--brtblue);
+	color: var(--hgscol03);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
 .material-icons.md-mid.ui { font-size: 80%; }
 .material-icons.md-mid.ui:hover{
-	color: var(--brtblue);
+	color: var(--hgscol03);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
@@ -148,7 +148,7 @@ body {
 }
 
 .activeoption {
-	color: var(--dkteal);
+	color: var(--hgscol08);
 }
 
 .assigneddate {
@@ -160,12 +160,12 @@ body {
 }
 
 .baseform {
-	color: var(--vdkgrey);
+	color: var(--hgsmono07);
 	font-family: 'hipparchiabolditalicstatic', sans-serif;
 }
 
 .baseformtranslation {
-	color: var(--black);
+	color: var(--hgsmono00);
 	font-style: normal;
 	font-weight: normal;
 }
@@ -201,12 +201,12 @@ body {
 
 .cityinfo, .provenance, .pubinfo, .regioninfo, .textdate {
 	font-size: 85%;
-	color: var(--rustedorange);
+	color: var(--hgscol17);
 	text-align: center;
 }
 
 .colorhighlight {
-	color: var(--red);
+	color: var(--hgscol16);
 }
 
 .coptic {
@@ -223,22 +223,22 @@ body {
 	/*border-color: var(--greyborders);;*/
 	margin-left: 15px;
 	margin-right: 15px;
-	/*background-color: var(--vltgrey);*/
+	/*background-color: var(--hgsmono08);*/
 }
 
 .counter {
-	color: var(--rustedorange);
+	color: var(--hgscol17);
 }
 
 .crossreference {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
-	color: var(--rustedorange);
+	color: var(--hgscol17);
 	text-align: center;
 }
 
 .currentlyviewing {
 	text-align: left;
-	color: var(--brtblue);
+	color: var(--hgscol03);
 	padding-bottom: 0;
 }
 
@@ -256,11 +256,11 @@ body {
 
 
 .date{
-	color: var(--red);
+	color: var(--hgscol16);
 }
 
 .dbb {
-	color: var(--dkbabyblue);
+	color: var(--hgscol06);
 }
 .denominator{
 	position: relative;
@@ -288,17 +288,17 @@ body {
  */
 
 .dictauthor {
-	color: var(--dkbabyblue);
+	color: var(--hgscol06);
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 }
 
 .dictbiblscope {
-	color: var(--dkbabyblue);
+	color: var(--hgscol06);
 	font-style: normal;
 }
 
 .dictbibtitle {
-	color: var(--dkbabyblue);
+	color: var(--hgscol06);
 	font-family: 'hipparchiabolditalicstatic', sans-serif;
 }
 
@@ -321,63 +321,63 @@ body {
 
 .dictgram.dicttype_dialect{
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	color: var(--deepblue);
+	color: var(--hgscol05);
 }
 
 .dictitype{
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	color: var(--vdkgrey);
+	color: var(--hgsmono07);
 }
 
 .dicthi {
 	/* definitions in the latin dictionary */
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	color: var(--vdkgrey);
+	color: var(--hgsmono07);
 }
 
 .dicthi.dictrend_ital{
 	/* definitions in the latin dictionary */
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	color: var(--vdkgrey);
+	color: var(--hgsmono07);
 }
 
 .dictmood{
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	color: var(--deepblue);
+	color: var(--hgscol05);
 }
 
 .dictnumber{
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	color: var(--deepblue);
+	color: var(--hgscol05);
 }
 
 .dictorth {
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	color: var(--dkteal);
+	color: var(--hgscol08);
 }
 
 .dictorth.dictlang_la {
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	color: var(--dkteal);
+	color: var(--hgscol08);
 }
 
 .dictorth.dicttype_alt.dictlang_la {
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	color: var(--teal);
+	color: var(--hgscol20);
 }
 
 .dictorth.dictlang_greek {
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	color: var(--dkteal);
+	color: var(--hgscol08);
 }
 
 .dictper{
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	color: var(--deepblue);
+	color: var(--hgscol05);
 }
 
 .dictquote {
-	color: var(--dkgrey);
+	color: var(--hgsmono01);
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 }
 
@@ -394,17 +394,17 @@ body {
 
 .dicttns{
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	color: var(--deepblue);
+	color: var(--hgscol05);
 }
 
 .dicttr{
 	font-family: 'hipparchiaboldstatic', sans-serif;
-	color: var(--vdkgrey);
+	color: var(--hgsmono07);
 }
 
 .dicttrans{
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	color: var(--vdkgrey);
+	color: var(--hgsmono07);
 }
 
 .dictusg{
@@ -412,28 +412,28 @@ body {
 
 .dictusg.dicttype_style{
 	font-family: 'hipparchiaboldstatic', sans-serif;
-	color: var(--red);
+	color: var(--hgscol16);
 }
 
 .dictionaryform {
-	color: var(--dkteal);
+	color: var(--hgscol08);
 	font-family: 'hipparchiabolditalicstatic', sans-serif;
 }
 
 .dictionaryheading {
-	color: var(--rustedorange);
+	color: var(--hgscol17);
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	font-size: 120%;
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
 .dictrewritten_phrase {
-	color: var(--plum);
+	color: var(--hgscol14);
 }
 
 .documentmetadatalabel {
 	font-size: 85%;
-	color: var(--rustedorange);
+	color: var(--hgscol17);
 	font-family: 'hipparchiaboldstatic', sans-serif;
 }
 
@@ -471,7 +471,7 @@ body {
 
 .emph {
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	color: var(--deepblue);
+	color: var(--hgscol05);
 }
 
 .emphatic {
@@ -480,14 +480,14 @@ body {
 }
 
 .epigraphical_text_after_correction {
-	color: var(--red);
+	color: var(--hgscol16);
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 }
 
 .epigraphical_text_inserted_after_erasure {
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	text-decoration: underline;
-	color: var(--red);
+	color: var(--hgscol16);
 }
 
 .erasedepigraphicaltext {
@@ -509,11 +509,11 @@ body {
 
 .findnumber {
 	font-weight: normal;
-	color: var(--vdkteal);
+	color: var(--hgscol21);
 }
 
 .flagged {
-	border-bottom: 1px dotted var(--plum);
+	border-bottom: 1px dotted var(--hgscol14);
 }
 
 .focusline {
@@ -524,14 +524,14 @@ body {
 }
 
 .foundlocus {
-	color: var(--brtblue);
+	color: var(--hgscol03);
 	font-family: 'hipparchiacondensedstatic', sans-serif;
 }
 
 .foundlocus:hover{
 	border-bottom: 1px dotted var(--dottedborders);
 	border-top: 1px dotted var(--dottedborders);
-	color: var(--dkbabyblue);
+	color: var(--hgscol06);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
@@ -559,7 +559,7 @@ body {
  */
 
 .hmu_alternative_reading {
-	color: var(--orange);
+	color: var(--hgscol12);
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 	text-decoration-style: wavy;
 }
@@ -575,7 +575,7 @@ body {
 
 .hmu_discarded_form {
 	text-decoration: line-through;
-	color: var(--dkteal);
+	color: var(--hgscol08);
 }
 
 .hmu_emendation_by_editor_of_text_not_obviously_incorrect {
@@ -585,7 +585,7 @@ body {
 }
 
 .hmu_form_altered_by_scribe {
-	color: var(--red);
+	color: var(--hgscol16);
 	font-family: 'hipparchiacondenseditalicstatic', sans-serif;
 }
 
@@ -600,7 +600,7 @@ body {
 }
 
 .hmu_marginaltext{
-	color: var(--dkgreen);
+	color: var(--hgscol07);
 	font-size: 80%;
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 	text-indent: -5px;
@@ -612,7 +612,7 @@ body {
 }
 
 .hmu_papyrological_fraction{
-	color: var(--red);
+	color: var(--hgscol16);
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 }
 
@@ -652,7 +652,7 @@ body {
 
 .textual_lemma {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
-	color: var(--blue);
+	color: var(--hgscol01);
 }
 
 .hmu_title {
@@ -660,12 +660,12 @@ body {
 }
 
 .hmu_unconventional_form_written_by_scribe {
-	color: var(--sicklyyellow);
+	color: var(--hgscol18);
 	font-family: 'hipparchiacondenseditalicstatic', sans-serif;
 }
 
 .homonym {
-	color: var(--dkgrey);
+	color: var(--hgsmono01);
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 }
 
@@ -692,14 +692,14 @@ body {
 
 .label {
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	color: var(--vdkteal);
+	color: var(--hgscol21);
 	padding-left: 25px;
 	padding-right: 10px;
 }
 
 .labelcell {
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
-	color: var(--vdkteal);
+	color: var(--hgscol21);
 	vertical-align: top;
 	text-align: center;
 }
@@ -714,7 +714,7 @@ body {
 	/* font-size: 100%; */
 	/* font-family: var(--latinfont), 'hipparchiacondensedstatic', sans-serif; */
 	/* font-family: 'hipparchiasemicondensedstatic', sans-serif; */
-	color: var(--blue);
+	color: var(--hgscol01);
 }
 
 /* lexmodal css */
@@ -728,7 +728,7 @@ body {
 	margin-top: 20px;
 	margin-bottom: 20px;
 	font-size: 100%;
-	background-color: var(--lessoffwhite);
+	background-color: var(--hgscol10);
 	/*-webkit-animation-name: slideIn;*/
 	/*-webkit-animation-duration: 0.4s;*/
 	/*animation-name: slideIn;*/
@@ -771,7 +771,7 @@ body {
 
 .leftmodalclose:hover,
 .leftmodalclose:focus {
-	color: var(--midgrey);
+	color: var(--hgsmono04);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 	text-decoration: none;
 	cursor: pointer;
@@ -791,7 +791,7 @@ body {
 	overflow-y: scroll !important;
 	-webkit-animation-name: slideIn;
 	-webkit-animation-duration: 0.4s;
-	background-color: var(--lessoffwhite);
+	background-color: var(--hgscol10);
 	border-color: var(--greyborders);;
 	box-shadow: 2px 2px 1px var(--transparentgrey);
 	animation-name: slideIn;
@@ -808,7 +808,7 @@ body {
 	*/
 	padding: 10px 10px 10px 5px;
 	overflow-y: auto;
-	background-color: var(--lessoffwhite);
+	background-color: var(--hgscol10);
 }
 
 .letterbox {
@@ -819,32 +819,32 @@ body {
 .levellabel1 {
 	font-family: 'hipparchiaboldstatic', sans-serif;
 	font-size: 120%;
-	color: var(--red);
+	color: var(--hgscol16);
 }
 
 .levellabel2 {
 	font-family: 'hipparchiaboldstatic', sans-serif;
 	font-size: 100%;
-	color: var(--red);
+	color: var(--hgscol16);
 }
 
 .levellabel3 {
 	font-family: 'hipparchiaboldstatic', sans-serif;
-	color: var(--red);
+	color: var(--hgscol16);
 }
 
 .levellabel4 {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
-	color: var(--red);
+	color: var(--hgscol16);
 }
 
 .levellabel5 {
 	font-size: 85%;
-	color: var(--red);
+	color: var(--hgscol16);
 }
 
 .lexiconhighlight {
-	color: var(--red);
+	color: var(--hgscol16);
 	font-family: 'hipparchiaboldstatic', sans-serif;
 }
 
@@ -857,18 +857,18 @@ body {
 }
 
 .loadoptions:hover {
-	color: var(--midgrey);
+	color: var(--hgsmono04);
 }
 
 .match, .proximate {
-	color: var(--red);
+	color: var(--hgscol16);
 	font-weight: normal;
 	border: 1px dotted var(--dottedborders);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
 .metrics{
-	color: var(--black);
+	color: var(--hgsmono00);
 	/* font-family: 'hipparchiamonostatic', monospace; */
 	font-size: 90%;
 	font-family: 'hipparchiaobliquestatic', sans-serif;
@@ -876,7 +876,7 @@ body {
 }
 
 .observed {
-	color: var(--red);
+	color: var(--hgscol16);
 	padding-right: 10px;
 }
 
@@ -885,7 +885,7 @@ body {
 }
 
 .optionlabel {
-	border-top: 1px dotted var(--dkgrey);
+	border-top: 1px dotted var(--hgsmono01);
 	font-size: 70%;
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	padding-left: 5px;
@@ -905,14 +905,14 @@ body {
 }
 
 .overline {
-	border-top: 1px var(--black);
+	border-top: 1px var(--hgsmono00);
 }
 
 .overline_and_underline {
 	/* Sought »hmu_overline_and_underline«
 	Searched 235,999 texts and found 0 passages (21.62s)*/
-	border-bottom: 1px var(--black);
-	border-top: 1px var(--black);
+	border-bottom: 1px var(--hgsmono00);
+	border-top: 1px var(--hgsmono00);
 }
 
 .pickedgenre {
@@ -936,7 +936,7 @@ body {
 }
 
 .prevalence {
-	color: var(--deepblue);
+	color: var(--hgscol05);
 }
 
 .progress {
@@ -958,7 +958,7 @@ body {
 }
 
 .red {
-	color: var(--red);
+	color: var(--hgscol16);
 }
 
 .reduced {
@@ -970,7 +970,7 @@ body {
 	padding-left: 40px;
 	padding-right: 20px;
 	font-size: 80%;
-	color: var(--huedgrey);
+	color: var(--hgscol09);
 }
 
 /* morphmodal css */
@@ -984,7 +984,7 @@ body {
 	margin-top: 20px;
 	margin-bottom: 20px;
 	font-size: 100%;
-	background-color: var(--lessoffwhite);
+	background-color: var(--hgscol10);
 	/*-webkit-animation-name: slideIn;*/
 	/*-webkit-animation-duration: 0.4s;*/
 	/*animation-name: slideIn;*/
@@ -1027,7 +1027,7 @@ body {
 
 .rightmodalclose:hover,
 .rightmodalclose:focus {
-	color: var(--midgrey);
+	color: var(--hgsmono04);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 	text-decoration: none;
 	cursor: pointer;
@@ -1047,7 +1047,7 @@ body {
 	overflow-y: scroll !important;
 	-webkit-animation-name: slideIn;
 	-webkit-animation-duration: 0.4s;
-	background-color: var(--lessoffwhite);
+	background-color: var(--hgscol10);
 	border-color: var(--greyborders);;
 	box-shadow: 2px 2px 1px var(--transparentgrey);
 	animation-name: slideIn;
@@ -1058,25 +1058,25 @@ body {
 	/* top | right | bottom | left */
 	padding: 10px 10px 10px 5px;
 	overflow-y: auto;
-	background-color: var(--lessoffwhite);
+	background-color: var(--hgscol10);
 }
 
 .rust {
-	color: var(--rustedorange);
+	color: var(--hgscol17);
 }
 
 .romannumerals {
 	font-variant: small-caps;
-	color: var(--red);
+	color: var(--hgscol16);
 }
 
 .sampleoutput {
-	color: var(--dkteal);
+	color: var(--hgscol08);
 	font-family: 'hipparchiaobliquestatic', sans-serif;
 }
 
 .saveoptions:hover {
-	color: var(--midgrey);
+	color: var(--hgsmono04);
 }
 
 .searchsel:hover {
@@ -1089,13 +1089,13 @@ body {
 }
 
 .selection:hover{
-	color: var(--brtblue);
+	color: var(--hgscol03);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
 .serviusformatting {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
-	color: var(--copper);
+	color: var(--hgscol04);
 }
 
 .sidenavigation {
@@ -1105,7 +1105,7 @@ body {
 	z-index: 1;
 	top: 0;
 	left: 0;
-	background-color: var(--ltgrey);
+	background-color: var(--hgsmono02);
 	overflow-x: hidden;
 	transition: 0.05s;
 }
@@ -1126,7 +1126,7 @@ body {
 	font-variant: small-caps;
 	font-weight: normal;
 	font-size: 110%;
-	color: var(--deepblue);
+	color: var(--hgscol05);
 }
 
 .smallerthannormal {
@@ -1139,7 +1139,7 @@ body {
 }
 
 .sought {
-	color: var(--deepblue);
+	color: var(--hgscol05);
 	font-family: 'hipparchiamonostatic', monospace;
 }
 
@@ -1163,7 +1163,7 @@ body {
 
 .textuallemma, .interlineartext, .interlinearmarginalia, .marginaltext {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
-	color: var(--blue);
+	color: var(--hgscol01);
 }
 
 .title {
@@ -1176,34 +1176,34 @@ body {
 }
 
 .transtree {
-	color: var(--skyblue);
+	color: var(--hgscol19);
 }
 
 .undocumentedfontshift{
 	text-decoration: underline;
-	color: var(--huedgrey);
+	color: var(--hgscol09);
 }
 
 .unhandledpercent{
 	top: -0.5em;
 	font-size: 80%;
-	color: var(--huedgrey);
+	color: var(--hgscol09);
 }
 
 .unhandledpound{
 	top: -0.5em;
 	font-size: 80%;
-	color: var(--huedgrey);
+	color: var(--hgscol09);
 }
 
 .unobtrusive{
 	font-size: 60%;
 	font-family: 'hipparchiacondensedstatic', sans-serif;
-	color: var(--huedgrey);
+	color: var(--hgscol09);
 }
 
 .verbanalysis tr:nth-child(2n+4){
-	background: var(--ltgrey)
+	background: var(--hgsmono02)
 }
 
 .verylarge {
@@ -1232,7 +1232,7 @@ body {
 }
 
 #authorholdings {
-	background-color: var(--offwhite);
+	background-color: var(--hgsmono05);
 	border: 1px dotted var(--dottedborders);
 	width: 50%;
 	margin: auto;
@@ -1260,7 +1260,7 @@ body {
 	right: 50px;
 	box-shadow: 4px 4px 2px var(--transparentgrey);
 	padding: 5px 20px 5px 20px; /* top | right | bottom | left */
-	background-color: var(--lessoffwhite);
+	background-color: var(--hgscol10);
 	/*font-size: 105%;*/
 	line-height: 1.1;
 	z-index: 1; /* Sit on top of mainbody, but not of rightmodal */
@@ -1356,20 +1356,20 @@ body {
 	bottom: 125px;
 	box-shadow: 5px 5px 2px var(--boxshadows);
 	padding: 10px;
-	background-color: var(--lessoffwhite);
+	background-color: var(--hgscol10);
 	overflow: auto;
 }
 
 #outputbox {
 	text-align: center;
 	font-size: 90%;
-	color: var(--dkteal);
+	color: var(--hgscol08);
 }
 
 #pollingdata {
 	padding: 10px;
 	text-align: left;
-	color: var(--rustedorange);
+	color: var(--hgscol17);
 }
 
 #savedprofiles {
@@ -1391,7 +1391,7 @@ body {
 	padding-bottom: 20px;
 	padding-left: 20px;
 	padding-right: 20px;
-	background-color: var(--offwhite);
+	background-color: var(--hgsmono05);
 	border: 1px dotted var(--dottedborders);
 	width: 50%;
 	margin: auto;
@@ -1400,7 +1400,7 @@ body {
 #searchsummary {
 	padding: 10px;
 	text-align: left;
-	color: var(--rustedorange);
+	color: var(--hgscol17);
 }
 
 #selectionsandexclusions {
@@ -1454,19 +1454,19 @@ body {
 }
 
 a.lex, a.nounderline {
-	color: var(--brtblue);
+	color: var(--hgscol03);
 	text-decoration: none;
 }
 
 a.lex:hover, a.nounderline:hover {
 	border-bottom: 1px dotted var(--dottedborders);
 	border-top: 1px dotted var(--dottedborders);
-	color: var(--dkbabyblue);
+	color: var(--hgscol06);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
 bibl {
-	color: var(--dkbabyblue);
+	color: var(--hgscol06);
 	border: 1px dotted var(--invisible);
 }
 
@@ -1479,13 +1479,13 @@ bibl:hover{
 browser {
 	font-family: 'hipparchiacondensedstatic', sans-serif;
 	font-size: 110%;
-	color: var(--brtblue);
+	color: var(--hgscol03);
 }
 
 button {
 	background: var(--buttoncolor);
 	color: var(--main-font-color);
-	border: var(--black);
+	border: var(--hgsmono00);
 	-webkit-border-radius: 1px;
 	-moz-border-radius: 1px;
 	border-radius: 1px;
@@ -1496,7 +1496,7 @@ button {
 }
 
 button:hover {
-	color: var(--brtblue);
+	color: var(--hgscol03);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 	background: var(--button-hover);
 }
@@ -1522,7 +1522,7 @@ code {
 	width: 100%;
 	font-size: 1.15rem;
 	padding: 0.675em 6em 0.675em 1em;
-	border: 1px solid var(--ltgrey2);
+	border: 1px solid var(--hgsmono03);
 	border-radius: 0.25rem;
 	background-color: var(--main-body-color);
 	color: var(--main-font-color);
@@ -1530,14 +1530,14 @@ code {
 }
 
 dictionaryentry{
-	color: var(--rustedorange);
+	color: var(--hgscol17);
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 }
 
 dictionaryentry:hover{
 	border-bottom: 1px dotted var(--dottedborders);
 	border-top: 1px dotted var(--dottedborders);
-	color: var(--dkbabyblue);
+	color: var(--hgscol06);
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
@@ -1558,7 +1558,7 @@ fieldset {
 	display: inline-block;
 	border-width: 1px;
 	font-size: 75%;
-	color: var(--dkteal);
+	color: var(--hgscol08);
 	background-color: var(--fieldset-background);
 }
 
@@ -1567,7 +1567,7 @@ form {
 }
 
 formsummary{
-	color: var(--rustedorange);
+	color: var(--hgscol17);
 	font-size: 90%;
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 }
@@ -1575,7 +1575,7 @@ formsummary{
 formsummary:hover{
 	border-bottom: 1px dotted var(--dottedborders);
 	border-top: 1px dotted var(--dottedborders);
-	color: var(--dkbabyblue);
+	color: var(--hgscol06);
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
@@ -1590,7 +1590,7 @@ hmutitle {
 
 hmu_serviusformatting {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
-	color: var(--dkgreen);
+	color: var(--hgscol07);
 }
 
 hr {
@@ -1600,14 +1600,14 @@ hr {
 indexedlocation:hover{
 	border-bottom: 1px dotted var(--dottedborders);
 	border-top: 1px dotted var(--dottedborders);
-	color: var(--dkbabyblue);
+	color: var(--hgscol06);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
 indexobserved:hover{
 	border-bottom: 1px dotted var(--dottedborders);
 	border-top: 1px dotted var(--dottedborders);
-	color: var(--dkbabyblue);
+	color: var(--hgscol06);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
@@ -1647,7 +1647,7 @@ locus {
 observed:hover{
 	border-bottom: 1px dotted var(--dottedborders);
 	border-top: 1px dotted var(--dottedborders);
-	color: var(--dkbabyblue);
+	color: var(--hgscol06);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
@@ -1701,7 +1701,7 @@ smallcode {
 
 span.lat {
 	font-family: 'hipparchiaobliquestatic', sans-serif;
-	color: var(--vdkteal);
+	color: var(--hgscol21);
 }
 
 speaker {
@@ -1756,7 +1756,7 @@ table.verbanalysis {
 }
 
 table.showborders, td.showborders {
-	border: 1px solid var(--black);
+	border: 1px solid var(--hgsmono00);
 	font-family: 'hipparchiamonostatic', monospace;
 }
 
@@ -1780,7 +1780,7 @@ td.browsercite {
 	padding-left: 10px;
 	vertical-align: middle;
 	line-height: 1.7;
-	color: var(--huedgrey);
+	color: var(--hgscol09);
 }
 
 td.browserembeddedannotations {
@@ -1803,7 +1803,7 @@ td.textcite {
 	padding-right: 10px;
 	padding-left: 10px;
 	vertical-align: middle;
-	color: var(--huedgrey);
+	color: var(--hgscol09);
 }
 
 td.textembeddedannotations {
@@ -1816,7 +1816,7 @@ td.textembeddedannotations {
 }
 
 td.dialectlabel {
-	color: var(--red);
+	color: var(--hgscol16);
 	font-family: 'hipparchiaboldstatic', sans-serif;
 	font-size: 120%;
 	text-transform: uppercase;
@@ -1837,7 +1837,7 @@ td.moodlabel {
 td.morphcell {
 	padding-left: 5px;
 	padding-right: 5px;
-	color: var(--brtblue);
+	color: var(--hgscol03);
 }
 
 td.morphcell.labelcell {
@@ -1845,7 +1845,7 @@ td.morphcell.labelcell {
 }
 
 td.morphlabelcell {
-	/*color: var(--huedgrey);*/
+	/*color: var(--hgscol09);*/
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 }
 
@@ -1854,18 +1854,18 @@ td.morphcell.invisible {
 }
 
 td.morphrow.emph.center {
-	color: var(--blue);
+	color: var(--hgscol01);
 	font-family: 'hipparchiaboldstatic', sans-serif;
 	text-align: center;
 }
 
 td.tensecell {
-	color: var(--huedgrey);
+	color: var(--hgscol09);
 	font-family: 'hipparchiaboldstatic', sans-serif;
 }
 
 td.count {
-	color: var(--orange);
+	color: var(--hgscol12);
 	text-align: center;
 }
 
@@ -1877,16 +1877,16 @@ td.crossreference {
 
 td.headword {
 	font-family: 'hipparchiaboldstatic', sans-serif;
-	color: var(--red);
+	color: var(--hgscol16);
 }
 
 td.infocells {
-	background-color: var(--ltbabyblue);
+	background-color: var(--hgscol11);
 	text-align: center;
 }
 
 td.infocellx {
-	background-color: var(--pink);
+	background-color: var(--hgscol13);
 	text-align: center;
 }
 
@@ -1926,7 +1926,7 @@ th.indextable {
 }
 
 tr.nthrow{
-	background-color: var(--ltgrey);
+	background-color: var(--hgsmono02);
 }
 
 tr.spacing {
@@ -1966,17 +1966,17 @@ ul.roman {
 }
 
 .vectorscore {
-	color: var(--dkgrey);
+	color: var(--hgsmono01);
 }
 
 .vectorword {
-	color: var(--blue);
+	color: var(--hgscol01);
 }
 
 vectorheadword:hover{
 	border-bottom: 1px dotted var(--dottedborders);
 	border-top: 1px dotted var(--dottedborders);
-	color: var(--dkbabyblue);
+	color: var(--hgscol06);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
@@ -1987,36 +1987,36 @@ unclickablebibl {
 verbform:hover{
 	border-bottom: 1px dotted var(--dottedborders);
 	border-top: 1px dotted var(--dottedborders);
-	color: var(--dkbabyblue);
+	color: var(--hgscol06);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
 vocabobserved:hover{
 	border-bottom: 1px dotted var(--dottedborders);
 	border-top: 1px dotted var(--dottedborders);
-	color: var(--dkbabyblue);
+	color: var(--hgscol06);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
 lemmatizable {
-	color: var(--red);
+	color: var(--hgscol16);
 }
 
 lemmatizable:hover{
 	border-bottom: 1px dotted var(--dottedborders);
 	border-top: 1px dotted var(--dottedborders);
-	color: var(--dkbabyblue);
+	color: var(--hgscol06);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
 dictionaryidsearch {
-	color: var(--red);
+	color: var(--hgscol16);
 }
 
 dictionaryidsearch:hover{
 	border-bottom: 1px dotted var(--dottedborders);
 	border-top: 1px dotted var(--dottedborders);
-	color: var(--dkbabyblue);
+	color: var(--hgscol06);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
@@ -2029,11 +2029,11 @@ dictionaryidsearch:hover{
 }
 
 .ui-widget.ui-widget-content {
-	border: 1px solid var(--dkgrey);
+	border: 1px solid var(--hgsmono01);
 }
 
 .ui-widget-content {
-	border: 1px solid var(--dkgrey);
+	border: 1px solid var(--hgsmono01);
 	background: var(--main-body-color);
 	color: var(--main-font-color);
 }
@@ -2042,8 +2042,8 @@ dictionaryidsearch:hover{
 }
 
 .ui-widget-header {
-	border: 1px solid var(--dkgrey);
-	background: var(--dkgrey);
+	border: 1px solid var(--hgsmono01);
+	background: var(--hgsmono01);
 	color: var(--main-font-color);
 	font-weight: bold;
 }
@@ -2108,7 +2108,7 @@ dictionaryidsearch:hover{
 
 /* Dropdown button on hover & focus */
 .dropbtn:hover, .dropbtn:focus {
-	background-color:  var(--teal);
+	background-color:  var(--hgscol20);
 	color: var(--main-body-color);
 }
 
@@ -2121,7 +2121,7 @@ dictionaryidsearch:hover{
 	padding: 10px;
 	margin: 3px;
 	border: 1px;
-	background-color: var(--ltbabyblue);
+	background-color: var(--hgscol11);
 	min-width: 160px;
 	box-shadow:1px 1px 3px var(--transparentgrey);
 	z-index: 1;
@@ -2129,14 +2129,14 @@ dictionaryidsearch:hover{
 
 /* Links inside the dropdown */
 .dropdown-content a {
-	color: var(--black);
+	color: var(--hgsmono00);
 	text-decoration: none;
 	display: block;
 }
 
 /* Change color of dropdown links on hover */
 .dropdown-content a:hover {
-	background-color:  var(--teal);
+	background-color:  var(--hgscol20);
 	color: var(--main-body-color);
 }
 

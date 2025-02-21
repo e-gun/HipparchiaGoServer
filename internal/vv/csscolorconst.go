@@ -40,39 +40,41 @@ const (
 	--bracketcolor3: hsl(71, 95%, 22%);
 	--bracketcolor4: hsla(237, 43%, 57%, 1);
 
-	--black: hsla(0, 0%, 0%, 1);
-	--blue: hsla(240, 100%, 27%, 1);
-	--brown: hsla(22, 22%, 26%, 1);
-	--brtblue: hsla(236, 44%, 40%, 1);
-	--copper: hsla(11, 53%, 30%);
-	--deepblue: hsla(233, 77%, 26%, 1);
-	--dkbabyblue: hsla(237, 43%, 57%, 1);
-	--dkgreen: hsla(120, 80%, 20%, 1);
-	--dkgrey: hsla(0, 0%, 33%, 1);
-	--dkteal: hsla(203, 22%, 26%, 1);
-	--huedgrey: hsl(240, 10%, 61%);
 	--invisible: hsla(0, 100%, 100%, 0);
-	--lessoffwhite: hsla(0, 0%, 98%, 1);
-	--ltbabyblue: hsla(200, 33%, 95%, 1);
-	--ltgrey: hsla(0, 0%, 90%, 1);
-	--ltgrey2: hsl(206, 7%, 81%);
-	--midgrey: hsla(0, 0%, 67%, 1);
-	--offwhite: hsla(0, 0%, 99%, 1);
-	--orange: hsla(47, 100%, 30%, 1);
-	--pink: hsla(0, 33%, 96%, 1);
-	--pinker: hsl(0, 73%, 80%);
-	--plum: hsla(291, 15%, 38%);
-	--pukegreen: hsl(71, 95%, 22%);
-	--red: hsla(346, 77%, 26%, 1);
-	--rustedorange: hsla(23, 37%, 39%, 1);
-	--sicklyyellow: hsl(45, 16%, 53%);
-	--skyblue: hsla(205, 92%, 37%, 1);
-	--teal: hsla(196, 14%, 39%, 1);
 	--transparentgrey: hsla(0, 0%, 67%, .8);
-	--vdkteal: hsla(196, 27%, 20%, 1);
-	--vdkgrey: hsla(0, 0%, 20%, 1);
-	--vltgrey: hsla(0, 0%, 96%, 1);
-	--white: hsla(0, 0%, 100%, 1);`
+
+	--hgsmono00: hsla(0, 0%, 0%, 1);
+	--hgsmono01: hsla(0, 0%, 33%, 1);
+	--hgsmono02: hsla(0, 0%, 90%, 1);
+	--hgsmono03: hsl(206, 7%, 81%);
+	--hgsmono03: hsla(0, 0%, 67%, 1);
+	--hgsmono05: hsla(0, 0%, 99%, 1);
+	--hgsmono07: hsla(0, 0%, 20%, 1);
+	--hgsmono08: hsla(0, 0%, 96%, 1);
+	--hgsmono09: hsla(0, 0%, 100%, 1);
+
+	--hgscol01: hsla(240, 100%, 27%, 1);
+	--hgscol02: hsla(22, 22%, 26%, 1);
+	--hgscol03: hsla(236, 44%, 40%, 1);
+	--hgscol04: hsla(11, 53%, 30%);
+	--hgscol05: hsla(233, 77%, 26%, 1);
+	--hgscol06: hsla(237, 43%, 57%, 1);
+	--hgscol07: hsla(120, 80%, 20%, 1);
+	--hgscol08: hsla(203, 22%, 26%, 1);
+	--hgscol09: hsl(240, 10%, 61%);
+	--hgscol10: hsla(0, 0%, 98%, 1);
+	--hgscol11: hsla(200, 33%, 95%, 1);
+	--hgscol12: hsla(47, 100%, 30%, 1);
+	--hgscol13: hsla(0, 33%, 96%, 1);
+	--hgscol14: hsla(291, 15%, 38%);
+	--hgscol15: hsl(71, 95%, 22%);
+	--hgscol16: hsla(346, 77%, 26%, 1);
+	--hgscol17: hsla(23, 37%, 39%, 1);
+	--hgscol18: hsl(45, 16%, 53%);
+	--hgscol19: hsla(205, 92%, 37%, 1);
+	--hgscol20: hsla(196, 14%, 39%, 1);
+	--hgscol21: hsla(196, 27%, 20%, 1);
+`
 
 	DARKCOLORS = `
 	--main-body-color: hsla(60,17%,11%, 1);
