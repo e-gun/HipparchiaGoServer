@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
+	"github.com/e-gun/HipparchiaGoServer/internal/clr"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -83,7 +84,7 @@ func RtEmbHCSS(c echo.Context) error {
 		"fontname":     fsub,
 		"sdf":          sdf,
 		"fontfaceinfo": cssfontfacedirectives(s.FontSel),
-		"colorinfo":    vv.CssColorModes[s.CssColors], // make sure that it is impossible to set a bad mode...
+		"colorinfo":    clr.CssColorModes[s.CssColors], // make sure that it is impossible to set a bad mode...
 	}
 
 	tmpl, e := template.New("fp").Parse(string(j))

@@ -8,6 +8,7 @@ package web
 import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/clr"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
@@ -261,7 +262,7 @@ func RtSetOption(c echo.Context) error {
 	}
 
 	if opt == "colorsel" {
-		cmm := gen.StringMapKeysIntoSlice(vv.CssColorModes)
+		cmm := gen.StringMapKeysIntoSlice(clr.CssColorModes)
 		if slices.Contains(cmm, val) {
 			s.CssColors = val
 		}

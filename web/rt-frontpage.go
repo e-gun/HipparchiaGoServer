@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/clr"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -140,7 +141,7 @@ func colorschemedropdownhtml() string {
 	const (
 		FO = "\t\t\t<a id=\"colorsel_%s\" onclick=\"dropdownoptionsetterwithreload('colorsel', '%s')\" href=\"#\">%s</a>"
 	)
-	cmm := gen.StringMapKeysIntoSlice(vv.CssColorModes)
+	cmm := gen.StringMapKeysIntoSlice(clr.CssColorModes)
 	sort.Strings(cmm)
 
 	var known []string

@@ -1,25 +1,9 @@
-package vv
-
-var (
-	CssColorModes = map[string]string{
-		"Light": LIGHTCOLORS,
-		"Dark":  DARKCOLORS,
-		//"MonoSand": clr.GenerateMonoScheme(60, 15, 80, 10),
-		//"MonoAsh":  clr.GenerateMonoScheme(220, 15, 80, 10),
-		//"Tetradic": clr.GenerateTetradScheme(250, 15, 70, 15),
-		//"Tridaic":  clr.GenerateTriadScheme(10, 25, 75, 15),
-		"Splitcomp": SPLITCOMP,
-		"MonoSand":  MONOCHROMESANDY,
-		"MonoAsh":   MONOCHROMEASH,
-		"Tetradic":  TETRADIC,
-		"Tridaic":   TRIADIC,
-	}
-)
+package clr
 
 const (
-	DEFAULCOLORS = "Light"
+	DEFAULTCOLORS = "Light"
 
-	LIGHTCOLORS = `
+	LIGHTCOLORSORIGINAL = `
 	--main-body-color: hsla(0, 0%, 98%, 1);
 	--main-font-color: hsla(0, 0%, 6%, 1);
 	--input-border-color: hsla(0, 0%, 92%, 1);
@@ -29,9 +13,9 @@ const (
 	--fieldset-background: hsla(0, 0%, 98%, 1);
 	--focus-shadow: rgba(0, 0, 0, 0.5);
 	--icons-color: rgba(0, 0, 0, 0.54);
-
+	
 	--greyborders: hsla(0, 0%, 67%, 1);
-    --boxshadows: hsla(0, 0%, 67%, 1);
+	--boxshadows: hsla(0, 0%, 67%, 1);
 	--modalbackground: hsla(0, 0%, 33%, 1);
 	--notations: hsla(196, 14%, 39%, 1);
 	--dottedborders: hsla(0, 0%, 0%, 1);
@@ -39,10 +23,10 @@ const (
 	--bracketcolor2: hsl(240, 10%, 61%);
 	--bracketcolor3: hsl(71, 95%, 22%);
 	--bracketcolor4: hsla(237, 43%, 57%, 1);
-
+	
 	--invisible: hsla(0, 100%, 100%, 0);
 	--transparentgrey: hsla(0, 0%, 67%, .8);
-
+	
 	--hgsmono00: hsla(0, 0%, 0%, 1);
 	--hgsmono01: hsla(0, 0%, 33%, 1);
 	--hgsmono02: hsla(0, 0%, 90%, 1);
@@ -52,7 +36,7 @@ const (
 	--hgsmono07: hsla(0, 0%, 20%, 1);
 	--hgsmono08: hsla(0, 0%, 96%, 1);
 	--hgsmono09: hsla(0, 0%, 100%, 1);
-
+	
 	--hgscol01: hsla(240, 100%, 27%, 1);
 	--hgscol02: hsla(22, 22%, 26%, 1);
 	--hgscol03: hsla(236, 44%, 40%, 1);
@@ -76,7 +60,7 @@ const (
 	--hgscol21: hsla(196, 27%, 20%, 1);
 `
 
-	DARKCOLORS = `
+	DARKCOLORSMANUAL = `
 	--main-body-color: hsla(60,17%,11%, 1);
 	--main-font-color: hsla(60,30%,97%, 1);
 	--input-border-color: hsla(60,17%, 22%, 1);
@@ -132,7 +116,7 @@ const (
 	--hgsmono08: hsla(0, 0%, 4%, 1);
 	--hgsmono09: hsla(0, 0%, 0%, 1);`
 
-	// MONOCHROMESANDY - from dark to light...
+	// MONOCHROMESANDYMANUAL - from dark to light...
 	// #1B1B19
 	// #40403B
 	// #64645C
@@ -140,7 +124,7 @@ const (
 	// #ADAD9F
 	// #D1D1C0
 	// #FAFAE5 - cheated up from F6F6E2...
-	MONOCHROMESANDY = `
+	MONOCHROMESANDYMANUAL = `
 	--main-body-color: #D1D1C0;
 	--main-font-color: #1B1B19;
 	--input-border-color: #ADAD9F;
@@ -196,7 +180,7 @@ const (
 	--hgsmono08: #FAFAE5;
 	--hgsmono09: #1B1B19;`
 
-	// MONOCHROMEASH - from dark to light...
+	// MONOCHROMEASHMANUAL - from dark to light...
 	// #141518
 	// #31343D
 	// #4F5461
@@ -204,7 +188,7 @@ const (
 	// #8A93AA
 	// #A8B3CE
 	// #D0DCFF - cheated up from C6D2F3
-	MONOCHROMEASH = `
+	MONOCHROMEASHMANUAL = `
     --main-body-color: #A8B3CE;
     --main-font-color: #141518;
     --input-border-color: #8A93AA;
@@ -260,7 +244,7 @@ const (
     --hgsmono08: #D0DCFF;
     --hgsmono09: #141518;`
 
-	// TETRADIC - a tatradic + a mono scheme
+	// TETRADICMANUAL - a tatradic + a mono scheme
 	// tetradic:
 	//
 	// #E1E1F5
@@ -277,7 +261,7 @@ const (
 	// #9F9FAD
 	// #C0C0D1
 	// #E1E1F5
-	TETRADIC = `
+	TETRADICMANUAL = `
 	--main-body-color: #3A3A3F;
 	--main-font-color: #E1E1F5;
 	--input-border-color: #5C5C64;
@@ -333,7 +317,7 @@ const (
 	--hgsmono08: #F5E1EB;
 	--hgsmono09: #E1E1F5;`
 
-	// SPLITCOMP - a spit complementary + a mono scheme
+	// SPLITCOMPMANUAL - a spit complementary + a mono scheme
 	// #DCF2F1
 	// #DFDCF2
 	// #F2E8DC
@@ -345,7 +329,7 @@ const (
 	// #9AA9A8
 	// #BBCECD
 	// #DCF2F1
-	SPLITCOMP = `
+	SPLITCOMPMANUAL = `
 	--main-body-color: #363C3C;
 	--main-font-color: #DCF2F1;
 	--input-border-color: #586060;
@@ -401,7 +385,7 @@ const (
 	--hgsmono08: #DFDCF2;
 	--hgsmono09: #DCF2F1;`
 
-	// TRIADIC - triadic + monochrome
+	// TRIADICMANUAL - triadic + monochrome
 	// #FFFFD6
 	// #D6FFFF
 	// #FFD6FF
@@ -413,7 +397,7 @@ const (
 	// #B6B699
 	// #DBDBB7
 	// #FFFFD6
-	TRIADIC = `
+	TRIADICMANUAL = `
 	--main-body-color: #49493D;
 	--main-font-color: #FFFFD6;
 	--input-border-color: #6D6D5C;

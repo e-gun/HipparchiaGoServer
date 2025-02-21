@@ -14,6 +14,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
+	"github.com/e-gun/HipparchiaGoServer/internal/clr"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"os"
 	"runtime"
@@ -121,7 +122,7 @@ func ConfigAtLaunch() {
 		kff := gen.StringMapKeysIntoSlice(vv.ServableFonts)
 		sort.Strings(kff)
 
-		kcc := gen.StringMapKeysIntoSlice(vv.CssColorModes)
+		kcc := gen.StringMapKeysIntoSlice(clr.CssColorModes)
 		sort.Strings(kcc)
 
 		// see HELPTEXTTEMPLATE in vv.terminalconst.go
@@ -319,9 +320,9 @@ func ConfigAtLaunch() {
 		}
 	}
 
-	if !slices.Contains(gen.StringMapKeysIntoSlice(vv.CssColorModes), Config.CssColors) {
+	if !slices.Contains(gen.StringMapKeysIntoSlice(clr.CssColorModes), Config.CssColors) {
 		Msg.WARN(fmt.Sprintf(FAIL9, Config.Font))
-		Config.CssColors = vv.DEFAULCOLORS
+		Config.CssColors = clr.DEFAULTCOLORS
 	}
 
 }
@@ -334,7 +335,7 @@ func builddefaultconfig() *str.CurrentConfiguration {
 	c.BlackAndWhite = vv.BLACKANDWHITE
 	c.BrowserCtx = vv.DEFAULTBROWSERCTX
 	c.CustomCSS = false
-	c.CssColors = vv.DEFAULCOLORS
+	c.CssColors = clr.DEFAULTCOLORS
 	c.DbDebug = false
 	c.Font = vv.FONTSETTING
 	c.Gzip = vv.USEGZIP
