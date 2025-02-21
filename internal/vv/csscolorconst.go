@@ -1,16 +1,18 @@
 package vv
 
-import "github.com/e-gun/HipparchiaGoServer/internal/base/gen"
-
 var (
 	CssColorModes = map[string]string{
-		"Light":     LIGHTCOLORS,
-		"Dark":      DARKCOLORS,
-		"MonoSand":  gen.GenerateMonoScheme(60, 15, 80),
-		"MonoAsh":   gen.GenerateMonoScheme(220, 15, 80),
-		"Tetradic":  gen.GenerateTetradScheme(250, 15, 70),
+		"Light": LIGHTCOLORS,
+		"Dark":  DARKCOLORS,
+		//"MonoSand":  clr.GenerateMonoScheme(60, 15, 80),
+		//"MonoAsh":   clr.GenerateMonoScheme(220, 15, 80),
+		//"Tetradic":  clr.GenerateTetradScheme(250, 15, 70),
+		//"Tridaic":   clr.GenerateTriadScheme(10, 25, 75),
 		"Splitcomp": SPLITCOMP,
-		"Tridaic":   gen.GenerateTriadScheme(10, 25, 75),
+		"MonoSand":  MONOCHROMESANDY,
+		"MonoAsh":   MONOCHROMEASH,
+		"Tetradic":  TETRADIC,
+		"Tridaic":   TRIADIC,
 	}
 )
 
@@ -27,7 +29,17 @@ const (
 	--fieldset-background: hsla(0, 0%, 98%, 1);
 	--focus-shadow: rgba(0, 0, 0, 0.5);
 	--icons-color: rgba(0, 0, 0, 0.54);
-	
+
+	--greyborders: hsla(0, 0%, 67%, 1);
+    --boxshadows: hsla(0, 0%, 67%, 1);
+	--modalbackground: hsla(0, 0%, 33%, 1);
+	--notations: hsla(196, 14%, 39%, 1);
+	--dottedborders: hsla(0, 0%, 0%, 1);
+	--bracketcolor1: hsla(22, 22%, 26%, 1);
+	--bracketcolor2: hsl(240, 10%, 61%);
+	--bracketcolor3: hsl(71, 95%, 22%);
+	--bracketcolor4: hsla(237, 43%, 57%, 1);
+
 	--black: hsla(0, 0%, 0%, 1);
 	--blue: hsla(240, 100%, 27%, 1);
 	--brown: hsla(22, 22%, 26%, 1);
@@ -74,6 +86,16 @@ const (
 	--focus-shadow: rgba(0, 0, 0, 0.5);
 	--icons-color: rgba(255, 255, 255, 0.54);
 	
+	--greyborders: hsla(0, 0%, 53%, 1);
+    --boxshadows: hsla(0, 0%, 53%, 1);
+	--modalbackground: hsla(0, 0%, 82%, 1);
+	--notations: hsla(196, 14%, 71%, 1);
+	--dottedborders: hsla(0, 0%, 100%, 1);
+	--bracketcolor1: hsla(22, 22%, 74%, 1);
+	--bracketcolor2: hsl(113, 35%, 85%);
+	--bracketcolor3: hsl(71, 95%, 78%);
+	--bracketcolor4: hsla(64, 52%, 84%, 1);
+
 	--black: hsla(0, 0%, 95%, 1);
 	--blue: hsl(167, 35%, 77%);  /* pea green... */
 	--brown: hsla(22, 22%, 74%, 1);
@@ -103,7 +125,7 @@ const (
 	--sicklyyellow: hsl(45, 16%, 67%);
 	--skyblue: hsla(205, 92%, 73%, 1);
 	--teal: hsla(196, 14%, 71%, 1);
-	--transparentgrey: hsla(0, 0%, 10%, .7);
+	--transparentgrey: hsla(0, 0%, 90%, .7);
 	--vdkteal: hsla(196, 27%, 80%, 1);
 	--vdkgrey: hsla(0, 0%, 80%, 1);
 	--vltgrey: hsla(0, 0%, 4%, 1);
@@ -129,6 +151,16 @@ const (
 	--focus-shadow: rgba(0, 0, 0, 0.5);
 	--icons-color: #3F3F3A;
 	
+	--greyborders: #FAFAE5;
+    --boxshadows: #FAFAE5;
+	--modalbackground: #1B1B19;
+	--notations: #89897E;
+	--dottedborders: #FAFAE5;
+	--bracketcolor1: #FAFAE5;
+	--bracketcolor2: #FAFAE5;
+	--bracketcolor3: #D1D1C0;
+	--bracketcolor4: 3F3F3A;
+
 	--black: #FAFAE5;
 	--blue: #FAFAE5; 
 	--brown: #FAFAE5;
@@ -184,6 +216,16 @@ const (
     --focus-shadow: rgba(0, 0, 0, 0.5);
     --icons-color: #3F3F3A;
     
+	--greyborders: #D0DCFF;
+    --boxshadows: #D0DCFF;
+	--modalbackground: #141518;
+	--notations: #6D7485;
+	--dottedborders: #FAFAE5;
+	--bracketcolor1: #D0DCFF;
+	--bracketcolor2: #D0DCFF;
+	--bracketcolor3: #A8B3CE;
+	--bracketcolor4: 3F3F3A;
+
     --black: #D0DCFF;
     --blue: #D0DCFF;
     --brown: #D0DCFF;
@@ -248,6 +290,16 @@ const (
 	--focus-shadow: rgba(0, 0, 0, 0.5);
 	--icons-color: #9F9FAD;
 	
+	--greyborders: #F5F5E1;
+    --boxshadows: #F5F5E1;
+	--modalbackground: #F5F5E1;
+	--notations: #E1F5EB;
+	--dottedborders: #19191B;
+	--bracketcolor1: #E1F5EB;
+	--bracketcolor2: #E1F5EB;
+	--bracketcolor3: #F5F5E1;
+	--bracketcolor4: F5F5E1;
+
 	--black: #19191B;
 	--blue: #F5F5E1; 
 	--brown: #E1F5EB;
@@ -306,6 +358,16 @@ const (
 	--fieldset-background: #586060;
 	--focus-shadow: rgba(0, 0, 0, 0.5);
 	--icons-color: #9AA9A8;
+
+	--greyborders: #F2E8DC;
+    --boxshadows: #F2E8DC;
+	--modalbackground: #F2E8DC;
+	--notations: #F2E8DC;
+	--dottedborders: #151717;
+	--bracketcolor1: #F2E8DC;
+	--bracketcolor2: #DCF2F1;
+	--bracketcolor3: #F2E8DC;
+	--bracketcolor4: F2E8DC;
 
 	--black: #151717;
 	--blue: #F2E8DC; 
@@ -366,6 +428,16 @@ const (
 	--focus-shadow: rgba(0, 0, 0, 0.5);
 	--icons-color: #B6B699;
 	
+	--greyborders: #F2E8DC;
+    --boxshadows: #F2E8DC;
+	--modalbackground: #F2E8DC;
+	--notations: #F2E8DC;
+	--dottedborders: #24241F;
+	--bracketcolor1: #F2E8DC;
+	--bracketcolor2: #D6FFFF;
+	--bracketcolor3: #F2E8DC;
+	--bracketcolor4: F2E8DC;
+
 	--black: #24241F;
 	--blue: #F2E8DC; 
 	--brown: #F2E8DC;

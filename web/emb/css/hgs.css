@@ -7,6 +7,40 @@
 	/* formula to invert HEX: amount*(255-value)+(1-amount)*value */
 	/* colorsys.hls_to_rgb(h, l, s) */
 
+	/* OLD / NEW */
+	/* dkgrey / hgsmono01 */
+	/* ltgrey / hgsmono02 */
+	/* ltgrey2 / hgsmono03 */
+	/* midgrey / hgsmono04 */
+	/* offwhite / hgsmono05 */
+	/* transparentgrey / hgsmono06 */
+	/* vdkgrey / hgsmono07 */
+	/* vltgrey / hgsmono08 */
+	/* white / hgsmono09 */
+	/* white / hgsmono10 */
+	/* blue / hgscol01 */
+	/* brown / hgscol02 */
+	/* brtblue / hgscol03 */
+	/* copper / hgscol04 */
+	/* deepblue / hgscol05 */
+	/* dkbabyblue / hgscol06 */
+	/* dkgreen / hgscol07 */
+	/* dkteal / hgscol08 */
+	/* huedgrey / hgscol09 */
+	/* lessoffwhite / hgscol10 */
+	/* ltbabyblue / hgscol11 */
+	/* orange / hgscol12 */
+	/* pink / hgscol13 */
+	/* pinker / hgscol13 */
+	/* plum / hgscol14 */
+	/* pukegreen / hgscol15 */
+	/* red / hgscol16 */
+	/* rustedorange / hgscol17 */
+	/* sicklyyellow / hgscol18 */
+	/* skyblue / hgscol19 */
+	/* teal / hgscol20 */
+	/* vdkteal / hgscol21 */
+
 	/* begin core interface color info; inserted by rt-embhcss.go */
     {{index . "colorinfo"}}
 	/* end core interface color info; inserted by rt-embhcss.go */
@@ -186,7 +220,7 @@ body {
 	align-items: center;
 	/*border-style: solid;*/
 	/*border-width: 1px;*/
-	/*border-color: var(--midgrey);*/
+	/*border-color: var(--greyborders);;*/
 	margin-left: 15px;
 	margin-right: 15px;
 	/*background-color: var(--vltgrey);*/
@@ -407,16 +441,16 @@ body {
 	font-weight: normal;
 	/* next is tempting, but too heavey-handed? esp. if squarebrackets is not treated in parallel... */
 	/* font-family: 'hipparchiaobliquestatic', sans-serif; */
-	color: var(--pukegreen);
+	color: var(--bracketcolor3);
 }
 
 .editorialmarker_curlybrackets {
 	font-weight: normal;
-	color: var(--dkbabyblue);
+	color: var(--bracketcolor4);
 }
 
 .editorialmarker_roundbrackets {
-	color: var(--brown);
+	color: var(--bracketcolor1);
 	font-weight: normal;
 }
 
@@ -424,7 +458,7 @@ body {
 	/* next two are great until it they aren't: fragmentary papyrus, etc will get warped: "[ca. 6 litt.]" */
 	/* text-decoration: line-through;
 	text-decoration-style: dotted; */
-	color: var(--huedgrey);
+	color: var(--bracketcolor2);
 }
 
 .embeddedannotations {
@@ -495,8 +529,8 @@ body {
 }
 
 .foundlocus:hover{
-	border-bottom: 1px dotted var(--black);
-	border-top: 1px dotted var(--black);
+	border-bottom: 1px dotted var(--dottedborders);
+	border-top: 1px dotted var(--dottedborders);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
@@ -710,11 +744,11 @@ body {
 	padding-left: 10px;
 	border-style: solid;
 	border-width: 1px;
-	border-color: var(--midgrey);
+	border-color: var(--greyborders);
 	box-shadow: 2px 2px 1px var(--transparentgrey);
 	border-radius: 8px 8px 0 0;  /* top-left; top-right; bottom-right; bottom-left */
 	overflow-y: clip;
-	background-color: var(--dkgrey);
+	background-color: var(--modalbackground);
 	font-family: 'hipparchiaboldstatic', sans-serif;
 	font-size: 100%;
 	color: var(--main-body-color);
@@ -758,7 +792,7 @@ body {
 	-webkit-animation-name: slideIn;
 	-webkit-animation-duration: 0.4s;
 	background-color: var(--lessoffwhite);
-	border-color: var(--midgrey);
+	border-color: var(--greyborders);;
 	box-shadow: 2px 2px 1px var(--transparentgrey);
 	animation-name: slideIn;
 	animation-duration: 0.4s
@@ -829,7 +863,7 @@ body {
 .match, .proximate {
 	color: var(--red);
 	font-weight: normal;
-	border: 1px dotted var(--black);
+	border: 1px dotted var(--dottedborders);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
@@ -867,7 +901,7 @@ body {
 }
 
 .outline {
-	border: 1px dotted var(--black);
+	border: 1px dotted var(--dottedborders);
 }
 
 .overline {
@@ -966,11 +1000,11 @@ body {
 	padding-left: 10px;
 	border-style: solid;
 	border-width: 1px;
-	border-color: var(--midgrey);
+	border-color: var(--greyborders);;
 	border-radius: 8px 8px 0 0;  /* top-left; top-right; bottom-right; bottom-left */
 	box-shadow: 2px 2px 1px var(--transparentgrey);
 	overflow-y: clip;
-	background-color: var(--dkgrey);
+	background-color: var(--modalbackground);
 	font-family: 'hipparchiaboldstatic', sans-serif;
 	font-size: 100%;
 	color: var(--main-body-color);
@@ -1014,7 +1048,7 @@ body {
 	-webkit-animation-name: slideIn;
 	-webkit-animation-duration: 0.4s;
 	background-color: var(--lessoffwhite);
-	border-color: var(--midgrey);
+	border-color: var(--greyborders);;
 	box-shadow: 2px 2px 1px var(--transparentgrey);
 	animation-name: slideIn;
 	animation-duration: 0.4s
@@ -1047,7 +1081,7 @@ body {
 
 .searchsel:hover {
 	/* inactive color: #993354;
-	text-shadow: 1px 1px var(--midgrey);
+	text-shadow: 1px 1px var(--boxshadow);
 	*/ }
 
 .select {
@@ -1199,7 +1233,7 @@ body {
 
 #authorholdings {
 	background-color: var(--offwhite);
-	border: 1px dotted var(--black);
+	border: 1px dotted var(--dottedborders);
 	width: 50%;
 	margin: auto;
 }
@@ -1220,7 +1254,7 @@ body {
 	position: fixed;
 	border-style: solid;
 	border-width: 1px;
-	border-color: var(--midgrey);
+	border-color: var(--greyborders);;
 	border-radius: 8px;
 	top: 100px;
 	right: 50px;
@@ -1320,7 +1354,7 @@ body {
 	right: 125px;
 	left: 125px;
 	bottom: 125px;
-	box-shadow: 5px 5px 2px var(--midgrey);
+	box-shadow: 5px 5px 2px var(--boxshadows);
 	padding: 10px;
 	background-color: var(--lessoffwhite);
 	overflow: auto;
@@ -1358,7 +1392,7 @@ body {
 	padding-left: 20px;
 	padding-right: 20px;
 	background-color: var(--offwhite);
-	border: 1px dotted var(--black);
+	border: 1px dotted var(--dottedborders);
 	width: 50%;
 	margin: auto;
 }
@@ -1425,8 +1459,8 @@ a.lex, a.nounderline {
 }
 
 a.lex:hover, a.nounderline:hover {
-	border-bottom: 1px dotted var(--black);
-	border-top: 1px dotted var(--black);
+	border-bottom: 1px dotted var(--dottedborders);
+	border-top: 1px dotted var(--dottedborders);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
@@ -1437,8 +1471,8 @@ bibl {
 }
 
 bibl:hover{
-	border-bottom: 1px dotted var(--black);
-	border-top: 1px dotted var(--black);
+	border-bottom: 1px dotted var(--dottedborders);
+	border-top: 1px dotted var(--dottedborders);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
@@ -1501,8 +1535,8 @@ dictionaryentry{
 }
 
 dictionaryentry:hover{
-	border-bottom: 1px dotted var(--black);
-	border-top: 1px dotted var(--black);
+	border-bottom: 1px dotted var(--dottedborders);
+	border-top: 1px dotted var(--dottedborders);
 	color: var(--dkbabyblue);
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	text-shadow: 1px 1px 3px var(--transparentgrey);
@@ -1539,8 +1573,8 @@ formsummary{
 }
 
 formsummary:hover{
-	border-bottom: 1px dotted var(--black);
-	border-top: 1px dotted var(--black);
+	border-bottom: 1px dotted var(--dottedborders);
+	border-top: 1px dotted var(--dottedborders);
 	color: var(--dkbabyblue);
 	font-family: 'hipparchiasemiboldstatic', sans-serif;
 	text-shadow: 1px 1px 3px var(--transparentgrey);
@@ -1564,15 +1598,15 @@ hr {
 }
 
 indexedlocation:hover{
-	border-bottom: 1px dotted var(--black);
-	border-top: 1px dotted var(--black);
+	border-bottom: 1px dotted var(--dottedborders);
+	border-top: 1px dotted var(--dottedborders);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
 indexobserved:hover{
-	border-bottom: 1px dotted var(--black);
-	border-top: 1px dotted var(--black);
+	border-bottom: 1px dotted var(--dottedborders);
+	border-top: 1px dotted var(--dottedborders);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
@@ -1611,8 +1645,8 @@ locus {
 }
 
 observed:hover{
-	border-bottom: 1px dotted var(--black);
-	border-top: 1px dotted var(--black);
+	border-bottom: 1px dotted var(--dottedborders);
+	border-top: 1px dotted var(--dottedborders);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
@@ -1753,7 +1787,7 @@ td.browserembeddedannotations {
 	font-family: 'hipparchiacondensedstatic', sans-serif;
 	padding-right: 10px;
 	padding-left: 15px;
-	color: var(--teal);
+	color: var(--notations);
 	vertical-align: middle;
 	line-height: 1.7;
 }
@@ -1777,7 +1811,7 @@ td.textembeddedannotations {
 	font-size: 80%;
 	padding-right: 10px;
 	padding-left: 15px;
-	color: var(--teal);
+	color: var(--notations);
 	vertical-align: middle;
 }
 
@@ -1940,8 +1974,8 @@ ul.roman {
 }
 
 vectorheadword:hover{
-	border-bottom: 1px dotted var(--black);
-	border-top: 1px dotted var(--black);
+	border-bottom: 1px dotted var(--dottedborders);
+	border-top: 1px dotted var(--dottedborders);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
@@ -1951,15 +1985,15 @@ unclickablebibl {
 }
 
 verbform:hover{
-	border-bottom: 1px dotted var(--black);
-	border-top: 1px dotted var(--black);
+	border-bottom: 1px dotted var(--dottedborders);
+	border-top: 1px dotted var(--dottedborders);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
 vocabobserved:hover{
-	border-bottom: 1px dotted var(--black);
-	border-top: 1px dotted var(--black);
+	border-bottom: 1px dotted var(--dottedborders);
+	border-top: 1px dotted var(--dottedborders);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
@@ -1969,8 +2003,8 @@ lemmatizable {
 }
 
 lemmatizable:hover{
-	border-bottom: 1px dotted var(--black);
-	border-top: 1px dotted var(--black);
+	border-bottom: 1px dotted var(--dottedborders);
+	border-top: 1px dotted var(--dottedborders);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
@@ -1980,8 +2014,8 @@ dictionaryidsearch {
 }
 
 dictionaryidsearch:hover{
-	border-bottom: 1px dotted var(--black);
-	border-top: 1px dotted var(--black);
+	border-bottom: 1px dotted var(--dottedborders);
+	border-top: 1px dotted var(--dottedborders);
 	color: var(--dkbabyblue);
 	text-shadow: 1px 1px 3px var(--transparentgrey);
 }
