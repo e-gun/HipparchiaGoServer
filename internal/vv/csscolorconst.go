@@ -1,18 +1,20 @@
 package vv
 
+import "github.com/e-gun/HipparchiaGoServer/internal/clr"
+
 var (
 	CssColorModes = map[string]string{
-		"Light": LIGHTCOLORS,
-		"Dark":  DARKCOLORS,
-		//"MonoSand":  clr.GenerateMonoScheme(60, 15, 80),
-		//"MonoAsh":   clr.GenerateMonoScheme(220, 15, 80),
-		//"Tetradic":  clr.GenerateTetradScheme(250, 15, 70),
-		//"Tridaic":   clr.GenerateTriadScheme(10, 25, 75),
-		"Splitcomp": SPLITCOMP,
-		"MonoSand":  MONOCHROMESANDY,
-		"MonoAsh":   MONOCHROMEASH,
-		"Tetradic":  TETRADIC,
-		"Tridaic":   TRIADIC,
+		"Light":    LIGHTCOLORS,
+		"Dark":     DARKCOLORS,
+		"MonoSand": clr.GenerateMonoScheme(60, 15, 80, 10),
+		"MonoAsh":  clr.GenerateMonoScheme(220, 15, 80, 10),
+		"Tetradic": clr.GenerateTetradScheme(250, 15, 70, 15),
+		"Tridaic":  clr.GenerateTriadScheme(10, 25, 75, 15),
+		//"Splitcomp": SPLITCOMP,
+		//"MonoSand":  MONOCHROMESANDY,
+		//"MonoAsh":   MONOCHROMEASH,
+		//"Tetradic":  TETRADIC,
+		//"Tridaic":   TRIADIC,
 	}
 )
 

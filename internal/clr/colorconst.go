@@ -13,134 +13,39 @@ const (
     --focus-shadow: rgba(0, 0, 0, 0.5);
     --icons-color: {{.colorA1}};
     
-    --black: {{.colorA6}};
-    --blue: {{.colorA6}};
-    --brown: {{.colorA6}};
-    --brtblue: {{.colorA2}};
-    --copper: {{.colorA0}};
-    --deepblue: {{.colorA6}};
-    --dkbabyblue: {{.colorA6}};
-    --dkgreen: {{.colorA0}};
-    --dkgrey: {{.colorA0}};
-    --dkteal: {{.colorA0}};
-    --huedgrey: {{.colorA6}};
+    --hgsmono00: {{.colorA6}};
+    --hgscol01: {{.colorA6}};
+    --hgscol02: {{.colorA6}};
+    --hgscol03: {{.colorA2}};
+    --hgscol04: {{.colorA0}};
+    --hgscol05: {{.colorA6}};
+    --hgscol06: {{.colorA6}};
+    --hgscol07: {{.colorA0}};
+    --hgsmono01: {{.colorA0}};
+    --hgscol08: {{.colorA0}};
+    --hgscol09: {{.colorA6}};
     --invisible: hsla(0, 100%, 0%, 0);
-    --lessoffwhite: {{.colorA4}};
-    --ltbabyblue: {{.colorA3}};
-    --ltgrey: {{.colorA6}};
-    --ltgrey2: {{.colorA6}};
-    --midgrey: {{.colorA6}};
-    --offwhite: {{.colorA6}};
-    --orange: {{.colorA3}};
-    --pink: {{.colorA3}};
-    --pinker: {{.colorA3}};
-    --plum: {{.colorA5}};
-    --pukegreen: {{.colorA6}};
-    --red: {{.colorA2}};
-    --dkgreen: {{.colorA5}};
-    --rustedorange: {{.colorA0}};
-    --sicklyyellow: {{.colorA3}};
-    --skyblue: {{.colorA5}};
-    --teal: {{.colorA3}};
+    --hgscol10: {{.colorA4}};
+    --hgscol11: {{.colorA3}};
+    --hgsmono02: {{.colorA6}};
+    --hgsmono03: {{.colorA6}};
+    --hgsmono04: {{.colorA6}};
+    --hgsmono05: {{.colorA6}};
+    --hgscol12: {{.colorA3}};
+    --hgscol13: {{.colorA3}};
+    --hgscol14: {{.colorA5}};
+    --hgscol15: {{.colorA5}};
+    --hgscol16: {{.colorA2}};
+    --hgscol07: {{.colorA5}};
+    --hgscol17: {{.colorA0}};
+    --hgscol18: {{.colorA3}};
+    --hgscol19: {{.colorA5}};
+    --hgscol20: {{.colorA3}};
     --transparentgrey: hsla(0, 0%, 10%, .7);
-    --vdkteal: {{.colorA1}};
-    --vdkgrey: {{.colorA6}};
-    --vltgrey: {{.colorA6}};
-    --white: {{.colorA0}};`
-
-	TRIADIC = `
-    --main-body-color: {{.colorA1}};
-    --main-font-color: {{.colorA6}};
-    --input-border-color: {{.colorA2}};
-    
-    --buttoncolor: {{.colorA3}};
-    --button-hover: {{.colorA5}};
-    
-    --fieldset-background: {{.colorA2}};
-    --focus-shadow: rgba(0, 0, 0, 0.5);
-    --icons-color: {{.colorA4}};
-    
-    --black: {{.colorA0}};
-    --blue: {{.colorC0}}; 
-    --brown: {{.colorC0}};
-    --brtblue: {{.colorA6}};
-    --copper: {{.colorA6}};
-    --deepblue: {{.colorB0}}; 
-    --dkbabyblue:  {{.colorA6}};  
-    --dkgreen: {{.colorA6}};
-    --dkgrey: {{.colorA6}};
-    --dkteal: {{.colorA6}};
-    --huedgrey: {{.colorB0}};
-    --invisible: hsla(0, 100%, 0%, 0);
-    --lessoffwhite: {{.colorA2}};
-    --ltbabyblue: {{.colorA3}};
-    --ltgrey: {{.colorA2}};
-    --ltgrey2: {{.colorA6}};
-    --midgrey: {{.colorA6}};
-    --offwhite: {{.colorA6}};
-    --orange: {{.colorA6}};
-    --pink: {{.colorA6}};
-    --pinker: {{.colorA3}};
-    --plum: {{.colorA1}};
-    --pukegreen: {{.colorA6}};
-    --red: {{.colorA6}}; 
-    --dkgreen: {{.colorA6}};
-    --rustedorange: {{.colorA4}}; 
-    --sicklyyellow: {{.colorA6}};
-    --skyblue: {{.colorA6}};
-    --teal: {{.colorA6}};
-    --transparentgrey: hsla(0, 0%, 10%, .7);
-    --vdkteal: {{.colorB0}};
-    --vdkgrey: {{.colorB0}};
-    --vltgrey: {{.colorB0}};
-    --white: {{.colorA6}};`
-
-	TETRADTMPL = `
-    --main-body-color: {{.colorA1}};
-    --main-font-color: {{.colorA6}};
-    --input-border-color: {{.colorA2}};
-    
-    --buttoncolor: {{.colorA3}};
-    --button-hover: {{.colorA5}};
-    
-    --fieldset-background: {{.colorA2}};
-    --focus-shadow: rgba(0, 0, 0, 0.5);
-    --icons-color: {{.colorA4}};
-    
-    --black: {{.colorA0}};
-    --blue: {{.colorC0}}; 
-    --brown: {{.colorD0}};
-    --brtblue: {{.colorC0}};
-    --copper: {{.colorA6}};
-    --deepblue: {{.colorB0}}; 
-    --dkbabyblue:  {{.colorC0}};  
-    --dkgreen: {{.colorA6}};
-    --dkgrey: {{.colorC0}};
-    --dkteal: {{.colorA6}};
-    --huedgrey: {{.colorD0}};
-    --invisible: hsla(0, 100%, 0%, 0);
-    --lessoffwhite: {{.colorA2}};
-    --ltbabyblue: {{.colorA3}};
-    --ltgrey: {{.colorA2}};
-    --ltgrey2: {{.colorC0}};
-    --midgrey: {{.colorC0}};
-    --offwhite: {{.colorA6}};
-    --orange: {{.colorD0}};
-    --pink: {{.colorD0}};
-    --pinker: {{.colorA3}};
-    --plum: {{.colorA1}};
-    --pukegreen: {{.colorC0}};
-    --red: {{.colorD0}}; 
-    --dkgreen: {{.colorA6}};
-    --rustedorange: {{.colorA4}}; 
-    --sicklyyellow: {{.colorD0}};
-    --skyblue: {{.colorD0}};
-    --teal: {{.colorD0}};
-    --transparentgrey: hsla(0, 0%, 10%, .7);
-    --vdkteal: {{.colorB0}};
-    --vdkgrey: {{.colorD0}};
-    --vltgrey: {{.colorB0}};
-    --white: {{.colorA6}};`
+    --hgscol21: {{.colorA1}};
+    --hgsmono07: {{.colorA6}};
+    --hgsmono08: {{.colorA6}};
+    --hgsmono09: {{.colorA0}};`
 
 	SPLITCOMP = `
     --main-body-color: {{.colorA1}};
@@ -154,38 +59,128 @@ const (
     --focus-shadow: rgba(0, 0, 0, 0.5);
     --icons-color: {{.colorA4}};
 
-    --black: {{.colorA0}};
-    --blue: {{.colorC0}}; 
-    --brown: {{.colorC0}};
-    --brtblue: {{.colorC0}};
-    --copper: {{.colorA6}};
-    --deepblue: {{.colorB0}}; 
-    --dkbabyblue:  {{.colorC0}};  
-    --dkgreen: {{.colorA6}};
-    --dkgrey: {{.colorC0}};
-    --dkteal: {{.colorA6}};
-    --huedgrey: {{.colorA6}};
+    --hgsmono00: {{.colorA0}};
+    --hgscol01: {{.colorC0}}; 
+    --hgscol02: {{.colorC0}};
+    --hgscol03: {{.colorC0}};
+    --hgscol04: {{.colorA6}};
+    --hgscol05: {{.colorB0}}; 
+    --hgscol06:  {{.colorC0}};  
+    --hgscol07: {{.colorA6}};
+    --hgsmono01: {{.colorC0}};
+    --hgscol08: {{.colorA6}};
+    --hgscol09: {{.colorA6}};
     --invisible: hsla(0, 100%, 0%, 0);
-    --lessoffwhite: {{.colorA2}};
-    --ltbabyblue: {{.colorA3}};
-    --ltgrey: {{.colorA2}};
-    --ltgrey2: {{.colorC0}};
-    --midgrey: {{.colorC0}};
-    --offwhite: {{.colorA6}};
-    --orange: {{.colorC0}};
-    --pink: {{.colorC0}};
-    --pinker: {{.colorA3}};
-    --plum: {{.colorA1}};
-    --pukegreen: {{.colorC0}};
-    --red: {{.colorC0}}; 
-    --dkgreen: {{.colorA6}};
-    --rustedorange: {{.colorA4}}; 
-    --sicklyyellow: {{.colorC0}};
-    --skyblue: {{.colorC0}};
-    --teal: {{.colorC0}};
+    --hgscol10: {{.colorA2}};
+    --hgscol11: {{.colorA3}};
+    --hgsmono02: {{.colorA2}};
+    --hgsmono03: {{.colorC0}};
+    --hgsmono04: {{.colorC0}};
+    --hgsmono05: {{.colorA6}};
+    --hgscol12: {{.colorC0}};
+    --hgscol13: {{.colorC0}};
+    --hgscol14: {{.colorA1}};
+    --hgscol15: {{.colorC0}};
+    --hgscol16: {{.colorC0}}; 
+    --hgscol07: {{.colorA6}};
+    --hgscol17: {{.colorA4}}; 
+    --hgscol18: {{.colorC0}};
+    --hgscol19: {{.colorC0}};
+    --hgscol20: {{.colorC0}};
     --transparentgrey: hsla(0, 0%, 10%, .7);
-    --vdkteal: {{.colorB0}};
-    --vdkgrey: {{.colorA6}};
-    --vltgrey: {{.colorB0}};
-    --white: {{.colorA6}};`
+    --hgscol21: {{.colorB0}};
+    --hgsmono07: {{.colorA6}};
+    --hgsmono08: {{.colorB0}};
+    --hgsmono09: {{.colorA6}};`
+
+	TETRADTMPL = `
+    --main-body-color: {{.colorA1}};
+    --main-font-color: {{.colorA6}};
+    --input-border-color: {{.colorA2}};
+    
+    --buttoncolor: {{.colorA3}};
+    --button-hover: {{.colorA5}};
+    
+    --fieldset-background: {{.colorA2}};
+    --focus-shadow: rgba(0, 0, 0, 0.5);
+    --icons-color: {{.colorA4}};
+    
+    --hgsmono00: {{.colorA0}};
+    --hgscol01: {{.colorC0}}; 
+    --hgscol02: {{.colorD0}};
+    --hgscol03: {{.colorC0}};
+    --hgscol04: {{.colorA6}};
+    --hgscol05: {{.colorB0}}; 
+    --hgscol06:  {{.colorC0}};  
+    --hgscol07: {{.colorA6}};
+    --hgsmono01: {{.colorC0}};
+    --hgscol08: {{.colorA6}};
+    --hgscol09: {{.colorD0}};
+    --invisible: hsla(0, 100%, 0%, 0);
+    --hgscol10: {{.colorA2}};
+    --hgscol11: {{.colorA3}};
+    --hgsmono02: {{.colorA2}};
+    --hgsmono03: {{.colorC0}};
+    --hgsmono04: {{.colorC0}};
+    --hgsmono05: {{.colorA6}};
+    --hgscol12: {{.colorD0}};
+    --hgscol13: {{.colorD0}};
+    --hgscol14: {{.colorA1}};
+    --hgscol15: {{.colorC0}};
+    --hgscol16: {{.colorD0}}; 
+    --hgscol17: {{.colorA4}}; 
+    --hgscol18: {{.colorD0}};
+    --hgscol19: {{.colorD0}};
+    --hgscol20: {{.colorD0}};
+    --transparentgrey: hsla(0, 0%, 10%, .7);
+    --hgscol21: {{.colorB0}};
+    --hgsmono07: {{.colorD0}};
+    --hgsmono08: {{.colorB0}};
+    --hgsmono09: {{.colorA6}};`
+
+	TRIADIC = `
+    --main-body-color: {{.colorA1}};
+    --main-font-color: {{.colorA6}};
+    --input-border-color: {{.colorA2}};
+    
+    --buttoncolor: {{.colorA3}};
+    --button-hover: {{.colorA5}};
+    
+    --fieldset-background: {{.colorA2}};
+    --focus-shadow: rgba(0, 0, 0, 0.5);
+    --icons-color: {{.colorA4}};
+    
+    --hgsmono00: {{.colorA0}};
+    --hgscol01: {{.colorC0}}; 
+    --hgscol02: {{.colorC0}};
+    --hgscol03: {{.colorA6}};
+    --hgscol04: {{.colorA6}};
+    --hgscol05: {{.colorB0}}; 
+    --hgscol06:  {{.colorA6}};  
+    --hgscol07: {{.colorA6}};
+    --hgsmono01: {{.colorA6}};
+    --hgscol08: {{.colorA6}};
+    --hgscol09: {{.colorB0}};
+    --invisible: hsla(0, 100%, 0%, 0);
+    --hgscol10: {{.colorA2}};
+    --hgscol11: {{.colorA3}};
+    --hgsmono02: {{.colorA2}};
+    --hgsmono03: {{.colorA6}};
+    --hgsmono04: {{.colorA6}};
+    --hgsmono05: {{.colorA6}};
+    --hgscol12: {{.colorA6}};
+    --hgscol13: {{.colorA6}};
+    --hgscol14: {{.colorA1}};
+    --hgscol15: {{.colorA6}};
+    --hgscol16: {{.colorA6}}; 
+    --hgscol07: {{.colorA6}};
+    --hgscol17: {{.colorA4}}; 
+    --hgscol18: {{.colorA6}};
+    --hgscol19: {{.colorA6}};
+    --hgscol20: {{.colorA6}};
+    --transparentgrey: hsla(0, 0%, 10%, .7);
+    --hgscol21: {{.colorB0}};
+    --hgsmono07: {{.colorB0}};
+    --hgsmono08: {{.colorB0}};
+    --hgsmono09: {{.colorA6}};`
 )
