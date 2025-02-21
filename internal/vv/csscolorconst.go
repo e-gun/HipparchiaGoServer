@@ -1,20 +1,18 @@
 package vv
 
-import "github.com/e-gun/HipparchiaGoServer/internal/clr"
-
 var (
 	CssColorModes = map[string]string{
-		"Light":    LIGHTCOLORS,
-		"Dark":     DARKCOLORS,
-		"MonoSand": clr.GenerateMonoScheme(60, 15, 80, 10),
-		"MonoAsh":  clr.GenerateMonoScheme(220, 15, 80, 10),
-		"Tetradic": clr.GenerateTetradScheme(250, 15, 70, 15),
-		"Tridaic":  clr.GenerateTriadScheme(10, 25, 75, 15),
-		//"Splitcomp": SPLITCOMP,
-		//"MonoSand":  MONOCHROMESANDY,
-		//"MonoAsh":   MONOCHROMEASH,
-		//"Tetradic":  TETRADIC,
-		//"Tridaic":   TRIADIC,
+		"Light": LIGHTCOLORS,
+		"Dark":  DARKCOLORS,
+		//"MonoSand": clr.GenerateMonoScheme(60, 15, 80, 10),
+		//"MonoAsh":  clr.GenerateMonoScheme(220, 15, 80, 10),
+		//"Tetradic": clr.GenerateTetradScheme(250, 15, 70, 15),
+		//"Tridaic":  clr.GenerateTriadScheme(10, 25, 75, 15),
+		"Splitcomp": SPLITCOMP,
+		"MonoSand":  MONOCHROMESANDY,
+		"MonoAsh":   MONOCHROMEASH,
+		"Tetradic":  TETRADIC,
+		"Tridaic":   TRIADIC,
 	}
 )
 
@@ -100,40 +98,39 @@ const (
 	--bracketcolor3: hsl(71, 95%, 78%);
 	--bracketcolor4: hsla(64, 52%, 84%, 1);
 
-	--black: hsla(0, 0%, 95%, 1);
-	--blue: hsl(167, 35%, 77%);  /* pea green... */
-	--brown: hsla(22, 22%, 74%, 1);
-	--brtblue: hsla(236, 44%, 85%, 1);
-	--copper: hsla(11, 53%, 83%);
-	--deepblue: hsla(57, 65%, 83%, 1);  /* yellow... */
-	--dkbabyblue:  hsla(64, 52%, 84%, 1);  /* yellow... */
-	--dkgreen: hsla(120, 80%, 80%, 1);
-	--dkgrey: hsla(0, 0%, 82%, 1);
-	--dkteal: hsla(203, 22%, 82%, 1);
-	--huedgrey: hsl(113, 35%, 85%);
+	--hgsmono00: hsla(0, 0%, 95%, 1);
+	--hgscol01: hsl(167, 35%, 77%);  /* pea green... */
+	--hgscol02: hsla(22, 22%, 74%, 1);
+	--hgscol03: hsla(236, 44%, 85%, 1);
+	--hgscol04: hsla(11, 53%, 83%);
+	--hgscol05: hsla(57, 65%, 83%, 1);  /* yellow... */
+	--hgscol06:  hsla(64, 52%, 84%, 1);  /* yellow... */
+	--hgscol07: hsla(120, 80%, 80%, 1);
+	--hgsmono01: hsla(0, 0%, 82%, 1);
+	--hgscol08: hsla(203, 22%, 82%, 1);
+	--hgscol09: hsl(113, 35%, 85%);
 	--invisible: hsla(0, 100%, 0%, 0);
-	--lessoffwhite: hsla(0, 0%, 2%, 1);
-	--ltbabyblue: hsla(200, 33%, 15%, 1);
-	--ltgrey: hsla(0, 0%, 20%, 1);
-	--ltgrey2: hsl(206, 7%, 11%);
-	--midgrey: hsla(0, 0%, 53%, 1);
-	--offwhite: hsla(0, 0%, 1%, 1);
-	--orange: hsla(47, 100%, 75%, 1);
-	--pink: hsla(0, 33%, 15%, 1);
-	--pinker: hsl(0, 73%, 20%);
-	--plum: hsla(291, 15%, 72%);
-	--pukegreen: hsl(71, 95%, 78%);
-	--red: hsl(186, 32%, 65%); /* teal... */
-	--dkgreen: hsla(120, 80%, 80%, 1);
-	--rustedorange: hsla(223, 10%, 76%, 1); /* blue-grey... */
-	--sicklyyellow: hsl(45, 16%, 67%);
-	--skyblue: hsla(205, 92%, 73%, 1);
-	--teal: hsla(196, 14%, 71%, 1);
+	--hgscol10: hsla(0, 0%, 2%, 1);
+	--hgscol11: hsla(200, 33%, 15%, 1);
+	--hgsmono02: hsla(0, 0%, 20%, 1);
+	--hgsmono03: hsl(206, 7%, 11%);
+	--hgsmono04: hsla(0, 0%, 53%, 1);
+	--hgsmono05: hsla(0, 0%, 1%, 1);
+	--hgscol12: hsla(47, 100%, 75%, 1);
+	--hgscol13: hsla(0, 33%, 15%, 1);
+	--hgscol14: hsla(291, 15%, 72%);
+	--hgscol15: hsl(71, 95%, 78%);
+	--hgscol16: hsl(186, 32%, 65%); /* teal... */
+	--hgscol07: hsla(120, 80%, 80%, 1);
+	--hgscol17: hsla(223, 10%, 76%, 1); /* blue-grey... */
+	--hgscol18: hsl(45, 16%, 67%);
+	--hgscol19: hsla(205, 92%, 73%, 1);
+	--hgscol20: hsla(196, 14%, 71%, 1);
 	--transparentgrey: hsla(0, 0%, 90%, .7);
-	--vdkteal: hsla(196, 27%, 80%, 1);
-	--vdkgrey: hsla(0, 0%, 80%, 1);
-	--vltgrey: hsla(0, 0%, 4%, 1);
-	--white: hsla(0, 0%, 0%, 1);`
+	--hgscol21: hsla(196, 27%, 80%, 1);
+	--hgsmono07: hsla(0, 0%, 80%, 1);
+	--hgsmono08: hsla(0, 0%, 4%, 1);
+	--hgsmono09: hsla(0, 0%, 0%, 1);`
 
 	// MONOCHROMESANDY - from dark to light...
 	// #1B1B19
@@ -165,40 +162,39 @@ const (
 	--bracketcolor3: #D1D1C0;
 	--bracketcolor4: 3F3F3A;
 
-	--black: #FAFAE5;
-	--blue: #FAFAE5; 
-	--brown: #FAFAE5;
-	--brtblue: #64645C;
-	--copper: #1B1B19;
-	--deepblue: #3F3F3A; 
-	--dkbabyblue:  #3F3F3A;  
-	--dkgreen: #1B1B19;
-	--dkgrey: #1B1B19;
-	--dkteal: #1B1B19;
-	--huedgrey: #FAFAE5;
+	--hgsmono00: #FAFAE5;
+	--hgscol01: #FAFAE5; 
+	--hgscol02: #FAFAE5;
+	--hgscol03: #64645C;
+	--hgscol04: #1B1B19;
+	--hgscol05: #3F3F3A; 
+	--hgscol06:  #3F3F3A;  
+	--hgscol07: #1B1B19;
+	--hgsmono01: #1B1B19;
+	--hgscol08: #1B1B19;
+	--hgscol09: #FAFAE5;
 	--invisible: hsla(0, 100%, 0%, 0);
-	--lessoffwhite: #ADAD9F;
-	--ltbabyblue: #89897E;
-	--ltgrey: #FAFAE5;
-	--ltgrey2: #FAFAE5;
-	--midgrey: #FAFAE5;
-	--offwhite: #FAFAE5;
-	--orange: #89897E;
-	--pink: #89897E;
-	--pinker: #89897E;
-	--plum: #D1D1C0;
-	--pukegreen: #D1D1C0;
-	--red: #64645C; 
-	--dkgreen: #D1D1C0;
-	--rustedorange: #1B1B19; 
-	--sicklyyellow: #89897E;
-	--skyblue: #D1D1C0;
-	--teal: #89897E;
+	--hgscol10: #ADAD9F;
+	--hgscol11: #89897E;
+	--hgsmono02: #FAFAE5;
+	--hgsmono03: #FAFAE5;
+	--hgsmono04: #FAFAE5;
+	--hgsmono05: #FAFAE5;
+	--hgscol12: #89897E;
+	--hgscol13: #89897E;
+	--hgscol14: #D1D1C0;
+	--hgscol15: #D1D1C0;
+	--hgscol16: #64645C; 
+	--hgscol07: #D1D1C0;
+	--hgscol17: #1B1B19; 
+	--hgscol18: #89897E;
+	--hgscol19: #D1D1C0;
+	--hgscol20: #89897E;
 	--transparentgrey: hsla(0, 0%, 10%, .7);
-	--vdkteal: #40403B;
-	--vdkgrey: #FAFAE5;
-	--vltgrey: #FAFAE5;
-	--white: #1B1B19;`
+	--hgscol21: #40403B;
+	--hgsmono07: #FAFAE5;
+	--hgsmono08: #FAFAE5;
+	--hgsmono09: #1B1B19;`
 
 	// MONOCHROMEASH - from dark to light...
 	// #141518
@@ -230,40 +226,39 @@ const (
 	--bracketcolor3: #A8B3CE;
 	--bracketcolor4: 3F3F3A;
 
-    --black: #D0DCFF;
-    --blue: #D0DCFF;
-    --brown: #D0DCFF;
-    --brtblue: #4F5461;
-    --copper: #141518;
-    --deepblue: #3F3F3A;
-    --dkbabyblue:  #3F3F3A;
-    --dkgreen: #141518;
-    --dkgrey: #141518;
-    --dkteal: #31343D;
-    --huedgrey: #D0DCFF;
+    --hgsmono00: #D0DCFF;
+    --hgscol01: #D0DCFF;
+    --hgscol02: #D0DCFF;
+    --hgscol03: #4F5461;
+    --hgscol04: #141518;
+    --hgscol05: #3F3F3A;
+    --hgscol06:  #3F3F3A;
+    --hgscol07: #141518;
+    --hgsmono01: #141518;
+    --hgscol08: #31343D;
+    --hgscol09: #D0DCFF;
     --invisible: hsla(0, 100%, 0%, 0);
-    --lessoffwhite: #8A93AA;
-    --ltbabyblue: #6D7485;
-    --ltgrey: #D0DCFF;
-    --ltgrey2: #D0DCFF;
-    --midgrey: #D0DCFF;
-    --offwhite: #D0DCFF;
-    --orange: #6D7485;
-    --pink: #6D7485;
-    --pinker: #6D7485;
-    --plum: #A8B3CE;
-    --pukegreen: #A8B3CE;
-    --red: #4F5461;
-    --dkgreen: #A8B3CE;
-    --rustedorange: #141518;
-    --sicklyyellow: #6D7485;
-    --skyblue: #A8B3CE;
-    --teal: #6D7485;
+    --hgscol10: #8A93AA;
+    --hgscol11: #6D7485;
+    --hgsmono02: #D0DCFF;
+    --hgsmono03: #D0DCFF;
+    --hgsmono04: #D0DCFF;
+    --hgsmono05: #D0DCFF;
+    --hgscol12: #6D7485;
+    --hgscol13: #6D7485;
+    --hgscol14: #A8B3CE;
+    --hgscol15: #A8B3CE;
+    --hgscol16: #4F5461;
+    --hgscol07: #A8B3CE;
+    --hgscol17: #141518;
+    --hgscol18: #6D7485;
+    --hgscol19: #A8B3CE;
+    --hgscol20: #6D7485;
     --transparentgrey: hsla(0, 0%, 10%, .7);
-    --vdkteal: #D0DCFF;
-    --vdkgrey: #D0DCFF;
-    --vltgrey: #D0DCFF;
-    --white: #141518;`
+    --hgscol21: #D0DCFF;
+    --hgsmono07: #D0DCFF;
+    --hgsmono08: #D0DCFF;
+    --hgsmono09: #141518;`
 
 	// TETRADIC - a tatradic + a mono scheme
 	// tetradic:
@@ -304,40 +299,39 @@ const (
 	--bracketcolor3: #F5F5E1;
 	--bracketcolor4: F5F5E1;
 
-	--black: #19191B;
-	--blue: #F5F5E1; 
-	--brown: #E1F5EB;
-	--brtblue: #F5F5E1;
-	--copper: #E1E1F5;
-	--deepblue: #F5E1EB; 
-	--dkbabyblue:  #F5F5E1;  
-	--dkgreen: #E1E1F5;
-	--dkgrey: #F5F5E1;
-	--dkteal: #E1E1F5;
-	--huedgrey: #E1F5EB;
+	--hgsmono00: #19191B;
+	--hgscol01: #F5F5E1; 
+	--hgscol02: #E1F5EB;
+	--hgscol03: #F5F5E1;
+	--hgscol04: #E1E1F5;
+	--hgscol05: #F5E1EB; 
+	--hgscol06:  #F5F5E1;  
+	--hgscol07: #E1E1F5;
+	--hgsmono01: #F5F5E1;
+	--hgscol08: #E1E1F5;
+	--hgscol09: #E1F5EB;
 	--invisible: hsla(0, 100%, 0%, 0);
-	--lessoffwhite: #5C5C64;
-	--ltbabyblue: #7D7D88;
-	--ltgrey: #5C5C64;
-	--ltgrey2: #F5F5E1;
-	--midgrey: #F5F5E1;
-	--offwhite: #E1E1F5;
-	--orange: #E1F5EB;
-	--pink: #E1F5EB;
-	--pinker: #7D7D88;
-	--plum: #3A3A3F;
-	--pukegreen: #F5F5E1;
-	--red: #E1F5EB; 
-	--dkgreen: #E1E1F5;
-	--rustedorange: #9F9FAD; 
-	--sicklyyellow: #E1F5EB;
-	--skyblue: #E1F5EB;
-	--teal: #E1F5EB;
+	--hgscol10: #5C5C64;
+	--hgscol11: #7D7D88;
+	--hgsmono02: #5C5C64;
+	--hgsmono03: #F5F5E1;
+	--hgsmono04: #F5F5E1;
+	--hgsmono05: #E1E1F5;
+	--hgscol12: #E1F5EB;
+	--hgscol13: #E1F5EB;
+	--hgscol14: #3A3A3F;
+	--hgscol15: #F5F5E1;
+	--hgscol16: #E1F5EB; 
+	--hgscol07: #E1E1F5;
+	--hgscol17: #9F9FAD; 
+	--hgscol18: #E1F5EB;
+	--hgscol19: #E1F5EB;
+	--hgscol20: #E1F5EB;
 	--transparentgrey: hsla(0, 0%, 10%, .7);
-	--vdkteal: #F5E1EB;
-	--vdkgrey: #E1F5EB;
-	--vltgrey: #F5E1EB;
-	--white: #E1E1F5;`
+	--hgscol21: #F5E1EB;
+	--hgsmono07: #E1F5EB;
+	--hgsmono08: #F5E1EB;
+	--hgsmono09: #E1E1F5;`
 
 	// SPLITCOMP - a spit complementary + a mono scheme
 	// #DCF2F1
@@ -373,40 +367,39 @@ const (
 	--bracketcolor3: #F2E8DC;
 	--bracketcolor4: F2E8DC;
 
-	--black: #151717;
-	--blue: #F2E8DC; 
-	--brown: #F2E8DC;
-	--brtblue: #F2E8DC;
-	--copper: #DCF2F1;
-	--deepblue: #DFDCF2; 
-	--dkbabyblue:  #F2E8DC;  
-	--dkgreen: #DCF2F1;
-	--dkgrey: #F2E8DC;
-	--dkteal: #DCF2F1;
-	--huedgrey: #DCF2F1;
+	--hgsmono00: #151717;
+	--hgscol01: #F2E8DC; 
+	--hgscol02: #F2E8DC;
+	--hgscol03: #F2E8DC;
+	--hgscol04: #DCF2F1;
+	--hgscol05: #DFDCF2; 
+	--hgscol06:  #F2E8DC;  
+	--hgscol07: #DCF2F1;
+	--hgsmono01: #F2E8DC;
+	--hgscol08: #DCF2F1;
+	--hgscol09: #DCF2F1;
 	--invisible: hsla(0, 100%, 0%, 0);
-	--lessoffwhite: #586060;
-	--ltbabyblue: #798584;
-	--ltgrey: #586060;
-	--ltgrey2: #F2E8DC;
-	--midgrey: #F2E8DC;
-	--offwhite: #DCF2F1;
-	--orange: #F2E8DC;
-	--pink: #F2E8DC;
-	--pinker: #798584;
-	--plum: #363C3C;
-	--pukegreen: #F2E8DC;
-	--red: #F2E8DC; 
-	--dkgreen: #DCF2F1;
-	--rustedorange: #9AA9A8; 
-	--sicklyyellow: #F2E8DC;
-	--skyblue: #F2E8DC;
-	--teal: #F2E8DC;
+	--hgscol10: #586060;
+	--hgscol11: #798584;
+	--hgsmono02: #586060;
+	--hgsmono03: #F2E8DC;
+	--hgsmono04: #F2E8DC;
+	--hgsmono05: #DCF2F1;
+	--hgscol12: #F2E8DC;
+	--hgscol13: #F2E8DC;
+	--hgscol14: #363C3C;
+	--hgscol15: #F2E8DC;
+	--hgscol16: #F2E8DC; 
+	--hgscol07: #DCF2F1;
+	--hgscol17: #9AA9A8; 
+	--hgscol18: #F2E8DC;
+	--hgscol19: #F2E8DC;
+	--hgscol20: #F2E8DC;
 	--transparentgrey: hsla(0, 0%, 10%, .7);
-	--vdkteal: #DFDCF2;
-	--vdkgrey: #DCF2F1;
-	--vltgrey: #DFDCF2;
-	--white: #DCF2F1;`
+	--hgscol21: #DFDCF2;
+	--hgsmono07: #DCF2F1;
+	--hgsmono08: #DFDCF2;
+	--hgsmono09: #DCF2F1;`
 
 	// TRIADIC - triadic + monochrome
 	// #FFFFD6
@@ -442,38 +435,37 @@ const (
 	--bracketcolor3: #F2E8DC;
 	--bracketcolor4: F2E8DC;
 
-	--black: #24241F;
-	--blue: #F2E8DC; 
-	--brown: #F2E8DC;
-	--brtblue: #F2E8DC;
-	--copper: #FFFFD6;
-	--deepblue: #D6FFFF; 
-	--dkbabyblue:  #F2E8DC;  
-	--dkgreen: #FFFFD6;
-	--dkgrey: #F2E8DC;
-	--dkteal: #FFFFD6;
-	--huedgrey: #D6FFFF;
+	--hgsmono00: #24241F;
+	--hgscol01: #F2E8DC; 
+	--hgscol02: #F2E8DC;
+	--hgscol03: #F2E8DC;
+	--hgscol04: #FFFFD6;
+	--hgscol05: #D6FFFF; 
+	--hgscol06:  #F2E8DC;  
+	--hgscol07: #FFFFD6;
+	--hgsmono01: #F2E8DC;
+	--hgscol08: #FFFFD6;
+	--hgscol09: #D6FFFF;
 	--invisible: hsla(0, 100%, 0%, 0);
-	--lessoffwhite: #6D6D5C;
-	--ltbabyblue: #92927A;
-	--ltgrey: #6D6D5C;
-	--ltgrey2: #F2E8DC;
-	--midgrey: #F2E8DC;
-	--offwhite: #FFFFD6;
-	--orange: #F2E8DC;
-	--pink: #F2E8DC;
-	--pinker: #92927A;
-	--plum: #49493D;
-	--pukegreen: #F2E8DC;
-	--red: #F2E8DC; 
-	--dkgreen: #FFFFD6;
-	--rustedorange: #B6B699; 
-	--sicklyyellow: #F2E8DC;
-	--skyblue: #F2E8DC;
-	--teal: #F2E8DC;
+	--hgscol10: #6D6D5C;
+	--hgscol11: #92927A;
+	--hgsmono02: #6D6D5C;
+	--hgsmono03: #F2E8DC;
+	--hgsmono04: #F2E8DC;
+	--hgsmono05: #FFFFD6;
+	--hgscol12: #F2E8DC;
+	--hgscol13: #F2E8DC;
+	--hgscol14: #49493D;
+	--hgscol15: #F2E8DC;
+	--hgscol16: #F2E8DC; 
+	--hgscol07: #FFFFD6;
+	--hgscol17: #B6B699; 
+	--hgscol18: #F2E8DC;
+	--hgscol19: #F2E8DC;
+	--hgscol20: #F2E8DC;
 	--transparentgrey: hsla(0, 0%, 10%, .7);
-	--vdkteal: #D6FFFF;
-	--vdkgrey: #D6FFFF;
-	--vltgrey: #D6FFFF;
-	--white: #FFFFD6;`
+	--hgscol21: #D6FFFF;
+	--hgsmono07: #D6FFFF;
+	--hgsmono08: #D6FFFF;
+	--hgsmono09: #FFFFD6;`
 )
