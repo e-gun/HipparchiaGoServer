@@ -180,7 +180,7 @@ func findsquare(hue int) hueholder {
 func findtetradic(hue int) hueholder {
 	// 5 hues; three cluster on one side of circle; two on other
 	var rt hueholder
-	rt.Hue0 = hue
+	rt.Hue2 = hue
 	rt.Hue2 = rotate(hue, -30)
 	rt.Hue1 = rotate(hue, 30)
 	rt.Hue3 = rotate(hue, -150)
