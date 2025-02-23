@@ -61,6 +61,10 @@ formsummary:hover{
     text-shadow: 1px 1px 3px var(--transparentgrey);
 }
 
+indexedlocation{
+    color: var(--locuscolor);
+}
+
 indexedlocation:hover{
     border-bottom: 1px dotted var(--dottedborders);
     border-top: 1px dotted var(--dottedborders);

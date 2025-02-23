@@ -13,29 +13,69 @@ func main() {
 	s := 12
 	lum := 10
 	minmax := 85
-	// fmt.Println(GenerateMonoScheme(h, s, l))
-	// fmt.Println(GenerateTriadScheme(h, s, l))
-	fmt.Println(GenerateMonoScheme(h, s, lum, minmax))
+	fmt.Println(GenerateMonoScheme([]int{h, s, lum, minmax}))
 }
 
-func GenerateMonoScheme(hue int, sat int, lum int, minormaxlum int) string {
-	return generatecolorscheme("mono", hue, sat, lum, minormaxlum)
+func GenerateMonoScheme(hslm []int) string {
+	return generatecolorscheme("mono", hslm[0], hslm[1], hslm[2], hslm[3])
 }
 
-func GenerateTriadScheme(hue int, sat int, lum int, minormaxlum int) string {
-	return generatecolorscheme("triad", hue, sat, lum, minormaxlum)
+func GenerateTriadScheme(hslm []int) string {
+	return generatecolorscheme("triad", hslm[0], hslm[1], hslm[2], hslm[3])
 }
 
-func GenerateTetradScheme(hue int, sat int, lum int, minormaxlum int) string {
-	return generatecolorscheme("tetrad", hue, sat, lum, minormaxlum)
+func GenerateTetradScheme(hslm []int) string {
+	return generatecolorscheme("tetrad", hslm[0], hslm[1], hslm[2], hslm[3])
 }
 
-func GenerateSplitcompScheme(hue int, sat int, lum int, minormaxlum int) string {
-	return generatecolorscheme("splitcomp", hue, sat, lum, minormaxlum)
+func GenerateSplitcompScheme(hslm []int) string {
+	return generatecolorscheme("splitcomp", hslm[0], hslm[1], hslm[2], hslm[3])
 }
 
-func GenerateSquareScheme(hue int, sat int, lum int, minormaxlum int) string {
-	return generatecolorscheme("square", hue, sat, lum, minormaxlum)
+func GenerateSquareScheme(hslm []int) string {
+	return generatecolorscheme("square", hslm[0], hslm[1], hslm[2], hslm[3])
+}
+
+func FindVectorDotHueAndLums(schemename string, hslm []int) (int, int, int) {
+	var name string
+	switch schemename {
+	case "Light":
+		name = "mono"
+	case "Dark":
+		name = "mono"
+	case "MonoSand":
+		name = "mono"
+	case "MonoAsh":
+		name = "mono"
+	case "Triadic":
+		name = "triad"
+	case "Tetradic":
+		name = "tetrad"
+	case "Splitcomp":
+		name = "splitcomp"
+	case "Square":
+		name = "square"
+	default:
+		name = "mono"
+	}
+
+	pan := buildpancolor(name, hslm[0], hslm[1], hslm[2], hslm[3])
+
+	var newhue int
+	var newlum int
+	var newperiphlum int
+
+	if name == "mono" {
+		newhue = pan.m0.Hue
+		newlum = pan.m0.Lums[6]
+		newperiphlum = pan.m0.Lums[5]
+	} else {
+		newhue = pan.m1.Hue
+		newlum = pan.m1.Lums[6]
+		newperiphlum = pan.m1.Lums[5]
+	}
+
+	return newhue, newlum, newperiphlum
 }
 
 // generatecolorscheme - the white/black is hslA; black/white is hslB; use scheme 'name'

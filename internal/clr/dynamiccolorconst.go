@@ -28,7 +28,9 @@ const (
 	--boxshadows: {{.colorA4}};
 	--modalbackground: {{.colorA2}};
 	--sidednavcolor: {{.colorA6}};
+	--nthrowcol: {{.colorA6}};
 
+	--locuscolor: {{.colorA6}};
 	--notations: {{.colorA6}};
 	--dottedborders: {{.colorA6}};
 	--bracketcolor1: {{.colorA2}};
@@ -56,7 +58,7 @@ const (
 	--hgscol08: {{.colorA0}};
 	--hgscol09: {{.colorA6}};
 	--hgscol10: {{.colorA4}};
-	--hgscol11: {{.colorA3}};
+	--hgscol11: {{.colorA4}};
 	--hgscol12: {{.colorA3}};
 	--hgscol13: {{.colorA3}};
 	--hgscol14: {{.colorA5}};
@@ -98,7 +100,9 @@ const (
 	--boxshadows: {{.colorA4}};
 	--modalbackground: {{.colorB5}};
 	--sidednavcolor: {{.colorA2}};
+	--nthrowcol: {{.colorA6}};
 
+	--locuscolor: {{.colorA6}};
 	--notations: {{.colorB6}};
 	--dottedborders: {{.colorA6}};
 	--bracketcolor1: {{.colorA5}};
@@ -133,7 +137,7 @@ const (
     --hgscol21: {{.colorA6}};
 
 	/* B */
-    --hgscol11: {{.colorC5}};
+    --hgscol11: {{.colorC2}};
     --hgscol19: {{.colorC4}};
     --hgscol03: {{.colorC5}};
     --hgscol01: {{.colorC4}};
@@ -173,7 +177,9 @@ const (
 	--boxshadows: {{.colorA4}};
 	--modalbackground: {{.colorC2}};
 	--sidednavcolor: {{.colorA2}};
+	--nthrowcol: {{.colorA6}};
 
+	--locuscolor: {{.colorA6}};
 	--notations: {{.colorB5}};
 	--dottedborders: {{.colorA6}};
 	--bracketcolor1: {{.colorA5}};
@@ -191,7 +197,7 @@ const (
 	--transparentgrey: hsla(0, 0%, 67%, .8);
 
 	/* R */
-    --hgscol13: {{.colorC0}};
+    --hgscol13: {{.colorC2}};
     --hgscol04: {{.colorB4}};
     --hgscol12: {{.colorC0}};
     --hgscol16: {{.colorB4}}; 
@@ -208,7 +214,7 @@ const (
     --hgscol21: {{.colorB0}};
 
 	/* B */
-    --hgscol11: {{.colorB5}};
+    --hgscol11: {{.colorB2}};
     --hgscol19: {{.colorB1}};
     --hgscol03: {{.colorC5}};
     --hgscol01: {{.colorB4}};
@@ -250,7 +256,9 @@ const (
 	--boxshadows: {{.colorA4}};
 	--modalbackground: {{.colorB5}};
 	--sidednavcolor: {{.colorA2}};
+	--nthrowcol: {{.colorB1}};
 
+	--locuscolor: {{.colorC6}};
 	--notations: {{.colorB6}};
 	--dottedborders: {{.colorA6}};
 	--bracketcolor1: {{.colorA5}};
@@ -268,7 +276,7 @@ const (
 	--transparentgrey: hsla(0, 0%, 67%, .8);
 
 	/* R */
-    --hgscol13: {{.colorB3}};
+    --hgscol13: {{.colorB1}};
     --hgscol04: {{.colorB4}};
     --hgscol12: {{.colorB4}};
     --hgscol16: {{.colorB5}}; 
@@ -282,12 +290,12 @@ const (
     --hgscol20: {{.colorA5}};
     --hgscol07: {{.colorA5}};
     --hgscol08: {{.colorA6}};
-    --hgscol21: {{.colorA6}};
+    --hgscol21: {{.colorB5}};
 
 	/* B */
-    --hgscol11: {{.colorC5}};
+    --hgscol11: {{.colorC1}};
     --hgscol19: {{.colorC4}};
-    --hgscol03: {{.colorC5}};
+    --hgscol03: {{.colorC6}};
     --hgscol01: {{.colorC4}};
     --hgscol05: {{.colorC5}}; 
     --hgscol06: {{.colorC6}};  

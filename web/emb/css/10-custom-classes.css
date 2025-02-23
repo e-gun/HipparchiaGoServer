@@ -196,10 +196,6 @@
     padding-left: 10px;
 }
 
-.infocell {
-    vertical-align: top;
-}
-
 .instructionmanual {
     padding: 20px;
 }
@@ -334,7 +330,7 @@
     padding-left: 40px;
     padding-right: 20px;
     font-size: 80%;
-    color: var(--hgscol09);
+    color: var(--locuscolor);
 }
 
 /* morphmodal css */
@@ -454,10 +450,6 @@
     font-size: 60%;
     font-family: 'hipparchiacondensedstatic', sans-serif;
     color: var(--hgscol09);
-}
-
-.verbanalysis tr:nth-child(2n+4){
-    background: var(--hgsmono02)
 }
 
 .verylarge {

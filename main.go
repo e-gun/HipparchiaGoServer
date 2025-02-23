@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
+	"github.com/e-gun/HipparchiaGoServer/internal/clr"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/debug"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
@@ -199,6 +200,10 @@ func main() {
 
 	// mps.SubsetChars()
 
+	// [6] one last injection...
+	vec.InjectedDotHue, vec.InjectedDotLum, vec.InjectedDotPeriphLum = clr.FindVectorDotHueAndLums(lnch.Config.CssColors,
+		clr.CssColorHSLs[lnch.Config.CssColors])
+
 	msg.MAND(QUIT)
 
 	if lnch.Config.Authenticate {
@@ -206,7 +211,7 @@ func main() {
 	}
 
 	//
-	// [6] done: start the server (which will never return)
+	// [7] done: start the server (which will never return)
 	//
 
 	web.StartEchoServer()

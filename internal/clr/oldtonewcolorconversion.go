@@ -1,6 +1,6 @@
 package clr
 
-//	ORIGINAL / NEW
+//	ORIGINAL (<1.4.0-pre)/ NEW
 //	dkgrey / hgsmono01
 //	ltgrey / hgsmono02
 //	ltgrey2 / hgsmono03

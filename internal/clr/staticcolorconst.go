@@ -18,7 +18,9 @@ const (
 	--boxshadows: hsla(0, 0%, 67%, 1);
 	--modalbackground: hsla(0, 0%, 33%, 1);
 	--sidednavcolor: hsla(0, 0%, 90%, 1);
+	--nthrowcol: hsla(0, 0%, 90%, 1);
 
+	--locuscolor: hsl(240, 10%, 61%);
 	--notations: hsla(196, 14%, 39%, 1);
 	--dottedborders: hsla(0, 0%, 0%, 1);
 	--bracketcolor1: hsla(22, 22%, 26%, 1);
@@ -83,7 +85,9 @@ const (
     --boxshadows: hsla(0, 0%, 53%, 1);
 	--modalbackground: hsla(0, 0%, 82%, 1);
 	--sidednavcolor: hsla(0, 0%, 20%, 1);
+	--nthrowcol: hsla(0, 0%, 20%, 1);
 
+	--locuscolor: hsl(113, 35%, 85%);
 	--notations: hsla(196, 14%, 71%, 1);
 	--dottedborders: hsla(0, 0%, 100%, 1);
 	--bracketcolor1: hsla(22, 22%, 74%, 1);
@@ -155,7 +159,9 @@ const (
     --boxshadows: #FAFAE5;
 	--modalbackground: #1B1B19;
 	--sidednavcolor: #FAFAE5;
+	--nthrowcol: #FAFAE5;
 
+	--locuscolor: #FAFAE5;
 	--notations: #89897E;
 	--dottedborders: #FAFAE5;
 	--bracketcolor1: #FAFAE5;
@@ -226,8 +232,10 @@ const (
 	--greyborders: #D0DCFF;
     --boxshadows: #D0DCFF;
 	--modalbackground: #141518;
+	--locuscolor: #D0DCFF;
 	--notations: #6D7485;
 	--sidednavcolor: #D0DCFF;
+	--nthrowcol: #D0DCFF;
 
 	--dottedborders: #FAFAE5;
 	--bracketcolor1: #D0DCFF;
@@ -308,7 +316,9 @@ const (
     --boxshadows: #F5F5E1;
 	--modalbackground: #F5F5E1;
 	--sidednavcolor: #5C5C64;
+	--nthrowcol: #5C5C64;
 
+	--locuscolor: #E1F5EB;
 	--notations: #E1F5EB;
 	--dottedborders: #19191B;
 	--bracketcolor1: #E1F5EB;
@@ -384,7 +394,9 @@ const (
     --boxshadows: #F2E8DC;
 	--modalbackground: #F2E8DC;
 	--sidednavcolor: #586060;
+	--nthrowcol: #586060;
 
+	--locuscolor: #DCF2F1;
 	--notations: #F2E8DC;
 	--dottedborders: #151717;
 	--bracketcolor1: #F2E8DC;
@@ -459,8 +471,10 @@ const (
 	--greyborders: #F2E8DC;
     --boxshadows: #F2E8DC;
 	--modalbackground: #F2E8DC;
+	--locuscolor: #D6FFFF;
 	--notations: #F2E8DC;
 	--sidednavcolor: #6D6D5C;
+	--nthrowcol: #6D6D5C;
 
 	--dottedborders: #24241F;
 	--bracketcolor1: #F2E8DC;

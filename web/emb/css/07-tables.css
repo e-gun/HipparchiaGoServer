@@ -48,6 +48,10 @@ table.verbanalysis {
     margin: 0 auto;
 }
 
+.verbanalysis tr:nth-child(2n+4){
+    background: var(--nthrowcol)
+}
+
 table.showborders, td.showborders {
     border: 1px solid var(--hgsmono00);
     font-family: 'hipparchiamonostatic', monospace;
@@ -73,7 +77,7 @@ td.browsercite {
     padding-left: 10px;
     vertical-align: middle;
     line-height: 1.7;
-    color: var(--hgscol09);
+    color: var(--locuscolor);
 }
 
 td.browserembeddedannotations {
@@ -96,7 +100,7 @@ td.textcite {
     padding-right: 10px;
     padding-left: 10px;
     vertical-align: middle;
-    color: var(--hgscol09);
+    color: var(--locuscolor);
 }
 
 td.textembeddedannotations {
@@ -183,6 +187,10 @@ td.infocellx {
     text-align: center;
 }
 
+.infocell {
+    vertical-align: top;
+}
+
 td.leftpad {
     padding-left: 10px;
 }
@@ -219,7 +227,7 @@ th.indextable {
 }
 
 tr.nthrow{
-    background-color: var(--hgsmono02);
+    background-color: var(--nthrowcol);
 }
 
 tr.spacing {

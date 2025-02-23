@@ -11,6 +11,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/clr"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
+	"github.com/e-gun/HipparchiaGoServer/internal/vec"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
@@ -265,6 +266,8 @@ func RtSetOption(c echo.Context) error {
 		cmm := gen.StringMapKeysIntoSlice(clr.CssColorModes)
 		if slices.Contains(cmm, val) {
 			s.CssColors = val
+			// reset the vector dot color too...
+			vec.InjectedDotHue, vec.InjectedDotLum, vec.InjectedDotPeriphLum = clr.FindVectorDotHueAndLums(val, clr.CssColorHSLs[val])
 		}
 	}
 

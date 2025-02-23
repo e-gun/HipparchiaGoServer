@@ -26,15 +26,15 @@ import (
 )
 
 const (
-	DOTHUE    = 236
-	DOTSAT    = 33
-	DOTLUM    = 45
-	DOTLUMPER = DOTLUM + 25
-	DOTSHIFT  = 0
+	DOTSAT   = 33
+	DOTSHIFT = 0
 )
 
 var (
-	vgrm = mm.NewMessageMaker()
+	vgrm                 = mm.NewMessageMaker()
+	InjectedDotHue       = 236
+	InjectedDotLum       = 45
+	InjectedDotPeriphLum = InjectedDotLum + 25
 )
 
 //
@@ -115,15 +115,15 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 
 	// dotstyle := opts.ItemStyle{Color: DOTCOLOR}
 	vardot := func(i int) *opts.ItemStyle {
-		dv := DOTHUE + (i * DOTSHIFT)
-		vd := fmthsl(dv, DOTSAT, DOTLUM)
+		dv := InjectedDotHue + (i * DOTSHIFT)
+		vd := fmthsl(dv, DOTSAT, InjectedDotLum)
 		return &opts.ItemStyle{Color: vd}
 	}
 
 	// periphdot := opts.ItemStyle{Color: DOTCOLPERIPH}
 	periphvardot := func(i int) *opts.ItemStyle {
-		dv := DOTHUE + (i * DOTSHIFT)
-		vd := fmthsl(dv, DOTSAT, DOTLUMPER)
+		dv := InjectedDotHue + (i * DOTSHIFT)
+		vd := fmthsl(dv, DOTSAT, InjectedDotPeriphLum)
 		return &opts.ItemStyle{Color: vd}
 	}
 
@@ -174,13 +174,28 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 
 			for _, w := range nn[t] {
 				if _, ok := coreterms[w.Word]; ok {
-					gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &valuelabel})
+					gll = append(gll,
+						opts.GraphLink{
+							Source: t,
+							Target: w.Word,
+							Value:  round(w.Similarity),
+							Label:  &valuelabel,
+						},
+					)
 				}
 				if _, ok := used[w.Word]; !ok {
-					gnn = append(gnn, opts.GraphNode{Name: w.Word, Value: round(w.Similarity), SymbolSize: PERIPHSYMSZ, ItemStyle: periphvardot(i)})
+					gnn = append(gnn, opts.GraphNode{
+						Name:       w.Word,
+						Value:      round(w.Similarity),
+						SymbolSize: PERIPHSYMSZ,
+						ItemStyle:  periphvardot(i)})
 					used[w.Word] = true
 				}
-				gll = append(gll, opts.GraphLink{Source: t, Target: w.Word, Value: round(w.Similarity), Label: &hiddenvals})
+				gll = append(gll, opts.GraphLink{
+					Source: t,
+					Target: w.Word,
+					Value:  round(w.Similarity),
+					Label:  &hiddenvals})
 			}
 		}
 	}
@@ -209,6 +224,10 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 			opts.LineStyle{
 				Curveness: LINECURVINESS,
 				Type:      LINETYPE,
+				//  Color:     fmthsl(0, 0, 0),
+				//	Width:     1,
+				//	Type:      "dotted",
+				//	Opacity:   .66,
 			}),
 		charts.WithGraphChartOpts(
 			// https://github.com/go-echarts/go-echarts/opts/charts.go
@@ -363,7 +382,7 @@ func getcharttitleopts(t string, st string) opts.Title {
 	}
 
 	tst := opts.TextStyle{
-		Color:      fmthsl(DOTHUE, DOTSAT, DOTLUM),
+		Color:      fmthsl(InjectedDotHue, DOTSAT, InjectedDotLum),
 		FontStyle:  FONTSTYLE,
 		FontSize:   FONTSIZE,
 		FontFamily: ft,
@@ -371,7 +390,7 @@ func getcharttitleopts(t string, st string) opts.Title {
 	}
 
 	sst := opts.TextStyle{
-		Color:      fmthsl(DOTHUE, DOTSAT, DOTLUMPER),
+		Color:      fmthsl(InjectedDotHue, DOTSAT, InjectedDotPeriphLum),
 		FontStyle:  FONTSTYLE,
 		FontSize:   FONTSIZE - FONTDIFF,
 		FontFamily: ft,
@@ -401,7 +420,7 @@ func getchartitemstyle(top int) opts.ItemStyle {
 		HUEOFFSET = 40
 	)
 	is := opts.ItemStyle{
-		Color: fmthsl(STARTHUE+(HUEOFFSET*top), DOTSAT, DOTLUM),
+		Color: fmthsl(STARTHUE+(HUEOFFSET*top), DOTSAT, InjectedDotLum),
 	}
 	return is
 }
