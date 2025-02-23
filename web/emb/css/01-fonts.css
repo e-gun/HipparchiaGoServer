@@ -1,5 +1,6 @@
 /* 01 fonts */
 
+/* fontfaceinfo is dynamically set */
 {{index . "fontfaceinfo"}}
 
 @font-face {

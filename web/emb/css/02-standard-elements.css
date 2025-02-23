@@ -1,5 +1,17 @@
 /* 02 core elements */
 
+a.lex, a.nounderline {
+    color: var(--hgscol03);
+    text-decoration: none;
+}
+
+a.lex:hover, a.nounderline:hover {
+    border-bottom: 1px dotted var(--dottedborders);
+    border-top: 1px dotted var(--dottedborders);
+    color: var(--hgscol06);
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
 button {
     background: var(--buttoncolor);
     color: var(--main-font-color);
@@ -75,4 +87,27 @@ p.lineoftext {
 pre {
     font-family: 'hipparchiamonostatic', monospace;
     color: var(--skyblue);
+}
+
+ul {
+    list-style-type: none;
+}
+
+ul.forexample {
+    list-style-type: lower-latin;
+    padding-left: 100px;
+    padding-bottom: 5px;
+}
+
+ul.numbered {
+    list-style-type: decimal;
+    padding-left: 25px;
+    padding-bottom: 5px;
+    padding-top: 5px;
+}
+
+ul.roman {
+    list-style-type: lower-roman;
+    padding-left: 25px;
+    padding-bottom: 5px;
 }

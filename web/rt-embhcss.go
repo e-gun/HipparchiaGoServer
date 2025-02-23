@@ -53,7 +53,7 @@ var (
 // RtEmbHCSS - send "hipparchiastyles.css" after building it as per the configured font settings
 func RtEmbHCSS(c echo.Context) error {
 	const (
-		ECSS    = "emb/css/hgs.css"
+		ECSS    = "emb/css/hgs.css-1.4.0-pre"
 		ECSSDIR = "emb/css/"
 	)
 
@@ -61,6 +61,7 @@ func RtEmbHCSS(c echo.Context) error {
 		cssfiles = []string{
 			"00-colors.css",
 			"01-fonts.css",
+			"02-standard-elements.css",
 			"03-main-body.css",
 			"04-modals.css",
 			"05-dictionaries.css",
@@ -68,7 +69,8 @@ func RtEmbHCSS(c echo.Context) error {
 			"07-tables.css",
 			"08-hmu-spans.css",
 			"09-custom-elements.css",
-			"10-ui-and-js.css",
+			"10-custom-classes.css",
+			"11-ui-and-js.css",
 		}
 	)
 
@@ -100,13 +102,11 @@ func RtEmbHCSS(c echo.Context) error {
 		aggregatecss += string(cs)
 	}
 
-	fmt.Println(aggregatecss)
-
-	j, e := efs.ReadFile(ECSS)
-	if e != nil {
-		Msg.WARN(fmt.Sprintf("RtEmbHCSS() can't find %s", ECSS))
-		return c.String(http.StatusNotFound, "")
-	}
+	//j, e := efs.ReadFile(ECSS)
+	//if e != nil {
+	//	Msg.WARN(fmt.Sprintf("RtEmbHCSS() can't find %s", ECSS))
+	//	return c.String(http.StatusNotFound, "")
+	//}
 
 	subs := map[string]interface{}{
 		"fontname":     fsub,
@@ -115,7 +115,7 @@ func RtEmbHCSS(c echo.Context) error {
 		"colorinfo":    clr.CssColorModes[s.CssColors], // make sure that it is impossible to set a bad mode...
 	}
 
-	tmpl, e := template.New("fp").Parse(string(j))
+	tmpl, e := template.New("fp").Parse(aggregatecss)
 	Msg.EC(e)
 
 	var b bytes.Buffer

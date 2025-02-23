@@ -25,6 +25,12 @@ const (
 	--bracketcolor2: hsl(240, 10%, 61%);
 	--bracketcolor3: hsl(71, 95%, 22%);
 	--bracketcolor4: hsla(237, 43%, 57%, 1);
+
+	--dictdefaultcolor: hsla(0, 0%, 20%, 1);
+	--dictlevelscolor: hsla(346, 77%, 26%, 1);
+	--dictquotecolor: hsla(0, 0%, 0%, 1);
+
+	--dictquotecolor: hsla(0, 0%, 0%, 1);
 	
 	--invisible: hsla(0, 100%, 100%, 0);
 	--transparentgrey: hsla(0, 0%, 67%, .8);

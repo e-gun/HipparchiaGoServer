@@ -3,7 +3,7 @@
     --leftpanelsize: 45%;
     --rightpanelsize: 45%;
 
-    /* OLD / NEW */
+    /* OLD (up to 1.3.8) / NEW (1.4.0-pre) */
     /* dkgrey / hgsmono01 */
     /* ltgrey / hgsmono02 */
     /* ltgrey2 / hgsmono03 */
@@ -37,6 +37,7 @@
     /* teal / hgscol20 */
     /* vdkteal / hgscol21 */
 
+    /* current colorinfo is dynamically set */
 {{index . "colorinfo"}}
 
 }

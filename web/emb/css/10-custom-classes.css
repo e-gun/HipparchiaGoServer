@@ -1,0 +1,496 @@
+/* 10 custom spans and classes */
+
+.activeoption {
+    color: var(--hgscol08);
+}
+
+.assigneddate {
+    font-size: 85%;
+}
+
+.authorsum, .quotesum, .sensesum, .phrasesum {
+    padding-left: 5px;
+}
+
+.baseform {
+    color: var(--hgsmono07);
+    font-family: 'hipparchiabolditalicstatic', sans-serif;
+}
+
+.baseformtranslation {
+    color: var(--hgsmono00);
+    font-style: normal;
+    font-weight: normal;
+}
+
+.blue{
+    color: var(--skyblue);
+}
+
+.bold {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+}
+
+.breakintext {
+    font-size: 75%;
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+}
+
+.center {
+    display: block;
+    text-align: center;
+}
+
+.citation {
+    font-size: 90%;
+}
+
+.cityinfo, .provenance, .pubinfo, .regioninfo, .textdate {
+    font-size: 85%;
+    color: var(--hgscol17);
+    text-align: center;
+}
+
+.colorhighlight {
+    color: var(--hgscol16);
+}
+
+.coptic {
+    color: var(--skyblue);
+}
+
+.counter {
+    color: var(--hgscol17);
+}
+
+.crossreference {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+    color: var(--hgscol17);
+    text-align: center;
+}
+
+.currentlyviewing {
+    text-align: left;
+    color: var(--hgscol03);
+    padding-bottom: 0;
+}
+
+.currentlyviewingauthor {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+}
+
+.currentlyviewingwork {
+    font-family: 'hipparchiabolditalicstatic', sans-serif;
+}
+
+.currentlyviewingcitation {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+}
+
+.custom-select {
+
+}
+.custom-select select {
+    appearance: none;
+    width: 100%;
+    font-size: 1.15rem;
+    padding: 0.675em 6em 0.675em 1em;
+    border: 1px solid var(--hgsmono03);
+    border-radius: 0.25rem;
+    background-color: var(--main-body-color);
+    color: var(--main-font-color);
+    cursor: pointer;
+}
+
+.date{
+    color: var(--hgscol16);
+}
+
+.dbb {
+    color: var(--hgscol06);
+}
+.denominator{
+    position: relative;
+    bottom: -0.5em;
+    font-size: 80%;
+}
+
+.documentmetadatalabel {
+    font-size: 85%;
+    color: var(--hgscol17);
+    font-family: 'hipparchiaboldstatic', sans-serif;
+}
+
+.emph {
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--hgscol05);
+}
+
+.emphatic {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+    padding: 20px;
+}
+
+.expanded_text {
+    letter-spacing: 0.11em;
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+}
+
+.explanation {
+    padding-left: 75px;
+}
+
+.extrasmall {
+    font-size: 45%
+}
+
+.findnumber {
+    font-weight: normal;
+    color: var(--hgscol21);
+}
+
+.flagged {
+    border-bottom: 1px dotted var(--hgscol14);
+}
+
+.focusline {
+    text-shadow: 1px 1px 4px var(--focus-shadow);
+}
+
+.foundauthor {
+}
+
+.foundlocus {
+    color: var(--hgscol03);
+    font-family: 'hipparchiacondensedstatic', sans-serif;
+}
+
+.foundlocus:hover{
+    border-bottom: 1px dotted var(--dottedborders);
+    border-top: 1px dotted var(--dottedborders);
+    color: var(--hgscol06);
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
+.foundtext {
+
+}
+
+.foundwork {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+}
+
+.greek {
+}
+
+.highlight {
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
+.homonym {
+    color: var(--hgsmono01);
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+}
+
+.indented {
+    padding-left: 10px;
+}
+
+.infocell {
+    vertical-align: top;
+}
+
+.instructionmanual {
+    padding: 20px;
+}
+
+.italic {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+}
+
+.label {
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--hgscol21);
+    padding-left: 25px;
+    padding-right: 10px;
+}
+
+.labelcell {
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--hgscol21);
+    vertical-align: top;
+    text-align: center;
+}
+
+.largerthannormal {
+    font-size: 115%;
+}
+
+.latin {
+    /* This is Latin inside of a Greek author: so it is usually notes or testimonia: "Blue" is sufficient? */
+    /* the problem with "condensed", etc. is that testimonia of Cleanthes, et al. will look odd next to the Greek */
+    /* font-size: 100%; */
+    /* font-family: var(--latinfont), 'hipparchiacondensedstatic', sans-serif; */
+    /* font-family: 'hipparchiasemicondensedstatic', sans-serif; */
+    color: var(--hgscol01);
+}
+
+/* lexmodal css */
+
+
+.letterbox {
+    border-style: solid;
+    border-width: 1px;
+}
+
+.lineover {
+    text-decoration: overline;
+}
+
+.linethrough {
+    text-decoration: line-through;
+}
+
+.loadoptions:hover {
+    color: var(--hgsmono04);
+}
+
+.match, .proximate {
+    color: var(--hgscol16);
+    font-weight: normal;
+    border: 1px dotted var(--dottedborders);
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
+.observed {
+    color: var(--hgscol16);
+    padding-right: 10px;
+}
+
+.obsv {
+    /*text-indent: -10px;*/
+}
+
+.outline {
+    border: 1px dotted var(--dottedborders);
+}
+
+.overline {
+    border-top: 1px var(--hgsmono00);
+}
+
+.pickedgenre {
+}
+
+.pickedwork {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+}
+
+.picklabel {
+    font-family: 'hipparchiabolditalicstatic', sans-serif;
+}
+
+.poetictext {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+}
+
+.possibility {
+    font-size: 85%;
+    margin-left: 30px;
+}
+
+.prevalence {
+    color: var(--hgscol05);
+}
+
+.progress {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+}
+
+.pubeditor, .pubpress, .pubcity, .pubyear, .pubseries, .pubpages, .pubwork, .pubyearreprinted {
+    font-family: 'hipparchiasemicondensedstatic', sans-serif;
+    font-size: 70%;
+}
+
+.pubvolumename {
+    font-size: 70%;
+    font-family: 'hipparchiasemicondenseditalicstatic', sans-serif;
+}
+
+.quotedtext {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+}
+
+.red {
+    color: var(--hgscol16);
+}
+
+.reduced {
+    font-size: 90%;
+}
+
+.resultlocus {
+    font-family: 'hipparchiacondensedstatic', sans-serif;
+    padding-left: 40px;
+    padding-right: 20px;
+    font-size: 80%;
+    color: var(--hgscol09);
+}
+
+/* morphmodal css */
+
+.rust {
+    color: var(--hgscol17);
+}
+
+.romannumerals {
+    font-variant: small-caps;
+    color: var(--hgscol16);
+}
+
+.sampleoutput {
+    color: var(--hgscol08);
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+}
+
+.saveoptions:hover {
+    color: var(--hgsmono04);
+}
+
+.searchsel:hover {
+    /* inactive color: #993354;
+    text-shadow: 1px 1px var(--boxshadow);
+    */
+}
+
+.select {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+}
+
+.selection:hover{
+    color: var(--hgscol03);
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
+.small {
+    font-size: 60%;
+}
+
+.smallcapitals, .uncial {
+    font-variant: small-caps;
+    font-weight: normal;
+    font-size: 110%;
+    color: var(--hgscol05);
+}
+
+.smallerthannormal {
+    font-size: 85%;
+}
+
+.smlatcaps {
+    font-variant: small-caps;
+    font-size: 110%;
+}
+
+.sought {
+    color: var(--hgscol05);
+    font-family: 'hipparchiamonostatic', monospace;
+}
+
+.speakers, .speaker {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+}
+
+.strikethrough {
+    text-decoration: line-through;
+}
+
+.subscript {
+    font-size: 80%;
+    vertical-align: sub;
+}
+
+.superscript {
+    vertical-align: super;
+    font-size: 80%;
+}
+
+.textuallemma, .interlineartext, .interlinearmarginalia, .marginaltext {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+    color: var(--hgscol01);
+}
+
+.title {
+    font-family: 'hipparchiabolditalicstatic', sans-serif;
+}
+
+.translation {
+    font-size: 85%;
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+}
+
+.transtree {
+    color: var(--hgscol19);
+}
+
+.undocumentedfontshift{
+    text-decoration: underline;
+    color: var(--hgscol09);
+}
+
+.unhandledpercent{
+    top: -0.5em;
+    font-size: 80%;
+    color: var(--hgscol09);
+}
+
+.unhandledpound{
+    top: -0.5em;
+    font-size: 80%;
+    color: var(--hgscol09);
+}
+
+.unobtrusive{
+    font-size: 60%;
+    font-family: 'hipparchiacondensedstatic', sans-serif;
+    color: var(--hgscol09);
+}
+
+.verbanalysis tr:nth-child(2n+4){
+    background: var(--hgsmono02)
+}
+
+.verylarge {
+    font-size: 140%;
+}
+
+.wordcounts{
+    font-size: 85%;
+}
+
+.work {
+    font-family: 'hipparchiabolditalicstatic', sans-serif;
+}
+
+/* stragglers... */
+
+#sortresults-menu li{
+    font-size: 70%;
+    font-family: 'hipparchiasansstatic', sans-serif;
+}
+
+div.fourcolumn {
+    column-count: 4;
+}
+
+div.threecolumn {
+    column-count: 3;
+}
+
+.eighty {
+    font-size: 80%;
+}
+
+.invistext {
+    color: var(--invisible);
+}
