@@ -36,6 +36,12 @@ const (
 	--bracketcolor3: {{.colorA2}};
 	--bracketcolor4: {{.colorA2}};
 	
+	--dictauthwkcolor: {{.colorA6}};
+	--dictdefaultcolor: {{.colorA6}};
+	--dictlevelscolor: {{.colorA1}};
+	--dictquotecolor: {{.colorA1}};
+	--dicttranslcolor: {{.colorA6}};
+
 	--invisible: hsla(0, 100%, 100%, 0);
 	--transparentgrey: hsla(0, 0%, 67%, .8);
 	
@@ -100,6 +106,12 @@ const (
 	--bracketcolor3: {{.colorC5}};
 	--bracketcolor4: {{.colorA6}};
 	
+	--dictauthwkcolor: {{.colorC5}};
+	--dictdefaultcolor: {{.colorA6}};
+	--dictlevelscolor: {{.colorA1}};
+	--dictquotecolor: {{.colorA6}};
+	--dicttranslcolor: {{.colorB6}};
+
 	--invisible: hsla(0, 100%, 100%, 0);
 	--transparentgrey: hsla(0, 0%, 67%, .8);
 
@@ -169,6 +181,12 @@ const (
 	--bracketcolor3: {{.colorC5}};
 	--bracketcolor4: {{.colorA6}};
 	
+	--dictauthwkcolor: {{.colorC5}};
+	--dictdefaultcolor: {{.colorA6}};
+	--dictlevelscolor: {{.colorA1}};
+	--dictquotecolor: {{.colorA6}};
+	--dicttranslcolor: {{.colorB6}};
+
 	--invisible: hsla(0, 100%, 100%, 0);
 	--transparentgrey: hsla(0, 0%, 67%, .8);
 
@@ -240,6 +258,12 @@ const (
 	--bracketcolor3: {{.colorC5}};
 	--bracketcolor4: {{.colorA6}};
 	
+	--dictauthwkcolor: {{.colorC5}};
+	--dictdefaultcolor: {{.colorA6}};
+	--dictlevelscolor: {{.colorB5}};
+	--dictquotecolor: {{.colorA6}};
+	--dicttranslcolor: {{.colorB6}};
+
 	--invisible: hsla(0, 100%, 100%, 0);
 	--transparentgrey: hsla(0, 0%, 67%, .8);
 

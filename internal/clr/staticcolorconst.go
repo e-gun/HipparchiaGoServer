@@ -26,10 +26,9 @@ const (
 	--bracketcolor3: hsl(71, 95%, 22%);
 	--bracketcolor4: hsla(237, 43%, 57%, 1);
 
+	--dictauthwkcolor: hsla(237, 43%, 57%, 1);
 	--dictdefaultcolor: hsla(0, 0%, 20%, 1);
 	--dictlevelscolor: hsla(346, 77%, 26%, 1);
-	--dictquotecolor: hsla(0, 0%, 0%, 1);
-
 	--dictquotecolor: hsla(0, 0%, 0%, 1);
 	
 	--invisible: hsla(0, 100%, 100%, 0);
@@ -91,6 +90,12 @@ const (
 	--bracketcolor2: hsl(113, 35%, 85%);
 	--bracketcolor3: hsl(71, 95%, 78%);
 	--bracketcolor4: hsla(64, 52%, 84%, 1);
+
+	--dictauthwkcolor: hsla(64, 52%, 84%, 1);
+	--dictdefaultcolor: hsla(0, 0%, 80%, 1);
+	--dictlevelscolor: hsl(186, 32%, 65%);
+	--dictquotecolor: hsla(0, 0%, 82%, 1);
+	--dicttranslcolor: hsla(0, 0%, 80%, 1);
 
 	--hgsmono00: hsla(0, 0%, 95%, 1);
 	--hgscol01: hsl(167, 35%, 77%);  /* pea green... */
@@ -158,6 +163,12 @@ const (
 	--bracketcolor3: #D1D1C0;
 	--bracketcolor4: 3F3F3A;
 
+	--dictauthwkcolor: #3F3F3A;
+	--dictdefaultcolor: #FAFAE5;
+	--dictlevelscolor: #64645C; 
+	--dictquotecolor: #FAFAE5;
+	--dicttranslcolor: #FAFAE5;
+
 	--hgsmono00: #FAFAE5;
 	--hgscol01: #FAFAE5; 
 	--hgscol02: #FAFAE5;
@@ -223,6 +234,12 @@ const (
 	--bracketcolor2: #D0DCFF;
 	--bracketcolor3: #A8B3CE;
 	--bracketcolor4: 3F3F3A;
+
+	--dictauthwkcolor: #4F5461;
+	--dictdefaultcolor: #D0DCFF;
+	--dictlevelscolor: #4F5461; 
+	--dictquotecolor: #D0DCFF;
+	--dicttranslcolor: #D0DCFF;
 
     --hgsmono00: #D0DCFF;
     --hgscol01: #D0DCFF;
@@ -299,6 +316,12 @@ const (
 	--bracketcolor3: #F5F5E1;
 	--bracketcolor4: F5F5E1;
 
+	--dictauthwkcolor: #E1F5EB;
+	--dictdefaultcolor: #E1F5EB;
+	--dictlevelscolor: #E1F5EB; 
+	--dictquotecolor: #F5F5E1;
+	--dicttranslcolor: #E1F5EB;
+
 	--hgsmono00: #19191B;
 	--hgscol01: #F5F5E1; 
 	--hgscol02: #E1F5EB;
@@ -369,6 +392,12 @@ const (
 	--bracketcolor3: #F2E8DC;
 	--bracketcolor4: F2E8DC;
 
+	--dictauthwkcolor: #F2E8DC;
+	--dictdefaultcolor: #DCF2F1;
+	--dictlevelscolor: #F2E8DC; 
+	--dictquotecolor: #F2E8DC;
+	--dicttranslcolor: #DCF2F1;
+
 	--hgsmono00: #151717;
 	--hgscol01: #F2E8DC; 
 	--hgscol02: #F2E8DC;
@@ -438,6 +467,12 @@ const (
 	--bracketcolor2: #D6FFFF;
 	--bracketcolor3: #F2E8DC;
 	--bracketcolor4: F2E8DC;
+
+	--dictauthwkcolor: #F2E8DC;
+	--dictdefaultcolor: #D6FFFF;
+	--dictlevelscolor: #F2E8DC; 
+	--dictquotecolor: #F2E8DC;
+	--dicttranslcolor: #D6FFFF;
 
 	--hgsmono00: #24241F;
 	--hgscol01: #F2E8DC; 

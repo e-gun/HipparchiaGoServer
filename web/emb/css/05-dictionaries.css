@@ -20,18 +20,18 @@
  */
 
 .dictauthor {
-    color: var(--hgscol06);
+    color: var(--dictauthwkcolor);
     font-family: 'hipparchiasemiboldstatic', sans-serif;
 }
 
 .dictbiblscope {
-    color: var(--hgscol06);
+    color: var(--dictauthwkcolor);
     font-style: normal;
 }
 
 .dictbibtitle {
-    color: var(--hgscol06);
-    font-family: 'hipparchiabolditalicstatic', sans-serif;
+    color: var(--dictauthwkcolor);
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
 }
 
 .dictcase{
@@ -58,19 +58,19 @@
 
 .dictitype{
     font-family: 'hipparchiasemiboldstatic', sans-serif;
-    color: var(--hgsmono07);
+    color: var(--dictdefaultcolor);
 }
 
 .dicthi {
     /* definitions in the latin dictionary */
     font-family: 'hipparchiasemiboldstatic', sans-serif;
-    color: var(--hgsmono07);
+    color: var(--dictdefaultcolor);
 }
 
 .dicthi.dictrend_ital{
     /* definitions in the latin dictionary */
     font-family: 'hipparchiasemiboldstatic', sans-serif;
-    color: var(--hgsmono07);
+    color: var(--dictdefaultcolor);
 }
 
 .dictmood{
@@ -109,7 +109,7 @@
 }
 
 .dictquote {
-    color: var(--hgsmono01);
+    color: var(--dictquotecolor);
     font-family: 'hipparchiaobliquestatic', sans-serif;
 }
 
@@ -130,13 +130,13 @@
 }
 
 .dicttr{
-    font-family: 'hipparchiaboldstatic', sans-serif;
-    color: var(--hgsmono07);
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--dicttranslcolor);
 }
 
 .dicttrans{
     font-family: 'hipparchiasemiboldstatic', sans-serif;
-    color: var(--hgsmono07);
+    color: var(--dicttranslcolor);
 }
 
 .dictusg{
@@ -166,28 +166,28 @@
 .levellabel1 {
     font-family: 'hipparchiaboldstatic', sans-serif;
     font-size: 120%;
-    color: var(--hgscol16);
+    color: var(--dictlevelscolor);
 }
 
 .levellabel2 {
     font-family: 'hipparchiaboldstatic', sans-serif;
     font-size: 100%;
-    color: var(--hgscol16);
+    color: var(--dictlevelscolor);
 }
 
 .levellabel3 {
     font-family: 'hipparchiaboldstatic', sans-serif;
-    color: var(--hgscol16);
+    color: var(--dictlevelscolor);
 }
 
 .levellabel4 {
     font-family: 'hipparchiaobliquestatic', sans-serif;
-    color: var(--hgscol16);
+    color: var(--dictlevelscolor);
 }
 
 .levellabel5 {
     font-size: 85%;
-    color: var(--hgscol16);
+    color: var(--dictlevelscolor);
 }
 
 .lexiconhighlight {
