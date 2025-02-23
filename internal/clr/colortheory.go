@@ -111,10 +111,15 @@ func buildpancolor(name string, hue int, sat int, lum int, minormaxlum int) panc
 	var pan pancolor
 	pan.color = c
 	pan.m0 = generatemonostruct(c, minormaxlum)
-	m1c := hsl{pan.hues.Hue1, sat, lum}
-	m2c := hsl{pan.hues.Hue2, sat, lum}
-	m3c := hsl{pan.hues.Hue3, sat, lum}
-	m4c := hsl{pan.hues.Hue4, sat, lum}
+
+	buildhsl := func(p pancolor) [4]hsl {
+		var hhs [4]hsl
+		hhs[0] = hsl{p.hues.Hue1, sat, lum}
+		hhs[1] = hsl{p.hues.Hue2, sat, lum}
+		hhs[2] = hsl{p.hues.Hue3, sat, lum}
+		hhs[3] = hsl{p.hues.Hue4, sat, lum}
+		return hhs
+	}
 
 	switch name {
 	case "mono":
@@ -122,27 +127,31 @@ func buildpancolor(name string, hue int, sat int, lum int, minormaxlum int) panc
 		pan.tmpl = MONO
 	case "triad":
 		pan.hues = findtriad(hue)
-		pan.m1 = generatemonostruct(m1c, minormaxlum)
-		pan.m2 = generatemonostruct(m2c, minormaxlum)
+		hhs := buildhsl(pan)
+		pan.m1 = generatemonostruct(hhs[0], minormaxlum)
+		pan.m2 = generatemonostruct(hhs[1], minormaxlum)
 		pan.tmpl = TRIADIC
 	case "tetrad":
 		pan.hues = findtetradic(hue)
-		pan.m1 = generatemonostruct(m1c, minormaxlum)
-		pan.m2 = generatemonostruct(m2c, minormaxlum)
-		pan.m3 = generatemonostruct(m3c, minormaxlum)
+		hhs := buildhsl(pan)
+		pan.m1 = generatemonostruct(hhs[0], minormaxlum)
+		pan.m2 = generatemonostruct(hhs[1], minormaxlum)
+		pan.m3 = generatemonostruct(hhs[2], minormaxlum)
 		pan.tmpl = TETRADTMPL
 	case "square":
 		pan.hues = findsquare(hue)
-		pan.m1 = generatemonostruct(m1c, minormaxlum)
-		pan.m2 = generatemonostruct(m2c, minormaxlum)
-		pan.m3 = generatemonostruct(m3c, minormaxlum)
+		hhs := buildhsl(pan)
+		pan.m1 = generatemonostruct(hhs[0], minormaxlum)
+		pan.m2 = generatemonostruct(hhs[1], minormaxlum)
+		pan.m3 = generatemonostruct(hhs[2], minormaxlum)
 		pan.tmpl = TETRADTMPL
 	case "splitcomp":
 		pan.hues = findsplitcomp(hue)
-		pan.m1 = generatemonostruct(m1c, minormaxlum)
-		pan.m2 = generatemonostruct(m2c, minormaxlum)
-		pan.m3 = generatemonostruct(m3c, minormaxlum)
-		pan.m4 = generatemonostruct(m4c, minormaxlum)
+		hhs := buildhsl(pan)
+		pan.m1 = generatemonostruct(hhs[0], minormaxlum)
+		pan.m2 = generatemonostruct(hhs[1], minormaxlum)
+		pan.m3 = generatemonostruct(hhs[2], minormaxlum)
+		pan.m4 = generatemonostruct(hhs[3], minormaxlum)
 		pan.tmpl = SPLITCOMP
 	default:
 		pan.hues = findmonohues(hue)

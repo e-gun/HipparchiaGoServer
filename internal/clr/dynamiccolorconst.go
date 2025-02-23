@@ -7,6 +7,9 @@ package clr
 // .dicttrans is --hgsmono07
 // modal backgrounds are --hgscol10
 // morphcell is --hgscol03
+// nthrow is --hgsmono02
+// sought is --hgscol05
+// resultlocus --hgscol09
 
 const (
 	MONO = `
@@ -24,6 +27,8 @@ const (
 	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
 	--modalbackground: {{.colorA2}};
+	--sidednavcolor: {{.colorA6}};
+
 	--notations: {{.colorA6}};
 	--dottedborders: {{.colorA6}};
 	--bracketcolor1: {{.colorA2}};
@@ -86,6 +91,8 @@ const (
 	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
 	--modalbackground: {{.colorB5}};
+	--sidednavcolor: {{.colorA2}};
+
 	--notations: {{.colorB6}};
 	--dottedborders: {{.colorA6}};
 	--bracketcolor1: {{.colorA5}};
@@ -128,7 +135,7 @@ const (
 	--hgsmono09: {{.colorA6}};
 	--hgsmono05: {{.colorB6}};
 	--hgsmono08: {{.colorC6}};
-	--hgsmono02: {{.colorA5}};
+	--hgsmono02: {{.colorA3}};
 	--hgsmono03: {{.colorB5}};
 	--hgsmono04: {{.colorC5}};
 	--hgsmono01: {{.colorA5}};
@@ -144,7 +151,7 @@ const (
     --input-border-color: {{.colorA2}};
     
     --buttoncolor: {{.colorB3}};
-    --button-hover: {{.colorB5}};
+    --button-hover: {{.colorB1}};
     
     --fieldset-background: {{.colorA2}};
     --focus-shadow: rgba(0, 0, 0, 0.5);
@@ -153,7 +160,9 @@ const (
  	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
 	--modalbackground: {{.colorC2}};
-	--notations: {{.colorB1}};
+	--sidednavcolor: {{.colorA2}};
+
+	--notations: {{.colorB5}};
 	--dottedborders: {{.colorA6}};
 	--bracketcolor1: {{.colorA5}};
 	--bracketcolor2: {{.colorB5}};
@@ -167,7 +176,7 @@ const (
     --hgscol13: {{.colorC0}};
     --hgscol04: {{.colorB4}};
     --hgscol12: {{.colorC0}};
-    --hgscol16: {{.colorB3}}; 
+    --hgscol16: {{.colorB4}}; 
     --hgscol17: {{.colorA4}}; 
     --hgscol02: {{.colorC0}};
     --hgscol14: {{.colorA1}};
@@ -175,27 +184,27 @@ const (
 	/* G */
     --hgscol18: {{.colorC0}};
     --hgscol15: {{.colorC0}};
-    --hgscol20: {{.colorC0}};
+    --hgscol20: {{.colorC4}};
     --hgscol07: {{.colorB6}};
     --hgscol08: {{.colorB6}};
     --hgscol21: {{.colorB0}};
 
 	/* B */
-    --hgscol11: {{.colorB3}};
+    --hgscol11: {{.colorB5}};
     --hgscol19: {{.colorB1}};
-    --hgscol03: {{.colorB1}};
-    --hgscol01: {{.colorB3}};
-    --hgscol05: {{.colorB0}}; 
-    --hgscol06: {{.colorB3}};  
+    --hgscol03: {{.colorC5}};
+    --hgscol01: {{.colorB4}};
+    --hgscol05: {{.colorC6}}; 
+    --hgscol06: {{.colorB4}};  
 
-    --hgscol09: {{.colorB5}};
-    --hgscol10: {{.colorC0}};
+    --hgscol09: {{.colorC5}};
+    --hgscol10: {{.colorB0}};
 
 	/* b/w */
 	--hgsmono09: {{.colorA6}};
 	--hgsmono05: {{.colorB5}};
 	--hgsmono08: {{.colorC5}};
-	--hgsmono02: {{.colorA4}};
+	--hgsmono02: {{.colorA1}};
 	--hgsmono03: {{.colorB4}};
 	--hgsmono04: {{.colorC4}};
 	--hgsmono01: {{.colorB2}};
@@ -222,6 +231,8 @@ const (
 	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
 	--modalbackground: {{.colorB5}};
+	--sidednavcolor: {{.colorA2}};
+
 	--notations: {{.colorB6}};
 	--dottedborders: {{.colorA6}};
 	--bracketcolor1: {{.colorA5}};
@@ -233,20 +244,20 @@ const (
 	--transparentgrey: hsla(0, 0%, 67%, .8);
 
 	/* R */
-    --hgscol13: {{.colorB1}};
-    --hgscol04: {{.colorB2}};
-    --hgscol12: {{.colorB3}};
-    --hgscol16: {{.colorB3}}; 
-    --hgscol17: {{.colorB4}}; 
-    --hgscol02: {{.colorB5}};
+    --hgscol13: {{.colorB3}};
+    --hgscol04: {{.colorB4}};
+    --hgscol12: {{.colorB4}};
+    --hgscol16: {{.colorB5}}; 
+    --hgscol17: {{.colorB5}}; 
+    --hgscol02: {{.colorB6}};
     --hgscol14: {{.colorB6}};
 
 	/* G */
-    --hgscol18: {{.colorA1}};
-    --hgscol15: {{.colorA2}};
-    --hgscol20: {{.colorA3}};
-    --hgscol07: {{.colorA4}};
-    --hgscol08: {{.colorA5}};
+    --hgscol18: {{.colorA4}};
+    --hgscol15: {{.colorA4}};
+    --hgscol20: {{.colorA5}};
+    --hgscol07: {{.colorA5}};
+    --hgscol08: {{.colorA6}};
     --hgscol21: {{.colorA6}};
 
 	/* B */
@@ -267,9 +278,9 @@ const (
 	--hgsmono02: {{.colorA5}};
 	--hgsmono03: {{.colorB5}};
 	--hgsmono04: {{.colorC5}};
-	--hgsmono01: {{.colorE5}};
-	--hgsmono07: {{.colorC5}};
-	--hgsmono00: {{.colorB6}};
+	--hgsmono01: {{.colorA5}};
+	--hgsmono07: {{.colorB5}};
+	--hgsmono00: {{.colorC6}};
 
 	--invisible: hsla(0, 100%, 0%, 0);
 	--transparentgrey: hsla(0, 0%, 10%, .7);`

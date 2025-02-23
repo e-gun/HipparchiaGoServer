@@ -34,7 +34,7 @@ package clr
 //	teal / hgscol20
 //	vdkteal / hgscol21
 
-// grouped
+// loosely grouped + light to dark
 
 //  BW
 

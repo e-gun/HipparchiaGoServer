@@ -1105,7 +1105,7 @@ body {
 	z-index: 1;
 	top: 0;
 	left: 0;
-	background-color: var(--hgsmono02);
+	background-color: var(--sidednavcolor);
 	overflow-x: hidden;
 	transition: 0.05s;
 }
