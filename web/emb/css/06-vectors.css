@@ -1,0 +1,44 @@
+/* 06 vectors */
+
+.vectorrank {
+    text-align: center;
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+}
+
+.vectorscore {
+    color: var(--hgsmono01);
+}
+
+.vectorword {
+    color: var(--hgscol01);
+}
+
+vectorheadword:hover{
+    border-bottom: 1px dotted var(--dottedborders);
+    border-top: 1px dotted var(--dottedborders);
+    color: var(--hgscol06);
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
+/* for vector graphs */
+.box {
+    justify-content:center;
+    display:flex;
+    flex-wrap:wrap
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /*border-style: solid;*/
+    /*border-width: 1px;*/
+    /*border-color: var(--greyborders);;*/
+    margin-left: 15px;
+    margin-right: 15px;
+    /*background-color: var(--hgsmono08);*/
+}
+
+.item {
+    margin: auto;
+}

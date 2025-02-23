@@ -53,7 +53,23 @@ var (
 // RtEmbHCSS - send "hipparchiastyles.css" after building it as per the configured font settings
 func RtEmbHCSS(c echo.Context) error {
 	const (
-		ECSS = "emb/css/hgs.css"
+		ECSS    = "emb/css/hgs.css"
+		ECSSDIR = "emb/css/"
+	)
+
+	var (
+		cssfiles = []string{
+			"00-colors.css",
+			"01-fonts.css",
+			"03-main-body.css",
+			"04-modals.css",
+			"05-dictionaries.css",
+			"06-vectors.css",
+			"07-tables.css",
+			"08-hmu-spans.css",
+			"09-custom-elements.css",
+			"10-ui-and-js.css",
+		}
 	)
 
 	if lnch.Config.CustomCSS {
@@ -73,6 +89,18 @@ func RtEmbHCSS(c echo.Context) error {
 		fsub = ""
 		sdf = ""
 	}
+
+	var aggregatecss string
+	for _, f := range cssfiles {
+		cs, e := efs.ReadFile(ECSSDIR + f)
+		if e != nil {
+			Msg.WARN(fmt.Sprintf("RtEmbHCSS() can't find %s", ECSSDIR+f))
+			return c.String(http.StatusNotFound, "")
+		}
+		aggregatecss += string(cs)
+	}
+
+	fmt.Println(aggregatecss)
 
 	j, e := efs.ReadFile(ECSS)
 	if e != nil {

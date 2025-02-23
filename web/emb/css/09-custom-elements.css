@@ -1,0 +1,150 @@
+/* 09 custom elements */
+
+bibl {
+    color: var(--hgscol06);
+    border: 1px dotted var(--invisible);
+}
+
+bibl:hover{
+    border-bottom: 1px dotted var(--dottedborders);
+    border-top: 1px dotted var(--dottedborders);
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
+browser {
+    font-family: 'hipparchiacondensedstatic', sans-serif;
+    font-size: 110%;
+    color: var(--hgscol03);
+}
+
+caption {
+    font-size: 120%;
+    font-family: 'hipparchiaboldstatic', sans-serif;
+    padding-bottom: 20px;
+}
+
+dictionaryentry{
+    color: var(--hgscol17);
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+}
+
+dictionaryentry:hover{
+    border-bottom: 1px dotted var(--dottedborders);
+    border-top: 1px dotted var(--dottedborders);
+    color: var(--hgscol06);
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
+dictionaryidsearch {
+    color: var(--hgscol16);
+}
+
+dictionaryidsearch:hover{
+    border-bottom: 1px dotted var(--dottedborders);
+    border-top: 1px dotted var(--dottedborders);
+    color: var(--hgscol06);
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
+formsummary{
+    color: var(--hgscol17);
+    font-size: 90%;
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+}
+
+formsummary:hover{
+    border-bottom: 1px dotted var(--dottedborders);
+    border-top: 1px dotted var(--dottedborders);
+    color: var(--hgscol06);
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
+indexedlocation:hover{
+    border-bottom: 1px dotted var(--dottedborders);
+    border-top: 1px dotted var(--dottedborders);
+    color: var(--hgscol06);
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
+indexobserved:hover{
+    border-bottom: 1px dotted var(--dottedborders);
+    border-top: 1px dotted var(--dottedborders);
+    color: var(--hgscol06);
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
+latinfont {
+    font-family: 'hipparchiasansstatic', sans-serif;
+}
+
+legend {
+    text-align: center;
+}
+
+lemmatizable {
+    color: var(--hgscol16);
+}
+
+lemmatizable:hover{
+    border-bottom: 1px dotted var(--dottedborders);
+    border-top: 1px dotted var(--dottedborders);
+    color: var(--hgscol06);
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
+locus {
+    display: block;
+    padding-top: 20px;
+    padding-bottom: 5px;
+}
+
+observed:hover{
+    border-bottom: 1px dotted var(--dottedborders);
+    border-top: 1px dotted var(--dottedborders);
+    color: var(--hgscol06);
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
+sense {
+    padding: 10px;
+    margin-top: 20px;
+}
+
+smallcode {
+    font-size: 85%;
+    color: var(--skyblue);
+    font-family: 'hipparchiamonostatic', monospace;
+}
+
+span.lat {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+    color: var(--hgscol21);
+}
+
+speaker {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+}
+
+transl {
+    padding-right: 20px;
+}
+
+unclickablebibl {
+    color: var(--main-font-color);
+}
+
+verbform:hover{
+    border-bottom: 1px dotted var(--dottedborders);
+    border-top: 1px dotted var(--dottedborders);
+    color: var(--hgscol06);
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
+vocabobserved:hover{
+    border-bottom: 1px dotted var(--dottedborders);
+    border-top: 1px dotted var(--dottedborders);
+    color: var(--hgscol06);
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}

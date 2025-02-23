@@ -1,0 +1,224 @@
+/* 05 dictionaries */
+
+
+/*
+    styles coughed out by dictionary entries
+		πρόϲ:
+		{'dicthi rend_ital', 'levellabel3', 'dictref lang_greek targorder_U', 'level1', 'level_1', 'dictquote
+		lang_greek', 'dictgram type_comp', 'dictdate', 'dictabbr', 'dictplacename', 'dicttr', 'dictpb',
+		'dictitype lang_greek', 'level_2', 'dictlbl', 'levellabel1', 'dictunclickablebibl', 'dictbibtitle',
+		'dictgramgrp', 'level2', 'dictcit', 'level_4', 'dictxr', 'dictorth lang_greek', 'level3', 'dictauthor',
+		'dictetym lang_greek', 'dictpos', 'dictgram type_dialect', 'level_3', 'levellabel2', 'levellabel4',
+		'dictforeign lang_greek'}
+
+		bonus:
+		{'dictitype', 'dicthi rend_ital', 'levellabel3', 'level1', 'dictnumber', 'level_1', 'level_5',
+		'levellabel5', 'dictusg type_style', 'dictgen', 'dictorth lang_la', 'dictetym', 'dicttrans', 'dicttr',
+		'dictquote lang_la', 'dictpb', 'level_2', 'levellabel1', 'dictunclickablebibl', 'level2', 'dictcb',
+		'dictcit', 'level_4', 'level3', 'dictauthor', 'dictpos', 'level_3', 'levellabel2', 'levellabel4'}
+
+ */
+
+.dictauthor {
+    color: var(--hgscol06);
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+}
+
+.dictbiblscope {
+    color: var(--hgscol06);
+    font-style: normal;
+}
+
+.dictbibtitle {
+    color: var(--hgscol06);
+    font-family: 'hipparchiabolditalicstatic', sans-serif;
+}
+
+.dictcase{
+    font-family: 'hipparchiaboldstatic', sans-serif;
+}
+
+.dictcit{
+}
+
+.dictetym{
+}
+
+.dictforeign {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+}
+
+.dictforeign.dictlang_greek {
+}
+
+.dictgram.dicttype_dialect{
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--hgscol05);
+}
+
+.dictitype{
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--hgsmono07);
+}
+
+.dicthi {
+    /* definitions in the latin dictionary */
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--hgsmono07);
+}
+
+.dicthi.dictrend_ital{
+    /* definitions in the latin dictionary */
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--hgsmono07);
+}
+
+.dictmood{
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--hgscol05);
+}
+
+.dictnumber{
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--hgscol05);
+}
+
+.dictorth {
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--hgscol08);
+}
+
+.dictorth.dictlang_la {
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--hgscol08);
+}
+
+.dictorth.dicttype_alt.dictlang_la {
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--hgscol20);
+}
+
+.dictorth.dictlang_greek {
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--hgscol08);
+}
+
+.dictper{
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--hgscol05);
+}
+
+.dictquote {
+    color: var(--hgsmono01);
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+}
+
+.dictquote.dictlang_greek {
+}
+
+.dictquote.dictlang_la {
+}
+
+.dictsense {
+    padding: 10px;
+    margin-top: 20px;
+}
+
+.dicttns{
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--hgscol05);
+}
+
+.dicttr{
+    font-family: 'hipparchiaboldstatic', sans-serif;
+    color: var(--hgsmono07);
+}
+
+.dicttrans{
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--hgsmono07);
+}
+
+.dictusg{
+}
+
+.dictusg.dicttype_style{
+    font-family: 'hipparchiaboldstatic', sans-serif;
+    color: var(--hgscol16);
+}
+
+.dictionaryform {
+    color: var(--hgscol08);
+    font-family: 'hipparchiabolditalicstatic', sans-serif;
+}
+
+.dictionaryheading {
+    color: var(--hgscol17);
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    font-size: 120%;
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
+.dictrewritten_phrase {
+    color: var(--hgscol14);
+}
+
+.levellabel1 {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+    font-size: 120%;
+    color: var(--hgscol16);
+}
+
+.levellabel2 {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+    font-size: 100%;
+    color: var(--hgscol16);
+}
+
+.levellabel3 {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+    color: var(--hgscol16);
+}
+
+.levellabel4 {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+    color: var(--hgscol16);
+}
+
+.levellabel5 {
+    font-size: 85%;
+    color: var(--hgscol16);
+}
+
+.lexiconhighlight {
+    color: var(--hgscol16);
+    font-family: 'hipparchiaboldstatic', sans-serif;
+}
+
+.metrics{
+    color: var(--hgsmono00);
+    /* font-family: 'hipparchiamonostatic', monospace; */
+    font-size: 90%;
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+    padding-left: 10px;
+}
+
+p.level1 {
+
+}
+
+p.level2 {
+    padding-left: 15px;
+}
+
+p.level3 {
+    padding-left: 30px;
+}
+
+p.level4 {
+    padding-left: 45px;
+}
+
+p.level5 {
+    padding-left: 60px;
+}

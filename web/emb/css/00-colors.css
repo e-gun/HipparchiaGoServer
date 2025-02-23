@@ -1,0 +1,42 @@
+:root {
+    --systemdefaultfont: "{{index . "fontname"}}";
+    --leftpanelsize: 45%;
+    --rightpanelsize: 45%;
+
+    /* OLD / NEW */
+    /* dkgrey / hgsmono01 */
+    /* ltgrey / hgsmono02 */
+    /* ltgrey2 / hgsmono03 */
+    /* midgrey / hgsmono04 */
+    /* offwhite / hgsmono05 */
+    /* transparentgrey / hgsmono06 */
+    /* vdkgrey / hgsmono07 */
+    /* vltgrey / hgsmono08 */
+    /* white / hgsmono09 */
+    /* white / hgsmono10 */
+    /* blue / hgscol01 */
+    /* brown / hgscol02 */
+    /* brtblue / hgscol03 */
+    /* copper / hgscol04 */
+    /* deepblue / hgscol05 */
+    /* dkbabyblue / hgscol06 */
+    /* dkgreen / hgscol07 */
+    /* dkteal / hgscol08 */
+    /* huedgrey / hgscol09 */
+    /* lessoffwhite / hgscol10 */
+    /* ltbabyblue / hgscol11 */
+    /* orange / hgscol12 */
+    /* pink / hgscol13 */
+    /* pinker / hgscol13 */
+    /* plum / hgscol14 */
+    /* pukegreen / hgscol15 */
+    /* red / hgscol16 */
+    /* rustedorange / hgscol17 */
+    /* sicklyyellow / hgscol18 */
+    /* skyblue / hgscol19 */
+    /* teal / hgscol20 */
+    /* vdkteal / hgscol21 */
+
+{{index . "colorinfo"}}
+
+}

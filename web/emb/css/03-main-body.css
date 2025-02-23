@@ -1,0 +1,271 @@
+/* 03 main body */
+
+body {
+    background-color: var(--main-body-color);
+    color: var(--main-font-color);
+    margin: 10px 10px 10px 10px;
+    line-height: 1.4;
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-size: 100%;
+    font-weight: normal;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'liga';
+}
+
+.optionlabel {
+    border-top: 1px dotted var(--hgsmono01);
+    font-size: 70%;
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    padding-left: 5px;
+    padding-right: 10px;
+    margin: 3px;
+}
+
+.optionitem {
+    font-size: 70%;
+    padding-left: 20px;
+    padding-right: 10px;
+    margin: 3px;
+}
+
+.sidenavigation {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: var(--sidednavcolor);
+    overflow-x: hidden;
+    transition: 0.05s;
+}
+
+.sidenavigation .closebutton {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 18px;
+    margin-left: 50px;
+}
+
+#accentsactive, #accentsnotactive {
+    padding-left: 0px;
+    font-size: 120%;
+    font-family: 'hipparchiaboldstatic', sans-serif;
+}
+
+#activeoptions {
+    position: fixed;
+    top: 45px;
+    right: 10px;
+    font-size: 80%;
+}
+
+#authorholdings {
+    background-color: var(--hgsmono05);
+    border: 1px dotted var(--dottedborders);
+    width: 50%;
+    margin: auto;
+}
+
+#bottommessage {
+    position: fixed;
+    width: 500px;
+    margin-left: -250px;
+    bottom: 5px;
+    text-align: center;
+    font-size: 250%;
+    left: 50%;
+    font-family: 'hipparchiaboldstatic', sans-serif;
+    color: var(--skyblue);
+}
+
+#browserdialog {
+    position: fixed;
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--greyborders);;
+    border-radius: 8px;
+    top: 100px;
+    right: 50px;
+    box-shadow: 4px 4px 2px var(--transparentgrey);
+    padding: 5px 20px 5px 20px; /* top | right | bottom | left */
+    background-color: var(--hgscol10);
+    /*font-size: 105%;*/
+    line-height: 1.1;
+    z-index: 1; /* Sit on top of mainbody, but not of rightmodal */
+}
+
+#browsernavigationbuttons {
+    margin: auto;
+    text-align: center;
+    padding-bottom: 5px;
+}
+
+#clickforhelp {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+}
+
+#currentuser {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    font-size: 66%;
+}
+
+#displayresults {
+    padding: 10px;
+    text-align: left;
+}
+
+#helptabs {
+    position: fixed;
+    top: 125px;
+    right: 125px;
+    left: 125px;
+    bottom: 125px;
+    box-shadow: 5px 5px 2px var(--boxshadows);
+    padding: 10px;
+    background-color: var(--hgscol10);
+    overflow: auto;
+}
+
+#imagearea {
+    text-align: center;
+    padding: 10px;
+    margin: auto;
+    width: 100%;
+}
+
+#languageradio, #modeeradio {
+    text-align: center;
+    margin: auto;
+    display: block;
+}
+
+#lexica {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+}
+
+#lexicadialogtext{
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-size: 90%;
+}
+
+#lexmodal {
+    line-height: 1.5;
+}
+
+#lexmodalcontent {
+    opacity: 1;
+    font-size: 90%;
+    transition: opacity .125s;
+}
+
+#lexmodalcontent.hide {
+    opacity: 0;
+}
+
+#loadslots, #saveslots {
+    padding-left: 3px;
+    padding-bottom: 3px;
+}
+
+#morphmodal {
+    line-height: 1.5;
+}
+
+#morphmodalcontent {
+    opacity: 1;
+    transition: opacity .125s;
+}
+
+#morphmodalcontent.hide {
+    opacity: 0;
+}
+
+#outputbox {
+    text-align: center;
+    font-size: 90%;
+    color: var(--hgscol08);
+}
+
+#pollingdata {
+    padding: 10px;
+    text-align: left;
+    color: var(--hgscol17);
+}
+
+#savedprofiles {
+    position: fixed;
+    bottom: 50px;
+    right: 10px;
+    font-size: 100%;
+}
+
+#searchfield, #uiclickfield, #selectionendpoint {
+    text-align: center;
+    padding-right: 20px;
+    padding-left: 20px;
+}
+
+#searchlistcontents, #genrelistcontents {
+    text-align: left;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: var(--hgsmono05);
+    border: 1px dotted var(--dottedborders);
+    width: 50%;
+    margin: auto;
+}
+
+#searchsummary {
+    padding: 10px;
+    text-align: left;
+    color: var(--hgscol17);
+}
+
+#selectionsandexclusions {
+    width: 50%;
+    margin: auto;
+    text-align: center;
+}
+
+#toolbutton {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+}
+
+#upperleftbuttons, #alt_upperleftbuttons {
+    position: fixed;
+    top: 5px;
+    left: 5px;
+    font-size: 75%;
+}
+
+#versioning {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    font-size: 75%;
+}
+
+#wordsearchform {
+    /* position: float; */
+    position: relative;
+}
+

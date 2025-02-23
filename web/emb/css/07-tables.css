@@ -1,0 +1,242 @@
+/* 07 tables */
+
+
+table {
+    text-align: left;
+    font-weight: normal;
+}
+
+table.vectortable {
+    margin: 0 auto;
+    width: 50%;
+    padding: 5px;
+    display: block;
+}
+
+table.ldasentences {
+    padding: 10px;
+    margin: auto;
+    font-size: 85%;
+    width: 100%;
+}
+
+table.ldawords {
+    padding: 10px;
+    margin: auto;
+    font-size: 85%;
+    width: 80%;
+}
+
+table.morphtable {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    margin: 0 auto;
+    display: block;
+    font-size: 75%;
+}
+
+table.navtable {
+    padding-top: 10px;
+    margin: auto;
+    display: block;
+    font-size: 75%;
+}
+
+table.verbanalysis {
+    padding-top: 15px;
+    font-size: 75%;
+    margin: 0 auto;
+}
+
+table.showborders, td.showborders {
+    border: 1px solid var(--hgsmono00);
+    font-family: 'hipparchiamonostatic', monospace;
+}
+
+td.alihnleft {
+    text-align: left;
+}
+
+td.alignright {
+    text-align: right;
+}
+
+td.browsedline {
+    padding-right: 10px;
+    padding-left: 10px;
+    line-height: 1.7;
+}
+
+td.browsercite {
+    font-family: 'hipparchiacondensedstatic', sans-serif;
+    padding-right: 10px;
+    padding-left: 10px;
+    vertical-align: middle;
+    line-height: 1.7;
+    color: var(--hgscol09);
+}
+
+td.browserembeddedannotations {
+    font-family: 'hipparchiacondensedstatic', sans-serif;
+    padding-right: 10px;
+    padding-left: 15px;
+    color: var(--notations);
+    vertical-align: middle;
+    line-height: 1.7;
+}
+
+td.textline {
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+td.textcite {
+    font-family: 'hipparchiacondensedstatic', sans-serif;
+    font-size: 80%;
+    padding-right: 10px;
+    padding-left: 10px;
+    vertical-align: middle;
+    color: var(--hgscol09);
+}
+
+td.textembeddedannotations {
+    font-family: 'hipparchiacondensedstatic', sans-serif;
+    font-size: 80%;
+    padding-right: 10px;
+    padding-left: 15px;
+    color: var(--notations);
+    vertical-align: middle;
+}
+
+td.dialectlabel {
+    color: var(--hgscol16);
+    font-family: 'hipparchiaboldstatic', sans-serif;
+    font-size: 120%;
+    text-transform: uppercase;
+}
+
+td.voicelabel {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+    font-size: 110%;
+    text-align: center;
+}
+
+td.moodlabel {
+    font-weight: normal;
+    font-size: 110%;
+    text-align: center;
+}
+
+td.morphcell {
+    padding-left: 5px;
+    padding-right: 5px;
+    color: var(--hgscol03);
+}
+
+td.morphcell.labelcell {
+    font-weight: normal;
+}
+
+td.morphlabelcell {
+    /*color: var(--hgscol09);*/
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+}
+
+td.morphcell.invisible {
+    color: var(--invisible);
+}
+
+td.morphrow.emph.center {
+    color: var(--hgscol01);
+    font-family: 'hipparchiaboldstatic', sans-serif;
+    text-align: center;
+}
+
+td.tensecell {
+    color: var(--hgscol09);
+    font-family: 'hipparchiaboldstatic', sans-serif;
+}
+
+td.count {
+    color: var(--hgscol12);
+    text-align: center;
+}
+
+td.crossreference {
+    padding-right: 10px;
+    padding-left: 10px;
+    padding-bottom: 16px;
+}
+
+td.headword {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+    color: var(--hgscol16);
+}
+
+td.infocells {
+    background-color: var(--hgscol11);
+    text-align: center;
+}
+
+td.infocellx {
+    background-color: var(--hgscol13);
+    text-align: center;
+}
+
+td.leftpad {
+    padding-left: 10px;
+}
+
+td.passages {
+    font-weight: normal;
+}
+
+td.textcrossreference {
+    padding-right: 10px;
+    padding-left: 10px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    text-align: left;
+}
+
+td.textdate, td.regioninfo, td.cityinfo, td.pubinfo, td.provenance {
+    padding-right: 10px;
+    padding-left: 10px;
+    text-align: left;
+}
+
+td.word {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+}
+
+th {
+    padding: 5px;
+    text-align: center;
+}
+
+th.indextable {
+    text-align: left;
+}
+
+tr.nthrow{
+    background-color: var(--hgsmono02);
+}
+
+tr.spacing {
+    line-height: 0;
+}
+
+#selectionstable {
+    width: 50%;
+    margin: auto;
+}
+
+#selectionstable tbody td {
+    font-size: 85%;
+}
+
+#vectortable {
+    padding: 10px;
+    margin: auto;
+}
+
