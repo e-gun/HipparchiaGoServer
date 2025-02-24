@@ -37,6 +37,45 @@ func GenerateSquareScheme(hslm []int) string {
 }
 
 func FindVectorDotHueAndLums(schemename string, hslm []int) (int, int, int) {
+	name := convertschemname(schemename)
+	pan := buildpancolor(name, hslm[0], hslm[1], hslm[2], hslm[3])
+
+	var newhue int
+	var newlum int
+	var newperiphlum int
+
+	if name == "mono" {
+		newhue = pan.m0.Hue
+		newlum = pan.m0.Lums[5]
+		newperiphlum = pan.m0.Lums[4]
+	} else {
+		newhue = pan.m1.Hue
+		newlum = pan.m1.Lums[5]
+		newperiphlum = pan.m1.Lums[4]
+	}
+
+	return newhue, newlum, newperiphlum
+}
+
+func FindVectorLineHueAndLums(schemename string, hslm []int) (int, int) {
+	name := convertschemname(schemename)
+	pan := buildpancolor(name, hslm[0], hslm[1], hslm[2], hslm[3])
+
+	var newhue int
+	var newlum int
+
+	if name == "mono" {
+		newhue = pan.m0.Hue
+		newlum = pan.m0.Lums[6]
+	} else {
+		// there are always three+ colors available...
+		newhue = pan.m2.Hue
+		newlum = pan.m2.Lums[6]
+	}
+	return newhue, newlum
+}
+
+func convertschemname(schemename string) string {
 	var name string
 	switch schemename {
 	case "Light":
@@ -58,24 +97,7 @@ func FindVectorDotHueAndLums(schemename string, hslm []int) (int, int, int) {
 	default:
 		name = "mono"
 	}
-
-	pan := buildpancolor(name, hslm[0], hslm[1], hslm[2], hslm[3])
-
-	var newhue int
-	var newlum int
-	var newperiphlum int
-
-	if name == "mono" {
-		newhue = pan.m0.Hue
-		newlum = pan.m0.Lums[6]
-		newperiphlum = pan.m0.Lums[5]
-	} else {
-		newhue = pan.m1.Hue
-		newlum = pan.m1.Lums[6]
-		newperiphlum = pan.m1.Lums[5]
-	}
-
-	return newhue, newlum, newperiphlum
+	return name
 }
 
 // generatecolorscheme - the white/black is hslA; black/white is hslB; use scheme 'name'

@@ -196,7 +196,7 @@
 }
 
 .metrics{
-    color: var(--hgsmono00);
+    color: var(--main-font-color);
     /* font-family: 'hipparchiamonostatic', monospace; */
     font-size: 90%;
     font-family: 'hipparchiaobliquestatic', sans-serif;

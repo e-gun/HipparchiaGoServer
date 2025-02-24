@@ -18,7 +18,7 @@
 }
 
 .baseformtranslation {
-    color: var(--hgsmono00);
+    color: var(--main-font-color);
     font-style: normal;
     font-weight: normal;
 }

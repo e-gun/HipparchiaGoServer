@@ -8,6 +8,7 @@ package search
 import (
 	"context"
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -74,8 +75,8 @@ func BuildDefaultSearch(c echo.Context) str.SearchStruct {
 
 	s.Seeking = c.QueryParam("skg")
 	s.Proximate = c.QueryParam("prx")
-	s.LemmaOne = c.QueryParam("lem")
-	s.LemmaTwo = c.QueryParam("plm")
+	s.LemmaOne = gen.ReLunate(c.QueryParam("lem")) // a no-lunate font will induce this issue
+	s.LemmaTwo = gen.ReLunate(c.QueryParam("plm"))
 	s.IPAddr = c.RealIP()
 
 	CleanInput(&s)

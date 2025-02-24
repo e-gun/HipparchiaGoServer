@@ -200,8 +200,10 @@ func main() {
 
 	// mps.SubsetChars()
 
-	// [6] one last injection...
+	// [6] one last pair of injections...
 	vec.InjectedDotHue, vec.InjectedDotLum, vec.InjectedDotPeriphLum = clr.FindVectorDotHueAndLums(lnch.Config.CssColors,
+		clr.CssColorHSLs[lnch.Config.CssColors])
+	vec.InjectedLineHue, vec.InjectedLineLum = clr.FindVectorLineHueAndLums(lnch.Config.CssColors,
 		clr.CssColorHSLs[lnch.Config.CssColors])
 
 	msg.MAND(QUIT)

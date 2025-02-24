@@ -177,6 +177,14 @@ func DeLunate(txt string) string {
 	return txt
 }
 
+// ReLunate -  Τὴν οὖν τῶν σωμάτων σύνταξιν σκεψαμένους πρὸς --> Τὴν οὖν τῶν ϲωμάτων ϲύνταξιν ϲκεψαμένουϲ πρὸϲ
+func ReLunate(txt string) string {
+	txt = strings.Replace(txt, "σ", "ϲ", -1)
+	txt = strings.Replace(txt, "Σ", "Ϲ", -1)
+	txt = LunateSwap.ReplaceAllString(txt, "ς$1")
+	return txt
+}
+
 // FormatBCEDate - turn "-300" into "300 B.C.E."
 func FormatBCEDate(d string) string {
 	s, e := strconv.Atoi(d)

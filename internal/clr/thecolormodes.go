@@ -9,10 +9,14 @@ var (
 		"Dark":      {50, 0, 80, 0},
 		"MonoSand":  {60, 12, 85, 8},
 		"MonoAsh":   {220, 15, 85, 10},
-		"Splitcomp": {220, 15, 85, 10},
+		"Splitcomp": {250, 15, 85, 10},
 		"Square":    {300, 20, 85, 15},
-		"Tetradic":  {20, 15, 15, 85},
+		"Tetradic":  {15, 15, 80, 20},
 		"Triadic":   {180, 20, 85, 20},
+		//"Splitcomp": {0, 15, 85, 10},
+		//"Square":    {120, 20, 85, 15},
+		//"Tetradic":  {240, 15, 85, 20},
+		//"Triadic":   {180, 20, 85, 20},
 	}
 	CssColorModes = map[string]string{
 		"Light":     LIGHTCOLORSORIGINAL,

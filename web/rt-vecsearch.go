@@ -194,6 +194,10 @@ func RtNeighborsSearch(c echo.Context, srch str.SearchStruct) error {
 		tablerows = append(tablerows, fmt.Sprintf(TABLEROW, rn, columnone[i], columntwo[i]))
 	}
 
+	if s.ZapLunates {
+		term = gen.DeLunate(term)
+	}
+
 	out := fmt.Sprintf(THETABLE, term, strings.Join(tablerows, "\n"), s.VecModeler, s.VecTextPrep)
 
 	soj := str.SearchOutputJSON{

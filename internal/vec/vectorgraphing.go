@@ -35,6 +35,8 @@ var (
 	InjectedDotHue       = 236
 	InjectedDotLum       = 45
 	InjectedDotPeriphLum = InjectedDotLum + 25
+	InjectedLineHue      = 236
+	InjectedLineLum      = 100
 )
 
 //
@@ -224,7 +226,7 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 			opts.LineStyle{
 				Curveness: LINECURVINESS,
 				Type:      LINETYPE,
-				//  Color:     fmthsl(0, 0, 0),
+				Color:     fmthsl(InjectedLineHue, DOTSAT, InjectedLineLum),
 				//	Width:     1,
 				//	Type:      "dotted",
 				//	Opacity:   .66,

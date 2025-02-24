@@ -2,15 +2,6 @@ package clr
 
 // if the body is a '5' or '6', then it is safest to keep most of the other colors ina the 2-0 range...
 
-// gotacha colors:
-// .dictquote is --hgsmono01
-// .dicttrans is --hgsmono07
-// modal backgrounds are --hgscol10
-// morphcell is --hgscol03
-// nthrow is --hgsmono02
-// sought is --hgscol05
-// resultlocus --hgscol09
-
 const (
 	MONO = `
 	--main-body-color: {{.colorA5}};
@@ -171,25 +162,25 @@ const (
     
     --fieldset-background: {{.colorA2}};
     --focus-shadow: rgba(0, 0, 0, 0.5);
-    --icons-color: {{.colorA4}};
+    --icons-color: {{.colorC4}};
     
  	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
-	--modalbackground: {{.colorC2}};
-	--sidednavcolor: {{.colorA2}};
-	--nthrowcol: {{.colorA6}};
+	--modalbackground: {{.colorD2}};
+	--sidednavcolor: {{.colorC2}};
+	--nthrowcol: {{.colorB2}};
 
-	--locuscolor: {{.colorA6}};
+	--locuscolor: {{.colorD5}};
 	--notations: {{.colorB5}};
 	--dottedborders: {{.colorA6}};
 	--bracketcolor1: {{.colorA5}};
 	--bracketcolor2: {{.colorB5}};
 	--bracketcolor3: {{.colorC5}};
-	--bracketcolor4: {{.colorA6}};
+	--bracketcolor4: {{.colorD6}};
 	
 	--dictauthwkcolor: {{.colorC5}};
 	--dictdefaultcolor: {{.colorA6}};
-	--dictlevelscolor: {{.colorA1}};
+	--dictlevelscolor: {{.colorB4}};
 	--dictquotecolor: {{.colorA6}};
 	--dicttranslcolor: {{.colorB6}};
 
@@ -201,7 +192,7 @@ const (
     --hgscol04: {{.colorB4}};
     --hgscol12: {{.colorC0}};
     --hgscol16: {{.colorB4}}; 
-    --hgscol17: {{.colorA4}}; 
+    --hgscol17: {{.colorD5}}; 
     --hgscol02: {{.colorC0}};
     --hgscol14: {{.colorA1}};
 
@@ -310,7 +301,7 @@ const (
 	--hgsmono02: {{.colorA5}};
 	--hgsmono03: {{.colorB5}};
 	--hgsmono04: {{.colorC5}};
-	--hgsmono01: {{.colorA5}};
+	--hgsmono01: {{.colorA4}};
 	--hgsmono07: {{.colorB5}};
 	--hgsmono00: {{.colorC6}};
 

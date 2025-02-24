@@ -268,6 +268,8 @@ func RtSetOption(c echo.Context) error {
 			s.CssColors = val
 			// reset the vector dot color too...
 			vec.InjectedDotHue, vec.InjectedDotLum, vec.InjectedDotPeriphLum = clr.FindVectorDotHueAndLums(val, clr.CssColorHSLs[val])
+			vec.InjectedLineHue, vec.InjectedLineLum = clr.FindVectorLineHueAndLums(s.CssColors,
+				clr.CssColorHSLs[s.CssColors])
 		}
 	}
 
