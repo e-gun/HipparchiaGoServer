@@ -95,7 +95,7 @@ body {
     right: 50px;
     box-shadow: 4px 4px 2px var(--transparentgrey);
     padding: 5px 20px 5px 20px; /* top | right | bottom | left */
-    background-color: var(--hgscol10);
+    background-color: var(--modalbackground);
     /*font-size: 105%;*/
     line-height: 1.1;
     z-index: 1; /* Sit on top of mainbody, but not of rightmodal */

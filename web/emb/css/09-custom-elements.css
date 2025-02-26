@@ -1,16 +1,5 @@
 /* 09 custom elements */
 
-bibl {
-    color: var(--hgscol06);
-    border: 1px dotted var(--invisible);
-}
-
-bibl:hover{
-    border-bottom: 1px dotted var(--dottedborders);
-    border-top: 1px dotted var(--dottedborders);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
-}
-
 browser {
     font-family: 'hipparchiacondensedstatic', sans-serif;
     font-size: 110%;

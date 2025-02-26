@@ -4,12 +4,12 @@ package clr
 
 const (
 	MONO = `
-	--main-body-color: {{.colorA5}};
+	--main-body-color: {{.colorA6}};
 	--main-font-color: {{.colorA0}};
 	--input-border-color: {{.colorA4}};
 	
-	--buttoncolor: {{.colorA6}};
-	--button-hover: {{.colorA3}};
+	--buttoncolor: {{.colorA4}};
+	--button-hover: {{.colorA2}};
 	
 	--fieldset-background: {{.colorA4}};
 	--focus-shadow: rgba(0, 0, 0, 0.5);
@@ -17,8 +17,8 @@ const (
 	
 	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
-	--modalbackground: {{.colorA2}};
-	--sidednavcolor: {{.colorA6}};
+	--modalbackground: {{.colorA5}};
+	--sidednavcolor: {{.colorA4}};
 	--nthrowcol: {{.colorA6}};
 
 	--locuscolor: {{.colorA6}};
@@ -29,11 +29,12 @@ const (
 	--bracketcolor3: {{.colorA2}};
 	--bracketcolor4: {{.colorA2}};
 	
-	--dictauthwkcolor: {{.colorA6}};
-	--dictdefaultcolor: {{.colorA6}};
-	--dictlevelscolor: {{.colorA1}};
-	--dictquotecolor: {{.colorA1}};
-	--dicttranslcolor: {{.colorA6}};
+	--dictauthwkcolor: {{.colorA0}};
+	--dictbiblcolor: {{.colorA1}};
+	--dictdefaultcolor: {{.colorA1}};
+	--dictlevelscolor: {{.colorA2}};
+	--dictquotecolor: {{.colorA2}};
+	--dicttranslcolor: {{.colorA0}};
 
 	--invisible: hsla(0, 100%, 100%, 0);
 	--transparentgrey: hsla(0, 0%, 67%, .8);
@@ -42,8 +43,8 @@ const (
 	--hgscol02: {{.colorA6}};
 	--hgscol03: {{.colorA1}};
 	--hgscol04: {{.colorA0}};
-	--hgscol05: {{.colorA6}};
-	--hgscol06: {{.colorA6}};
+	--hgscol05: {{.colorA2}};
+	--hgscol06: {{.colorA2}};
 	--hgscol07: {{.colorA0}};
 	--hgscol07: {{.colorA5}};
 	--hgscol08: {{.colorA0}};
@@ -89,9 +90,9 @@ const (
 
 	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
-	--modalbackground: {{.colorB5}};
+	--modalbackground: {{.colorB0}};
 	--sidednavcolor: {{.colorA2}};
-	--nthrowcol: {{.colorA6}};
+	--nthrowcol: {{.colorC2}};
 
 	--locuscolor: {{.colorA6}};
 	--notations: {{.colorB6}};
@@ -102,8 +103,9 @@ const (
 	--bracketcolor4: {{.colorA6}};
 	
 	--dictauthwkcolor: {{.colorC5}};
+	--dictbiblcolor: {{.colorB5}};
 	--dictdefaultcolor: {{.colorA6}};
-	--dictlevelscolor: {{.colorA1}};
+	--dictlevelscolor: {{.colorA4}};
 	--dictquotecolor: {{.colorA6}};
 	--dicttranslcolor: {{.colorB6}};
 
@@ -114,7 +116,7 @@ const (
     --hgscol13: {{.colorB1}};
     --hgscol04: {{.colorB2}};
     --hgscol12: {{.colorB3}};
-    --hgscol16: {{.colorB3}}; 
+    --hgscol16: {{.colorB5}}; 
     --hgscol17: {{.colorB4}}; 
     --hgscol02: {{.colorB5}};
     --hgscol14: {{.colorB6}};
@@ -143,7 +145,7 @@ const (
 	--hgsmono05: {{.colorB6}};
 	--hgsmono08: {{.colorC6}};
 	--hgsmono02: {{.colorA3}};
-	--hgsmono03: {{.colorB5}};
+	--hgsmono03: {{.colorB3}};
 	--hgsmono04: {{.colorC5}};
 	--hgsmono01: {{.colorA5}};
 	--hgsmono07: {{.colorB5}};
@@ -166,7 +168,7 @@ const (
     
  	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
-	--modalbackground: {{.colorD2}};
+	--modalbackground: {{.colorB0}};
 	--sidednavcolor: {{.colorC2}};
 	--nthrowcol: {{.colorB2}};
 
@@ -179,6 +181,7 @@ const (
 	--bracketcolor4: {{.colorD6}};
 	
 	--dictauthwkcolor: {{.colorC5}};
+	--dictbiblcolor: {{.colorB5}};
 	--dictdefaultcolor: {{.colorA6}};
 	--dictlevelscolor: {{.colorB4}};
 	--dictquotecolor: {{.colorA6}};
@@ -202,7 +205,7 @@ const (
     --hgscol20: {{.colorC4}};
     --hgscol07: {{.colorB6}};
     --hgscol08: {{.colorB6}};
-    --hgscol21: {{.colorB0}};
+    --hgscol21: {{.colorC4}};
 
 	/* B */
     --hgscol11: {{.colorB2}};
@@ -245,7 +248,7 @@ const (
 
 	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
-	--modalbackground: {{.colorB5}};
+	--modalbackground: {{.colorB0}};
 	--sidednavcolor: {{.colorA2}};
 	--nthrowcol: {{.colorB1}};
 
@@ -258,6 +261,7 @@ const (
 	--bracketcolor4: {{.colorA6}};
 	
 	--dictauthwkcolor: {{.colorC5}};
+	--dictbiblcolor: {{.colorB5}};
 	--dictdefaultcolor: {{.colorA6}};
 	--dictlevelscolor: {{.colorB5}};
 	--dictquotecolor: {{.colorA6}};
@@ -299,7 +303,7 @@ const (
 	--hgsmono05: {{.colorB6}};
 	--hgsmono08: {{.colorC6}};
 	--hgsmono02: {{.colorA5}};
-	--hgsmono03: {{.colorB5}};
+	--hgsmono03: {{.colorB4}};
 	--hgsmono04: {{.colorC5}};
 	--hgsmono01: {{.colorA4}};
 	--hgsmono07: {{.colorB5}};

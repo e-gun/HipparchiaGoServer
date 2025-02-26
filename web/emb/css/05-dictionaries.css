@@ -203,6 +203,19 @@
     padding-left: 10px;
 }
 
+/* <bibl id="perseus/lt0893/004/1:3:90"><span class="dictauthor">Horace</span> S. 1, 3, 90</bibl> */
+
+bibl {
+    color: var(--dictbiblcolor);
+    border: 1px dotted var(--invisible);
+}
+
+bibl:hover{
+    border-bottom: 1px dotted var(--dottedborders);
+    border-top: 1px dotted var(--dottedborders);
+    text-shadow: 1px 1px 3px var(--transparentgrey);
+}
+
 p.level1 {
 
 }

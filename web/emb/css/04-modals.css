@@ -30,10 +30,10 @@
     box-shadow: 2px 2px 1px var(--transparentgrey);
     border-radius: 8px 8px 0 0;  /* top-left; top-right; bottom-right; bottom-left */
     overflow-y: clip;
-    background-color: var(--modalbackground);
+    background-color: var(--hgsmono03);
     font-family: 'hipparchiaboldstatic', sans-serif;
     font-size: 100%;
-    color: var(--main-body-color);
+    color: var(--main-font-color);
 }
 
 .leftmodalbuttons{
@@ -41,14 +41,14 @@
     font-weight: bold;
     padding-top: 5px;
     padding-right: 5px;
-    color: var(--main-body-color);
+    color: var(--main-font-color);
 }
 
 .leftmodalclose{
     float: right;
-    font-weight: bold;
+    font-weight: normal;
     padding-right: 10px;
-    color: var(--main-body-color);
+    color: var(--main-font-color);
 }
 
 .leftmodalclose:hover,
@@ -73,8 +73,8 @@
     overflow-y: scroll !important;
     -webkit-animation-name: slideIn;
     -webkit-animation-duration: 0.4s;
-    background-color: var(--hgscol10);
-    border-color: var(--greyborders);;
+    background-color: var(--modalbackground);
+    border-color: var(--greyborders);
     box-shadow: 2px 2px 1px var(--transparentgrey);
     animation-name: slideIn;
     animation-duration: 0.4s
@@ -90,7 +90,7 @@
     */
     padding: 10px 10px 10px 5px;
     overflow-y: auto;
-    background-color: var(--hgscol10);
+    background-color: var(--modalbackground);
 }
 
 
@@ -103,7 +103,7 @@
     margin-top: 20px;
     margin-bottom: 20px;
     font-size: 100%;
-    background-color: var(--hgscol10);
+    background-color: var(--modalbackground);
     /*-webkit-animation-name: slideIn;*/
     /*-webkit-animation-duration: 0.4s;*/
     /*animation-name: slideIn;*/
@@ -123,10 +123,10 @@
     border-radius: 8px 8px 0 0;  /* top-left; top-right; bottom-right; bottom-left */
     box-shadow: 2px 2px 1px var(--transparentgrey);
     overflow-y: clip;
-    background-color: var(--modalbackground);
+    background-color: var(--hgsmono03);
     font-family: 'hipparchiaboldstatic', sans-serif;
     font-size: 100%;
-    color: var(--main-body-color);
+    color: var(--main-font-color);
 }
 
 .rightmodalbuttons{
@@ -134,14 +134,14 @@
     font-weight: bold;
     padding-top: 5px;
     padding-right: 5px;
-    color: var(--main-body-color);
+    color: var(--main-font-color);
 }
 
 .rightmodalclose{
     float: right;
     font-weight: bold;
     padding-right: 10px;
-    color: var(--main-body-color);
+    color: var(--main-font-color);
 }
 
 .rightmodalclose:hover,
@@ -166,8 +166,8 @@
     overflow-y: scroll !important;
     -webkit-animation-name: slideIn;
     -webkit-animation-duration: 0.4s;
-    background-color: var(--hgscol10);
-    border-color: var(--greyborders);;
+    background-color: var(--modalbackground);
+    border-color: var(--greyborders);
     box-shadow: 2px 2px 1px var(--transparentgrey);
     animation-name: slideIn;
     animation-duration: 0.4s
@@ -177,5 +177,5 @@
     /* top | right | bottom | left */
     padding: 10px 10px 10px 5px;
     overflow-y: auto;
-    background-color: var(--hgscol10);
+    background-color: var(--modalbackground);
 }
