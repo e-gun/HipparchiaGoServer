@@ -169,6 +169,27 @@ func CustomCSS(c echo.Context) error {
 	return c.String(http.StatusOK, string(b))
 }
 
+func PrintColorSamples(c echo.Context) error {
+	const (
+		SWAP = `<!-- SWAPMEOUT -->`
+	)
+
+	var knowncolors []string
+	for k, v := range clr.CssSamples {
+		knowncolors = append(knowncolors, "<hr>\n"+k+"<br>\n")
+		knowncolors = append(knowncolors, v)
+	}
+
+	coll := strings.Join(knowncolors, "\n")
+
+	f, e := efs.ReadFile("emb/colorsamples.html")
+	Msg.EC(e)
+
+	colors := strings.Replace(string(f), SWAP, coll, -1)
+
+	return c.HTML(http.StatusOK, colors)
+}
+
 // cssfontfacedirectives - swap the served font file info into the CSS
 func cssfontfacedirectives(f string) string {
 	const (

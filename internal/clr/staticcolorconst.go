@@ -17,6 +17,7 @@ const (
 	--greyborders: hsla(0, 0%, 67%, 1);
 	--boxshadows: hsla(0, 0%, 67%, 1);
 	--modalbackground: hsla(0, 0%, 98%, 1);
+	--modalheader: hsla(0, 0%, 67%, 1);
 	--sidednavcolor: hsla(0, 0%, 90%, 1);
 	--nthrowcol: hsla(0, 0%, 90%, 1);
 
@@ -85,6 +86,7 @@ const (
 	--greyborders: hsla(0, 0%, 53%, 1);
     --boxshadows: hsla(0, 0%, 53%, 1);
 	--modalbackground: hsla(0, 0%, 0%, 1);
+	--modalheader: hsl(206, 7%, 11%);
 	--sidednavcolor: hsla(0, 0%, 20%, 1);
 	--nthrowcol: hsla(0, 0%, 20%, 1);
 

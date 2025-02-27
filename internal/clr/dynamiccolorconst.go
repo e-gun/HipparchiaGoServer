@@ -18,10 +18,11 @@ const (
 	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
 	--modalbackground: {{.colorA5}};
+	--modalheader: {{.colorA4}};
 	--sidednavcolor: {{.colorA4}};
 	--nthrowcol: {{.colorA6}};
 
-	--locuscolor: {{.colorA6}};
+	--locuscolor: {{.colorA1}};
 	--notations: {{.colorA6}};
 	--dottedborders: {{.colorA6}};
 	--bracketcolor1: {{.colorA2}};
@@ -91,10 +92,11 @@ const (
 	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
 	--modalbackground: {{.colorB0}};
+	--modalheader: {{.colorB2}};
 	--sidednavcolor: {{.colorA2}};
 	--nthrowcol: {{.colorC2}};
 
-	--locuscolor: {{.colorA6}};
+	--locuscolor: {{.colorD6}};
 	--notations: {{.colorB6}};
 	--dottedborders: {{.colorA6}};
 	--bracketcolor1: {{.colorA5}};
@@ -154,7 +156,8 @@ const (
 	--invisible: hsla(0, 100%, 0%, 0);
 	--transparentgrey: hsla(0, 0%, 10%, .7);`
 
-	TETRADTMPL = `
+	// SQUARE - A, B, C, D available
+	SQUARE = `
     --main-body-color: {{.colorA0}};
     --main-font-color: {{.colorA6}};
     --input-border-color: {{.colorA2}};
@@ -164,16 +167,17 @@ const (
     
     --fieldset-background: {{.colorA2}};
     --focus-shadow: rgba(0, 0, 0, 0.5);
-    --icons-color: {{.colorC4}};
+    --icons-color: {{.colorB4}};
     
  	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
-	--modalbackground: {{.colorB0}};
-	--sidednavcolor: {{.colorC2}};
-	--nthrowcol: {{.colorB2}};
+	--modalbackground: {{.colorD0}};
+	--modalheader: {{.colorD2}};
+	--sidednavcolor: {{.colorC1}};
+	--nthrowcol: {{.colorD1}};
 
 	--locuscolor: {{.colorD5}};
-	--notations: {{.colorB5}};
+	--notations: {{.colorC5}};
 	--dottedborders: {{.colorA6}};
 	--bracketcolor1: {{.colorA5}};
 	--bracketcolor2: {{.colorB5}};
@@ -225,8 +229,87 @@ const (
 	--hgsmono02: {{.colorA1}};
 	--hgsmono03: {{.colorB4}};
 	--hgsmono04: {{.colorC4}};
-	--hgsmono01: {{.colorB2}};
+	--hgsmono01: {{.colorD2}};
 	--hgsmono07: {{.colorC2}};
+	--hgsmono00: {{.colorA0}};
+
+	--invisible: hsla(0, 100%, 0%, 0);
+	--transparentgrey: hsla(0, 0%, 10%, .7);`
+
+	TETRADTMPL = `
+    --main-body-color: {{.colorA0}};
+    --main-font-color: {{.colorA6}};
+    --input-border-color: {{.colorA2}};
+    
+    --buttoncolor: {{.colorB3}};
+    --button-hover: {{.colorB1}};
+    
+    --fieldset-background: {{.colorA2}};
+    --focus-shadow: rgba(0, 0, 0, 0.5);
+    --icons-color: {{.colorE4}};
+    
+ 	--greyborders: {{.colorA3}};
+	--boxshadows: {{.colorA4}};
+	--modalbackground: {{.colorE0}};
+	--modalheader: {{.colorD2}};
+	--sidednavcolor: {{.colorC2}};
+	--nthrowcol: {{.colorD1}};
+
+	--locuscolor: {{.colorD5}};
+	--notations: {{.colorE5}};
+	--dottedborders: {{.colorA6}};
+	--bracketcolor1: {{.colorA5}};
+	--bracketcolor2: {{.colorB5}};
+	--bracketcolor3: {{.colorC5}};
+	--bracketcolor4: {{.colorD6}};
+	
+	--dictauthwkcolor: {{.colorC5}};
+	--dictbiblcolor: {{.colorB5}};
+	--dictdefaultcolor: {{.colorA6}};
+	--dictlevelscolor: {{.colorB4}};
+	--dictquotecolor: {{.colorA6}};
+	--dicttranslcolor: {{.colorB6}};
+
+	--invisible: hsla(0, 100%, 100%, 0);
+	--transparentgrey: hsla(0, 0%, 67%, .8);
+
+	/* R */
+    --hgscol13: {{.colorC2}};
+    --hgscol04: {{.colorB4}};
+    --hgscol12: {{.colorC0}};
+    --hgscol16: {{.colorB4}}; 
+    --hgscol17: {{.colorD5}}; 
+    --hgscol02: {{.colorC0}};
+    --hgscol14: {{.colorA1}};
+
+	/* G */
+    --hgscol18: {{.colorC0}};
+    --hgscol15: {{.colorC0}};
+    --hgscol20: {{.colorC4}};
+    --hgscol07: {{.colorB6}};
+    --hgscol08: {{.colorB6}};
+    --hgscol21: {{.colorC4}};
+
+	/* B */
+    --hgscol11: {{.colorB2}};
+    --hgscol19: {{.colorB1}};
+    --hgscol03: {{.colorC5}};
+    --hgscol01: {{.colorB4}};
+    --hgscol05: {{.colorC6}}; 
+    --hgscol06: {{.colorB4}};  
+
+    --hgscol09: {{.colorC5}};
+    --hgscol10: {{.colorB0}};
+
+	/* b/w */
+	--hgsmono09: {{.colorA6}};
+	--hgsmono05: {{.colorB5}};
+	--hgsmono08: {{.colorC5}};
+	--hgsmono02: {{.colorA1}};
+	--hgsmono03: {{.colorB4}};
+	--hgsmono04: {{.colorC4}};
+	--hgsmono01: {{.colorD2}};
+	--hgsmono07: {{.colorE2}};
 	--hgsmono00: {{.colorA0}};
 
 	--invisible: hsla(0, 100%, 0%, 0);
@@ -239,8 +322,8 @@ const (
     --main-font-color: {{.colorA6}};
     --input-border-color: {{.colorA2}};
     
-    --buttoncolor: {{.colorA3}};
-    --button-hover: {{.colorA4}};
+    --buttoncolor: {{.colorB2}};
+    --button-hover: {{.colorB3}};
     
     --fieldset-background: {{.colorA2}};
     --focus-shadow: rgba(0, 0, 0, 0.5);
@@ -249,10 +332,11 @@ const (
 	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
 	--modalbackground: {{.colorB0}};
+	--modalheader: {{.colorB2}};
 	--sidednavcolor: {{.colorA2}};
 	--nthrowcol: {{.colorB1}};
 
-	--locuscolor: {{.colorC6}};
+	--locuscolor: {{.colorC5}};
 	--notations: {{.colorB6}};
 	--dottedborders: {{.colorA6}};
 	--bracketcolor1: {{.colorA5}};

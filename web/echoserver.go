@@ -113,9 +113,10 @@ func buildroutes(e *echo.Echo) {
 	e.GET("/browse/undefined", RtEmptyBrowse) // bad user input can generate this
 	e.GET("/browse/", RtGetEmptyGet)          // dictionary can send an empty string instead of a value
 
-	// [c] css ("rt-embedding.go")
+	// [c] css ("rt-embcss.go")
 
 	e.GET("/emb/css/hipparchiastyles.css", RtEmbHCSS)
+	e.GET("/samples", PrintColorSamples)
 
 	// [d] debugging
 

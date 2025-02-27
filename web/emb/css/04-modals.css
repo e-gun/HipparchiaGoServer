@@ -30,7 +30,7 @@
     box-shadow: 2px 2px 1px var(--transparentgrey);
     border-radius: 8px 8px 0 0;  /* top-left; top-right; bottom-right; bottom-left */
     overflow-y: clip;
-    background-color: var(--hgsmono03);
+    background-color: var(--modalheader);
     font-family: 'hipparchiaboldstatic', sans-serif;
     font-size: 100%;
     color: var(--main-font-color);
@@ -119,11 +119,11 @@
     padding-left: 10px;
     border-style: solid;
     border-width: 1px;
-    border-color: var(--greyborders);;
+    border-color: var(--greyborders);
     border-radius: 8px 8px 0 0;  /* top-left; top-right; bottom-right; bottom-left */
     box-shadow: 2px 2px 1px var(--transparentgrey);
     overflow-y: clip;
-    background-color: var(--hgsmono03);
+    background-color: var(--modalheader);
     font-family: 'hipparchiaboldstatic', sans-serif;
     font-size: 100%;
     color: var(--main-font-color);

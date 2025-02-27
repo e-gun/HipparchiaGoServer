@@ -3,8 +3,9 @@ package clr
 import (
 	"bytes"
 	"fmt"
-	"html/template"
 	"slices"
+	"strings"
+	"text/template"
 )
 
 func main() {
@@ -82,9 +83,7 @@ func convertschemname(schemename string) string {
 		name = "mono"
 	case "Dark":
 		name = "mono"
-	case "MonoSand":
-		name = "mono"
-	case "MonoAsh":
+	case "Monochrome":
 		name = "mono"
 	case "Triadic":
 		name = "triad"
@@ -103,6 +102,23 @@ func convertschemname(schemename string) string {
 // generatecolorscheme - the white/black is hslA; black/white is hslB; use scheme 'name'
 func generatecolorscheme(name string, hue int, sat int, lum int, minormaxlum int) string {
 	pan := buildpancolor(name, hue, sat, lum, minormaxlum)
+	subs := preparestringsubs(name, hue, sat, lum, minormaxlum)
+
+	css, e := template.New("mt").Parse(pan.tmpl)
+	if e != nil {
+		panic(e)
+	}
+	var b bytes.Buffer
+	e = css.Execute(&b, subs)
+	if e != nil {
+		panic(e)
+	}
+
+	return b.String()
+}
+
+func preparestringsubs(name string, hue int, sat int, lum int, minormaxlum int) map[string]interface{} {
+	pan := buildpancolor(name, hue, sat, lum, minormaxlum)
 
 	csA := pan.m0.Allstrings() // the base
 	csB := pan.m1.Allstrings() // the maybe present secondary+ colors
@@ -112,6 +128,7 @@ func generatecolorscheme(name string, hue int, sat int, lum int, minormaxlum int
 
 	// not all of these are populated; and not all are useful if they are
 	// the midpoints of csB, etc. are likely to be muddy/hard to see
+
 	subs := map[string]interface{}{
 		"colorA0": csA[0],
 		"colorA1": csA[1],
@@ -149,8 +166,33 @@ func generatecolorscheme(name string, hue int, sat int, lum int, minormaxlum int
 		"colorE5": csE[5],
 		"colorE6": csE[6],
 	}
+	return subs
+}
 
-	css, e := template.New("mt").Parse(pan.tmpl)
+func colorsamplesheet(name string, hslm []int) string {
+	const (
+		TMPL = `
+		<span style="color: {{.color%s%d}}">▣▣▣▣▣&nbsp;&nbsp;color%s%d</span>&nbsp;&nbsp;&nbsp;&nbsp;
+		<span style="background-color: #000; color: {{.color%s%d}}">▣▣▣▣▣&nbsp;&nbsp;color%s%d</span> 
+		&nbsp;&nbsp;&nbsp;&nbsp;{{.color%s%d}}`
+	)
+
+	subs := preparestringsubs(name, hslm[0], hslm[1], hslm[2], hslm[3])
+
+	lett := []string{"A", "B", "C", "D", "E"}
+
+	// sheet := []string{"<br>" + name + "<br>"}
+	sheet := []string{}
+
+	for _, l := range lett {
+		for n := range 7 {
+			sheet = append(sheet, fmt.Sprintf(TMPL, l, n, l, n, l, n, l, n, l, n))
+		}
+	}
+
+	sample := strings.Join(sheet, "<br>")
+
+	css, e := template.New("mt").Parse(sample)
 	if e != nil {
 		panic(e)
 	}
@@ -160,7 +202,16 @@ func generatecolorscheme(name string, hue int, sat int, lum int, minormaxlum int
 		panic(e)
 	}
 
-	return b.String()
+	cs := b.String()
+
+	var filtered []string
+	tofilter := strings.Split(cs, "\n")
+	for flt := range tofilter {
+		if !strings.Contains(tofilter[flt], "hsla(0, 0%, 0%, 1)") {
+			filtered = append(filtered, tofilter[flt])
+		}
+	}
+	return strings.Join(filtered, "\n")
 }
 
 func buildpancolor(name string, hue int, sat int, lum int, minormaxlum int) pancolor {
@@ -187,34 +238,33 @@ func buildpancolor(name string, hue int, sat int, lum int, minormaxlum int) panc
 	case "mono":
 		pan.hues = findmonohues(hue)
 		pan.tmpl = MONO
-	case "triad":
-		pan.hues = findtriad(hue)
+	case "splitcomp":
+		pan.hues = findsplitcomp(hue)
 		hhs := buildhsl(pan)
 		pan.m1 = generatemonostruct(hhs[0], minormaxlum)
 		pan.m2 = generatemonostruct(hhs[1], minormaxlum)
-		pan.tmpl = TRIADIC
-	case "tetrad":
-		pan.hues = findtetradic(hue)
-		hhs := buildhsl(pan)
-		pan.m1 = generatemonostruct(hhs[0], minormaxlum)
-		pan.m2 = generatemonostruct(hhs[1], minormaxlum)
-		pan.m3 = generatemonostruct(hhs[2], minormaxlum)
-		pan.tmpl = TETRADTMPL
+		pan.tmpl = SPLITCOMP
 	case "square":
 		pan.hues = findsquare(hue)
 		hhs := buildhsl(pan)
 		pan.m1 = generatemonostruct(hhs[0], minormaxlum)
 		pan.m2 = generatemonostruct(hhs[1], minormaxlum)
 		pan.m3 = generatemonostruct(hhs[2], minormaxlum)
-		pan.tmpl = TETRADTMPL
-	case "splitcomp":
-		pan.hues = findsplitcomp(hue)
+		pan.tmpl = SQUARE
+	case "tetrad":
+		pan.hues = findtetradic(hue)
 		hhs := buildhsl(pan)
 		pan.m1 = generatemonostruct(hhs[0], minormaxlum)
 		pan.m2 = generatemonostruct(hhs[1], minormaxlum)
 		pan.m3 = generatemonostruct(hhs[2], minormaxlum)
 		pan.m4 = generatemonostruct(hhs[3], minormaxlum)
-		pan.tmpl = SPLITCOMP
+		pan.tmpl = TETRADTMPL
+	case "triad":
+		pan.hues = findtriad(hue)
+		hhs := buildhsl(pan)
+		pan.m1 = generatemonostruct(hhs[0], minormaxlum)
+		pan.m2 = generatemonostruct(hhs[1], minormaxlum)
+		pan.tmpl = TRIADIC
 	default:
 		pan.hues = findmonohues(hue)
 		pan.tmpl = MONO
@@ -251,7 +301,7 @@ func findsquare(hue int) hueholder {
 func findtetradic(hue int) hueholder {
 	// 5 hues; three cluster on one side of circle; two on other
 	var rt hueholder
-	rt.Hue2 = hue
+	rt.Hue0 = hue
 	rt.Hue2 = rotate(hue, -30)
 	rt.Hue1 = rotate(hue, 30)
 	rt.Hue3 = rotate(hue, -150)
@@ -323,11 +373,11 @@ func generatemonostruct(h hsl, lim int) monochrome {
 func rotate(hue int, degr int) int {
 	newhue := hue + degr
 	if newhue > 360 {
-		newhue = newhue - 360
+		return newhue - 360
 	}
 
 	if newhue < 0 {
-		newhue = 360 - newhue
+		return 360 + newhue
 	}
 
 	return newhue
@@ -343,27 +393,6 @@ type pancolor struct {
 	m3    monochrome
 	m4    monochrome
 	tmpl  string
-}
-
-type pentad struct {
-	ColorT1 string
-	ColorT2 string
-	ColorT3 string
-	ColorT4 string
-	Sat     int
-	Lum     int
-	Hues    hueholder
-}
-
-func (t *pentad) ToString(h int) string {
-	return fmt.Sprintf("hsla(%d, %d%%, %d%%, 1)", h, t.Sat, t.Lum)
-}
-
-func (t *pentad) FleshOut() {
-	t.ColorT1 = t.ToString(t.Hues.Hue0)
-	t.ColorT2 = t.ToString(t.Hues.Hue1)
-	t.ColorT3 = t.ToString(t.Hues.Hue2)
-	t.ColorT4 = t.ToString(t.Hues.Hue3)
 }
 
 type hueholder struct {

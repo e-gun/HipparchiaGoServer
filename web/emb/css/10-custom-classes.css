@@ -391,6 +391,7 @@
 .sought {
     color: var(--hgscol05);
     font-family: 'hipparchiamonostatic', monospace;
+    font-weight: bold;
 }
 
 .speakers, .speaker {
