@@ -246,7 +246,7 @@ const (
     
     --fieldset-background: {{.colorA2}};
     --focus-shadow: rgba(0, 0, 0, 0.5);
-    --icons-color: {{.colorE4}};
+    --icons-color: {{.colorE5}};
     
  	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
@@ -333,8 +333,8 @@ const (
 	--boxshadows: {{.colorA4}};
 	--modalbackground: {{.colorB0}};
 	--modalheader: {{.colorB2}};
-	--sidednavcolor: {{.colorA2}};
-	--nthrowcol: {{.colorB1}};
+	--sidednavcolor: {{.colorA0}};
+	--nthrowcol: {{.colorA2}};
 
 	--locuscolor: {{.colorC5}};
 	--notations: {{.colorB6}};

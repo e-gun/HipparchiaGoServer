@@ -3,6 +3,7 @@ package clr
 import (
 	"bytes"
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 	"text/template"
@@ -14,26 +15,26 @@ func main() {
 	s := 12
 	lum := 10
 	minmax := 85
-	fmt.Println(GenerateMonoScheme([]int{h, s, lum, minmax}))
+	fmt.Println(generatemonoscheme([]int{h, s, lum, minmax}))
 }
 
-func GenerateMonoScheme(hslm []int) string {
+func generatemonoscheme(hslm []int) string {
 	return generatecolorscheme("mono", hslm[0], hslm[1], hslm[2], hslm[3])
 }
 
-func GenerateTriadScheme(hslm []int) string {
+func generatetriatscheme(hslm []int) string {
 	return generatecolorscheme("triad", hslm[0], hslm[1], hslm[2], hslm[3])
 }
 
-func GenerateTetradScheme(hslm []int) string {
+func generatetetradscheme(hslm []int) string {
 	return generatecolorscheme("tetrad", hslm[0], hslm[1], hslm[2], hslm[3])
 }
 
-func GenerateSplitcompScheme(hslm []int) string {
+func generatesplitcompscheme(hslm []int) string {
 	return generatecolorscheme("splitcomp", hslm[0], hslm[1], hslm[2], hslm[3])
 }
 
-func GenerateSquareScheme(hslm []int) string {
+func generatesquarescheme(hslm []int) string {
 	return generatecolorscheme("square", hslm[0], hslm[1], hslm[2], hslm[3])
 }
 
@@ -169,51 +170,6 @@ func preparestringsubs(name string, hue int, sat int, lum int, minormaxlum int) 
 	return subs
 }
 
-func colorsamplesheet(name string, hslm []int) string {
-	const (
-		TMPL = `
-		<span style="color: {{.color%s%d}}">▣▣▣▣▣&nbsp;&nbsp;color%s%d</span>&nbsp;&nbsp;&nbsp;&nbsp;
-		<span style="background-color: #000; color: {{.color%s%d}}">▣▣▣▣▣&nbsp;&nbsp;color%s%d</span> 
-		&nbsp;&nbsp;&nbsp;&nbsp;{{.color%s%d}}`
-	)
-
-	subs := preparestringsubs(name, hslm[0], hslm[1], hslm[2], hslm[3])
-
-	lett := []string{"A", "B", "C", "D", "E"}
-
-	// sheet := []string{"<br>" + name + "<br>"}
-	sheet := []string{}
-
-	for _, l := range lett {
-		for n := range 7 {
-			sheet = append(sheet, fmt.Sprintf(TMPL, l, n, l, n, l, n, l, n, l, n))
-		}
-	}
-
-	sample := strings.Join(sheet, "<br>")
-
-	css, e := template.New("mt").Parse(sample)
-	if e != nil {
-		panic(e)
-	}
-	var b bytes.Buffer
-	e = css.Execute(&b, subs)
-	if e != nil {
-		panic(e)
-	}
-
-	cs := b.String()
-
-	var filtered []string
-	tofilter := strings.Split(cs, "\n")
-	for flt := range tofilter {
-		if !strings.Contains(tofilter[flt], "hsla(0, 0%, 0%, 1)") {
-			filtered = append(filtered, tofilter[flt])
-		}
-	}
-	return strings.Join(filtered, "\n")
-}
-
 func buildpancolor(name string, hue int, sat int, lum int, minormaxlum int) pancolor {
 	c := hsl{
 		Hue: hue,
@@ -272,6 +228,109 @@ func buildpancolor(name string, hue int, sat int, lum int, minormaxlum int) panc
 
 	return pan
 }
+
+func colorsamplesheet(schemename string, hslm []int) string {
+	return colornamesamplesheet(schemename, hslm) + "<br>" + colorcsssamplesheet(schemename, hslm)
+}
+
+func colornamesamplesheet(schemename string, hslm []int) string {
+	const (
+		TMPL = `
+		<span style="background-color: {{.colorA0}}; color: {{.color%s%d}}">▣▣▣▣▣&nbsp;&nbsp;color%s%d</span>&nbsp;&nbsp;&nbsp;&nbsp;
+		<span style="background-color: {{.colorA6}};; color: {{.color%s%d}}">&nbsp▣▣▣▣▣&nbsp;&nbsp;color%s%d&nbsp</span> 
+		&nbsp;&nbsp;&nbsp;&nbsp;{{.color%s%d}}`
+	)
+
+	name := convertschemname(schemename)
+
+	subs := preparestringsubs(name, hslm[0], hslm[1], hslm[2], hslm[3])
+
+	lett := []string{"A", "B", "C", "D", "E"}
+
+	// sheet := []string{"<br>" + name + "<br>"}
+	sheet := []string{}
+
+	for _, l := range lett {
+		for n := range 7 {
+			sheet = append(sheet, fmt.Sprintf(TMPL, l, n, l, n, l, n, l, n, l, n))
+		}
+	}
+
+	sample := strings.Join(sheet, "<br>")
+
+	css, e := template.New("mt").Parse(sample)
+	if e != nil {
+		panic(e)
+	}
+	var b bytes.Buffer
+	e = css.Execute(&b, subs)
+	if e != nil {
+		panic(e)
+	}
+
+	cs := b.String()
+
+	var filtered []string
+	tofilter := strings.Split(cs, "\n")
+	for flt := range tofilter {
+		if !strings.Contains(tofilter[flt], "hsla(0, 0%, 0%, 1)") {
+			filtered = append(filtered, tofilter[flt])
+		}
+	}
+	return strings.Join(filtered, "\n")
+}
+
+func colorcsssamplesheet(schemename string, hslm []int) string {
+
+	// in:
+	// --hgscol11: {{.colorC2}};
+
+	// out:
+	// <span style="background-color: {{.colorA0}}; color: {{.colorC2}}">--hgscol11</span> C2
+
+	const (
+		TMPLLT = `$2$3 <span style="background-color: {{.colorA6}}; color: {{.color$2$3}}">--$1</span> `
+		TMPLDK = `$2$3 <span style="background-color: {{.colorA0}}; color: {{.color$2$3}}">--$1</span> `
+	)
+
+	finder := regexp.MustCompile("--(.*?): ...color(.)(.)}};")
+
+	name := convertschemname(schemename)
+	pan := buildpancolor(name, hslm[0], hslm[1], hslm[2], hslm[3])
+	csslist := strings.Split(pan.tmpl, "\n")
+
+	subs := preparestringsubs(name, hslm[0], hslm[1], hslm[2], hslm[3])
+
+	var accumulate []string
+	for _, cs := range csslist {
+		if strings.Contains(cs, "{{.color") {
+			accumulate = append(accumulate, finder.ReplaceAllString(cs, TMPLLT))
+		}
+	}
+	for _, cs := range csslist {
+		if strings.Contains(cs, "{{.color") {
+			accumulate = append(accumulate, finder.ReplaceAllString(cs, TMPLDK))
+		}
+	}
+
+	sample := strings.Join(accumulate, "<br>")
+
+	css, e := template.New("mt").Parse(sample)
+	if e != nil {
+		panic(e)
+	}
+	var b bytes.Buffer
+	e = css.Execute(&b, subs)
+	if e != nil {
+		panic(e)
+	}
+	cs := b.String()
+	return cs
+}
+
+//
+// UTILS
+//
 
 // findmonohues - blank, but for parity
 func findmonohues(hue int) hueholder {

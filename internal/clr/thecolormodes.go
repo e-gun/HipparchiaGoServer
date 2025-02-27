@@ -10,24 +10,24 @@ var (
 		// "MonoSand":  {60, 15, 8, 85},
 		"Monochrome": {220, 15, 100, 0},
 		"Splitcomp":  {200, 12, 85, 10},
-		"Square":     {45, 20, 25, 85},
+		"Square":     {90, 25, 85, 25},
 		"Tetradic":   {20, 17, 88, 22},
-		"Triadic":    {240, 12, 20, 90},
+		"Triadic":    {230, 15, 20, 90},
 	}
 	CssColorModes = map[string]string{
 		"Light":      LIGHTCOLORSORIGINAL,
 		"Dark":       DARKCOLORSMANUAL,
-		"Monochrome": GenerateMonoScheme(CssColorHSLs["Monochrome"]),
-		"Splitcomp":  GenerateSplitcompScheme(CssColorHSLs["Splitcomp"]),
-		"Square":     GenerateSquareScheme(CssColorHSLs["Square"]),
-		"Tetradic":   GenerateTetradScheme(CssColorHSLs["Tetradic"]),
-		"Triadic":    GenerateTriadScheme(CssColorHSLs["Triadic"]),
+		"Monochrome": generatemonoscheme(CssColorHSLs["Monochrome"]),
+		"Splitcomp":  generatesplitcompscheme(CssColorHSLs["Splitcomp"]),
+		"Square":     generatesquarescheme(CssColorHSLs["Square"]),
+		"Tetradic":   generatetetradscheme(CssColorHSLs["Tetradic"]),
+		"Triadic":    generatetriatscheme(CssColorHSLs["Triadic"]),
 	}
 	CssSamples = map[string]string{
-		"Monochrome": colorsamplesheet("mono", CssColorHSLs["Monochrome"]),
-		"Splitcomp":  colorsamplesheet("splitcomp", CssColorHSLs["Splitcomp"]),
-		"Square":     colorsamplesheet("square", CssColorHSLs["Square"]),
-		"Tetradic":   colorsamplesheet("tetrad", CssColorHSLs["Tetradic"]),
-		"Triadic":    colorsamplesheet("triad", CssColorHSLs["Triadic"]),
+		"Monochrome": colorsamplesheet("Monochrome", CssColorHSLs["Monochrome"]),
+		"Splitcomp":  colorsamplesheet("Splitcomp", CssColorHSLs["Splitcomp"]),
+		"Square":     colorsamplesheet("Square", CssColorHSLs["Square"]),
+		"Tetradic":   colorsamplesheet("Tetradic", CssColorHSLs["Tetradic"]),
+		"Triadic":    colorsamplesheet("Triadic", CssColorHSLs["Triadic"]),
 	}
 )
