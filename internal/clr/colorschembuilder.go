@@ -236,8 +236,8 @@ func colorsamplesheet(schemename string, hslm []int) string {
 func colornamesamplesheet(schemename string, hslm []int) string {
 	const (
 		TMPL = `
-		<span style="background-color: {{.colorA0}}; color: {{.color%s%d}}">▣▣▣▣▣&nbsp;&nbsp;color%s%d</span>&nbsp;&nbsp;&nbsp;&nbsp;
-		<span style="background-color: {{.colorA6}};; color: {{.color%s%d}}">&nbsp▣▣▣▣▣&nbsp;&nbsp;color%s%d&nbsp</span> 
+		%s%d <span style="background-color: {{.colorA0}}; color: {{.color%s%d}}">&nbsp;&nbsp;▣▣▣▣▣&nbsp;&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;
+		<span style="background-color: {{.colorA6}}; color: {{.color%s%d}}">&nbsp;&nbsp;▣▣▣▣▣&nbsp;&nbsp;</span> 
 		&nbsp;&nbsp;&nbsp;&nbsp;{{.color%s%d}}`
 	)
 
@@ -252,7 +252,7 @@ func colornamesamplesheet(schemename string, hslm []int) string {
 
 	for _, l := range lett {
 		for n := range 7 {
-			sheet = append(sheet, fmt.Sprintf(TMPL, l, n, l, n, l, n, l, n, l, n))
+			sheet = append(sheet, fmt.Sprintf(TMPL, l, n, l, n, l, n, l, n))
 		}
 	}
 

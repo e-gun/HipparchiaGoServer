@@ -108,7 +108,7 @@
 
 /* Links inside the dropdown */
 .dropdown-content a {
-    color: var(--hgsmono00);
+    color: var(--main-font-color);
     text-decoration: none;
     display: block;
 }

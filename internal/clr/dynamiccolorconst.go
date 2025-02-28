@@ -51,7 +51,7 @@ const (
 	--hgscol08: {{.colorA0}};
 	--hgscol09: {{.colorA6}};
 	--hgscol10: {{.colorA4}};
-	--hgscol11: {{.colorA4}};
+	--hgscol11: {{.colorA3}};
 	--hgscol12: {{.colorA3}};
 	--hgscol13: {{.colorA3}};
 	--hgscol14: {{.colorA5}};
@@ -322,8 +322,8 @@ const (
     --main-font-color: {{.colorA6}};
     --input-border-color: {{.colorA2}};
     
-    --buttoncolor: {{.colorB2}};
-    --button-hover: {{.colorB3}};
+    --buttoncolor: {{.colorB1}};
+    --button-hover: {{.colorB0}};
     
     --fieldset-background: {{.colorA2}};
     --focus-shadow: rgba(0, 0, 0, 0.5);
@@ -332,11 +332,11 @@ const (
 	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
 	--modalbackground: {{.colorB0}};
-	--modalheader: {{.colorB2}};
+	--modalheader: {{.colorB3}};
 	--sidednavcolor: {{.colorA0}};
 	--nthrowcol: {{.colorA2}};
 
-	--locuscolor: {{.colorC5}};
+	--locuscolor: {{.colorC4}};
 	--notations: {{.colorB6}};
 	--dottedborders: {{.colorA6}};
 	--bracketcolor1: {{.colorA5}};
