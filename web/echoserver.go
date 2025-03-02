@@ -116,7 +116,7 @@ func buildroutes(e *echo.Echo) {
 	// [c] css ("rt-embcss.go")
 
 	e.GET("/emb/css/hipparchiastyles.css", RtEmbHCSS)
-	e.GET("/samples", PrintColorSamples)
+	e.GET("/cs", PrintColorSamples)
 
 	// [d] debugging
 

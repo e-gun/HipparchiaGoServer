@@ -54,7 +54,7 @@
 .leftmodalclose:hover,
 .leftmodalclose:focus {
     color: var(--hgsmono04);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
     text-decoration: none;
     cursor: pointer;
 }
@@ -147,7 +147,7 @@
 .rightmodalclose:hover,
 .rightmodalclose:focus {
     color: var(--hgsmono04);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
     text-decoration: none;
     cursor: pointer;
 }

@@ -9,7 +9,7 @@ a.lex:hover, a.nounderline:hover {
     border-bottom: 1px dotted var(--dottedborders);
     border-top: 1px dotted var(--dottedborders);
     color: var(--hgscol06);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 button {
@@ -26,14 +26,14 @@ button {
 }
 
 button:hover {
-    color: var(--hgscol03);
+    color: var(--main-body-color);
     text-shadow: 1px 1px 3px var(--transparentgrey);
     background: var(--button-hover);
 }
 
 code {
     font-size: 100%;
-    color: var(--skyblue);
+    color: var(--hgscol19);
     font-family: 'hipparchiamonostatic', monospace;
 }
 
@@ -86,7 +86,7 @@ p.lineoftext {
 
 pre {
     font-family: 'hipparchiamonostatic', monospace;
-    color: var(--skyblue);
+    color: var(--hgscol19);
 }
 
 ul {

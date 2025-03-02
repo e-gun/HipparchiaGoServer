@@ -73,11 +73,11 @@
 .material-icons.md-mid { color: var(--icons-color); }
 .material-icons.md-mid:hover{
     color: var(--hgscol03);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 .material-icons.md-mid.ui { font-size: 80%; }
 .material-icons.md-mid.ui:hover{
     color: var(--hgscol03);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }

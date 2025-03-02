@@ -53,6 +53,8 @@ func RtLexLookup(c echo.Context) error {
 	seeking := gen.Purgechars(lnch.Config.BadChars, req)
 	seeking = gen.SwapAcuteForGrave(seeking)
 
+	originalseeking := seeking
+
 	dict := "latin"
 	if vv.IsGreek.MatchString(seeking) {
 		dict = "greek"
@@ -83,7 +85,7 @@ func RtLexLookup(c echo.Context) error {
 	var jb jsb
 	jb.HTML = html
 	jb.JS = insertlexicaljs()
-	jb.ST = seeking
+	jb.ST = originalseeking
 
 	return jsonresponse(c, jb)
 }
@@ -219,6 +221,7 @@ func RtLexReverse(c echo.Context) error {
 	var jb jsb
 	jb.HTML = html
 	jb.JS = insertlexicaljs()
+	jb.ST = word
 
 	return jsonresponse(c, jb)
 }

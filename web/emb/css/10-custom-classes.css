@@ -1,7 +1,7 @@
 /* 10 custom spans and classes */
 
 .activeoption {
-    color: var(--hgscol08);
+    color: var(--main-font-color);
 }
 
 .assigneddate {
@@ -24,7 +24,7 @@
 }
 
 .blue{
-    color: var(--skyblue);
+    color: var(--hgscol19);
 }
 
 .bold {
@@ -56,7 +56,7 @@
 }
 
 .coptic {
-    color: var(--skyblue);
+    color: var(--hgscol19);
 }
 
 .counter {
@@ -154,7 +154,7 @@
 }
 
 .focusline {
-    text-shadow: 1px 1px 4px var(--focus-shadow);
+    text-shadow: 1px 1px 4px var(--textshadowcolor);
 }
 
 .foundauthor {
@@ -169,7 +169,7 @@
     border-bottom: 1px dotted var(--dottedborders);
     border-top: 1px dotted var(--dottedborders);
     color: var(--hgscol06);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 .foundtext {
@@ -184,7 +184,7 @@
 }
 
 .highlight {
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 .homonym {
@@ -255,7 +255,7 @@
     color: var(--hgscol16);
     font-weight: normal;
     border: 1px dotted var(--dottedborders);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 .observed {
@@ -355,7 +355,7 @@
 
 .searchsel:hover {
     /* inactive color: #993354;
-    text-shadow: 1px 1px var(--boxshadow);
+    text-shadow: 1px 1px var(--textshadowcolor);
     */
 }
 
@@ -365,7 +365,7 @@
 
 .selection:hover{
     color: var(--hgscol03);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 .small {

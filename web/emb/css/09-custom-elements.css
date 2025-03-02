@@ -22,7 +22,7 @@ dictionaryentry:hover{
     border-top: 1px dotted var(--dottedborders);
     color: var(--hgscol06);
     font-family: 'hipparchiasemiboldstatic', sans-serif;
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 dictionaryidsearch {
@@ -33,7 +33,7 @@ dictionaryidsearch:hover{
     border-bottom: 1px dotted var(--dottedborders);
     border-top: 1px dotted var(--dottedborders);
     color: var(--hgscol06);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 formsummary{
@@ -47,7 +47,7 @@ formsummary:hover{
     border-top: 1px dotted var(--dottedborders);
     color: var(--hgscol06);
     font-family: 'hipparchiasemiboldstatic', sans-serif;
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 indexedlocation{
@@ -58,14 +58,14 @@ indexedlocation:hover{
     border-bottom: 1px dotted var(--dottedborders);
     border-top: 1px dotted var(--dottedborders);
     color: var(--hgscol06);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 indexobserved:hover{
     border-bottom: 1px dotted var(--dottedborders);
     border-top: 1px dotted var(--dottedborders);
     color: var(--hgscol06);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 latinfont {
@@ -84,7 +84,7 @@ lemmatizable:hover{
     border-bottom: 1px dotted var(--dottedborders);
     border-top: 1px dotted var(--dottedborders);
     color: var(--hgscol06);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 locus {
@@ -97,7 +97,7 @@ observed:hover{
     border-bottom: 1px dotted var(--dottedborders);
     border-top: 1px dotted var(--dottedborders);
     color: var(--hgscol06);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 sense {
@@ -107,7 +107,7 @@ sense {
 
 smallcode {
     font-size: 85%;
-    color: var(--skyblue);
+    color: var(--hgscol19);
     font-family: 'hipparchiamonostatic', monospace;
 }
 
@@ -132,12 +132,12 @@ verbform:hover{
     border-bottom: 1px dotted var(--dottedborders);
     border-top: 1px dotted var(--dottedborders);
     color: var(--hgscol06);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 vocabobserved:hover{
     border-bottom: 1px dotted var(--dottedborders);
     border-top: 1px dotted var(--dottedborders);
     color: var(--hgscol06);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }

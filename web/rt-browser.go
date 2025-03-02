@@ -366,13 +366,20 @@ func buildbrowsertable(focus int, lines []str.DbWorkline, zaplunates bool) strin
 	const (
 		OBSREGTEMPL = "(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)" + vv.TERMINATIONS
 		UIDDIV      = `<div id="browsertableuid" uid="%s"></div>`
-		TRTMPL      = `
+		TRTMPLNOTES = `
             <tr class="browser">
                 <td class="browserembeddedannotations">%s</td>
                 <td class="browsedline">%s</td>
                 <td class="browsercite">%s</td>
             </tr>
 		`
+		TRTMPL = `
+            <tr class="browser">
+                <td class="browsedlinewithoutnotes">%s</td>
+                <td class="browsercite">%s</td>
+            </tr>
+		`
+
 		FOCA = `<span class="focusline">`
 		FOCB = `</span>`
 		SNIP = "✃✃✃"
@@ -384,8 +391,20 @@ func buildbrowsertable(focus int, lines []str.DbWorkline, zaplunates bool) strin
 	lines = reannotatelines(lines, longnotes)
 
 	block := make([]string, len(lines))
+	longestline := 0
+	longestnote := 0
+
 	for i, l := range lines {
 		block[i] = l.GetMarked()
+
+		chars := len([]rune(l.Stripped)) + len(l.Annotations) + len(l.Citation())
+		if chars > longestline {
+			longestline = chars
+		}
+
+		if len(l.Annotations) > longestnote {
+			longestnote = len(l.Annotations)
+		}
 	}
 
 	whole := strings.Join(block, SNIP)
@@ -503,13 +522,17 @@ func buildbrowsertable(focus int, lines []str.DbWorkline, zaplunates bool) strin
 	cc := strings.Join(bcites, "<br>\n")
 	nn := strings.Join(bnotes, "<br>\n")
 
-	tab := fmt.Sprintf(TRTMPL, nn, ll, cc)
+	var tab string
+	if longestnote == 0 {
+		tab = fmt.Sprintf(TRTMPL, ll, cc)
+	} else {
+		tab = fmt.Sprintf(TRTMPLNOTES, nn, ll, cc)
+	}
 
 	// that was the body, now do the head and tail
 	top := fmt.Sprintf(UIDDIV, lines[0].AuID())
 	top += `<table><tbody>`
-	// top += `<tr class="spacing">` + strings.Repeat("&nbsp;", MINBROWSERWIDTH) + `</tr>`
-
+	top += stabilizebrowserwidth(longestnote)
 	tab = top + tab + `</tbody></table>`
 
 	if zaplunates {
@@ -519,6 +542,29 @@ func buildbrowsertable(focus int, lines []str.DbWorkline, zaplunates bool) strin
 	}
 
 	return tab
+}
+
+// stabilizebrowserwidth - cut down on the bounce between widths in the browser
+func stabilizebrowserwidth(longestline int) string {
+	const (
+		MINBROWSERWIDTH    = 130
+		NOTESANDLOCUSFUDGE = 60 // because the table cells have pixel padding
+		NOTESANDLOCUSPAD   = 15
+	)
+
+	//if 1 > 0 {
+	//	return ""
+	//}
+
+	maxlen := longestline + NOTESANDLOCUSFUDGE
+
+	var row string
+	if maxlen < MINBROWSERWIDTH {
+		row = `<tr class="spacing">` + strings.Repeat("·", MINBROWSERWIDTH) + `</tr>`
+	} else {
+		row = `<tr class="spacing">` + strings.Repeat("·", maxlen+NOTESANDLOCUSPAD) + `</tr>`
+	}
+	return row
 }
 
 // selectivelydisplaycitations - only show line numbers every N lines, etc.

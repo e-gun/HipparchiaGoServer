@@ -156,7 +156,7 @@
     color: var(--hgscol17);
     font-family: 'hipparchiasemiboldstatic', sans-serif;
     font-size: 120%;
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 .dictrewritten_phrase {
@@ -213,7 +213,7 @@ bibl {
 bibl:hover{
     border-bottom: 1px dotted var(--dottedborders);
     border-top: 1px dotted var(--dottedborders);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 p.level1 {

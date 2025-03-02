@@ -90,7 +90,7 @@ func convertschemname(schemename string) string {
 		name = "triad"
 	case "Tetradic":
 		name = "tetrad"
-	case "Splitcomp":
+	case "SplitComp":
 		name = "splitcomp"
 	case "Square":
 		name = "square"
@@ -121,6 +121,8 @@ func generatecolorscheme(name string, hue int, sat int, lum int, minormaxlum int
 func preparestringsubs(name string, hue int, sat int, lum int, minormaxlum int) map[string]interface{} {
 	pan := buildpancolor(name, hue, sat, lum, minormaxlum)
 
+	transp := gettextshadowcolor(name, lum, minormaxlum, pan)
+
 	csA := pan.m0.Allstrings() // the base
 	csB := pan.m1.Allstrings() // the maybe present secondary+ colors
 	csC := pan.m2.Allstrings()
@@ -131,43 +133,80 @@ func preparestringsubs(name string, hue int, sat int, lum int, minormaxlum int) 
 	// the midpoints of csB, etc. are likely to be muddy/hard to see
 
 	subs := map[string]interface{}{
-		"colorA0": csA[0],
-		"colorA1": csA[1],
-		"colorA2": csA[2],
-		"colorA3": csA[3],
-		"colorA4": csA[4],
-		"colorA5": csA[5],
-		"colorA6": csA[6],
-		"colorB0": csB[0],
-		"colorB1": csB[1],
-		"colorB2": csB[2],
-		"colorB3": csB[3],
-		"colorB4": csB[4],
-		"colorB5": csB[5],
-		"colorB6": csB[6],
-		"colorC0": csC[0],
-		"colorC1": csC[1],
-		"colorC2": csC[2],
-		"colorC3": csC[3],
-		"colorC4": csC[4],
-		"colorC5": csC[5],
-		"colorC6": csC[6],
-		"colorD0": csD[0],
-		"colorD1": csD[1],
-		"colorD2": csD[2],
-		"colorD3": csD[3],
-		"colorD4": csD[4],
-		"colorD5": csD[5],
-		"colorD6": csD[6],
-		"colorE0": csE[0],
-		"colorE1": csE[1],
-		"colorE2": csE[2],
-		"colorE3": csE[3],
-		"colorE4": csE[4],
-		"colorE5": csE[5],
-		"colorE6": csE[6],
+		"colorA0":         csA[0],
+		"colorA1":         csA[1],
+		"colorA2":         csA[2],
+		"colorA3":         csA[3],
+		"colorA4":         csA[4],
+		"colorA5":         csA[5],
+		"colorA6":         csA[6],
+		"colorB0":         csB[0],
+		"colorB1":         csB[1],
+		"colorB2":         csB[2],
+		"colorB3":         csB[3],
+		"colorB4":         csB[4],
+		"colorB5":         csB[5],
+		"colorB6":         csB[6],
+		"colorC0":         csC[0],
+		"colorC1":         csC[1],
+		"colorC2":         csC[2],
+		"colorC3":         csC[3],
+		"colorC4":         csC[4],
+		"colorC5":         csC[5],
+		"colorC6":         csC[6],
+		"colorD0":         csD[0],
+		"colorD1":         csD[1],
+		"colorD2":         csD[2],
+		"colorD3":         csD[3],
+		"colorD4":         csD[4],
+		"colorD5":         csD[5],
+		"colorD6":         csD[6],
+		"colorE0":         csE[0],
+		"colorE1":         csE[1],
+		"colorE2":         csE[2],
+		"colorE3":         csE[3],
+		"colorE4":         csE[4],
+		"colorE5":         csE[5],
+		"colorE6":         csE[6],
+		"textshadowColor": transp,
 	}
 	return subs
+}
+
+func gettextshadowcolor(name string, lum int, minormaxlum int, pan pancolor) string {
+	// bleh: kludge and brittle
+	transp := fmt.Sprintf("hsla(%d, %d%%, 80%%, .80)", pan.m0.Hue, pan.m0.Sat)
+
+	a0fontona6background := map[string]bool{
+		"mono":      false,
+		"splitcomp": true,
+		"square":    true,
+		"tetrad":    true,
+		"triad":     true,
+	}
+
+	minormaxismin := true
+	if minormaxlum > lum {
+		minormaxismin = false
+	}
+
+	flip := false
+	if a0fontona6background[name] {
+		if !minormaxismin {
+			flip = true
+		}
+	} else if !a0fontona6background[name] {
+		if minormaxismin {
+			flip = true
+		}
+	}
+
+	if flip {
+		fmt.Println(name, "flip", flip)
+		transp = fmt.Sprintf("hsla(%d, %d%%, 20%%, .66)", pan.m0.Hue, pan.m0.Sat)
+	}
+
+	return transp
 }
 
 func buildpancolor(name string, hue int, sat int, lum int, minormaxlum int) pancolor {
@@ -234,9 +273,10 @@ func colorsamplesheet(schemename string, hslm []int) string {
 }
 
 func colornamesamplesheet(schemename string, hslm []int) string {
+	// A0 A0   ▣▣▣▣▣    A0 A6     ▣▣▣▣▣       hsla(20, 17%, 22%, 1)
 	const (
 		TMPL = `
-		%s%d <span style="background-color: {{.colorA0}}; color: {{.color%s%d}}">&nbsp;&nbsp;▣▣▣▣▣&nbsp;&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;
+		%s%d A0 <span style="background-color: {{.colorA0}}; color: {{.color%s%d}}">&nbsp;&nbsp;▣▣▣▣▣&nbsp;&nbsp;</span>&nbsp;&nbsp;%s%d A6&nbsp;&nbsp;
 		<span style="background-color: {{.colorA6}}; color: {{.color%s%d}}">&nbsp;&nbsp;▣▣▣▣▣&nbsp;&nbsp;</span> 
 		&nbsp;&nbsp;&nbsp;&nbsp;{{.color%s%d}}`
 	)
@@ -247,12 +287,11 @@ func colornamesamplesheet(schemename string, hslm []int) string {
 
 	lett := []string{"A", "B", "C", "D", "E"}
 
-	// sheet := []string{"<br>" + name + "<br>"}
 	sheet := []string{}
 
 	for _, l := range lett {
 		for n := range 7 {
-			sheet = append(sheet, fmt.Sprintf(TMPL, l, n, l, n, l, n, l, n))
+			sheet = append(sheet, fmt.Sprintf(TMPL, l, n, l, n, l, n, l, n, l, n))
 		}
 	}
 
@@ -281,16 +320,12 @@ func colornamesamplesheet(schemename string, hslm []int) string {
 }
 
 func colorcsssamplesheet(schemename string, hslm []int) string {
-
-	// in:
-	// --hgscol11: {{.colorC2}};
-
-	// out:
-	// <span style="background-color: {{.colorA0}}; color: {{.colorC2}}">--hgscol11</span> C2
+	// colorized version of:
+	// A0 A6   --main-body-color
 
 	const (
-		TMPLLT = `$2$3 <span style="background-color: {{.colorA6}}; color: {{.color$2$3}}">--$1</span> `
-		TMPLDK = `$2$3 <span style="background-color: {{.colorA0}}; color: {{.color$2$3}}">--$1</span> `
+		TMPLLT = `$2$3 A6 <span style="background-color: {{.colorA6}}; color: {{.color$2$3}}">&nbsp;&nbsp;--$1&nbsp;&nbsp;</span> `
+		TMPLDK = `$2$3 A0 <span style="background-color: {{.colorA0}}; color: {{.color$2$3}}">&nbsp;&nbsp;--$1&nbsp;&nbsp;</span> `
 	)
 
 	finder := regexp.MustCompile("--(.*?): ...color(.)(.)}};")

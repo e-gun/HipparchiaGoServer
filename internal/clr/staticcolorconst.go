@@ -36,7 +36,8 @@ const (
 	--dictquotecolor: hsla(0, 0%, 0%, 1);
 	
 	--invisible: hsla(0, 100%, 100%, 0);
-	--transparentgrey: hsla(0, 0%, 67%, .8);
+	--transparentgrey: hsla(0, 0%, 33%, .9);
+	--textshadowcolor: hsla(0, 0%, 33%, .9);
 	
 	--hgsmono00: hsla(0, 0%, 0%, 1);
 	--hgsmono01: hsla(0, 0%, 33%, 1);
@@ -105,6 +106,10 @@ const (
 	--dictquotecolor: hsla(0, 0%, 82%, 1);
 	--dicttranslcolor: hsla(0, 0%, 80%, 1);
 
+	--invisible: hsla(0, 100%, 0%, 0);
+	--transparentgrey: hsla(0, 0%, 90%, .7);
+	--textshadowcolor: hsla(0, 0%, 90%, .7);
+
 	--hgsmono00: hsla(0, 0%, 95%, 1);
 	--hgscol01: hsl(167, 35%, 77%);  /* pea green... */
 	--hgscol02: hsla(22, 22%, 74%, 1);
@@ -116,7 +121,6 @@ const (
 	--hgsmono01: hsla(0, 0%, 82%, 1);
 	--hgscol08: hsla(203, 22%, 82%, 1);
 	--hgscol09: hsl(113, 35%, 85%);
-	--invisible: hsla(0, 100%, 0%, 0);
 	--hgscol10: hsla(0, 0%, 2%, 1);
 	--hgscol11: hsla(200, 33%, 15%, 1);
 	--hgsmono02: hsla(0, 0%, 20%, 1);
@@ -133,7 +137,6 @@ const (
 	--hgscol18: hsl(45, 16%, 67%);
 	--hgscol19: hsla(205, 92%, 73%, 1);
 	--hgscol20: hsla(196, 14%, 71%, 1);
-	--transparentgrey: hsla(0, 0%, 90%, .7);
 	--hgscol21: hsla(196, 27%, 80%, 1);
 	--hgsmono07: hsla(0, 0%, 80%, 1);
 	--hgsmono08: hsla(0, 0%, 4%, 1);

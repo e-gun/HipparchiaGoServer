@@ -17,7 +17,7 @@ vectorheadword:hover{
     border-bottom: 1px dotted var(--dottedborders);
     border-top: 1px dotted var(--dottedborders);
     color: var(--hgscol06);
-    text-shadow: 1px 1px 3px var(--transparentgrey);
+    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 /* for vector graphs */

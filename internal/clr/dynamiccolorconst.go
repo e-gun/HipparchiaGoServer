@@ -9,10 +9,10 @@ const (
 	--input-border-color: {{.colorA4}};
 	
 	--buttoncolor: {{.colorA4}};
-	--button-hover: {{.colorA2}};
+	--button-hover: {{.colorA3}};
 	
 	--fieldset-background: {{.colorA4}};
-	--focus-shadow: rgba(0, 0, 0, 0.5);
+	--focus-shadow: rgba(0, 0, 0, 0.7);
 	--icons-color: {{.colorA1}};
 	
 	--greyborders: {{.colorA3}};
@@ -38,9 +38,10 @@ const (
 	--dicttranslcolor: {{.colorA0}};
 
 	--invisible: hsla(0, 100%, 100%, 0);
-	--transparentgrey: hsla(0, 0%, 67%, .8);
+	--transparentgrey: hsla(0, 0%, 50%, .5);
+	--textshadowcolor: {{.textshadowColor}};
 	
-	--hgscol01: {{.colorA6}};
+	--hgscol01: {{.colorA3}};
 	--hgscol02: {{.colorA6}};
 	--hgscol03: {{.colorA1}};
 	--hgscol04: {{.colorA0}};
@@ -49,11 +50,11 @@ const (
 	--hgscol07: {{.colorA0}};
 	--hgscol07: {{.colorA5}};
 	--hgscol08: {{.colorA0}};
-	--hgscol09: {{.colorA6}};
+	--hgscol09: {{.colorA3}};
 	--hgscol10: {{.colorA4}};
-	--hgscol11: {{.colorA3}};
+	--hgscol11: {{.colorA5}};
 	--hgscol12: {{.colorA3}};
-	--hgscol13: {{.colorA3}};
+	--hgscol13: {{.colorA4}};
 	--hgscol14: {{.colorA5}};
 	--hgscol15: {{.colorA5}};
 	--hgscol16: {{.colorA2}};
@@ -72,9 +73,7 @@ const (
 	--hgsmono01: {{.colorA0}};
 	--hgsmono07: {{.colorA6}};
 	--hgsmono00: {{.colorA6}};
-	
-	--invisible: hsla(0, 100%, 0%, 0);
-	--transparentgrey: hsla(0, 0%, 10%, .7);`
+`
 
 	// SPLITCOMP - only A, B, C available; the geometry is *very* similar to triadic...
 	SPLITCOMP = `
@@ -87,7 +86,7 @@ const (
     
     --fieldset-background: {{.colorA2}};
     --focus-shadow: rgba(0, 0, 0, 0.5);
-    --icons-color: {{.colorA4}};
+    --icons-color: {{.colorC4}};
 
 	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
@@ -96,7 +95,7 @@ const (
 	--sidednavcolor: {{.colorA2}};
 	--nthrowcol: {{.colorC2}};
 
-	--locuscolor: {{.colorD6}};
+	--locuscolor: {{.colorC6}};
 	--notations: {{.colorB6}};
 	--dottedborders: {{.colorA6}};
 	--bracketcolor1: {{.colorA5}};
@@ -112,7 +111,8 @@ const (
 	--dicttranslcolor: {{.colorB6}};
 
 	--invisible: hsla(0, 100%, 100%, 0);
-	--transparentgrey: hsla(0, 0%, 67%, .8);
+	--transparentgrey: hsla(0, 0%, 50%, .5);
+	--textshadowcolor: {{.textshadowColor}};
 
 	/* R */
     --hgscol13: {{.colorB1}};
@@ -139,7 +139,7 @@ const (
     --hgscol05: {{.colorC5}}; 
     --hgscol06: {{.colorC6}};  
 
-    --hgscol09: {{.colorA6}};
+    --hgscol09: {{.colorC3}};
     --hgscol10: {{.colorA0}};
 
 	/* b/w */
@@ -152,9 +152,7 @@ const (
 	--hgsmono01: {{.colorA5}};
 	--hgsmono07: {{.colorB5}};
 	--hgsmono00: {{.colorC6}};
-
-	--invisible: hsla(0, 100%, 0%, 0);
-	--transparentgrey: hsla(0, 0%, 10%, .7);`
+`
 
 	// SQUARE - A, B, C, D available
 	SQUARE = `
@@ -162,8 +160,8 @@ const (
     --main-font-color: {{.colorA6}};
     --input-border-color: {{.colorA2}};
     
-    --buttoncolor: {{.colorB3}};
-    --button-hover: {{.colorB1}};
+    --buttoncolor: {{.colorB2}};
+    --button-hover: {{.colorB4}};
     
     --fieldset-background: {{.colorA2}};
     --focus-shadow: rgba(0, 0, 0, 0.5);
@@ -192,7 +190,8 @@ const (
 	--dicttranslcolor: {{.colorB6}};
 
 	--invisible: hsla(0, 100%, 100%, 0);
-	--transparentgrey: hsla(0, 0%, 67%, .8);
+	--transparentgrey: hsla(0, 0%, 50%, .5);
+	--textshadowcolor: {{.textshadowColor}};
 
 	/* R */
     --hgscol13: {{.colorC2}};
@@ -219,7 +218,7 @@ const (
     --hgscol05: {{.colorC6}}; 
     --hgscol06: {{.colorB4}};  
 
-    --hgscol09: {{.colorC5}};
+    --hgscol09: {{.colorC3}};
     --hgscol10: {{.colorB0}};
 
 	/* b/w */
@@ -232,17 +231,15 @@ const (
 	--hgsmono01: {{.colorD2}};
 	--hgsmono07: {{.colorC2}};
 	--hgsmono00: {{.colorA0}};
-
-	--invisible: hsla(0, 100%, 0%, 0);
-	--transparentgrey: hsla(0, 0%, 10%, .7);`
+`
 
 	TETRADTMPL = `
     --main-body-color: {{.colorA0}};
     --main-font-color: {{.colorA6}};
     --input-border-color: {{.colorA2}};
     
-    --buttoncolor: {{.colorB3}};
-    --button-hover: {{.colorB1}};
+    --buttoncolor: {{.colorB2}};
+    --button-hover: {{.colorB3}};
     
     --fieldset-background: {{.colorA2}};
     --focus-shadow: rgba(0, 0, 0, 0.5);
@@ -271,7 +268,8 @@ const (
 	--dicttranslcolor: {{.colorB6}};
 
 	--invisible: hsla(0, 100%, 100%, 0);
-	--transparentgrey: hsla(0, 0%, 67%, .8);
+	--transparentgrey: hsla(0, 0%, 50%, .5);
+	--textshadowcolor: {{.textshadowColor}};
 
 	/* R */
     --hgscol13: {{.colorC2}};
@@ -298,7 +296,7 @@ const (
     --hgscol05: {{.colorC6}}; 
     --hgscol06: {{.colorB4}};  
 
-    --hgscol09: {{.colorC5}};
+    --hgscol09: {{.colorC3}};
     --hgscol10: {{.colorB0}};
 
 	/* b/w */
@@ -311,9 +309,7 @@ const (
 	--hgsmono01: {{.colorD2}};
 	--hgsmono07: {{.colorE2}};
 	--hgsmono00: {{.colorA0}};
-
-	--invisible: hsla(0, 100%, 0%, 0);
-	--transparentgrey: hsla(0, 0%, 10%, .7);`
+`
 
 	// TRIADIC - only A, B, C available; the geometry is *very* similar to splitcomp...
 	TRIADIC = `
@@ -322,8 +318,8 @@ const (
     --main-font-color: {{.colorA6}};
     --input-border-color: {{.colorA2}};
     
-    --buttoncolor: {{.colorB1}};
-    --button-hover: {{.colorB0}};
+    --buttoncolor: {{.colorB2}};
+    --button-hover: {{.colorB5}};
     
     --fieldset-background: {{.colorA2}};
     --focus-shadow: rgba(0, 0, 0, 0.5);
@@ -352,7 +348,8 @@ const (
 	--dicttranslcolor: {{.colorB6}};
 
 	--invisible: hsla(0, 100%, 100%, 0);
-	--transparentgrey: hsla(0, 0%, 67%, .8);
+	--transparentgrey: hsla(0, 0%, 50%, .5);
+	--textshadowcolor: {{.textshadowColor}};
 
 	/* R */
     --hgscol13: {{.colorB1}};
@@ -379,7 +376,7 @@ const (
     --hgscol05: {{.colorC5}}; 
     --hgscol06: {{.colorC6}};  
 
-    --hgscol09: {{.colorA6}};
+    --hgscol09: {{.colorB3}};
     --hgscol10: {{.colorA0}};
 
 	/* b/w */
@@ -392,7 +389,5 @@ const (
 	--hgsmono01: {{.colorA4}};
 	--hgsmono07: {{.colorB5}};
 	--hgsmono00: {{.colorC6}};
-
-	--invisible: hsla(0, 100%, 0%, 0);
-	--transparentgrey: hsla(0, 0%, 10%, .7);`
+`
 )
