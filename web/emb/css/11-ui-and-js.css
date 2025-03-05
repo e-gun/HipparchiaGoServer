@@ -41,16 +41,24 @@
 
 /* for styling jquery 'select' menus:  https://stackoverflow.com/questions/41570175/how-set-individual-styles-css-for-option-in-selectmenu-jquery-ui-selectmenu */
 
-.ui-menu, .ui-menu-item {
+.ui-menu {
     font-family: 'hipparchiasemicondensedstatic', sans-serif;
     font-size: 80%;
     background-color: var(--main-body-color);
     color: var(--main-font-color);
 }
 
+.ui-menu-item {
+    font-family: 'hipparchiasemicondensedstatic', sans-serif;
+    font-size: 80%;
+    background-color: var(--dropdown-backgrounds);
+    color: var(--main-font-color);
+}
+
 .ui-autocomplete, .ui-autocomplete-input, .ui-autocomplete-loading {
     font-family: 'hipparchiasemicondensedstatic', sans-serif;
     font-size: 80%;
+    border: solid var(--main-font-color);
 }
 
 .ui-spinner-input[type="text"] {
@@ -100,7 +108,7 @@
     padding: 10px;
     margin: 3px;
     border: 1px;
-    background-color: var(--hgscol11);
+    background-color: var(--dropdown-backgrounds);
     min-width: 160px;
     box-shadow:1px 1px 3px var(--transparentgrey);
     z-index: 1;

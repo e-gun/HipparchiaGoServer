@@ -173,10 +173,15 @@ func preparestringsubs(name string, hue int, sat int, lum int, minormaxlum int) 
 	return subs
 }
 
+// gettextshadowcolor - this depends on whether we have a dark font on a light background or not
 func gettextshadowcolor(name string, lum int, minormaxlum int, pan pancolor) string {
-	// bleh: kludge and brittle
+	// bleh: the whole thing is a kludge and brittle...
+
+	// assume light text on a dark background and so a "bright" text shadow
 	transp := fmt.Sprintf("hsla(%d, %d%%, 80%%, .80)", pan.m0.Hue, pan.m0.Sat)
 
+	// usually a0/a1 is the main font color and a5/a6 is the background...
+	// but this is not true for "mono"
 	a0fontona6background := map[string]bool{
 		"mono":      false,
 		"splitcomp": true,
@@ -185,24 +190,27 @@ func gettextshadowcolor(name string, lum int, minormaxlum int, pan pancolor) str
 		"triad":     true,
 	}
 
+	// is lum the high or the low in the set of lums?
+	// if so, then a0 is a small (i.e dark) value and a6 is a high (i.e. light) value
 	minormaxismin := true
 	if minormaxlum > lum {
 		minormaxismin = false
 	}
 
-	flip := false
+	// now do we want that bright text shadow or not?
+	fliptodarkshadow := false
 	if a0fontona6background[name] {
 		if !minormaxismin {
-			flip = true
+			fliptodarkshadow = true
 		}
 	} else if !a0fontona6background[name] {
+		// yes, the logic could be collapsed; but this is more readable
 		if minormaxismin {
-			flip = true
+			fliptodarkshadow = true
 		}
 	}
 
-	if flip {
-		fmt.Println(name, "flip", flip)
+	if fliptodarkshadow {
 		transp = fmt.Sprintf("hsla(%d, %d%%, 20%%, .66)", pan.m0.Hue, pan.m0.Sat)
 	}
 

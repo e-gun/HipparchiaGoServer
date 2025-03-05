@@ -17,6 +17,7 @@ const (
 	
 	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
+	--dropdown-backgrounds: {{.colorA5}};
 	--modalbackground: {{.colorA5}};
 	--modalheader: {{.colorA4}};
 	--sidednavcolor: {{.colorA4}};
@@ -90,6 +91,7 @@ const (
 
 	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
+	--dropdown-backgrounds: {{.colorA0}};
 	--modalbackground: {{.colorB0}};
 	--modalheader: {{.colorB2}};
 	--sidednavcolor: {{.colorA2}};
@@ -169,6 +171,7 @@ const (
     
  	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
+	--dropdown-backgrounds: {{.colorA1}};
 	--modalbackground: {{.colorD0}};
 	--modalheader: {{.colorD2}};
 	--sidednavcolor: {{.colorC1}};
@@ -248,6 +251,7 @@ const (
  	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
 	--modalbackground: {{.colorE0}};
+	--dropdown-backgrounds: {{.colorA1}};
 	--modalheader: {{.colorD2}};
 	--sidednavcolor: {{.colorC2}};
 	--nthrowcol: {{.colorD1}};
@@ -327,6 +331,7 @@ const (
 
 	--greyborders: {{.colorA3}};
 	--boxshadows: {{.colorA4}};
+	--dropdown-backgrounds: {{.colorC1}};
 	--modalbackground: {{.colorB0}};
 	--modalheader: {{.colorB3}};
 	--sidednavcolor: {{.colorA0}};
@@ -352,7 +357,7 @@ const (
 	--textshadowcolor: {{.textshadowColor}};
 
 	/* R */
-    --hgscol13: {{.colorB1}};
+    --hgscol13: {{.colorB2}};
     --hgscol04: {{.colorB4}};
     --hgscol12: {{.colorB4}};
     --hgscol16: {{.colorB5}}; 
@@ -369,7 +374,7 @@ const (
     --hgscol21: {{.colorB5}};
 
 	/* B */
-    --hgscol11: {{.colorC1}};
+    --hgscol11: {{.colorC2}};
     --hgscol19: {{.colorC4}};
     --hgscol03: {{.colorC6}};
     --hgscol01: {{.colorC4}};

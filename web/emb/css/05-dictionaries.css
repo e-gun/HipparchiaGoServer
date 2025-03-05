@@ -156,11 +156,27 @@
     color: var(--hgscol17);
     font-family: 'hipparchiasemiboldstatic', sans-serif;
     font-size: 120%;
-    text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
 
 .dictrewritten_phrase {
     color: var(--hgscol14);
+}
+
+.entryvowelquantities{
+    color: var(--main-font-color);
+    /*  font-family: 'hipparchiamonostatic', monospace;
+    font-size: 100%;
+    -family: 'hipparchiasemicondensedstatic', sans-serif;
+    padding-left: 5px;
+    */
+    font-size: 80%;
+    font-family: 'Iosevka', sans-serif;
+    font-weight: normal;
+    font-style: normal;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'liga';
 }
 
 .levellabel1 {
@@ -193,14 +209,6 @@
 .lexiconhighlight {
     color: var(--hgscol16);
     font-family: 'hipparchiaboldstatic', sans-serif;
-}
-
-.metrics{
-    color: var(--main-font-color);
-    /* font-family: 'hipparchiamonostatic', monospace; */
-    font-size: 90%;
-    font-family: 'hipparchiaobliquestatic', sans-serif;
-    padding-left: 10px;
 }
 
 /* <bibl id="perseus/lt0893/004/1:3:90"><span class="dictauthor">Horace</span> S. 1, 3, 90</bibl> */

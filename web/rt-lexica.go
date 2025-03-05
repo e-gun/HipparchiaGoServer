@@ -171,7 +171,7 @@ func RtLexId(c echo.Context) error {
 	js := insertlexicaljs()
 
 	if s.ZapLunates {
-		w = gen.DeLunate(w)
+		html = gen.DeLunate(html)
 	}
 
 	var jb jsb
@@ -217,6 +217,11 @@ func RtLexReverse(c echo.Context) error {
 	}
 
 	html := reversefind(word, dd)
+
+	if s.ZapLunates {
+		html = gen.DeLunate(html)
+		word = gen.DeLunate(word)
+	}
 
 	var jb jsb
 	jb.HTML = html
@@ -659,7 +664,7 @@ func formatparsingdata(mpp []str.MorphPossib) string {
 func formatlexicaloutput(w str.DbLexicon) string {
 	const (
 		HEADTEMPL = `<div id="%s_%f"><hr>
-		<p class="dictionaryheading" id="%s_%.1f">%s &nbsp;<span class="metrics">%s</span></p>
+		<p class="dictionaryheading" id="%s_%.1f">%s &nbsp;%s</p>
 	`
 		FORMSUMM = `<formsummary parserxref="%d" lexicalid="%.1f" headword="%s" lang="%s">%d known forms</formsummary>`
 
@@ -689,7 +694,12 @@ func formatlexicaloutput(w str.DbLexicon) string {
 
 	var met string
 	if w.Metrical != "" {
-		met = fmt.Sprintf("[%s]", quantityfixer.Replace(w.Metrical))
+		met = fmt.Sprintf("%s", quantityfixer.Replace(w.Metrical))
+		met = fmt.Sprintf("\n<span class=\"entryvowelquantities\">⸤%s⸥</span>", met)
+		// but do not show if there are no long/short marks
+		if !strings.ContainsAny(met, "̄̆̄ᾰᾱῐῑῠῡ") {
+			met = ""
+		}
 	}
 
 	elem = append(elem, fmt.Sprintf(HEADTEMPL, w.Word, w.ID, w.Word, w.ID, w.Word, met))
