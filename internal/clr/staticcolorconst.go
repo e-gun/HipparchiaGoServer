@@ -9,7 +9,7 @@ const (
 	--input-border-color: hsla(0, 0%, 92%, 1);
 	
 	--buttoncolor: hsla(0, 0%, 93%, 1);
-	--button-hover: hsla(0, 0%, 90%, 1);
+	--button-hover: hsla(0, 0%, 40%, 1);
 	--fieldset-background: hsla(0, 0%, 98%, 1);
 	--focus-shadow: rgba(0, 0, 0, 0.5);
 	--icons-color: rgba(0, 0, 0, 0.54);
@@ -21,7 +21,8 @@ const (
 	--modalheader: hsla(0, 0%, 67%, 1);
 	--sidednavcolor: hsla(0, 0%, 90%, 1);
 	--nthrowcol: hsla(0, 0%, 90%, 1);
-	--buttonandcheckboxborder: hsla(0, 0%, 60%, 1);
+	--buttonandcheckboxborder: hsla(0, 0%, 40%, 1);
+	--buttonandcheckboxcontents: hsla(0, 0%, 55%, 1);
 
 	--locuscolor: hsl(240, 10%, 61%);
 	--notations: hsla(196, 14%, 39%, 1);
@@ -93,7 +94,8 @@ const (
 	--modalheader: hsl(206, 7%, 11%);
 	--sidednavcolor: hsla(0, 0%, 20%, 1);
 	--nthrowcol: hsla(0, 0%, 20%, 1);
-	--buttonandcheckboxborder: hsla(0, 0%, 50%, 1);
+	--buttonandcheckboxborder: hsla(0, 0%, 40%, 1);
+	--buttonandcheckboxcontents: hsla(0, 0%, 55%, 1);
 
 	--locuscolor: hsl(113, 35%, 85%);
 	--notations: hsla(196, 14%, 71%, 1);

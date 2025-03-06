@@ -22,11 +22,12 @@ const (
 	--modalheader: {{.colorA4}};
 	--sidednavcolor: {{.colorA4}};
 	--nthrowcol: {{.colorA6}};
-	--buttonandcheckboxborder: {{.colorA2}};
+	--buttonandcheckboxborder: {{.colorA1}};
+	--buttonandcheckboxcontents: {{.colorA2}};
 
 	--locuscolor: {{.colorA1}};
 	--notations: {{.colorA6}};
-	--dottedborders: {{.colorA6}};
+	--dottedborders: {{.colorA1}};
 	--bracketcolor1: {{.colorA2}};
 	--bracketcolor2: {{.colorA2}};
 	--bracketcolor3: {{.colorA2}};
@@ -97,7 +98,8 @@ const (
 	--modalheader: {{.colorB2}};
 	--sidednavcolor: {{.colorA2}};
 	--nthrowcol: {{.colorC2}};
-	--buttonandcheckboxborder: {{.colorB4}};
+	--buttonandcheckboxborder: {{.colorA5}};
+	--buttonandcheckboxcontents: {{.colorA4}};
 
 	--locuscolor: {{.colorC6}};
 	--notations: {{.colorB6}};
@@ -178,7 +180,8 @@ const (
 	--modalheader: {{.colorD2}};
 	--sidednavcolor: {{.colorC1}};
 	--nthrowcol: {{.colorD1}};
-	--buttonandcheckboxborder: {{.colorD4}};
+	--buttonandcheckboxborder: {{.colorC5}};
+	--buttonandcheckboxcontents: {{.colorC4}};
 
 	--locuscolor: {{.colorD5}};
 	--notations: {{.colorC5}};
@@ -258,7 +261,8 @@ const (
 	--modalheader: {{.colorD2}};
 	--sidednavcolor: {{.colorC2}};
 	--nthrowcol: {{.colorD1}};
-	--buttonandcheckboxborder: {{.colorC4}};
+	--buttonandcheckboxborder: {{.colorC5}};
+	--buttonandcheckboxcontents: {{.colorC4}};
 
 	--locuscolor: {{.colorD5}};
 	--notations: {{.colorE5}};
@@ -341,6 +345,7 @@ const (
 	--sidednavcolor: {{.colorA0}};
 	--nthrowcol: {{.colorA2}};
 	--buttonandcheckboxborder: {{.colorA4}};
+	--buttonandcheckboxcontents: {{.colorA3}};
 
 	--locuscolor: {{.colorC4}};
 	--notations: {{.colorB6}};
@@ -362,7 +367,7 @@ const (
 	--textshadowcolor: {{.textshadowColor}};
 
 	/* R */
-    --hgscol13: {{.colorB2}};
+    --hgscol13: {{.colorB1}};
     --hgscol04: {{.colorB4}};
     --hgscol12: {{.colorB4}};
     --hgscol16: {{.colorB5}}; 
@@ -379,7 +384,7 @@ const (
     --hgscol21: {{.colorB5}};
 
 	/* B */
-    --hgscol11: {{.colorC2}};
+    --hgscol11: {{.colorC1}};
     --hgscol19: {{.colorC4}};
     --hgscol03: {{.colorC6}};
     --hgscol01: {{.colorC4}};

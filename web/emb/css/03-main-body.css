@@ -17,8 +17,12 @@ body {
     font-feature-settings: 'liga';
 }
 
+.choice {
+    font-size: 80%;
+}
+
 .optionlabel {
-    border-top: 1px dotted var(--hgsmono01);
+    border-top: 1px dotted var(--dottedborders);
     font-size: 70%;
     font-family: 'hipparchiasemiboldstatic', sans-serif;
     padding-left: 5px;
@@ -226,7 +230,7 @@ body {
     padding-bottom: 20px;
     padding-left: 20px;
     padding-right: 20px;
-    background-color: var(--hgsmono05);
+    background-color: var(--dropdown-backgrounds);
     border: 1px dotted var(--dottedborders);
     width: 50%;
     margin: auto;

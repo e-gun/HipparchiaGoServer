@@ -496,3 +496,14 @@ righttmodalheader.ondblclick = function() {
         rmb.classList.add("hide");
     }
 }
+
+//
+// make spinners all the same width as the pulldowns
+// pulldown is 120; spinner has arrow icons on side that add width
+//
+
+$("#hitlimitspinner").width(116);
+$("#linesofcontextspinner").width(116);
+$("#browserspinner").width(116);
+$("#neighborcount").width(116);
+$("#ldatopiccount").width(116);

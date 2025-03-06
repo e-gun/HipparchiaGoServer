@@ -70,7 +70,8 @@ func RtEmbHCSS(c echo.Context) error {
 			"08-hmu-spans.css",
 			"09-custom-elements.css",
 			"10-custom-classes.css",
-			"11-ui-and-js.css",
+			"11-input.css",
+			"12-jqueryui-and-js.css",
 		}
 	)
 
@@ -101,12 +102,6 @@ func RtEmbHCSS(c echo.Context) error {
 		}
 		aggregatecss += string(cs)
 	}
-
-	//j, e := efs.ReadFile(ECSS)
-	//if e != nil {
-	//	Msg.WARN(fmt.Sprintf("RtEmbHCSS() can't find %s", ECSS))
-	//	return c.String(http.StatusNotFound, "")
-	//}
 
 	subs := map[string]interface{}{
 		"fontname":     fsub,
