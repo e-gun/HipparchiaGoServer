@@ -22,6 +22,7 @@ const (
 	--modalheader: {{.colorA4}};
 	--sidednavcolor: {{.colorA4}};
 	--nthrowcol: {{.colorA6}};
+	--buttonandcheckboxborder: {{.colorA2}};
 
 	--locuscolor: {{.colorA1}};
 	--notations: {{.colorA6}};
@@ -62,7 +63,7 @@ const (
 	--hgscol17: {{.colorA0}};
 	--hgscol18: {{.colorA3}};
 	--hgscol19: {{.colorA5}};
-	--hgscol20: {{.colorA3}};
+	--hgscol20: {{.colorA2}};
 	--hgscol21: {{.colorA1}};
 	
 	--hgsmono09: {{.colorA0}};
@@ -96,6 +97,7 @@ const (
 	--modalheader: {{.colorB2}};
 	--sidednavcolor: {{.colorA2}};
 	--nthrowcol: {{.colorC2}};
+	--buttonandcheckboxborder: {{.colorB4}};
 
 	--locuscolor: {{.colorC6}};
 	--notations: {{.colorB6}};
@@ -176,6 +178,7 @@ const (
 	--modalheader: {{.colorD2}};
 	--sidednavcolor: {{.colorC1}};
 	--nthrowcol: {{.colorD1}};
+	--buttonandcheckboxborder: {{.colorD4}};
 
 	--locuscolor: {{.colorD5}};
 	--notations: {{.colorC5}};
@@ -255,6 +258,7 @@ const (
 	--modalheader: {{.colorD2}};
 	--sidednavcolor: {{.colorC2}};
 	--nthrowcol: {{.colorD1}};
+	--buttonandcheckboxborder: {{.colorC4}};
 
 	--locuscolor: {{.colorD5}};
 	--notations: {{.colorE5}};
@@ -336,6 +340,7 @@ const (
 	--modalheader: {{.colorB3}};
 	--sidednavcolor: {{.colorA0}};
 	--nthrowcol: {{.colorA2}};
+	--buttonandcheckboxborder: {{.colorA4}};
 
 	--locuscolor: {{.colorC4}};
 	--notations: {{.colorB6}};

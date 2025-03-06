@@ -21,6 +21,7 @@ const (
 	--modalheader: hsla(0, 0%, 67%, 1);
 	--sidednavcolor: hsla(0, 0%, 90%, 1);
 	--nthrowcol: hsla(0, 0%, 90%, 1);
+	--buttonandcheckboxborder: hsla(0, 0%, 60%, 1);
 
 	--locuscolor: hsl(240, 10%, 61%);
 	--notations: hsla(196, 14%, 39%, 1);
@@ -92,6 +93,7 @@ const (
 	--modalheader: hsl(206, 7%, 11%);
 	--sidednavcolor: hsla(0, 0%, 20%, 1);
 	--nthrowcol: hsla(0, 0%, 20%, 1);
+	--buttonandcheckboxborder: hsla(0, 0%, 50%, 1);
 
 	--locuscolor: hsl(113, 35%, 85%);
 	--notations: hsla(196, 14%, 71%, 1);
