@@ -191,8 +191,14 @@ func ConfigAtLaunch() {
 			Config.BrowserCtx = bc
 		case "-bw":
 			Config.BlackAndWhite = true
+		case "-cd":
+			// redefine a color scheme
+			// "-rs 220 15 95 0 Monochrome"
+			modifycolorscheme(args[i+1], args[i+2], args[i+3], args[i+4], args[i+5])
 		case "-cm":
 			Config.CssColors = args[i+1]
+		case "-cr":
+			reportcolorschemes()
 		case "-cs":
 			Config.CustomCSS = true
 		case "-db":
@@ -525,5 +531,51 @@ func copyinstructions() {
 			return
 		}
 		Msg.CRIT(fmt.Sprintf("\t\tWrote:\t'%s'", info))
+	}
+}
+
+func modifycolorscheme(hs string, ss string, ls string, lhls string, cs string) {
+	const (
+		ERR1 = `'%s' is not a valid color scheme.`
+		ERR2 = `Known schemes are: %s.`
+		ERR3 = `The scheme name needs to be followed by four integers: hue, sat, lum, high/low lum.`
+	)
+
+	if _, ok := clr.CssColorHSLs[cs]; !ok {
+		Msg.MAND(fmt.Sprintf(ERR1, cs))
+		kcc := gen.StringMapKeysIntoSlice(clr.CssColorModes)
+		sort.Strings(kcc)
+		Msg.MAND(fmt.Sprintf(ERR2, strings.Join(kcc, ",")))
+		return
+	}
+	h, err1 := strconv.Atoi(hs)
+	s, err2 := strconv.Atoi(ss)
+	l, err3 := strconv.Atoi(ls)
+	lh, err4 := strconv.Atoi(lhls)
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
+		Msg.MAND(ERR3)
+		fmt.Println(err1)
+		fmt.Println(err2)
+		fmt.Println(err3)
+		fmt.Println(err4)
+		return
+	}
+	clr.CssColorHSLs[cs] = []int{h, s, l, lh}
+}
+
+func reportcolorschemes() {
+	const (
+		HEAD = "\thue\tsat\tlum1\tlum2"
+		TMPL = "\t%d\t%d\t%d\t%d\t%s"
+	)
+	fmt.Println("Built-in color scheme values (redefine via '-cd' flag)")
+	fmt.Println(HEAD)
+
+	kcc := gen.StringMapKeysIntoSlice(clr.CssColorHSLs)
+	sort.Strings(kcc)
+
+	for _, n := range kcc {
+		cv := clr.CssColorHSLs[n]
+		fmt.Println(fmt.Sprintf(TMPL, cv[0], cv[1], cv[2], cv[3], n))
 	}
 }

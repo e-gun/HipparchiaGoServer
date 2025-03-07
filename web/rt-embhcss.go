@@ -53,7 +53,6 @@ var (
 // RtEmbHCSS - send "hipparchiastyles.css" after building it as per the configured font settings
 func RtEmbHCSS(c echo.Context) error {
 	const (
-		ECSS    = "emb/css/hgs.css-1.4.0-pre"
 		ECSSDIR = "emb/css/"
 	)
 

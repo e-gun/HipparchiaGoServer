@@ -63,7 +63,7 @@ const (
 	--hgscol16: {{.colorA2}};
 	--hgscol17: {{.colorA0}};
 	--hgscol18: {{.colorA3}};
-	--hgscol19: {{.colorA5}};
+	--hgscol19: {{.colorA0}};
 	--hgscol20: {{.colorA2}};
 	--hgscol21: {{.colorA1}};
 	
@@ -101,7 +101,7 @@ const (
 	--buttonandcheckboxborder: {{.colorA5}};
 	--buttonandcheckboxcontents: {{.colorA4}};
 
-	--locuscolor: {{.colorC6}};
+	--locuscolor: {{.colorB5}};
 	--notations: {{.colorB6}};
 	--dottedborders: {{.colorA6}};
 	--bracketcolor1: {{.colorA5}};
@@ -139,7 +139,7 @@ const (
 
 	/* B */
     --hgscol11: {{.colorC2}};
-    --hgscol19: {{.colorC4}};
+    --hgscol19: {{.colorC5}};
     --hgscol03: {{.colorC5}};
     --hgscol01: {{.colorC4}};
     --hgscol05: {{.colorC5}}; 
@@ -178,7 +178,7 @@ const (
 	--dropdown-backgrounds: {{.colorA1}};
 	--modalbackground: {{.colorD0}};
 	--modalheader: {{.colorD2}};
-	--sidednavcolor: {{.colorC1}};
+	--sidednavcolor: {{.colorC0}};
 	--nthrowcol: {{.colorD1}};
 	--buttonandcheckboxborder: {{.colorC5}};
 	--buttonandcheckboxcontents: {{.colorC4}};
@@ -221,7 +221,7 @@ const (
 
 	/* B */
     --hgscol11: {{.colorB2}};
-    --hgscol19: {{.colorB1}};
+    --hgscol19: {{.colorB5}};
     --hgscol03: {{.colorC5}};
     --hgscol01: {{.colorB4}};
     --hgscol05: {{.colorC6}}; 
@@ -247,22 +247,22 @@ const (
     --main-font-color: {{.colorA6}};
     --input-border-color: {{.colorA2}};
     
-    --buttoncolor: {{.colorB2}};
-    --button-hover: {{.colorB3}};
+    --buttoncolor: {{.colorB1}};
+    --button-hover: {{.colorB4}};
     
     --fieldset-background: {{.colorA2}};
     --focus-shadow: rgba(0, 0, 0, 0.5);
     --icons-color: {{.colorE5}};
     
- 	--greyborders: {{.colorA3}};
+ 	--greyborders: {{.colorA2}};
 	--boxshadows: {{.colorA4}};
 	--modalbackground: {{.colorE0}};
 	--dropdown-backgrounds: {{.colorA1}};
 	--modalheader: {{.colorD2}};
-	--sidednavcolor: {{.colorC2}};
+	--sidednavcolor: {{.colorE0}};
 	--nthrowcol: {{.colorD1}};
-	--buttonandcheckboxborder: {{.colorC5}};
-	--buttonandcheckboxcontents: {{.colorC4}};
+	--buttonandcheckboxborder: {{.colorB2}};
+	--buttonandcheckboxcontents: {{.colorB3}};
 
 	--locuscolor: {{.colorD5}};
 	--notations: {{.colorE5}};
@@ -302,7 +302,7 @@ const (
 
 	/* B */
     --hgscol11: {{.colorB2}};
-    --hgscol19: {{.colorB1}};
+    --hgscol19: {{.colorB5}};
     --hgscol03: {{.colorC5}};
     --hgscol01: {{.colorB4}};
     --hgscol05: {{.colorC6}}; 
@@ -385,7 +385,7 @@ const (
 
 	/* B */
     --hgscol11: {{.colorC1}};
-    --hgscol19: {{.colorC4}};
+    --hgscol19: {{.colorC5}};
     --hgscol03: {{.colorC6}};
     --hgscol01: {{.colorC4}};
     --hgscol05: {{.colorC5}}; 

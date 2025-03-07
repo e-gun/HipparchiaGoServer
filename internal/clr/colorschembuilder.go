@@ -48,8 +48,8 @@ func FindVectorDotHueAndLums(schemename string, hslm []int) (int, int, int) {
 
 	if name == "mono" {
 		newhue = pan.m0.Hue
-		newlum = pan.m0.Lums[5]
-		newperiphlum = pan.m0.Lums[4]
+		newlum = pan.m0.Lums[1]
+		newperiphlum = pan.m0.Lums[2]
 	} else {
 		newhue = pan.m1.Hue
 		newlum = pan.m1.Lums[5]
@@ -68,7 +68,7 @@ func FindVectorLineHueAndLums(schemename string, hslm []int) (int, int) {
 
 	if name == "mono" {
 		newhue = pan.m0.Hue
-		newlum = pan.m0.Lums[6]
+		newlum = pan.m0.Lums[1]
 	} else {
 		// there are always three+ colors available...
 		newhue = pan.m2.Hue

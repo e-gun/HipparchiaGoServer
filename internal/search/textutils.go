@@ -22,9 +22,11 @@ func LemmaIntoRegexSlice(hdwd string) []string {
 	// rather than do one word per query, bundle things up: some words have >100 forms
 	// ...(^|\\s)ἐδηλώϲαντο(\\s|$)|(^|\\s)δεδηλωμένοϲ(\\s|$)|(^|\\s)δήλουϲ(\\s|$)|(^|\\s)δηλούϲαϲ(\\s|$)...
 	const (
-		FAILMSG = "lemmaintoregexslice() could not find '%s'"
+		FAILMSG = "LemmaIntoRegexSlice() could not find '%s'"
 		FAILSLC = "FIND_NOTHING"
 	)
+
+	hdwd = gen.UVσςϲ(hdwd)
 
 	var qq []string
 	if _, ok := mps.AllLemm[hdwd]; !ok {

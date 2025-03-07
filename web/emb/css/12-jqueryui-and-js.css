@@ -1,5 +1,30 @@
 /* 12 jqueryui and js */
 
+/* for styling jquery 'select' menus */
+
+.ui-menu, .ui-menu-item {
+    font-family: 'hipparchiasemicondensedstatic', sans-serif;
+    font-size: 80%;
+    background-color: var(--main-body-color);
+    color: var(--main-font-color);
+    border-left: 1px solid var(--input-border-color);
+    border-right: 1px solid var(--input-border-color);
+    border-top: none;
+    border-bottom: none;
+}
+
+.ui-menu-item .ui-menu-item-wrapper.ui-state-active {
+    background-color:  var(--hgscol20);
+    color: var(--main-body-color);
+    border-left: 1px solid var(--input-border-color);
+    border-right: 1px solid var(--input-border-color);
+    border-top: none;
+    border-bottom: none;
+}
+
+
+/* for styling jquery 'spinners' */
+
 /* https://api.jqueryui.com/theming/css-framework/  */
 
 .ui-icon {
@@ -23,6 +48,8 @@
     border: 1px solid var(--input-border-color);
 }
 
+/* the dropdown menus */
+
 /* The container <div> - needed to position the dropdown content */
 .dropdown {
     position: relative;
@@ -32,7 +59,7 @@
     margin: 2px;
 }
 
-/* Dropdown Button */
+/* the button for the dropdown */
 .dropbtn {
     background-color: var(--main-body-color);
     color: var(--main-font-color);
@@ -73,6 +100,7 @@
 .dropdown-content a {
     color: var(--main-font-color);
     text-decoration: none;
+    margin-bottom: 2px;
     display: block;
 }
 

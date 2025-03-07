@@ -9,12 +9,27 @@ var (
 		"Dark":  {50, 0, 80, 0},
 		// "MonoSand":  {60, 15, 8, 85},
 		"Monochrome": {220, 15, 95, 0},
-		"SplitComp":  {200, 12, 85, 10},
-		"Square":     {90, 25, 85, 25},
-		"Tetradic":   {20, 17, 88, 22},
+		"SplitComp":  {175, 12, 85, 10},
+		"Square":     {90, 20, 85, 20},
+		"Tetradic":   {45, 17, 80, 15},
 		"Triadic":    {230, 15, 20, 90},
 	}
-	CssColorModes = map[string]string{
+	CssColorModes = map[string]string{} // set in "main.go" after "configatlaunch.go"
+	CssSamples    = map[string]string{} // set in "main.go" after "configatlaunch.go"
+)
+
+func GenerateCSSSamples() map[string]string {
+	return map[string]string{
+		"Monochrome": colorsamplesheet("Monochrome", CssColorHSLs["Monochrome"]),
+		"SplitComp":  colorsamplesheet("SplitComp", CssColorHSLs["SplitComp"]),
+		"Square":     colorsamplesheet("Square", CssColorHSLs["Square"]),
+		"Tetradic":   colorsamplesheet("Tetradic", CssColorHSLs["Tetradic"]),
+		"Triadic":    colorsamplesheet("Triadic", CssColorHSLs["Triadic"]),
+	}
+}
+
+func GenerateColorModes() map[string]string {
+	return map[string]string{
 		"Light":      LIGHTCOLORSORIGINAL,
 		"Dark":       DARKCOLORSMANUAL,
 		"Monochrome": generatemonoscheme(CssColorHSLs["Monochrome"]),
@@ -23,11 +38,4 @@ var (
 		"Tetradic":   generatetetradscheme(CssColorHSLs["Tetradic"]),
 		"Triadic":    generatetriatscheme(CssColorHSLs["Triadic"]),
 	}
-	CssSamples = map[string]string{
-		"Monochrome": colorsamplesheet("Monochrome", CssColorHSLs["Monochrome"]),
-		"SplitComp":  colorsamplesheet("SplitComp", CssColorHSLs["SplitComp"]),
-		"Square":     colorsamplesheet("Square", CssColorHSLs["Square"]),
-		"Tetradic":   colorsamplesheet("Tetradic", CssColorHSLs["Tetradic"]),
-		"Triadic":    colorsamplesheet("Triadic", CssColorHSLs["Triadic"]),
-	}
-)
+}

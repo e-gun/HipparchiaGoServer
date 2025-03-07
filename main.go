@@ -79,6 +79,13 @@ func main() {
 	msg := lnch.NewMessageMakerConfigured()
 	msg.ResetScreen()
 
+	clr.CssColorModes = clr.GenerateColorModes()
+	clr.CssSamples = clr.GenerateCSSSamples()
+
+	val := lnch.Config.CssColors
+	vec.InjectedDotHue, vec.InjectedDotLum, vec.InjectedDotPeriphLum = clr.FindVectorDotHueAndLums(val, clr.CssColorHSLs[val])
+	vec.InjectedLineHue, vec.InjectedLineLum = clr.FindVectorLineHueAndLums(val, clr.CssColorHSLs[val])
+
 	// [1a] maybe we are profiling
 	// profiling runs are requested from the command line
 

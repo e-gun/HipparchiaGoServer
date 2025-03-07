@@ -30,7 +30,8 @@ import (
 
 var (
 	// quantityfixer = strings.NewReplacer("ă_", "ā̆", "ā^", "ā̆", "ē^", "ē̆", "ĭ_", "ī̆", "ō^", "ō̆", "A_^", "Ā̆", "A^", "Ă", "A_", "Ā", "E_", "Ē", "E^", "Ĕ", "I_^", "Ī̆", "I_", "Ī", "I^", "Ĭ", "O_", "Ō", "O^", "Ŏ", "U^", "Ŭ", "U_", "Ū", "_^", "̆̄", "_", "̄", "^", "̆")
-	quantityfixer = strings.NewReplacer("_^", "̄̆", "_", "̄", "^", "̆")
+	quantityfixer  = strings.NewReplacer("_^", "̄̆", "_", "̄", "^", "̆")
+	numberstripper = strings.NewReplacer("-", "", "¹", "", "²", "", "³", "")
 )
 
 type jsb struct {
@@ -115,9 +116,7 @@ func RtLexFindByForm(c echo.Context) error {
 	}
 
 	word := gen.Purgechars(lnch.Config.BadChars, elem[0])
-
-	clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "") // you can get sent here by the indexer ...
-	word = clean.Replace(word)
+	word = numberstripper.Replace(word)
 
 	word = gen.SwapAcuteForGrave(word)
 	word = gen.UVσςϲ(word)
@@ -694,7 +693,8 @@ func formatlexicaloutput(w str.DbLexicon) string {
 
 	var met string
 	if w.Metrical != "" {
-		met = fmt.Sprintf("%s", quantityfixer.Replace(w.Metrical))
+		met = quantityfixer.Replace(w.Metrical)
+		met = numberstripper.Replace(met)
 		met = fmt.Sprintf("\n<span class=\"entryvowelquantities\">⸤%s⸥</span>", met)
 		// but do not show if there are no long/short marks
 		if !strings.ContainsAny(met, "̄̆̄ᾰᾱῐῑῠῡ") {

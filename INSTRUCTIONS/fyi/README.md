@@ -5,7 +5,7 @@
 
 `10 requests 1.46 MB / 1.47 MB transferred`
 
-the fonts are most of the data, but they have been subsetted (but `iosevka` is 756k of the above)
+the fonts are most of the data; they have been subsetted (but `iosevka` is 756k of the above)
 
 comparanda:
 
@@ -173,27 +173,27 @@ self-test with vectors can be deceptive because `-wc` flag will not override con
 
 ```
 % cloc --exclude-dir=z --not-match-f="^jq*" .
-     174 text files.
-     156 unique files.                                          
-     266 files ignored.
+     191 text files.
+     173 unique files.
+     283 files ignored.
 
-github.com/AlDanial/cloc v 2.04  T=0.18 s (847.6 files/s, 171229.0 lines/s)
+github.com/AlDanial/cloc v 2.04  T=0.16 s (1084.2 files/s, 208779.9 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                              98           3266           3692          15098
-JavaScript                       8            310            193           1595
-CSS                              1            352             89           1582
-HTML                            12            160             17           1532
-Markdown                        11            468              0           1219
+Go                             103           3479           3824          16340
+CSS                             13            378            124           1686
+JavaScript                       8            312            198           1583
+HTML                            13            169             18           1573
+Markdown                        11            468              0           1220
 Text                             6            108              0            487
-JSON                             9              0              0            416
-XML                              7              0              0            415
+XML                              7              0              0            418
+JSON                             8              0              0            416
 SVG                              1              1              1            392
 Bourne Shell                     2             19              7             76
 Python                           1              5              6              7
 -------------------------------------------------------------------------------
-SUM:                           156           4689           4005          22819
+SUM:                           173           4939           4178          24198
 -------------------------------------------------------------------------------
 
 ```
