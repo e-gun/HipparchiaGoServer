@@ -30,8 +30,9 @@ const (
                    default settings will consume c. C11.3GBC0 of extra disk space
    C1-bcC0 C2{num}C0    default lines of browser context to display [C6currentC0: C3{{.ctxlines}}C0]
    C1-bwC0          disable color output in the console
-   C1-cdC0          redefine a color scheme: name hue sat lum1 lum2; e.g. C4"-cd 0 50 10 90 Monochrome"C0
-   C1-cmC0          select a css color mode [C6built-in:C0 C3{{.knowncolors}}C0][C6currentC0: C3{{.defcol}}C0]
+   C1-cdC0          redefine a color scheme: name hue sat lum1 lum2; e.g. C4"-cd 220 15 95 0 Monochrome"C0 
+                   [does not work for C3LightC0 or C3DarkC0]
+   C1-cmC0          select a default css color mode [C6built-in:C0 C3{{.knowncolors}}C0][C6currentC0: C3{{.defcol}}C0]
    C1-crC0          report color scheme names and values
    C1-csC0          use a custom CSS file; will try to read "C3{{.home}}{{.css}}C0"
    C1-dbC0          debug database: show internal references in browsed passages

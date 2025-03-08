@@ -52,31 +52,41 @@
 
 ![inst02](./gitimg/macos_posgresapp/04_data_is_ready.png)
 
-1. Double-click to launch. It is possible that you will get a complaint about an UNIDENTIFIED DEVELOPER.
-   In that case you need to go to `System Settings` -> `Gatekeeper` -> `Security` and then allow this application to run
-   by clicking OPEN ANYWAY and then entering a password to confirm this.
+1. macOS has been locking down access to `unsigned` applications from `unknown developers`. This is a good thing in general, but not in this case. You need to force the system to trust the application. This can only be done via `Terminal.app`. So here we go...
+
+2. Make sure that `HipparchiaGoServer` is in your `Home` directory (because this is the directory that `Terminal.app` will send you to by default). Frustratingly, the Finder does not always make it easy to access this directory. If in doubt, open `Terminal.app` and typle the following into it and hit `return`: `open ~`. If `HipparchiaGoServer` is not in this directory (perhaps it is in `Downloads` instead...), then move it here. Also make sure that the `hDB` is here. 
+
+![inst02](./gitimg/macos_posgresapp/04a_firstrun_in_folder.png)
+
+ 
+3. The following command will bypass the gatekeeper check on the application. Enter it in the terminal and press `return`: `xattr -r -d com.apple.quarantine ./HipparchiaGoServer`
+
+![inst02](./gitimg/macos_posgresapp/04d_firstrun_xattr.png)
+
+4. Now you can double-click the application to launch. It is possible that you will get a complaint about an UNIDENTIFIED DEVELOPER. This is a problem, and something went wrong in the previous step.
 
 ![inst02](./gitimg/macos_posgresapp/04a_firstrun_unidentified.png)
 
-![inst02](./gitimg/macos_posgresapp/04b_firstrun_gatekeeper.png)
+5. But at this point you will be told about a potential security issue when you attempt to connect to `postgresql`. You need to `OK` this.
 
-![inst02](./gitimg/macos_posgresapp/04c_firstrun_permission.png)
+![inst02](./gitimg/macos_posgresapp/04e_firstrun_db_connection.png)
 
-2. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
 
-3. On the first run instruction files will be dropped into your current working directory. You will be asked for the password for `hippa_wr`.
+6. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
+
+7. On the first run instruction files will be dropped into your current working directory. You will be asked for the password for `hippa_wr`.
 
    ![inst15](./gitimg/macos_posgresapp/04_firstrun.png)
 
-4. Then you will be told that the self-load is about to begin.
+8. Then you will be told that the self-load is about to begin.
 
    ![inst02](./gitimg/macos_posgresapp/05_selfload.png)
 
-5. Thousands of messages will fly across the screen.
+9. Thousands of messages will fly across the screen.
 
    ![inst02](./gitimg/macos_posgresapp/05b_loading_in_progress.png)
 
-6. Eventually the server will launch. The self-load process only has to happen once.
+10. Eventually the server will launch. The self-load process only has to happen once.
 
    ![inst02](./gitimg/macos_posgresapp/06_selfload_done.png)
 
@@ -84,11 +94,7 @@ NB: `hippa_rd` errors are safe to ignore.
 
 ![inst02](./gitimg/macos_posgresapp/06b_selfload_done.png)
 
-7. You may see a number of dialog boxes that ask for permission for Terminal.app to access Postgres. You need to allow this. 
-Irritatingly, you will be asked *once per client* (i.e. CPU core) and so maybe 20+ times. MacOS security policies are
-somewhat out of control...
-
-8. When you see `http server started on 127.0.0.1:8000` you are up and running. Now you can point a browser at http://127.0.0.1:8000.
+11. When you see `http server started on 127.0.0.1:8000` you are up and running. Now you can point a browser at http://127.0.0.1:8000.
 Whenever the server is running, your browser can interact with http://127.0.0.1:8000. You can also leave the server 
 running indefinitely. It does not consume many resources if not active: 0% CPU, <1% RAM.
 

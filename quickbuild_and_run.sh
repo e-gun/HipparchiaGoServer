@@ -16,4 +16,4 @@ LDF="-s -w -X main.GitCommit=${GC} -X main.BuildDate=${DT} -X main.VersSuppl=${V
 
 ${GO} build -pgo=${PGF} -ldflags "${LDF}"
 
-./HipparchiaGoServer  -gl 3 -ft Ubuntu -cd 0 50 10 90 Monochrome -cm Monochrome -cr 
+./HipparchiaGoServer  -gl 3 -cm SplitComp -cd 0 55 92 8 SplitComp

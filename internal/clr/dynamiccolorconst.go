@@ -145,7 +145,7 @@ const (
     --hgscol05: {{.colorC5}}; 
     --hgscol06: {{.colorC6}};  
 
-    --hgscol09: {{.colorC3}};
+    --hgscol09: {{.colorC5}};
     --hgscol10: {{.colorA0}};
 
 	/* b/w */
@@ -227,7 +227,7 @@ const (
     --hgscol05: {{.colorC6}}; 
     --hgscol06: {{.colorB4}};  
 
-    --hgscol09: {{.colorC3}};
+    --hgscol09: {{.colorC4}};
     --hgscol10: {{.colorB0}};
 
 	/* b/w */

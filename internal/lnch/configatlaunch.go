@@ -71,7 +71,7 @@ func ConfigAtLaunch() {
 		FAIL6 = "Could not open '%s'"
 		FAIL7 = "ConfigAtLaunch() failed to execute help text template"
 		FAIL8 = "Cannot find current working directory"
-		FAIL9 = "Could not find css color scheme '%s'"
+		FAIL9 = "Could not find css color scheme '%s'. Falling back to '%s'"
 	)
 
 	Config = builddefaultconfig()
@@ -95,6 +95,8 @@ func ConfigAtLaunch() {
 	} else {
 		Msg.CRIT(fmt.Sprintf(FAIL3, prolixcfg))
 	}
+
+	Msg.LLvl = Config.LogLevel
 
 	// on old CONFIGPROLIX might mean you set the following to zero; that is very bad...
 	if Config.MaxSrchTot == 0 {
@@ -122,7 +124,7 @@ func ConfigAtLaunch() {
 		kff := gen.StringMapKeysIntoSlice(vv.ServableFonts)
 		sort.Strings(kff)
 
-		kcc := gen.StringMapKeysIntoSlice(clr.CssColorModes)
+		kcc := gen.StringMapKeysIntoSlice(clr.CssColorHSLs)
 		sort.Strings(kcc)
 
 		// see HELPTEXTTEMPLATE in vv.terminalconst.go
@@ -193,7 +195,7 @@ func ConfigAtLaunch() {
 			Config.BlackAndWhite = true
 		case "-cd":
 			// redefine a color scheme
-			// "-rs 220 15 95 0 Monochrome"
+			// "-cd 220 15 95 0 Monochrome"
 			modifycolorscheme(args[i+1], args[i+2], args[i+3], args[i+4], args[i+5])
 		case "-cm":
 			Config.CssColors = args[i+1]
@@ -326,11 +328,10 @@ func ConfigAtLaunch() {
 		}
 	}
 
-	if !slices.Contains(gen.StringMapKeysIntoSlice(clr.CssColorModes), Config.CssColors) {
-		Msg.WARN(fmt.Sprintf(FAIL9, Config.Font))
+	if !slices.Contains(gen.StringMapKeysIntoSlice(clr.CssColorHSLs), Config.CssColors) {
+		Msg.WARN(fmt.Sprintf(FAIL9, Config.CssColors, clr.DEFAULTCOLORSCHEME))
 		Config.CssColors = clr.DEFAULTCOLORSCHEME
 	}
-
 }
 
 // builddefaultconfig - return a CurrentConfiguration filled out with various default values
@@ -539,7 +540,13 @@ func modifycolorscheme(hs string, ss string, ls string, lhls string, cs string) 
 		ERR1 = `'%s' is not a valid color scheme.`
 		ERR2 = `Known schemes are: %s.`
 		ERR3 = `The scheme name needs to be followed by four integers: hue, sat, lum, high/low lum.`
+		ERR4 = `Neither 'Light' nor 'Dark' can be modified.`
 	)
+
+	if hs == "Light" || hs == "Dark" {
+		Msg.MAND(ERR4)
+		return
+	}
 
 	if _, ok := clr.CssColorHSLs[cs]; !ok {
 		Msg.MAND(fmt.Sprintf(ERR1, cs))
@@ -568,7 +575,7 @@ func reportcolorschemes() {
 		HEAD = "\thue\tsat\tlum1\tlum2"
 		TMPL = "\t%d\t%d\t%d\t%d\t%s"
 	)
-	fmt.Println("Built-in color scheme values (redefine via '-cd' flag)")
+	fmt.Println("Color scheme values (modify via '-cd' flag)")
 	fmt.Println(HEAD)
 
 	kcc := gen.StringMapKeysIntoSlice(clr.CssColorHSLs)

@@ -8,7 +8,8 @@ var (
 		"Light": {236, 0, 50, 0},
 		"Dark":  {50, 0, 80, 0},
 		// "MonoSand":  {60, 15, 8, 85},
-		"Monochrome": {220, 15, 95, 0},
+		// "Monochrome": {220, 15, 95, 0},
+		"Monochrome": {0, 55, 8, 92}, // Blood Red
 		"SplitComp":  {175, 12, 85, 10},
 		"Square":     {90, 20, 85, 20},
 		"Tetradic":   {45, 17, 80, 15},
