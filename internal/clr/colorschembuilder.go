@@ -72,7 +72,7 @@ func FindVectorLineHueAndLums(schemename string, hslm []int) (int, int) {
 	} else {
 		// there are always three+ colors available...
 		newhue = pan.m2.Hue
-		newlum = pan.m2.Lums[6]
+		newlum = pan.m2.Lums[5]
 	}
 	return newhue, newlum
 }

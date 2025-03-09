@@ -23,5 +23,6 @@ type FontTempl struct {
 	Thin             string
 	SubFolder        string
 	HasLunateSigma   bool
+	UseGenericMono   bool
 	NeedsManualStyle []string
 }

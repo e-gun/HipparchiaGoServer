@@ -5,15 +5,15 @@ var (
 	// need access to the numbers and not just CSS so you can reset vector dot colors too...
 	// this also explains why Light and Dark have values assigned to them
 	CssColorHSLs = map[string][]int{
-		"Light": {236, 0, 50, 0},
-		"Dark":  {50, 0, 80, 0},
+		"Light": {140, 25, 100, 0},
+		"Dark":  {50, 40, 0, 100},
 		// "MonoSand":  {60, 15, 8, 85},
 		// "Monochrome": {220, 15, 95, 0},
-		"Monochrome": {0, 55, 8, 92}, // Blood Red
+		"Monochrome": {0, 55, 8, 95}, // Blood Red
 		"SplitComp":  {175, 12, 85, 10},
-		"Square":     {90, 20, 85, 20},
-		"Tetradic":   {45, 17, 80, 15},
-		"Triadic":    {230, 15, 20, 90},
+		"Square":     {111, 25, 85, 15},
+		"Tetradic":   {40, 17, 80, 15},
+		"Triadic":    {230, 14, 18, 91},
 	}
 	CssColorModes = map[string]string{} // set in "main.go" after "configatlaunch.go"
 	CssSamples    = map[string]string{} // set in "main.go" after "configatlaunch.go"

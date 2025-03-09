@@ -10,7 +10,7 @@
     border-left: 1px solid var(--input-border-color);
     border-right: 1px solid var(--input-border-color);
     border-top: none;
-    border-bottom: none;
+    border-bottom: 1px solid var(--input-border-color);
 }
 
 .ui-menu-item .ui-menu-item-wrapper.ui-state-active {

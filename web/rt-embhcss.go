@@ -193,13 +193,6 @@ func cssfontfacedirectives(f string) string {
 		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.Regular}}') format('{{.Type}}');
 		font-display: swap;
 		}
-
-	@font-face {
-		font-family: 'hipparchiamonostatic';
-		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.Mono}}') format('{{.Type}}');
-		font-display: swap;
-		}
-
 	@font-face {
 		font-family: 'hipparchialightstatic';
 		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.Light}}') format('{{.Type}}');
@@ -265,11 +258,35 @@ func cssfontfacedirectives(f string) string {
 		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.Thin}}') format('{{.Type}}');
 		font-display: swap;
 		}`
+
+		IOSEVKAASGENERICMONO = `
+	@font-face {
+		font-family: 'hipparchiamonostatic';
+		src: url('/emb/fnt/wof/iosevka-regularSubset.woff2') format('woff2');
+		font-display: swap;
+		}
+`
+		HASOWNMONOFONT = `		
+	@font-face {
+		font-family: 'hipparchiamonostatic';
+		src: url('/emb/fnt/{{.ShrtType}}/{{.SubFolder}}/{{.Mono}}') format('{{.Type}}');
+		font-display: swap;
+		}
+`
 	)
 
 	css := ""
 	if _, ok := vv.ServableFonts[f]; ok {
-		fft, e := template.New("mt").Parse(FFS)
+		var parseme string
+		if vv.ServableFonts[f].UseGenericMono {
+			// iosevka makes sense because it is already loaded anyway to give you rarechars
+			// it is not always the sexiest match with other fonts, but if you pick NotoMono
+			// you will just have the same clash but with different fonts...
+			parseme = FFS + IOSEVKAASGENERICMONO
+		} else {
+			parseme = FFS + HASOWNMONOFONT
+		}
+		fft, e := template.New("mt").Parse(parseme)
 		Msg.EC(e)
 		var b bytes.Buffer
 		err := fft.Execute(&b, vv.ServableFonts[f])

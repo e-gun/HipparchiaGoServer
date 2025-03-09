@@ -21,7 +21,7 @@ const (
 	--modalbackground: {{.colorA5}};
 	--modalheader: {{.colorA4}};
 	--sidednavcolor: {{.colorA4}};
-	--nthrowcol: {{.colorA6}};
+	--nthrowcol: {{.colorA5}};
 	--buttonandcheckboxborder: {{.colorA1}};
 	--buttonandcheckboxcontents: {{.colorA2}};
 
@@ -97,7 +97,7 @@ const (
 	--modalbackground: {{.colorB0}};
 	--modalheader: {{.colorB2}};
 	--sidednavcolor: {{.colorA2}};
-	--nthrowcol: {{.colorC2}};
+	--nthrowcol: {{.colorB1}};
 	--buttonandcheckboxborder: {{.colorA5}};
 	--buttonandcheckboxcontents: {{.colorA4}};
 

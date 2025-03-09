@@ -52,14 +52,23 @@
 
 ![inst02](./gitimg/macos_posgresapp/04_data_is_ready.png)
 
-1. macOS has been locking down access to `unsigned` applications from `unknown developers`. This is a good thing in general, but not in this case. You need to force the system to trust the application. This can only be done via `Terminal.app`. So here we go...
+1. macOS has been locking down access to `unsigned` applications from `unknown developers`. This is a good thing in general, but not in this case. You need to force the system to trust the application. This can only be done via `Terminal.app`. So here we go... Launch `Terminal.app` (which can be found in `/Applications/Utilities`)
 
-2. Make sure that `HipparchiaGoServer` is in your `Home` directory (because this is the directory that `Terminal.app` will send you to by default). Frustratingly, the Finder does not always make it easy to access this directory. If in doubt, open `Terminal.app` and typle the following into it and hit `return`: `open ~`. If `HipparchiaGoServer` is not in this directory (perhaps it is in `Downloads` instead...), then move it here. Also make sure that the `hDB` is here. 
+2. Double-check that `HipparchiaGoServer` is in your `Home` directory (because this is the directory that `Terminal.app` will send you to by default). Frustratingly, the Finder does not always make it easy to access this directory. If in doubt, type the following into `Terminal.app` and hit `return`: 
+```
+open ~
+```
+
+
+ If `HipparchiaGoServer` is not in this directory (perhaps it is in `Downloads` instead...), then move it here. Also make sure that the `hDB` is here. (This really only matters for the first launch and ensuring that the command in the next step exectues properly. After the first launch the `hDB` folder can be deleted if you wish and the application can be moved elsewhere.)
 
 ![inst02](./gitimg/macos_posgresapp/04a_firstrun_in_folder.png)
 
  
-3. The following command will bypass the gatekeeper check on the application. Enter it in the terminal and press `return`: `xattr -r -d com.apple.quarantine ./HipparchiaGoServer`
+3. The following command will bypass the gatekeeper check on the application. Enter it in the terminal and press `return`: 
+```
+xattr -r -d com.apple.quarantine ./HipparchiaGoServer
+```
 
 ![inst02](./gitimg/macos_posgresapp/04d_firstrun_xattr.png)
 
@@ -67,7 +76,7 @@
 
 ![inst02](./gitimg/macos_posgresapp/04a_firstrun_unidentified.png)
 
-5. But at this point you will be told about a potential security issue when you attempt to connect to `postgresql`. You need to `OK` this.
+5. If you do not see that UNIDENTIFIED DEVELOPER warning, then congratulations. But at this point you will be told about a different potential security issue when you attempt to connect to `postgresql`. You need to `OK` this.
 
 ![inst02](./gitimg/macos_posgresapp/04e_firstrun_db_connection.png)
 
