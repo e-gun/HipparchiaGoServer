@@ -13,7 +13,7 @@ var (
 		"SplitComp":  {175, 12, 85, 10},
 		"Square":     {111, 25, 85, 15},
 		"Tetradic":   {40, 17, 80, 15},
-		"Triadic":    {230, 14, 18, 91},
+		"Triadic":    {235, 12, 18, 91},
 	}
 	CssColorModes = map[string]string{} // set in "main.go" after "configatlaunch.go"
 	CssSamples    = map[string]string{} // set in "main.go" after "configatlaunch.go"

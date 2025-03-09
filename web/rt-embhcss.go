@@ -176,7 +176,7 @@ func PrintColorSamples(c echo.Context) error {
 
 	coll := strings.Join(knowncolors, "\n")
 
-	f, e := efs.ReadFile("emb/colorsamples.html")
+	f, e := efs.ReadFile("emb/htm/colorsamples.html")
 	Msg.EC(e)
 
 	colors := strings.Replace(string(f), SWAP, coll, -1)

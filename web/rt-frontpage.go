@@ -124,7 +124,7 @@ func RtFrontpage(c echo.Context) error {
 		"csscolordropdown": colorschemedropdownhtml(),
 	}
 
-	f, e := efs.ReadFile("emb/frontpage.html")
+	f, e := efs.ReadFile("emb/htm/frontpage.html")
 	Msg.EC(e)
 
 	tmpl, e := template.New("fp").Parse(string(f))

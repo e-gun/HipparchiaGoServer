@@ -174,18 +174,18 @@ self-test with vectors can be deceptive because `-wc` flag will not override con
 ```
 % cloc --exclude-dir=z --not-match-f="^jq*" .
      191 text files.
-     173 unique files.
-     283 files ignored.
+     173 unique files.                                          
+     286 files ignored.
 
-github.com/AlDanial/cloc v 2.04  T=0.16 s (1084.2 files/s, 208779.9 lines/s)
+github.com/AlDanial/cloc v 2.04  T=0.15 s (1188.7 files/s, 229376.9 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                             103           3479           3824          16340
-CSS                             13            378            124           1686
+Go                             103           3487           3829          16353
+CSS                             13            384            127           1705
 JavaScript                       8            312            198           1583
 HTML                            13            169             18           1573
-Markdown                        11            468              0           1220
+Markdown                        11            476              0           1227
 Text                             6            108              0            487
 XML                              7              0              0            418
 JSON                             8              0              0            416
@@ -193,7 +193,7 @@ SVG                              1              1              1            392
 Bourne Shell                     2             19              7             76
 Python                           1              5              6              7
 -------------------------------------------------------------------------------
-SUM:                           173           4939           4178          24198
+SUM:                           173           4961           4186          24237
 -------------------------------------------------------------------------------
 
 ```

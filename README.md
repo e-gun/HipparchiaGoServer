@@ -20,6 +20,7 @@
 * embedded help files
 * variety of embedded fonts
 * selectable css color themes
+* tweakable css color themes (command line only)
 * semantic vectors 
   * general
     * configurable model parameters
