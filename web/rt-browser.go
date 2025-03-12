@@ -451,7 +451,7 @@ func buildbrowsertable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 		// you will have "ἱματίῳ", but the marked up line has "ἱμα- | τίῳ"
 		ar := make(map[string]*regexp.Regexp)
 		for _, w := range allwords {
-			r := fmt.Sprintf(OBSREGTEMPL, gen.CapsVariants(w))
+			r := fmt.Sprintf(OBSREGTEMPL, gen.UVCapsVariants(w))
 			pattern, e := regexp.Compile(r)
 			if e != nil {
 				// you will barf if w = *
@@ -482,12 +482,11 @@ func buildbrowsertable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 			if j == len(wds)-1 && terminalhyph.MatchString(lmw) {
 				// wds[lastwordindex] is the unhyphenated word
 				// almostallregex does not contain this pattern: "ἱμα-", e.g.
-				np, e := regexp.Compile(fmt.Sprintf(OBSREGTEMPL, gen.CapsVariants(lmw)))
+				np, e := regexp.Compile(fmt.Sprintf(OBSREGTEMPL, gen.UVCapsVariants(lmw)))
 				if e != nil {
 					Msg.PEEK(fmt.Sprintf(FAIL, lmw))
 					np = regexp.MustCompile("FIND_NOTHING")
 				}
-
 				// without strings.Replace() gr2042@81454 browser formatting error: τὴν ἐκκληϲίαν, τὸν οἶκον τῆϲ class="expanded_text">προϲ-
 				// the html ends up as: <span <observed="" id="προϲευχῆϲ">class="expanded_text"&gt;προϲ-</span>
 				newline = strings.Replace(newline, "<span ", "<span_", -1)

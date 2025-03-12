@@ -272,7 +272,7 @@ func cssfontfacedirectives(f string) string {
 		IOSEVKAASGENERICMONO = `
 	@font-face {
 		font-family: 'hipparchiamonostatic';
-		src: url('/emb/fnt/wof/iosevka-regularSubset.woff2') format('woff2');
+		src: url('/emb/fnt/ttf/iosevka/Iosevka-RegularSubset.ttf') format('truetype');
 		font-display: swap;
 		}
 `
