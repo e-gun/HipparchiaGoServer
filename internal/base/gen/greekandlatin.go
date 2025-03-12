@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	TERMINATIONS = `(\s|\.|\]|\<|⟩|\)|’|”|\!|,|:|;|\?|«|·|$)` // circular imports means this is declared 2x...
+	TERMINATIONS = `(\s|\.|\]|\<|⟩|\)|’|”|\!|,|:|;|\?|⸥|«|·|$)` // circular imports means this is declared 2x... see also "vv.constants.co"
 )
 
 var (

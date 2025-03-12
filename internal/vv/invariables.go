@@ -16,9 +16,9 @@ var (
 	TheCorpora    = []string{GREEKCORP, LATINCORP, INSCRIPTCORP, CHRISTINSC, PAPYRUSCORP}
 	TheLanguages  = []string{"greek", "latin"}
 	LaunchTime    = time.Now()
-	ServableFonts = map[string]str.FontTempl{"Alegreya": AlegreyaFont, "Brill": BrillFont, "CMU": CMUFont, "Fira": FiraFont,
-		"Gentium": GentiumFont, "Inter": InterFont, "Lato": LatoFont, "MPlus1": MPlusOneFont, "Noto": NotoFont, "Roboto": RobotoFont,
-		"SourceSans": SourceSansFont, "Ubuntu": UbuntuFont} // cf rt-embhcss.go
+	ServableFonts = map[string]str.FontTempl{"Alegreya": AlegreyaFont, "Brill": BrillFont, "CMU": CMUFont,
+		"Fira": FiraFont, "Gentium": GentiumFont, "Inter": InterFont, "Iosevka": IosevkaFont, "Lato": LatoFont,
+		"MPlus1": MPlusOneFont, "Noto": NotoFont, "Roboto": RobotoFont, "SourceSans": SourceSansFont, "Ubuntu": UbuntuFont} // cf rt-embhcss.go
 )
 
 //
@@ -55,7 +55,8 @@ var (
 		UseGenericMono:   true,
 		NeedsManualStyle: []string{"hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
 			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic", "hipparchiacondensedstatic"},
-		SubFolder: "alegreya",
+		SubFolder:        "alegreya",
+		MainBodyFontSize: 110,
 	}
 	BrillFont = str.FontTempl{
 		Type:             "truetype",
@@ -77,7 +78,8 @@ var (
 		UseGenericMono:   true,
 		NeedsManualStyle: []string{"hipparchialightstatic", "hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
 			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic", "hipparchiathinstatic", "hipparchiacondensedstatic"},
-		SubFolder: "brill",
+		SubFolder:        "brill",
+		MainBodyFontSize: 115,
 	}
 	CMUFont = str.FontTempl{
 		Type:             "opentype",
@@ -99,7 +101,8 @@ var (
 		UseGenericMono:   false,
 		NeedsManualStyle: []string{"hipparchiathinstatic", "hipparchialightstatic", "hipparchiacondenseditalicstatic",
 			"hipparchiacondensedboldstatic", "hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic"},
-		SubFolder: "cmu",
+		SubFolder:        "cmu",
+		MainBodyFontSize: 110,
 	}
 	FiraFont = str.FontTempl{
 		Type:             "opentype",
@@ -121,6 +124,7 @@ var (
 		UseGenericMono:   false,
 		NeedsManualStyle: []string{},
 		SubFolder:        "fira",
+		MainBodyFontSize: 100,
 	}
 	GentiumFont = str.FontTempl{
 		Type:             "truetype",
@@ -143,7 +147,8 @@ var (
 		NeedsManualStyle: []string{"hipparchialightstatic", "hipparchiasemicondensedstatic",
 			"hipparchiasemicondenseditalicstatic", "hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic",
 			"hipparchiathinstatic", "hipparchiacondensedstatic"},
-		SubFolder: "gentium",
+		SubFolder:        "gentium",
+		MainBodyFontSize: 110,
 	}
 	NotoFont = str.FontTempl{
 		Type:             "opentype",
@@ -165,6 +170,7 @@ var (
 		UseGenericMono:   false,
 		NeedsManualStyle: []string{},
 		SubFolder:        "noto",
+		MainBodyFontSize: 100,
 	}
 	InterFont = str.FontTempl{
 		Type:             "opentype",
@@ -186,7 +192,31 @@ var (
 		UseGenericMono:   true,
 		NeedsManualStyle: []string{"hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
 			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic", "hipparchiacondensedstatic"},
-		SubFolder: "inter",
+		SubFolder:        "inter",
+		MainBodyFontSize: 100,
+	}
+	IosevkaFont = str.FontTempl{
+		Type:             "truetype",
+		ShrtType:         "ttf",
+		Bold:             "Iosevka-BoldSubset.ttf",
+		BoldItalic:       "Iosevka-BoldItalicSubset.ttf",
+		CondensedBold:    "Iosevka-BoldSubset.ttf",
+		CondensedItalic:  "Iosevka-ItalicSubset.ttf",
+		CondensedRegular: "Iosevka-RegularSubset.ttf",
+		SemiCondRegular:  "Iosevka-RegularSubset.ttf",
+		SemiCondItalic:   "Iosevka-ItalicSubset.ttf",
+		Italic:           "Iosevka-ItalicSubset.ttf",
+		Light:            "Iosevka-LightSubset.ttf",
+		Mono:             "Iosevka-RegularSubset.ttf",
+		Regular:          "Iosevka-RegularSubset.ttf",
+		SemiBold:         "Iosevka-MediumSubset.ttf",
+		Thin:             "Iosevka-ThinSubset.ttf",
+		HasLunateSigma:   true,
+		UseGenericMono:   true,
+		NeedsManualStyle: []string{"hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
+			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic"},
+		SubFolder:        "iosevka",
+		MainBodyFontSize: 100,
 	}
 	LatoFont = str.FontTempl{
 		Type:             "truetype",
@@ -208,7 +238,8 @@ var (
 		UseGenericMono:   true,
 		NeedsManualStyle: []string{"hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
 			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic"},
-		SubFolder: "lato",
+		SubFolder:        "lato",
+		MainBodyFontSize: 100,
 	}
 	// MPlusOneFont - has not Italic ...
 	MPlusOneFont = str.FontTempl{
@@ -232,7 +263,8 @@ var (
 		NeedsManualStyle: []string{"hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
 			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic", "hipparchiacondensedstatic",
 			"hipparchiabolditalicstatic", "hipparchiaobliquestatic"},
-		SubFolder: "mplus1",
+		SubFolder:        "mplus1",
+		MainBodyFontSize: 100,
 	}
 	RobotoFont = str.FontTempl{
 		Type:             "truetype",
@@ -250,10 +282,11 @@ var (
 		Regular:          "Roboto-RegularSubset.ttf",
 		SemiBold:         "Roboto-SemiBoldSubset.ttf",
 		Thin:             "Roboto-ThinSubset.ttf",
-		HasLunateSigma:   true,
+		HasLunateSigma:   false,
 		UseGenericMono:   false,
 		NeedsManualStyle: []string{},
 		SubFolder:        "roboto",
+		MainBodyFontSize: 100,
 	}
 	SourceSansFont = str.FontTempl{
 		Type:             "truetype",
@@ -275,7 +308,8 @@ var (
 		UseGenericMono:   false,
 		NeedsManualStyle: []string{"hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
 			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic"},
-		SubFolder: "source",
+		SubFolder:        "source",
+		MainBodyFontSize: 110,
 	}
 	UbuntuFont = str.FontTempl{
 		Type:             "truetype",
@@ -297,5 +331,6 @@ var (
 		UseGenericMono:   false,
 		NeedsManualStyle: []string{},
 		SubFolder:        "ubuntu",
+		MainBodyFontSize: 100,
 	}
 )

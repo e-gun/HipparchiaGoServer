@@ -83,6 +83,11 @@ func RtBrowseLine(c echo.Context) error {
 	}
 
 	s := vlt.AllSessions.GetSess(user)
+	regularizewidth := true
+	if s.FontSel == "Iosevka" {
+		regularizewidth = false
+	}
+
 	locus := c.Param("locus")
 	elem := strings.Split(locus, "/")
 	if len(elem) == 3 {
@@ -91,7 +96,7 @@ func RtBrowseLine(c echo.Context) error {
 		ln, e := strconv.Atoi(elem[2])
 		Msg.EC(e)
 		ctx := s.BrowseCtx
-		bp := generatebrowsedpassage(au, wk, ln, ctx, s.ZapLunates)
+		bp := generatebrowsedpassage(au, wk, ln, ctx, s.ZapLunates, regularizewidth)
 		return jsonresponse(c, bp)
 	} else {
 		Msg.FYI(fmt.Sprintf(FAIL, locus))
@@ -139,7 +144,11 @@ func browse(c echo.Context, sep string) browsedpassage {
 		ln := findendpointsfromlocus(uid, elem[2], sep)
 		ctx := s.BrowseCtx
 
-		return generatebrowsedpassage(au, wk, ln[0], ctx, s.ZapLunates)
+		regularizewidth := true
+		if s.FontSel == "Iosevka" {
+			regularizewidth = false
+		}
+		return generatebrowsedpassage(au, wk, ln[0], ctx, s.ZapLunates, regularizewidth)
 	} else {
 		Msg.FYI(fmt.Sprintf(FAIL, locus))
 		return browsedpassage{}
@@ -147,7 +156,7 @@ func browse(c echo.Context, sep string) browsedpassage {
 }
 
 // generatebrowsedpassage - browse Author A at line X with a context of Y lines
-func generatebrowsedpassage(au string, wk string, fc int, ctx int, zaplunates bool) browsedpassage {
+func generatebrowsedpassage(au string, wk string, fc int, ctx int, zaplunates bool, regularizewidth bool) browsedpassage {
 	// build a response to "GET /browse/index/gr0062/028/14672 HTTP/1.1"
 
 	const (
@@ -209,7 +218,7 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int, zaplunates bo
 	// [c] acquire and format the HTML
 
 	ci := formatbrowsercitationinfo(wlb.FirstLine(), wlb.Lines[wlb.Len()-1])
-	tr := buildbrowsertable(fc, wlb.Lines, zaplunates)
+	tr := buildbrowsertable(fc, wlb.Lines, zaplunates, regularizewidth)
 
 	// [d] fill out the JSON-ready struct
 	p := fc - ctx
@@ -362,7 +371,7 @@ func basiccitation(l str.DbWorkline) string {
 }
 
 // buildbrowsertable - where the actual HTML gets generated; this table is better for cut-and-paste...
-func buildbrowsertable(focus int, lines []str.DbWorkline, zaplunates bool) string {
+func buildbrowsertable(focus int, lines []str.DbWorkline, zaplunates bool, regularizewidth bool) string {
 	const (
 		OBSREGTEMPL = "(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)" + vv.TERMINATIONS
 		UIDDIV      = `<div id="browsertableuid" uid="%s"></div>`
@@ -532,7 +541,9 @@ func buildbrowsertable(focus int, lines []str.DbWorkline, zaplunates bool) strin
 	// that was the body, now do the head and tail
 	top := fmt.Sprintf(UIDDIV, lines[0].AuID())
 	top += `<table><tbody>`
-	top += stabilizebrowserwidth(longestnote)
+	if regularizewidth {
+		top += stabilizebrowserwidth(longestnote)
+	}
 	tab = top + tab + `</tbody></table>`
 
 	if zaplunates {

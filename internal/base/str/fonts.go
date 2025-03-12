@@ -25,4 +25,5 @@ type FontTempl struct {
 	HasLunateSigma   bool
 	UseGenericMono   bool
 	NeedsManualStyle []string
+	MainBodyFontSize int
 }

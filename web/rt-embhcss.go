@@ -131,6 +131,16 @@ func RtEmbHCSS(c echo.Context) error {
 		}
 	}
 
+	// one last thing... some fonts are bigger than others; Brill is very small
+	fszi := 100
+	if slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), s.FontSel) {
+		f := vv.ServableFonts[s.FontSel]
+		fszi = f.MainBodyFontSize
+	}
+
+	fszs := fmt.Sprintf("%d%%;", fszi)
+	css = strings.Replace(css, "100%; /*insert_main_body_font_size*/", fszs, 1)
+
 	c.Response().Header().Add("Content-Type", "text/css")
 	return c.String(http.StatusOK, css)
 }

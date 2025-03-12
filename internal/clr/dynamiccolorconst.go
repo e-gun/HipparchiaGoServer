@@ -326,26 +326,26 @@ const (
 	// TRIADIC - only A, B, C available; the geometry is *very* similar to splitcomp...
 	TRIADIC = `
     /* TRIADIC: only A, B, C */
-    --main-body-color: {{.colorA1}};
+    --main-body-color: {{.colorA0}};
     --main-font-color: {{.colorA6}};
-    --input-border-color: {{.colorA2}};
+    --input-border-color: {{.colorB3}};
     
-    --buttoncolor: {{.colorB2}};
+    --buttoncolor: {{.colorB3}};
     --button-hover: {{.colorB5}};
     
     --fieldset-background: {{.colorA2}};
     --focus-shadow: rgba(0, 0, 0, 0.5);
-    --icons-color: {{.colorA4}};
+    --icons-color: {{.colorB5}};
 
-	--greyborders: {{.colorA3}};
+	--greyborders: {{.colorB5}};
 	--boxshadows: {{.colorA4}};
 	--dropdown-backgrounds: {{.colorC1}};
-	--modalbackground: {{.colorB0}};
+	--modalbackground: {{.colorA0}};
 	--modalheader: {{.colorB3}};
-	--sidednavcolor: {{.colorA0}};
+	--sidednavcolor: {{.colorA1}};
 	--nthrowcol: {{.colorA2}};
 	--buttonandcheckboxborder: {{.colorA4}};
-	--buttonandcheckboxcontents: {{.colorA3}};
+	--buttonandcheckboxcontents: {{.colorB4}};
 
 	--locuscolor: {{.colorC4}};
 	--notations: {{.colorB6}};
@@ -391,7 +391,7 @@ const (
     --hgscol05: {{.colorC5}}; 
     --hgscol06: {{.colorC6}};  
 
-    --hgscol09: {{.colorB3}};
+    --hgscol09: {{.colorB5}};
     --hgscol10: {{.colorA0}};
 
 	/* b/w */

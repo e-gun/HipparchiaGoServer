@@ -4,6 +4,8 @@ var (
 	// CssColorHSLs -
 	// need access to the numbers and not just CSS so you can reset vector dot colors too...
 	// this also explains why Light and Dark have values assigned to them
+	// command line "-cd" can alter one of the k/v pairs; this will then affect CssColorModes and
+	// CssSamples
 	CssColorHSLs = map[string][]int{
 		"Light": {140, 25, 100, 0},
 		"Dark":  {50, 40, 0, 100},
@@ -13,7 +15,8 @@ var (
 		"SplitComp":  {175, 12, 85, 10},
 		"Square":     {111, 25, 85, 15},
 		"Tetradic":   {40, 17, 80, 15},
-		"Triadic":    {235, 12, 18, 91},
+		// "Triadic":    {230, 10, 18, 95},
+		"Triadic": {53, 35, 18, 100},
 	}
 	CssColorModes = map[string]string{} // set in "main.go" after "configatlaunch.go"
 	CssSamples    = map[string]string{} // set in "main.go" after "configatlaunch.go"

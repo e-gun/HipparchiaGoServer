@@ -84,8 +84,8 @@ const (
 	SSLCERTDIR               = "./sslcerts/"
 	SSLCPEM                  = "cert.pem"
 	SSLPPEM                  = "privkey.pem"
-	TEMPTABLETHRESHOLD       = 100 // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
-	TERMINATIONS             = `(\s|\.|\]|\<|⟩|’|”|\!|,|:|;|\?|·|$)`
+	TEMPTABLETHRESHOLD       = 100                                          // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
+	TERMINATIONS             = `(\s|\.|\]|\<|⟩|\)|’|”|\!|,|:|;|\?|⸥|«|·|$)` // circular imports means this is declared 2x... see also "gen.greekandlatin.go"
 	TICKERISACTIVE           = false
 	TICKERDELAY              = 3 * time.Second
 	TICKERLINES              = 25

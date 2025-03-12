@@ -6,7 +6,7 @@ body {
     margin: 10px 10px 10px 10px;
     line-height: 1.4;
     font-family: 'hipparchiasansstatic', sans-serif;
-    font-size: 100%;
+    font-size: 100%; /*insert_main_body_font_size*/
     font-weight: normal;
     text-transform: none;
     letter-spacing: normal;
