@@ -130,6 +130,7 @@ body {
 }
 
 #helptabs {
+    font-family: 'hipparchiasansstatic', sans-serif;
     position: fixed;
     top: 125px;
     right: 125px;
@@ -137,7 +138,7 @@ body {
     bottom: 125px;
     box-shadow: 5px 5px 2px var(--boxshadows);
     padding: 10px;
-    background-color: var(--hgscol10);
+    background-color: var(--modalbackground);
     overflow: auto;
 }
 

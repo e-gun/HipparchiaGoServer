@@ -35,6 +35,18 @@ var (
 // hipparchiasemicondenseditalicstatic, etc: setting font-style as oblique on a Regular src file will not give you oblique...
 
 var (
+	// MonspaceFonts : only used to check whether to "regularizewidth" in the browser; and only Iosevka is available
+	// as a real choice at the moment
+	MonspaceFonts = []string{
+		"cmunbtl",
+		"FiraMono",
+		"NotoSansMono",
+		"Iosevka",
+		"Mplus1Code",
+		"RobotoMono",
+		"SourceCodePro",
+		"UbuntuMono",
+	}
 	AlegreyaFont = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",

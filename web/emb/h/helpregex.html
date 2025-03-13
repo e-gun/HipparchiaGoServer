@@ -4,8 +4,16 @@ Consider looking at a <a href="https://github.com/zeeshanu/learn-regex">tutorial
 Regex searching remains a bit glitchy given the inherent complexity of regex itself when combined with the complex
 internal structure of the data you are searching: double-checking your results is recommended.
 <br /><br />
+
+Characters currently disabled by the server configuration: <!-- swap_in_values -->
+<br />
+Reconfiguration and relaunch is required to gain access to any of these.
+There is no user-facing interface for this.
+
+<br /><br />
 The more salient things to know/use:
 <ul class="forexample">
+    <li>All searches are case-insensitive: <span class="lat">laudat</span> and <span class="lat">Laudat</span> are the same in the underlying tables.
     <li><code>[abc]</code> brackets a set of acceptable characters to look for in the next position: a, or b, or c.
         <code>lauda[st]</code> will find <span class="lat">laudas</span> or <span class="lat">laudat</span> but not <span class="lat">laudare</span>. </li>
     <li><code>[^abc]</code> brackets a set of characters to exclude in the next position: not a, nor b, nor c.
@@ -17,8 +25,9 @@ The more salient things to know/use:
         <code>co[nl]laud</code> to make sure you got alternate spellings of <span class="lat">conlaudare</span>.</li>
     <li><code>.</code> any character: <code>laud.nt</code> will find <span class="lat">laudant</span>, <span class="lat">laudent</span>,
         and, theoretically, <span class="lat">laudZnt</span></li>
-    <li><code>\w</code> is any 'word' character and is roughly equivalent to <code>[a-z]</code>. Greek is not covered by <code>\w</code></li>
-    <li><code>\s</code> whitespace: <code>\ssed\setiam\s</code> is a search for <code>' sed etiam '</code>.
+    <li><code>\w</code> is any 'word' character and is roughly equivalent to <code>[a-z]</code>. Greek is not covered by <code>\w</code>.</li>
+    <li>Unfortunately the following is 'any Greek': <code>[α-ωϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ]</code></li>
+    <li><code>\s</code> whitespace: <code>\ssed\setiam\s</code> is a search for <code>' sed etiam '</code>. There is usually no reason to use <code>\s</code> instead of just typing a whitespace.
 </ul>
 Here are some examples that give you an idea of the sort of things that are possible. But major caveats follow.
 <ul class="forexample">

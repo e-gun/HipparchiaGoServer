@@ -25,23 +25,27 @@ const (
 	PROJURL  = "https://github.com/e-gun/HipparchiaGoServer"
 
 	HELPTEXTTEMPLATE = `S3command line optionsS0:
-   C1-auC0          toggle authentication relative to the config file; "on" implies "C3{{.confauth}}C0" exists and has been properly configured
+   C1-auC0          toggle authentication relative to the config file [C6currentC0: C3{{.authstatus}}C0]
+                   "C3trueC0" requires a properly configured "C3{{.confauth}}C0" 
    C1-avC0          automatically generate vector models for every author in the database
                    default settings will consume c. C11.3GBC0 of extra disk space
    C1-bcC0 C2{num}C0    default lines of browser context to display [C6currentC0: C3{{.ctxlines}}C0]
    C1-bwC0          disable color output in the console
-   C1-cdC0          redefine a color scheme: name hue sat lum1 lum2 [does not work for C3LightC0 or C3DarkC0]
+   C1-cdC0          redefine a color scheme: C4name hue sat lum1 lum2C0 [does not work for C3LightC0 or C3DarkC0]
                    example: C4"./HipparchiaGoServer -cm Monochrome -cd 0 40 95 8 Monochrome"C0
-   C1-cmC0          select a default css color mode [C6built-in:C0 C3{{.knowncolors}}C0][C6currentC0: C3{{.defcol}}C0]
+   C1-cmC0          select a default css color mode [C6currentC0: C3{{.defcol}}C0]
+                   [C6built-in:C0 C3{{.knowncolors}}C0]
    C1-crC0          report color scheme names and values
    C1-csC0          use a custom CSS file; will try to read "C3{{.home}}{{.css}}C0"
    C1-dbC0          debug database: show internal references in browsed passages
    C1-dvC0          disable semantic vector searching
    C1-elC0 C2{num}C0    set echo server log level (C10-3C0) [C6currentC0: C3{{.echoll}}C0]
-   C1-exC0          extract the data to an archive folder in the same directory as the application; data sent to: "C3{{.cwd}}C0"
-   C1-ftC0 C2{string}C0 change the font [C6built-in:C0 C3{{.knownfnts}}C0][C6currentC0: C3{{.deffnt}}C0]
-                   names with spaces need quotes around them: "C4Gentium Plus CompactC0"
-                   C4BrillC0 probably has the broadest support for rare characters. C4NotoC0 likely comes next.
+   C1-exC0          extract the data to an archive folder in the same directory as the application
+                   data sent to: "C3{{.cwd}}C0"
+   C1-ftC0 C2{string}C0 change the font [C6currentC0: C3{{.deffnt}}C0]
+                   [C6built-in:C0 C3{{.knownfnts}}C0]
+                   font names with spaces need quotes around them: "C4Gentium Plus CompactC0"
+                   C4BrillC0, C4IosevkaC0 and C4NotoC0 have the broadest support for rare characters.
    C1-glC0 C2{num}C0    set golang log level (C10-5C0) [C6currentC0: C3{{.hgsll}}C0]
    C1-gzC0          enable gzip compression of the server's output
    C1-hC0           print this help information

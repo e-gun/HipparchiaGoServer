@@ -11,6 +11,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
@@ -177,6 +178,10 @@ func RtGetJSWorksStruct(c echo.Context) error {
 
 // RtGetJSHelpdata - populate <div id="helptabs"> on frontpage.html via $('#helpbutton').click in documentready.js
 func RtGetJSHelpdata(c echo.Context) error {
+	const (
+		REIN  = `<!-- swap_in_values -->`
+		REOUT = `<code>%s</code>`
+	)
 	cat := []string{"Interface", "Browsing", "Dictionaries", "MakingSearchLists", "BasicSyntax", "RegexSearching",
 		"LemmaSearching", "Oddities", "Extending", "IncludedMaterials", "PDFFiles"}
 
@@ -208,6 +213,9 @@ func RtGetJSHelpdata(c echo.Context) error {
 		Msg.EC(e)
 		hc[k] = string(b)
 	}
+
+	banned := fmt.Sprintf(REOUT, lnch.Config.BadChars)
+	hc["RegexSearching"] = strings.Replace(hc["RegexSearching"], REIN, banned, -1)
 
 	var j JSOut
 	j.HC = cat

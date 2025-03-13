@@ -17,6 +17,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -84,7 +85,7 @@ func RtBrowseLine(c echo.Context) error {
 
 	s := vlt.AllSessions.GetSess(user)
 	regularizewidth := true
-	if s.FontSel == "Iosevka" {
+	if slices.Contains(vv.MonspaceFonts, s.FontSel) {
 		regularizewidth = false
 	}
 
@@ -451,7 +452,7 @@ func buildbrowsertable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 		// you will have "ἱματίῳ", but the marked up line has "ἱμα- | τίῳ"
 		ar := make(map[string]*regexp.Regexp)
 		for _, w := range allwords {
-			r := fmt.Sprintf(OBSREGTEMPL, gen.UVCapsVariants(w))
+			r := fmt.Sprintf(OBSREGTEMPL, gen.UVσςϲCapsVariants(w))
 			pattern, e := regexp.Compile(r)
 			if e != nil {
 				// you will barf if w = *
@@ -482,7 +483,7 @@ func buildbrowsertable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 			if j == len(wds)-1 && terminalhyph.MatchString(lmw) {
 				// wds[lastwordindex] is the unhyphenated word
 				// almostallregex does not contain this pattern: "ἱμα-", e.g.
-				np, e := regexp.Compile(fmt.Sprintf(OBSREGTEMPL, gen.UVCapsVariants(lmw)))
+				np, e := regexp.Compile(fmt.Sprintf(OBSREGTEMPL, gen.UVσςϲCapsVariants(lmw)))
 				if e != nil {
 					Msg.PEEK(fmt.Sprintf(FAIL, lmw))
 					np = regexp.MustCompile("FIND_NOTHING")
