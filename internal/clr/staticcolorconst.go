@@ -1,8 +1,11 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022-25
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package clr
 
 const (
-	DEFAULTCOLORSCHEME = "Light"
-
 	LIGHTCOLORSORIGINAL = `
 	--main-body-color: hsla(0, 0%, 98%, 1);
 	--main-font-color: hsla(0, 0%, 6%, 1);

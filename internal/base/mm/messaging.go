@@ -19,7 +19,7 @@ import (
 //
 
 const (
-	LOGFILE              = "hgs-msg.log" // circular import problem; need to edit "vv.constants.go" too if changing this
+	LOGFILE              = "hgs-msg.log" // circular import problem; need to edit "vv.miscinternalconstants.go" too if changing this
 	UNCOLORED            = -9
 	MSGMAND              = -1
 	MSGCRIT              = 0

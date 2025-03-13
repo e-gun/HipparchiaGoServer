@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022-25
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package clr
 
 // if the body is a '5' or '6', then it is safest to keep most of the other colors ina the 2-0 range...

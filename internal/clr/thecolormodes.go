@@ -1,3 +1,8 @@
+//    HipparchiaGoServer
+//    Copyright: E Gunderson 2022-25
+//    License: GNU GENERAL PUBLIC LICENSE 3
+//        (see LICENSE in the top level directory of the distribution)
+
 package clr
 
 var (
@@ -16,7 +21,7 @@ var (
 		"Square":     {111, 25, 85, 15},
 		"Tetradic":   {40, 17, 80, 15},
 		// "Triadic":    {230, 10, 18, 95},
-		"Triadic": {53, 35, 15, 100},
+		"Triadic": {55, 40, 15, 100},
 	}
 	CssColorModes = map[string]string{} // set in "main.go" after "configatlaunch.go"
 	CssSamples    = map[string]string{} // set in "main.go" after "configatlaunch.go"

@@ -379,7 +379,7 @@ func formatfinalsearchsummary(s *str.SearchStruct, skipped int) string {
 		INFAU   = "<!-- unlimited hits per author -->"
 		ONEAU   = `<br><span class="smaller">(only one hit allowed per author table)</span>`
 		NOSKIP  = "<!-- no titles skipped -->"
-		YESSKIP = `<br><span class="smallerthannormal">[Dropped %d titles/headers from the results; see them by making the 'lines of context' setting > 0]</span>`
+		YESSKIP = `<br><span class="smallerthannormal">[Dropped %d titles/headers from the list of results. Restore them by increasing the 'lines of context' setting.]</span>`
 	)
 
 	sess := vlt.AllSessions.GetSess(s.User)
@@ -422,24 +422,20 @@ func formatfinalsearchsummary(s *str.SearchStruct, skipped int) string {
 		so = "ID"
 	}
 
-	//el := fmt.Sprintf("%.2f", time.Now().Sub(s.Launched).Seconds())
-
 	m := message.NewPrinter(language.English) // to get commas into the long numbers
-
-	// sum := m.Sprintf(TEMPL, s.ExtraMsg, s.InitSum, s.SearchSize, s.Results.Len(), el, so, oh, dr, hitcap)
 
 	// need to record # of works and not # of tables somewhere & at the right moment...
 	summarymap := map[string]interface{}{
-		"ExtraMsg":       s.ExtraMsg,
-		"Sought":         s.InitSum,
-		"WkCount":        m.Sprintf("%d", s.SearchSize),
-		"PsgCount":       m.Sprintf("%d", s.Results.Len()),
-		"TimeElapsed":    fmt.Sprintf("%.2f", time.Now().Sub(s.Launched).Seconds()),
-		"SortCriterion":  so,
 		"AuInfSuppl":     oh,
 		"DtInfSuppl":     dr,
-		"Suspension":     hitcap,
+		"ExtraMsg":       s.ExtraMsg,
 		"FilteredTitles": skipper,
+		"PsgCount":       m.Sprintf("%d", s.Results.Len()),
+		"SortCriterion":  so,
+		"Sought":         s.InitSum,
+		"Suspension":     hitcap,
+		"TimeElapsed":    fmt.Sprintf("%.2f", time.Now().Sub(s.Launched).Seconds()),
+		"WkCount":        m.Sprintf("%d", s.SearchSize),
 	}
 
 	fft, e := template.New("mt").Parse(SUMMARY)

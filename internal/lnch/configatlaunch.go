@@ -330,8 +330,8 @@ func ConfigAtLaunch() {
 	}
 
 	if !slices.Contains(gen.StringMapKeysIntoSlice(clr.CssColorHSLs), Config.CssColors) {
-		Msg.WARN(fmt.Sprintf(FAIL9, Config.CssColors, clr.DEFAULTCOLORSCHEME))
-		Config.CssColors = clr.DEFAULTCOLORSCHEME
+		Msg.WARN(fmt.Sprintf(FAIL9, Config.CssColors, vv.DEFAULTCOLORSCHEME))
+		Config.CssColors = vv.DEFAULTCOLORSCHEME
 	}
 }
 
@@ -343,7 +343,7 @@ func builddefaultconfig() *str.CurrentConfiguration {
 	c.BlackAndWhite = vv.BLACKANDWHITE
 	c.BrowserCtx = vv.DEFAULTBROWSERCTX
 	c.CustomCSS = false
-	c.CssColors = clr.DEFAULTCOLORSCHEME
+	c.CssColors = vv.DEFAULTCOLORSCHEME
 	c.DbDebug = false
 	c.Font = vv.FONTSETTING
 	c.Gzip = vv.USEGZIP

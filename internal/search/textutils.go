@@ -407,11 +407,6 @@ func InclusionOverview(s *str.SearchStruct, sessincl str.SearchIncExl) string {
 
 	const (
 		MAXITEMS = 4
-		GRCT     = 1823
-		LTCT     = 362
-		INCT     = 463
-		CHCT     = 291
-		DPCT     = 516
 		FULL     = "all %d of the %s tables"
 	)
 
@@ -464,17 +459,18 @@ func InclusionOverview(s *str.SearchStruct, sessincl str.SearchIncExl) string {
 	}
 
 	r := ""
+	// yes, there is a way to get this check wrong; but that would be a very special search list...
 	switch tt {
-	case GRCT:
-		r = fmt.Sprintf(FULL, GRCT, "Greek author")
-	case LTCT:
-		r = fmt.Sprintf(FULL, LTCT, "Latin author")
-	case INCT:
-		r = fmt.Sprintf(FULL, INCT, "classical inscriptions")
-	case DPCT:
-		r = fmt.Sprintf(FULL, DPCT, "documentary papyri")
-	case CHCT:
-		r = fmt.Sprintf(FULL, CHCT, "christian era inscriptions")
+	case vv.GRCT:
+		r = fmt.Sprintf(FULL, vv.GRCT, "Greek author")
+	case vv.LTCT:
+		r = fmt.Sprintf(FULL, vv.LTCT, "Latin author")
+	case vv.INCT:
+		r = fmt.Sprintf(FULL, vv.INCT, "classical inscriptions")
+	case vv.DPCT:
+		r = fmt.Sprintf(FULL, vv.DPCT, "documentary papyri")
+	case vv.CHCT:
+		r = fmt.Sprintf(FULL, vv.CHCT, "christian era inscriptions")
 	default:
 		r = notall()
 	}
