@@ -84,6 +84,14 @@ func CapsVariants(word string) string {
 	return cv
 }
 
+// UVσςϲCapsVariants - UV aware version of CapsVariants: [aA][bB][cC][uUvV]
+func UVσςϲCapsVariants(word string) string {
+	cv := CapsVariants(word)
+	cv = strings.Replace(cv, "[uU]", "[uUvV]", -1)
+	cv = strings.Replace(cv, "[ϲϹ]", "[ϲϹσςΣ]", -1)
+	return cv
+}
+
 // UVσςϲ - v to u, etc
 func UVσςϲ(u string) string {
 	ru := []rune(u)

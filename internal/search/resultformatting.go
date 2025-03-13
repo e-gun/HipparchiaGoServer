@@ -73,7 +73,13 @@ func FormatNoContextResults(ss *str.SearchStruct) str.SearchOutputJSON {
 
 	rr := ss.Results.Yield()
 	i := 0
+	skipcount := 0
 	for r := range rr {
+		if strings.Contains(r.Lvl0Value, "t") || strings.Contains(r.Lvl1Value, "tit") {
+			skipcount += 1
+			continue
+		}
+
 		r.PurgeMetadata()
 		// highlight search term; should be folded into a single function w/ highlightsearchterm() below [type problem now]
 		if searchterm.MatchString(r.MarkedUp) {
@@ -124,7 +130,7 @@ func FormatNoContextResults(ss *str.SearchStruct) str.SearchOutputJSON {
 	out.JS = fmt.Sprintf(vv.BROWSERJS, "browser")
 	out.Title = ss.Seeking
 	out.Image = ""
-	out.Searchsummary = formatfinalsearchsummary(ss)
+	out.Searchsummary = formatfinalsearchsummary(ss, skipcount)
 
 	out.Found = "<tbody>" + b.String() + "</tbody>"
 
@@ -325,53 +331,57 @@ func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON 
 		Msg.EC(err)
 	}
 
+	skipcount := 0 // rather than toggle skip/noskip we will let withcontext find titles; but nocontext drops them...
+
 	// ouput
 
 	var out str.SearchOutputJSON
 	out.JS = fmt.Sprintf(vv.BROWSERJS, "browser")
 	out.Title = RestoreWhiteSpace(thesearch.Seeking)
 	out.Image = ""
-	out.Searchsummary = formatfinalsearchsummary(thesearch)
+	out.Searchsummary = formatfinalsearchsummary(thesearch, skipcount)
 	out.Found = b.String()
 
 	vlt.WSInfo.Del <- ctxsearch.ID
 	return out
 }
 
-func formatfinalsearchsummary(s *str.SearchStruct) string {
+func formatfinalsearchsummary(s *str.SearchStruct, skipped int) string {
 	// ex:
-	//        Sought <span class="sought">»ἡμέρα«</span>
-	//        <br>
-	//        Searched 49,230 works and found 200 passages (0.12s)
-	//        <br>
-	//        Sorted by author name
-	//        <!-- unlimited hits per author -->
-	//        <br>
-	//        <!-- dates did not matter -->
-	//        [Search suspended: result cap reached.]
-
+	//                Sought <span class="sought">»\s\w\w$«</span>
+	//                <br>
+	//                Searched 3 works and found 27 passages (0.03s)
+	//                <br>
+	//                Sorted by author name
+	//                <!-- unlimited hits per author -->
+	//                <br>
+	//                <!-- dates did not matter -->
+	//                <!-- did not hit the results cap -->
+	//                <br><span class="smallerthannormal">[Dropped 11 titles/headers from the results]</span>
 	const (
-		TEMPL = `
-		%s
-		%s
+		SUMMARY = `
+		{{.ExtraMsg}}
+		{{.Sought}}
 		<br>
-		Searched %d works and found %d passages (%ss)
+		Searched {{.WkCount}} works and found {{.PsgCount}} passages ({{.TimeElapsed}}s) 
 		<br>
-		Sorted by %s
-		%s
+		Sorted by {{.SortCriterion}}
+		{{.AuInfSuppl}}
 		<br>
-		%s
-		%s
+		{{.DtInfSuppl}}
+		{{.Suspension}}
+		{{.FilteredTitles}}
 	`
-		BETW   = "Searched between %s and %s<br>"
-		DDM    = "<!-- dates did not matter -->"
-		NOCAP  = "<!-- did not hit the results cap -->"
-		YESCAP = `<span class="smallerthannormal">[Search suspended: result cap reached.]</span>`
-		INFAU  = "<!-- unlimited hits per author -->"
-		ONEAU  = `<br><span class="smaller">(only one hit allowed per author table)</span>`
+		BETW    = "Searched between %s and %s<br>"
+		DDM     = "<!-- dates did not matter -->"
+		NOCAP   = "<!-- did not hit the results cap -->"
+		YESCAP  = `<span class="smallerthannormal">[Search suspended: result cap reached.]</span>`
+		INFAU   = "<!-- unlimited hits per author -->"
+		ONEAU   = `<br><span class="smaller">(only one hit allowed per author table)</span>`
+		NOSKIP  = "<!-- no titles skipped -->"
+		YESSKIP = `<br><span class="smallerthannormal">[Dropped %d titles/headers from the results; see them by making the 'lines of context' setting > 0]</span>`
 	)
 
-	m := message.NewPrinter(language.English)
 	sess := vlt.AllSessions.GetSess(s.User)
 	var dr string
 	if sess.Earliest != vv.MINDATESTR || sess.Latest != vv.MAXDATESTR {
@@ -394,6 +404,11 @@ func formatfinalsearchsummary(s *str.SearchStruct) string {
 		oh = ONEAU
 	}
 
+	skipper := NOSKIP
+	if skipped > 0 {
+		skipper = fmt.Sprintf(YESSKIP, skipped)
+	}
+
 	var so string
 
 	switch sess.SortHitsBy {
@@ -407,10 +422,33 @@ func formatfinalsearchsummary(s *str.SearchStruct) string {
 		so = "ID"
 	}
 
-	el := fmt.Sprintf("%.2f", time.Now().Sub(s.Launched).Seconds())
+	//el := fmt.Sprintf("%.2f", time.Now().Sub(s.Launched).Seconds())
+
+	m := message.NewPrinter(language.English) // to get commas into the long numbers
+
+	// sum := m.Sprintf(TEMPL, s.ExtraMsg, s.InitSum, s.SearchSize, s.Results.Len(), el, so, oh, dr, hitcap)
+
 	// need to record # of works and not # of tables somewhere & at the right moment...
-	sum := m.Sprintf(TEMPL, s.ExtraMsg, s.InitSum, s.SearchSize, s.Results.Len(), el, so, oh, dr, hitcap)
-	return sum
+	summarymap := map[string]interface{}{
+		"ExtraMsg":       s.ExtraMsg,
+		"Sought":         s.InitSum,
+		"WkCount":        m.Sprintf("%d", s.SearchSize),
+		"PsgCount":       m.Sprintf("%d", s.Results.Len()),
+		"TimeElapsed":    fmt.Sprintf("%.2f", time.Now().Sub(s.Launched).Seconds()),
+		"SortCriterion":  so,
+		"AuInfSuppl":     oh,
+		"DtInfSuppl":     dr,
+		"Suspension":     hitcap,
+		"FilteredTitles": skipper,
+	}
+
+	fft, e := template.New("mt").Parse(SUMMARY)
+	Msg.EC(e)
+	var b bytes.Buffer
+	err := fft.Execute(&b, summarymap)
+	Msg.EC(err)
+
+	return b.String()
 }
 
 // highlightsearchterm - html markup for the search term in the line so it can jump out at you
