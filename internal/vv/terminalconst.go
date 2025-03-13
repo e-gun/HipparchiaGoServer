@@ -43,8 +43,7 @@ const (
    C1-exC0          extract the data to an archive folder in the same directory as the application
                    data sent to: "C3{{.cwd}}C0"
    C1-ftC0 C2{string}C0 change the font [C6currentC0: C3{{.deffnt}}C0]
-                   [C6built-in:C0 C3{{.knownfnts}}C0]
-                   font names with spaces need quotes around them: "C4Gentium Plus CompactC0"
+                   [C6known fonts:C0 C3{{.knownfnts}}C0]
                    C4BrillC0, C4IosevkaC0 and C4NotoC0 have the broadest support for rare characters.
    C1-glC0 C2{num}C0    set golang log level (C10-5C0) [C6currentC0: C3{{.hgsll}}C0]
    C1-gzC0          enable gzip compression of the server's output

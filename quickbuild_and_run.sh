@@ -16,4 +16,4 @@ LDF="-s -w -X main.GitCommit=${GC} -X main.BuildDate=${DT} -X main.VersSuppl=${V
 
 ${GO} build -pgo=${PGF} -ldflags "${LDF}"
 
-./HipparchiaGoServer  -gl 3 -cm Triadic -ft Iosevka
+./HipparchiaGoServer  -gl 3 -cm Triadic -ft Brill

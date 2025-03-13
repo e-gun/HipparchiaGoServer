@@ -1,5 +1,5 @@
 :root {
-    --systemdefaultfont: "{{index . "fontname"}}";
+
     --leftpanelsize: 45%;
     --rightpanelsize: 45%;
 

@@ -32,7 +32,7 @@ type FontSwap struct {
 }
 
 var (
-	// used by cssmanualfontstyling
+	// used by fleshoutcss
 	cssswaps = map[string]FontSwap{
 		"hipparchiasansstatic":                {"var(--systemdefaultfont), sans-serif", "normal", "normal", "normal"},
 		"hipparchiamonostatic":                {"monospace", "normal", "normal", "normal"},
@@ -81,15 +81,9 @@ func RtEmbHCSS(c echo.Context) error {
 	user := vlt.ReadUUIDCookie(c)
 	s := vlt.AllSessions.GetSess(user)
 
-	// if you asked for a font on the command line, the next two lines will do something about that
-	fsub := lnch.Config.Font
-	sdf := "var(--systemdefaultfont), "
-
-	// if the font is being served, then blank out "--systemdefaultfont" and get ready to map the font files into the CSS
-	// note that that option will nullify the UI font selection
-	if slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), lnch.Config.Font) {
-		fsub = ""
-		sdf = ""
+	// should not be possible to fail this, but...
+	if !slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), s.FontSel) {
+		s.FontSel = vv.FONTSETTING
 	}
 
 	var aggregatecss string
@@ -103,8 +97,6 @@ func RtEmbHCSS(c echo.Context) error {
 	}
 
 	subs := map[string]interface{}{
-		"fontname":     fsub,
-		"sdf":          sdf,
 		"fontfaceinfo": cssfontfacedirectives(s.FontSel),
 		"colorinfo":    clr.CssColorModes[s.CssColors], // make sure that it is impossible to set a bad mode...
 	}
@@ -118,24 +110,15 @@ func RtEmbHCSS(c echo.Context) error {
 
 	css := b.String()
 
-	// if the font is not being served, then replace font names with explicit style directives
-	if !slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), s.FontSel) {
-		css = cssmanualfontstyling(css)
-	}
-
-	// if the font is being served, but it is relatively hollow when it comes to styles, patch things
-	if slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), s.FontSel) {
-		f := vv.ServableFonts[s.FontSel]
-		if len(f.NeedsManualStyle) != 0 {
-			css = fleshoutcss(f, css)
-		}
+	ftmp := vv.ServableFonts[s.FontSel]
+	if len(ftmp.NeedsManualStyle) != 0 {
+		css = fleshoutcss(ftmp, css)
 	}
 
 	// one last thing... some fonts are bigger than others; Brill is very small
 	fszi := 100
 	if slices.Contains(gen.StringMapKeysIntoSlice(vv.ServableFonts), s.FontSel) {
-		f := vv.ServableFonts[s.FontSel]
-		fszi = f.MainBodyFontSize
+		fszi = ftmp.MainBodyFontSize
 	}
 
 	fszs := fmt.Sprintf("%d%%;", fszi)
@@ -307,26 +290,6 @@ func cssfontfacedirectives(f string) string {
 	// note that incomplete fonts like Brill will have incomplete @font-face information
 	// this can and will be checked
 	// fmt.Println(css)
-
-	return css
-}
-
-// cssmanualfontstyling - swap out: "font-family: 'hipparchiabolditalicstatic', sans-serif;" for explicit style directives
-func cssmanualfontstyling(css string) string {
-	// swap out: "font-family: 'hipparchiabolditalicstatic', sans-serif;" for explicit style directives
-	outtmpl := "font-family: '%s', sans-serif;"
-	intempl := "font-family: %s;\n\tfont-weight: %s;\n\tfont-style: %s;\n\tfont-stretch: %s;"
-	for n, sw := range cssswaps {
-		i := fmt.Sprintf(intempl, sw.familiy, sw.weight, sw.style, sw.stretch)
-		o := fmt.Sprintf(outtmpl, n)
-		css = strings.ReplaceAll(css, o, i)
-	}
-
-	// the above will have missed hipparchiamonostatic
-	fswap := cssswaps["hipparchiamonostatic"]
-	i := fmt.Sprintf(intempl, fswap.familiy, fswap.weight, fswap.style, fswap.stretch)
-	o := fmt.Sprintf("font-family: '%s', monospace;", "hipparchiamonostatic")
-	css = strings.ReplaceAll(css, o, i)
 
 	return css
 }
