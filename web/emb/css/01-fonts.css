@@ -1,8 +1,9 @@
 /* 01 fonts */
 
-/* fontfaceinfo is dynamically set */
+/* dynamic fontfaceinfo is set by cssfontfacedirectives() in rt-embhcss.go */
 {{index . "fontfaceinfo"}}
 
+/* static fontfaceinfo */
 @font-face {
     font-family: 'Material Icons';
     font-display: swap;

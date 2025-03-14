@@ -3,7 +3,7 @@
     --leftpanelsize: 45%;
     --rightpanelsize: 45%;
 
-    /* colorinfo for this scheme is dynamically set */
+    /* colorinfo for this scheme is dynamically set by colorschemebuilder.go */
 {{index . "colorinfo"}}
 
 }

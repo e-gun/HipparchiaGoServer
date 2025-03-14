@@ -68,3 +68,8 @@ func (dbw DbWork) DateInRange(earliest int, latest int) bool {
 		return false
 	}
 }
+
+// Length - how many db lines?
+func (dbw DbWork) Length() int {
+	return dbw.LastLine - dbw.FirstLine + 1
+}

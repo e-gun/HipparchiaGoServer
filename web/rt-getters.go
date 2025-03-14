@@ -368,9 +368,9 @@ func RtGetJSSampCit(c echo.Context) error {
 // RtGetJSSearchlist - report the search list contents to the browser
 func RtGetJSSearchlist(c echo.Context) error {
 	const (
-		WORKTMPL  = `%s, <span class="italic">%s</span> [%d words]`
+		WORKTMPL  = `%s, <span class="italic">%s</span> [%d line%s - %d word%s]`
 		SPILLOVER = `<br>(and <span class="emph">%d</span> additional works)`
-		SUMMARY   = `<br><span class="emph">%d</span> total words`
+		SUMMARY   = `<br><span class="emph">%d</span> total line%s and <span class="emph">%d</span> total word%s`
 		REG       = `(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
 	)
 
@@ -381,36 +381,59 @@ func RtGetJSSearchlist(c echo.Context) error {
 	sl := search.SessionIntoSearchlist(sess)
 
 	totalwords := 0
+	totallines := 0
 
 	var wkk []string
 	for _, a := range sl.Inc.Authors {
 		for _, w := range mps.AllAuthors[a].WorkList {
 			ct := WORKTMPL
-			cf := m.Sprintf(ct, mps.AllAuthors[a].Cleaname, mps.AllWorks[w].Title, mps.AllWorks[w].WdCount)
+			pll := "s"
+			if mps.AllWorks[w].Length() == 1 {
+				pll = ""
+			}
+			plw := "s"
+			if mps.AllWorks[w].WdCount == 1 {
+				plw = ""
+			}
+			cf := m.Sprintf(ct, mps.AllAuthors[a].Cleaname, mps.AllWorks[w].Title,
+				mps.AllWorks[w].Length(), pll, mps.AllWorks[w].WdCount, plw)
 			wkk = append(wkk, cf)
 			totalwords += mps.AllWorks[w].WdCount
+			totallines += mps.AllWorks[w].Length()
 		}
 	}
 
 	for _, w := range sl.Inc.Works {
 		thiswk := mps.AllWorks[w]
 		ct := WORKTMPL
-		cf := m.Sprintf(ct, mps.DbWkMyAu(thiswk).Cleaname, thiswk.Title, thiswk.WdCount)
+		pll := "s"
+		if thiswk.Length() == 1 {
+			pll = ""
+		}
+		plw := "s"
+		if thiswk.WdCount == 1 {
+			plw = ""
+		}
+		cf := m.Sprintf(ct, mps.DbWkMyAu(thiswk).Cleaname, thiswk.Title,
+			thiswk.Length(), pll, thiswk.WdCount, plw)
 		wkk = append(wkk, cf)
 		totalwords += thiswk.WdCount
+		totallines += thiswk.Length()
 	}
 
 	pattern := regexp.MustCompile(REG)
 	for _, p := range sl.Inc.Passages {
-		cit, count := searchlistpassages(pattern, p)
+		cit, wordcount, linecount := searchlistpassages(pattern, p)
 		wkk = append(wkk, cit)
-		totalwords += count
+		totalwords += wordcount
+		totallines += linecount
 	}
 
 	for _, p := range sl.Excl.Passages {
-		cit, count := searchlistpassages(pattern, p)
+		cit, wordcount, linecount := searchlistpassages(pattern, p)
 		wkk = append(wkk, cit+"[EXCLUDED]")
-		totalwords -= count
+		totalwords -= wordcount
+		totallines -= linecount
 	}
 
 	slices.Sort(wkk)
@@ -421,7 +444,15 @@ func RtGetJSSearchlist(c echo.Context) error {
 		wkk = append(wkk, m.Sprintf(SPILLOVER, diff))
 	}
 
-	wkk = append(wkk, m.Sprintf(SUMMARY, totalwords))
+	pll := "s"
+	if totallines == 1 {
+		pll = ""
+	}
+	plw := "s"
+	if totalwords == 1 {
+		plw = ""
+	}
+	wkk = append(wkk, m.Sprintf(SUMMARY, totallines, pll, totalwords, plw))
 
 	ht := strings.Join(wkk, "<br>\n")
 	var j jsstruct
@@ -438,7 +469,7 @@ func RtGetEmptyGet(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, j, vv.JSONINDENT)
 }
 
-func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
+func searchlistpassages(pattern *regexp.Regexp, p string) (string, int, int) {
 	const (
 		PSGTEMPL = `%s, <span class="italic">%s</span> %s - %s [%d words]`
 	)
@@ -454,12 +485,12 @@ func searchlistpassages(pattern *regexp.Regexp, p string) (string, int) {
 	s.SearchIn.Passages = []string{p}
 	search.SSBuildQueries(&s)
 	search.SearchAndInsertResults(&s)
-	count := 0
+	wordcount := 0
 	ll := s.Results.Yield()
 	for ln := range ll {
-		count += len(strings.Split(ln.Stripped, " "))
+		wordcount += len(strings.Split(ln.Stripped, " "))
 	}
 
-	ct := m.Sprintf(PSGTEMPL, mps.AllAuthors[au].Cleaname, mps.AllWorks[f.WkUID].Title, f.Citation(), l.Citation(), count)
-	return ct, count
+	ct := m.Sprintf(PSGTEMPL, mps.AllAuthors[au].Cleaname, mps.AllWorks[f.WkUID].Title, f.Citation(), l.Citation(), wordcount)
+	return ct, wordcount, s.Results.Len()
 }

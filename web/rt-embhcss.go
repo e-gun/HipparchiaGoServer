@@ -58,7 +58,7 @@ func RtEmbHCSS(c echo.Context) error {
 
 	var (
 		cssfiles = []string{
-			"00-colors.css",
+			"00-root.css",
 			"01-fonts.css",
 			"02-main-body.css",
 			"03-standard-elements.css",
