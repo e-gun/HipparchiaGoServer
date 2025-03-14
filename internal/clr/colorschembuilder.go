@@ -60,7 +60,6 @@ func FindVectorDotHueAndLums(schemename string, hslm []int) (int, int, int) {
 		newlum = pan.m1.Lums[5]
 		newperiphlum = pan.m1.Lums[4]
 	}
-
 	return newhue, newlum, newperiphlum
 }
 
@@ -94,8 +93,8 @@ func FindVectorFontHueAndLums(schemename string, hslm []int) (int, int) {
 		newlum = pan.m0.Lums[0]
 	} else {
 		// there are always three+ colors available...
-		newhue = pan.m1.Hue
-		newlum = pan.m1.Lums[6]
+		newhue = pan.m0.Hue
+		newlum = pan.m0.Lums[6]
 	}
 	return newhue, newlum
 }

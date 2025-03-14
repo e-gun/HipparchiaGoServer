@@ -18,7 +18,7 @@ var (
 	LaunchTime    = time.Now()
 	ServableFonts = map[string]str.FontTempl{"Alegreya": AlegreyaFont, "Brill": BrillFont, "CMU": CMUFont,
 		"Fira": FiraFont, "Gentium": GentiumFont, "Inter": InterFont, "Iosevka": IosevkaFont, "Lato": LatoFont,
-		"MPlus1": MPlusOneFont, "Noto": NotoFont, "Roboto": RobotoFont, "SourceSans": SourceSansFont, "Ubuntu": UbuntuFont} // cf rt-embhcss.go
+		"MPlus1": MPlusOneFont, "Noto": NotoFont, "SourceSans": SourceSansFont, "Ubuntu": UbuntuFont} // cf rt-embhcss.go
 )
 
 //
@@ -276,28 +276,6 @@ var (
 			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic", "hipparchiacondensedstatic",
 			"hipparchiabolditalicstatic", "hipparchiaobliquestatic"},
 		SubFolder:        "mplus1",
-		MainBodyFontSize: 100,
-	}
-	RobotoFont = str.FontTempl{
-		Type:             "truetype",
-		ShrtType:         "ttf",
-		Bold:             "Roboto-BoldSubset.ttf",
-		BoldItalic:       "Roboto-BoldItalicSubset.ttf",
-		CondensedBold:    "Roboto_Condensed-BoldSubset.ttf",
-		CondensedItalic:  "Roboto_Condensed-ItalicSubset.ttf",
-		CondensedRegular: "Roboto_Condensed-RegularSubset.ttf",
-		SemiCondRegular:  "Roboto_SemiCondensed-RegularSubset.ttf", // semi dne
-		SemiCondItalic:   "Roboto_SemiCondensed-ItalicSubset.ttf",
-		Italic:           "Roboto-ItalicSubset.ttf",
-		Light:            "Roboto-LightSubset.ttf",
-		Mono:             "RobotoMono-RegularSubset.ttf",
-		Regular:          "Roboto-RegularSubset.ttf",
-		SemiBold:         "Roboto-SemiBoldSubset.ttf",
-		Thin:             "Roboto-ThinSubset.ttf",
-		HasLunateSigma:   false,
-		UseGenericMono:   false,
-		NeedsManualStyle: []string{},
-		SubFolder:        "roboto",
 		MainBodyFontSize: 100,
 	}
 	SourceSansFont = str.FontTempl{

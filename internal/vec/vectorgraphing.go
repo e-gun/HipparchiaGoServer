@@ -39,6 +39,8 @@ var (
 	InjectedLineLum      = 100
 	InjectedFontHue      = 236
 	InjectedFontLum      = 100
+	FontSat              = DOTSAT
+	LineSat              = DOTSAT
 )
 
 //
@@ -217,14 +219,14 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 				Position:   LABELPOSITON,
 				FontFamily: HIPPFONT,
 				FontSize:   LABELFTSIZE,
-				Color:      fmthsl(InjectedFontHue, DOTSAT, InjectedFontLum),
+				Color:      fmthsl(InjectedFontHue, FontSat, InjectedFontLum),
 			},
 		),
 		charts.WithLineStyleOpts(
 			opts.LineStyle{
 				Curveness: LINECURVINESS,
 				Type:      LINETYPE,
-				Color:     fmthsl(InjectedLineHue, DOTSAT, InjectedLineLum),
+				Color:     fmthsl(InjectedLineHue, LineSat, InjectedLineLum),
 				//	Width:     1,
 				//	Type:      "dotted",
 				//	Opacity:   .66,

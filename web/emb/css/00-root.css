@@ -1,4 +1,8 @@
 :root {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'liga';
 
     --leftpanelsize: 45%;
     --rightpanelsize: 45%;
