@@ -77,7 +77,25 @@ func FindVectorLineHueAndLums(schemename string, hslm []int) (int, int) {
 	} else {
 		// there are always three+ colors available...
 		newhue = pan.m2.Hue
-		newlum = pan.m2.Lums[5]
+		newlum = pan.m2.Lums[4]
+	}
+	return newhue, newlum
+}
+
+func FindVectorFontHueAndLums(schemename string, hslm []int) (int, int) {
+	name := convertschemname(schemename)
+	pan := buildpancolor(name, hslm[0], hslm[1], hslm[2], hslm[3])
+
+	var newhue int
+	var newlum int
+
+	if name == "mono" {
+		newhue = pan.m0.Hue
+		newlum = pan.m0.Lums[0]
+	} else {
+		// there are always three+ colors available...
+		newhue = pan.m1.Hue
+		newlum = pan.m1.Lums[6]
 	}
 	return newhue, newlum
 }

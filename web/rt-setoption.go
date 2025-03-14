@@ -267,8 +267,11 @@ func RtSetOption(c echo.Context) error {
 		if slices.Contains(cmm, val) {
 			s.CssColors = val
 			// reset the vector dot color too...
-			vec.InjectedDotHue, vec.InjectedDotLum, vec.InjectedDotPeriphLum = clr.FindVectorDotHueAndLums(val, clr.CssColorHSLs[val])
+			vec.InjectedDotHue, vec.InjectedDotLum, vec.InjectedDotPeriphLum = clr.FindVectorDotHueAndLums(val,
+				clr.CssColorHSLs[val])
 			vec.InjectedLineHue, vec.InjectedLineLum = clr.FindVectorLineHueAndLums(s.CssColors,
+				clr.CssColorHSLs[s.CssColors])
+			vec.InjectedFontHue, vec.InjectedFontLum = clr.FindVectorFontHueAndLums(s.CssColors,
 				clr.CssColorHSLs[s.CssColors])
 		}
 	}

@@ -242,7 +242,7 @@ const (
 	--hgsmono02: {{.colorA1}};
 	--hgsmono03: {{.colorB4}};
 	--hgsmono04: {{.colorC4}};
-	--hgsmono01: {{.colorD2}};
+	--hgsmono01: {{.colorD4}};
 	--hgsmono07: {{.colorC2}};
 	--hgsmono00: {{.colorA0}};
 `
@@ -323,7 +323,7 @@ const (
 	--hgsmono02: {{.colorA1}};
 	--hgsmono03: {{.colorB4}};
 	--hgsmono04: {{.colorC4}};
-	--hgsmono01: {{.colorD2}};
+	--hgsmono01: {{.colorD4}};
 	--hgsmono07: {{.colorE2}};
 	--hgsmono00: {{.colorA0}};
 `

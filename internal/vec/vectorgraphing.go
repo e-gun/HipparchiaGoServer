@@ -37,6 +37,8 @@ var (
 	InjectedDotPeriphLum = InjectedDotLum + 25
 	InjectedLineHue      = 236
 	InjectedLineLum      = 100
+	InjectedFontHue      = 236
+	InjectedFontLum      = 100
 )
 
 //
@@ -88,7 +90,7 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 		LABELFTSIZE   = 12.0
 		LINECURVINESS = 0       // from 0 to 1, but non-zero will double-up the lines...
 		LINETYPE      = "solid" // "solid", "dashed", "dotted"
-		NOTOFONT      = "'hipparchiasemiboldstatic', sans-serif"
+		HIPPFONT      = "'hipparchiasemiboldstatic', sans-serif"
 	)
 
 	if lnch.Config.ZapLunates {
@@ -208,18 +210,14 @@ func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[
 		simpleweb()
 	}
 
-	ft := lnch.Config.Font
-	if ft == "Noto" {
-		ft = NOTOFONT
-	}
-
 	graph.AddSeries(SERIESNAME, gnn, gll,
 		charts.WithLabelOpts(
 			opts.Label{
 				Show:       opts.Bool(true),
 				Position:   LABELPOSITON,
-				FontFamily: ft,
+				FontFamily: HIPPFONT,
 				FontSize:   LABELFTSIZE,
+				Color:      fmthsl(InjectedFontHue, DOTSAT, InjectedFontLum),
 			},
 		),
 		charts.WithLineStyleOpts(
