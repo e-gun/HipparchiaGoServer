@@ -53,7 +53,7 @@ func RtTextMaker(c echo.Context) error {
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return c.JSONPretty(http.StatusOK, str.JSONOutFeeder{JS: vv.JSVALIDATION}, vv.JSONINDENT)
+		return c.JSONPretty(http.StatusOK, str.CommonJSONOutput{JS: vv.JSVALIDATION}, vv.JSONINDENT)
 	}
 
 	s := vlt.AllSessions.GetSess(user)
@@ -156,11 +156,11 @@ func RtTextMaker(c echo.Context) error {
 		tab = strings.Replace(tab, " ς’ ", " σ’ ", -1)
 	}
 
-	var jso str.JSONOutFeeder
-	jso.SU = sum
-	jso.HT = tab
+	var jso str.CommonJSONOutput
+	jso.Sum = sum
+	jso.Htm = tab
 	jso.JS = ""
-	jso.NT = fmt.Sprintf("Text of %s, %s", au, ti)
+	jso.Tit = fmt.Sprintf("Text of %s, %s", au, ti)
 
 	vlt.WSInfo.Del <- srch.WSID
 

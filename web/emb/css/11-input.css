@@ -35,13 +35,12 @@ input[type="radio"] {
     margin: 2px;
 
     font: inherit;
-    /*color: #080;*/
     width: 1.1em;
     height: 1.1em;
     border: 0.15em solid var(--buttonandcheckboxborder);
+    box-shadow: none;
     border-radius: 50%;
     transform: translateY(.24em);
-
     display: inline-grid;
     place-content: center;
 }
@@ -71,13 +70,13 @@ input[type="checkbox"] {
     margin: 2px;
 
     font: inherit;
-    /*color: #080;*/
     width: 1.15em;
     height: 1.15em;
     border: 0.15em solid var(--buttonandcheckboxborder);
+    box-shadow: none;
+    /* box-shadow: 1px 1px 1px var(--textshadowcolor); */
     border-radius: 0.15em;
     transform: translateY(-0.075em);
-
     display: inline-grid;
     place-content: center;
 }

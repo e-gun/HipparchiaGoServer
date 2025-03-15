@@ -103,7 +103,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return c.JSONPretty(http.StatusOK, str.JSONOutFeeder{NJ: vv.JSVALIDATION}, vv.JSONINDENT)
+		return c.JSONPretty(http.StatusOK, str.CommonJSONOutput{JS: vv.JSVALIDATION}, vv.JSONINDENT)
 	}
 
 	start := time.Now()
@@ -285,11 +285,11 @@ func RtVocabMaker(c echo.Context) error {
 	}
 	trr[len(trr)-1] = TCL
 
-	// [g1] build the core: jso.HT
+	// [g1] build the core: jso.Htm
 
 	htm := strings.Join(trr, "")
 
-	// [g2] build the summary: jso.SU
+	// [g2] build the summary: jso.Sum
 
 	an := search.DbWlnMyAu(&vocabsrch.Results.Lines[0]).Cleaname
 	if vocabsrch.TableSize > 1 {
@@ -332,13 +332,13 @@ func RtVocabMaker(c echo.Context) error {
 		htm = gen.DeLunate(htm)
 	}
 
-	var jso str.JSONOutFeeder
-	jso.SU = sum
-	jso.HT = htm
-	jso.NT = fmt.Sprintf("Vocabulary for %s, %s", an, wn)
+	var jso str.CommonJSONOutput
+	jso.Sum = sum
+	jso.Htm = htm
+	jso.Tit = fmt.Sprintf("Vocabulary for %s, %s", an, wn)
 
 	j := fmt.Sprintf(vv.LEXFINDJS, "vocabobserved")
-	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
+	jso.JS = fmt.Sprintf("<script>%s</script>", j)
 
 	vlt.WSInfo.Del <- si.WSID
 	vlt.WSInfo.Del <- vocabsrch.WSID

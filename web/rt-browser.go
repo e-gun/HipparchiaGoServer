@@ -237,7 +237,7 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int, zaplunates bo
 	fw := fmt.Sprintf(`index/%s/%s/%d`, au, wk, n)
 	ab := fmt.Sprintf(`%s [%s]`, mps.AllAuthors[au].Cleaname, au)
 	wb := fmt.Sprintf(`%s (w%s)`, w.Title, w.WkID())
-	nt := fmt.Sprintf("%s, %s", mps.AllAuthors[au].Cleaname, w.Title)
+	nt := fmt.Sprintf("%s, %s", mps.AllAuthors[au].Shortname, w.Title)
 
 	bp := browsedpassage{
 		Browseforwards:    fw,

@@ -82,7 +82,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return c.JSONPretty(http.StatusOK, str.JSONOutFeeder{NJ: vv.JSVALIDATION}, vv.JSONINDENT)
+		return c.JSONPretty(http.StatusOK, str.CommonJSONOutput{JS: vv.JSVALIDATION}, vv.JSONINDENT)
 	}
 
 	start := time.Now()
@@ -145,7 +145,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {
-		return jsonresponse(c, str.JSONOutFeeder{})
+		return jsonresponse(c, str.CommonJSONOutput{})
 	}
 
 	morphmap := db.ArrayToGetRequiredMorphObjects(morphslice)
@@ -188,7 +188,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {
-		return jsonresponse(c, str.JSONOutFeeder{})
+		return jsonresponse(c, str.CommonJSONOutput{})
 	}
 
 	// keep track of unique values
@@ -255,7 +255,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {
-		return jsonresponse(c, str.JSONOutFeeder{})
+		return jsonresponse(c, str.CommonJSONOutput{})
 	}
 
 	// [d] the final map
@@ -316,7 +316,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	htm := fmt.Sprintf(TBLTMP, strings.Join(trr, ""))
 
-	// build the summary info: jso.SU
+	// build the summary info: jso.Sum
 
 	an := search.DbWlnMyAu(&firstresult).Cleaname
 	if srch.TableSize > 1 {
@@ -342,7 +342,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {
-		return jsonresponse(c, str.JSONOutFeeder{})
+		return jsonresponse(c, str.CommonJSONOutput{})
 	}
 
 	ky := multiworkkeymaker(mp, &srch)
@@ -369,14 +369,14 @@ func RtIndexMaker(c echo.Context) error {
 		htm = gen.DeLunate(htm)
 	}
 
-	var jso str.JSONOutFeeder
-	jso.SU = sum
-	jso.HT = htm
-	jso.NT = fmt.Sprintf("Index to %s, %s", an, wn)
+	var jso str.CommonJSONOutput
+	jso.Sum = sum
+	jso.Htm = htm
+	jso.Tit = fmt.Sprintf("Index to %s, %s", an, wn)
 
 	j := fmt.Sprintf(vv.LEXFINDJS, "indexobserved") + fmt.Sprintf(vv.BROWSERJS, "indexedlocation")
 
-	jso.NJ = fmt.Sprintf("<script>%s</script>", j)
+	jso.JS = fmt.Sprintf("<script>%s</script>", j)
 
 	vlt.WSInfo.Del <- si.WSID
 	vlt.WSInfo.Del <- srch.WSID

@@ -91,7 +91,7 @@ func RtLDASearch(c echo.Context, srch str.SearchStruct) error {
 	}
 
 	soj := str.SearchOutputJSON{
-		Title:         "",
+		Title:         "LDA model",
 		Searchsummary: "",
 		Found:         htmltables,
 		Image:         img,
