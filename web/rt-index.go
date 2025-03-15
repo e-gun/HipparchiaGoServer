@@ -80,15 +80,9 @@ func RtIndexMaker(c echo.Context) error {
 		WLHTM  = `<p class="emph">Words that appear only here in the whole database:</p><p class="indented smallerthannormal">`
 	)
 
-	type JSFeeder struct {
-		SU string `json:"searchsummary"`
-		HT string `json:"thehtml"`
-		NJ string `json:"newjs"`
-	}
-
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return c.JSONPretty(http.StatusOK, JSFeeder{NJ: vv.JSVALIDATION}, vv.JSONINDENT)
+		return c.JSONPretty(http.StatusOK, str.JSONOutFeeder{NJ: vv.JSVALIDATION}, vv.JSONINDENT)
 	}
 
 	start := time.Now()
@@ -151,7 +145,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {
-		return jsonresponse(c, JSFeeder{})
+		return jsonresponse(c, str.JSONOutFeeder{})
 	}
 
 	morphmap := db.ArrayToGetRequiredMorphObjects(morphslice)
@@ -194,7 +188,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {
-		return jsonresponse(c, JSFeeder{})
+		return jsonresponse(c, str.JSONOutFeeder{})
 	}
 
 	// keep track of unique values
@@ -261,7 +255,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {
-		return jsonresponse(c, JSFeeder{})
+		return jsonresponse(c, str.JSONOutFeeder{})
 	}
 
 	// [d] the final map
@@ -348,7 +342,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {
-		return jsonresponse(c, JSFeeder{})
+		return jsonresponse(c, str.JSONOutFeeder{})
 	}
 
 	ky := multiworkkeymaker(mp, &srch)
@@ -375,9 +369,10 @@ func RtIndexMaker(c echo.Context) error {
 		htm = gen.DeLunate(htm)
 	}
 
-	var jso JSFeeder
+	var jso str.JSONOutFeeder
 	jso.SU = sum
 	jso.HT = htm
+	jso.NT = fmt.Sprintf("Index to %s, %s", an, wn)
 
 	j := fmt.Sprintf(vv.LEXFINDJS, "indexobserved") + fmt.Sprintf(vv.BROWSERJS, "indexedlocation")
 

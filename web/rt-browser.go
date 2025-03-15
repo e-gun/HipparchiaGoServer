@@ -40,6 +40,7 @@ type browsedpassage struct {
 	Authorboxcontents string `json:"authorboxcontents"`
 	Workboxcontents   string `json:"workboxcontents"`
 	Browserhtml       string `json:"browserhtml"`
+	Newtitle          string `json:"newtitle"`
 }
 
 //
@@ -236,6 +237,7 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int, zaplunates bo
 	fw := fmt.Sprintf(`index/%s/%s/%d`, au, wk, n)
 	ab := fmt.Sprintf(`%s [%s]`, mps.AllAuthors[au].Cleaname, au)
 	wb := fmt.Sprintf(`%s (w%s)`, w.Title, w.WkID())
+	nt := fmt.Sprintf("%s, %s", mps.AllAuthors[au].Cleaname, w.Title)
 
 	bp := browsedpassage{
 		Browseforwards:    fw,
@@ -246,6 +248,7 @@ func generatebrowsedpassage(au string, wk string, fc int, ctx int, zaplunates bo
 		Authorboxcontents: ab,
 		Workboxcontents:   wb,
 		Browserhtml:       ci + tr,
+		Newtitle:          nt,
 	}
 
 	return bp

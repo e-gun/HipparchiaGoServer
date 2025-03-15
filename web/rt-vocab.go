@@ -101,15 +101,9 @@ func RtVocabMaker(c echo.Context) error {
 		HITCAP = `<span class="small"><span class="red emph">vocabulary generation incomplete:</span>: hit the cap of %d on allowed lines</span>`
 	)
 
-	type JSFeeder struct {
-		SU string `json:"searchsummary"`
-		HT string `json:"thehtml"`
-		NJ string `json:"newjs"`
-	}
-
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return c.JSONPretty(http.StatusOK, JSFeeder{NJ: vv.JSVALIDATION}, vv.JSONINDENT)
+		return c.JSONPretty(http.StatusOK, str.JSONOutFeeder{NJ: vv.JSVALIDATION}, vv.JSONINDENT)
 	}
 
 	start := time.Now()
@@ -338,9 +332,10 @@ func RtVocabMaker(c echo.Context) error {
 		htm = gen.DeLunate(htm)
 	}
 
-	var jso JSFeeder
+	var jso str.JSONOutFeeder
 	jso.SU = sum
 	jso.HT = htm
+	jso.NT = fmt.Sprintf("Vocabulary for %s, %s", an, wn)
 
 	j := fmt.Sprintf(vv.LEXFINDJS, "vocabobserved")
 	jso.NJ = fmt.Sprintf("<script>%s</script>", j)

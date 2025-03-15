@@ -302,13 +302,13 @@ $('#textofthis').click( function() {
     });
 });
 
-
 function loadintodisplayresults(indexdata) {
     $('#searchsummary').html(indexdata['searchsummary']);
     $('#displayresults').html(indexdata['thehtml']);
     let bcsh = document.getElementById("indexclickscriptholder");
     if (bcsh.hasChildNodes()) { bcsh.removeChild(bcsh.firstChild); }
     $('#indexclickscriptholder').html(indexdata['newjs']);
+    document.title = indexdata['title'];
 }
 
 //

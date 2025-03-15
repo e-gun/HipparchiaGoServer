@@ -130,8 +130,10 @@ func RtSearch(c echo.Context) error {
 		soj = search.FormatWithContextResults(&completed)
 	}
 
+	// the title tab on a browser does not have a font you control; so lunates are almost certainly out...
+	soj.Title = gen.DeLunate(soj.Title)
+
 	if s.ZapLunates {
-		soj.Title = gen.DeLunate(soj.Title)
 		soj.Found = gen.DeLunate(soj.Found)
 		// overshot in DeLunate...: ς’ for σ’
 		soj.Found = strings.Replace(soj.Found, " ς’ ", " σ’ ", -1)

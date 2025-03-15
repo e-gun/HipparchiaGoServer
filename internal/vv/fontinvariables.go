@@ -299,7 +299,7 @@ var (
 		NeedsManualStyle: []string{"hipparchiasemicondensedstatic", "hipparchiasemicondenseditalicstatic",
 			"hipparchiacondensedboldstatic", "hipparchiacondenseditalicstatic"},
 		SubFolder:        "source",
-		MainBodyFontSize: 110,
+		MainBodyFontSize: 105,
 	}
 	UbuntuFont = str.FontTempl{
 		Type:             "truetype",

@@ -68,6 +68,8 @@ function parsepassagereturned(passagereturned) {
 
     bdt.html(passagereturned['browserhtml']);
 
+    document.title = passagereturned['newtitle'];
+
     showmany(postbrowsepickui);
 
     $('observed').click( function(e) {

@@ -216,7 +216,7 @@ func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 func FindProximateEntry(w str.DbLexicon, nxt string) str.DbLexicon {
 	const (
 		PROXENTRYQUERY = `SELECT entry_name, id_number from %s_dictionary WHERE id_number %s %.0f ORDER BY id_number %s LIMIT 1`
-		NOTH           = `FindProximateEntry() found no entry %s '%s'`
+		NOTH           = `FindProximateEntry() found no entry %s '%f'`
 	)
 
 	dbconn := getdbconnection()
@@ -236,7 +236,7 @@ func FindProximateEntry(w str.DbLexicon, nxt string) str.DbLexicon {
 	p := dbconn.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.GetLang(), oper, w.ID, ord))
 	e := p.Scan(&prx.Entry, &prx.ID)
 	if e != nil {
-		Msg.FYI(fmt.Sprintf(NOTH, em, w.Entry))
+		Msg.FYI(fmt.Sprintf(NOTH, em, w.ID))
 	}
 
 	return prx

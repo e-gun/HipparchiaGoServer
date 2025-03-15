@@ -12,16 +12,13 @@ var (
 	// command line "-cd" can alter one of the k/v pairs; this will then affect CssColorModes and
 	// CssSamples
 	CssColorHSLs = map[string][]int{
-		"Light": {140, 25, 100, 0},
-		"Dark":  {50, 40, 0, 100},
-		// "MonoSand":  {60, 15, 8, 85},
-		// "Monochrome": {220, 15, 95, 0},
-		"Monochrome": {0, 55, 8, 95}, // Blood Red
+		"Light":      {140, 25, 100, 0},
+		"Dark":       {50, 40, 0, 100},
+		"Monochrome": {0, 55, 8, 95}, // Blood Red; 0 0 0 100 is White on Black...
 		"SplitComp":  {175, 12, 85, 10},
 		"Square":     {111, 25, 85, 15},
 		"Tetradic":   {40, 17, 80, 15},
-		// "Triadic":    {230, 10, 18, 95},
-		"Triadic": {55, 40, 15, 100},
+		"Triadic":    {55, 40, 15, 100},
 	}
 	CssColorModes = map[string]string{} // set in "main.go" after "configatlaunch.go"
 	CssSamples    = map[string]string{} // set in "main.go" after "configatlaunch.go"

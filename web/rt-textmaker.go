@@ -8,6 +8,7 @@ package web
 import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -50,15 +51,9 @@ func RtTextMaker(c echo.Context) error {
 		HITCAP = `<span class="small"><span class="red emph">text generation incomplete:</span> hit the cap of %d on allowed lines</span>`
 	)
 
-	type JSFeeder struct {
-		SU string `json:"searchsummary"`
-		HT string `json:"thehtml"`
-		JS string `json:"newjs"`
-	}
-
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
-		return c.JSONPretty(http.StatusOK, JSFeeder{JS: vv.JSVALIDATION}, vv.JSONINDENT)
+		return c.JSONPretty(http.StatusOK, str.JSONOutFeeder{JS: vv.JSVALIDATION}, vv.JSONINDENT)
 	}
 
 	s := vlt.AllSessions.GetSess(user)
@@ -161,10 +156,11 @@ func RtTextMaker(c echo.Context) error {
 		tab = strings.Replace(tab, " ς’ ", " σ’ ", -1)
 	}
 
-	var jso JSFeeder
+	var jso str.JSONOutFeeder
 	jso.SU = sum
 	jso.HT = tab
 	jso.JS = ""
+	jso.NT = fmt.Sprintf("Text of %s, %s", au, ti)
 
 	vlt.WSInfo.Del <- srch.WSID
 
