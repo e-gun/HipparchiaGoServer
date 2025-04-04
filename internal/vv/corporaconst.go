@@ -20,3 +20,7 @@ const (
 	CHCT           = 291
 	DPCT           = 516
 )
+
+var (
+	TheCorpora = []string{GREEKCORP, LATINCORP, INSCRIPTCORP, CHRISTINSC, PAPYRUSCORP}
+)

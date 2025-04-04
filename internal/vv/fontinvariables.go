@@ -7,15 +7,9 @@ package vv
 
 import (
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
-	"regexp"
-	"time"
 )
 
 var (
-	IsGreek       = regexp.MustCompile("[α-ωϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ]")
-	TheCorpora    = []string{GREEKCORP, LATINCORP, INSCRIPTCORP, CHRISTINSC, PAPYRUSCORP}
-	TheLanguages  = []string{"greek", "latin"}
-	LaunchTime    = time.Now()
 	ServableFonts = map[string]str.FontTempl{"Alegreya": AlegreyaFont, "Brill": BrillFont, "CMU": CMUFont,
 		"Fira": FiraFont, "Gentium": GentiumFont, "Inter": InterFont, "Iosevka": IosevkaFont, "Lato": LatoFont,
 		"MPlus1": MPlusOneFont, "Noto": NotoFont, "SourceSans": SourceSansFont, "Ubuntu": UbuntuFont} // cf rt-embhcss.go

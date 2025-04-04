@@ -13,13 +13,15 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
 // DictEntryGrabber - search postgres tables and return []DbLexicon
 func DictEntryGrabber(seeking string, dict string, col string, syntax string) []str.DbLexicon {
 	const (
-		FLDS = `entry_name, metrical_entry, id_number, pos, translations, html_body`
+		FLDS = `entry_name, entry_metr, id_number, translations, usedby, prelim_info, sense_ids`
 		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s %s '%s' ORDER BY id_number ASC LIMIT %d`
 	)
 
@@ -31,14 +33,14 @@ func DictEntryGrabber(seeking string, dict string, col string, syntax string) []
 
 	var lexicalfinds []str.DbLexicon
 	var thehit str.DbLexicon
-	dedup := make(map[float32]bool)
+	dedup := make(map[string]bool)
 
-	foreach := []any{&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry}
+	foreach := []any{&thehit.EntryName, &thehit.EntryMetr, &thehit.IDVal, &thehit.Transl, &thehit.Usedby, &thehit.PrelimInfo, &thehit.SenseIDs}
 	rwfnc := func() error {
 		thehit.SetLang(dict)
-		if _, dup := dedup[thehit.ID]; !dup {
+		if _, dup := dedup[thehit.IDVal]; !dup {
 			// use ID and not Lex because καρπόϲ.53442 is not καρπόϲ.53443
-			dedup[thehit.ID] = true
+			dedup[thehit.IDVal] = true
 			lexicalfinds = append(lexicalfinds, thehit)
 		}
 		return nil
@@ -57,7 +59,7 @@ func DictEntryGrabber(seeking string, dict string, col string, syntax string) []
 func ArrayToGetScansion(wordlist []string) map[string]string {
 	const (
 		TT = `CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words`
-		QT = `SELECT entry_name, metrical_entry FROM %s_dictionary WHERE EXISTS 
+		QT = `SELECT entry_name, entry_metr FROM %s_dictionary WHERE EXISTS 
 				(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = %s_dictionary.entry_name)`
 	)
 
@@ -152,7 +154,7 @@ func ArrayToGetHeadwordCounts(wordlist []string) map[string]int {
 // MorphPossibIntoLexPossib - []MorphPossib into []DbLexicon
 func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 	const (
-		FLDS = `entry_name, metrical_entry, id_number, pos, translations, html_body`
+		FLDS = `entry_name, entry_metr, id_number, translations, usedby, prelim_info, sense_ids`
 		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴|1|2)$' ORDER BY id_number ASC`
 		COLM = "entry_name"
 		SQLE = "MorphPossibIntoLexPossib() sent a bad query: \n\t%s"
@@ -178,24 +180,30 @@ func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 
 	var lexicalfinds []str.DbLexicon
 	var thehit str.DbLexicon
-	dedup := make(map[float32]bool)
+	dedup := make(map[string]bool)
 
-	foreach := []any{&thehit.Word, &thehit.Metrical, &thehit.ID, &thehit.POS, &thehit.Transl, &thehit.Entry}
+	foreach := []any{&thehit.EntryName, &thehit.EntryMetr, &thehit.IDVal, &thehit.Transl, &thehit.Usedby, &thehit.PrelimInfo, &thehit.SenseIDs}
 
 	rwfnc := func() error {
 		thehit.SetLang(d)
-		if _, dup := dedup[thehit.ID]; !dup {
+		if _, dup := dedup[thehit.IDVal]; !dup {
 			// use ID and not Lex because καρπόϲ.53442 is not καρπόϲ.53443
-			dedup[thehit.ID] = true
+			dedup[thehit.IDVal] = true
 			lexicalfinds = append(lexicalfinds, thehit)
 		}
 		return nil
 	}
 
+	numberstripper := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "")
+
 	for _, w := range hwm {
+		w = numberstripper.Replace(w)
 		q := fmt.Sprintf(PSQQ, FLDS, d, COLM, w)
 		foundrows, err := dbconn.Query(context.Background(), q)
 		Msg.EC(err)
+
+		// fmt.Println("MorphPossibIntoLexPossib()", q)
+		// is this no longer true as of HGB?
 
 		// nb: there is some wonky data in the morph possibilities because of some corner cases not caught by the builder
 		// [HGS-DBI] SELECT entry_name, metrical_entry, id_number, pos, translations, html_body FROM greek_dictionary WHERE entry_name ~* '^ὀμβρόω(|¹|²|³|⁴|1|2)$' ORDER BY id_number ASC
@@ -214,10 +222,15 @@ func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 
 // FindProximateEntry - what is the name and id of the entry next to this entry?
 func FindProximateEntry(w str.DbLexicon, nxt string) str.DbLexicon {
+	// this is the only place where we use the 'idasint' column of the data
+	// this addresses the strong sort problems if you stick with the original ids: `n123456a`
 	const (
-		PROXENTRYQUERY = `SELECT entry_name, id_number from %s_dictionary WHERE id_number %s %.0f ORDER BY id_number %s LIMIT 1`
+		PROXENTRYQUERY = `SELECT entry_name, idasint from %s_dictionary WHERE idasint %s %d ORDER BY idasint %s LIMIT 1`
 		NOTH           = `FindProximateEntry() found no entry %s '%f'`
 	)
+
+	stripalpha := regexp.MustCompile("[a-z]")
+	num, _ := strconv.Atoi(stripalpha.ReplaceAllString(w.IDVal, ""))
 
 	dbconn := getdbconnection()
 	defer dbconn.Release()
@@ -233,10 +246,11 @@ func FindProximateEntry(w str.DbLexicon, nxt string) str.DbLexicon {
 	}
 
 	var prx str.DbLexicon
-	p := dbconn.QueryRow(context.Background(), fmt.Sprintf(PROXENTRYQUERY, w.GetLang(), oper, w.ID, ord))
-	e := p.Scan(&prx.Entry, &prx.ID)
+	q := fmt.Sprintf(PROXENTRYQUERY, w.GetLang(), oper, num, ord)
+	p := dbconn.QueryRow(context.Background(), q)
+	e := p.Scan(&prx.EntryName, &prx.IDVal)
 	if e != nil {
-		Msg.FYI(fmt.Sprintf(NOTH, em, w.ID))
+		Msg.FYI(fmt.Sprintf(NOTH, em, num))
 	}
 
 	return prx

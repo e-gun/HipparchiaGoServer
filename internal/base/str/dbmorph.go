@@ -44,7 +44,7 @@ type DbWordCount struct {
 
 type MorphPossib struct {
 	Transl   string `json:"transl"`
-	Anal     string `json:"analysis"`
+	Analysis string `json:"analysis"`
 	Headwd   string `json:"headword"`
 	Scansion string `json:"scansion"`
 	Xrefkind string `json:"xref_kind"`

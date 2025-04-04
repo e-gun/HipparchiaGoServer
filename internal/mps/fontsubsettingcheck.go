@@ -80,14 +80,14 @@ func grabsomelexrunes() map[rune]bool {
 
 	chars := map[rune]bool{}
 	for _, l := range gl {
-		runes := []rune(l.Entry)
+		runes := []rune(l.EntryName)
 		for _, c := range runes {
 			chars[c] = true
 		}
 	}
 
 	for _, l := range lt {
-		runes := []rune(l.Entry)
+		runes := []rune(l.EntryName)
 		for _, c := range runes {
 			chars[c] = true
 		}

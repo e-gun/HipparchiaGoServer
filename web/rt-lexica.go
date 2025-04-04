@@ -280,8 +280,8 @@ func findbyform(word string, author string, zaplunates bool) string {
 	// [f] generate the lexical output: multiple entries possible - <div id="δημόϲιοϲ_23337644"> ... <div id="δημοϲίᾳ_23333080"> ...
 
 	var entries string
-	for _, w := range lexicalfinds {
-		entries += formatlexicaloutput(w)
+	for _, lf := range lexicalfinds {
+		entries += formatlexicaloutput(lf)
 	}
 
 	// [g] add the HTML + JS to inject `{"newhtml": "...", "newjs":"..."}`
@@ -316,20 +316,20 @@ func reversefind(word string, dicts []string) string {
 	}
 
 	// [b] the counts for the finds
-	countmap := make(map[float32]str.DbHeadwordCount)
+	countmap := make(map[string]str.DbHeadwordCount)
 	for _, f := range lexicalfinds {
-		ct := db.GetIndividualHeadwordCount(f.Word)
+		ct := db.GetIndividualHeadwordCount(f.EntryName)
 		if ct.Entry == "" {
-			ct.Entry = f.Word
+			ct.Entry = f.EntryName
 		}
-		countmap[f.ID] = ct
+		countmap[f.IDVal] = ct
 	}
 
 	// [c] get the html for the entries
 
 	htmlmap := paralleldictformatter(lexicalfinds)
 
-	var keys []float32
+	var keys []string
 	for k := range htmlmap {
 		keys = append(keys, k)
 	}
@@ -380,7 +380,7 @@ func dictsearch(seeking string, dict string, zaplunates bool) string {
 
 	htmlmap := paralleldictformatter(lexicalfinds)
 
-	var keys []float32
+	var keys []string
 	for k := range htmlmap {
 		keys = append(keys, k)
 	}
@@ -393,20 +393,20 @@ func dictsearch(seeking string, dict string, zaplunates bool) string {
 		htmlchunks[i] = h
 	}
 
-	countmap := make(map[float32]str.DbHeadwordCount)
+	countmap := make(map[string]str.DbHeadwordCount)
 	for _, f := range lexicalfinds {
-		ct := db.GetIndividualHeadwordCount(f.Word)
+		ct := db.GetIndividualHeadwordCount(f.EntryName)
 		if ct.Entry == "" {
-			ct.Entry = f.Word
+			ct.Entry = f.EntryName
 		}
-		countmap[f.ID] = ct
+		countmap[f.IDVal] = ct
 	}
 
 	// [d1] insert the overview
 
 	ov := make([]string, len(lexicalfinds))
 	for i, e := range lexicalfinds {
-		ov[i] = fmt.Sprintf(ENTRYLINE, i+1, e.Word, e.ID, e.Word, countmap[e.ID].Total)
+		ov[i] = fmt.Sprintf(ENTRYLINE, i+1, e.EntryName, e.IDVal, e.EntryName, countmap[e.IDVal].Total)
 	}
 
 	if len(lexicalfinds) == vv.MAXDICTLOOKUP {
@@ -472,7 +472,7 @@ func extractmorphpossibilities(raw string) []str.MorphPossib {
 //
 
 // paralleldictformatter - send N workers off to turn []DbLexicon into a map: [entryid]entryhtml
-func paralleldictformatter(lexicalfinds []str.DbLexicon) map[float32]string {
+func paralleldictformatter(lexicalfinds []str.DbLexicon) map[string]string {
 	workers := lnch.Config.WorkerCount
 	totalwork := len(lexicalfinds)
 	chunksize := totalwork / workers
@@ -496,9 +496,9 @@ func paralleldictformatter(lexicalfinds []str.DbLexicon) map[float32]string {
 	}
 
 	var wg sync.WaitGroup
-	var collector []map[float32]string
+	var collector []map[string]string
 
-	outputchannels := make(chan map[float32]string, workers)
+	outputchannels := make(chan map[string]string, workers)
 
 	for i := 0; i < workers; i++ {
 		wg.Add(1)
@@ -520,7 +520,7 @@ func paralleldictformatter(lexicalfinds []str.DbLexicon) map[float32]string {
 	}
 
 	// reduce the results map
-	htmlmap := make(map[float32]string)
+	htmlmap := make(map[string]string)
 
 	for _, hmap := range collector {
 		for w := range hmap {
@@ -532,13 +532,13 @@ func paralleldictformatter(lexicalfinds []str.DbLexicon) map[float32]string {
 }
 
 // multipleentriesashtml - turn []DbLexicon into a map: [entryid]entryhtml
-func multipleentriesashtml(ee []str.DbLexicon) map[float32]string {
-	oneentry := func(e str.DbLexicon) (float32, string) {
+func multipleentriesashtml(ee []str.DbLexicon) map[string]string {
+	oneentry := func(e str.DbLexicon) (string, string) {
 		body := formatlexicaloutput(e)
-		return e.ID, body
+		return e.IDVal, body
 	}
 
-	entries := make(map[float32]string, len(ee))
+	entries := make(map[string]string, len(ee))
 	for _, e := range ee {
 		id, ent := oneentry(e)
 		entries[id] = ent
@@ -591,7 +591,7 @@ func formatparsingdata(mpp []str.MorphPossib) string {
 
 	mpmap := make(map[string]str.MorphPossib, len(mpp))
 	for _, p := range mpp {
-		k := p.Headwd + " - " + p.Anal + " - " + p.Transl
+		k := p.Headwd + " - " + p.Analysis + " - " + p.Transl
 		mpmap[k] = p
 	}
 
@@ -613,7 +613,7 @@ func formatparsingdata(mpp []str.MorphPossib) string {
 	for _, k := range keys {
 		m := mpmap[k]
 
-		if strings.TrimSpace(m.Anal) == "" {
+		if strings.TrimSpace(m.Analysis) == "" {
 			continue
 		}
 
@@ -637,9 +637,9 @@ func formatparsingdata(mpp []str.MorphPossib) string {
 			}
 		}
 
-		dd := m.Headwd + " - " + m.Anal
+		dd := m.Headwd + " - " + m.Analysis
 		if _, ok := dedup[dd]; !ok {
-			pos := strings.Split(m.Anal, " ")
+			pos := strings.Split(m.Analysis, " ")
 			var tab string
 			tab = fmt.Sprintf(MORPHTD, "morphcell", getlett)
 			for _, p := range pos {
@@ -662,10 +662,10 @@ func formatparsingdata(mpp []str.MorphPossib) string {
 // formatlexicaloutput - turn a DbLexicon word into HTML
 func formatlexicaloutput(w str.DbLexicon) string {
 	const (
-		HEADTEMPL = `<div id="%s_%f"><hr>
-		<p class="dictionaryheading" id="%s_%.1f">%s &nbsp;%s</p>
+		HEADTEMPL = `<div id="%s_%s"><hr>
+		<p class="dictionaryheading" id="%s_%s">%s &nbsp;%s</p>
 	`
-		FORMSUMM = `<formsummary parserxref="%d" lexicalid="%.1f" headword="%s" lang="%s">%d known forms</formsummary>`
+		FORMSUMM = `<formsummary parserxref="%d" lexicalid="%s" headword="%s" lang="%s">%d known forms</formsummary>`
 
 		FRQSUM = `<p class="wordcounts">Relative frequency: <span class="blue">%s</span></p>`
 
@@ -675,25 +675,24 @@ func formatlexicaloutput(w str.DbLexicon) string {
 			<tr>
 				<td class="alignleft">
 					<span class="label">Previous: </span>
-					<dictionaryidsearch entryid="%.1f" language="%s">%s</dictionaryidsearch>
+					<dictionaryidsearch entryid="%s" language="%s">%s</dictionaryidsearch>
 				</td>
 				<td>&nbsp;</td>
 				<td class="alignright">
 					<span class="label">Next: </span>
-					<dictionaryidsearch entryid="%.1f" language="%s">%s</dictionaryidsearch>
+					<dictionaryidsearch entryid="%s" language="%s">%s</dictionaryidsearch>
 				</td>
 			</tr>
 			</tbody>
 		</table>`
 	)
-
 	var elem []string
 
 	// [h1] first part of a lexical entry:
 
 	var met string
-	if w.Metrical != "" {
-		met = quantityfixer.Replace(w.Metrical)
+	if w.EntryMetr != "" {
+		met = quantityfixer.Replace(w.EntryMetr)
 		met = numberstripper.Replace(met)
 		met = fmt.Sprintf("\n<span class=\"entryvowelquantities\">⸤%s⸥</span>", met)
 		// but do not show if there are no long/short marks
@@ -702,16 +701,16 @@ func formatlexicaloutput(w str.DbLexicon) string {
 		}
 	}
 
-	elem = append(elem, fmt.Sprintf(HEADTEMPL, w.Word, w.ID, w.Word, w.ID, w.Word, met))
+	elem = append(elem, fmt.Sprintf(HEADTEMPL, w.EntryName, w.IDVal, w.EntryName, w.IDVal, w.EntryName, met))
 
 	// [h1a] known forms in use
 
-	hwc := db.GetIndividualHeadwordCount(w.Word)
+	hwc := db.GetIndividualHeadwordCount(w.EntryName)
 	elem = append(elem, fmt.Sprintf(FRQSUM, hwc.FrqCla))
 
-	lw := gen.UVσςϲ(w.Word) // otherwise "venio" will hit AllLemm instead of "uenio"
+	lw := gen.UVσςϲ(w.EntryName) // otherwise "venio" will hit AllLemm instead of "uenio"
 	if _, ok := mps.AllLemm[lw]; ok {
-		elem = append(elem, fmt.Sprintf(FORMSUMM, mps.AllLemm[lw].Xref, w.ID, w.Word, w.GetLang(), len(mps.AllLemm[lw].Deriv)))
+		elem = append(elem, fmt.Sprintf(FORMSUMM, mps.AllLemm[lw].Xref, w.IDVal, w.EntryName, w.GetLang(), len(mps.AllLemm[lw].Deriv)))
 	}
 
 	// [h1b] principle parts
@@ -729,16 +728,17 @@ func formatlexicaloutput(w str.DbLexicon) string {
 
 	// [h4] the actual body of the entry
 
-	w.Entry = entryqickfixes(w.Entry)
+	// todo: need a function to actually assemble the senses; at the moment we only have the prelim...
+	// w.EntryName = entryqickfixes(w.EntryName)
 
-	elem = append(elem, w.Entry)
+	elem = append(elem, w.PrelimInfo)
 
 	// [h5] previous & next entry
 
 	prev := db.FindProximateEntry(w, "prev")
 	nxt := db.FindProximateEntry(w, "next")
 
-	pn := fmt.Sprintf(NAVTABLE, prev.ID, w.GetLang(), prev.Entry, nxt.ID, w.GetLang(), nxt.Entry)
+	pn := fmt.Sprintf(NAVTABLE, prev.IDVal, w.GetLang(), prev.EntryName, nxt.IDVal, w.GetLang(), nxt.EntryName)
 	elem = append(elem, pn)
 
 	html := strings.Join(elem, "")

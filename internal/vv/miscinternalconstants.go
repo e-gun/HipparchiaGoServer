@@ -5,6 +5,11 @@
 
 package vv
 
+import (
+	"regexp"
+	"time"
+)
+
 const (
 	AVGWORDSPERLINE        = 8      // hard coding a suspect assumption
 	CHARSPERLINE           = 60     // used by vector to preallocate memory: set it closer to a max than a real average
@@ -18,4 +23,10 @@ const (
 	NUMBEROFCITATIONLEVELS = 6
 	TERMINATIONS           = `(\s|\.|\]|\<|⟩|\)|’|”|\!|,|:|;|\?|⸥|«|·|$)` // circular imports means this is declared 2x... see also "gen.greekandlatin.go"
 	VARIADATE              = 2000
+)
+
+var (
+	IsGreek      = regexp.MustCompile("[α-ωϲῥἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάἐἑἒἓἔἕὲέἰἱἲἳἴἵἶἷὶίῐῑῒΐῖῗὀὁὂὃὄὅόὸὐὑὒὓὔὕὖὗϋῠῡῢΰῦῧύὺᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇἤἢἥἣὴήἠἡἦἧὠὡὢὣὤὥὦὧᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷώὼ]")
+	TheLanguages = []string{"greek", "latin"}
+	LaunchTime   = time.Now()
 )

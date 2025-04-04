@@ -16,4 +16,4 @@ LDF="-s -w -X main.GitCommit=${GC} -X main.BuildDate=${DT} -X main.VersSuppl=${V
 
 ${GO} build -pgo=${PGF} -ldflags "${LDF}"
 
-./HipparchiaGoServer  -gl 3 -el 2 -cm Triadic -ft Fira
+./HipparchiaGoServer  -gl 3 -el 2 -sp 8001 -cm Triadic -ft Fira -pg "{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hgdb\" ,\"User\": \"hgdbuser\"}"

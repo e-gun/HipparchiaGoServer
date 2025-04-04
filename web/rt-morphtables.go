@@ -134,7 +134,7 @@ func RtMorphchart(c echo.Context) error {
 		mp := dbmorphintomorphpossib(vall)
 		for _, m := range mp {
 			// item 0 is always ""; item 1 is an actual analysis
-			mpp[k] = append(mpp[k], m.Anal)
+			mpp[k] = append(mpp[k], m.Analysis)
 		}
 	}
 

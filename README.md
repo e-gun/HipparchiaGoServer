@@ -1,4 +1,4 @@
-## HipparchiaGoServer v1.4.0
+## HipparchiaGoServer v1.4.1
 
 ### FEATURES
 

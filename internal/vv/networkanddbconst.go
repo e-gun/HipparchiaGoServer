@@ -8,12 +8,12 @@ package vv
 const (
 	DEFAULTCOLUMN      = "stripped_line"
 	DEFAULTPSQLHOST    = "127.0.0.1"
-	DEFAULTPSQLUSER    = "hippa_wr"
+	DEFAULTPSQLUSER    = "hgdbuser"
 	DEFAULTPSQLPORT    = 5432
-	DEFAULTPSQLDB      = "hipparchiaDB"
+	DEFAULTPSQLDB      = "hgdb"
 	DEFAULTQUERYSYNTAX = "~"
 	SERVEDFROMHOST     = "127.0.0.1"
-	SERVEDFROMPORT     = 8000
+	SERVEDFROMPORT     = 8001
 	SERVEDFROMSSLPORT  = 4443
 	TEMPTABLETHRESHOLD = 100 // if a table requires N "between" clauses, build a temptable instead to gather the needed lines
 )
