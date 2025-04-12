@@ -180,3 +180,464 @@ hmu_serviusformatting {
     font-family: 'hipparchiaobliquestatic', sans-serif;
     color: var(--hgscol04);
 }
+
+/*                                */
+/* lftcurlybracketssubstitutes.go */
+/*                                */
+
+hb-title {
+    font-family: 'hipparchiabolditalicstatic', sans-serif;
+}
+
+hb-sp-marginaltext {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+    text-decoration-line: overline underline;
+    font-size: 80%;
+    color: var(--hgscol08);
+}
+
+hb-sp-scholium {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+    color: var(--hgscol09);
+}
+
+hb-sp-unconventional_form_written_by_scribe {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol10);
+}
+
+hb-sp-form_altered_by_scribe {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol11);
+}
+
+hb-sp-discarded_form {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol12);
+}
+
+hb-sp-reading_discarded_in_another_source {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol13);
+}
+
+hb-sp-numerical_equivalent {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol14);
+}
+
+hb-sp-alternative_reading {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+    color: var(--hgscol01);
+}
+
+hb-sp-rectified_form {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol02);
+}
+
+hb-sp-date_or_numeric_equivalent_of_date {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+    color: var(--hgscol03);
+}
+
+hb-sp-emendation_by_editor_of_text_not_obviously_incorrect {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+    color: var(--hgscol04);
+}
+
+/* hb-speaker {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+    color: var(--hgscol03);
+} [duplicates singletonsubstitutes element] */
+
+
+/*                                */
+/* lftanglebracketssubstitutes.go */
+/*                                */
+
+hb-sp-superscript {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-variant-position: super;
+}
+
+hb-sp-subscript {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-variant-position: sub;
+}
+
+hb-sp-textual_lemma {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol10);
+}
+
+hb-sp-stacked_text_lower {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    text-decoration: underline;
+    color: var(--hgscol04);
+}
+
+hb-sp-stacked_text_upper {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    text-decoration: overline;
+    color: var(--hgscol05);
+}
+
+hb-sp-nonstandarddirection {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    direction: rtl;
+    unicode-bidi: bidi-override;
+    color: var(--hgscol06);
+}
+
+hb-sp-interlineartext {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    text-decoration-line: overline underline;
+    font-size: 80%;
+    color: var(--hgscol07);
+}
+
+hb-sp-interlinearmarginalia {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+    text-decoration-line: overline underline;
+    font-size: 80%;
+    color: var(--hgscol08);
+}
+
+/* hb-sp-expanded_text {
+    font-stretch: expanded;
+}   [duplicates andsignfontshifts element] */
+
+hb-sp-latin_expanded_text {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-stretch: expanded;
+}
+
+hb-unk-anglebracketspan22 {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol09);
+}
+
+hb-unk-anglebracketspan24 {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol10);
+}
+
+hb-sp-overline {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    text-decoration-line: overline;
+}
+
+hb-sp-strikethrough {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    text-decoration-line: line-through;
+}
+
+hb-sp-overline_and_underline {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    text-decoration-line: overline underline;
+}
+
+hb-unk-anglebracketspan48 {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol11);
+}
+
+hb-unk-anglebracketspan50 {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol12);
+}
+
+hb-unk-anglebracketspan51 {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol13);
+}
+
+hb-unk-anglebracketspan52 {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol14);
+}
+
+hb-unk-anglebracketspan45 {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol01);
+}
+
+hb-sp-preferred_epigraphical_text_used {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol02);
+}
+
+hb-sp-epigraphical_text_inserted_after_erasure {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol03);
+}
+
+hb-sp-lineover {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    text-decoration-line: overline;
+}
+
+hb-sp-epigraphical_text_after_correction {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+    color: var(--hgscol04);
+}
+
+hb-sp-letterbox {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    text-decoration-line: overline underline;
+}
+
+hmu_epigraphical_letters_enclosed_in_wreath {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    text-decoration-line: overline underline;
+    text-decoration-style: dotted;
+    color: var(--hgscol05);
+}
+
+hmu_epigraphical_project_escape_66 {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol06);
+}
+
+hmu_epigraphical_project_escape_67 {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol07);
+}
+
+hmu_epigraphical_project_escape_68 {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol08);
+}
+
+hmu_epigraphical_project_escape_69 {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol09);
+}
+
+hb-unk-anglebracketspan96 {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol10);
+}
+
+/* singletonsubstitutes.go */
+
+hb-speaker {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+    color: var(--hgscol03);
+}
+
+/* andsignfontshifts.go */
+
+/*
+    fs-l is "latin" and so typically latin in a greek text and *maybe* ok to add color
+    but you will probably get burned in someone like Aulus Gellius where there is a lot of back and forth
+*/
+
+
+hb-fs-l-smallerthannormal, hb-fs-g-smallerthannormal {
+    font-size: 80%;
+}
+
+hb-sp-expanded_text {
+    font-stretch: expanded;
+}
+
+hb-title {
+    font-size: 120%;
+    font-family: 'hipparchiaboldstatic', sans-serif;
+}
+
+hb-fs-l-undoc-91 {
+    color: var(--hgscol07);
+}
+
+hb-fs-l-undoc-90 {
+    color: var(--hgscol03);
+}
+
+hb-fs-l-undoc-82 {
+    color: var(--hgscol04);
+}
+
+hb-fs-l-undoc-81 {
+    color: var(--hgscol07);
+}
+
+hb-fs-l-largerthannormal {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-size: 120%;
+}
+
+hb-fs-l-smallerthannormal_superscript {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-size: 80%;
+}
+hb-fs-l-smallerthannormal_italic {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+    font-size: 80%;
+}
+
+hb-fs-l-smallerthannormal {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-size: 80%;
+}
+
+hb-fs-l-smallcapitals_italic {
+    font-variant-caps: small-caps;
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+}
+
+hb-fs-l-smallcapitals {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-variant-caps: small-caps;
+}
+
+hb-fs-l-romannumerals {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-variant-caps: small-caps;
+    color: var(--hgscol07);
+}
+
+hb-fs-l-subscript {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-variant-position: sub;
+}
+
+hb-fs-l-superscript {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-variant-position: super;
+}
+
+hb-fs-l-italic {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+}
+
+hb-fs-l-bold_italic {
+    font-family: 'hipparchiabolditalicstatic', sans-serif;
+}
+
+hb-fs-l-bold {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+}
+
+hb-fs-l-normal {
+    font-family: 'hipparchiasansstatic', sans-serif;
+}
+
+
+/* dollarsignfontshifts.go */
+
+/*
+    fs-g is "greek"
+*/
+
+hb-fs-g-uncial {
+}
+
+hb-fs-g-hebrew {
+}
+
+hb-fs-g-arabic {
+}
+
+hb-fs-g-demotic {
+}
+
+hb-fs-g-coptic {
+}
+
+hb-fs-g-extralarge {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-size: 140%;
+}
+
+hb-fs-g-extrasmall {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-size: 60%;
+}
+
+hb-fs-g-largerthannormal {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-size: 120%;
+}
+
+hb-fs-g-smallerthannormal {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-size: 80%;
+}
+
+hb-fs-g-smallerthannormal_superscript_bold {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+    font-variant-position: super;
+    font-size: 80%;
+}
+
+hb-fs-g-smallerthannormal_subscript {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-variant-position: sub;
+    font-size: 80%;
+}
+
+hb-fs-g-smallerthannormal_superscript {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-variant-position: super;
+    font-size: 80%;
+}
+
+hb-fs-g-smallerthannormal_italic {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+    font-size: 80%;
+}
+
+hb-fs-g-smallerthannormal_bold {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+    font-size: 80%;
+}
+
+hb-fs-g-smallerthannormal {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-size: 80%;
+}
+
+hb-fs-g-regular {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-size: 100%;
+}
+
+hb-fs-g-vertical {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    writing-mode: vertical-lr;
+    text-orientation: upright;
+}
+
+hb-fs-g-superscript_bold {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+    font-variant-position: super;
+}
+
+hb-fs-g-subscript {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-variant-position: sub;
+}
+
+hb-fs-g-superscript {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-variant-position: super;
+}
+
+hb-fs-g-italic {
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+}
+
+hb-fs-g-bold_italic {
+    font-family: 'hipparchiabolditalicstatic', sans-serif;
+}
+
+hb-fs-g-bold {
+    font-family: 'hipparchiaboldstatic', sans-serif;
+}
+
+hb-fs-g-normal {
+    font-family: 'hipparchiasansstatic', sans-serif;
+}
