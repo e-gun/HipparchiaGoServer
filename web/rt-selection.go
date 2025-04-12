@@ -929,7 +929,7 @@ func validateworkselection(uid string) *str.DbWork {
 	} else {
 		if _, y := mps.AllAuthors[au]; y {
 			// firstwork; otherwise we are still set to "null"
-			w = mps.AllWorks[mps.AllAuthors[au].WorkList[0]]
+			w, y = mps.AllWorks[mps.AllAuthors[au].WorkList[0]]
 		}
 	}
 	return w

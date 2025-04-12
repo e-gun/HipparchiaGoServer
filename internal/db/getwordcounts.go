@@ -107,17 +107,15 @@ func GetMultipleWordCounts(ww []string) map[string]str.DbWordCount {
 func GetIndividualWordCount(wd string) str.DbWordCount {
 	const (
 		FLDS = `entry_name, total_count, gr_count, lt_count, dp_count, in_count, ch_count`
-		PSQQ = `SELECT %s FROM wordcounts_%s where entry_name = '%s'`
 		NOTH = `GetIndividualWordCount() found no results for '%s'`
+		PSQQ = `SELECT %s FROM wordcounts where entry_name = '%s'`
 	)
 
 	dbconn := getdbconnection()
 	defer dbconn.Release()
 
-	// golang hates indexing unicode strings: strings are bytes, and unicode chars take more than one byte
-	c := []rune(wd)
-	q1 := fmt.Sprintf(PSQQ, FLDS, gen.StripaccentsSTR(string(c[0])), wd)
-	q2 := fmt.Sprintf(PSQQ, FLDS, gen.StripaccentsSTR(string(c[0])), strings.ToLower(wd))
+	q1 := fmt.Sprintf(PSQQ, FLDS, wd)
+	q2 := fmt.Sprintf(PSQQ, FLDS, strings.ToLower(wd))
 
 	try := func(query string) (str.DbWordCount, error) {
 		var wc str.DbWordCount

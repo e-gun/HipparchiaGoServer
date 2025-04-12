@@ -138,9 +138,15 @@ func Buildwkcorpusmap() map[string][]string {
 
 // Buildwkgenresmap - populate global variable used by hinter
 func Buildwkgenresmap() map[string]bool {
+	// works can belong to multiple genres
+	// ex: "Epic.; Eleg.; Epigr.; Gramm.; Poem.; Hymn."
+
 	genres := make(map[string]bool)
 	for _, w := range AllWorks {
-		genres[w.Genre] = true
+		gg := strings.Split(w.Genre, "; ")
+		for _, g := range gg {
+			genres[g] = true
+		}
 	}
 	return genres
 }

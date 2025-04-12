@@ -62,8 +62,14 @@ func SessionIntoSearchlist(s str.ServerSession) ProcessedList {
 		// [b2] work genres to include
 		for _, g := range sessincl.WkGenres {
 			for _, w := range activeworks {
-				if mps.AllWorks[w].Genre == g {
-					inc.Works = append(inc.Works, mps.AllWorks[w].UID)
+				// works can belong to multiple genres; ex: "Epic.; Eleg.; Epigr.; Gramm.; Poem.; Hymn."
+				// hgdb=> select title,workgenre,universalid,firstline,lastline from works  where workgenre ~* 'Encom';
+				// this gives you 66 works and if you select "Encom." you want 66 works to be added to the list
+				wkgg := strings.Split(mps.AllWorks[w].Genre, "; ")
+				for _, wg := range wkgg {
+					if wg == g {
+						inc.Works = append(inc.Works, mps.AllWorks[w].UID)
+					}
 				}
 			}
 		}
@@ -180,11 +186,14 @@ func SessionIntoSearchlist(s str.ServerSession) ProcessedList {
 		// [c2e] + the plain old work exclusions
 		exc.Works = append(exc.Works, sessexl.Works...)
 
-		// [c2f] works excluded by genre
+		// [c2f] works excluded by genre; remember that works can have multiple genres
 		for _, l := range sessexl.WkGenres {
 			for _, w := range activeworks {
-				if mps.AllWorks[w].Genre == l {
-					exc.Works = append(exc.Works, mps.AllWorks[w].UID)
+				wkgg := strings.Split(mps.AllWorks[w].Genre, "; ")
+				for _, wg := range wkgg {
+					if wg == l {
+						exc.Works = append(exc.Works, mps.AllWorks[w].UID)
+					}
 				}
 			}
 		}

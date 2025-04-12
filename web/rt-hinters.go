@@ -198,17 +198,17 @@ func isidhint(skg string) bool {
 	}
 }
 
-// aunamehint - which authors names start with the letters you have sent? "Plat..."
+// aunamehint - which authors names contain the letters you have sent? "Var..." (used to do a 'starts with' check instead)
 func aunamehint(skg string) [][2]string {
-	// 'pis' yields:
-	// [Pisander (Epic.) gr0522]
-	// [Pisistrati Epistula gr0049]
-	// [Pisander (Epic.) gr0288]
+	// 'var' yields:
+	// L. Varius Rufus
+	// M. Terentius Varro
+	// P Aufenus Varus
+	// ...
 
 	var auu [][2]string
 	for _, a := range mps.AllAuthors {
 		var who string
-		var an string
 
 		// [sosthenes], et al. can be found via "sos" or "[so"
 		if strings.Contains(skg, "[") {
@@ -217,10 +217,7 @@ func aunamehint(skg string) [][2]string {
 			who = strings.Replace(a.Cleaname, "[", "", 1)
 		}
 
-		if len(who) >= len(skg) {
-			an = strings.ToLower(who[0:len(skg)])
-		}
-		if an == skg {
+		if strings.Contains(strings.ToLower(who), strings.ToLower(skg)) {
 			ai := [2]string{a.Cleaname, a.UID}
 			auu = append(auu, ai)
 		}

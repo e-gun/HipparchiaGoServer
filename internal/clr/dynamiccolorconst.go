@@ -56,7 +56,6 @@ const (
 	--hgscol05: {{.colorA2}};
 	--hgscol06: {{.colorA2}};
 	--hgscol07: {{.colorA0}};
-	--hgscol07: {{.colorA5}};
 	--hgscol08: {{.colorA0}};
 	--hgscol09: {{.colorA3}};
 	--hgscol10: {{.colorA4}};
