@@ -7,6 +7,7 @@ package str
 
 import (
 	"reflect"
+	"regexp"
 	"sort"
 )
 
@@ -74,6 +75,7 @@ var (
 		"Nathist": 1.94, "Orat": 1.81, "Parod": 339.23, "Phil": 2.3, "Poem": 14.34,
 		"Polyhist": 4.75, "Rhet": 2.71, "Satura": 23.0, "Tact": 37.6, "Trag": 13.29, "Allrelig": 0,
 		"Allrhet": 1.08}
+	lookforlatinchars = regexp.MustCompile(`[a-z]`)
 )
 
 type DbHeadwordCounts struct {
@@ -326,16 +328,37 @@ func (hw DbHeadwordCounts) GetSortedGenreVals() []HWData {
 	return newhwdata
 }
 
+func (hw *DbHeadwordCounts) GetWeightedSortedGenreVals() []HWData {
+	if hw.IsGreek() {
+		return hw.GetGreekWeightedSortedGenreVals()
+	} else {
+		return hw.GetLatinWeightedSortedGenreVals()
+	}
+}
+
 func (hw *DbHeadwordCounts) GetGreekWeightedSortedGenreVals() []HWData {
 	const (
-		MINORGENRETHRESHOLD = 250
+		MINORGKGENRETHRESHOLD = 250
 	)
+	return hw.GenerateWeightedSortedGenreVals(GKGENREWEIGHT, MINORGKGENRETHRESHOLD)
+}
+
+func (hw *DbHeadwordCounts) GetLatinWeightedSortedGenreVals() []HWData {
+	const (
+		MINORGKGENRETHRESHOLD = 250
+	)
+	return hw.GenerateWeightedSortedGenreVals(LATGENREWEIGHT, MINORGKGENRETHRESHOLD)
+}
+
+// GenerateWeightedSortedGenreVals - this is the one that does the real work of ranking and sorting
+func (hw *DbHeadwordCounts) GenerateWeightedSortedGenreVals(weightmap map[string]float32, threshold float32) []HWData {
+
 	vv := hw.GetSortedGenreVals()
 	for i, hwc := range vv {
-		gwt := GKGENREWEIGHT[hwc.Name]
-		if gwt > MINORGENRETHRESHOLD {
-			// you will never get weights for these genres
-			gwt = 0
+		gwt := weightmap[hwc.Name]
+		if gwt > threshold {
+			// you will never get weights for these genres; but you will still be able to peek when testing
+			gwt = -1 * gwt
 		}
 		vv[i] = HWData{
 			Name:  hwc.Name,
@@ -347,5 +370,32 @@ func (hw *DbHeadwordCounts) GetGreekWeightedSortedGenreVals() []HWData {
 	sort.Slice(vv, func(i, j int) bool {
 		return vv[i].Count > vv[j].Count
 	})
-	return vv
+
+	// trim empties
+	var trimmed []HWData
+	for _, v := range vv {
+		if v.Count > 0 {
+			trimmed = append(trimmed, v)
+		}
+	}
+
+	if len(trimmed) == 0 {
+		return trimmed
+	}
+
+	// now make the top value into "100" and weigh the rest relative to it
+	top := trimmed[0].Count
+	for i := 0; i < len(trimmed); i++ {
+		trimmed[i].Count = int(100 * (float32(trimmed[i].Count) / float32(top)))
+	}
+
+	return trimmed
+}
+
+func (hw *DbHeadwordCounts) IsGreek() bool {
+	if lookforlatinchars.MatchString(hw.Word) {
+		return false
+	} else {
+		return true
+	}
 }

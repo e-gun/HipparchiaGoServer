@@ -6,7 +6,6 @@
 package web
 
 import (
-	"cmp"
 	"encoding/json"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
@@ -19,10 +18,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
-	"math"
 	"reflect"
 	"regexp"
-	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -319,8 +316,8 @@ func reversefind(word string, dicts []string) string {
 	countmap := make(map[string]str.DbHeadwordCounts)
 	for _, f := range lexicalfinds {
 		ct := db.GetIndividualHeadwordCount(f.EntryName)
-		if ct.Entry == "" {
-			ct.Entry = f.EntryName
+		if ct.Word == "" {
+			ct.Word = f.EntryName
 		}
 		countmap[f.IDVal] = ct
 	}
@@ -342,7 +339,7 @@ func reversefind(word string, dicts []string) string {
 	// [d1] insert the overview
 	ov := make([]string, len(lexicalfinds))
 	for i, k := range keys {
-		ov[i] = fmt.Sprintf(ENTRYSPAN, i+1, countmap[k].Entry, k, countmap[k].Entry, countmap[k].Total)
+		ov[i] = fmt.Sprintf(ENTRYSPAN, i+1, countmap[k].Word, k, countmap[k].Word, countmap[k].Total)
 	}
 
 	htmlchunks := make([]string, len(keys))
@@ -396,8 +393,8 @@ func dictsearch(seeking string, dict string, zaplunates bool) string {
 	countmap := make(map[string]str.DbHeadwordCounts)
 	for _, f := range lexicalfinds {
 		ct := db.GetIndividualHeadwordCount(f.EntryName)
-		if ct.Entry == "" {
-			ct.Entry = f.EntryName
+		if ct.Word == "" {
+			ct.Word = f.EntryName
 		}
 		countmap[f.IDVal] = ct
 	}
@@ -706,7 +703,7 @@ func formatlexicaloutput(w str.DbLexicon) string {
 	// [h1a] known forms in use
 
 	hwc := db.GetIndividualHeadwordCount(w.EntryName)
-	elem = append(elem, fmt.Sprintf(FRQSUM, hwc.FrqCla))
+	elem = append(elem, fmt.Sprintf(FRQSUM, hwc.FrqClas))
 
 	lw := gen.UVσςϲ(w.EntryName) // otherwise "venio" will hit AllLemm instead of "uenio"
 	if _, ok := mps.AllLemm[lw]; ok {
@@ -746,23 +743,6 @@ func formatlexicaloutput(w str.DbLexicon) string {
 	return html
 }
 
-// entryqickfixes - tidy up wonky things that are in "html_body" in the DB; the builder should be doing this instead...
-func entryqickfixes(html string) string {
-	// [a]
-	// <span class="dictquote dictlang_la">sedile"><span class="dictcit"><span class="dictquote dictlang_la">sedile</dictionaryentry>
-	//     "sedile" is here twice and will print as 'sedile">sedile,'
-
-	badpatt1, err := regexp.Compile("<span class=\"dictquote dictlang_la\">(\\w+)\"><span class=\"dictcit\"><span class=\"dictquote dictlang_la\">(\\w+)")
-	Msg.EC(err)
-	html = badpatt1.ReplaceAllString(html, "<span class=\"dictcit\"><span class=\"dictquote dictlang_la\">$1")
-
-	// [b] ē^ -> ē̆
-
-	html = quantityfixer.Replace(html)
-
-	return html
-}
-
 func insertlexicaljs() string {
 	const (
 		LJS = `
@@ -787,7 +767,7 @@ func headwordprevalence(wc str.DbHeadwordCounts) string {
 
 	m := message.NewPrinter(language.English)
 
-	cv := wc.CorpVal
+	cv := wc.GetCorpVals()
 
 	var pd []string
 
@@ -806,113 +786,48 @@ func headwordprevalence(wc str.DbHeadwordCounts) string {
 func headworddistrib(wc str.DbHeadwordCounts) string {
 	// Weighted distribution by corpus: Ⓖ 100 / Ⓓ 14 / Ⓒ 6 / Ⓘ 2 / Ⓛ 0
 	const (
-		DIST = `<br>Distribution by corpus: `
+		DIST     = `<br>Distribution by corpus: `
+		PREVSPAN = `<span class="rarechars prevalence">%s</span>&nbsp;%d`
 	)
-	cv := wc.CorpVal
-
-	for i, c := range cv {
-		cv[i].Count = int(float32(c.Count) * str.CORPUSWEIGTING[c.Name])
+	cv := wc.GetWeightedSortedTrimmedCorpVals() //  [{Ⓒ 85} {Ⓘ 60} {Ⓓ 54} {Ⓛ 25} {Ⓖ 5}]
+	var pd []string
+	for _, c := range cv {
+		pd = append(pd, fmt.Sprintf(PREVSPAN, c.Name, c.Count))
 	}
-
-	// descending order
-	slices.SortFunc(cv, func(a, b str.HWData) int { return cmp.Compare(b.Count, a.Count) })
-
-	mx := cv[0].Count
-
-	p := ""
-	if mx != 0 {
-		pd := weightedpdslice(cv, true)
-		p = DIST + strings.Join(pd, "; ")
-	}
-
-	return p
+	return DIST + strings.Join(pd, " / ")
 }
 
 func headwordchronology(wc str.DbHeadwordCounts) string {
 	// Weighted chronological distribution: ℯ 100 / ℓ 84 / 𝓂 62
 	const (
-		DIST = `<br>Distribution by time: `
+		DIST     = `<br>Distribution by time: `
+		PREVSPAN = `<span class="rarechars prevalence">%s</span>&nbsp;%d`
 	)
-	cv := wc.TimeVal
+	cv := wc.GetWeightedSortedTrimmedTimeVals()
 
-	for i, c := range cv {
-		cv[i].Count = int(float32(c.Count) * str.ERAWEIGHTING[c.Name])
+	var pd []string
+	for _, c := range cv {
+		pd = append(pd, fmt.Sprintf(PREVSPAN, c.Name, c.Count))
 	}
-
-	// descending order
-	slices.SortFunc(cv, func(a, b str.HWData) int { return cmp.Compare(b.Count, a.Count) })
-
-	mx := cv[0].Count
-
-	p := ""
-	if mx != 0 {
-		pd := weightedpdslice(cv, true)
-		p = DIST + strings.Join(pd, "; ")
-
-	}
-
-	return p
+	return DIST + strings.Join(pd, " / ")
 }
 
 func headwordgenres(wc str.DbHeadwordCounts) string {
 	// Predominant genres: comm (100), mech (97), jurisprud (93), med (84), mus (75), nathist (61), paroem (60), allrelig (57)
 	const (
-		DIST = `<br>Distribution by genre: `
+		DIST     = `<br>Distribution by genre: `
+		PREVSPAN = `<span class="rarechars prevalence">%s</span>&nbsp;%d`
 	)
 
-	cv := wc.GenreVal
+	cv := wc.GetWeightedSortedGenreVals()
 
-	wt := map[string]float32{}
-	if vv.IsGreek.MatchString(wc.Word) {
-		wt = str.GKGENREWEIGHT
-	} else {
-		wt = str.LATGENREWEIGHT
-	}
-
-	for i, c := range cv {
-		w := wt[c.Name]
-		if w > vv.MINORGENREWTCAP {
-			w = 0
-		}
-		cv[i].Count = int(float32(c.Count) * w)
-	}
-
-	// descending order
-	slices.SortFunc(cv, func(a, b str.HWData) int { return cmp.Compare(b.Count, a.Count) })
-
-	mx := cv[0].Count
-
-	p := ""
-	if mx != 0 {
-		pd := weightedpdslice(cv, false)
-		lim := math.Min(vv.GENRESTOCOUNT, float64(len(pd)))
-		pd = pd[0:int(lim)]
-		p = DIST + strings.Join(pd, "; ")
-	}
-
-	return p
-}
-
-// weightedpdslice - convert count values into a formatted string slice
-func weightedpdslice(cv []str.HWData, rare bool) []string {
-	const (
-		PREVSPANA = `<span class="rarechars prevalence">%s</span>&nbsp;%d`
-		PREVSPANB = `<span class="rarechars prevalence">%s</span>&nbsp;%d`
-	)
-
-	ps := PREVSPANA
-	if !rare {
-		// headwordgenres()
-		ps = PREVSPANB
-	}
-
-	mx := cv[0].Count
 	var pd []string
-	for _, c := range cv {
-		cpt := (float32(c.Count) / float32(mx)) * 100
-		if int(cpt) > 0 {
-			pd = append(pd, fmt.Sprintf(ps, c.Name, int(cpt)))
+	for i, c := range cv {
+		if i >= vv.GENRESTOCOUNT {
+			break
 		}
+		pd = append(pd, fmt.Sprintf(PREVSPAN, c.Name, c.Count))
 	}
-	return pd
+	return DIST + strings.Join(pd, "; ")
+
 }
