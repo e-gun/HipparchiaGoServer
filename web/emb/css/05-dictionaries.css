@@ -243,3 +243,51 @@ p.level4 {
 p.level5 {
     padding-left: 60px;
 }
+
+
+hb-lx-au {
+    color: var(--dictauthwkcolor);
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+}
+
+hb-lx-cit {
+
+}
+
+hb-lx-lt-quote {
+    color: var(--dictquotecolor);
+    font-family: 'hipparchiasansstatic', sans-serif;
+}
+
+hb-lx-hri {
+    font-family: 'hipparchiabolditalicstatic', sans-serif;
+    color: var(--dicttranslcolor);
+}
+
+hb-lx-tr {
+    font-family: 'hipparchiabolditalicstatic', sans-serif;
+    color: var(--dicttranslcolor);
+}
+
+hb-lx-tit {
+    color: var(--dictauthwkcolor);
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+}
+
+hb-lx-sense {
+    font-size: 100%;
+
+}
+
+.hb-lx-sense-contents {
+    margin-left: 10px;
+}
+
+.hb-lx-prelim {
+    font-size: 85%;
+    padding: 5px;
+    margin-top: 10px;
+    margin-left: 15px;
+    margin-right: 15px;
+    border: 1px dotted var(--dottedborders);
+}

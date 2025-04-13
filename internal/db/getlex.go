@@ -54,8 +54,11 @@ func DictEntryGrabber(seeking string, dict string, col string, syntax string) []
 		if err != nil {
 			fmt.Println("Error decoding JSON:", err)
 		}
-		for _, sense := range sensemap {
-			thehit.Senses = append(thehit.Senses, sense)
+
+		// need to store these in order
+		thehit.Senses = make([]str.LexicalSenses, len(sensemap))
+		for i, sense := range sensemap {
+			thehit.Senses[i] = sense
 		}
 
 		if _, dup := dedup[thehit.IDVal]; !dup {
@@ -215,15 +218,20 @@ func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 		&thehit.Usedby,
 		&thehit.PrelimInfo,
 		&thehit.SenseIDs,
-		&jsonsenses}
+		&jsonsenses,
+	}
+
 	rwfnc := func() error {
 		sensemap := make(map[int]str.LexicalSenses)
 		err := json.Unmarshal(jsonsenses, &sensemap)
 		if err != nil {
 			fmt.Println("Error decoding JSON:", err)
 		}
-		for _, sense := range sensemap {
-			thehit.Senses = append(thehit.Senses, sense)
+
+		// need to store these in order
+		thehit.Senses = make([]str.LexicalSenses, len(sensemap))
+		for i, sense := range sensemap {
+			thehit.Senses[i] = sense
 		}
 
 		thehit.SetLang(d)

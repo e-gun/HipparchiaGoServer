@@ -21,6 +21,7 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -728,10 +729,9 @@ func formatlexicaloutput(w str.DbLexicon) string {
 	// todo: need a function to actually assemble the senses; at the moment we only have the prelim...
 	// w.EntryName = entryqickfixes(w.EntryName)
 
-	elem = append(elem, "prelim info: ", w.PrelimInfo)
+	elem = append(elem, formatpreliminfo(w))
 	for _, s := range w.Senses {
-		fmt.Println("sense id", s.ID)
-		elem = append(elem, s.Contents)
+		elem = append(elem, formatsenseinfo(s))
 	}
 
 	// [h5] previous & next entry
@@ -745,6 +745,37 @@ func formatlexicaloutput(w str.DbLexicon) string {
 	html := strings.Join(elem, "")
 
 	return html
+}
+
+func formatpreliminfo(w str.DbLexicon) string {
+	const (
+		TMPL = `<div class="hb-lx-prelim">
+<hb-fs-l-bold>morphology:</hb-fs-l-bold> %s %s
+</div>`
+	)
+	return fmt.Sprintf(TMPL, w.EntryName, w.PrelimInfo)
+}
+
+func formatsenseinfo(s str.LexicalSenses) string {
+	const (
+		TMPL = `<hb-lx-sense>
+<pre>(%d)</pre>
+<div class="hb-lx-sense-contents"">%s</hb-lx-sense-contents>
+</div>
+<br>`
+	)
+
+	// ids start at 0
+	id := strings.Split(s.ID, ".")[1]
+	idv, _ := strconv.Atoi(id)
+	idv += 1
+
+	//lvlinf := []string{
+	//	s.N,
+	//	s.LVL,
+	//}
+
+	return fmt.Sprintf(TMPL, idv, s.Contents)
 }
 
 func insertlexicaljs() string {
