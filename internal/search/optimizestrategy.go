@@ -118,11 +118,11 @@ func pickfastestlemma(s *str.SearchStruct) {
 
 	// the "&&" tries to address the »πόλιϲ« vs »ὁπλίζω« problem: see the notes above
 	if (hw1.Total > hw2.Total) && (fc1 > fc2) {
-		s.LemmaTwo = hw1.Entry
-		s.LemmaOne = hw2.Entry
-		Msg.PEEK(fmt.Sprintf(NOTE1, hw2.Entry, hw1.Entry, hw2.Total, hw1.Total, fc2, fc1))
+		s.LemmaTwo = hw1.Word
+		s.LemmaOne = hw2.Word
+		Msg.PEEK(fmt.Sprintf(NOTE1, hw2.Word, hw1.Word, hw2.Total, hw1.Total, fc2, fc1))
 	} else {
-		Msg.PEEK(fmt.Sprintf(NOTE2, hw1.Entry, hw2.Entry, hw1.Total, hw2.Total, fc1, fc2))
+		Msg.PEEK(fmt.Sprintf(NOTE2, hw1.Word, hw2.Word, hw1.Total, hw2.Total, fc1, fc2))
 	}
 }
 

@@ -141,22 +141,104 @@ func GetIndividualWordCount(wd string) str.DbWordCount {
 }
 
 // GetIndividualHeadwordCount - get a DbHeadwordCount for a single word
-func GetIndividualHeadwordCount(word string) str.DbHeadwordCount {
+func GetIndividualHeadwordCount(word string) str.DbHeadwordCounts {
 	// scan a headwordcount into the corresponding struct
 	// note that if you reassign a genre, this is one of the place you have to edit
 	const (
 		QTP = `
 		SELECT
-			entry_name , total_count, gr_count, lt_count, dp_count, in_count, ch_count,
-			frequency_classification, early_occurrences, middle_occurrences ,late_occurrences,
-			acta, agric, alchem, anthol, apocalyp, apocryph, apol, astrol, astron, biogr, bucol,
-			caten, chronogr, comic, comm, concil, coq, dialog, docu, doxogr, eccl, eleg, encom, epic,
-			epigr, epist, evangel, exeget, fab, geogr, gnom, gramm, hagiogr, hexametr, hist, homilet,
-			hymn, hypoth, iamb, ignotum, invectiv, inscr, jurisprud, lexicogr, liturg, lyr, magica, 
-			math, mech, med, metrolog, mim, mus, myth, narrfict, nathist, onir, orac, orat,
-			paradox, parod, paroem, perieg, phil, physiognom, poem, polyhist, prophet, pseudepigr, rhet,
-			satura, satyr, schol, tact, test, theol, trag
-		FROM dictionary_headword_wordcounts WHERE entry_name='%s'`
+			entry_name,
+			total_count,
+			gr_count,
+			lt_count,
+			dp_count,
+			in_count,
+			ch_count,
+			frequency_classification,
+			early_occurrences,
+			middle_occurrences,
+			late_occurrences,
+			acta,
+			agric,
+			alchem,
+			anthol,
+			apocalyp,
+			apocryph,
+			apol,
+			astrol,
+			astron,
+			biogr,
+			bucol,
+			caten,
+			chronogr,
+			comic,
+			comm,
+			concil,
+			coq,
+			dialog,
+			docu,
+			doxogr,
+			eccl,
+			eleg,
+			encom,
+			epic,
+			epigr,
+			epist,
+			evangel,
+			exeget,
+			fab,
+			geogr,
+			gnom,
+			gramm,
+			hagiogr,
+			hexametr,
+			hist,
+			homilet,
+			hymn,
+			hypoth,
+			iamb,
+			ignotum,
+			inscr,
+			invectiv,
+			jurisprud,
+			lexicogr,
+			liturg,
+			lyr,
+			magica,
+			math,
+			mech,
+			med,
+			metrolog,
+			mim,
+			mus,
+			myth,
+			narrfict,
+			nathist,
+			onir,
+			orac,
+			orat,
+			papyrus,
+			paradox,
+			parod,
+			paroem,
+			perieg,
+			phil,
+			physiognom,
+			poem,
+			polyhist,
+			prophet,
+			pseudepigr,
+			rhet,
+			satura,
+			satyr,
+			schol,
+			tact,
+			test,
+			theol,
+			trag,
+			allrhet,
+			allrel
+		FROM headword_wordcounts WHERE entry_name='%s'`
 
 		FAIL = "GetIndividualHeadwordCount() returned 'nil' when looking for '%s'"
 		INFO = "GetIndividualHeadwordCount() for '%s' returned %d finds"
@@ -170,46 +252,115 @@ func GetIndividualHeadwordCount(word string) str.DbHeadwordCount {
 	foundrows, err := dbconn.Query(context.Background(), q)
 	Msg.EC(err)
 
-	var thesefinds []str.DbHeadwordCount
-	var co str.DbHeadwordCorpusCounts
-	var chr str.DbHeadwordTimeCounts
-	var g str.DbHeadwordGenreCounts
-	var th str.DbHeadwordTheologyCounts
-	var rh str.DbHeadwordRhetoricaCounts
+	var thesefinds []str.DbHeadwordCounts
 
 	defer foundrows.Close()
 	for foundrows.Next() {
-		var thehit str.DbHeadwordCount
-		e := foundrows.Scan(&thehit.Entry, &thehit.Total, &co.TGrk, &co.TLat, &co.TDP, &co.TIN, &co.TCh,
-			&thehit.FrqCla, &chr.Early, &chr.Middle, &chr.Late,
-			&th.Acta, &g.Agric, &g.Alchem, &g.Anthol, &th.Apocal, &th.Apocr, &th.Apol, &g.Astrol, &g.Astron, &g.Biogr, &g.Bucol,
-			&th.Caten, &g.Chron, &g.Comic, &g.Comm, &g.Concil, &g.Coq, &g.Dial, &g.Docu, &g.Doxog, &th.Eccl, &g.Eleg, &rh.Encom, &g.Epic,
-			&g.Epigr, &g.Epist, &th.Evang, &g.Exeg, &g.Fab, &g.Geog, &g.Gnom, &g.Gram, &th.Hagiog, &g.Hexam, &g.Hist, &th.Homil,
-			&g.Hymn, &g.Hypoth, &g.Iamb, &g.Ignot, &rh.Invect, &g.Inscr, &g.Juris, &g.Lexic, &th.Litur, &g.Lyr, &g.Magica,
-			&g.Math, &g.Mech, &g.Med, &g.Meteor, &g.Mim, &g.Mus, &g.Myth, &g.NarrFic, &g.NatHis, &g.Onir, &g.Orac, &rh.Orat,
-			&g.Paradox, &g.Parod, &g.Paroem, &g.Perig, &g.Phil, &g.Physiog, &g.Poem, &g.Polyhist, &th.Proph, &g.Pseud, &rh.Rhet,
-			&g.Satura, &g.Satyr, &g.Schol, &g.Tact, &g.Test, &th.Theol, &g.Trag)
+		var thehit str.DbHeadwordCounts
+		e := foundrows.Scan(
+			&thehit.Word,
+			&thehit.Total,
+			&thehit.TGrk,
+			&thehit.TLat,
+			&thehit.TDP,
+			&thehit.TIN,
+			&thehit.TCh,
+			&thehit.FrqClas,
+			&thehit.Early,
+			&thehit.Middle,
+			&thehit.Late,
+			&thehit.Acta,
+			&thehit.Agric,
+			&thehit.Alchem,
+			&thehit.Anthol,
+			&thehit.Apocal,
+			&thehit.Apocry,
+			&thehit.Apol,
+			&thehit.Astrol,
+			&thehit.Astron,
+			&thehit.Biogr,
+			&thehit.Bucol,
+			&thehit.Caten,
+			&thehit.Chron,
+			&thehit.Comic,
+			&thehit.Comm,
+			&thehit.Concil,
+			&thehit.Coq,
+			&thehit.Dial,
+			&thehit.Docu,
+			&thehit.Doxog,
+			&thehit.Eccl,
+			&thehit.Eleg,
+			&thehit.Encom,
+			&thehit.Epic,
+			&thehit.Epigr,
+			&thehit.Epist,
+			&thehit.Evang,
+			&thehit.Exeg,
+			&thehit.Fab,
+			&thehit.Geog,
+			&thehit.Gnom,
+			&thehit.Gram,
+			&thehit.Hagiog,
+			&thehit.Hexam,
+			&thehit.Hist,
+			&thehit.Homil,
+			&thehit.Hymn,
+			&thehit.Hypoth,
+			&thehit.Iamb,
+			&thehit.Ignot,
+			&thehit.Inscr,
+			&thehit.Invectiv,
+			&thehit.Juris,
+			&thehit.Lexic,
+			&thehit.Liturg,
+			&thehit.Lyr,
+			&thehit.Magica,
+			&thehit.Math,
+			&thehit.Mech,
+			&thehit.Med,
+			&thehit.Meteor,
+			&thehit.Mim,
+			&thehit.Mus,
+			&thehit.Myth,
+			&thehit.NarrFic,
+			&thehit.NatHis,
+			&thehit.Onir,
+			&thehit.Orac,
+			&thehit.Orat,
+			&thehit.Paradox,
+			&thehit.Papyrus,
+			&thehit.Parod,
+			&thehit.Paroem,
+			&thehit.Perig,
+			&thehit.Phil,
+			&thehit.Physiog,
+			&thehit.Poem,
+			&thehit.Polyhist,
+			&thehit.Proph,
+			&thehit.Pseud,
+			&thehit.Rhet,
+			&thehit.Satura,
+			&thehit.Satyr,
+			&thehit.Schol,
+			&thehit.Tact,
+			&thehit.Test,
+			&thehit.Theol,
+			&thehit.Trag,
+			&thehit.AllRhet,
+			&thehit.AllRelig)
 		if e != nil {
 			Msg.TMI(fmt.Sprintf(FAIL, word))
 		}
-		thehit.Corpus = co
-		thehit.Chron = chr
-		thehit.Genre = g
-		thehit.Rhetorica = rh
-		thehit.Theology = th
 		thesefinds = append(thesefinds, thehit)
 	}
 
-	var thefind str.DbHeadwordCount
+	var thefind str.DbHeadwordCounts
 	if len(thesefinds) == 1 {
 		thefind = thesefinds[0]
 	} else {
 		Msg.TMI(fmt.Sprintf(INFO, word, len(thesefinds)))
 	}
-
-	thefind.LoadCorpVals()
-	thefind.LoadTimeVals()
-	thefind.LoadGenreVals()
 
 	return thefind
 }

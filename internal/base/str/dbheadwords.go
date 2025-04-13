@@ -5,7 +5,10 @@
 
 package str
 
-import "reflect"
+import (
+	"reflect"
+	"sort"
+)
 
 // hipparchiaDB=# \d wordcounts_a
 //                     Table "public.wordcounts_a"
@@ -43,6 +46,8 @@ import "reflect"
 // see CALCULATEWORDWEIGHTS in HipparchiaServer's startup.py on where these really come from
 // alternate chars: "🄶", "🄻", "🄸", "🄳", "🄲"; but these align awkwardly on the page
 
+// these values are valid for 1.4.0- but not 2.0.0+
+
 var (
 	CORPUSWEIGTING = map[string]float32{"Ⓖ": 1.0, "Ⓛ": 12.7, "Ⓘ": 15.19, "Ⓓ": 18.14, "Ⓒ": 85.78}
 	ERAWEIGHTING   = map[string]float32{"e": 6.93, "m": 1.87, "l": 1}
@@ -71,28 +76,30 @@ var (
 		"Allrhet": 1.08}
 )
 
-type DbHeadwordTimeCounts struct {
-	Early  int
-	Middle int
-	Late   int
-}
-
-type DbHeadwordCorpusCounts struct {
-	TGrk int
-	TLat int
-	TDP  int
-	TIN  int
-	TCh  int
-}
-
-type DbHeadwordGenreCounts struct {
+type DbHeadwordCounts struct {
+	Word     string
+	Total    int
+	TGrk     int
+	TLat     int
+	TDP      int
+	TIN      int
+	TCh      int
+	FrqClas  string
+	Early    int
+	Middle   int
+	Late     int
+	Acta     int
 	Agric    int
 	Alchem   int
 	Anthol   int
+	Apocal   int
+	Apocry   int
+	Apol     int
 	Astrol   int
 	Astron   int
 	Biogr    int
 	Bucol    int
+	Caten    int
 	Chron    int
 	Comic    int
 	Comm     int
@@ -101,24 +108,31 @@ type DbHeadwordGenreCounts struct {
 	Dial     int
 	Docu     int
 	Doxog    int
+	Eccl     int
 	Eleg     int
+	Encom    int
 	Epic     int
 	Epigr    int
 	Epist    int
+	Evang    int
 	Exeg     int
 	Fab      int
 	Geog     int
 	Gnom     int
 	Gram     int
+	Hagiog   int
 	Hexam    int
 	Hist     int
+	Homil    int
 	Hymn     int
 	Hypoth   int
 	Iamb     int
 	Ignot    int
 	Inscr    int
+	Invectiv int
 	Juris    int
 	Lexic    int
+	Liturg   int
 	Lyr      int
 	Magica   int
 	Math     int
@@ -132,7 +146,9 @@ type DbHeadwordGenreCounts struct {
 	NatHis   int
 	Onir     int
 	Orac     int
+	Orat     int
 	Paradox  int
+	Papyrus  int
 	Parod    int
 	Paroem   int
 	Perig    int
@@ -140,37 +156,18 @@ type DbHeadwordGenreCounts struct {
 	Physiog  int
 	Poem     int
 	Polyhist int
+	Proph    int
 	Pseud    int
+	Rhet     int
 	Satura   int
 	Satyr    int
 	Schol    int
 	Tact     int
 	Test     int
+	Theol    int
 	Trag     int
 	AllRhet  int
 	AllRelig int
-}
-
-type DbHeadwordRhetoricaCounts struct {
-	Encom  int
-	Invect int
-	Orat   int
-	Rhet   int
-}
-
-type DbHeadwordTheologyCounts struct {
-	Acta   int
-	Apocal int
-	Apocr  int
-	Apol   int
-	Caten  int
-	Eccl   int
-	Evang  int
-	Hagiog int
-	Homil  int
-	Litur  int
-	Proph  int
-	Theol  int
 }
 
 // HWData - to help sort values inside DbHeadwordCount
@@ -179,67 +176,176 @@ type HWData struct {
 	Count int
 }
 
-type DbHeadwordCount struct {
-	Entry     string
-	Total     int
-	FrqCla    string
-	Chron     DbHeadwordTimeCounts
-	Genre     DbHeadwordGenreCounts
-	Corpus    DbHeadwordCorpusCounts
-	Rhetorica DbHeadwordRhetoricaCounts
-	Theology  DbHeadwordTheologyCounts
-	CorpVal   []HWData
-	TimeVal   []HWData
-	TagVal    []HWData
-	GenreVal  []HWData
-}
-
-func (hw *DbHeadwordCount) LoadCorpVals() {
+func (hw *DbHeadwordCounts) GetCorpVals() []HWData {
 	// Prevalence (all forms): Ⓖ 95,843 / Ⓛ 10 / Ⓘ 151 / Ⓓ 751 / Ⓒ 64 / Ⓣ 96,819
 	var vv []HWData
-	vv = append(vv, HWData{"Ⓖ", hw.Corpus.TGrk})
-	vv = append(vv, HWData{"Ⓛ", hw.Corpus.TLat})
-	vv = append(vv, HWData{"Ⓘ", hw.Corpus.TIN})
-	vv = append(vv, HWData{"Ⓓ", hw.Corpus.TDP})
-	vv = append(vv, HWData{"Ⓒ", hw.Corpus.TCh})
-	hw.CorpVal = vv
+	vv = append(vv, HWData{"Ⓖ", hw.TGrk})
+	vv = append(vv, HWData{"Ⓛ", hw.TLat})
+	vv = append(vv, HWData{"Ⓘ", hw.TIN})
+	vv = append(vv, HWData{"Ⓓ", hw.TDP})
+	vv = append(vv, HWData{"Ⓒ", hw.TCh})
+	return vv
 }
 
-func (hw *DbHeadwordCount) LoadTimeVals() {
+func (hw *DbHeadwordCounts) GetWeightedCorpVals() []HWData {
+	vv := hw.GetCorpVals()
+	for i, v := range vv {
+		vv[i].Count = int(float32(v.Count) * CORPUSWEIGTING[v.Name])
+	}
+	return vv
+}
+
+func (hw *DbHeadwordCounts) GetSortedCorpVals() []HWData {
+	vv := hw.GetCorpVals()
+	sort.Slice(vv, func(i, j int) bool {
+		return vv[i].Count > vv[j].Count
+	})
+	return vv
+}
+
+func (hw *DbHeadwordCounts) GetWeightedSortedCorpVals() []HWData {
+	vv := hw.GetWeightedCorpVals()
+	sort.Slice(vv, func(i, j int) bool {
+		return vv[i].Count > vv[j].Count
+	})
+	return vv
+}
+
+func (hw *DbHeadwordCounts) GetSortedTrimmedCorpVals() []HWData {
+	vv := hw.GetSortedCorpVals()
+	var trimmed []HWData
+	for _, v := range vv {
+		if v.Count > 0 {
+			trimmed = append(trimmed, v)
+		}
+	}
+	return trimmed
+}
+
+func (hw *DbHeadwordCounts) GetWeightedSortedTrimmedCorpVals() []HWData {
+	vv := hw.GetWeightedSortedCorpVals()
+	var trimmed []HWData
+	for _, v := range vv {
+		if v.Count > 0 {
+			trimmed = append(trimmed, v)
+		}
+	}
+	return trimmed
+}
+
+func (hw *DbHeadwordCounts) GetTimeVals() []HWData {
 	// Weighted chronological distribution: ℯ 100 / ℓ 84 / 𝓂 62
 	var vv []HWData
-	vv = append(vv, HWData{"e", hw.Chron.Early})
-	vv = append(vv, HWData{"l", hw.Chron.Late})
-	vv = append(vv, HWData{"m", hw.Chron.Middle})
-	hw.TimeVal = vv
+	vv = append(vv, HWData{"e", hw.Early})
+	vv = append(vv, HWData{"l", hw.Late})
+	vv = append(vv, HWData{"m", hw.Middle})
+	return vv
 }
 
-func (hw *DbHeadwordCount) LoadGenreVals() {
-	// Weighted genre distribution: Predominant genres: bucol (100), iamb (98), epic (95),...
-	gvv := reflect.ValueOf(hw.Rhetorica)
-	gvtype := gvv.Type()
-	sum := 0
-	for i := 0; i < gvv.NumField(); i++ {
-		sum += gvv.Field(i).Interface().(int)
+func (hw *DbHeadwordCounts) GetWeightedTimeVals() []HWData {
+	vv := hw.GetTimeVals()
+	for i, v := range vv {
+		vv[i].Count = int(float32(v.Count) * ERAWEIGHTING[v.Name])
 	}
-	hw.Genre.AllRhet = sum
+	return vv
+}
 
-	gvv = reflect.ValueOf(hw.Theology)
-	gvtype = gvv.Type()
-	sum = 0
-	for i := 0; i < gvv.NumField(); i++ {
-		sum += gvv.Field(i).Interface().(int)
-	}
-	hw.Genre.AllRelig = sum
+func (hw *DbHeadwordCounts) GetSortedTimeVals() []HWData {
+	vv := hw.GetTimeVals()
+	sort.Slice(vv, func(i, j int) bool {
+		return vv[i].Count > vv[j].Count
+	})
+	return vv
+}
 
-	gvv = reflect.ValueOf(hw.Genre)
-	gvtype = gvv.Type()
-	var vv []HWData
-	for i := 0; i < gvv.NumField(); i++ {
-		var v HWData
-		v.Name = gvtype.Field(i).Name
-		v.Count = gvv.Field(i).Interface().(int)
-		vv = append(vv, v)
+func (hw *DbHeadwordCounts) GetWeightedSortedTimeVals() []HWData {
+	vv := hw.GetWeightedTimeVals()
+	sort.Slice(vv, func(i, j int) bool {
+		return vv[i].Count > vv[j].Count
+	})
+	return vv
+}
+
+func (hw *DbHeadwordCounts) GetSortedTrimmedTimeVals() []HWData {
+	vv := hw.GetSortedTimeVals()
+	var trimmed []HWData
+	for _, v := range vv {
+		if v.Count > 0 {
+			trimmed = append(trimmed, v)
+		}
 	}
-	hw.GenreVal = vv
+	return trimmed
+}
+
+func (hw *DbHeadwordCounts) GetWeightedSortedTrimmedTimeVals() []HWData {
+	vv := hw.GetWeightedSortedTimeVals()
+	var trimmed []HWData
+	for _, v := range vv {
+		if v.Count > 0 {
+			trimmed = append(trimmed, v)
+		}
+	}
+	return trimmed
+}
+
+func (hw DbHeadwordCounts) GetSortedGenreVals() []HWData {
+	const (
+		INDEXOFFIRSTGENRE = 11
+		INDEXOFLASTGENRE  = 88
+	)
+
+	// don't use reflect on a pointer: *DbHeadwordCounts
+	val := reflect.ValueOf(hw)
+	typ := reflect.TypeOf(hw)
+
+	type fieldinfo struct {
+		Name  string
+		Value int
+	}
+
+	var fields []fieldinfo
+	for i := INDEXOFFIRSTGENRE; i < INDEXOFLASTGENRE+1; i++ {
+		fields = append(fields, fieldinfo{
+			Name:  typ.Field(i).Name,
+			Value: int(val.Field(i).Int()),
+		})
+	}
+
+	// Sort by value descending
+	sort.Slice(fields, func(i, j int) bool {
+		return fields[i].Value > fields[j].Value
+	})
+
+	var newhwdata []HWData
+	for _, field := range fields {
+		newhwdata = append(newhwdata, HWData{
+			Name:  field.Name,
+			Count: field.Value,
+		})
+	}
+	return newhwdata
+}
+
+func (hw *DbHeadwordCounts) GetGreekWeightedSortedGenreVals() []HWData {
+	const (
+		MINORGENRETHRESHOLD = 250
+	)
+	vv := hw.GetSortedGenreVals()
+	for i, hwc := range vv {
+		gwt := GKGENREWEIGHT[hwc.Name]
+		if gwt > MINORGENRETHRESHOLD {
+			// you will never get weights for these genres
+			gwt = 0
+		}
+		vv[i] = HWData{
+			Name:  hwc.Name,
+			Count: int(float32(hwc.Count) * gwt),
+		}
+	}
+
+	// the weighting just unsorted things, so...
+	sort.Slice(vv, func(i, j int) bool {
+		return vv[i].Count > vv[j].Count
+	})
+	return vv
 }

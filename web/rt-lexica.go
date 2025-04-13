@@ -316,7 +316,7 @@ func reversefind(word string, dicts []string) string {
 	}
 
 	// [b] the counts for the finds
-	countmap := make(map[string]str.DbHeadwordCount)
+	countmap := make(map[string]str.DbHeadwordCounts)
 	for _, f := range lexicalfinds {
 		ct := db.GetIndividualHeadwordCount(f.EntryName)
 		if ct.Entry == "" {
@@ -393,7 +393,7 @@ func dictsearch(seeking string, dict string, zaplunates bool) string {
 		htmlchunks[i] = h
 	}
 
-	countmap := make(map[string]str.DbHeadwordCount)
+	countmap := make(map[string]str.DbHeadwordCounts)
 	for _, f := range lexicalfinds {
 		ct := db.GetIndividualHeadwordCount(f.EntryName)
 		if ct.Entry == "" {
@@ -778,7 +778,7 @@ func insertlexicaljs() string {
 	return thejs
 }
 
-func headwordprevalence(wc str.DbHeadwordCount) string {
+func headwordprevalence(wc str.DbHeadwordCounts) string {
 	// Prevalence (all forms): Ⓖ 95,843 / Ⓛ 10 / Ⓘ 151 / Ⓓ 751 / Ⓒ 64 / Ⓣ 96,819
 	const (
 		PREVSPAN = `<span class="prevalence rarechars">%s</span>&nbsp;%d`
@@ -803,7 +803,7 @@ func headwordprevalence(wc str.DbHeadwordCount) string {
 	return p
 }
 
-func headworddistrib(wc str.DbHeadwordCount) string {
+func headworddistrib(wc str.DbHeadwordCounts) string {
 	// Weighted distribution by corpus: Ⓖ 100 / Ⓓ 14 / Ⓒ 6 / Ⓘ 2 / Ⓛ 0
 	const (
 		DIST = `<br>Distribution by corpus: `
@@ -828,7 +828,7 @@ func headworddistrib(wc str.DbHeadwordCount) string {
 	return p
 }
 
-func headwordchronology(wc str.DbHeadwordCount) string {
+func headwordchronology(wc str.DbHeadwordCounts) string {
 	// Weighted chronological distribution: ℯ 100 / ℓ 84 / 𝓂 62
 	const (
 		DIST = `<br>Distribution by time: `
@@ -854,7 +854,7 @@ func headwordchronology(wc str.DbHeadwordCount) string {
 	return p
 }
 
-func headwordgenres(wc str.DbHeadwordCount) string {
+func headwordgenres(wc str.DbHeadwordCounts) string {
 	// Predominant genres: comm (100), mech (97), jurisprud (93), med (84), mus (75), nathist (61), paroem (60), allrelig (57)
 	const (
 		DIST = `<br>Distribution by genre: `
@@ -863,7 +863,7 @@ func headwordgenres(wc str.DbHeadwordCount) string {
 	cv := wc.GenreVal
 
 	wt := map[string]float32{}
-	if vv.IsGreek.MatchString(wc.Entry) {
+	if vv.IsGreek.MatchString(wc.Word) {
 		wt = str.GKGENREWEIGHT
 	} else {
 		wt = str.LATGENREWEIGHT
