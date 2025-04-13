@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
@@ -20,24 +21,43 @@ import (
 
 // DictEntryGrabber - search postgres tables and return []DbLexicon
 func DictEntryGrabber(seeking string, dict string, col string, syntax string) []str.DbLexicon {
+	fmt.Println("DictEntryGrabber")
 	const (
-		FLDS = `entry_name, entry_metr, id_number, translations, usedby, prelim_info, sense_ids`
+		FLDS = `entry_name, entry_metr, id_number, entry_type, translations, usedby, prelim_info, sense_ids, senses`
 		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s %s '%s' ORDER BY id_number ASC LIMIT %d`
 	)
 
 	dbconn := getdbconnection()
 	defer dbconn.Release()
 
-	// note that "html_body" is only available via HipparchiaBuilder 1.6.0+
 	q := fmt.Sprintf(PSQQ, FLDS, dict, col, syntax, seeking, vv.MAXDICTLOOKUP)
 
 	var lexicalfinds []str.DbLexicon
 	var thehit str.DbLexicon
+	var jsonsenses []byte
 	dedup := make(map[string]bool)
 
-	foreach := []any{&thehit.EntryName, &thehit.EntryMetr, &thehit.IDVal, &thehit.Transl, &thehit.Usedby, &thehit.PrelimInfo, &thehit.SenseIDs}
+	foreach := []any{
+		&thehit.EntryName,
+		&thehit.EntryMetr,
+		&thehit.IDVal,
+		&thehit.EntryType,
+		&thehit.Transl,
+		&thehit.Usedby,
+		&thehit.PrelimInfo,
+		&thehit.SenseIDs,
+		&jsonsenses}
 	rwfnc := func() error {
 		thehit.SetLang(dict)
+		sensemap := make(map[int]str.LexicalSenses)
+		err := json.Unmarshal(jsonsenses, &sensemap)
+		if err != nil {
+			fmt.Println("Error decoding JSON:", err)
+		}
+		for _, sense := range sensemap {
+			thehit.Senses = append(thehit.Senses, sense)
+		}
+
 		if _, dup := dedup[thehit.IDVal]; !dup {
 			// use ID and not Lex because καρπόϲ.53442 is not καρπόϲ.53443
 			dedup[thehit.IDVal] = true
@@ -154,7 +174,7 @@ func ArrayToGetHeadwordCounts(wordlist []string) map[string]int {
 // MorphPossibIntoLexPossib - []MorphPossib into []DbLexicon
 func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 	const (
-		FLDS = `entry_name, entry_metr, id_number, translations, usedby, prelim_info, sense_ids`
+		FLDS = `entry_name, entry_metr, id_number, entry_type, translations, usedby, prelim_info, sense_ids, senses`
 		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴|1|2)$' ORDER BY id_number ASC`
 		COLM = "entry_name"
 		SQLE = "MorphPossibIntoLexPossib() sent a bad query: \n\t%s"
@@ -172,6 +192,9 @@ func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 
 	// the next is primed to produce problems: see καρποῦ which will turn καρπόϲ1 and καρπόϲ2 into just καρπόϲ; need xref_value?
 	// but we have probably taken care of this below: see the comments
+
+	// todo: HGB has fixed this sort of thing?
+
 	hwm = gen.Unique(hwm)
 
 	// [d] get the wordobjects for each Unique headword: probedictionary()
@@ -180,11 +203,29 @@ func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 
 	var lexicalfinds []str.DbLexicon
 	var thehit str.DbLexicon
+	var jsonsenses []byte
 	dedup := make(map[string]bool)
 
-	foreach := []any{&thehit.EntryName, &thehit.EntryMetr, &thehit.IDVal, &thehit.Transl, &thehit.Usedby, &thehit.PrelimInfo, &thehit.SenseIDs}
-
+	foreach := []any{
+		&thehit.EntryName,
+		&thehit.EntryMetr,
+		&thehit.IDVal,
+		&thehit.EntryType,
+		&thehit.Transl,
+		&thehit.Usedby,
+		&thehit.PrelimInfo,
+		&thehit.SenseIDs,
+		&jsonsenses}
 	rwfnc := func() error {
+		sensemap := make(map[int]str.LexicalSenses)
+		err := json.Unmarshal(jsonsenses, &sensemap)
+		if err != nil {
+			fmt.Println("Error decoding JSON:", err)
+		}
+		for _, sense := range sensemap {
+			thehit.Senses = append(thehit.Senses, sense)
+		}
+
 		thehit.SetLang(d)
 		if _, dup := dedup[thehit.IDVal]; !dup {
 			// use ID and not Lex because καρπόϲ.53442 is not καρπόϲ.53443
@@ -213,8 +254,11 @@ func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 
 		_, e := pgx.ForEachRow(foundrows, foreach, rwfnc)
 		if e != nil {
-			// you can survive this error... log it
+			// you can survive this error... log i
+			// number of field descriptions must equal number of destinations, got 9 and 8
+			fmt.Println(e)
 			Msg.FYI(fmt.Sprintf(SQLE, q))
+
 		}
 	}
 	return lexicalfinds

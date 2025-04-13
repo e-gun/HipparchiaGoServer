@@ -728,7 +728,11 @@ func formatlexicaloutput(w str.DbLexicon) string {
 	// todo: need a function to actually assemble the senses; at the moment we only have the prelim...
 	// w.EntryName = entryqickfixes(w.EntryName)
 
-	elem = append(elem, w.PrelimInfo)
+	elem = append(elem, "prelim info: ", w.PrelimInfo)
+	for _, s := range w.Senses {
+		fmt.Println("sense id", s.ID)
+		elem = append(elem, s.Contents)
+	}
 
 	// [h5] previous & next entry
 

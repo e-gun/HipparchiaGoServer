@@ -212,7 +212,10 @@ hb-sp-form_altered_by_scribe {
 }
 
 hb-sp-discarded_form {
-    font-family: 'hipparchiasansstatic', sans-serif;
+    /*  strikethrough is tempting, but you will see that this markup somehow appears inside of [...] spans
+        how can supplenda be deleted/discarded? */
+    font-family: 'hipparchiaobliquestatic', sans-serif;
+    text-decoration-line: underline;
     color: var(--hgscol12);
 }
 

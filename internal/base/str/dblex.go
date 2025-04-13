@@ -24,50 +24,19 @@ import (
 //    "latin_analysis_trgm_idx" gin (related_headwords gin_trgm_ops)
 //    "latin_morphology_idx" btree (observed_form)
 
-// hipparchiaDB-# \d latin_dictionary
-//                     Table "public.latin_dictionary"
-//     Column     |          Type          | Collation | Nullable | Default
-//----------------+------------------------+-----------+----------+---------
-// entry_name     | character varying(256) |           |          |
-// metrical_entry | character varying(256) |           |          |
-// id_number      | real                   |           |          |
-// entry_key      | character varying(64)  |           |          |
-// pos            | character varying(64)  |           |          |
-// translations   | text                   |           |          |
-// entry_body     | text                   |           |          |
-// html_body      | text                   |           |          |
-//Indexes:
-//    "latin_dictionary_idx" btree (entry_name)
-
-//type DbLexicon struct {
-//	// skipping 'unaccented_entry' from greek_dictionary
-//	// skipping 'entry_key' from latin_dictionary
-//	Word     string
-//	Metrical string
-//	ID       float32
-//	POS      string
-//	Transl   string
-//	Entry    string
-//	// not part of the table...
-//	lang string // must be lower-case because of the call to pgx.RowToStructByPos[DbLexicon]
-//}
-
-type LSJEntry struct {
-	PrelimInfo string
-	EntryType  string
-	IDStr      string
-	IDVal      string
-	Key        string
-	SenseIDs   []string
-	Senses     []LSJSense
-}
-
-type LSJSense struct {
-	ID       string
-	N        string
-	LVL      string
-	Contents string
-}
+// hgdb=> \d greek_dictionary
+//                     Table "public.greek_dictionary"
+//    Column    |          Type           | Collation | Nullable | Default
+//--------------+-------------------------+-----------+----------+---------
+// entry_name   | character varying(256)  |           |          |
+// entry_metr   | character varying(256)  |           |          |
+// id_number    | character varying(16)   |           |          |
+// entry_type   | character varying(16)   |           |          |
+// translations | text                    |           |          |
+// usedby       | character varying(1500) |           |          |
+// prelim_info  | text                    |           |          |
+// sense_ids    | character varying(1024) |           |          |
+// senses       | jsonb                   |           |          |
 
 type DbLexicon struct {
 	EntryName  string
@@ -79,7 +48,7 @@ type DbLexicon struct {
 	Usedby     string
 	PrelimInfo string
 	SenseIDs   string // HGb: row[6] = strings.Join(entry.SenseIDs, " ")
-	Senses     []LSJSense
+	Senses     []LexicalSenses
 	// not part of the table...
 	lang string // must be lower-case because of the call to pgx.RowToStructByPos[DbLexicon]
 }
@@ -118,4 +87,11 @@ func (ent *DbLexicon) PrintOut() {
 		fmt.Println(ee)
 	}
 	fmt.Println(b.String())
+}
+
+type LexicalSenses struct {
+	ID       string `json:"id"`
+	N        string `json:"n"`
+	LVL      string `json:"lvl"`
+	Contents string `json:"contents"`
 }
