@@ -290,4 +290,5 @@ hb-lx-sense {
     margin-left: 15px;
     margin-right: 15px;
     border: 1px dotted var(--dottedborders);
+    background: var(--main-body-color);
 }

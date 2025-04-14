@@ -730,8 +730,13 @@ func formatlexicaloutput(w str.DbLexicon) string {
 	// w.EntryName = entryqickfixes(w.EntryName)
 
 	elem = append(elem, formatpreliminfo(w))
-	for _, s := range w.Senses {
-		elem = append(elem, formatsenseinfo(s))
+
+	if w.GetLang() == "g" {
+		for _, s := range w.Senses {
+			elem = append(elem, formatgksenseinfo(s))
+		}
+	} else {
+		elem = append(elem, formatltsenseinfo(w.Senses))
 	}
 
 	// [h5] previous & next entry
@@ -756,7 +761,7 @@ func formatpreliminfo(w str.DbLexicon) string {
 	return fmt.Sprintf(TMPL, w.EntryName, w.PrelimInfo)
 }
 
-func formatsenseinfo(s str.LexicalSenses) string {
+func formatgksenseinfo(s str.LexicalSenses) string {
 	const (
 		TMPL = `<hb-lx-sense>
 <pre>(%d)</pre>
@@ -770,12 +775,72 @@ func formatsenseinfo(s str.LexicalSenses) string {
 	idv, _ := strconv.Atoi(id)
 	idv += 1
 
-	//lvlinf := []string{
-	//	s.N,
-	//	s.LVL,
-	//}
-
 	return fmt.Sprintf(TMPL, idv, s.Contents)
+}
+
+func formatltsenseinfo(ss []str.LexicalSenses) string {
+	// the latin dictionary senses are not tidy like the greek ones
+	// specifically you see a lot of "micro-senses" that are part of a
+	// hierarchy; so you can't just enumerate these; they need to be
+	// parsed and organized
+
+	// "iungo"
+	// I n25350.0 1
+	//I n25350.1 1
+	//A n25350.2 2
+	//1 n25350.3 3
+	//2 n25350.4 3
+	//3 n25350.5 3
+	//4 n25350.6 3
+	//B n25350.7 2
+	//1 n25350.8 3
+	//(a) n25350.9 5
+	//(b) n25350.10 5
+	//2 n25350.11 3
+	//3 n25350.12 3
+	//4 n25350.13 3
+	//5 n25350.14 3
+	//6 n25350.15 3
+	//7 n25350.16 3
+	//II n25350.17 1
+	//A n25350.18 2
+	//B n25350.19 2
+	//1 n25350.20 3
+	//2 n25350.21 3
+	//3 n25350.22 3
+	//(a) n25350.23 5
+	//(b) n25350.24 5
+
+	// 'clipeum'
+	// I n8620.0 1
+	//B n8620.1 2
+	//II n8620.2 1
+	//A n8620.3 2
+	//B n8620.4 2
+	//C n8620.5 2
+	//D n8620.6 2
+	//E n8620.7 2
+
+	lhh := make([]lexhierchyholder, len(ss))
+	prev := lexhierchyholder{lv: 5}
+
+	for i, s := range ss {
+		thislh := lexhierchyholder{}
+		thislh.AssignHierarchyVals(s)
+		lhh[i] = thislh
+		prev.ReAssignValsViaNext(&thislh)
+		prev = thislh
+	}
+
+	// note that the index of lhh matches the index of ss
+	lhh = rationalizelhh(lhh)
+
+	var all []string
+	for i, s := range ss {
+		hs := fmt.Sprintf(" (%s) ", lhh[i].ReturnHierarchy())
+		all = append(all, hs+s.Contents)
+	}
+	return strings.Join(all, "")
 }
 
 func insertlexicaljs() string {
@@ -865,4 +930,178 @@ func headwordgenres(wc str.DbHeadwordCounts) string {
 	}
 	return DIST + strings.Join(pd, "; ")
 
+}
+
+//
+// latin lexicon hierarchy parsing and formatting
+//
+
+func rationalizelhh(lhs []lexhierchyholder) []lexhierchyholder {
+	fmt.Println("rationalizelhh")
+	decode := map[string]int{
+		"I":    1,
+		"II":   2,
+		"III":  3,
+		"IV":   4,
+		"V":    5,
+		"VI":   6,
+		"VII":  7,
+		"VIII": 8,
+		"IX":   9,
+		"X":    10,
+		"":     11,
+	}
+
+	current := lexhierchyholder{l1: "I"}
+	for i, lh := range lhs {
+		if lh.l1 == "" {
+			lh.l1 = current.l1
+		} else if decode[lh.l1] > decode[current.l1] {
+			current.l1 = lh.l1
+			current.l2 = ""
+			current.l3 = ""
+			current.l4 = ""
+			current.l5 = ""
+			lh.l2 = ""
+			lh.l3 = ""
+			lh.l4 = ""
+			lh.l5 = ""
+		}
+		lhs[i] = lh
+	}
+
+	for i, lh := range lhs {
+		tr := []rune{0}
+		if len(lh.l2) != 0 {
+			tr = []rune(lh.l2)
+		}
+
+		cr := []rune{0}
+		if len(current.l2) != 0 {
+			tr = []rune(current.l2)
+		}
+
+		if lh.l2 == "" && lh.l1 == current.l1 {
+			lh.l2 = current.l2
+		} else if tr[0] > cr[0] {
+			current.l1 = lh.l1
+			current.l2 = lh.l2
+			current.l3 = ""
+			current.l4 = ""
+			current.l5 = ""
+			lh.l3 = ""
+			lh.l4 = ""
+			lh.l5 = ""
+		}
+		lhs[i] = lh
+	}
+
+	for i, lh := range lhs {
+		tr := []rune{0}
+		if len(lh.l3) != 0 {
+			tr = []rune(lh.l3)
+		}
+
+		cr := []rune{0}
+		if len(current.l3) != 0 {
+			tr = []rune(current.l3)
+		}
+
+		if lh.l3 == "" && lh.l2 == current.l2 {
+			lh.l3 = current.l3
+		} else if tr[0] > cr[0] {
+			current.l1 = lh.l1
+			current.l2 = lh.l2
+			current.l3 = lh.l3
+			current.l4 = ""
+			current.l5 = ""
+			lh.l4 = ""
+			lh.l5 = ""
+		}
+		lhs[i] = lh
+	}
+
+	for i, lh := range lhs {
+		tr := []rune{0}
+		if len(lh.l4) != 0 {
+			tr = []rune(lh.l4)
+		}
+
+		cr := []rune{0}
+		if len(current.l4) != 0 {
+			tr = []rune(current.l4)
+		}
+
+		if lh.l4 == "" && lh.l3 == current.l3 {
+			lh.l4 = current.l4
+		} else if tr[0] > cr[0] {
+			current.l1 = lh.l1
+			current.l2 = lh.l2
+			current.l3 = lh.l3
+			current.l4 = lh.l4
+			current.l5 = ""
+			lh.l5 = ""
+		}
+		lhs[i] = lh
+	}
+	return lhs
+}
+
+type lexhierchyholder struct {
+	l1 string
+	l2 string
+	l3 string
+	l4 string
+	l5 string
+	lv int
+	id string
+}
+
+func (lh *lexhierchyholder) AssignHierarchyVals(s str.LexicalSenses) {
+	switch s.LVL {
+	case "1":
+		lh.l1 = s.N
+	case "2":
+		lh.l2 = s.N
+	case "3":
+		lh.l3 = s.N
+	case "4":
+		lh.l4 = s.N
+	case "5":
+		x := s.N
+		x = strings.ReplaceAll(x, "(", "")
+		x = strings.ReplaceAll(x, ")", "")
+		lh.l5 = x
+	default:
+		fmt.Println("lexhierchyholder.AssignHierarchyVals() unknown lvl", s.LVL)
+	}
+	lh.lv, _ = strconv.Atoi(s.LVL)
+	lh.id = s.ID
+}
+
+func (lh *lexhierchyholder) ReAssignValsViaNext(next *lexhierchyholder) {
+	// set I.A by spotting I.B
+	if next.lv == 2 && lh.lv == 1 && next.l2 == "B" {
+		lh.l2 = "A"
+	}
+}
+
+func (lh *lexhierchyholder) ReturnHierarchy() string {
+	var hs []string
+	if lh.l1 != "" {
+		hs = append(hs, lh.l1)
+	}
+	if lh.l2 != "" {
+		hs = append(hs, lh.l2)
+	}
+	if lh.l3 != "" {
+		hs = append(hs, lh.l3)
+	}
+	if lh.l4 != "" {
+		hs = append(hs, lh.l4)
+	}
+	if lh.l5 != "" {
+		hs = append(hs, lh.l5)
+	}
+	return strings.Join(hs, ".")
 }
