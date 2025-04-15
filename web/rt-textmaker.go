@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
+	"github.com/e-gun/HipparchiaGoServer/internal/format"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -64,8 +65,8 @@ func RtTextMaker(c echo.Context) error {
 	}
 
 	// bulk apply adhocfixforbadannotations()
-	longnotes := false
-	srch.Results.Lines = reannotatelines(srch.Results.Lines, longnotes)
+	// longnotes := false
+	// srch.Results.Lines = reannotatelines(srch.Results.Lines, longnotes)
 
 	// now we have the lines we need....
 	firstline := srch.Results.FirstLine()
@@ -77,7 +78,6 @@ func RtTextMaker(c echo.Context) error {
 
 	i := 0
 	for l := range lines {
-		l.PurgeMetadata()
 		block[i] = l.GetMarked()
 		i++
 	}
@@ -101,7 +101,7 @@ func RtTextMaker(c echo.Context) error {
 	i = 0
 	lines = srch.Results.Yield()
 	for l := range lines {
-		cit := selectivelydisplaycitations(l, previous, -1)
+		cit := format.SelectivelyDisplayCitations(l, previous, -1)
 		trr[i] = fmt.Sprintf(TBLRW, cit, l.GetMarked(), strings.Replace(l.Annotations, "documentnumber: ", "#", 1))
 		if l.WkUID != previous.WkUID {
 			// you were doing multi-text generation
@@ -139,7 +139,7 @@ func RtTextMaker(c echo.Context) error {
 		ti += " (and others)"
 	}
 
-	ct := basiccitation(firstline)
+	ct := format.BasicCitation(firstline)
 
 	sum := fmt.Sprintf(SUMM, au, ti, ct)
 

@@ -42,17 +42,11 @@ var (
 
 const (
 	WKLNHYPERLNKTEMPL = `index/%s/%s/%d`
-	WLNMETADATATEMPL  = `<span class="embeddedannotations foundwork">$1</span>`
 	EMPTYLEVELINFO    = "-1"
 )
 
 var (
-	NoHTML   = regexp.MustCompile("<[^>]*>") // crude, and will not do all of everything
-	Metadata = regexp.MustCompile(`<hmu_metadata_(.*?) value="(.*?)" />`)
-	MDFormat = regexp.MustCompile(`&3(.*?)&`) // see andsubstitutes in betacodefontshifts.py
-	// MDRemap has to be kept in sync w/ l 150 of rt-browser.go ()
-	MDRemap = map[string]string{"provenance": "loc:", "documentnumber": "#", "publicationinfo": "pub:", "notes": "",
-		"city": "c:", "region": "r:", "date": "d:"}
+	NoHTML = regexp.MustCompile("<[^>]*>") // crude, and will not do all of everything
 )
 
 type DbWorkline struct {
@@ -71,10 +65,6 @@ type DbWorkline struct {
 	Annotations string
 	// beyond the db stuff; do not make this "public": pgx.RowToStructByPos will balk
 	embnotes map[string]string
-}
-
-func (dbw *DbWorkline) GetNotes() map[string]string {
-	return dbw.embnotes
 }
 
 func (dbw *DbWorkline) FindLocus() []string {
@@ -106,7 +96,7 @@ func (dbw *DbWorkline) WkID() string {
 	return dbw.WkUID[LENGTHOFAUTHORID+1:]
 }
 
-func (dbw *DbWorkline) FindCorpus() string {
+func (dbw *DbWorkline) GetCorpus() string {
 	// gr0001w001 --> gr
 	return dbw.WkUID[0:2]
 }
@@ -120,34 +110,20 @@ func (dbw *DbWorkline) BuildHyperlink() string {
 	return fmt.Sprintf(WKLNHYPERLNKTEMPL, dbw.AuID(), dbw.WkID(), dbw.TbIndex)
 }
 
-func (dbw *DbWorkline) GatherMetadata() {
+func (dbw *DbWorkline) GatherMetadata() map[string]string {
 	md := make(map[string]string)
-	if Metadata.MatchString(dbw.MarkedUp) {
-		mm := Metadata.FindAllStringSubmatch(dbw.MarkedUp, -1)
-		for _, m := range mm {
-			// sample location:
-			// hipparchiaDB=# select index, marked_up_line from lt0474 where index = 116946;
-			//  <hmu_metadata_documentnumber value="177" /><hmu_metadata_provenance value="in Cumano" /><hmu_metadata_date value="xiii Kal. Dec.(?) 46" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CICERO PAETO
-			md[m[1]] = m[2]
-		}
 
-		dbw.MarkedUp = Metadata.ReplaceAllString(dbw.MarkedUp, "")
-		for k, v := range md {
-			md[k] = MDFormat.ReplaceAllString(v, WLNMETADATATEMPL)
-			if _, y := MDRemap[k]; y {
-				md[MDRemap[k]] = md[k]
-				delete(md, k)
-			}
+	// Plautus: "notes: Prisc. &3GL& 2.575K · #8"
+	distinctnotes := strings.Split(dbw.Annotations, " · ")
+	for _, dn := range distinctnotes {
+		kv := strings.Split(dn, ":")
+		if len(kv) != 2 {
+			continue
 		}
+		md[kv[0]] = kv[1]
 	}
-	dbw.embnotes = md
-}
 
-// PurgeMetadata - delete the line Metadata
-func (dbw *DbWorkline) PurgeMetadata() {
-	if Metadata.MatchString(dbw.MarkedUp) {
-		dbw.MarkedUp = Metadata.ReplaceAllString(dbw.MarkedUp, "")
-	}
+	return md
 }
 
 // GetMarked - do a v --> u transformation on the marked up line

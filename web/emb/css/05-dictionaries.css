@@ -276,7 +276,19 @@ hb-lx-tit {
 
 hb-lx-sense {
     font-size: 100%;
+}
 
+hb-lx-sensecounter {
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
+    color: var(--hgscol16);
+}
+
+hb-lx-sensecounter-sm {
+    font-family: 'hipparchiassansstatic', sans-serif;
+    color: var(--hgscol16);
+    font-size: 80%;
+    font-variant-position: super;
+    visibility: hidden;
 }
 
 .hb-lx-sense-contents {

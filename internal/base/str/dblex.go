@@ -8,6 +8,7 @@ package str
 import (
 	"bytes"
 	"fmt"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"text/template"
 )
 
@@ -58,7 +59,19 @@ func (dbl *DbLexicon) SetLang(l string) {
 }
 
 func (dbl *DbLexicon) GetLang() string {
-	return dbl.lang
+	if gen.IsLatin.MatchString(dbl.EntryName) {
+		return "l"
+	} else {
+		return "g"
+	}
+}
+
+func (dbl *DbLexicon) IsLatin() bool {
+	if gen.IsLatin.MatchString(dbl.EntryName) {
+		return true
+	} else {
+		return false
+	}
 }
 
 func (ent *DbLexicon) PrintOut() {

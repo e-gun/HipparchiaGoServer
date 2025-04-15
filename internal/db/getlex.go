@@ -57,8 +57,9 @@ func DictEntryGrabber(seeking string, dict string, col string, syntax string) []
 
 		// need to store these in order
 		thehit.Senses = make([]str.LexicalSenses, len(sensemap))
-		for i, sense := range sensemap {
-			thehit.Senses[i] = sense
+		keys := gen.IntMapKeysIntoSlice(sensemap) // comes back sorted: 0, 1, 2, ...
+		for i, k := range keys {
+			thehit.Senses[i] = sensemap[k]
 		}
 
 		if _, dup := dedup[thehit.IDVal]; !dup {

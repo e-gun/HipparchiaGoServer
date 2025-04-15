@@ -80,7 +80,6 @@ func FormatNoContextResults(ss *str.SearchStruct) str.SearchOutputJSON {
 			continue
 		}
 
-		r.PurgeMetadata()
 		// highlight search term; should be folded into a single function w/ highlightsearchterm() below [type problem now]
 		if searchterm.MatchString(r.MarkedUp) {
 			r.MarkedUp = searchterm.ReplaceAllString(r.MarkedUp, MUREPLACE)
@@ -259,7 +258,7 @@ func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON 
 			} else {
 				c.IsHighlight = false
 			}
-			psg.RawCTX[j].PurgeMetadata()
+
 			c.Contents = psg.RawCTX[j].GetMarked()
 			c.Hyphenated = psg.RawCTX[j].Hyphenated
 			psg.CookedCTX[j] = c
@@ -466,7 +465,7 @@ func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
 // FormatInscriptionDates - show the years for inscriptions
 func FormatInscriptionDates(template string, dbw *str.DbWorkline) string {
 	datestring := ""
-	fc := dbw.FindCorpus()
+	fc := dbw.GetCorpus()
 	dated := fc == vv.INSCRIPTCORP || fc == vv.CHRISTINSC || fc == vv.PAPYRUSCORP
 	if dated {
 		cd := gen.IntToBCE(mps.AllWorks[dbw.WkUID].ConvDate)
@@ -485,7 +484,7 @@ func formatinscriptionplaces(dbw *str.DbWorkline) string {
 	)
 
 	placestring := ""
-	fc := dbw.FindCorpus()
+	fc := dbw.GetCorpus()
 	placed := fc == vv.INSCRIPTCORP || fc == vv.CHRISTINSC || fc == vv.PAPYRUSCORP
 	if placed {
 		placestring = fmt.Sprintf(PLACER, mps.AllWorks[dbw.WkUID].Prov)

@@ -10,6 +10,12 @@ import (
 	"strings"
 )
 
+var (
+	// QuantityFixer = strings.NewReplacer("ă_", "ā̆", "ā^", "ā̆", "ē^", "ē̆", "ĭ_", "ī̆", "ō^", "ō̆", "A_^", "Ā̆", "A^", "Ă", "A_", "Ā", "E_", "Ē", "E^", "Ĕ", "I_^", "Ī̆", "I_", "Ī", "I^", "Ĭ", "O_", "Ō", "O^", "Ŏ", "U^", "Ŭ", "U_", "Ū", "_^", "̆̄", "_", "̄", "^", "̆")
+	QuantityFixer  = strings.NewReplacer("_^", "̄̆", "_", "̄", "^", "̆")
+	NumberStripper = strings.NewReplacer("-", "", "¹", "", "²", "", "³", "")
+)
+
 // AvoidLongLines - insert "<br>" into strings that are too long
 func AvoidLongLines(untrimmed string, maxlen int) string {
 	if len(untrimmed) > maxlen {

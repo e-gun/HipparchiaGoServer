@@ -96,6 +96,19 @@ func StringMapKeysIntoSlice[T any](mp map[string]T) []string {
 		sl[i] = k
 		i += 1
 	}
+	slices.Sort(sl)
+	return sl
+}
+
+// IntMapKeysIntoSlice - convert map[int]T to []int
+func IntMapKeysIntoSlice[T any](mp map[int]T) []int {
+	sl := make([]int, len(mp))
+	i := 0
+	for k := range mp {
+		sl[i] = k
+		i += 1
+	}
+	slices.Sort(sl)
 	return sl
 }
 

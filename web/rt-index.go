@@ -20,7 +20,6 @@ import (
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"net/http"
-	"regexp"
 	"slices"
 	"sort"
 	"strings"
@@ -523,26 +522,4 @@ func convertwordinfototablerow(ww []str.WordInfo) string {
 
 	out := strings.Join(trr, "")
 	return out
-}
-
-// polishtrans - add "transtree" spans to the mini-translation lists to highlight structure
-func polishtrans(tr string, pat *regexp.Regexp) string {
-	// don't loop "pat". it's not really a variable. here it is:
-	// pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
-
-	// sample:
-	// <span class="transtree">A.</span> as Adv., bearing the same relation to ὡϲ as ὅϲτε to ὅϲ, and used by Hom.
-	// more freq. than ὡϲ in similes, when it is commonly written divisim, and is relat. to a demonstr. ὥϲ: sts. c. pres. Indic;
-	// <span class="transtree">B.</span> the actual
-
-	const (
-		TT = `<span class="transtree">$1</span> `
-	)
-
-	tr = str.NoHTML.ReplaceAllString(tr, "")
-	elem := strings.Split(tr, "; ")
-	for i, e := range elem {
-		elem[i] = pat.ReplaceAllString(e, TT)
-	}
-	return strings.Join(elem, "; ")
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
+	"github.com/e-gun/HipparchiaGoServer/internal/format"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
@@ -225,9 +226,9 @@ func RtVocabMaker(c echo.Context) error {
 		vim[k] = str.VocInfo{
 			Word:  k,
 			C:     v,
-			TR:    polishtrans(vit[k], pat),
+			TR:    format.PolishTrans(vit[k], pat),
 			Strip: strings.Replace(gen.StripaccentsSTR(k), "ϲ", "σ", -1),
-			Metr:  quantityfixer.Replace(m),
+			Metr:  gen.QuantityFixer.Replace(m),
 		}
 	}
 

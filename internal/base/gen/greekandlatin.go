@@ -26,6 +26,7 @@ var (
 	uvreduce   = uvσςϲreducer()
 	uvcaps     = uvcapsreducer()
 	LunateSwap = regexp.MustCompile("σ" + TERMINATIONS)
+	IsLatin    = regexp.MustCompile(`[a-zA-Z]`)
 )
 
 //
