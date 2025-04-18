@@ -16,6 +16,9 @@ import (
 
 const (
 	TERMINATIONS = `(\s|\.|\]|\<|⟩|\)|’|”|\!|,|:|;|\?|⸥|«|·|$)` // circular imports means this is declared 2x... see also "vv.constants.co"
+	// GLC is derived from the HGB betacode converter and should be comprehensive
+	GLC = `ΐάέήίΰαβγδεζηθικλμνξοπρτυφχψωϊϋόύώϝϲἀἁἂἃἄἅἆἇἐἑἒἓἔἕἠἡἢἣἤἥἦἧἰἱἲἳἴἵἶἷὀὁὂὃὄὅὐὑὒὓὔὕὖὗὠὡὢὣὤὥὦὧὰὲὴὶὸὺὼᾀᾁᾂᾃᾄᾅᾆᾇᾐᾑᾒᾓᾔᾕᾖᾗᾠᾡᾢᾣᾤᾥᾦᾧᾲᾳᾴᾶᾷῂῃῄῆῇῒῖῢῤῥῦῧῲῳῴῶῷ`
+	GUC = `ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΤΥΦΧΨΩϜϹἈἉἊἋἌἍἎἏἘἙἚἛἜἝἨἩἪἫἬἭἮἯἸἹἺἻἼἽἾἿὈὉὊὋὌὍὙὛὝὟὨὩὪὫὬὭὮὯᾊᾋᾌᾍᾎᾏᾚᾛᾜᾝᾞᾟᾪᾫᾬᾭᾮᾯᾼῌῬῼ⒣`
 )
 
 var (
@@ -27,6 +30,9 @@ var (
 	uvcaps     = uvcapsreducer()
 	LunateSwap = regexp.MustCompile("σ" + TERMINATIONS)
 	IsLatin    = regexp.MustCompile(`[a-zA-Z]`)
+	IsGreekLC  = regexp.MustCompile(`[` + GLC + `]`)
+	IsGreekUC  = regexp.MustCompile(`[` + GUC + `]`)
+	IsGreek    = regexp.MustCompile(`[` + GUC + GLC + `]`)
 )
 
 //

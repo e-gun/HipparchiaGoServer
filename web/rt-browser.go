@@ -14,18 +14,9 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
-	"regexp"
 	"slices"
 	"strconv"
 	"strings"
-)
-
-var (
-	// lt0474w057 138013 has no annotations registered in the database, but there are notes still in the line proper
-	// <hmu_metadata_documentnumber value="445" /><hmu_metadata_date value="prid.(?) Id. Nov. 44" /> ... ⟨CICERO ATTICO SAL.⟩
-	// so this and similar lines need patching; these precompiled values are used by adhocfixforbadannotations() below
-	noteregex        = regexp.MustCompile("<hmu_metadata_([^\\s]*) value=\"([^\"]*)\" />")
-	noteandlineregex = regexp.MustCompile("<hmu_metadata_.* value=.* />(.*)")
 )
 
 // browsedpassage - a JSON output struct

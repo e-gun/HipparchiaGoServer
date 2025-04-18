@@ -48,17 +48,23 @@ func FormatAnnotations(l str.DbWorkline) string {
 			"region": true,
 		},
 		"in": {
-			"all": true,
+			"date": true,
 		},
 		"dp": {
-			"all": true,
+			"date":       true,
+			"provenance": true,
 		},
 		"ch": {
-			"all": true,
+			"date": true,
 		},
 	}
 
 	notemap := l.GatherMetadata() // map[string]string : { "category": "data" }
+
+	//if len(notemap) != 0 {
+	//	fmt.Println("notemap", notemap)
+	//}
+
 	touse := categoriestouse[l.GetCorpus()]
 
 	var nn []string
@@ -68,5 +74,18 @@ func FormatAnnotations(l str.DbWorkline) string {
 			nn = append(nn, v)
 		}
 	}
+
+	_, all := touse["all"]
+	if all {
+		for _, v := range notemap {
+			nn = append(nn, v)
+		}
+	}
+
+	simplenotes := l.GatherSimpleAnnotations()
+	if simplenotes != "" {
+		nn = append(nn, simplenotes)
+	}
+
 	return strings.Join(nn, "; ")
 }

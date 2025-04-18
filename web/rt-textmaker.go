@@ -39,9 +39,9 @@ func RtTextMaker(c echo.Context) error {
 	const (
 		TBLRW = `
             <tr class="browser">
-                <td class="textcite">%s</td>
-                <td class="textline">%s</td>
                 <td class="textembeddedannotations">%s</td>
+                <td class="textline">%s</td>
+                <td class="textcite">%s</td>
             </tr>
 		`
 		SUMM = `
@@ -63,10 +63,6 @@ func RtTextMaker(c echo.Context) error {
 	if srch.Results.Len() == 0 {
 		return emptyjsreturn(c)
 	}
-
-	// bulk apply adhocfixforbadannotations()
-	// longnotes := false
-	// srch.Results.Lines = reannotatelines(srch.Results.Lines, longnotes)
 
 	// now we have the lines we need....
 	firstline := srch.Results.FirstLine()
@@ -102,7 +98,7 @@ func RtTextMaker(c echo.Context) error {
 	lines = srch.Results.Yield()
 	for l := range lines {
 		cit := format.SelectivelyDisplayCitations(l, previous, -1)
-		trr[i] = fmt.Sprintf(TBLRW, cit, l.GetMarked(), strings.Replace(l.Annotations, "documentnumber: ", "#", 1))
+		trr[i] = fmt.Sprintf(TBLRW, format.FormatAnnotations(l), l.GetMarked(), cit)
 		if l.WkUID != previous.WkUID {
 			// you were doing multi-text generation
 			workcount += 1

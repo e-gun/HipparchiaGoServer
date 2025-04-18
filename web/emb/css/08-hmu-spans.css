@@ -182,6 +182,20 @@ hmu_serviusformatting {
 }
 
 /*                                */
+/* lfsquarebracketssubstitutes.go */
+/*                                */
+
+hb-sp-erasedepigraphicaltext {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    text-decoration-line: line-through;
+}
+
+hb-sp-text-before-correction {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-variant-position: sub;
+}
+
+/*                                */
 /* lftcurlybracketssubstitutes.go */
 /*                                */
 
@@ -341,6 +355,11 @@ hb-sp-overline_and_underline {
     text-decoration-line: overline underline;
 }
 
+hb-unk-anglebracketspan45 {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    color: var(--hgscol01);
+}
+
 hb-unk-anglebracketspan48 {
     font-family: 'hipparchiasansstatic', sans-serif;
     color: var(--hgscol11);
@@ -361,10 +380,11 @@ hb-unk-anglebracketspan52 {
     color: var(--hgscol14);
 }
 
-hb-unk-anglebracketspan45 {
+hb-unk-anglebracketspan91 {
     font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol01);
+    color: var(--hgscol02);
 }
+
 
 hb-sp-preferred_epigraphical_text_used {
     font-family: 'hipparchiasansstatic', sans-serif;
@@ -389,33 +409,6 @@ hb-sp-epigraphical_text_after_correction {
 hb-sp-letterbox {
     font-family: 'hipparchiasansstatic', sans-serif;
     text-decoration-line: overline underline;
-}
-
-hmu_epigraphical_letters_enclosed_in_wreath {
-    font-family: 'hipparchiasansstatic', sans-serif;
-    text-decoration-line: overline underline;
-    text-decoration-style: dotted;
-    color: var(--hgscol05);
-}
-
-hmu_epigraphical_project_escape_66 {
-    font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol06);
-}
-
-hmu_epigraphical_project_escape_67 {
-    font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol07);
-}
-
-hmu_epigraphical_project_escape_68 {
-    font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol08);
-}
-
-hmu_epigraphical_project_escape_69 {
-    font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol09);
 }
 
 hb-unk-anglebracketspan96 {
@@ -464,6 +457,19 @@ hb-fs-l-undoc-82 {
 }
 
 hb-fs-l-undoc-81 {
+    color: var(--hgscol07);
+}
+
+hb-fs-l-undoc-43 {
+    color: var(--hgscol05);
+}
+
+
+hb-fs-l-undoc-42 {
+    color: var(--hgscol04);
+}
+
+hb-fs-l-undoc-41 {
     color: var(--hgscol07);
 }
 

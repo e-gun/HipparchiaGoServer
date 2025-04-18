@@ -88,7 +88,6 @@ func FormatLexicalOutput(w str.DbLexicon) string {
 	elem = append(elem, formatpreliminfo(w))
 
 	if !w.IsLatin() {
-		fmt.Println("greek")
 		for _, s := range w.Senses {
 			elem = append(elem, formatgksenseinfo(s))
 		}

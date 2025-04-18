@@ -14,8 +14,7 @@ import (
 
 var (
 	UVSubs         = true //to enable setting dbw.GetMarked() outside the module; configatlaunch.go sets the real value
-	smallcapsregex = regexp.MustCompile("(<span class=\"smallcapitals\">)([^<]*)(</span>)")
-	latnorm        = regexp.MustCompile("(<span class=\"latin normal\">)([^<]*)(</span>)")
+	smallcapsregex = regexp.MustCompile("(hb-fs-l-smallcapitals>)([^<]*)(</hb-fs-l-smallcapitals>)")
 )
 
 // hipparchiaDB-# \d gr0001
@@ -124,6 +123,25 @@ func (dbw *DbWorkline) GatherMetadata() map[string]string {
 	}
 
 	return md
+}
+
+func (dbw *DbWorkline) GatherSimpleAnnotations() string {
+	// hb-sp-marginaltext has been pushed into Annotations
+	// but the metatada also lives here
+	// distinguish between them
+	if len(strings.Split(dbw.Annotations, " · ")) > 1 {
+		// this is not simple
+		return ""
+	} else {
+		if len(strings.Split(dbw.Annotations, ":")) > 1 {
+			// this is not simple
+			// `notes: Pomp. C. art. Don. GL 5.199K`
+			// vs `Non. 342M`
+			// see the first lines of Pl., Bacchides for a mix of both...
+			return ""
+		}
+		return dbw.Annotations
+	}
 }
 
 // GetMarked - do a v --> u transformation on the marked up line
@@ -252,7 +270,7 @@ type LevelValues struct {
 // smallcapsuv - preserve V in Roman numerals
 func smallcapsuv(s string) string {
 	// this is a roman numeral...: <span class="smallcapitals">u</span>
-	if !strings.Contains(s, "<span class=\"smallcapitals\">") {
+	if !strings.Contains(s, "<hb-fs-l-smallcapitals>") {
 		return s
 	}
 
