@@ -14,17 +14,14 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"regexp"
-	"strconv"
 	"strings"
 )
 
 // DictEntryGrabber - search postgres tables and return []DbLexicon
 func DictEntryGrabber(seeking string, dict string, col string, syntax string) []str.DbLexicon {
-	fmt.Println("DictEntryGrabber")
 	const (
-		FLDS = `entry_name, entry_metr, id_number, entry_type, translations, usedby, prelim_info, sense_ids, senses`
-		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s %s '%s' ORDER BY id_number ASC LIMIT %d`
+		FLDS = `idval, entry_name, entry_metr, idname, entry_type, translations, usedby, prelim_info, sense_ids, senses`
+		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s %s '%s' ORDER BY idval ASC LIMIT %d`
 	)
 
 	dbconn := getdbconnection()
@@ -35,18 +32,22 @@ func DictEntryGrabber(seeking string, dict string, col string, syntax string) []
 	var lexicalfinds []str.DbLexicon
 	var thehit str.DbLexicon
 	var jsonsenses []byte
+	var unsplitids string
 	dedup := make(map[string]bool)
 
 	foreach := []any{
+		&thehit.IdFloat,
 		&thehit.EntryName,
 		&thehit.EntryMetr,
-		&thehit.IDVal,
+		&thehit.IdString,
 		&thehit.EntryType,
 		&thehit.Transl,
 		&thehit.Usedby,
 		&thehit.PrelimInfo,
-		&thehit.SenseIDs,
-		&jsonsenses}
+		&unsplitids,
+		&jsonsenses,
+	}
+
 	rwfnc := func() error {
 		thehit.SetLang(dict)
 		sensemap := make(map[int]str.LexicalSenses)
@@ -62,9 +63,11 @@ func DictEntryGrabber(seeking string, dict string, col string, syntax string) []
 			thehit.Senses[i] = sensemap[k]
 		}
 
-		if _, dup := dedup[thehit.IDVal]; !dup {
+		thehit.SenseIDs = strings.Split(unsplitids, " ")
+
+		if _, dup := dedup[thehit.IdString]; !dup {
 			// use ID and not Lex because καρπόϲ.53442 is not καρπόϲ.53443
-			dedup[thehit.IDVal] = true
+			dedup[thehit.IdString] = true
 			lexicalfinds = append(lexicalfinds, thehit)
 		}
 		return nil
@@ -178,10 +181,10 @@ func ArrayToGetHeadwordCounts(wordlist []string) map[string]int {
 // MorphPossibIntoLexPossib - []MorphPossib into []DbLexicon
 func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 	const (
-		FLDS = `entry_name, entry_metr, id_number, entry_type, translations, usedby, prelim_info, sense_ids, senses`
-		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴|1|2)$' ORDER BY id_number ASC`
+		FLDS = `idval, entry_name, entry_metr, idname, entry_type, translations, usedby, prelim_info, sense_ids, senses`
+		PSQQ = `SELECT %s FROM %s_dictionary WHERE %s ~* '^%s(|¹|²|³|⁴|1|2)$' ORDER BY idval ASC`
 		COLM = "entry_name"
-		SQLE = "MorphPossibIntoLexPossib() sent a bad query: \n\t%s"
+		SQLE = "MorphPossibIntoLexPossib() failed on query: \n\t%s"
 	)
 
 	var hwm []string
@@ -208,19 +211,20 @@ func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 	var lexicalfinds []str.DbLexicon
 	var thehit str.DbLexicon
 	var jsonsenses []byte
+	var unsplitids string
 	dedup := make(map[string]bool)
 
 	foreach := []any{
+		&thehit.IdFloat,
 		&thehit.EntryName,
 		&thehit.EntryMetr,
-		&thehit.IDVal,
+		&thehit.IdString,
 		&thehit.EntryType,
 		&thehit.Transl,
 		&thehit.Usedby,
 		&thehit.PrelimInfo,
-		&thehit.SenseIDs,
-		&jsonsenses,
-	}
+		&unsplitids,
+		&jsonsenses}
 
 	rwfnc := func() error {
 		sensemap := make(map[int]str.LexicalSenses)
@@ -235,10 +239,12 @@ func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 			thehit.Senses[i] = sense
 		}
 
+		thehit.SenseIDs = strings.Split(unsplitids, " ")
+
 		thehit.SetLang(d)
-		if _, dup := dedup[thehit.IDVal]; !dup {
+		if _, dup := dedup[thehit.IdString]; !dup {
 			// use ID and not Lex because καρπόϲ.53442 is not καρπόϲ.53443
-			dedup[thehit.IDVal] = true
+			dedup[thehit.IdString] = true
 			lexicalfinds = append(lexicalfinds, thehit)
 		}
 		return nil
@@ -256,8 +262,8 @@ func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 		// is this no longer true as of HGB?
 
 		// nb: there is some wonky data in the morph possibilities because of some corner cases not caught by the builder
-		// [HGS-DBI] SELECT entry_name, metrical_entry, id_number, pos, translations, html_body FROM greek_dictionary WHERE entry_name ~* '^ὀμβρόω(|¹|²|³|⁴|1|2)$' ORDER BY id_number ASC
-		// [HGS-DBI] SELECT entry_name, metrical_entry, id_number, pos, translations, html_body FROM greek_dictionary WHERE entry_name ~* '^ό)μβροϲ(|¹|²|³|⁴|1|2)$' ORDER BY id_number ASC
+		// [HGS-DBI] SELECT entry_name, metrical_entry, idstring, pos, translations, html_body FROM greek_dictionary WHERE entry_name ~* '^ὀμβρόω(|¹|²|³|⁴|1|2)$' ORDER BY idval ASC
+		// [HGS-DBI] SELECT entry_name, metrical_entry, idstring, pos, translations, html_body FROM greek_dictionary WHERE entry_name ~* '^ό)μβροϲ(|¹|²|³|⁴|1|2)$' ORDER BY idval ASC
 		// the second has a ')' that yields an error
 		// "ERROR: invalid regular expression: parentheses () not balanced (SQLSTATE 2201B)"
 
@@ -273,17 +279,12 @@ func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 	return lexicalfinds
 }
 
-// FindProximateEntry - what is the name and id of the entry next to this entry?
+// FindProximateEntry - what is the name and id of the entry next to this entry? not obvious because n30004, n30004a, n30005
 func FindProximateEntry(w str.DbLexicon, nxt string) str.DbLexicon {
-	// this is the only place where we use the 'idasint' column of the data
-	// this addresses the strong sort problems if you stick with the original ids: `n123456a`
 	const (
-		PROXENTRYQUERY = `SELECT entry_name, idasint from %s_dictionary WHERE idasint %s %d ORDER BY idasint %s LIMIT 1`
+		PROXENTRYQUERY = `SELECT entry_name, idval from %s_dictionary WHERE idval %s $1 ORDER BY idval %s LIMIT 1`
 		NOTH           = `FindProximateEntry() found no entry %s '%f'`
 	)
-
-	stripalpha := regexp.MustCompile("[a-z]")
-	num, _ := strconv.Atoi(stripalpha.ReplaceAllString(w.IDVal, ""))
 
 	dbconn := getdbconnection()
 	defer dbconn.Release()
@@ -299,11 +300,12 @@ func FindProximateEntry(w str.DbLexicon, nxt string) str.DbLexicon {
 	}
 
 	var prx str.DbLexicon
-	q := fmt.Sprintf(PROXENTRYQUERY, w.GetLang(), oper, num, ord)
-	p := dbconn.QueryRow(context.Background(), q)
-	e := p.Scan(&prx.EntryName, &prx.IDVal)
+	q := fmt.Sprintf(PROXENTRYQUERY, w.GetLang(), oper, ord)
+
+	p := dbconn.QueryRow(context.Background(), q, w.IdFloat)
+	e := p.Scan(&prx.EntryName, &prx.IdString)
 	if e != nil {
-		Msg.FYI(fmt.Sprintf(NOTH, em, num))
+		Msg.FYI(fmt.Sprintf(NOTH, em, w.IdFloat))
 	}
 
 	return prx

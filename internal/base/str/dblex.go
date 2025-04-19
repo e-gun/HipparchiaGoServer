@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+	"strings"
 	"text/template"
 )
 
@@ -29,26 +30,29 @@ import (
 //                     Table "public.greek_dictionary"
 //    Column    |          Type           | Collation | Nullable | Default
 //--------------+-------------------------+-----------+----------+---------
+// idval        | double precision        |           |          |
 // entry_name   | character varying(256)  |           |          |
 // entry_metr   | character varying(256)  |           |          |
-// id_number    | character varying(16)   |           |          |
+// idname       | character varying(16)   |           |          |
 // entry_type   | character varying(16)   |           |          |
 // translations | text                    |           |          |
 // usedby       | character varying(1500) |           |          |
 // prelim_info  | text                    |           |          |
-// sense_ids    | character varying(1024) |           |          |
+// sense_ids    | text                    |           |          |
 // senses       | jsonb                   |           |          |
+//Indexes:
+//    "greek_dictionary_idval_key" UNIQUE CONSTRAINT, btree (idval)
 
 type DbLexicon struct {
+	IdFloat    float32
 	EntryName  string
 	EntryMetr  string
-	IDVal      string // string like "n12345a" in the original data
+	IdString   string // string like "n12345a" in the original data
 	EntryType  string
-	POS        string
 	Transl     string
 	Usedby     string
 	PrelimInfo string
-	SenseIDs   string // HGb: row[6] = strings.Join(entry.SenseIDs, " ")
+	SenseIDs   []string // HGB: row[7] = strings.Join(entry.SenseIDs, " ")
 	Senses     []LexicalSenses
 	// not part of the table...
 	lang string // must be lower-case because of the call to pgx.RowToStructByPos[DbLexicon]
@@ -60,9 +64,9 @@ func (dbl *DbLexicon) SetLang(l string) {
 
 func (dbl *DbLexicon) GetLang() string {
 	if gen.IsLatin.MatchString(dbl.EntryName) {
-		return "l"
+		return "latin"
 	} else {
-		return "g"
+		return "greek"
 	}
 }
 
@@ -79,7 +83,7 @@ func (ent *DbLexicon) PrintOut() {
 		TMPL = `
 	EntryName     {{.EntryName}}
 	EntryMetr     {{.EntryMetr}}
-	IDVal         {{.IDVal}}
+	IDVal         {{.IdString}}
 	Transl        {{.Transl}}
 	Usedby        {{.Usedby}}
 	SenseIDs      {{.SenseIDs}}`
@@ -87,10 +91,10 @@ func (ent *DbLexicon) PrintOut() {
 	m := map[string]string{
 		"EntryName": ent.EntryName,
 		"EntryMetr": ent.EntryMetr,
-		"IDVal":     ent.IDVal,
+		"IDVal":     ent.IdString,
 		"Transl":    ent.Transl,
 		"Usedby":    ent.Usedby,
-		"SenseIDs":  ent.SenseIDs,
+		"SenseIDs":  strings.Join(ent.SenseIDs, ";"),
 	}
 
 	t := template.Must(template.New("").Parse(TMPL))

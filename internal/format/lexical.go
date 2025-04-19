@@ -58,7 +58,7 @@ func FormatLexicalOutput(w str.DbLexicon) string {
 		}
 	}
 
-	elem = append(elem, fmt.Sprintf(HEADTEMPL, w.EntryName, w.IDVal, w.EntryName, w.IDVal, w.EntryName, met))
+	elem = append(elem, fmt.Sprintf(HEADTEMPL, w.EntryName, w.IdString, w.EntryName, w.IdString, w.EntryName, met))
 
 	// [h1a] known forms in use
 
@@ -67,7 +67,7 @@ func FormatLexicalOutput(w str.DbLexicon) string {
 
 	lw := gen.UVσςϲ(w.EntryName) // otherwise "venio" will hit AllLemm instead of "uenio"
 	if _, ok := mps.AllLemm[lw]; ok {
-		elem = append(elem, fmt.Sprintf(FORMSUMM, mps.AllLemm[lw].Xref, w.IDVal, w.EntryName, w.GetLang(), len(mps.AllLemm[lw].Deriv)))
+		elem = append(elem, fmt.Sprintf(FORMSUMM, mps.AllLemm[lw].Xref, w.IdString, w.EntryName, w.GetLang(), len(mps.AllLemm[lw].Deriv)))
 	}
 
 	// [h1b] principle parts
@@ -102,7 +102,7 @@ func FormatLexicalOutput(w str.DbLexicon) string {
 	prev := db.FindProximateEntry(w, "prev")
 	nxt := db.FindProximateEntry(w, "next")
 
-	pn := fmt.Sprintf(NAVTABLE, prev.IDVal, w.GetLang(), prev.EntryName, nxt.IDVal, w.GetLang(), nxt.EntryName)
+	pn := fmt.Sprintf(NAVTABLE, prev.IdString, w.GetLang(), prev.EntryName, nxt.IdString, w.GetLang(), nxt.EntryName)
 	elem = append(elem, pn)
 
 	html := strings.Join(elem, "")

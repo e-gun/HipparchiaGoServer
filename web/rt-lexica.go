@@ -129,7 +129,7 @@ func RtLexId(c echo.Context) error {
 	// http://127.0.0.1:8000/lexica/idlookup/latin/24236.0
 	const (
 		FAIL1 = "RtLexId() received bad request: '%s'"
-		FAIL2 = "RtLexId() found nothing at id_number '%s'"
+		FAIL2 = "RtLexId() found nothing at idval '%s'"
 	)
 
 	user := vlt.ReadUUIDCookie(c)
@@ -148,7 +148,7 @@ func RtLexId(c echo.Context) error {
 	d := gen.Purgechars(lnch.Config.BadChars, elem[0])
 	w := gen.Purgechars(lnch.Config.BadChars, elem[1])
 
-	f := db.DictEntryGrabber(w, d, "id_number", "=")
+	f := db.DictEntryGrabber(w, d, "idval", "=")
 	if len(f) == 0 {
 		Msg.WARN(fmt.Sprintf(FAIL2, w))
 		return emptyjsreturn(c)
@@ -310,7 +310,7 @@ func reversefind(word string, dicts []string) string {
 		if ct.Word == "" {
 			ct.Word = f.EntryName
 		}
-		countmap[f.IDVal] = ct
+		countmap[f.IdString] = ct
 	}
 
 	// [c] get the html for the entries
@@ -387,14 +387,14 @@ func dictsearch(seeking string, dict string, zaplunates bool) string {
 		if ct.Word == "" {
 			ct.Word = f.EntryName
 		}
-		countmap[f.IDVal] = ct
+		countmap[f.IdString] = ct
 	}
 
 	// [d1] insert the overview
 
 	ov := make([]string, len(lexicalfinds))
 	for i, e := range lexicalfinds {
-		ov[i] = fmt.Sprintf(ENTRYLINE, i+1, e.EntryName, e.IDVal, e.EntryName, countmap[e.IDVal].Total)
+		ov[i] = fmt.Sprintf(ENTRYLINE, i+1, e.EntryName, e.IdString, e.EntryName, countmap[e.IdString].Total)
 	}
 
 	if len(lexicalfinds) == vv.MAXDICTLOOKUP {
@@ -523,7 +523,7 @@ func paralleldictformatter(lexicalfinds []str.DbLexicon) map[string]string {
 func multipleentriesashtml(ee []str.DbLexicon) map[string]string {
 	oneentry := func(e str.DbLexicon) (string, string) {
 		body := format.FormatLexicalOutput(e)
-		return e.IDVal, body
+		return e.IdString, body
 	}
 
 	entries := make(map[string]string, len(ee))
