@@ -8,7 +8,6 @@ package db
 import (
 	"context"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -16,38 +15,20 @@ import (
 )
 
 // GetMultipleWordCounts - return total word count figures for each word in a slice of words
-func GetMultipleWordCounts(ww []string) map[string]str.DbWordCount {
+func GetMultipleWordCounts(ww []string) map[string]str.DbUnparsedWordCounts {
 	const (
 		TTT  = `CREATE TEMPORARY TABLE ttw_%s AS SELECT values AS wordforms FROM unnest(ARRAY[%s]) values`
-		WCQT = `SELECT entry_name, total_count FROM wordcounts_%s WHERE EXISTS 
-		(SELECT 1 FROM ttw_%s temptable WHERE temptable.wordforms = wordcounts_%s.entry_name)`
-		CHARR = `abcdefghijklmnopqrstuvwxyzαβψδεφγηιξκλμνοπρτυωχθζϲ`
+		WCQT = `SELECT entry_name, total_count FROM unparsed_wordcounts WHERE EXISTS 
+		(SELECT 1 FROM ttw_%s temptable WHERE temptable.wordforms = unparsed_wordcounts.entry_name)`
 	)
 
 	dbconn := getdbconnection()
 	defer dbconn.Release()
 
-	byfirstlett := make(map[string][]string)
-
 	// [c2] query the database
 
 	// pgsql single quote escape: quote followed by a single quote to be escaped: κρυφθεῖϲ''
 	// but they will in fact be stored less the apostrophe...
-
-	for _, w := range ww {
-		init := gen.StripaccentsRUNE([]rune(w))
-		if len(init) == 0 {
-			continue
-		}
-		i := string(init[0])
-		if strings.Contains(CHARR, i) {
-			byfirstlett[i] = append(byfirstlett[i], strings.Replace(w, "'", "", -1))
-		} else {
-			byfirstlett["0"] = append(byfirstlett["0"], strings.Replace(w, "'", "", -1))
-		}
-	}
-
-	// arr := fmt.Sprintf("'%s'", strings.Join(esc, "', '"))
 
 	// hipparchiaDB=# CREATE TEMPORARY TABLE ttw AS
 	//    SELECT values AS wordforms FROM
@@ -74,8 +55,8 @@ func GetMultipleWordCounts(ww []string) map[string]str.DbWordCount {
 	// κώρα       |           9
 	//(12 rows)
 
-	wcc := make(map[string]str.DbWordCount)
-	var wc str.DbWordCount
+	wcc := make(map[string]str.DbUnparsedWordCounts)
+	var wc str.DbUnparsedWordCounts
 
 	each := []any{&wc.Word, &wc.Total}
 
@@ -84,31 +65,28 @@ func GetMultipleWordCounts(ww []string) map[string]str.DbWordCount {
 		return nil
 	}
 
-	// this bit could be parallelized...
-	for l := range byfirstlett {
-		arr := fmt.Sprintf("'%s'", strings.Join(byfirstlett[l], "', '"))
-		rnd := strings.Replace(uuid.New().String(), "-", "", -1)
-		_, ee := dbconn.Exec(context.Background(), fmt.Sprintf(TTT, rnd, arr))
-		Msg.EC(ee)
+	arr := fmt.Sprintf("'%s'", strings.Join(ww, "', '"))
+	rnd := strings.Replace(uuid.New().String(), "-", "", -1)
+	_, ee := dbconn.Exec(context.Background(), fmt.Sprintf(TTT, rnd, arr))
+	Msg.EC(ee)
 
-		q := fmt.Sprintf(WCQT, l, rnd, l)
-		rr, ee := dbconn.Query(context.Background(), q)
-		Msg.EC(ee)
+	q := fmt.Sprintf(WCQT, rnd)
+	rr, ee := dbconn.Query(context.Background(), q)
+	Msg.EC(ee)
 
-		// you just found »ἥρμοττ« which gives you »ἥρμοττ'«: see below for where this becomes an issue
-		_, er := pgx.ForEachRow(rr, each, rfnc)
-		Msg.EC(er)
-	}
+	// you just found »ἥρμοττ« which gives you »ἥρμοττ'«: see below for where this becomes an issue
+	_, er := pgx.ForEachRow(rr, each, rfnc)
+	Msg.EC(er)
 
 	return wcc
 }
 
-// GetIndividualWordCount - return total word count figures for one word
-func GetIndividualWordCount(wd string) str.DbWordCount {
+// GetIndividualUnparsedWordCount - return total word count figures for one word
+func GetIndividualUnparsedWordCount(wd string) str.DbUnparsedWordCounts {
 	const (
 		FLDS = `entry_name, total_count, gr_count, lt_count, dp_count, in_count, ch_count`
-		NOTH = `GetIndividualWordCount() found no results for '%s'`
-		PSQQ = `SELECT %s FROM wordcounts where entry_name = '%s'`
+		NOTH = `GetIndividualUnparsedWordCount() found no results for '%s'`
+		PSQQ = `SELECT %s FROM unparsed_wordcounts where entry_name = '%s'`
 	)
 
 	dbconn := getdbconnection()
@@ -117,16 +95,16 @@ func GetIndividualWordCount(wd string) str.DbWordCount {
 	q1 := fmt.Sprintf(PSQQ, FLDS, wd)
 	q2 := fmt.Sprintf(PSQQ, FLDS, strings.ToLower(wd))
 
-	try := func(query string) (str.DbWordCount, error) {
-		var wc str.DbWordCount
+	try := func(query string) (str.DbUnparsedWordCounts, error) {
+		var wc str.DbUnparsedWordCounts
 		ct := dbconn.QueryRow(context.Background(), query)
-		e := ct.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
+		e := ct.Scan(&wc.Word, &wc.Total, &wc.TGrk, &wc.TLat, &wc.TDP, &wc.TIN, &wc.TCh)
 		return wc, e
 	}
 
-	//var wc str.DbWordCount
+	//var wc str.DbUnparsedWordCounts
 	//ct := dbconn.QueryRow(context.Background(), q)
-	//e := ct.Scan(&wc.Word, &wc.Total, &wc.Gr, &wc.Lt, &wc.Dp, &wc.In, &wc.Ch)
+	//e := ct.Scan(&wc.Word, &wc.Total, &wc.TGrk, &wc.TLat, &wc.TDP, &wc.TIN, &wc.TCh)
 	wc, e := try(q1)
 	if e != nil {
 		// often a capitalized word that is in fact known: 'Πάντα', e.g.
@@ -378,8 +356,8 @@ func MapHeadwordCounts(headwordset map[string]bool) map[string]int {
 	defer dbconn.Release()
 
 	tt := "CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words"
-	qt := "SELECT entry_name, total_count FROM dictionary_headword_wordcounts WHERE EXISTS " +
-		"(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = dictionary_headword_wordcounts.entry_name)"
+	qt := "SELECT entry_name, total_count FROM headword_wordcounts WHERE EXISTS " +
+		"(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = headword_wordcounts.entry_name)"
 
 	rndid := strings.Replace(uuid.New().String(), "-", "", -1)
 

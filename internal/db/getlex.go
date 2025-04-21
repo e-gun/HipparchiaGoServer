@@ -139,8 +139,8 @@ func ArrayToGetScansion(wordlist []string) map[string]string {
 func ArrayToGetHeadwordCounts(wordlist []string) map[string]int {
 	const (
 		TT = `CREATE TEMPORARY TABLE ttw_%s AS SELECT words AS w FROM unnest(ARRAY[%s]) words`
-		QT = `SELECT entry_name , total_count FROM dictionary_headword_wordcounts WHERE EXISTS 
-				(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = dictionary_headword_wordcounts.entry_name)`
+		QT = `SELECT entry_name , total_count FROM headword_wordcounts WHERE EXISTS 
+				(SELECT 1 FROM ttw_%s temptable WHERE temptable.w = headword_wordcounts.entry_name)`
 	)
 
 	dbconn := getdbconnection()

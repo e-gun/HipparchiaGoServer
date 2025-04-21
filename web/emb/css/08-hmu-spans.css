@@ -273,12 +273,12 @@ hb-sp-emendation_by_editor_of_text_not_obviously_incorrect {
 /* lftanglebracketssubstitutes.go */
 /*                                */
 
-hb-sp-superscript {
+hb-sp-supsc {
     font-family: 'hipparchiasansstatic', sans-serif;
     font-variant-position: super;
 }
 
-hb-sp-subscript {
+hb-sp-subsc {
     font-family: 'hipparchiasansstatic', sans-serif;
     font-variant-position: sub;
 }
@@ -431,7 +431,7 @@ hb-speaker {
 */
 
 
-hb-fs-l-smallerthannormal, hb-fs-g-smallerthannormal {
+hb-fs-l-smaller, hb-fs-g-smaller {
     font-size: 80%;
 }
 
@@ -452,8 +452,12 @@ hb-fs-l-undoc-90 {
     color: var(--hgscol03);
 }
 
-hb-fs-l-undoc-82 {
+hb-fs-l-undoc-83 {
     color: var(--hgscol04);
+}
+
+hb-fs-l-undoc-82 {
+    color: var(--hgscol06);
 }
 
 hb-fs-l-undoc-81 {
@@ -463,7 +467,6 @@ hb-fs-l-undoc-81 {
 hb-fs-l-undoc-43 {
     color: var(--hgscol05);
 }
-
 
 hb-fs-l-undoc-42 {
     color: var(--hgscol04);
@@ -478,16 +481,24 @@ hb-fs-l-largerthannormal {
     font-size: 120%;
 }
 
-hb-fs-l-smallerthannormal_superscript {
+hb-fs-l-smaller_subsc {
     font-family: 'hipparchiasansstatic', sans-serif;
     font-size: 80%;
+    font-variant-position: sub;
 }
-hb-fs-l-smallerthannormal_italic {
+
+hb-fs-l-smaller_supsc {
+    font-family: 'hipparchiasansstatic', sans-serif;
+    font-size: 80%;
+    font-variant-position: super;
+}
+
+hb-fs-l-smaller_italic {
     font-family: 'hipparchiaobliquestatic', sans-serif;
     font-size: 80%;
 }
 
-hb-fs-l-smallerthannormal {
+hb-fs-l-smaller {
     font-family: 'hipparchiasansstatic', sans-serif;
     font-size: 80%;
 }
@@ -508,12 +519,12 @@ hb-fs-l-romannumerals {
     color: var(--hgscol07);
 }
 
-hb-fs-l-subscript {
+hb-fs-l-subsc {
     font-family: 'hipparchiasansstatic', sans-serif;
     font-variant-position: sub;
 }
 
-hb-fs-l-superscript {
+hb-fs-l-supsc {
     font-family: 'hipparchiasansstatic', sans-serif;
     font-variant-position: super;
 }
@@ -571,40 +582,40 @@ hb-fs-g-largerthannormal {
     font-size: 120%;
 }
 
-hb-fs-g-smallerthannormal {
+hb-fs-g-smaller {
     font-family: 'hipparchiasansstatic', sans-serif;
     font-size: 80%;
 }
 
-hb-fs-g-smallerthannormal_superscript_bold {
+hb-fs-g-smaller_supsc_bold {
     font-family: 'hipparchiaboldstatic', sans-serif;
     font-variant-position: super;
     font-size: 80%;
 }
 
-hb-fs-g-smallerthannormal_subscript {
+hb-fs-g-smaller_subsc {
     font-family: 'hipparchiasansstatic', sans-serif;
     font-variant-position: sub;
     font-size: 80%;
 }
 
-hb-fs-g-smallerthannormal_superscript {
+hb-fs-g-smaller_supsc {
     font-family: 'hipparchiasansstatic', sans-serif;
     font-variant-position: super;
     font-size: 80%;
 }
 
-hb-fs-g-smallerthannormal_italic {
+hb-fs-g-smaller_italic {
     font-family: 'hipparchiaobliquestatic', sans-serif;
     font-size: 80%;
 }
 
-hb-fs-g-smallerthannormal_bold {
+hb-fs-g-smaller_bold {
     font-family: 'hipparchiaboldstatic', sans-serif;
     font-size: 80%;
 }
 
-hb-fs-g-smallerthannormal {
+hb-fs-g-smaller {
     font-family: 'hipparchiasansstatic', sans-serif;
     font-size: 80%;
 }
@@ -620,17 +631,17 @@ hb-fs-g-vertical {
     text-orientation: upright;
 }
 
-hb-fs-g-superscript_bold {
+hb-fs-g-supsc_bold {
     font-family: 'hipparchiaboldstatic', sans-serif;
     font-variant-position: super;
 }
 
-hb-fs-g-subscript {
+hb-fs-g-subsc {
     font-family: 'hipparchiasansstatic', sans-serif;
     font-variant-position: sub;
 }
 
-hb-fs-g-superscript {
+hb-fs-g-supsc {
     font-family: 'hipparchiasansstatic', sans-serif;
     font-variant-position: super;
 }

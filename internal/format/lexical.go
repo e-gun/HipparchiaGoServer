@@ -111,7 +111,7 @@ func FormatLexicalOutput(w str.DbLexicon) string {
 }
 
 // FormatLexPrevalenceData - turn a wordcount into an HTML summary
-func FormatLexPrevalenceData(w str.DbWordCount, s string) string {
+func FormatLexPrevalenceData(w str.DbUnparsedWordCounts, s string) string {
 	// <p class="wordcounts">Prevalence (all forms): <span class="prevalence">Ⓣ</span> 1482 / <span class="prevalence">Ⓖ</span> 1415 / <span class="prevalence">Ⓓ</span> 54 / <span class="prevalence">Ⓘ</span> 11 / <span class="prevalence">Ⓒ</span> 2</p>
 	const (
 		PDPAR = `<p class="wordcounts">Prevalence of <span class="emph">%s</span>: %s</p>`
@@ -120,10 +120,10 @@ func FormatLexPrevalenceData(w str.DbWordCount, s string) string {
 
 	m := message.NewPrinter(language.English)
 
-	labels := map[string]string{"Total": "Ⓣ", "Gr": "Ⓖ", "Lt": "Ⓛ", "Dp": "Ⓓ", "In": "Ⓘ", "Ch": "Ⓒ"}
+	labels := map[string]string{"Total": "Ⓣ", "TGrk": "Ⓖ", "TLat": "Ⓛ", "TDP": "Ⓓ", "TIN": "Ⓘ", "TCh": "Ⓒ"}
 
 	var pdd []string
-	for _, l := range []string{"Total", "Gr", "Lt", "Dp", "In", "Ch"} {
+	for _, l := range []string{"Total", "TGrk", "TLat", "TDP", "TIN", "TCh"} {
 		v := reflect.ValueOf(w).FieldByName(l).Int()
 		if v > 0 {
 			pdd = append(pdd, m.Sprintf(PDSPA, labels[l], v))

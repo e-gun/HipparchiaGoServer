@@ -526,7 +526,7 @@ func youhavebeenwarned() bool {
 The application will be C7NON-FUNCTIONALC0 after this unless/until you reload 
 this data. 
 
-In short, this very dangerous. 
+TIN short, this very dangerous. 
 
 Type C6YESC0 to confirm that you want to proceed. --> `
 		NOPE = "Did not receive confirmation. Aborting..."

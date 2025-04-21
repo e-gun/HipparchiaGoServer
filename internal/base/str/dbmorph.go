@@ -32,16 +32,6 @@ func (dbm *DbMorphology) PossibSlice() []string {
 	return strings.Split(dbm.RawPossib, " ")
 }
 
-type DbWordCount struct {
-	Word  string
-	Total int
-	Gr    int
-	Lt    int
-	Dp    int
-	In    int
-	Ch    int
-}
-
 type MorphPossib struct {
 	Transl   string `json:"transl"`
 	Analysis string `json:"analysis"`

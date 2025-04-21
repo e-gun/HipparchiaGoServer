@@ -257,7 +257,7 @@ func findbyform(word string, author string, zaplunates bool) string {
 
 	// [d] generate and format the prevalence data for this form: cf formatprevalencedata() in lexicalformatting.py
 
-	wc := db.GetIndividualWordCount(word)
+	wc := db.GetIndividualUnparsedWordCount(word)
 	label := wc.Word
 	allformpd := format.FormatLexPrevalenceData(wc, label)
 

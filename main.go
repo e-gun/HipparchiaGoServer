@@ -178,6 +178,10 @@ func main() {
 
 		previous = time.Now()
 		mps.NestedLemm = mps.NestedLemmaMapper(mps.AllLemm)
+
+		mps.LoadUnparsedWordCountWeights()
+		mps.LoadParsedWordCountWeights()
+
 		msg.Timer("B2", MSG5, start, previous)
 	}(&awaiting)
 

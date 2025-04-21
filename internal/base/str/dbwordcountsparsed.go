@@ -6,6 +6,7 @@
 package str
 
 import (
+	"fmt"
 	"reflect"
 	"regexp"
 	"sort"
@@ -398,4 +399,84 @@ func (hw *DbHeadwordCounts) IsGreek() bool {
 	} else {
 		return true
 	}
+}
+
+// new...
+
+func (wc DbHeadwordCounts) PrintOut(w string) {
+	fmt.Println("DbHeadwordCounts:", w)
+	fmt.Println("AllRhet:", wc.AllRhet)
+	fmt.Println("AllRelig:", wc.AllRelig)
+	fmt.Println("Trag:", wc.Trag)
+	fmt.Println("Epic:", wc.Epic)
+	fmt.Println("Phil:", wc.Phil)
+}
+
+type FieldValuePair struct {
+	Field string
+	Value int
+}
+type WeightedFieldValuePair struct {
+	Field string
+	Value float32
+}
+
+func (wc DbHeadwordCounts) SortedFVPairs(startfield int, stopfield int) []FieldValuePair {
+	var pairs []FieldValuePair
+	v := reflect.ValueOf(wc)
+	for i := startfield; i < stopfield; i++ {
+		fieldName := v.Type().Field(i).Name
+		fieldValue := v.Field(i).Interface().(int) // Assuming all fields are int
+		pairs = append(pairs, FieldValuePair{fieldName, fieldValue})
+	}
+
+	sort.Slice(pairs, func(i, j int) bool {
+		return pairs[i].Value > pairs[j].Value
+	})
+	return pairs
+}
+
+func (wc DbHeadwordCounts) SortedEraPairs() []FieldValuePair {
+	startindex := 8
+	endindex := 11
+	return wc.SortedFVPairs(startindex, endindex)
+}
+
+func (wc DbHeadwordCounts) SortedCorpusPairs() []FieldValuePair {
+	startindex := 2
+	endindex := 7
+	return wc.SortedFVPairs(startindex, endindex)
+}
+
+func (wc DbHeadwordCounts) SortedGenrePairs() []FieldValuePair {
+	startindex := 11
+	endindex := 91
+	return wc.SortedFVPairs(startindex, endindex)
+}
+
+func (wc DbHeadwordCounts) SortedWeightedPairs(fvp []FieldValuePair) []WeightedFieldValuePair {
+	maxval := float32(fvp[0].Value)
+	wfvp := make([]WeightedFieldValuePair, len(fvp))
+	for i, pair := range fvp {
+		wfvp[i] = WeightedFieldValuePair{
+			Field: pair.Field,
+			Value: maxval / float32(pair.Value),
+		}
+	}
+	return wfvp
+}
+
+func (wc DbHeadwordCounts) SortedWeightedEraPairs() []WeightedFieldValuePair {
+	fvp := wc.SortedEraPairs()
+	return wc.SortedWeightedPairs(fvp)
+}
+
+func (wc DbHeadwordCounts) SortedWeightedGenrePairs() []WeightedFieldValuePair {
+	fvp := wc.SortedGenrePairs()
+	return wc.SortedWeightedPairs(fvp)
+}
+
+func (wc DbHeadwordCounts) SortedWeightedCorpusPairs() []WeightedFieldValuePair {
+	fvp := wc.SortedCorpusPairs()
+	return wc.SortedWeightedPairs(fvp)
 }
