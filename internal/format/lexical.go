@@ -397,14 +397,14 @@ func headworddistribbycorp(wc str.DbHeadwordCounts) string {
 	sort.Slice(wp, func(i, j int) bool {
 		return wp[i].Value > wp[j].Value
 	})
+	// [{TGrk 6822} {TIN 3076.8318} {TCh 772.97174} {TDP 279.2075} {TLat 0}]
 
 	// now make it "out of 100"
 	wmpax := wp[0].Value
 	for i, _ := range wp {
 		wp[i].Value = (wp[i].Value / wmpax) * 100
 	}
-
-	// headworddistribbycorp recalc [{TGrk 6822} {TIN 3076} {TCh 772} {TDP 279} {TLat 0}]
+	// [{TGrk 100} {TIN 45.10161} {TCh 11.330574} {TDP 4.092751} {TLat 0}]
 
 	for _, w := range wp {
 		if w.Value > 0 {
@@ -413,7 +413,6 @@ func headworddistribbycorp(wc str.DbHeadwordCounts) string {
 	}
 
 	out := DIST + strings.Join(pd, " / ")
-	fmt.Println("headworddistribbycorp distribbycorp", out)
 	return out
 }
 
@@ -425,12 +424,34 @@ func headworddistribbyera(wc str.DbHeadwordCounts) string {
 	)
 
 	var pd []string
+	m := message.NewPrinter(language.English)
 
-	cv := wc.SortedWeightedEraPairs()
+	cv := wc.SortedEraPairs()
+	// [{Late 7289} {Middle 2769} {Early 442}]
 
+	wp := make([]str.WeightedFieldValuePair, len(cv))
 	for i, v := range cv {
-		recalc := mps.ParsedWeightsEras[v.Field] * v.Value
-		cv[i].Value = recalc
+		recalc := mps.ParsedWeightsEras[v.Field] * float32(v.Value)
+		wp[i].Value = recalc
+		wp[i].Field = v.Field
+	}
+
+	sort.Slice(wp, func(i, j int) bool {
+		return wp[i].Value > wp[j].Value
+	})
+	// [{Late 7289} {Early 3809.652} {Middle 3808.7402}]
+
+	// now make it "out of 100"
+	wmpax := wp[0].Value
+	for i, _ := range wp {
+		wp[i].Value = (wp[i].Value / wmpax) * 100
+	}
+	// [{Late 100} {Early 52.26577} {Middle 52.253265}]
+
+	for _, w := range wp {
+		if w.Value > 0 {
+			pd = append(pd, m.Sprintf(PREVSPAN, w.Field, int(w.Value)))
+		}
 	}
 
 	return DIST + strings.Join(pd, " / ")
@@ -439,24 +460,52 @@ func headworddistribbyera(wc str.DbHeadwordCounts) string {
 func headworddistribbygenre(wc str.DbHeadwordCounts) string {
 	// Predominant genres: comm (100), mech (97), jurisprud (93), med (84), mus (75), nathist (61), paroem (60), allrelig (57)
 	const (
-		DIST     = `<br>Distribution by genre: `
-		PREVSPAN = `<span class="rarechars prevalence">%s</span>&nbsp;%d`
+		DIST          = `<br>Distribution by genre: `
+		PREVSPAN      = `<span class="rarechars prevalence">%s</span>&nbsp;%d`
+		GENREWTCUTOFF = 150
 	)
-	m := message.NewPrinter(language.English)
 	var pd []string
+	m := message.NewPrinter(language.English)
 
-	cv := wc.SortedWeightedGenrePairs()
+	cv := wc.SortedGenrePairs()
+	// [{Hist 3212} {Comm 1155} {Phil 968} {Schol 340} {AllRhet 333} ...]
+
+	wp := make([]str.WeightedFieldValuePair, len(cv))
 	for i, v := range cv {
-		recalc := mps.ParsedWeightsGenres[v.Field] * v.Value
-		cv[i].Value = recalc
+		var wv float32
+		// do not let genres with few words to let their one hit count way, way too much
+		if mps.ParsedWeightsGenres[v.Field] > GENREWTCUTOFF {
+			wv = 0
+		} else {
+			wv = mps.ParsedWeightsGenres[v.Field]
+		}
+
+		recalc := wv * float32(v.Value)
+		wp[i].Value = recalc
+		wp[i].Field = v.Field
 	}
 
-	for i, c := range cv {
+	sort.Slice(wp, func(i, j int) bool {
+		return wp[i].Value > wp[j].Value
+	})
+	// [{Tact 12906.822} {Hist 3285.3674} {Perig 3251.8145} {Test 2656.0415} ...]
+
+	// now make it "out of 100"
+	wmpax := wp[0].Value
+	for i, _ := range wp {
+		wp[i].Value = (wp[i].Value / wmpax) * 100
+	}
+
+	for i, w := range wp {
 		if i >= vv.GENRESTOCOUNT {
 			break
 		}
-		pd = append(pd, m.Sprintf(PREVSPAN, c.Field, c.Value))
+		if w.Value > 0 {
+			pd = append(pd, m.Sprintf(PREVSPAN, w.Field, int(w.Value)))
+		}
 	}
+	// [{Tact 100} {Hist 25.454504} {Perig 25.19454} {Test 20.578585} ...]
+
 	return DIST + strings.Join(pd, "; ")
 
 }
