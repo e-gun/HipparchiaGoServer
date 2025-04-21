@@ -174,232 +174,232 @@ type DbHeadwordCounts struct {
 }
 
 // HWData - to help sort values inside DbHeadwordCount
-type HWData struct {
-	Name  string
-	Count int
-}
-
-func (hw *DbHeadwordCounts) GetCorpVals() []HWData {
-	// Prevalence (all forms): Ⓖ 95,843 / Ⓛ 10 / Ⓘ 151 / Ⓓ 751 / Ⓒ 64 / Ⓣ 96,819
-	var vv []HWData
-	vv = append(vv, HWData{"Ⓖ", hw.TGrk})
-	vv = append(vv, HWData{"Ⓛ", hw.TLat})
-	vv = append(vv, HWData{"Ⓘ", hw.TIN})
-	vv = append(vv, HWData{"Ⓓ", hw.TDP})
-	vv = append(vv, HWData{"Ⓒ", hw.TCh})
-	return vv
-}
-
-func (hw *DbHeadwordCounts) GetWeightedCorpVals() []HWData {
-	vv := hw.GetCorpVals()
-	for i, v := range vv {
-		vv[i].Count = int(float32(v.Count) * CORPUSWEIGTING[v.Name])
-	}
-	return vv
-}
-
-func (hw *DbHeadwordCounts) GetSortedCorpVals() []HWData {
-	vv := hw.GetCorpVals()
-	sort.Slice(vv, func(i, j int) bool {
-		return vv[i].Count > vv[j].Count
-	})
-	return vv
-}
-
-func (hw *DbHeadwordCounts) GetWeightedSortedCorpVals() []HWData {
-	vv := hw.GetWeightedCorpVals()
-	sort.Slice(vv, func(i, j int) bool {
-		return vv[i].Count > vv[j].Count
-	})
-	return vv
-}
-
-func (hw *DbHeadwordCounts) GetSortedTrimmedCorpVals() []HWData {
-	vv := hw.GetSortedCorpVals()
-	var trimmed []HWData
-	for _, v := range vv {
-		if v.Count > 0 {
-			trimmed = append(trimmed, v)
-		}
-	}
-	return trimmed
-}
-
-func (hw *DbHeadwordCounts) GetWeightedSortedTrimmedCorpVals() []HWData {
-	vv := hw.GetWeightedSortedCorpVals()
-	var trimmed []HWData
-	for _, v := range vv {
-		if v.Count > 0 {
-			trimmed = append(trimmed, v)
-		}
-	}
-	return trimmed
-}
-
-func (hw *DbHeadwordCounts) GetTimeVals() []HWData {
-	// Weighted chronological distribution: ℯ 100 / ℓ 84 / 𝓂 62
-	var vv []HWData
-	vv = append(vv, HWData{"e", hw.Early})
-	vv = append(vv, HWData{"l", hw.Late})
-	vv = append(vv, HWData{"m", hw.Middle})
-	return vv
-}
-
-func (hw *DbHeadwordCounts) GetWeightedTimeVals() []HWData {
-	vv := hw.GetTimeVals()
-	for i, v := range vv {
-		vv[i].Count = int(float32(v.Count) * ERAWEIGHTING[v.Name])
-	}
-	return vv
-}
-
-func (hw *DbHeadwordCounts) GetSortedTimeVals() []HWData {
-	vv := hw.GetTimeVals()
-	sort.Slice(vv, func(i, j int) bool {
-		return vv[i].Count > vv[j].Count
-	})
-	return vv
-}
-
-func (hw *DbHeadwordCounts) GetWeightedSortedTimeVals() []HWData {
-	vv := hw.GetWeightedTimeVals()
-	sort.Slice(vv, func(i, j int) bool {
-		return vv[i].Count > vv[j].Count
-	})
-	return vv
-}
-
-func (hw *DbHeadwordCounts) GetSortedTrimmedTimeVals() []HWData {
-	vv := hw.GetSortedTimeVals()
-	var trimmed []HWData
-	for _, v := range vv {
-		if v.Count > 0 {
-			trimmed = append(trimmed, v)
-		}
-	}
-	return trimmed
-}
-
-func (hw *DbHeadwordCounts) GetWeightedSortedTrimmedTimeVals() []HWData {
-	vv := hw.GetWeightedSortedTimeVals()
-	var trimmed []HWData
-	for _, v := range vv {
-		if v.Count > 0 {
-			trimmed = append(trimmed, v)
-		}
-	}
-	return trimmed
-}
-
-func (hw DbHeadwordCounts) GetSortedGenreVals() []HWData {
-	const (
-		INDEXOFFIRSTGENRE = 11
-		INDEXOFLASTGENRE  = 88
-	)
-
-	// don't use reflect on a pointer: *DbHeadwordCounts
-	val := reflect.ValueOf(hw)
-	typ := reflect.TypeOf(hw)
-
-	type fieldinfo struct {
-		Name  string
-		Value int
-	}
-
-	var fields []fieldinfo
-	for i := INDEXOFFIRSTGENRE; i < INDEXOFLASTGENRE+1; i++ {
-		fields = append(fields, fieldinfo{
-			Name:  typ.Field(i).Name,
-			Value: int(val.Field(i).Int()),
-		})
-	}
-
-	// Sort by value descending
-	sort.Slice(fields, func(i, j int) bool {
-		return fields[i].Value > fields[j].Value
-	})
-
-	var newhwdata []HWData
-	for _, field := range fields {
-		newhwdata = append(newhwdata, HWData{
-			Name:  field.Name,
-			Count: field.Value,
-		})
-	}
-	return newhwdata
-}
-
-func (hw *DbHeadwordCounts) GetWeightedSortedGenreVals() []HWData {
-	if hw.IsGreek() {
-		return hw.GetGreekWeightedSortedGenreVals()
-	} else {
-		return hw.GetLatinWeightedSortedGenreVals()
-	}
-}
-
-func (hw *DbHeadwordCounts) GetGreekWeightedSortedGenreVals() []HWData {
-	const (
-		MINORGKGENRETHRESHOLD = 250
-	)
-	return hw.GenerateWeightedSortedGenreVals(GKGENREWEIGHT, MINORGKGENRETHRESHOLD)
-}
-
-func (hw *DbHeadwordCounts) GetLatinWeightedSortedGenreVals() []HWData {
-	const (
-		MINORGKGENRETHRESHOLD = 250
-	)
-	return hw.GenerateWeightedSortedGenreVals(LATGENREWEIGHT, MINORGKGENRETHRESHOLD)
-}
-
-// GenerateWeightedSortedGenreVals - this is the one that does the real work of ranking and sorting
-func (hw *DbHeadwordCounts) GenerateWeightedSortedGenreVals(weightmap map[string]float32, threshold float32) []HWData {
-
-	vv := hw.GetSortedGenreVals()
-	for i, hwc := range vv {
-		gwt := weightmap[hwc.Name]
-		if gwt > threshold {
-			// you will never get weights for these genres; but you will still be able to peek when testing
-			gwt = -1 * gwt
-		}
-		vv[i] = HWData{
-			Name:  hwc.Name,
-			Count: int(float32(hwc.Count) * gwt),
-		}
-	}
-
-	// the weighting just unsorted things, so...
-	sort.Slice(vv, func(i, j int) bool {
-		return vv[i].Count > vv[j].Count
-	})
-
-	// trim empties
-	var trimmed []HWData
-	for _, v := range vv {
-		if v.Count > 0 {
-			trimmed = append(trimmed, v)
-		}
-	}
-
-	if len(trimmed) == 0 {
-		return trimmed
-	}
-
-	// now make the top value into "100" and weigh the rest relative to it
-	top := trimmed[0].Count
-	for i := 0; i < len(trimmed); i++ {
-		trimmed[i].Count = int(100 * (float32(trimmed[i].Count) / float32(top)))
-	}
-
-	return trimmed
-}
-
-func (hw *DbHeadwordCounts) IsGreek() bool {
-	if lookforlatinchars.MatchString(hw.Word) {
-		return false
-	} else {
-		return true
-	}
-}
+//type HWData struct {
+//	Name  string
+//	Count int
+//}
+//
+//func (hw *DbHeadwordCounts) GetCorpVals() []HWData {
+//	// Prevalence (all forms): Ⓖ 95,843 / Ⓛ 10 / Ⓘ 151 / Ⓓ 751 / Ⓒ 64 / Ⓣ 96,819
+//	var vv []HWData
+//	vv = append(vv, HWData{"Ⓖ", hw.TGrk})
+//	vv = append(vv, HWData{"Ⓛ", hw.TLat})
+//	vv = append(vv, HWData{"Ⓘ", hw.TIN})
+//	vv = append(vv, HWData{"Ⓓ", hw.TDP})
+//	vv = append(vv, HWData{"Ⓒ", hw.TCh})
+//	return vv
+//}
+//
+//func (hw *DbHeadwordCounts) GetWeightedCorpVals() []HWData {
+//	vv := hw.GetCorpVals()
+//	for i, v := range vv {
+//		vv[i].Count = int(float32(v.Count) * CORPUSWEIGTING[v.Name])
+//	}
+//	return vv
+//}
+//
+//func (hw *DbHeadwordCounts) GetSortedCorpVals() []HWData {
+//	vv := hw.GetCorpVals()
+//	sort.Slice(vv, func(i, j int) bool {
+//		return vv[i].Count > vv[j].Count
+//	})
+//	return vv
+//}
+//
+//func (hw *DbHeadwordCounts) GetWeightedSortedCorpVals() []HWData {
+//	vv := hw.GetWeightedCorpVals()
+//	sort.Slice(vv, func(i, j int) bool {
+//		return vv[i].Count > vv[j].Count
+//	})
+//	return vv
+//}
+//
+//func (hw *DbHeadwordCounts) GetSortedTrimmedCorpVals() []HWData {
+//	vv := hw.GetSortedCorpVals()
+//	var trimmed []HWData
+//	for _, v := range vv {
+//		if v.Count > 0 {
+//			trimmed = append(trimmed, v)
+//		}
+//	}
+//	return trimmed
+//}
+//
+//func (hw *DbHeadwordCounts) GetWeightedSortedTrimmedCorpVals() []HWData {
+//	vv := hw.GetWeightedSortedCorpVals()
+//	var trimmed []HWData
+//	for _, v := range vv {
+//		if v.Count > 0 {
+//			trimmed = append(trimmed, v)
+//		}
+//	}
+//	return trimmed
+//}
+//
+//func (hw *DbHeadwordCounts) GetTimeVals() []HWData {
+//	// Weighted chronological distribution: ℯ 100 / ℓ 84 / 𝓂 62
+//	var vv []HWData
+//	vv = append(vv, HWData{"e", hw.Early})
+//	vv = append(vv, HWData{"l", hw.Late})
+//	vv = append(vv, HWData{"m", hw.Middle})
+//	return vv
+//}
+//
+//func (hw *DbHeadwordCounts) GetWeightedTimeVals() []HWData {
+//	vv := hw.GetTimeVals()
+//	for i, v := range vv {
+//		vv[i].Count = int(float32(v.Count) * ERAWEIGHTING[v.Name])
+//	}
+//	return vv
+//}
+//
+//func (hw *DbHeadwordCounts) GetSortedTimeVals() []HWData {
+//	vv := hw.GetTimeVals()
+//	sort.Slice(vv, func(i, j int) bool {
+//		return vv[i].Count > vv[j].Count
+//	})
+//	return vv
+//}
+//
+//func (hw *DbHeadwordCounts) GetWeightedSortedTimeVals() []HWData {
+//	vv := hw.GetWeightedTimeVals()
+//	sort.Slice(vv, func(i, j int) bool {
+//		return vv[i].Count > vv[j].Count
+//	})
+//	return vv
+//}
+//
+//func (hw *DbHeadwordCounts) GetSortedTrimmedTimeVals() []HWData {
+//	vv := hw.GetSortedTimeVals()
+//	var trimmed []HWData
+//	for _, v := range vv {
+//		if v.Count > 0 {
+//			trimmed = append(trimmed, v)
+//		}
+//	}
+//	return trimmed
+//}
+//
+//func (hw *DbHeadwordCounts) GetWeightedSortedTrimmedTimeVals() []HWData {
+//	vv := hw.GetWeightedSortedTimeVals()
+//	var trimmed []HWData
+//	for _, v := range vv {
+//		if v.Count > 0 {
+//			trimmed = append(trimmed, v)
+//		}
+//	}
+//	return trimmed
+//}
+//
+//func (hw DbHeadwordCounts) GetSortedGenreVals() []HWData {
+//	const (
+//		INDEXOFFIRSTGENRE = 11
+//		INDEXOFLASTGENRE  = 88
+//	)
+//
+//	// don't use reflect on a pointer: *DbHeadwordCounts
+//	val := reflect.ValueOf(hw)
+//	typ := reflect.TypeOf(hw)
+//
+//	type fieldinfo struct {
+//		Name  string
+//		Value int
+//	}
+//
+//	var fields []fieldinfo
+//	for i := INDEXOFFIRSTGENRE; i < INDEXOFLASTGENRE+1; i++ {
+//		fields = append(fields, fieldinfo{
+//			Name:  typ.Field(i).Name,
+//			Value: int(val.Field(i).Int()),
+//		})
+//	}
+//
+//	// Sort by value descending
+//	sort.Slice(fields, func(i, j int) bool {
+//		return fields[i].Value > fields[j].Value
+//	})
+//
+//	var newhwdata []HWData
+//	for _, field := range fields {
+//		newhwdata = append(newhwdata, HWData{
+//			Name:  field.Name,
+//			Count: field.Value,
+//		})
+//	}
+//	return newhwdata
+//}
+//
+//func (hw *DbHeadwordCounts) GetWeightedSortedGenreVals() []HWData {
+//	if hw.IsGreek() {
+//		return hw.GetGreekWeightedSortedGenreVals()
+//	} else {
+//		return hw.GetLatinWeightedSortedGenreVals()
+//	}
+//}
+//
+//func (hw *DbHeadwordCounts) GetGreekWeightedSortedGenreVals() []HWData {
+//	const (
+//		MINORGKGENRETHRESHOLD = 250
+//	)
+//	return hw.GenerateWeightedSortedGenreVals(GKGENREWEIGHT, MINORGKGENRETHRESHOLD)
+//}
+//
+//func (hw *DbHeadwordCounts) GetLatinWeightedSortedGenreVals() []HWData {
+//	const (
+//		MINORGKGENRETHRESHOLD = 250
+//	)
+//	return hw.GenerateWeightedSortedGenreVals(LATGENREWEIGHT, MINORGKGENRETHRESHOLD)
+//}
+//
+//// GenerateWeightedSortedGenreVals - this is the one that does the real work of ranking and sorting
+//func (hw *DbHeadwordCounts) GenerateWeightedSortedGenreVals(weightmap map[string]float32, threshold float32) []HWData {
+//
+//	vv := hw.GetSortedGenreVals()
+//	for i, hwc := range vv {
+//		gwt := weightmap[hwc.Name]
+//		if gwt > threshold {
+//			// you will never get weights for these genres; but you will still be able to peek when testing
+//			gwt = -1 * gwt
+//		}
+//		vv[i] = HWData{
+//			Name:  hwc.Name,
+//			Count: int(float32(hwc.Count) * gwt),
+//		}
+//	}
+//
+//	// the weighting just unsorted things, so...
+//	sort.Slice(vv, func(i, j int) bool {
+//		return vv[i].Count > vv[j].Count
+//	})
+//
+//	// trim empties
+//	var trimmed []HWData
+//	for _, v := range vv {
+//		if v.Count > 0 {
+//			trimmed = append(trimmed, v)
+//		}
+//	}
+//
+//	if len(trimmed) == 0 {
+//		return trimmed
+//	}
+//
+//	// now make the top value into "100" and weigh the rest relative to it
+//	top := trimmed[0].Count
+//	for i := 0; i < len(trimmed); i++ {
+//		trimmed[i].Count = int(100 * (float32(trimmed[i].Count) / float32(top)))
+//	}
+//
+//	return trimmed
+//}
+//
+//func (hw *DbHeadwordCounts) IsGreek() bool {
+//	if lookforlatinchars.MatchString(hw.Word) {
+//		return false
+//	} else {
+//		return true
+//	}
+//}
 
 // new...
 
@@ -410,15 +410,6 @@ func (wc DbHeadwordCounts) PrintOut(w string) {
 	fmt.Println("Trag:", wc.Trag)
 	fmt.Println("Epic:", wc.Epic)
 	fmt.Println("Phil:", wc.Phil)
-}
-
-type FieldValuePair struct {
-	Field string
-	Value int
-}
-type WeightedFieldValuePair struct {
-	Field string
-	Value float32
 }
 
 func (wc DbHeadwordCounts) SortedFVPairs(startfield int, stopfield int) []FieldValuePair {

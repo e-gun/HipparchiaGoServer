@@ -77,10 +77,10 @@ func FormatLexicalOutput(w str.DbLexicon) string {
 	// [h2] wordcounts data including weighted distributions
 
 	elem = append(elem, `<div class="wordcounts">`)
-	elem = append(elem, headwordprevalence(hwc))
-	elem = append(elem, headworddistrib(hwc))
-	elem = append(elem, headwordchronology(hwc))
-	elem = append(elem, headwordgenres(hwc))
+	elem = append(elem, headwordprevalencebycorp(hwc))
+	elem = append(elem, headworddistribbycorp(hwc))
+	elem = append(elem, headworddistribbyera(hwc))
+	elem = append(elem, headworddistribbygenre(hwc))
 	elem = append(elem, `</div>`)
 
 	// [h4] the actual body of the entry
@@ -351,22 +351,21 @@ func formatltsenseinfo(ss []str.LexicalSenses) string {
 	return strings.Join(all, "\n")
 }
 
-func headwordprevalence(wc str.DbHeadwordCounts) string {
+func headwordprevalencebycorp(wc str.DbHeadwordCounts) string {
 	// Prevalence (all forms): Ⓖ 95,843 / Ⓛ 10 / Ⓘ 151 / Ⓓ 751 / Ⓒ 64 / Ⓣ 96,819
 	const (
 		PREVSPAN = `<span class="prevalence rarechars">%s</span>&nbsp;%d`
 		PREVSUM  = `<br>Prevalence (all forms): `
 	)
 
+	var pd []string
 	m := message.NewPrinter(language.English)
 
-	cv := wc.GetCorpVals()
-
-	var pd []string
+	cv := wc.SortedCorpusPairs()
 
 	for _, c := range cv {
-		if c.Count > 0 {
-			pd = append(pd, m.Sprintf(PREVSPAN, c.Name, c.Count))
+		if c.Value > 0 {
+			pd = append(pd, m.Sprintf(PREVSPAN, c.Field, c.Value))
 		}
 	}
 	pd = append(pd, m.Sprintf(PREVSPAN, "Ⓣ", wc.Total))
@@ -376,50 +375,87 @@ func headwordprevalence(wc str.DbHeadwordCounts) string {
 	return p
 }
 
-func headworddistrib(wc str.DbHeadwordCounts) string {
+func headworddistribbycorp(wc str.DbHeadwordCounts) string {
 	// Weighted distribution by corpus: Ⓖ 100 / Ⓓ 14 / Ⓒ 6 / Ⓘ 2 / Ⓛ 0
 	const (
 		DIST     = `<br>Distribution by corpus: `
 		PREVSPAN = `<span class="rarechars prevalence">%s</span>&nbsp;%d`
 	)
-	cv := wc.GetWeightedSortedTrimmedCorpVals() //  [{Ⓒ 85} {Ⓘ 60} {Ⓓ 54} {Ⓛ 25} {Ⓖ 5}]
 	var pd []string
-	for _, c := range cv {
-		pd = append(pd, fmt.Sprintf(PREVSPAN, c.Name, c.Count))
+	m := message.NewPrinter(language.English)
+
+	cv := wc.SortedCorpusPairs()
+	// [{TGrk 6822} {TIN 104} {TDP 11} {TCh 8} {TLat 0}]
+
+	wp := make([]str.WeightedFieldValuePair, len(cv))
+	for i, v := range cv {
+		recalc := mps.ParsedWeightsCorpora[v.Field] * float32(v.Value)
+		wp[i].Value = recalc
+		wp[i].Field = v.Field
 	}
-	return DIST + strings.Join(pd, " / ")
+
+	sort.Slice(wp, func(i, j int) bool {
+		return wp[i].Value > wp[j].Value
+	})
+
+	// now make it "out of 100"
+	wmpax := wp[0].Value
+	for i, _ := range wp {
+		wp[i].Value = (wp[i].Value / wmpax) * 100
+	}
+
+	// headworddistribbycorp recalc [{TGrk 6822} {TIN 3076} {TCh 772} {TDP 279} {TLat 0}]
+
+	for _, w := range wp {
+		if w.Value > 0 {
+			pd = append(pd, m.Sprintf(PREVSPAN, w.Field, int(w.Value)))
+		}
+	}
+
+	out := DIST + strings.Join(pd, " / ")
+	fmt.Println("headworddistribbycorp distribbycorp", out)
+	return out
 }
 
-func headwordchronology(wc str.DbHeadwordCounts) string {
+func headworddistribbyera(wc str.DbHeadwordCounts) string {
 	// Weighted chronological distribution: ℯ 100 / ℓ 84 / 𝓂 62
 	const (
 		DIST     = `<br>Distribution by time: `
 		PREVSPAN = `<span class="rarechars prevalence">%s</span>&nbsp;%d`
 	)
-	cv := wc.GetWeightedSortedTrimmedTimeVals()
 
 	var pd []string
-	for _, c := range cv {
-		pd = append(pd, fmt.Sprintf(PREVSPAN, c.Name, c.Count))
+
+	cv := wc.SortedWeightedEraPairs()
+
+	for i, v := range cv {
+		recalc := mps.ParsedWeightsEras[v.Field] * v.Value
+		cv[i].Value = recalc
 	}
+
 	return DIST + strings.Join(pd, " / ")
 }
 
-func headwordgenres(wc str.DbHeadwordCounts) string {
+func headworddistribbygenre(wc str.DbHeadwordCounts) string {
 	// Predominant genres: comm (100), mech (97), jurisprud (93), med (84), mus (75), nathist (61), paroem (60), allrelig (57)
 	const (
 		DIST     = `<br>Distribution by genre: `
 		PREVSPAN = `<span class="rarechars prevalence">%s</span>&nbsp;%d`
 	)
-
-	cv := wc.GetWeightedSortedGenreVals()
-
+	m := message.NewPrinter(language.English)
 	var pd []string
+
+	cv := wc.SortedWeightedGenrePairs()
+	for i, v := range cv {
+		recalc := mps.ParsedWeightsGenres[v.Field] * v.Value
+		cv[i].Value = recalc
+	}
+
 	for i, c := range cv {
 		if i >= vv.GENRESTOCOUNT {
 			break
 		}
-		pd = append(pd, fmt.Sprintf(PREVSPAN, c.Name, c.Count))
+		pd = append(pd, m.Sprintf(PREVSPAN, c.Field, c.Value))
 	}
 	return DIST + strings.Join(pd, "; ")
 
