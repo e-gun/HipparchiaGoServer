@@ -98,13 +98,13 @@ func GetIndividualUnparsedWordCount(wd string) str.DbUnparsedWordCounts {
 	try := func(query string) (str.DbUnparsedWordCounts, error) {
 		var wc str.DbUnparsedWordCounts
 		ct := dbconn.QueryRow(context.Background(), query)
-		e := ct.Scan(&wc.Word, &wc.Total, &wc.TGrk, &wc.TLat, &wc.TDP, &wc.TIN, &wc.TCh)
+		e := ct.Scan(&wc.Word, &wc.Total, &wc.TLG, &wc.LAT, &wc.DDP, &wc.INS, &wc.CHR)
 		return wc, e
 	}
 
 	//var wc str.DbUnparsedWordCounts
 	//ct := dbconn.QueryRow(context.Background(), q)
-	//e := ct.Scan(&wc.Word, &wc.Total, &wc.TGrk, &wc.TLat, &wc.TDP, &wc.TIN, &wc.TCh)
+	//e := ct.Scan(&wc.Word, &wc.Total, &wc.TLG, &wc.LAT, &wc.DDP, &wc.INS, &wc.CHR)
 	wc, e := try(q1)
 	if e != nil {
 		// often a capitalized word that is in fact known: 'Πάντα', e.g.
@@ -238,11 +238,11 @@ func GetIndividualHeadwordCount(word string) str.DbHeadwordCounts {
 		e := foundrows.Scan(
 			&thehit.Word,
 			&thehit.Total,
-			&thehit.TGrk,
-			&thehit.TLat,
-			&thehit.TDP,
-			&thehit.TIN,
-			&thehit.TCh,
+			&thehit.TLG,
+			&thehit.LAT,
+			&thehit.DDP,
+			&thehit.INS,
+			&thehit.CHR,
 			&thehit.FrqClas,
 			&thehit.Early,
 			&thehit.Middle,

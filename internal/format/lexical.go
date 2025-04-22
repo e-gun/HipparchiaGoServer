@@ -120,10 +120,10 @@ func FormatLexPrevalenceData(w str.DbUnparsedWordCounts, s string) string {
 
 	m := message.NewPrinter(language.English)
 
-	labels := map[string]string{"Total": "Ⓣ", "TGrk": "Ⓖ", "TLat": "Ⓛ", "TDP": "Ⓓ", "TIN": "Ⓘ", "TCh": "Ⓒ"}
+	labels := map[string]string{"Total": "Ⓣ", "TLG": "Ⓖ", "LAT": "Ⓛ", "DDP": "Ⓓ", "INS": "Ⓘ", "CHR": "Ⓒ"}
 
 	var pdd []string
-	for _, l := range []string{"Total", "TGrk", "TLat", "TDP", "TIN", "TCh"} {
+	for _, l := range []string{"Total", "TLG", "LAT", "DDP", "INS", "CHR"} {
 		v := reflect.ValueOf(w).FieldByName(l).Int()
 		if v > 0 {
 			pdd = append(pdd, m.Sprintf(PDSPA, labels[l], v))
@@ -384,12 +384,20 @@ func headworddistribbycorp(wc str.DbHeadwordCounts) string {
 	var pd []string
 	m := message.NewPrinter(language.English)
 
+	mymap := mps.ParsedGreekWeightsCorpora
+	if gen.IsLatin.MatchString(wc.Word) {
+		mymap = mps.ParsedLatinWeightsCorpora
+	} else {
+		// refuse to allow a greek word to look prevalent in LAT
+		mymap["LAT"] = 0
+	}
+
 	cv := wc.SortedCorpusPairs()
-	// [{TGrk 6822} {TIN 104} {TDP 11} {TCh 8} {TLat 0}]
+	// [{TLG 6822} {INS 104} {DDP 11} {CHR 8} {LAT 0}]
 
 	wp := make([]str.WeightedFieldValuePair, len(cv))
 	for i, v := range cv {
-		recalc := mps.ParsedWeightsCorpora[v.Field] * float32(v.Value)
+		recalc := mymap[v.Field] * float32(v.Value)
 		wp[i].Value = recalc
 		wp[i].Field = v.Field
 	}
@@ -397,14 +405,14 @@ func headworddistribbycorp(wc str.DbHeadwordCounts) string {
 	sort.Slice(wp, func(i, j int) bool {
 		return wp[i].Value > wp[j].Value
 	})
-	// [{TGrk 6822} {TIN 3076.8318} {TCh 772.97174} {TDP 279.2075} {TLat 0}]
+	// [{TLG 6822} {INS 3076.8318} {CHR 772.97174} {DDP 279.2075} {LAT 0}]
 
 	// now make it "out of 100"
 	wmpax := wp[0].Value
 	for i, _ := range wp {
 		wp[i].Value = (wp[i].Value / wmpax) * 100
 	}
-	// [{TGrk 100} {TIN 45.10161} {TCh 11.330574} {TDP 4.092751} {TLat 0}]
+	// [{TLG 100} {INS 45.10161} {CHR 11.330574} {DDP 4.092751} {LAT 0}]
 
 	for _, w := range wp {
 		if w.Value > 0 {
@@ -423,15 +431,25 @@ func headworddistribbyera(wc str.DbHeadwordCounts) string {
 		PREVSPAN = `<span class="rarechars prevalence">%s</span>&nbsp;%d`
 	)
 
+	// latin eras do not really work (yet?)
+	if gen.IsLatin.MatchString(wc.Word) {
+		return ""
+	}
+
 	var pd []string
 	m := message.NewPrinter(language.English)
+
+	mymap := mps.ParsedGreekWeightsEras
+	//if gen.IsLatin.MatchString(wc.Word) {
+	//	mymap = mps.ParsedLatinWeightsEras
+	//}
 
 	cv := wc.SortedEraPairs()
 	// [{Late 7289} {Middle 2769} {Early 442}]
 
 	wp := make([]str.WeightedFieldValuePair, len(cv))
 	for i, v := range cv {
-		recalc := mps.ParsedWeightsEras[v.Field] * float32(v.Value)
+		recalc := mymap[v.Field] * float32(v.Value)
 		wp[i].Value = recalc
 		wp[i].Field = v.Field
 	}
@@ -467,6 +485,11 @@ func headworddistribbygenre(wc str.DbHeadwordCounts) string {
 	var pd []string
 	m := message.NewPrinter(language.English)
 
+	mymap := mps.ParsedGreekWeightsGenres
+	if gen.IsLatin.MatchString(wc.Word) {
+		mymap = mps.ParsedLatinWeightsGenres
+	}
+
 	cv := wc.SortedGenrePairs()
 	// [{Hist 3212} {Comm 1155} {Phil 968} {Schol 340} {AllRhet 333} ...]
 
@@ -474,10 +497,10 @@ func headworddistribbygenre(wc str.DbHeadwordCounts) string {
 	for i, v := range cv {
 		var wv float32
 		// do not let genres with few words to let their one hit count way, way too much
-		if mps.ParsedWeightsGenres[v.Field] > GENREWTCUTOFF {
+		if mymap[v.Field] > GENREWTCUTOFF {
 			wv = 0
 		} else {
-			wv = mps.ParsedWeightsGenres[v.Field]
+			wv = mymap[v.Field]
 		}
 
 		recalc := wv * float32(v.Value)

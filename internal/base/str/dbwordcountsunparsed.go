@@ -9,18 +9,18 @@ import (
 type DbUnparsedWordCounts struct {
 	Word  string
 	Total int
-	TGrk  int
-	TLat  int
-	TDP   int
-	TIN   int
-	TCh   int
+	TLG   int
+	LAT   int
+	DDP   int
+	INS   int
+	CHR   int
 }
 
 func (wc DbUnparsedWordCounts) PrintOut() {
 	const (
 		TMPL = "%s\tt: %d\tg: %d\tl: %d\ti: %d\td: %d\tc: %d\n"
 	)
-	fmt.Printf(TMPL, wc.Word, wc.Total, wc.TGrk, wc.TLat, wc.TIN, wc.TDP, wc.TCh)
+	fmt.Printf(TMPL, wc.Word, wc.Total, wc.TLG, wc.LAT, wc.INS, wc.DDP, wc.CHR)
 }
 
 func (wc DbUnparsedWordCounts) SortedFVPairs(startfield int, stopfield int) []FieldValuePair {

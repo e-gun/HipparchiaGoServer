@@ -507,7 +507,7 @@ func TextBlockCleaner(html string) string {
 // unbalancedspancleaner - helper for TextBlockCleaner()
 func unbalancedspancleaner(html string) string {
 	// 	unbalanced spans inside of result chunks: ask for 4 lines of context and search for »ἀδύνατον γ[άὰ]ρ«
-	//	this will cough up two examples of the problem in Alexander, TIN Aristotelis analyticorum priorum librum i commentarium
+	//	this will cough up two examples of the problem in Alexander, INS Aristotelis analyticorum priorum librum i commentarium
 	//
 	//	the first line of context shows spans closing here that were opened in a previous line
 	//
