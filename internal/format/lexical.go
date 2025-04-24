@@ -351,6 +351,23 @@ func formatltsenseinfo(ss []str.LexicalSenses) string {
 	return strings.Join(all, "\n")
 }
 
+// DISTRIBUTION and PREVALENCE
+// 1 word of Trag is equiv to N words of Phil...
+// the logic for hinges on the use of mps.ParsedGreekWeightsCorpora, etc. and str.WeightedFieldValuePair
+// the high count value is set to "1" and all others are "1/N" to give a multiplier that is applied to the value you see
+// so if there is 5 more Phil than Epic, 3 instances of a word in Epic is worth 15 in Phil and so if there are 3 in
+// Epic and 10 in Phil, the word will be scored as "more typical of epic" since 15 > 10.
+// ParsedGreekWeightsCorpora loads the product of HGB CalculateParsedWordcountTotals(): `__greekwordcounttotals`, etc.
+// that gives you the raw totals for every word in every genre, era, and corpus and loads it next to the individual totals
+
+// DbHeadwordCounts: __latinwordcounttotals
+//Epic: 1,074,868
+//Phil: 4,209,536
+//Trag: 201,647
+//AllRhet: 3,642,682
+//AllRelig: 3,237,452
+//Total: 37,421,670
+
 func headwordprevalencebycorp(wc str.DbHeadwordCounts) string {
 	// Prevalence (all forms): Ⓖ 95,843 / Ⓛ 10 / Ⓘ 151 / Ⓓ 751 / Ⓒ 64 / Ⓣ 96,819
 	const (

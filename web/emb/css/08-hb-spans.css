@@ -47,139 +47,16 @@
     text-decoration: line-through;
 }
 
-/*
-	HMU FORMS
+/*                                */
+/* atsignsubsitutes.go            */
+/*                                */
 
-	a collection of styles to match formatting assertions in the original data
-	see ltcurlybracketsubstitutes(), etc in HipparchiaBuilder
- */
-
-.hmu_alternative_reading {
-    color: var(--hgscol12);
-    font-family: 'hipparchiaobliquestatic', sans-serif;
-    text-decoration-style: wavy;
-}
-
-.hmu_blank_quarter_spaces {
-    margin-left: 0;
-}
-
-.hmu_date_or_numeric_equivalent_of_date {
-    /* Sought »hmu_date_or_numeric_equivalent_of_date«
-    Searched 229,374 texts and found 0 passages (2.72s) */
-}
-
-.hmu_discarded_form {
-    text-decoration: line-through;
-    color: var(--hgscol08);
-}
-
-.hmu_emendation_by_editor_of_text_not_obviously_incorrect {
-    /* Sought »hmu_emendation_by_editor_of_text_not_obviously_incorrect«
-    Searched 229,374 texts and found 0 passages (2.81s) */
-    text-decoration-style: wavy;
-}
-
-.hmu_form_altered_by_scribe {
-    color: var(--hgscol16);
-    font-family: 'hipparchiacondenseditalicstatic', sans-serif;
-}
-
-.hmu_impression_of_stamp_on_papyrus {
-    font-size: 125%;
-    font-family: 'hipparchiaboldstatic', sans-serif;
-}
-
-.hmu_latin_expanded_text {
-    letter-spacing: 0.11em;
-    font-family: 'hipparchiasemiboldstatic', sans-serif;
-}
-
-.hmu_marginaltext{
-    color: var(--hgscol07);
-    font-size: 80%;
-    font-family: 'hipparchiaobliquestatic', sans-serif;
-    text-indent: -5px;
-    padding-right: 0px;
-}
-
-.hmu_mid_line_citation_boundary {
-    padding: 50px;
-}
-
-.hmu_papyrological_fraction{
-    color: var(--hgscol16);
-    font-family: 'hipparchiaobliquestatic', sans-serif;
-}
-
-.hmu_parenthesis_deletion_marker {
-    text-decoration: line-through;
-}
-
-.preferred_epigraphical_text_used {
-    /* Sought »hmu_preferred_epigraphical_text_used«
-    Searched 229,374 texts and found 0 passages (3.14s) */
-}
-
-.hmu_rectified_form {
-    text-decoration: underline;
-}
-
-.hmu_scholium {
-    /* Sought »hmu_scholium«
-    Searched 229,374 texts and found 0 passages (2.26s) */
-    font-family: 'hipparchiaobliquestatic', sans-serif;
-}
-
-.hmu_seal_attached_to_papyrus {
-    font-size: 125%;
-    font-family: 'hipparchiaboldstatic', sans-serif;
-}
-
-.hmu_title {
+hb-sp-breakintext {
     font-family: 'hipparchiabolditalicstatic', sans-serif;
-}
-
-.hmu_unconventional_form_written_by_scribe {
-    color: var(--hgscol18);
-    font-family: 'hipparchiacondenseditalicstatic', sans-serif;
-}
-
-.overline_and_underline {
-    /* Sought »hmu_overline_and_underline«
-    Searched 235,999 texts and found 0 passages (21.62s)*/
-    border-bottom: 1px var(--hgsmono00);
-    border-top: 1px var(--hgsmono00);
-}
-
-.stacked_text_lower {
     font-size: 80%;
-    vertical-align: sub;
+    color: var(--hgscol16);
 }
 
-.stacked_text_upper {
-    vertical-align: super;
-    font-size: 80%;
-}
-
-.textual_lemma {
-    font-family: 'hipparchiaobliquestatic', sans-serif;
-    color: var(--hgscol01);
-}
-
-hmutitle {
-    font-family: 'hipparchiabolditalicstatic', sans-serif;
-}
-
-hmu_serviusformatting {
-    font-family: 'hipparchiaobliquestatic', sans-serif;
-    color: var(--hgscol07);
-}
-
-.serviusformatting {
-    font-family: 'hipparchiaobliquestatic', sans-serif;
-    color: var(--hgscol04);
-}
 
 /*                                */
 /* lfsquarebracketssubstitutes.go */
@@ -211,25 +88,24 @@ hb-sp-marginaltext {
 }
 
 hb-sp-scholium {
-    font-family: 'hipparchiaobliquestatic', sans-serif;
+    font-family: 'hipparchiacondenseditalicstatic', sans-serif;
     color: var(--hgscol09);
 }
 
 hb-sp-unconventional_form_written_by_scribe {
-    font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol10);
+    font-family: 'hipparchiacondenseditalicstatic', sans-serif;
+    color: var(--hgscol15);
 }
 
 hb-sp-form_altered_by_scribe {
-    font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol11);
+    font-family: 'hipparchiacondenseditalicstatic', sans-serif;
+    color: var(--hgscol20);
 }
 
 hb-sp-discarded_form {
     /*  strikethrough is tempting, but you will see that this markup somehow appears inside of [...] spans
         how can supplenda be deleted/discarded? */
-    font-family: 'hipparchiaobliquestatic', sans-serif;
-    text-decoration-line: underline;
+    font-family: 'hipparchiacondenseditalicstatic', sans-serif;
     color: var(--hgscol12);
 }
 

@@ -59,15 +59,22 @@ const (
 // SSBuildQueries - populate a SearchStruct with []PrerolledQuery
 func SSBuildQueries(s *str.SearchStruct) {
 	const (
-		REG   = `(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
-		IDX   = `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
-		ABORT = "SSBuildQueries() aborting: the ID '%s' is not in the sessionvault"
+		REG    = `(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
+		IDX    = `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
+		ABORT  = "SSBuildQueries() aborting: the ID '%s' is not in the sessionvault"
+		ABORT2 = "SSBuildQueries() aborting: testqueryregex() failed to compile regex"
 	)
 
 	// check to see if RtResetSession() was called in the middle of a search
 	// selftest and vectorbot will both reset their Config values on completion
 	if lnch.Config.SelfTest == 0 && !lnch.Config.VectorBot && !vlt.AllSessions.IsInVault(s.User) {
 		Msg.FYI(fmt.Sprintf(ABORT, s.User))
+		return
+	}
+
+	querycontainsvalidregex := testqueryregex(s)
+	if !querycontainsvalidregex {
+		Msg.FYI(fmt.Sprintf(ABORT2, s.User))
 		return
 	}
 
@@ -448,4 +455,25 @@ func andorwhereclause(bounds []str.QueryBounds, templ string, negation string, s
 	}
 
 	return strings.Join(in, syntax)
+}
+
+func testqueryregex(s *str.SearchStruct) bool {
+	// avoiding:
+	// [HipparchiaGoServer v.2.0.0] () UNRECOVERABLE ERROR
+	// ERROR: invalid regular expression: parentheses () not balanced (SQLSTATE 2201B)
+
+	terms := []string{
+		s.Seeking,
+		s.Proximate,
+		s.LemmaOne,
+		s.LemmaTwo,
+	}
+
+	for _, term := range terms {
+		_, err := regexp.Compile(term)
+		if err != nil {
+			return false
+		}
+	}
+	return true
 }

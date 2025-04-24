@@ -41,10 +41,6 @@ func LemmaMapper() map[string]*str.DbLemma {
 		THEQUERY = `SELECT dictionary_entry, xref_number, derivative_forms FROM %s_lemmata`
 	)
 
-	// note that the v --> u here will push us to stripped_line SearchMap instead of accented_line
-	// clean := strings.NewReplacer("-", "", "¹", "", "²", "", "³", "", "j", "i", "v", "u")
-	clean := strings.NewReplacer("-", "", "j", "i", "v", "u")
-
 	unnested := make(map[string]*str.DbLemma, vv.DBLMMAPSIZE)
 
 	// use the older iterative idiom to facilitate working with pointers: "foreach" idiom will fight you...
@@ -56,7 +52,6 @@ func LemmaMapper() map[string]*str.DbLemma {
 			thehit := &str.DbLemma{}
 			e := foundrows.Scan(&thehit.Entry, &thehit.Xref, &thehit.Deriv)
 			Msg.EC(e)
-			thehit.Entry = clean.Replace(thehit.Entry)
 			unnested[thehit.Entry] = thehit
 		}
 		foundrows.Close()
@@ -71,12 +66,10 @@ func NestedLemmaMapper(unnested map[string]*str.DbLemma) map[string]map[string]*
 	// you need both a nested and the unnested version; nested is for the hinter
 
 	nested := make(map[string]map[string]*str.DbLemma, vv.NESTEDLEMMASIZE)
-	swap := strings.NewReplacer("j", "i", "v", "u")
 	for k, v := range unnested {
 		rbag := []rune(v.Entry)[0:2]
 		rbag = gen.StripaccentsRUNE(rbag)
 		bag := strings.ToLower(string(rbag))
-		bag = swap.Replace(bag)
 		if _, y := nested[bag]; !y {
 			nested[bag] = make(map[string]*str.DbLemma)
 		}

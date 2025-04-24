@@ -43,7 +43,7 @@ func FormatNoContextResults(ss *str.SearchStruct) str.SearchOutputJSON {
 		TABLEROW = `
 		<tr class="{{.TRClass}}">
 			<td>
-				<span class="findnumber">[{{.FindNumber}}]</span>&nbsp;{{.FindDate}}{{.FindCity}}
+				<span class="findnumber">[{{.FindNumber}}]</span>&nbsp;{{.FindDate}}
 				{{.FindLocus}}
 			</td>
 			<td class="leftpad">
@@ -59,7 +59,6 @@ func FormatNoContextResults(ss *str.SearchStruct) str.SearchOutputJSON {
 		TRClass    string
 		FindNumber int
 		FindDate   string
-		FindCity   string
 		FindLocus  string
 		TheLine    string
 	}
@@ -115,9 +114,9 @@ func FormatNoContextResults(ss *str.SearchStruct) str.SearchOutputJSON {
 			TRClass:    rc,
 			FindNumber: i + 1,
 			FindDate:   FormatInscriptionDates(DATES, &r),
-			FindCity:   formatinscriptionplaces(&r),
-			FindLocus:  ci,
-			TheLine:    mu,
+			// FindCity:   formatinscriptionplaces(&r),
+			FindLocus: ci,
+			TheLine:   mu,
 		}
 
 		err := trt.Execute(&b, tr)
@@ -160,7 +159,7 @@ func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON 
 	const (
 		FINDTEMPL = `
 		<locus>
-			<span class="findnumber">[{{.Findnumber}}]</span>&nbsp;{{.FindDate}}{{.FindCity}}
+			<span class="findnumber">[{{.Findnumber}}]</span>&nbsp;{{.FindDate}}
 			<span class="foundauthor">{{.Foundauthor}}</span>,&nbsp;<span class="foundwork">{{.Foundwork}}</span>
 			<browser id="{{.FindURL}}"><span class="foundlocus">{{.FindLocus}}</span></browser>
 		</locus>
@@ -469,7 +468,7 @@ func FormatInscriptionDates(template string, dbw *str.DbWorkline) string {
 	dated := fc == vv.INSCRIPTCORP || fc == vv.CHRISTINSC || fc == vv.PAPYRUSCORP
 	if dated {
 		cd := gen.IntToBCE(mps.AllWorks[dbw.WkUID].ConvDate)
-		if cd == "2500 C.E." {
+		if cd == "9999 C.E." {
 			cd = "??? BCE/CE"
 		}
 		datestring = fmt.Sprintf(template, strings.Replace(cd, ".", "", -1))

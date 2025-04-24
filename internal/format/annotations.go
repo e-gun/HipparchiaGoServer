@@ -48,14 +48,28 @@ func FormatAnnotations(l str.DbWorkline) string {
 			"region": true,
 		},
 		"in": {
-			"date": true,
+			"date":      true,
+			"corrected": true,
+			"altered":   true,
+			"rectified": true,
+			"alternate": true,
+			"discarded": true,
 		},
 		"dp": {
 			"date":       true,
 			"provenance": true,
+			"corrected":  true,
+			"altered":    true,
+			"alternate":  true,
+			"discarded":  true,
 		},
 		"ch": {
-			"date": true,
+			"date":      true,
+			"corrected": true,
+			"altered":   true,
+			"rectified": true,
+			"alternate": true,
+			"discarded": true,
 		},
 	}
 
