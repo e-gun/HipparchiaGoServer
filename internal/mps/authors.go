@@ -137,10 +137,31 @@ func buildaucorpusmap() map[string][]string {
 func buildaugenresmap() map[string]bool {
 	genres := make(map[string]bool)
 	for _, a := range AllAuthors {
-		gg := strings.Split(a.Genres, ",")
+		gg := strings.Split(a.Genres, ";")
+		// one or two items have bad data and separate via ","
+		var ggg []string
 		for _, g := range gg {
+			ggg = append(ggg, strings.Split(g, ",")...)
+		}
+		for _, g := range ggg {
+			g = strings.ReplaceAll(g, "﹡", "") // `* Liturg.` --> `Liturg.`
+			g = strings.TrimSpace(g)
 			genres[g] = true
 		}
 	}
 	return genres
+}
+
+// Buildaulocationmap - populate global variable used by hinter
+func Buildaulocationmap() map[string]bool {
+	locations := make(map[string]bool)
+	for _, a := range AllAuthors {
+		ll := strings.Split(a.Location, ";")
+		for _, l := range ll {
+			l = strings.ReplaceAll(l, "﹡", "") // `* Liturg.` --> `Liturg.`
+			l = strings.TrimSpace(l)
+			locations[l] = true
+		}
+	}
+	return locations
 }

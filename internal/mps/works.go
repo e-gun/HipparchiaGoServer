@@ -144,30 +144,54 @@ func Buildwkgenresmap() map[string]bool {
 	genres := make(map[string]bool)
 	for _, w := range AllWorks {
 		gg := strings.Split(w.Genre, "; ")
+		// one or wto items have bad data and separate via ","
+		var ggg []string
 		for _, g := range gg {
+			ggg = append(ggg, strings.Split(g, ",")...)
+		}
+		for _, g := range ggg {
+			g = strings.ReplaceAll(g, "﹡", "") // `﹡ Liturg.` --> `Liturg.`
+			g = strings.TrimSpace(g)
 			genres[g] = true
 		}
 	}
 	return genres
 }
 
-// Buildaulocationmap - populate global variable used by hinter
-func Buildaulocationmap() map[string]bool {
-	locations := make(map[string]bool)
-	for _, a := range AllAuthors {
-		ll := strings.Split(a.Location, ",")
-		for _, l := range ll {
-			locations[l] = true
-		}
-	}
-	return locations
-}
-
 // Buildwklocationmap - populate global variable used by hinter
 func Buildwklocationmap() map[string]bool {
+	// an embarrassment of riches:
+	// hgdb=> select distinct count(*)  provenance from works;
+	// provenance
+	//------------
+	//     248008
+	//(1 row)
+
+	// BUT most are of two basic formats:
+	// [1: "comma separated"]
+	// Acarnania, Stratus
+	// Acarnania, Thesis Lekka
+	// Acarnania, Thyrrheum
+	// [2: "space (and maybe comma) separated"]
+	// Aegean Isl.
+	// Aegean Islands, Delos
+	// Aegean Islands, Rheneia
+	// Aegean Islands, Samos
+	// Aegean Islands, Unk. Prov.
+	// Aegean Islands, place?
+	//
+	// a lot of good things will happen if you are just told "element #1"; otherwise this is way, way too overwhelming
+	// strip the "?" and we should still be good provided the search list builder has loose and not exact matches
+	// SessionIntoSearchlist() should use strings.Contains() and not "=="
+
 	locations := make(map[string]bool)
 	for _, w := range AllWorks {
-		locations[w.Prov] = true
+		loc := strings.Split(w.Prov, ",")
+		locations[loc[0]] = true
 	}
+
+	// fmt.Println("len(locations):", len(locations))
+	// len(locations): 1075
+
 	return locations
 }

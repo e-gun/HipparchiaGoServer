@@ -77,7 +77,7 @@ func SessionIntoSearchlist(s str.ServerSession) ProcessedList {
 		// [b3] author locations to include
 		for _, l := range sessincl.AuLocations {
 			for _, a := range activeauthors {
-				if mps.AllAuthors[a].Location == l {
+				if strings.Contains(mps.AllAuthors[a].Location, l) {
 					inc.Works = append(inc.Works, mps.AllAuthors[a].WorkList...)
 				}
 			}
@@ -86,7 +86,7 @@ func SessionIntoSearchlist(s str.ServerSession) ProcessedList {
 		// [b4] work locations to include
 		for _, l := range sessincl.WkLocations {
 			for _, w := range activeworks {
-				if mps.AllWorks[w].Prov == l {
+				if strings.Contains(mps.AllWorks[w].Prov, l) {
 					inc.Works = append(inc.Works, mps.AllWorks[w].UID)
 				}
 			}
@@ -253,6 +253,7 @@ func SessionIntoSearchlist(s str.ServerSession) ProcessedList {
 // prunebydate - drop items from searchlist if they are not inside the valid date range
 func prunebydate(searchlist []string, s str.ServerSession) []string {
 	// 'varia' and 'incerta' have special dates: incerta = 2500; varia = 2000
+	// todo: this has changed...
 
 	if s.Earliest == vv.MINDATESTR && s.Latest == vv.MAXDATESTR && s.VariaOK && s.IncertaOK {
 		// no work for us to do...

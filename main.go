@@ -222,5 +222,6 @@ func main() {
 	// [7] done: start the server (which will never return)
 	//
 
+	// fmt.Println(db.LoadBuildMetadata())
 	web.StartEchoServer()
 }

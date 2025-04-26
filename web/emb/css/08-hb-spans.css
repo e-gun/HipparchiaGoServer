@@ -57,6 +57,14 @@ hb-sp-breakintext {
     color: var(--hgscol16);
 }
 
+/*                                */
+/* poundsignsubsitutes.go         */
+/*                                */
+
+hb-sp-unk {
+    font-family: 'hipparchiacondensedstatic', sans-serif;
+    font-size: 66%;
+}
 
 /*                                */
 /* lfsquarebracketssubstitutes.go */

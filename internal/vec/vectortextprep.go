@@ -122,18 +122,27 @@ func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string
 	}
 
 	// [d] run through the parsemap and kill off the losers
-
 	winnermap := make(map[string]string)
-	for i := range lcparsemap {
+	for w := range lcparsemap {
+		if w == "" {
+			continue
+		}
 		var hwl str.WHWList
-		for j, _ := range parsemap[i] {
+		for j, _ := range parsemap[w] {
 			var thishw str.WeightedHeadword
 			thishw.Word = j
 			thishw.Count = scoremap[j]
 			hwl = append(hwl, thishw)
 		}
 		sort.Sort(hwl)
-		winnermap[i] = hwl[0].Word
+		//[{ἐπακολούθημα 44}]
+		//[{διακοπή 328}]
+		//[{ὅϲ 983297}]
+		//[{βιόω 63775} {βίοϲ 39627}]
+		//[{θύω¹ 15183} {θύω² 14311}]
+		//[{ἕϲπεροϲ 563}]
+		// ...
+		winnermap[w] = hwl[0].Word
 	}
 
 	return winnermap
