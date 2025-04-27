@@ -71,5 +71,19 @@ func (dbw DbWork) DateInRange(earliest int, latest int) bool {
 
 // Length - how many db lines?
 func (dbw DbWork) Length() int {
-	return dbw.LastLine - dbw.FirstLine + 1
+	if dbw.LastLine == 0 {
+		// this would be a PHI build error in RemapInscriptionAuthorsAndWorks(): should be gone by now but for three
+		// one-line zero-word stragglers that need checking...
+
+		// hgdb=> select universalid,title,transmission,wordcount,firstline,lastline from works where lastline = 0 and universalid ~* '^in';;
+		// universalid |                    title                     |  transmission   | wordcount | firstline | lastline
+		//-------------+----------------------------------------------+-----------------+-----------+-----------+----------
+		// inz00aw00a  |  (C. Crete, Aigaion Antron)                  | direct (in0130) |         0 |         0 |        0
+		// inz093w00a  | SEG 40.426; SEG 19.375 (Phokis, Delphi)      | direct (in0040) |         0 |         0 |        0
+		// inz05lw00a  | EG 1.343,2[LSAG 265,3] (Sikelia, Syrakousai) | direct (in0190) |         0 |         0 |        0
+		//(3 rows)
+		return 1
+	} else {
+		return dbw.LastLine - dbw.FirstLine
+	}
 }

@@ -167,7 +167,7 @@ func Buildwklocationmap() map[string]bool {
 	//     248008
 	//(1 row)
 
-	// BUT most are of two basic formats:
+	// BUT most are of some basic formats:
 	// [1: "comma separated"]
 	// Acarnania, Stratus
 	// Acarnania, Thesis Lekka
@@ -179,15 +179,21 @@ func Buildwklocationmap() map[string]bool {
 	// Aegean Islands, Samos
 	// Aegean Islands, Unk. Prov.
 	// Aegean Islands, place?
+	// [3: "bracked]
+	// Kypros [Rhodos], Nea Paphos
+	// Kypros [Rhodos], Nea Paphos
 	//
 	// a lot of good things will happen if you are just told "element #1"; otherwise this is way, way too overwhelming
 	// strip the "?" and we should still be good provided the search list builder has loose and not exact matches
-	// SessionIntoSearchlist() should use strings.Contains() and not "=="
+	// SessionIntoSearchlist() should use strings.HasPrefix() and not "=="
 
 	locations := make(map[string]bool)
 	for _, w := range AllWorks {
-		loc := strings.Split(w.Prov, ",")
-		locations[loc[0]] = true
+		l1 := strings.Split(w.Prov, ",")
+		l2 := strings.Split(l1[0], "[")
+		l2[0] = strings.TrimSpace(l2[0])
+		l2[0] = strings.ReplaceAll(l2[0], "?", "")
+		locations[l2[0]] = true
 	}
 
 	// fmt.Println("len(locations):", len(locations))

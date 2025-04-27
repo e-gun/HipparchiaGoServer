@@ -54,7 +54,7 @@ func SessionIntoSearchlist(s str.ServerSession) ProcessedList {
 		// [b1] author genres to include
 		for _, g := range sessincl.AuGenres {
 			for _, a := range activeauthors {
-				if strings.Contains(mps.AllAuthors[a].Genres, g) {
+				if strings.HasPrefix(mps.AllAuthors[a].Genres, g) {
 					inc.Works = append(inc.Works, mps.AllAuthors[a].WorkList...)
 				}
 			}
@@ -77,7 +77,7 @@ func SessionIntoSearchlist(s str.ServerSession) ProcessedList {
 		// [b3] author locations to include
 		for _, l := range sessincl.AuLocations {
 			for _, a := range activeauthors {
-				if strings.Contains(mps.AllAuthors[a].Location, l) {
+				if strings.HasPrefix(mps.AllAuthors[a].Location, l) {
 					inc.Works = append(inc.Works, mps.AllAuthors[a].WorkList...)
 				}
 			}
@@ -86,7 +86,7 @@ func SessionIntoSearchlist(s str.ServerSession) ProcessedList {
 		// [b4] work locations to include
 		for _, l := range sessincl.WkLocations {
 			for _, w := range activeworks {
-				if strings.Contains(mps.AllWorks[w].Prov, l) {
+				if strings.HasPrefix(mps.AllWorks[w].Prov, l) {
 					inc.Works = append(inc.Works, mps.AllWorks[w].UID)
 				}
 			}
@@ -159,7 +159,7 @@ func SessionIntoSearchlist(s str.ServerSession) ProcessedList {
 		// [c2c] the author genres
 		for _, g := range sessexl.AuGenres {
 			for _, a := range activeauthors {
-				if strings.Contains(mps.AllAuthors[a].Genres, g) {
+				if strings.HasPrefix(mps.AllAuthors[a].Genres, g) {
 					blacklist = append(blacklist, mps.AllAuthors[a].UID)
 				}
 			}

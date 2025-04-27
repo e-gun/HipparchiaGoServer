@@ -111,13 +111,6 @@ func FindValidLevelValues(dbw str.DbWork, locc []string, thisisthesecondtry bool
 		vals = FindValidLevelValues(dbw, locc, true)
 	}
 
-	//if thisisthesecondtry {
-	//	fmt.Println(prq.PsqlQuery)
-	//	fmt.Println("thisisthesecondtry wlb.Len()", wlb.Len())
-	//	fmt.Println("atlvl", atlvl)
-	//	fmt.Println("locc", locc)
-	//}
-
 	// [c0] - maybe I have too many lines...
 
 	// notice that you now have a NEW PROBLEM if you did a `~*` search for `fr`: you capture too many lines at the next level down
@@ -150,20 +143,18 @@ func FindValidLevelValues(dbw str.DbWork, locc []string, thisisthesecondtry bool
 	// i.e., trim out all results where the l2 criterion is not met... [ie, atlvl + 1 constrains atlvl]
 
 	for _, l := range wlb.Lines {
-		//if handcheckiflocusisok(l, locc, atlvl) {
-		//	validlines = append(validlines, l)
-		//}
-		validlines = append(validlines, l)
-		fmt.Println(l)
+		if handcheckiflocusisok(l, locc, atlvl) {
+			validlines = append(validlines, l)
+		}
+	}
+
+	if len(validlines) == 0 {
+		return vals
 	}
 
 	// [c1] extract info from the hitlines returned
 	vals.AtLvl = atlvl
 	vals.Label = lmap[atlvl]
-
-	if wlb.Len() == 0 {
-		return vals
-	}
 
 	first := validlines[0]
 	vals.Total = first.Lvls()
@@ -179,7 +170,6 @@ func FindValidLevelValues(dbw str.DbWork, locc []string, thisisthesecondtry bool
 	sort.Strings(r) // todo: ? sort by index which is the real order anyway...
 	vals.Range = r
 	vals.CleanVals()
-	fmt.Println(vals)
 
 	return vals
 }
@@ -217,16 +207,20 @@ func handcheckiflocusisok(ln str.DbWorkline, locc []string, atlvl int) bool {
 	// the index count of locc moves in the opposite direction of atlvl: 0, 2; 1, 1; 2, 0
 	isok := true
 
-	// should check all levels above ; for now checking just one up
+	// should check all higher levels; for now checking just one up
 	// this will produce index errors until you catch them
 	tocheck := len(locc) - atlvl - 1
 	if tocheck < 0 {
 		return true
 	}
-	fmt.Println("tocheck", tocheck)
+	if len(locc) == 0 {
+		return false
+	}
 
-	fmt.Println("ln.LvlVal(atlvl+1)", ln.LvlVal(atlvl+1))
-	fmt.Println("locc[tocheck]", locc[tocheck])
+	//fmt.Println("tocheck", tocheck)
+	//fmt.Println("ln.LvlVal(atlvl+1)", ln.LvlVal(atlvl+1))
+	//fmt.Println("locc[tocheck]", locc[tocheck])
+
 	if ln.LvlVal(atlvl+1) != locc[tocheck] {
 		isok = false
 	}
@@ -250,7 +244,6 @@ func GetLocusEndpoints(wk *str.DbWork, locus string, sep string) ([2]int, bool) 
 	locus = strings.ReplaceAll(locus, "%20", " ")
 	locus = strings.ReplaceAll(locus, "%EF%BC%8F", "/") // "／"
 	locus = strings.ReplaceAll(locus, "%EF%BC%9F", "?") // "？"
-	fmt.Println("locus", locus)
 
 	fl := [2]int{0, 0}
 	success := false
@@ -283,7 +276,6 @@ func GetLocusEndpoints(wk *str.DbWork, locus string, sep string) ([2]int, bool) 
 
 	a := strings.Join(use, " AND ")
 	q := fmt.Sprintf(QTMP, tb, wk.UID, a)
-	fmt.Println(q)
 
 	foundrows, err := dbconn.Query(context.Background(), q)
 	Msg.EC(err)
