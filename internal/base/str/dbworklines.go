@@ -267,6 +267,17 @@ type LevelValues struct {
 	Range []string `json:"range"`
 }
 
+func (lv *LevelValues) CleanVals() {
+	// `col II/III/IV?` will freak out browse() because `elem := strings.Split(locus, "/")`
+	// similarly '?' also exists in the ins level values but that character is forbidden...: `col II／III／IV?`
+	repl := strings.NewReplacer("/", "／", "?", "？")
+	lv.Low = repl.Replace(lv.Low)
+	lv.High = repl.Replace(lv.High)
+	for i, _ := range lv.Range {
+		lv.Range[i] = repl.Replace(lv.Range[i])
+	}
+}
+
 // smallcapsuv - preserve V in Roman numerals
 func smallcapsuv(s string) string {
 	// this is a roman numeral...: <span class="smallcapitals">u</span>

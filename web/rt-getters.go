@@ -172,7 +172,7 @@ func RtGetJSWorksStruct(c echo.Context) error {
 		return emptyjsreturn(c)
 	} else {
 		locc := strings.Split(parsed[2], "|")
-		lvls := db.FindValidLevelValues(*w, locc)
+		lvls := db.FindValidLevelValues(*w, locc, false)
 		return c.JSONPretty(http.StatusOK, lvls, vv.JSONINDENT)
 	}
 }

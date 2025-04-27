@@ -20,8 +20,8 @@ func ProlixBrowswerCitations(f str.DbWorkline, l str.DbWorkline) string {
 		<span class="currentlyviewingcitation">%s — %s</span>
 		%s
 		%s</p>`
-
-		CT = `<cvauthor">%s</span>, <cvwork">%s</span>`
+		CT     = `<cvauthor">%s</span>, <cvwork">%s</span>`
+		HIDDEN = `<!-- transmission: %s -->`
 	)
 
 	w := search.DbWlnMyWk(&f)
@@ -40,6 +40,11 @@ func ProlixBrowswerCitations(f str.DbWorkline, l str.DbWorkline) string {
 	id := search.FormatInscriptionDates(dt, &f)
 
 	cv := fmt.Sprintf(CV, ci, beg, end, pi, id)
+
+	if w.Xmit != "" {
+		// helps with debugging: this lets you find your way back to the original phi file
+		cv += fmt.Sprintf(HIDDEN, w.Xmit)
+	}
 
 	return cv
 }
@@ -66,7 +71,6 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 		FOCA = `<span class="focusline">`
 		FOCB = `</span>`
 		SNIP = "✃✃✃"
-		FAIL = "BuildBrowserTable() could not regex compile %s"
 	)
 
 	// the builder has failed to parse some notes; do something about that
@@ -183,12 +187,6 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 		}
 
 		cit := SelectivelyDisplayCitations(lines[i], previous, focus)
-
-		//an := strings.Replace(lines[i].Annotations, "documentnumber: ", "#", 1)
-		//if lnch.Config.DbDebug {
-		//	an = fmt.Sprintf("%s: %d", lines[i].AuID(), lines[i].TbIndex)
-		//	// bl = fmt.Sprintf(`<span class="small">%s</span>`, lines[i].ShowMarkup())
-		//}
 
 		blines[i] = bl
 		bcites[i] = fmt.Sprintf("<span class=\"eighty\">%s</span>&nbsp;", cit) // the "normal" sized space is to maintain vertical alignment
