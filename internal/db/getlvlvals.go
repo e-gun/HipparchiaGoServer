@@ -107,7 +107,7 @@ func FindValidLevelValues(dbw str.DbWork, locc []string, thisisthesecondtry bool
 	// so, on the assumption that you are doing such a search, you reach this moment of code with `wlb` empty
 	// wlb should never normally be empty; let's make a second try... this time we do `~*` so that `fr` finds `fr a` and `fr b`
 
-	if wlb.Len() == 0 && !thisisthesecondtry {
+	if wlb.Len() == 0 && !thisisthesecondtry && dbw.IsPHI() {
 		vals = FindValidLevelValues(dbw, locc, true)
 	}
 

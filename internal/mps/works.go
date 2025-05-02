@@ -122,7 +122,7 @@ func sliceworkcorpus(corpus string) []str.DbWork {
 	return workslice
 }
 
-// buildaucorpusmap - populate global variable used by SessionIntoSearchlist()
+// Buildwkcorpusmap - populate global variable used by SessionIntoSearchlist()
 func Buildwkcorpusmap() map[string][]string {
 	// SessionIntoSearchlist() could just grab a pre-rolled list instead of calculating every time...
 	wkcorpusmap := make(map[string][]string)
@@ -198,6 +198,12 @@ func Buildwklocationmap() map[string]bool {
 
 	// fmt.Println("len(locations):", len(locations))
 	// len(locations): 1075
+
+	//lk := gen.StringMapKeysIntoSlice(locations)
+	//sort.Strings(lk)
+	//for _, l := range lk {
+	//	fmt.Println(l)
+	//}
 
 	return locations
 }

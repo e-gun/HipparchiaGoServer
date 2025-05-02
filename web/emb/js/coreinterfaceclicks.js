@@ -194,12 +194,12 @@ $('#alt_vector_options_button').click(function(){
 // BROWSER CLICKS
 
 function generateautofilllocationstring(){
-    let l5 = $('#level05').val();
-    let l4 = $('#level04').val();
-    let l3 = $('#level03').val();
-    let l2 = $('#level02').val();
-    let l1 = $('#level01').val();
-    let l0 = $('#level00').val();
+    let l5 = document.getElementById("level05").value;
+    let l4 = document.getElementById("level04").value;
+    let l3 = document.getElementById("level03").value;
+    let l2 = document.getElementById("level02").value;
+    let l1 = document.getElementById("level01").value;
+    let l0 = document.getElementById("level00").value;
     let lvls = [ l5, l4, l3, l2, l1, l0];
     let loc = Array();
     for (let i = 5; i > -1; i-- ) {

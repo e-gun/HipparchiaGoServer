@@ -152,7 +152,7 @@ func RtGetJSWorksOf(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, out, vv.JSONINDENT)
 }
 
-// RtGetJSWorksStruct - lt0474/058 --> {"totallevels": 4, "level": 3, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
+// RtGetJSWorksStruct - workstructure/lt0474/058 --> {"totallevels": 4, "level": 3, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
 func RtGetJSWorksStruct(c echo.Context) error {
 	// that is a top: interiors look like "1|3" for "book one", "subheading_val 3"
 

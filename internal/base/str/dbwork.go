@@ -42,6 +42,21 @@ func (dbw *DbWork) AuID() string {
 	}
 }
 
+// Corpus() - ex: gr2017w068 --> gr
+func (dbw *DbWork) Corpus() string {
+	return dbw.UID[0:2]
+}
+
+func (dbw *DbWork) IsPHI() bool {
+	// can't use vv: circular imports
+	// so this could bite you some day...
+	if dbw.UID[0:2] != "gr" && dbw.UID[0:2] != "lt" {
+		return true
+	} else {
+		return false
+	}
+}
+
 func (dbw *DbWork) CitationFormat() []string {
 	cf := []string{
 		dbw.LL5, dbw.LL4, dbw.LL3, dbw.LL2, dbw.LL1, dbw.LL0,

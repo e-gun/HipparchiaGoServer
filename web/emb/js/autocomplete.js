@@ -239,19 +239,39 @@ function toggleendpointarrows() {
 // LEVELS
 //
 
+
+// async issue: if you type "1" then click "12" from the pulldown, locusdataloader() can read "1" before "12" arrives
+
+function waitAndReturnLocusValue() {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            let loc = locusdataloader();
+            resolve(loc);  // This returns the value after 3ms
+        }, 3);
+    });
+}
+
+function waitAndReturnEndPointLocusValue() {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            let loc = endpointdataloader();
+            resolve(loc);  // This returns the value after 3ms
+        }, 3);
+    });
+}
+
 function locusdataloader() {
-    let l5 = $('#level05').val();
-    let l4 = $('#level04').val();
-    let l3 = $('#level03').val();
-    let l2 = $('#level02').val();
-    let l1 = $('#level01').val();
-    let l0 = $('#level00').val();
+    let l5 = document.getElementById("level05").value;
+    let l4 = document.getElementById("level04").value;
+    let l3 = document.getElementById("level03").value;
+    let l2 = document.getElementById("level02").value;
+    let l1 = document.getElementById("level01").value;
+    let l0 = document.getElementById("level00").value;
     let lvls = [ l5, l4, l3, l2, l1, l0];
     let locusdata = '';
     for (let i = 0; i < 6; i++ ) {
         if (lvls[i] !== '') { locusdata += lvls[i]+'|' } }
     locusdata = locusdata.slice(0, (locusdata.length)-1);
-
     return locusdata;
 }
 
@@ -270,7 +290,6 @@ function endpointdataloader() {
 
     return locusdata;
 }
-
 
 function loadsamplecitation(author, work) {
     // we are using the maual input style on the web page
@@ -322,16 +341,17 @@ function loadLevellist(author, work, pariallocus){
 
         $(generateme).show();
         $(generateme).autocomplete ({
-            focus: function (event, ui) {
-                if (atlevel > 0) {
-                    let loc = locusdataloader();
-                    loadLevellist(author, work, loc);
-                    }
-                },
-            source: possibilities,
-            select: function (event, ui) {
-                let loc = locusdataloader();
-                loadLevellist(author, work, String(loc));
+            // focus: async function (event, ui) {
+            //     if (atlevel > 0) {
+            //         const loc = await waitAndReturnLocusValue();
+            //         loadLevellist(author, work, loc);
+            //         }
+            //     },
+            source: possibilities, // alas: the select function can execute before the possibilities have loaded...
+            select: async function (event, ui) {
+                const loc = await waitAndReturnLocusValue();
+                console.log(loc);
+                loadLevellist(author, work, loc);
                 if ( atlevel && workboxval && openbutton.is(':hidden') === true && closebutton.is(':hidden') === true) {
                     openbutton.show();
                 }
@@ -347,15 +367,15 @@ function loadLevellist(author, work, pariallocus){
         if ( low !== '-9999') { $(generateendpoint).prop('placeholder', '('+label+' '+String(low)+' to '+String(high)+')'); }
         else { $(generateendpoint).prop('placeholder', '(awaiting a valid selection...)'); }
         $(generateendpoint).autocomplete ({
-            focus: function (event, ui) {
-                if (atlevel > 0) {
-                    let loc = endpointdataloader();
-                    endpointloadLevellist(author, work, loc);
-                    }
-                },
+            // focus: function (event, ui) {
+            //     if (atlevel > 0) {
+            //         let loc = endpointdataloader();
+            //         endpointloadLevellist(author, work, loc);
+            //         }
+            //     },
             source: possibilities,
-            select: function (event, ui) {
-                let loc = endpointdataloader();
+            select: async function (event, ui) {
+                const loc = await waitAndReturnEndPointLocusValue();
                 endpointloadLevellist(author, work, String(loc));
             }});
     });
@@ -394,16 +414,16 @@ function endpointloadLevellist(author, work, pariallocus){
 
         $(generateme).show();
         $(generateme).autocomplete ({
-            focus: function (event, ui) {
-                if (atlevel > 0) {
-                    let loc = endpointdataloader();
-                    endpointdataloader(author, work, loc);
-                    $('#level0'+String(atlevel-1)+'endpoint').show()
-                    }
-                },
+            // focus: async function (event, ui) {
+            //     if (atlevel > 0) {
+            //         let loc = endpointdataloader();
+            //         endpointdataloader(author, work, loc);
+            //         $('#level0'+String(atlevel-1)+'endpoint').show()
+            //         }
+            //     },
             source: possibilities,
-            select: function (event, ui) {
-                let loc = endpointdataloader();
+            select: async function (event, ui) {
+                const loc = await waitAndReturnEndPointLocusValue();
                 endpointdataloader(author, work, String(loc));
             }});
     });
