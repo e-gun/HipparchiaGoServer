@@ -80,6 +80,7 @@ function parsepassagereturned(passagereturned) {
             document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml'];
             document.getElementById('lexmodal').style.display = "block";
             jshld.html(definitionreturned['newjs']);
+            // the js will be `fmt.Sprintf(vv.BROWSERJS, "bibl")`
         });
         return false;
     });

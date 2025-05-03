@@ -239,8 +239,8 @@ function toggleendpointarrows() {
 // LEVELS
 //
 
-
 // async issue: if you type "1" then click "12" from the pulldown, locusdataloader() can read "1" before "12" arrives
+// and so you will get the values appropriate to "1" in the next box not the values that go with "12"
 
 function waitAndReturnLocusValue() {
     return new Promise(resolve => {
@@ -305,14 +305,14 @@ function loadsamplecitation(author, work) {
 }
 
 function loadLevellist(author, work, pariallocus){
-    // python is hoping to be sent something like:
+    // the server is hoping to be sent something like:
     //
     //  /get/json/workstructure/lt1254/001
     //  /get/json/workstructure/lt0474/043/3|12
     //
     // bad things happen if you send level00 info
     //
-    // python will return info about the next level down such as:
+    // the server will return info about the next level down such as:
     //  ws =  {'totallevels': 5, 'level': 2, 'label': 'par', 'low': '1', 'high': '10', 'range': ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']}
 
     let getpath = '';
@@ -349,8 +349,9 @@ function loadLevellist(author, work, pariallocus){
             //     },
             source: possibilities, // alas: the select function can execute before the possibilities have loaded...
             select: async function (event, ui) {
+                // as per the preceding: if select() executes before source() is done resetting the
+                // document.getElementById("level0N").value, you will read bad values off of getElementById()
                 const loc = await waitAndReturnLocusValue();
-                console.log(loc);
                 loadLevellist(author, work, loc);
                 if ( atlevel && workboxval && openbutton.is(':hidden') === true && closebutton.is(':hidden') === true) {
                     openbutton.show();

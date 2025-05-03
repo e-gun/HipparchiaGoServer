@@ -98,58 +98,60 @@ func FindValidLevelValues(dbw str.DbWork, locc []string, thisisthesecondtry bool
 
 	wlb := GetWorklineBundle(prq)
 
-	// A NOTE CONCERING PHI IRREGULARITIES...
-
-	// see the notes in HGB gathernewinsworkinfo() concerning `fr a` and `fr b` level values both occupying `fr`
-	// you will also see there why the builder cannot fix the issue and so an ugly hack has to appear here
-
-	// FindValidLevelValues() will do `= 'fr'` at l2, but only `= 'fr a'` finds anything
-	// so, on the assumption that you are doing such a search, you reach this moment of code with `wlb` empty
-	// wlb should never normally be empty; let's make a second try... this time we do `~*` so that `fr` finds `fr a` and `fr b`
-
-	if wlb.Len() == 0 && !thisisthesecondtry && dbw.IsPHI() {
-		vals = FindValidLevelValues(dbw, locc, true)
-	}
-
-	// [c0] - maybe I have too many lines...
-
-	// notice that you now have a NEW PROBLEM if you did a `~*` search for `fr`: you capture too many lines at the next level down
-	// `fr a` can be associated with `col I` in the results even though they in fact are not so associated in the data:
-	// `col I` is only a `fr b` feature...
-
-	// no returns for
-	// SELECT index FROM inz043 WHERE wkuniversalid='inz043w00d' AND level_02_value='fr a' AND level_01_value='col II' AND level_00_value='4' ORDER BY index ASC
-
-	//    58 | inz043w00d    | -1             | -1             | -1             | fr a           | col II/III/IV? | 10             | &nbsp;&nbsp;&nbsp;[ηʹ Φλαύ(ιοϲ) {27Κλαύ(διοϲ)}27 Ὑ]ψ̣ικλῆϲ̣ [Λυϲιϲτράτου {27βʹ καθ’ ὑ(οθεϲίαν δὲ) Ποϲιδωνίου}27]
-	//    59 | inz043w00d    | -1             | -1             | -1             | fr a           | col II/III/IV? | 11             | [—  —  —  —  —  —  —  —  —  —  —  —  —  —  —  —  —  — ]
-	//    60 | inz043w00d    | -1             | -1             | -1             | fr b           | col I          | 26             | [—  —  —  —  —  — ]ευϲ
-	//    61 | inz043w00d    | -1             | -1             | -1             | fr b           | col I          | 27             | [—  —  —  —  —  — ]∙
-	//    62 | inz043w00d    | -1             | -1             | -1             | fr b           | col I          | 28             | [—  —  —  —  —  — ]
-	//
-	//    98 | inz043w00d    | -1             | -1             | -1             | fr b           | col I          | 64             | [—  —  —  —  —  —  — ]
-	//    99 | inz043w00d    | -1             | -1             | -1             | fr b           | col I          | 65             | [—  —  —  —  —  —  — ]
-	//   100 | inz043w00d    | -1             | -1             | -1             | fr b           | col II         | 1              | [ηʹ —  —  —  —  —  —  —  —  —  —  —  —  —  — ]
-	//   101 | inz043w00d    | -1             | -1             | -1             | fr b           | col II         | 2              | [θʹ —  —  —  —  —  —  —  —  —  —  —  —  —  — ]
-	//   102 | inz043w00d    | -1             | -1             | -1             | fr b           | col II         | 3              | [ιʹ —  —  —  —  —  —  —  —  —  —  —  —  —  — ]
-
-	// more problems here: `col II/III/IV?` will freak out browse() because `elem := strings.Split(locus, "/")` and "?" is disallowed...
-
 	var validlines []str.DbWorkline
 
-	// if you hit lvl0 and locc = `[fr%20a col%20II 5]`, you have failed
-	// NB: at lvl1 locc = `[fr a col]`
+	if wlb.Len() == 0 && dbw.IsPHI() && !thisisthesecondtry {
+		// A NOTE CONCERING PHI IRREGULARITIES...
 
-	// what you need to do is manually take care of the `select ... where...` that could not be sent to psql
-	// i.e., trim out all results where the l2 criterion is not met... [ie, atlvl + 1 constrains atlvl]
+		// see the notes in HGB gathernewinsworkinfo() concerning `fr a` and `fr b` level values both occupying `fr`
+		// you will also see there why the builder cannot fix the issue and so an ugly hack has to appear here
 
-	for _, l := range wlb.Lines {
-		if handcheckiflocusisok(l, locc, atlvl) {
-			validlines = append(validlines, l)
+		// FindValidLevelValues() will do `= 'fr'` at l2, but only `= 'fr a'` finds anything
+		// so, on the assumption that you are doing such a search, you reach this moment of code with `wlb` empty
+		// wlb should never normally be empty; let's make a second try... this time we do `~*` so that `fr` finds `fr a` and `fr b`
+
+		vals = FindValidLevelValues(dbw, locc, true)
+
+		// [c0] - maybe I have too many lines...
+
+		// notice that you now have a NEW PROBLEM if you did a `~*` search for `fr`: you capture too many lines at the next level down
+		// `fr a` can be associated with `col I` in the results even though they in fact are not so associated in the data:
+		// `col I` is only a `fr b` feature...
+
+		// no returns for
+		// SELECT index FROM inz043 WHERE wkuniversalid='inz043w00d' AND level_02_value='fr a' AND level_01_value='col II' AND level_00_value='4' ORDER BY index ASC
+
+		//    58 | inz043w00d    | -1             | -1             | -1             | fr a           | col II/III/IV? | 10             | &nbsp;&nbsp;&nbsp;[ηʹ Φλαύ(ιοϲ) {27Κλαύ(διοϲ)}27 Ὑ]ψ̣ικλῆϲ̣ [Λυϲιϲτράτου {27βʹ καθ’ ὑ(οθεϲίαν δὲ) Ποϲιδωνίου}27]
+		//    59 | inz043w00d    | -1             | -1             | -1             | fr a           | col II/III/IV? | 11             | [—  —  —  —  —  —  —  —  —  —  —  —  —  —  —  —  —  — ]
+		//    60 | inz043w00d    | -1             | -1             | -1             | fr b           | col I          | 26             | [—  —  —  —  —  — ]ευϲ
+		//    61 | inz043w00d    | -1             | -1             | -1             | fr b           | col I          | 27             | [—  —  —  —  —  — ]∙
+		//    62 | inz043w00d    | -1             | -1             | -1             | fr b           | col I          | 28             | [—  —  —  —  —  — ]
+		//
+		//    98 | inz043w00d    | -1             | -1             | -1             | fr b           | col I          | 64             | [—  —  —  —  —  —  — ]
+		//    99 | inz043w00d    | -1             | -1             | -1             | fr b           | col I          | 65             | [—  —  —  —  —  —  — ]
+		//   100 | inz043w00d    | -1             | -1             | -1             | fr b           | col II         | 1              | [ηʹ —  —  —  —  —  —  —  —  —  —  —  —  —  — ]
+		//   101 | inz043w00d    | -1             | -1             | -1             | fr b           | col II         | 2              | [θʹ —  —  —  —  —  —  —  —  —  —  —  —  —  — ]
+		//   102 | inz043w00d    | -1             | -1             | -1             | fr b           | col II         | 3              | [ιʹ —  —  —  —  —  —  —  —  —  —  —  —  —  — ]
+
+		// more problems here: `col II/III/IV?` will freak out browse() because `elem := strings.Split(locus, "/")` and "?" is disallowed...
+
+		// if you hit lvl0 and locc = `[fr%20a col%20II 5]`, you have failed
+		// NB: at lvl1 locc = `[fr a col]`
+
+		// what you need to do is manually take care of the `select ... where...` that could not be sent to psql
+		// i.e., trim out all results where the l2 criterion is not met... [ie, atlvl + 1 constrains atlvl]
+
+		for _, l := range wlb.Lines {
+			if handcheckiflocusisok(l, locc, atlvl) {
+				validlines = append(validlines, l)
+			}
 		}
-	}
 
-	if len(validlines) == 0 {
-		return vals
+		if len(validlines) == 0 {
+			return vals
+		}
+	} else {
+		validlines = wlb.Lines
 	}
 
 	// [c1] extract info from the hitlines returned
