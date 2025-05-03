@@ -6,12 +6,12 @@
 package vv
 
 const (
-	CONFIGVECTORW2V       = "hgs-vector-conf-w2v.json"
-	CONFIGVECTORGLOVE     = "hgs-vector-conf-glove.json"
-	CONFIGVECTORLEXVEC    = "hgs-vector-conf-lexvec.json"
-	CONFIGVECTORLDA       = "hgs-vector-conf-lda.json"
-	CONFIGVECTORSTOPSLAT  = "hgs-vector-stops-latin.json"
-	CONFIGVECTORSTOPSGRK  = "hgs-vector-stops-greek.json"
+	CONFIGVECTORW2V       = "vector-conf-w2v.json"
+	CONFIGVECTORGLOVE     = "vector-conf-glove.json"
+	CONFIGVECTORLEXVEC    = "vector-conf-lexvec.json"
+	CONFIGVECTORLDA       = "vector-conf-lda.json"
+	CONFIGVECTORSTOPSLAT  = "vector-stops-latin.json"
+	CONFIGVECTORSTOPSGRK  = "vector-stops-greek.json"
 	DEFAULTCHRTWIDTH      = "1500px"
 	DEFAULTCHRTHEIGHT     = "1200px"
 	LDATOPICS             = 8

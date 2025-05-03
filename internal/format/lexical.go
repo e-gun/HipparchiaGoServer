@@ -91,8 +91,6 @@ func FormatLexicalOutput(w str.DbLexicon) string {
 		for _, s := range w.Senses {
 			elem = append(elem, formatgksenseinfo(s))
 		}
-		// the following will expose the very different logic of the two XML files...
-		// elem = append(elem, formatltsenseinfo(w.Senses))
 	} else {
 		elem = append(elem, formatltsenseinfo(w.Senses))
 	}
@@ -107,6 +105,7 @@ func FormatLexicalOutput(w str.DbLexicon) string {
 
 	html := strings.Join(elem, "")
 
+	// fmt.Println(html)
 	return html
 }
 
@@ -248,7 +247,7 @@ func PolishTrans(tr string, pat *regexp.Regexp) string {
 func formatpreliminfo(w str.DbLexicon) string {
 	const (
 		TMPL = `<div class="hb-lx-prelim">
-<hb-fs-l-bold>morphology:</hb-fs-l-bold> %s %s
+	<hb-fs-l-bold>morphology:</hb-fs-l-bold> %s %s
 </div><br>
 `
 	)
@@ -257,10 +256,12 @@ func formatpreliminfo(w str.DbLexicon) string {
 
 func formatgksenseinfo(s str.LexicalSenses) string {
 	const (
-		TMPL = `<hb-lx-sense>
-<hb-lx-sensecounter>(%d)</hb-lx-sensecounter><br>
-<div class="hb-lx-sense-contents"">%s</hb-lx-sense-contents>
-</div><br>
+		TMPL = `
+<hb-lx-sense>
+	<hb-lx-sensecounter>(%d)</hb-lx-sensecounter>
+	<br>
+	<div class="hb-lx-sense-contents">%s</div><br>
+</hb-lx-sense>
 `
 	)
 
@@ -268,7 +269,6 @@ func formatgksenseinfo(s str.LexicalSenses) string {
 	id := strings.Split(s.ID, ".")[1]
 	idv, _ := strconv.Atoi(id)
 	idv += 1
-
 	return fmt.Sprintf(TMPL, idv, s.Contents)
 }
 

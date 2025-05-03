@@ -24,14 +24,14 @@ import (
 // is there a database? does it have data in it? are we able to load data into an empty database?
 //
 
-func PGFSConfig(h string) {
+func PGFSConfig(cfp string, h string) {
 	Msg.TMI("PGFSConfig()")
 	const (
-		WRN      = "Warning: unable to lnch: Cannot find a configuration file."
+		WRN      = "Warning: unable to lnch: Cannot find a configuration file at '%s'."
 		FYI      = "\tC1Creating configuration directory: 'C3%sC1'C0"
 		FNF      = "\tC1Generating a simple 'C3%sC1'C0"
 		FWR      = "\tC1Wrote configuration to 'C3%sC1'C0\n"
-		PWD1     = "\tchoose a password for the database user 'hippa_wr' ->C0 "
+		PWD1     = "\tchoose a password for the database user '%s' ->C0 "
 		NODB     = "hipparchiaDB does not exist: executing InitializeHDB()"
 		YESDB    = "hipparchiaDB already exists"
 		FOUND    = "Found 'authors': skipping database loading.\n\tIf there are problems going forward you might need to reset the database: '-00'\n\n"
@@ -39,7 +39,7 @@ func PGFSConfig(h string) {
 		REWRITE  = "You cannot use '&' in your password. Rewriting it as '%s'"
 	)
 
-	Msg.CRIT(WRN)
+	Msg.CRIT(fmt.Sprintf(WRN, cfp))
 	copyinstructions()
 	_, e := os.Stat(fmt.Sprintf(vv.CONFIGALTAPTH, h))
 	if e != nil {
@@ -49,7 +49,7 @@ func PGFSConfig(h string) {
 	}
 
 	fmt.Println(Msg.Color(fmt.Sprintf(FNF, vv.CONFIGPROLIX)))
-	fmt.Printf(Msg.Color(PWD1))
+	fmt.Printf(Msg.Color(fmt.Sprintf(PWD1, vv.DEFAULTPSQLUSER)))
 
 	var hwrpw string
 	_, err := fmt.Scan(&hwrpw)
@@ -68,10 +68,10 @@ func PGFSConfig(h string) {
 	content, err := json.MarshalIndent(cfg, vv.JSONINDENT, vv.JSONINDENT)
 	Msg.EC(err)
 
-	err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+vv.CONFIGPROLIX, content, 0644)
+	err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+"/"+vv.CONFIGPROLIX, content, 0644)
 	Msg.EC(err)
 
-	fmt.Println(Msg.Color(fmt.Sprintf(FWR, fmt.Sprintf(vv.CONFIGALTAPTH, h)+vv.CONFIGPROLIX)))
+	fmt.Println(Msg.Color(fmt.Sprintf(FWR, fmt.Sprintf(vv.CONFIGALTAPTH, h)+"/"+vv.CONFIGPROLIX)))
 
 	// do we need to head over to selfinstaller.go and to initialize the database?
 
@@ -129,8 +129,6 @@ OR at 'C3%sC0'`
 		Msg.EC(err)
 
 		fp := fmt.Sprintf(vv.CONFIGALTAPTH, hd) + vv.CONFIGPROLIX
-		_ = os.Remove(fp)
-		fp = fmt.Sprintf(vv.CONFIGALTAPTH, hd) + vv.CONFIGBASIC
 		_ = os.Remove(fp)
 
 		fmt.Println()
@@ -413,7 +411,6 @@ func DBSelfDestruct() {
 	hd, e := os.UserHomeDir()
 	Msg.EC(e)
 	cp := fmt.Sprintf(vv.CONFIGALTAPTH, hd)
-	_ = os.Remove(cp + vv.CONFIGBASIC)
 	_ = os.Remove(cp + vv.CONFIGPROLIX)
 	Msg.CRIT(fmt.Sprintf(DONE2, cp))
 }

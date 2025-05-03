@@ -180,17 +180,17 @@ func w2vvectorconfig() word2vec.Options {
 		return cfg
 	}
 
-	_, yes := os.Stat(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vv.CONFIGVECTORW2V)
+	_, yes := os.Stat(fmt.Sprintf(vv.CONFIGALTAPTH, h) + "/" + vv.CONFIGVECTORW2V)
 
 	if yes != nil {
 		content, err := json.MarshalIndent(cfg, vv.JSONINDENT, vv.JSONINDENT)
 		dbi.EC(err)
 
-		err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+vv.CONFIGVECTORW2V, content, vv.WRITEPERMS)
+		err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+"/"+vv.CONFIGVECTORW2V, content, vv.WRITEPERMS)
 		dbi.EC(err)
 		Msg.PEEK(MSG1 + vv.CONFIGVECTORW2V)
 	} else {
-		loadedcfg, _ := os.Open(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vv.CONFIGVECTORW2V)
+		loadedcfg, _ := os.Open(fmt.Sprintf(vv.CONFIGALTAPTH, h) + "/" + vv.CONFIGVECTORW2V)
 		decoderc := json.NewDecoder(loadedcfg)
 		vc := word2vec.Options{}
 		errc := decoderc.Decode(&vc)
@@ -225,17 +225,17 @@ func lexvecvectorconfig() lexvec.Options {
 		return cfg
 	}
 
-	_, yes := os.Stat(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vv.CONFIGVECTORLEXVEC)
+	_, yes := os.Stat(fmt.Sprintf(vv.CONFIGALTAPTH, h) + "/" + vv.CONFIGVECTORLEXVEC)
 
 	if yes != nil {
 		content, err := json.MarshalIndent(cfg, vv.JSONINDENT, vv.JSONINDENT)
 		dbi.EC(err)
 
-		err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+vv.CONFIGVECTORLEXVEC, content, vv.WRITEPERMS)
+		err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+"/"+vv.CONFIGVECTORLEXVEC, content, vv.WRITEPERMS)
 		dbi.EC(err)
 		Msg.PEEK(MSG1 + vv.CONFIGVECTORLEXVEC)
 	} else {
-		loadedcfg, _ := os.Open(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vv.CONFIGVECTORLEXVEC)
+		loadedcfg, _ := os.Open(fmt.Sprintf(vv.CONFIGALTAPTH, h) + "/" + vv.CONFIGVECTORLEXVEC)
 		decoderc := json.NewDecoder(loadedcfg)
 		vc := lexvec.Options{}
 		errc := decoderc.Decode(&vc)
@@ -269,17 +269,17 @@ func glovevectorconfig() glove.Options {
 		return cfg
 	}
 
-	_, yes := os.Stat(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vv.CONFIGVECTORGLOVE)
+	_, yes := os.Stat(fmt.Sprintf(vv.CONFIGALTAPTH, h) + "/" + vv.CONFIGVECTORGLOVE)
 
 	if yes != nil {
 		content, err := json.MarshalIndent(cfg, vv.JSONINDENT, vv.JSONINDENT)
 		dbi.EC(err)
 
-		err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+vv.CONFIGVECTORGLOVE, content, vv.WRITEPERMS)
+		err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+"/"+vv.CONFIGVECTORGLOVE, content, vv.WRITEPERMS)
 		dbi.EC(err)
 		Msg.PEEK(MSG1 + vv.CONFIGVECTORGLOVE)
 	} else {
-		loadedcfg, _ := os.Open(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vv.CONFIGVECTORGLOVE)
+		loadedcfg, _ := os.Open(fmt.Sprintf(vv.CONFIGALTAPTH, h) + "/" + vv.CONFIGVECTORGLOVE)
 		decoderc := json.NewDecoder(loadedcfg)
 		vc := glove.Options{}
 		errc := decoderc.Decode(&vc)

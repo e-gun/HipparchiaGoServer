@@ -9,12 +9,11 @@ package vv
 
 const (
 	CONFIGLOCATION    = "."
-	CONFIGALTAPTH     = "%s/.config/" // %s = os.UserHomeDir()
-	CONFIGAUTH        = "hgs-users.json"
-	CONFIGBASIC       = "hgs-conf.json"
-	CONFIGPROLIX      = "hgs-prolix-conf.json"
+	CONFIGALTAPTH     = "%s/.config/HipparchiaGoServer" // %s = os.UserHomeDir()
+	CONFIGAUTH        = "users.json"
+	CONFIGPROLIX      = "options.json"
 	CUSTOMCSSFILENAME = "custom-hipparchiastyles.css"
-	HDBFOLDER         = "hDB"
+	HDBFOLDER         = "HGDBArchive"
 	LOGFILEEL         = "hgs-echo.log"
 	LOGFILEML         = "hgs-msg.log" // circular import problem; need to edit "messaging.go" too if changing this
 	SSLCERTDIR        = "./sslcerts/"

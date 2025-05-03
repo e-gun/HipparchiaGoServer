@@ -9,7 +9,6 @@ import (
 	"bytes"
 	"embed"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
@@ -39,25 +38,20 @@ const (
 
 // LookForConfigFile - test to see if we can find a config file; if not build one and check to see if the DB needs loading
 func LookForConfigFile() {
-	_, a := os.Stat(vv.CONFIGBASIC)
-
-	var b error
 	var c error
 
 	h, e := os.UserHomeDir()
 	if e != nil {
 		// how likely is this...?
-		b = errors.New("cannot find UserHomeDir")
-		c = errors.New("cannot find UserHomeDir")
-	} else {
-		_, b = os.Stat(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vv.CONFIGBASIC)
-		_, c = os.Stat(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vv.CONFIGPROLIX)
+		// b = errors.New("cannot find UserHomeDir")
 	}
+	cfp := fmt.Sprintf(vv.CONFIGALTAPTH, h) + "/" + vv.CONFIGPROLIX
+	_, c = os.Stat(cfp)
 
-	notfound := (a != nil) && (b != nil) && (c != nil)
+	notfound := c != nil
 
 	if notfound {
-		PGFSConfig(h)
+		PGFSConfig(cfp, h)
 	}
 }
 
@@ -402,7 +396,7 @@ func builddefaultconfig() *str.CurrentConfiguration {
 // setconfigpass - make sure that Config.PGLogin.Pass != ""
 func setconfigpass(cfg *str.CurrentConfiguration, cf string) {
 	const (
-		FAIL3     = "FAILED to load database credentials from any of '%s', '%s' or '%s'"
+		FAIL3     = "FAILED to load database credentials from '%s'"
 		FAIL4     = "At a minimum be sure that a 'hgs-vv.json' file exists and that it has the following format:"
 		FAIL6     = "Could not open '%s'"
 		BLANKPASS = "PostgreSQLPassword is blank. Check your 'hgs-vv.json' file. NB: 'PostgreSQLPassword ≠ 'PosgreSQLPassword'.\n"
@@ -415,10 +409,8 @@ func setconfigpass(cfg *str.CurrentConfiguration, cf string) {
 	h := fmt.Sprintf(vv.CONFIGALTAPTH, uh)
 
 	if cf == "" {
-		cf = fmt.Sprintf("%s/%s", vv.CONFIGLOCATION, vv.CONFIGBASIC)
+		cf = fmt.Sprintf("%s/%s", vv.CONFIGLOCATION, vv.CONFIGPROLIX)
 	}
-
-	acf := fmt.Sprintf("%s/%s", h, vv.CONFIGBASIC)
 
 	if Config.PGLogin.Pass == "" {
 		Config.PGLogin = str.PostgresLogin{}
@@ -426,31 +418,19 @@ func setconfigpass(cfg *str.CurrentConfiguration, cf string) {
 		if ee != nil {
 			Msg.TMI(fmt.Sprintf(FAIL6, cf))
 		}
-		cfb, ee := os.Open(acf)
-		if ee != nil {
-			Msg.TMI(fmt.Sprintf(FAIL6, acf))
-		}
 
 		defer func(cfa *os.File) {
 			err := cfa.Close()
 			if err != nil {
 			} // the file was almost certainly not found in the first place...
 		}(cfa)
-		defer func(cfb *os.File) {
-			err := cfb.Close()
-			if err != nil {
-			} // the file was almost certainly not found in the first place...
-		}(cfb)
 
 		decodera := json.NewDecoder(cfa)
 		confa := ConfigFile{}
 		erra := decodera.Decode(&confa)
 
-		decoderb := json.NewDecoder(cfb)
-		confb := ConfigFile{}
-		errb := decoderb.Decode(&confb)
-		if erra != nil && errb != nil && cfg.PGLogin.DBName == "" {
-			Msg.CRIT(fmt.Sprintf(FAIL3, cf, acf, fmt.Sprintf("%s/%s", h, vv.CONFIGPROLIX)))
+		if erra != nil && cfg.PGLogin.DBName == "" {
+			Msg.CRIT(fmt.Sprintf(FAIL3, fmt.Sprintf("%s/%s", h, vv.CONFIGPROLIX)))
 			Msg.CRIT(fmt.Sprintf(FAIL4))
 			fmt.Printf(vv.MINCONFIG)
 			Msg.ExitOrHang(0)
@@ -459,8 +439,6 @@ func setconfigpass(cfg *str.CurrentConfiguration, cf string) {
 		thecfg := ConfigFile{}
 		if erra == nil {
 			thecfg = confa
-		} else {
-			thecfg = confb
 		}
 
 		if thecfg.PostgreSQLPassword == "" {

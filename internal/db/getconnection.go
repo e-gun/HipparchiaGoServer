@@ -33,10 +33,6 @@ func getdbconnection() *pgxpool.Conn {
 			Msg.MAND(Msg.Color(fmt.Sprintf(FAIL3)))
 			h, err := os.UserHomeDir()
 			Msg.EC(err)
-			err = os.Remove(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vv.CONFIGBASIC)
-			if err != nil {
-				Msg.CRIT(fmt.Sprintf(FAIL4, vv.CONFIGBASIC))
-			}
 			err = os.Remove(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vv.CONFIGPROLIX)
 			if err != nil {
 				Msg.CRIT(fmt.Sprintf(FAIL4, vv.CONFIGPROLIX))
@@ -47,8 +43,6 @@ func getdbconnection() *pgxpool.Conn {
 		Msg.MAND(fmt.Sprintf(FAIL1))
 		if strings.Contains(e.Error(), ERRRUN) {
 			Msg.CRIT(fmt.Sprintf(FAILRUN, ERRRUN, lnch.Config.PGLogin.Port))
-		} else {
-			Msg.MAND(fmt.Sprintf(FAIL2, vv.CONFIGBASIC))
 		}
 		Msg.ExitOrHang(0)
 	}

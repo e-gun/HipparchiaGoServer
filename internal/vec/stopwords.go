@@ -51,18 +51,18 @@ func readstopconfig(fn string) []string {
 		return stops
 	}
 
-	_, yes := os.Stat(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vcfg)
+	_, yes := os.Stat(fmt.Sprintf(vv.CONFIGALTAPTH, h) + "/" + vcfg)
 
 	if yes != nil {
 		sort.Strings(stops)
 		content, err := json.MarshalIndent(stops, vv.JSONINDENT, vv.JSONINDENT)
 		Msg.EC(err)
 
-		err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+vcfg, content, vv.WRITEPERMS)
+		err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+"/"+vcfg, content, vv.WRITEPERMS)
 		Msg.EC(err)
 		Msg.PEEK(MSG1 + vcfg)
 	} else {
-		loadedcfg, _ := os.Open(fmt.Sprintf(vv.CONFIGALTAPTH, h) + vcfg)
+		loadedcfg, _ := os.Open(fmt.Sprintf(vv.CONFIGALTAPTH, h) + "/" + vcfg)
 		decoderc := json.NewDecoder(loadedcfg)
 		var stp []string
 		errc := decoderc.Decode(&stp)
