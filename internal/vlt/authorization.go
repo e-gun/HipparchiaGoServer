@@ -30,7 +30,7 @@ func BuildUserPassPairs(cc str.CurrentConfiguration) {
 
 	uh, _ := os.UserHomeDir()
 	h := fmt.Sprintf(vv.CONFIGALTAPTH, uh)
-	pwf := fmt.Sprintf("%s%s", h, vv.CONFIGAUTH)
+	pwf := fmt.Sprintf("%s/%s", h, vv.CONFIGAUTH)
 
 	pwc, e := os.Open(pwf)
 	if e != nil {

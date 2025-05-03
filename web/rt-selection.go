@@ -733,26 +733,23 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int {
 
 		Msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
 		fl, success = locusendpointer(wuid, newlocus, sep)
-	}
-	// the HGB builder is supposed to remove the need for the next now...
+	} else {
+		// cicero, et.al
+		// [a] [HGS] findendpointsfromlocus() failed to find the following inside of lt0474w049: 4:8:18
+		// this should in fact be "4.18"
+		// [b] BUT in lt0474w024 "10:24" you want "24"
 
-	//} else {
-	//	// cicero, et.al
-	//	// [a] [HGS] findendpointsfromlocus() failed to find the following inside of lt0474w049: 4:8:18
-	//	// this should in fact be "4.18"
-	//	// [b] BUT in lt0474w024 "10:24" you want "24"
-	//
-	//	ll := strings.Split(locus, sep)
-	//	if len(ll) > 2 {
-	//		newlocus := strings.Join(gen.RemoveIndex(ll, 1), ":")
-	//		Msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
-	//		fl, success = locusendpointer(wuid, newlocus, sep)
-	//	} else if len(ll) == 2 {
-	//		newlocus := strings.Join(gen.RemoveIndex(ll, 0), ":")
-	//		Msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
-	//		fl, success = locusendpointer(wuid, newlocus, sep)
-	//	}
-	//}
+		ll := strings.Split(locus, sep)
+		if len(ll) > 2 {
+			newlocus := strings.Join(gen.RemoveIndex(ll, 1), ":")
+			Msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
+			fl, success = locusendpointer(wuid, newlocus, sep)
+		} else if len(ll) == 2 {
+			newlocus := strings.Join(gen.RemoveIndex(ll, 0), ":")
+			Msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
+			fl, success = locusendpointer(wuid, newlocus, sep)
+		}
+	}
 
 	return fl
 }
