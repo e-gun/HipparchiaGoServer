@@ -706,7 +706,7 @@ func workvalueofpassage(psg string) string {
 
 // findendpointsfromlocus - given a locus, what index values correspond to the start and end of that text segment?
 func findendpointsfromlocus(wuid string, locus string, sep string) [2]int {
-	// we are wrapping locusendpointer() to give us a couple of bites at perseus citaiton problems
+	// we are wrapping locusendpointer() to give us a couple of bites at perseus citation problems
 
 	const (
 		MSG = "findendpointsfromlocus() retrying locusendpointer(): '%s' --> '%s'"
@@ -718,32 +718,66 @@ func findendpointsfromlocus(wuid string, locus string, sep string) [2]int {
 	}
 
 	dc := regexp.MustCompile("(\\d+)([a-f])$")
+
 	if dc.MatchString(locus) {
 		// plato, et al
 		// [HGS] locusendpointer() failed to find the following inside of gr0059w030: '407e'
 		// [HGS] findendpointsfromlocus() retrying locusendpointer(): '407e' --> '407:e'
+
 		r := fmt.Sprintf("$1%s$2", sep)
+
 		newlocus := dc.ReplaceAllString(locus, r)
+		if wuid[0:6] == "gr0007" {
+			newlocus = plutarchisspecial(newlocus)
+		}
+
 		Msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
 		fl, success = locusendpointer(wuid, newlocus, sep)
-	} else {
-		// cicero, et.al
-		// [a] [HGS] findendpointsfromlocus() failed to find the following inside of lt0474w049: 4:8:18
-		// this should in fact be "4.18"
-		// [b] BUT in lt0474w024 "10:24" you want "24"
-		ll := strings.Split(locus, sep)
-		if len(ll) > 2 {
-			newlocus := strings.Join(gen.RemoveIndex(ll, 1), ":")
-			Msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
-			fl, success = locusendpointer(wuid, newlocus, sep)
-		} else if len(ll) == 2 {
-			newlocus := strings.Join(gen.RemoveIndex(ll, 0), ":")
-			Msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
-			fl, success = locusendpointer(wuid, newlocus, sep)
-		}
 	}
+	// the HGB builder is supposed to remove the need for the next now...
+
+	//} else {
+	//	// cicero, et.al
+	//	// [a] [HGS] findendpointsfromlocus() failed to find the following inside of lt0474w049: 4:8:18
+	//	// this should in fact be "4.18"
+	//	// [b] BUT in lt0474w024 "10:24" you want "24"
+	//
+	//	ll := strings.Split(locus, sep)
+	//	if len(ll) > 2 {
+	//		newlocus := strings.Join(gen.RemoveIndex(ll, 1), ":")
+	//		Msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
+	//		fl, success = locusendpointer(wuid, newlocus, sep)
+	//	} else if len(ll) == 2 {
+	//		newlocus := strings.Join(gen.RemoveIndex(ll, 0), ":")
+	//		Msg.PEEK(fmt.Sprintf(MSG, locus, newlocus))
+	//		fl, success = locusendpointer(wuid, newlocus, sep)
+	//	}
+	//}
 
 	return fl
+}
+
+// plutarchisspecial - `616:b` -> `616:B`
+func plutarchisspecial(l string) string {
+	// Plutarch is an issue: lexicon says 'a', but data says 'A'.
+
+	// hgdb=> select distinct level_01_value from gr0007 order by level_01_value asc;
+	// this shows that while oddball values like '217a' exist, there is no 'a' in any work, just "A"
+
+	// we can either patch the builder or patch the server...
+
+	// NB: earlier versions of the Greek lexical data did not even have a clickable Plutarch...
+
+	const (
+		TMPL = `%s:%s`
+	)
+	plut := regexp.MustCompile(`^(\d+):([a-f])$`)
+	l = plut.ReplaceAllStringFunc(l, func(l string) string {
+		groups := plut.FindStringSubmatch(l)
+		return fmt.Sprintf(TMPL, groups[1], strings.ToUpper(groups[2]))
+	})
+
+	return l
 }
 
 // selectiondata - JS output struct

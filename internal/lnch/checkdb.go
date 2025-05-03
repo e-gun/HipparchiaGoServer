@@ -19,8 +19,8 @@ import (
 )
 
 //
-// if LookForConfigFile() does not find a hgs-config.json or hgs-prolix-conf.json,
-// it will generate a basic hgs-config.json and then call the functions below:
+// if LookForConfigFile() does not find an options.json,
+// it will generate a basic options.json and then call the functions below:
 // is there a database? does it have data in it? are we able to load data into an empty database?
 //
 
