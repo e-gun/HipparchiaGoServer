@@ -11,7 +11,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
-	"github.com/e-gun/HipparchiaGoServer/internal/format"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
@@ -297,7 +296,7 @@ func RtGetJSAuthorinfo(c echo.Context) error {
 		wt.Title = ws.Title
 		wt.Genre = ws.Genre
 		wt.WdCount = p.Sprintf("%d", ws.WdCount)
-		wt.PubInfo = format.FormatPublicationInfo(*ws)
+		wt.PubInfo = ws.Pub
 		ww = append(ww, wt)
 		twc += ws.WdCount
 	}

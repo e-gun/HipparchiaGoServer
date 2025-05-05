@@ -1,5 +1,33 @@
 /* 10 custom spans and classes */
 
+/* start spans inserted by formateditorialbrackets() in HGS */
+
+.editorialmarker_angledbrackets {
+    font-weight: normal;
+    /* next is tempting, but too heavey-handed? esp. if squarebrackets is not treated in parallel... */
+    /* font-family: 'hipparchiaobliquestatic', sans-serif; */
+    color: var(--bracketcolor3);
+}
+
+.editorialmarker_curlybrackets {
+    font-weight: normal;
+    color: var(--bracketcolor4);
+}
+
+.editorialmarker_roundbrackets {
+    color: var(--bracketcolor1);
+    font-weight: normal;
+}
+
+.editorialmarker_squarebrackets {
+    /* next two are great until it they aren't: fragmentary papyrus, etc will get warped: "[ca. 6 litt.]" */
+    /* text-decoration: line-through;
+    text-decoration-style: dotted; */
+    color: var(--bracketcolor2);
+}
+
+/* end spans inserted by formateditorialbrackets() in HGS */
+
 .activeoption {
     color: var(--main-font-color);
 }

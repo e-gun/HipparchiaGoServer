@@ -18,6 +18,7 @@ func ProlixBrowswerCitations(f str.DbWorkline, l str.DbWorkline) string {
 		<p class="currentlyviewing">
 		%s<br>
 		<span class="currentlyviewingcitation">%s — %s</span>
+		<br>
 		%s
 		%s</p>`
 		CT     = `<cvauthor">%s</span>, <cvwork">%s</span>`
@@ -36,7 +37,7 @@ func ProlixBrowswerCitations(f str.DbWorkline, l str.DbWorkline) string {
 	dt := `<br>(Assigned date of %s)`
 	beg := BasicCitation(f)
 	end := BasicCitation(l)
-	pi := FormatPublicationInfo(*w)
+	pi := gen.AvoidLongLines(w.Pub, vv.MINBROWSERWIDTH+(vv.MINBROWSERWIDTH/2))
 	id := search.FormatInscriptionDates(dt, &f)
 
 	cv := fmt.Sprintf(CV, ci, beg, end, pi, id)

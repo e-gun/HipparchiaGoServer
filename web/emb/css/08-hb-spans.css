@@ -1,52 +1,5 @@
 /* 08 hmu spans */
 
-.editorialmarker_angledbrackets {
-    font-weight: normal;
-    /* next is tempting, but too heavey-handed? esp. if squarebrackets is not treated in parallel... */
-    /* font-family: 'hipparchiaobliquestatic', sans-serif; */
-    color: var(--bracketcolor3);
-}
-
-.editorialmarker_curlybrackets {
-    font-weight: normal;
-    color: var(--bracketcolor4);
-}
-
-.editorialmarker_roundbrackets {
-    color: var(--bracketcolor1);
-    font-weight: normal;
-}
-
-.editorialmarker_squarebrackets {
-    /* next two are great until it they aren't: fragmentary papyrus, etc will get warped: "[ca. 6 litt.]" */
-    /* text-decoration: line-through;
-    text-decoration-style: dotted; */
-    color: var(--bracketcolor2);
-}
-
-.embeddedannotations {
-    font-family: 'hipparchiacondensedstatic', sans-serif;
-}
-
-.embeddedannotations.foundwork {
-    font-family: 'hipparchiacondenseditalicstatic', sans-serif;
-}
-
-.epigraphical_text_after_correction {
-    color: var(--hgscol16);
-    font-family: 'hipparchiasemiboldstatic', sans-serif;
-}
-
-.epigraphical_text_inserted_after_erasure {
-    font-family: 'hipparchiasemiboldstatic', sans-serif;
-    text-decoration: underline;
-    color: var(--hgscol16);
-}
-
-.erasedepigraphicaltext {
-    text-decoration: line-through;
-}
-
 /*                                */
 /* atsignsubsitutes.go            */
 /*                                */
@@ -90,61 +43,61 @@ hb-title {
 
 hb-sp-marginaltext {
     font-family: 'hipparchiaobliquestatic', sans-serif;
-    text-decoration-line: overline underline;
+    text-decoration-line: underline;
     font-size: 80%;
-    color: var(--hgscol08);
+    color: var(--bracketcolor1);
 }
 
 hb-sp-scholium {
     font-family: 'hipparchiacondenseditalicstatic', sans-serif;
-    color: var(--hgscol09);
+    color: var(--bracketcolor1);
 }
 
 hb-sp-unconventional_form_written_by_scribe {
     font-family: 'hipparchiacondenseditalicstatic', sans-serif;
-    color: var(--hgscol15);
+    color: var(--bracketcolor1);
 }
 
 hb-sp-form_altered_by_scribe {
     font-family: 'hipparchiacondenseditalicstatic', sans-serif;
-    color: var(--hgscol20);
+    color: var(--bracektcolor2);
 }
 
 hb-sp-discarded_form {
     /*  strikethrough is tempting, but you will see that this markup somehow appears inside of [...] spans
         how can supplenda be deleted/discarded? */
     font-family: 'hipparchiacondenseditalicstatic', sans-serif;
-    color: var(--hgscol12);
+    color: var(--bracketcolor4);
 }
 
 hb-sp-reading_discarded_in_another_source {
     font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol13);
+    color: var(--bracektcolor2);
 }
 
 hb-sp-numerical_equivalent {
     font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol14);
+    color: var(--bracektcolor3);
 }
 
 hb-sp-alternative_reading {
     font-family: 'hipparchiaobliquestatic', sans-serif;
-    color: var(--hgscol01);
+    color: var(--bracketcolor2);
 }
 
 hb-sp-rectified_form {
     font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol02);
+    color: var(--bracketcolor4);
 }
 
 hb-sp-date_or_numeric_equivalent_of_date {
     font-family: 'hipparchiaobliquestatic', sans-serif;
-    color: var(--hgscol03);
+    color: var(--bracektcolor3);
 }
 
 hb-sp-emendation_by_editor_of_text_not_obviously_incorrect {
     font-family: 'hipparchiaobliquestatic', sans-serif;
-    color: var(--hgscol04);
+    color: var(--bracektcolor3);
 }
 
 /* hb-speaker {
@@ -169,40 +122,40 @@ hb-sp-subsc {
 
 hb-sp-textual_lemma {
     font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol10);
+    color: var(--bracektcolor3);
 }
 
 hb-sp-stacked_text_lower {
     font-family: 'hipparchiasansstatic', sans-serif;
     text-decoration: underline;
-    color: var(--hgscol04);
+    color: var(--bracektcolor2);
 }
 
 hb-sp-stacked_text_upper {
     font-family: 'hipparchiasansstatic', sans-serif;
     text-decoration: overline;
-    color: var(--hgscol05);
+    color: var(--bracektcolor1);
 }
 
 hb-sp-nonstandarddirection {
     font-family: 'hipparchiasansstatic', sans-serif;
     direction: rtl;
     unicode-bidi: bidi-override;
-    color: var(--hgscol06);
+    color: var(--bracektcolor3);
 }
 
 hb-sp-interlineartext {
     font-family: 'hipparchiasansstatic', sans-serif;
     text-decoration-line: overline underline;
     font-size: 80%;
-    color: var(--hgscol07);
+    color: var(--bracektcolor2);
 }
 
 hb-sp-interlinearmarginalia {
     font-family: 'hipparchiaobliquestatic', sans-serif;
     text-decoration-line: overline underline;
     font-size: 80%;
-    color: var(--hgscol08);
+    color: var(--bracektcolor1);
 }
 
 /* hb-sp-expanded_text {
@@ -216,12 +169,12 @@ hb-sp-latin_expanded_text {
 
 hb-unk-anglebracketspan22 {
     font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol09);
+    color: var(--bracektcolor1);
 }
 
 hb-unk-anglebracketspan24 {
     font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol10);
+    color: var(--bracektcolor2);
 }
 
 hb-sp-overline {
@@ -241,43 +194,43 @@ hb-sp-overline_and_underline {
 
 hb-unk-anglebracketspan45 {
     font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol01);
+    color: var(--bracektcolor3);
 }
 
 hb-unk-anglebracketspan48 {
     font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol11);
+    color: var(--bracektcolor4);
 }
 
 hb-unk-anglebracketspan50 {
     font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol12);
+    color: var(--bracektcolor1);
 }
 
 hb-unk-anglebracketspan51 {
     font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol13);
+    color: var(--bracektcolor2);
 }
 
 hb-unk-anglebracketspan52 {
     font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol14);
+    color: var(--bracektcolor3);
 }
 
 hb-unk-anglebracketspan91 {
     font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol02);
+    color: var(--bracektcolor4);
 }
 
 
 hb-sp-preferred_epigraphical_text_used {
     font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol02);
+    color: var(--bracektcolor1);
 }
 
 hb-sp-epigraphical_text_inserted_after_erasure {
     font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol03);
+    color: var(--bracektcolor2);
 }
 
 hb-sp-lineover {
@@ -287,7 +240,7 @@ hb-sp-lineover {
 
 hb-sp-epigraphical_text_after_correction {
     font-family: 'hipparchiaobliquestatic', sans-serif;
-    color: var(--hgscol04);
+    color: var(--bracektcolor3);
 }
 
 hb-sp-letterbox {
@@ -297,7 +250,7 @@ hb-sp-letterbox {
 
 hb-unk-anglebracketspan96 {
     font-family: 'hipparchiasansstatic', sans-serif;
-    color: var(--hgscol10);
+    color: var(--bracektcolor4);
 }
 
 /* singletonsubstitutes.go */
@@ -324,7 +277,7 @@ hb-sp-expanded_text {
 }
 
 hb-title {
-    font-size: 120%;
+    font-size: 115%;
     font-family: 'hipparchiaboldstatic', sans-serif;
 }
 
@@ -362,7 +315,7 @@ hb-fs-l-undoc-41 {
 
 hb-fs-l-largerthannormal {
     font-family: 'hipparchiasansstatic', sans-serif;
-    font-size: 120%;
+    font-size: 115%;
 }
 
 hb-fs-l-smaller_subsc {
@@ -463,7 +416,7 @@ hb-fs-g-extrasmall {
 
 hb-fs-g-largerthannormal {
     font-family: 'hipparchiasansstatic', sans-serif;
-    font-size: 120%;
+    font-size: 115%;
 }
 
 hb-fs-g-smaller {
