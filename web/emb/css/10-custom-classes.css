@@ -166,6 +166,7 @@
 
 .explanation {
     padding-left: 75px;
+    color: var(--main-font-color);
 }
 
 .extrasmall {
@@ -211,6 +212,14 @@
 .greek {
 }
 
+.helpbody {
+    color: var(--main-font-color);
+}
+
+.helptabs {
+    color: var(--main-font-color);
+}
+
 .highlight {
     text-shadow: 1px 1px 3px var(--textshadowcolor);
 }
@@ -226,6 +235,10 @@
 
 .instructionmanual {
     padding: 20px;
+}
+
+.interfacetips {
+    font-family: 'hipparchiasemiboldstatic', sans-serif;
 }
 
 .italic {
@@ -331,14 +344,9 @@
     font-family: 'hipparchiaboldstatic', sans-serif;
 }
 
-.pubeditor, .pubpress, .pubcity, .pubyear, .pubseries, .pubpages, .pubwork, .pubyearreprinted {
+.publicationinfo {
     font-family: 'hipparchiasemicondensedstatic', sans-serif;
     font-size: 70%;
-}
-
-.pubvolumename {
-    font-size: 70%;
-    font-family: 'hipparchiasemicondenseditalicstatic', sans-serif;
 }
 
 .quotedtext {

@@ -14,13 +14,15 @@ import (
 // ProlixBrowswerCitations - the prolix bibliographic info for a line/work
 func ProlixBrowswerCitations(f str.DbWorkline, l str.DbWorkline) string {
 	const (
-		CV = `
+		CVBROWSER = `
 		<p class="currentlyviewing">
 		%s<br>
 		<span class="currentlyviewingcitation">%s — %s</span>
 		<br>
-		%s
+		<span class="publicationinfo">%s</span>
 		%s</p>`
+		CVTMAKER = `
+		<p class="currentlyviewing">%s<br><span class="publicationinfo">(%s)</span>%s</p>`
 		CT     = `<cvauthor">%s</span>, <cvwork">%s</span>`
 		HIDDEN = `<!-- transmission: %s -->`
 	)
@@ -37,10 +39,15 @@ func ProlixBrowswerCitations(f str.DbWorkline, l str.DbWorkline) string {
 	dt := `<br>(Assigned date of %s)`
 	beg := BasicCitation(f)
 	end := BasicCitation(l)
-	pi := gen.AvoidLongLines(w.Pub, vv.MINBROWSERWIDTH+(vv.MINBROWSERWIDTH/2))
+	pi := gen.AvoidLongLines(w.Pub, 2*vv.MINBROWSERWIDTH) // lots of hidden markup + we are small
 	id := search.FormatInscriptionDates(dt, &f)
 
-	cv := fmt.Sprintf(CV, ci, beg, end, pi, id)
+	cv := fmt.Sprintf(CVBROWSER, ci, beg, end, pi, id)
+
+	// to let the textmaker use this code...
+	if f.TbIndex == l.TbIndex {
+		cv = fmt.Sprintf(CVTMAKER, ci, pi, id)
+	}
 
 	if w.Xmit != "" {
 		// helps with debugging: this lets you find your way back to the original phi file

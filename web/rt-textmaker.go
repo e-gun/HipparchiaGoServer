@@ -45,7 +45,7 @@ func RtTextMaker(c echo.Context) error {
             </tr>
 		`
 		SUMM = `
-		<div id="searchsummary">%s,&nbsp;<span class="foundwork">%s</span><br>
+		%s
 		citation format:&nbsp;%s<br></div>`
 
 		SNIP   = `✃✃✃`
@@ -137,7 +137,9 @@ func RtTextMaker(c echo.Context) error {
 
 	ct := format.BasicCitation(firstline)
 
-	sum := fmt.Sprintf(SUMM, au, ti, ct)
+	// use the browser info...
+	bc := format.ProlixBrowswerCitations(firstline, firstline)
+	sum := fmt.Sprintf(SUMM, bc, ct)
 
 	cp := ""
 	if srch.Results.Len() == vv.MAXTEXTLINEGENERATION {

@@ -1,4 +1,4 @@
-
+<div class="helpbody">
 <br />
 The dictionary data is connected to a parser table. This enables you to <span class="emph">click on a word</span> in the text browser and to (ideally) get a
 morphological analysis as well as a definition. See also <span class="emph">Peculiarities and Gotchas</span> for more about the force of "ideally"
@@ -139,8 +139,8 @@ The window that pops up will contain:
         <ul class="roman">
             <li>The corpora have been sliced into <span class="emph">five subdivisions</span>: top 250, top 2500, core vocabulary, rare, and very rare</li>
             <ul class="forexample">
-                <li><span class="emph">Core</span> corresponds to the semi-arbitrary cut-off of >50 uses of a word.</li>
-                <li><span class="emph">Rare</span> implies between 50 and 5 uses.</li>
+                <li><span class="emph">Core</span> corresponds to the semi-arbitrary cut-off of >100 uses of a word.</li>
+                <li><span class="emph">Rare</span> implies between 100 and 5 uses.</li>
                 <li><span class="emph">Very rare</span> words are used fewer than 5 times.</li>
             </ul>
             <li>These divisions reflect the <span class="emph">logarithmic distribution</span> of word frequencies. A small number of words are
@@ -156,55 +156,87 @@ The window that pops up will contain:
 
 <pre>
 
+hgdb=> select * from unparsed_wordcounts where entry_name = '__wordcounttotals';
+hgdb=> select count(*) from headword_wordcounts where entry_name ~* '^[^a-z]';  // 'greek'
+hgdb=> select count(*) from headword_wordcounts where entry_name ~* '[a-z]';   // 'latin'
+hgdb=> select entry_name,total_count from unparsed_wordcounts where entry_name ~* '^(?!__)' order by total_count desc limit 1;
+hgdb=> select avg(total_count):: NUMERIC(10, 2) from unparsed_wordcounts where entry_name ~* '^(?!__)' and entry_name ~* '^[^a-z]';
+hgdb=> select avg(total_count):: NUMERIC(10, 2) from headword_wordcounts where entry_name ~* '^(?!__)' and entry_name ~* '^[^a-z]';
+hgdb=> select percentile_cont(0.5) within group(order by total_count) from headword_wordcounts where entry_name ~* '^(?!__)' and entry_name ~* '[a-z]';
+hgdb=> select avg(total_count):: NUMERIC(10, 2) from headword_wordcounts where entry_name ~* '^(?!__)' and entry_name ~* '^[^a-z]' and total_count > 56841;
+hgdb=> select percentile_cont(0.5) within group(order by total_count) from headword_wordcounts where entry_name ~* '^(?!__)' and entry_name ~* '^[^a-z]' and total_count > 56841;
+hgdb=> select avg(total_count):: NUMERIC(10, 2) from headword_wordcounts where entry_name ~* '^(?!__)' and entry_name ~* '^[^a-z]' and total_count < 56841 and total_count > 4712;
+hgdb=> select count(*)  from headword_wordcounts where entry_name ~* '^(?!__)' and entry_name ~* '^[^a-z]' and total_count < 4712 and total_count > 100;
+
 per corpus counts
-    'gr': 98,970,519
-    'lt': 9,435,706
-    'in': 3,540,624
-    'dp': 3,606,545
-    'ch': 808,509
+    'total': 88,337,038
+    'gr': 72,722,070
+    'lt': 7,382,144
+    'dp': 3,884,882
+    'in': 3,493,199
+    'ch': 854,743
 
-greek
+greek headwords: 87,477
+latin headwords: 29,266
 
-    full set
-    count	113010
-    high	3649037 [it's καί, FYI]
-    low	1
-    average	794
-    median	7
+most common greek word: καί (4,507,250)
+most common latin word: et (227,552)
 
-top 250
+250th most common greek headword: ἀρτάβη (56,842)
+250th most common latin headword: prima (10,306)
+
+2500th most common greek headword: προλέγω² (4,712)
+2500th most common latin headword: aedo¹ (977)
+
+average number of occurrences of a word:
+    greek all corpora unparsed 49.76
+    greek all corpora headword 1364.59
+    greek authors greek headword 1272.34
+    latin all corpora unparsed 24.69
+    latin all corpora headword 622.27
+    latin authors latin headword 563.29
+
+median number of occurrences of a word:
+    greek all corpora unparsed 1
+    greek all corpora headword 13
+    greek authors greek headword 12
+    latin all corpora unparsed 1
+    latin all corpora headword 19
+    latin authors latin headword 17
+
+top 250 greek headwords
     count	250
-    high	3649037
-    low	39356
-    average	218482
-    median	78551
+    high	12,741,712
+    low	    56,842
+    average	287,447.46
+    median	104,233
 
-top 2500
-    count	2250
-    high	38891
-    low	3486
-    average	9912
-    median	7026
+top 2500 greek headwords (less the top 250)
+    count	2,250
+    high	56,841
+    low	    4,712
+    average	14,061.72
+    median	9,676
 
-core (not in top 2500; >50 occurrences)
-    count	25901
-    high	3479
-    low	51
-    average	466
-    median	196
+core (not in top 2500; >100 occurrences)
+    count	19,211
+    high	4,711
+    low	    101
+    average	770.45
+    median	370
 
-rare (between 50 and 5 occurrences)
-    count	32614
-    high	50
-    low	6
-    average	18
-    median	15
+rare (between 100 and 6 occurrences)
+    count	34,830
+    high	100
+    low	    5
+    average	28.70
+    median	19
 
-very rare (fewer than 5 occurrences)
-    count	48003
-    high	4
-    low	1
-    average	1
+very rare (5 or fewer occurrences)
+    count	30,933
+    high	5
+    low	    1
+    average	2.40
     median	2
 
 
@@ -231,7 +263,7 @@ top 2500
     average	1565
     median	1120
 
-core (not in top 2500; >50 occurrences)
+core (not in top 2500; >100 occurrences)
     count	6149
     high	541
     low	51
@@ -377,3 +409,4 @@ Dialog.		918
         </ul>
     </li>
 </ul>
+</div>
