@@ -155,6 +155,7 @@ The window that pops up will contain:
     </li>
 
 <pre>
+the following calculations feed the lookup table in calculatefrequencyclassification() in HipparchiaGoBuilder
 
 hgdb=> select * from unparsed_wordcounts where entry_name = '__wordcounttotals';
 hgdb=> select count(*) from headword_wordcounts where entry_name ~* '^[^a-z]';  // 'greek'
@@ -168,7 +169,7 @@ hgdb=> select percentile_cont(0.5) within group(order by total_count) from headw
 hgdb=> select avg(total_count):: NUMERIC(10, 2) from headword_wordcounts where entry_name ~* '^(?!__)' and entry_name ~* '^[^a-z]' and total_count < 56841 and total_count > 4712;
 hgdb=> select count(*)  from headword_wordcounts where entry_name ~* '^(?!__)' and entry_name ~* '^[^a-z]' and total_count < 4712 and total_count > 100;
 
-per corpus counts
+per corpus unparsed counts
     'total': 88,337,038
     'gr': 72,722,070
     'lt': 7,382,144
@@ -242,168 +243,124 @@ very rare (5 or fewer occurrences)
 
 latin
 
-full set
-    count	27960
-    high	244812
-    low	1
-    average	348
-    median	11
-
-top 250
+top 250 latin headwords
     count	250
-    high	244812
-    low	5859
-    average	19725
-    median	10358
+    high	424,851 // qui²
+    low	    10,306
+    average	37,152.97
+    median	19,524
 
-top 2500
+top 2500 latin headwords (less the top 250)
     count	2250
-    high	5843
-    low	541
-    average	1565
-    median	1120
+    high	10,302
+    low	    978
+    average	2,877.87
+    median	2,087
 
 core (not in top 2500; >100 occurrences)
-    count	6149
-    high	541
-    low	51
-    average	181
-    median	139
+    count	6049
+    high	978
+    low	    101
+    average	344.86
+    median	265
 
-rare (between 50 and 5 occurrences)
-    count	8095
-    high	50
-    low	6
-    average	19
-    median	16
+rare (between 100 and 6 occurrences)
+    count	11,694
+    high	100
+    low	    6
+    average	30.12
+    median	20
 
 very rare (fewer than 5 occurrences)
-    count	10404
-    high	4
-    low	1
-    average	1
+    count	9025
+    high	5
+    low	    1
+    average	2.44
     median	2
 
 GREEK
-Comm.		10,939,364
-Exeget.		8,846,704
-Hist.		7,622,971
-Inscr.		5,736,904
-Med.		4,863,957
-Docu.		4,108,146
-Phil.		2,960,832
-Lexicogr.	2,645,407
-Chronogr.	2,403,380
-Epist.		2,325,234
-Caten.		2,101,547
-Schol.		1,968,642
-Theol.		1,742,265
-Biogr.		1,712,397
-Orat.		1,640,409
-Homilet.	1,593,483
-Apol.		1,562,718
-Dialog.		1,540,843
-Eccl.		1,445,473
-Gramm.		1,265,294
-Rhet.		1,261,290
-Nat. Hist.	1,130,914
-Math.		1,103,492
-Geogr.		1,018,141
-Epigr.		1,006,589
-Hypoth.		844,452
-Encom.		830,935
-Narr. Fict.	748,164
-Concil.		653,271
-Anthol.		618,917
-Epic.		564,955
-Astrol.		528,929
-Hagiogr.	479,241
-Polyhist.	439,216
-Comic.		369,416
-Trag.		305,584
-Astron.		244,611
-Hymn.		227,033
-Jurisprud.	212,761
-Tact.		210,323
-Poem.		174,143
-Paroem.		166,820
-Test.		164,425
-Alchem.		151,659
-Magica		128,128
-Acta		128,126
-Gnom.		123,554
-Apocryph.	121,854
-Prophet.	114,531
-Mus.		113,577
-Satyr.		113,029
-Mech.		105,758
-Hexametr.	98,752
-Apocalyp.	92,952
-Evangel.	92,189
-Iamb.		89,502
-Doxogr.		83,611
-Fab.		77,654
-Onir.		75,365
-Eleg.		58,163
-Myth.		54,213
-Lyr.		51,255
-Perieg.		49,638
-Invectiv.	45,859
-Orac.		45,491
-Paradox.	40,923
-Metrolog.	39,523
-Satura		37,517
-Bucol.		26,255
-Liturg.		20,582
-Coq.		20,534
-Pseudepigr.	17,885
-Physiognom.	17,398
-Parod.		13,156
-Mim.		5,009
-Ignotum		89
-Agric.		0
 
-
-LATIN
-Hist.		1,040,043
-Jurisprud.	936,812
-Inscr.		801,908
-Orat.		573,366
-Nat. Hist.	535,714
-Epist.		505,214
-Comm.		462,756
-Phil.		452,337
-Epic.		438,017
-Rhet.		384,113
-Comic.		246,612
-Polyhist.	218,891
-Agric.		197,449
-Gramm.		181,030
-Docu.		167,928
-Med.		143,202
-Eleg.		124,507
-Biogr.		105,398
-Narr. Fict.	88,986
-Trag.		78,188
-Poem.		72,498
-Astron.		60,652
-Hexametr.	51,826
-Satura		45,194
-Lyr.		41,989
-Fab.		40,934
-Lexicogr.	37,569
-Tact.		27,663
-Bucol.		25,732
-Coq.		17,334
-Gnom.		7,061
-Parod.		3,064
-Encom.		2,569
-Ignotum		1,772
-Epigr.		1,553
-Hypoth.		1,363
-Mim.		994
-Dialog.		918
-
+allrel  	19,971,077
+hist   		19,505,243
+phil   		15,003,058
+comm   		14,858,103
+invectiv 	8,036,913
+allrhet 	7,166,247
+schol  		5,390,841
+liturg  	5,110,053
+epist  		4,888,170
+theol  		4,800,341
+med   		4,649,450
+exeget  	4,223,885
+docu        4,189,815
+rhet   		3,859,617
+chronogr 	3,322,458
+math   		3,020,339
+hypoth  	2,582,699
+orat   		2,283,216
+epigr  		2,246,260
+eccl   		2,093,875
+gramm  		2,060,257
+homilet 	2,053,973
+caten  		1,906,273
+apol   		1,815,289
+biogr  		1,695,280
+geogr  		1,389,645
+gnom   		1,201,612
+poem   		1,110,435
+anthol  	1,084,305
+concil  	1,068,855
+hagiogr 	1,064,305
+encom  		1,023,414
+dialog 		939,166
+astron  	939,082
+doxogr 		847,579
+astrol 		789,476
+mech  		764,207
+epic   		756,546
+polyhist 	600,274
+tact  		463,996
+perieg 		454,661
+hymn  		428,966
+paradox 	423,389
+test  		396,797
+comic  		377,135
+iamb  		324,239
+trag  		313,426
+hexametr 	297,870
+paroem 		270,513
+jurisprud 	251,466
+mus   		245,733
+myth  		242,543
+apocryph 	203,583
+acta  		186,668
+metrolog 	178,019
+magica 		170,597
+evangel 	159,286
+alchem 		148,489
+onir  		143,114
+pseudepigr 	137,518
+lyr   		129,027
+apocalyp 	120,331
+eleg  		111,655
+physiognom 	104,305
+fab   		97,884
+orac  		84,901
+satyr 		81,717
+lexicogr 	60,235
+satura 		55,990
+bucol 		35,785
+coq  		31,054
+prophet 	22,947
+parod 		18,214
+inscr 		17,115
+ignotum 	14,947
+mim  		9,230
+docu 		1,666
+agric  		153
+narrfict 		0
+nathist 		0
+papyrus 		0
 
             </pre></li>
         </ul>

@@ -37,9 +37,14 @@ func LoadUnparsedWordCountWeights() {
 func LoadParsedWordCountWeights() {
 	const (
 		EN1 = `__wordcounttotals`
-		EN2 = `__greekwordcounttotals`
-		EN3 = `__latinwordcounttotals`
+		EN2 = `__greekunparsedwordcounttotalsstoredamongheadwordcounts`
+		EN3 = `__latinunparsedwordcounttotalsstoredamongheadwordcounts`
 	)
+
+	// see HGB CountGenreRawWords():
+	// weighting calculations should be based off of the raw word count and not parsed word counts
+	// this is *not* headword data; but it is being stored in a 'headword' table because only
+	// this table knows about genres and TheEras
 
 	// __wordcounttotals
 	wct := db.GetIndividualHeadwordCount(EN1)
@@ -58,7 +63,7 @@ func LoadParsedWordCountWeights() {
 		ParsedWeightsGenres[pair.Field] = pair.Value
 	}
 
-	// __greekwordcounttotals
+	// __greekunparsedwordcounttotalsstoredamongheadwordcounts
 
 	wct = db.GetIndividualHeadwordCount(EN2)
 	swp = wct.SortedWeightedCorpusPairs()
@@ -76,7 +81,7 @@ func LoadParsedWordCountWeights() {
 		ParsedGreekWeightsGenres[pair.Field] = pair.Value
 	}
 
-	// __latinwordcounttotals
+	// __latinunparsedwordcounttotalsstoredamongheadwordcounts
 	wct = db.GetIndividualHeadwordCount(EN3)
 	swp = wct.SortedWeightedCorpusPairs()
 	for _, pair := range swp {
