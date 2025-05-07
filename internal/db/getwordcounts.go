@@ -22,6 +22,13 @@ func GetMultipleWordCounts(ww []string) map[string]str.DbUnparsedWordCounts {
 		(SELECT 1 FROM ttw_%s temptable WHERE temptable.wordforms = unparsed_wordcounts.entry_name)`
 	)
 
+	// clean the words because `φύλαξ'` is in there and that `'` will kill the query
+	for i, w := range ww {
+		// next produces `0`; the correct answer comes via `` because of a patcher deep inside RtMorphchart()
+		// ww[i] = strings.ReplaceAll(w, `'`, `\u0027`)
+		ww[i] = strings.ReplaceAll(w, `'`, ``)
+	}
+
 	dbconn := getdbconnection()
 	defer dbconn.Release()
 
@@ -67,7 +74,8 @@ func GetMultipleWordCounts(ww []string) map[string]str.DbUnparsedWordCounts {
 
 	arr := fmt.Sprintf("'%s'", strings.Join(ww, "', '"))
 	rnd := strings.Replace(uuid.New().String(), "-", "", -1)
-	_, ee := dbconn.Exec(context.Background(), fmt.Sprintf(TTT, rnd, arr))
+	query := fmt.Sprintf(TTT, rnd, arr)
+	_, ee := dbconn.Exec(context.Background(), query)
 	Msg.EC(ee)
 
 	q := fmt.Sprintf(WCQT, rnd)

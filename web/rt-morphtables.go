@@ -21,7 +21,7 @@ import (
 
 // RtMorphchart - return a chart mapping known forms of a word to their grammatical identification
 func RtMorphchart(c echo.Context) error {
-	// /lexica/morphologychart/greek/39046.0/37925260/ἐπιγιγνώϲκω
+	// /lex/chart/greek/39046.0/37925260/ἐπιγιγνώϲκω
 
 	// should reach this route exclusively via a click from rt-lexica.go
 	c.Response().After(func() { vlt.LogPaths("RtMorphchart()") })
@@ -49,12 +49,12 @@ func RtMorphchart(c echo.Context) error {
 	}
 
 	lg := elem[0]
-	id, e1 := strconv.ParseFloat(elem[1], 32)
+	id := elem[1]
 	_, e2 := strconv.Atoi(elem[2])
 	wd := gen.Purgechars(vv.UNACCEPTABLEINPUT, elem[3])
 	gl := lg == "greek" || lg == "latin"
 
-	if !gl || e1 != nil || e2 != nil {
+	if !gl || e2 != nil {
 		return emptyjsreturn(c)
 	}
 
@@ -188,6 +188,7 @@ func RtMorphchart(c echo.Context) error {
 		for _, w := range wds {
 			//  reassociate »ἥρμοττ'« and »ἥρμοττ«
 			mm[w] = wcc[strings.Replace(w, "'", "", -1)].Total
+			// mm[w] = wcc[w].Total
 		}
 		pdcm[k] = mm
 	}
