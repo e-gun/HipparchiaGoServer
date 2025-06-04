@@ -41,7 +41,7 @@ func LemmaMapper() map[string]*str.DbLemma {
 		THEQUERY = `SELECT dictionary_entry, xref_number, derivative_forms FROM %s_lemmata`
 	)
 
-	unnested := make(map[string]*str.DbLemma, vv.DBLMMAPSIZE)
+	unnested := make(map[string]*str.DbLemma, vv.DbLmMapSize)
 
 	// use the older iterative idiom to facilitate working with pointers: "foreach" idiom will fight you...
 	for _, lg := range vv.TheLanguages {
@@ -66,6 +66,10 @@ func NestedLemmaMapper(unnested map[string]*str.DbLemma) map[string]map[string]*
 	// you need both a nested and the unnested version; nested is for the hinter
 
 	nested := make(map[string]map[string]*str.DbLemma, vv.NESTEDLEMMASIZE)
+
+	// use the next if you want to recalculate vv.NESTEDLEMMASIZE
+	// nested := make(map[string]map[string]*str.DbLemma)
+
 	for k, v := range unnested {
 		rbag := []rune(v.Entry)[0:2]
 		rbag = gen.StripaccentsRUNE(rbag)

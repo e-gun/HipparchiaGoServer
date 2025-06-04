@@ -135,6 +135,18 @@ func main() {
 	//
 
 	db.SQLPool = db.FillDBConnectionPool(*lnch.Config)
+
+	//
+	// [3] now that we have access to the db, set some variables
+	//
+
+	vv.GrCt = vv.SetCorpusCount(vv.GREEKCORP, db.SQLPool)
+	vv.LtCt = vv.SetCorpusCount(vv.LATINCORP, db.SQLPool)
+	vv.InCt = vv.SetCorpusCount(vv.INSCRIPTCORP, db.SQLPool)
+	vv.ChCt = vv.SetCorpusCount(vv.CHRISTINSC, db.SQLPool)
+	vv.DpCt = vv.SetCorpusCount(vv.PAPYRUSCORP, db.SQLPool)
+	vv.DbLmMapSize = vv.SetLemmCount(db.SQLPool)
+
 	go vlt.WebsocketPool.WSPoolStartListening()
 
 	go vlt.WSSearchInfoHub()
@@ -142,7 +154,7 @@ func main() {
 	go vlt.TerminalTicker(vv.TICKERDELAY)
 
 	//
-	// [3] concurrent loading of the core data
+	// [4] concurrent loading of the core data
 	//
 
 	var awaiting sync.WaitGroup
@@ -201,13 +213,13 @@ func main() {
 	msg.Emit(msg.ColStyle(fmt.Sprintf(SUMM, time.Now().Sub(vv.LaunchTime).Seconds())), -1)
 
 	//
-	// [4] debugging code block #2 of 2
+	// [5] debugging code block #2 of 2
 	// uncomment the following but very spammy in the console...
 	//
 
 	// go debug.WSClientReport(2 * time.Second)
 
-	// [5] uncomment the next to generate "fontsubsetting/inuse.txt" (once in a very blue moon)
+	// [6] uncomment the next to generate "fontsubsetting/inuse.txt" (once in a very blue moon)
 	// (after that you should run "fontsubsetting/pyftsubset.sh" and regenerate the embedded filesystem fonts
 
 	// mps.SubsetChars()
@@ -219,7 +231,7 @@ func main() {
 	}
 
 	//
-	// [7] done: start the server (which will never return)
+	// [7] done: start the server (with a fnc call that will never return)
 	//
 
 	// fmt.Println(db.LoadBuildMetadata())

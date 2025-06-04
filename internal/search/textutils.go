@@ -461,16 +461,16 @@ func InclusionOverview(s *str.SearchStruct, sessincl str.SearchIncExl) string {
 	r := ""
 	// yes, there is a way to get this check wrong; but that would be a very special search list...
 	switch tt {
-	case vv.GRCT:
-		r = fmt.Sprintf(FULL, vv.GRCT, "Greek author")
-	case vv.LTCT:
-		r = fmt.Sprintf(FULL, vv.LTCT, "Latin author")
-	case vv.INCT:
-		r = fmt.Sprintf(FULL, vv.INCT, "classical inscriptions")
-	case vv.DPCT:
-		r = fmt.Sprintf(FULL, vv.DPCT, "documentary papyri")
-	case vv.CHCT:
-		r = fmt.Sprintf(FULL, vv.CHCT, "christian era inscriptions")
+	case vv.GrCt:
+		r = fmt.Sprintf(FULL, vv.GrCt, "Greek author")
+	case vv.LtCt:
+		r = fmt.Sprintf(FULL, vv.LtCt, "Latin author")
+	case vv.InCt:
+		r = fmt.Sprintf(FULL, vv.InCt, "classical inscriptions")
+	case vv.DpCt:
+		r = fmt.Sprintf(FULL, vv.DpCt, "documentary papyri")
+	case vv.ChCt:
+		r = fmt.Sprintf(FULL, vv.ChCt, "christian era inscriptions")
 	default:
 		r = notall()
 	}
