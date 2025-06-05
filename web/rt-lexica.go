@@ -433,6 +433,11 @@ func extractmorphpossibilities(raw string) []str.MorphPossib {
 	// Input:     {"1": {"transl": "A.I. stem, tree; II. shaft of a spear", "analysis": "neut nom/voc/acc sg", "headword": "δόρυ", "scansion": "", "xref_kind": "9", "xref_value": "26874791"}}
 	// Unmarshal: map[1:{A.I. stem, tree; II. shaft of a spear neut nom/voc/acc sg δόρυ  9 26874791}]
 
+	// note that HGB will only set a value for Transl for greek; "latin-analyses.txt" provides no info
+	// so any (latin) translations associated with a possibility ultimately have to be derived from the dictionary data
+	// db.BulkEntryTranslations() does this job; in the case of greek, the morph transl values are very thin: one
+	// serviceable meaning, but no range of senses
+
 	const (
 		FAIL = "extractmorphpossibilities() could not unmarshal %s"
 	)

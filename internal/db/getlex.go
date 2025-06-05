@@ -310,3 +310,44 @@ func FindProximateEntry(w str.DbLexicon, nxt string) str.DbLexicon {
 
 	return prx
 }
+
+// BulkEntryTranslations - for patching shallow/empty morphology translation data with lexical translation data
+func BulkEntryTranslations(ww []string) map[string]string {
+	const (
+		TT = `CREATE TEMPORARY TABLE ttw_%s AS SELECT values AS entries FROM unnest(ARRAY[%s]) values`
+		QQ = `SELECT entry_name,translations from %s_dictionary WHERE EXISTS
+		(SELECT 1 FROM ttw_%s temptable WHERE temptable.entries = %s_dictionary.entry_name)`
+	)
+
+	dbconn := getdbconnection()
+	defer dbconn.Release()
+
+	dfnmap := make(map[string]string)
+
+	var thisword [2]string
+	each := []any{&thisword[0], &thisword[1]}
+
+	rfnc := func() error {
+		dfnmap[thisword[0]] = thisword[1]
+		return nil
+	}
+
+	dicts := []string{"greek", "latin"}
+
+	arr := fmt.Sprintf("'%s'", strings.Join(ww, "', '"))
+	rnd := strings.Replace(uuid.New().String(), "-", "", -1)
+	query := fmt.Sprintf(TT, rnd, arr)
+	_, ee := dbconn.Exec(context.Background(), query)
+	Msg.EC(ee)
+
+	for _, d := range dicts {
+		q := fmt.Sprintf(QQ, d, rnd, d)
+		rr, e := dbconn.Query(context.Background(), q)
+		Msg.EC(e)
+
+		_, er := pgx.ForEachRow(rr, each, rfnc)
+		Msg.EC(er)
+	}
+
+	return dfnmap
+}

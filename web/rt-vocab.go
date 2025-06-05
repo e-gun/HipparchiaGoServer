@@ -71,7 +71,7 @@ func RtVocabMaker(c echo.Context) error {
 		</tr>`
 
 		TRR = `
-		<tr>
+		<tr class="%s">
 			<td class="word"><vocabobserved id="%s">%s</vocabobserved></td>
 			<td class="count">%d</td>
 			<td class="trans">%s</td>
@@ -87,7 +87,7 @@ func RtVocabMaker(c echo.Context) error {
 		</tr>`
 
 		TRRS = `
-		<tr>
+		<tr class="%s">
 			<td class="word"><vocabobserved id="%s">%s</vocabobserved></td>
 			<td class="scansion">%s</td>
 			<td class="count">%d</td>
@@ -169,6 +169,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	// [c2] map observed words to possibilities
 	poss := make(map[string][]str.MorphPossib)
+
 	for k, v := range morphmap {
 		poss[k] = extractmorphpossibilities(v.RawPossib)
 	}
@@ -177,16 +178,19 @@ func RtVocabMaker(c echo.Context) error {
 
 	// [c3] build a new slice of seen words with headwords attached
 	var parsedwords []str.WordInfo
-	for _, s := range slicedwords {
-		hww := poss[s.Word]
+	for _, sw := range slicedwords {
+		hww := poss[sw.Word]
 		for _, h := range hww {
-			newwd := s
+			newwd := sw
 			newwd.HeadWd = h.Headwd
 			newwd.Trans = h.Transl
 			newwd.HWdCount = hwct[h.Headwd]
 			parsedwords = append(parsedwords, newwd)
 		}
 	}
+
+	// patch the definitions in `parsedwords` with lexical info
+	parsedwords = patchparsedwords(parsedwords)
 
 	mp := make(map[string]rune)
 	if vocabsrch.SearchSize > 1 {
@@ -276,11 +280,18 @@ func RtVocabMaker(c echo.Context) error {
 	trr := make([]string, len(vis)+2)
 	trr[0] = headtempl
 	for i, v := range vis {
+		rc := ""
+		if i%2 == 0 {
+			rc = "nthrow"
+		} else {
+			rc = "regular"
+		}
+
 		var nt string
 		if s.VocScansion {
-			nt = fmt.Sprintf(TRRS, v.Word, v.Word, v.Metr, v.C, v.TR)
+			nt = fmt.Sprintf(TRRS, rc, v.Word, v.Word, v.Metr, v.C, v.TR)
 		} else {
-			nt = fmt.Sprintf(TRR, v.Word, v.Word, v.C, v.TR)
+			nt = fmt.Sprintf(TRR, rc, v.Word, v.Word, v.C, v.TR)
 		}
 		trr[i+1] = nt
 	}
@@ -345,4 +356,38 @@ func RtVocabMaker(c echo.Context) error {
 	vlt.WSInfo.Del <- vocabsrch.WSID
 
 	return jsonresponse(c, jso)
+}
+
+// patchparsedwords - patch the definitions in `parsedwords` with lexical db definitions
+func patchparsedwords(parsedwords []str.WordInfo) []str.WordInfo {
+	const (
+		SEPARATOR = ` ‖ `
+		MAXDFNS   = 20
+	)
+
+	var tofind []string
+	for _, w := range parsedwords {
+		tofind = append(tofind, w.HeadWd)
+	}
+	tofind = gen.Unique(tofind)
+	retranslator := db.BulkEntryTranslations(tofind)
+
+	for i, w := range parsedwords {
+		nt, ok := retranslator[w.HeadWd]
+		if ok && len(nt) > len(w.Trans) {
+			nte := strings.Split(nt, SEPARATOR)
+			var newnte []string
+			for j, d := range nte {
+				if j < MAXDFNS {
+					newe := fmt.Sprintf("(%d) %s", j+1, d)
+					newnte = append(newnte, newe)
+				}
+			}
+			parsedwords[i].Trans = strings.Join(newnte, "; ")
+			if len(nte) > MAXDFNS {
+				parsedwords[i].Trans += fmt.Sprintf(" [+ %d additional meanings]", len(nte)-MAXDFNS)
+			}
+		}
+	}
+	return parsedwords
 }
