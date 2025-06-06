@@ -60,7 +60,7 @@ const (
 	--hgscol09: {{.colorA3}};
 	--hgscol10: {{.colorA4}};
 	--hgscol11: {{.colorA5}};
-	--hgscol12: {{.colorA3}};
+	--hgscol12: {{.colorA2}};
 	--hgscol13: {{.colorA4}};
 	--hgscol14: {{.colorA5}};
 	--hgscol15: {{.colorA5}};
@@ -127,7 +127,7 @@ const (
 	/* R */
     --hgscol13: {{.colorB1}};
     --hgscol04: {{.colorB2}};
-    --hgscol12: {{.colorB3}};
+    --hgscol12: {{.colorC5}};
     --hgscol16: {{.colorB5}}; 
     --hgscol17: {{.colorB4}}; 
     --hgscol02: {{.colorB5}};
@@ -209,7 +209,7 @@ const (
 	/* R */
     --hgscol13: {{.colorC2}};
     --hgscol04: {{.colorB4}};
-    --hgscol12: {{.colorC0}};
+    --hgscol12: {{.colorC5}};
     --hgscol16: {{.colorB4}}; 
     --hgscol17: {{.colorD5}}; 
     --hgscol02: {{.colorC0}};
@@ -290,7 +290,7 @@ const (
 	/* R */
     --hgscol13: {{.colorC2}};
     --hgscol04: {{.colorB4}};
-    --hgscol12: {{.colorC0}};
+    --hgscol12: {{.colorC4}};
     --hgscol16: {{.colorB4}}; 
     --hgscol17: {{.colorD5}}; 
     --hgscol02: {{.colorC0}};
