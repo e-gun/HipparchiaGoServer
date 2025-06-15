@@ -10,14 +10,14 @@ require (
 	github.com/e-gun/policeresponses v0.0.3
 	github.com/e-gun/tsnemp v0.1.7
 	github.com/e-gun/wego v0.1.1
-	github.com/go-echarts/go-echarts/v2 v2.5.4
+	github.com/go-echarts/go-echarts/v2 v2.6.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/pkg/profile v1.7.0
-	golang.org/x/exp v0.0.0-20250531010427-b6e5de432a8b
-	golang.org/x/text v0.25.0
+	golang.org/x/exp v0.0.0-20250606033433-dcc06ee1d476
+	golang.org/x/text v0.26.0
 	gonum.org/v1/gonum v0.16.0
 )
 
@@ -28,7 +28,7 @@ require (
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/felixge/fgprof v0.9.5 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/google/pprof v0.0.0-20250602020802-c6617b811d0e // indirect
+	github.com/google/pprof v0.0.0-20250607225305-033d6d78b36a // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
@@ -48,10 +48,10 @@ require (
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
-	golang.org/x/crypto v0.38.0 // indirect
-	golang.org/x/net v0.40.0 // indirect
-	golang.org/x/sync v0.14.0 // indirect
+	golang.org/x/crypto v0.39.0 // indirect
+	golang.org/x/net v0.41.0 // indirect
+	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/time v0.11.0 // indirect
+	golang.org/x/time v0.12.0 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 )

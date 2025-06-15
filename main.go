@@ -222,7 +222,7 @@ func main() {
 	// [6] uncomment the next to generate "fontsubsetting/inuse.txt" (once in a very blue moon)
 	// (after that you should run "fontsubsetting/pyftsubset.sh" and regenerate the embedded filesystem fonts
 
-	// mps.SubsetChars()
+	// çmps.SubsetChars()
 
 	msg.MAND(QUIT)
 

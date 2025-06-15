@@ -9,6 +9,11 @@ import (
 	"slices"
 )
 
+const (
+	FRONTPAGE = `web/emb/htm/frontpage.html`
+	OUTFILE   = `inuse.txt`
+)
+
 // figure out all the characters we are actually using
 
 // the db results need to be supplemented with the special characters in "frontpage.html"
@@ -36,7 +41,7 @@ func SubsetChars() {
 	// rare dictionary chars that might not get caught, etc
 	kludge := "ṛṣσ"
 	s = s + kludge
-	outputtofile("fontsubsetting/inuse.txt", s)
+	outputtofile(OUTFILE, s)
 }
 
 // graballtables - get all lines from all authors(!) and then see what runes are in use in them
@@ -75,8 +80,8 @@ func grabonetable(table string) *str.WorkLineBundle {
 func grabsomelexrunes() map[rune]bool {
 	fmt.Println("grabsomelexrunes")
 	// vv.MAXDICTLOOKUP will cap this; but you should see everything there is to see
-	gl := db.DictEntryGrabber("", "greek", "html_body", "~*")
-	lt := db.DictEntryGrabber("", "latin", "html_body", "~*")
+	gl := db.DictEntryGrabber("", "greek", "entry_name", "~*")
+	lt := db.DictEntryGrabber("", "latin", "entry_name", "~*")
 
 	chars := map[rune]bool{}
 	for _, l := range gl {
@@ -98,7 +103,7 @@ func grabsomelexrunes() map[rune]bool {
 
 // grabthefrontpage - read the front page to add in the special runes there such as "➀"
 func grabthefrontpage() map[rune]bool {
-	fp, err := os.ReadFile("fontsubsetting/fp-html.txt")
+	fp, err := os.ReadFile(FRONTPAGE)
 	if err != nil {
 		fmt.Println(err)
 		fp = []byte{}
