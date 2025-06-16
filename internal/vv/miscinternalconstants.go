@@ -19,8 +19,6 @@ const (
 	GENRESTOCOUNT          = 5
 	INCERTADATE            = 9999
 	JSONINDENT             = "  "
-	LENGTHOFAUTHORID       = 6
-	LENGTHOFWORKID         = 3
 	NESTEDLEMMASIZE        = 544
 	NUMBEROFCITATIONLEVELS = 6
 	TERMINATIONS           = `(\s|\.|\]|\<|⟩|\)|’|”|\!|,|:|;|}|\?|⸥|«|·|$)` // circular imports means this is declared 2x... see also "gen.greekandlatin.go"

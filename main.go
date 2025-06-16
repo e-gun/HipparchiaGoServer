@@ -48,6 +48,8 @@ func main() {
 	// inject some key variables
 	str.TLGAbbrev = vv.TLGABBREV
 	str.LATAbbrev = vv.LATABBREV
+	str.LengthOfAuthorID = vv.AUIDLEN
+	str.LenthOfCorpusAbbrev = vv.ABBREVLEN
 
 	// lnch.PrintVersion() needs to know this
 	lnch.GitCommit = GitCommit

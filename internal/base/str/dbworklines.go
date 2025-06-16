@@ -87,17 +87,17 @@ func (dbw *DbWorkline) FindLocus() []string {
 
 // AuID - gr0001w001 --> gr0001
 func (dbw *DbWorkline) AuID() string {
-	return dbw.WkUID[:LENGTHOFAUTHORID]
+	return dbw.WkUID[:LengthOfAuthorID]
 }
 
 // WkID - gr0001w001 --> 001
 func (dbw *DbWorkline) WkID() string {
-	return dbw.WkUID[LENGTHOFAUTHORID+1:]
+	return dbw.WkUID[LengthOfAuthorID+1:]
 }
 
 func (dbw *DbWorkline) GetCorpus() string {
 	// gr0001w001 --> gr
-	return dbw.WkUID[0:2]
+	return dbw.WkUID[0:LenthOfCorpusAbbrev]
 }
 
 func (dbw *DbWorkline) BuildHyperlink() string {

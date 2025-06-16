@@ -83,7 +83,7 @@ func sliceauthorcorpus(corpus string) []str.DbAuthor {
 	worklists := make(map[string][]string)
 	for _, w := range AllWorks {
 		wk := w.UID
-		au := wk[0:vv.LENGTHOFAUTHORID]
+		au := wk[0:vv.AUIDLEN]
 		if _, y := worklists[au]; !y {
 			worklists[au] = []string{wk}
 		} else {

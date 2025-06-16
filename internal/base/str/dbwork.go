@@ -35,27 +35,27 @@ type DbWork struct {
 
 // WkID - ex: gr2017w068 --> 068
 func (dbw *DbWork) WkID() string {
-	return dbw.UID[LENGTHOFAUTHORID+1:]
+	return dbw.UID[LengthOfAuthorID+1:]
 }
 
 // AuID - ex: gr2017w068 --> gr2017
 func (dbw *DbWork) AuID() string {
-	if len(dbw.UID) < LENGTHOFAUTHORID {
+	if len(dbw.UID) < LengthOfAuthorID {
 		return ""
 	} else {
-		return dbw.UID[:LENGTHOFAUTHORID]
+		return dbw.UID[:LengthOfAuthorID]
 	}
 }
 
 // Corpus() - ex: gr2017w068 --> gr
 func (dbw *DbWork) Corpus() string {
-	return dbw.UID[0:2]
+	return dbw.UID[0:LenthOfCorpusAbbrev]
 }
 
 func (dbw *DbWork) IsPHI() bool {
 	// can't use vv: circular imports
 	// so this could bite you some day...
-	if dbw.UID[0:2] != TLGAbbrev && dbw.UID[0:2] != LATAbbrev {
+	if dbw.UID[0:LenthOfCorpusAbbrev] != TLGAbbrev && dbw.UID[0:LenthOfCorpusAbbrev] != LATAbbrev {
 		return true
 	} else {
 		return false

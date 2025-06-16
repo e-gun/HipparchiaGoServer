@@ -321,7 +321,7 @@ func calculatewholeauthorsearches(sl []string) [2][]string {
 	members := make(map[string]int)
 	for _, s := range sl {
 		// count the works
-		members[s[0:vv.LENGTHOFAUTHORID]] += 1
+		members[s[0:vv.AUIDLEN]] += 1
 	}
 
 	for k, v := range members {

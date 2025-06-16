@@ -59,8 +59,8 @@ const (
 // SSBuildQueries - populate a SearchStruct with []PrerolledQuery
 func SSBuildQueries(s *str.SearchStruct) {
 	const (
-		REG    = `(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
-		IDX    = `(index %sBETWEEN %d AND %d)` // %s is "" or "NOT "
+		REG    = `(?P<auth>.{%d})_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)` // %d to allow for AUIDLEN
+		IDX    = `(index %sBETWEEN %d AND %d)`                          // %s is "" or "NOT "
 		ABORT  = "SSBuildQueries() aborting: the ID '%s' is not in the sessionvault"
 		ABORT2 = "SSBuildQueries() aborting: testqueryregex() failed to compile regex"
 	)
@@ -122,7 +122,7 @@ func SSBuildQueries(s *str.SearchStruct) {
 
 	// [a2] individual passages included/excluded
 
-	pattern := regexp.MustCompile(REG)
+	pattern := regexp.MustCompile(fmt.Sprintf(REG, vv.AUIDLEN))
 	for _, p := range inc.Passages {
 		// "gr0032_FROM_11313_TO_11843"
 		// there is an "index out of range" panic you will see in here if "gr0028_FROM_-1_TO_5" arrives

@@ -128,7 +128,7 @@ func Buildwkcorpusmap() map[string][]string {
 	wkcorpusmap := make(map[string][]string)
 	for _, w := range AllWorks {
 		for _, c := range vv.TheCorpora {
-			if w.UID[0:2] == c {
+			if w.UID[0:vv.ABBREVLEN] == c {
 				wkcorpusmap[c] = append(wkcorpusmap[c], w.UID)
 			}
 		}

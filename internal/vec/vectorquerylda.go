@@ -78,7 +78,7 @@ func (b *bagwithlocus) GetWL() {
 	if e != nil {
 		Msg.NOTE("bagwithlocus.GetWL() failed to convert ascii to int")
 	}
-	b.Workline = db.GrabOneLine(tb[1][0:vv.LENGTHOFAUTHORID], ln)
+	b.Workline = db.GrabOneLine(tb[1][0:vv.AUIDLEN], ln)
 }
 
 // LDAPrepText - prepare the WorkLineBundle of a SearchStruct for lda analysis

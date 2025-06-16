@@ -44,7 +44,7 @@ func RtAuthorHints(c echo.Context) error {
 
 	var trimmed [][2]string
 	for _, a := range auu {
-		co := a[1][0:2]
+		co := a[1][0:vv.ABBREVLEN]
 		if s.ActiveCorp[co] {
 			trimmed = append(trimmed, a)
 		}

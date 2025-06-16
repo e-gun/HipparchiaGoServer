@@ -12,11 +12,16 @@ import (
 )
 
 const (
-	TLGABBREV = "gr" // this and the following *must* match the corresponding HipparchiaGoBuilder values
-	LATABBREV = "lt"
-	DDPABREV  = "dp"
-	INSABBREV = "in"
-	CHRABBREV = "ch"
+	TLGABBREV = "tlg" // this and the following *must* match the corresponding HipparchiaGoBuilder values
+	LATABBREV = "lat"
+	DDPABREV  = "dpx"
+	INSABBREV = "inx"
+	CHRABBREV = "chx"
+
+	AUNAMELEN = 4
+	WKIDLEN   = 3
+	ABBREVLEN = 3
+	AUIDLEN   = ABBREVLEN + AUNAMELEN
 )
 
 var (

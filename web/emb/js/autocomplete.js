@@ -7,7 +7,7 @@
 // NB: coreinterfaceclicks.js also uses these values
 
 const WORKNAMELEN = 3;
-const CORPPREFIXLEN = 2;
+const CORPPREFIXLEN = 3;
 const AUTHNAMELEN = 4;
 const AUIDLEN = CORPPREFIXLEN + AUTHNAMELEN;
 

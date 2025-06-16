@@ -137,12 +137,14 @@ func RtGetJSWorksOf(c echo.Context) error {
 	wl := []string{}
 	if _, ok := mps.AllAuthors[id]; ok {
 		wl = mps.AllAuthors[id].WorkList
+		//fmt.Println("RtGetJSWorksOf", id)
+		//fmt.Println("WorkList", wl)
 	}
 
 	wks := make([]string, len(wl))
 	for i := 0; i < len(wl); i++ {
 		w := wl[i]
-		wks[i] = fmt.Sprintf(TEMPL, mps.AllWorks[w].Title, w[vv.LENGTHOFAUTHORID:vv.LENGTHOFAUTHORID+vv.LENGTHOFWORKID+1])
+		wks[i] = fmt.Sprintf(TEMPL, mps.AllWorks[w].Title, w[vv.AUIDLEN:vv.AUIDLEN+vv.WKIDLEN+1])
 	}
 
 	slices.Sort(wks)

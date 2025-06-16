@@ -444,7 +444,7 @@ func rationalizeselections(original str.ServerSession, sv selectionvalues) str.S
 		// [b] remove the works from this column
 		clean = []string{}
 		for _, w := range si.Works {
-			if w[0:vv.LENGTHOFAUTHORID] != sv.Auth {
+			if w[0:vv.AUIDLEN] != sv.Auth {
 				clean = append(clean, w)
 			}
 		}
@@ -453,7 +453,7 @@ func rationalizeselections(original str.ServerSession, sv selectionvalues) str.S
 		// [c] remove the passages from this column
 		clean = []string{}
 		for _, p := range si.Passages {
-			if p[0:vv.LENGTHOFAUTHORID] != sv.Auth {
+			if p[0:vv.AUIDLEN] != sv.Auth {
 				clean = append(clean, p)
 			} else {
 				delete(si.MappedPsgByName, p)
@@ -473,7 +473,7 @@ func rationalizeselections(original str.ServerSession, sv selectionvalues) str.S
 		// [b] remove the works from both columns
 		clean = []string{}
 		for _, w := range si.Works {
-			if w[0:vv.LENGTHOFAUTHORID] != sv.Auth {
+			if w[0:vv.AUIDLEN] != sv.Auth {
 				clean = append(clean, w)
 			}
 		}
@@ -481,7 +481,7 @@ func rationalizeselections(original str.ServerSession, sv selectionvalues) str.S
 
 		clean = []string{}
 		for _, w := range se.Works {
-			if w[0:vv.LENGTHOFAUTHORID] != sv.Auth {
+			if w[0:vv.AUIDLEN] != sv.Auth {
 				clean = append(clean, w)
 			}
 		}
@@ -490,7 +490,7 @@ func rationalizeselections(original str.ServerSession, sv selectionvalues) str.S
 		// [c] remove the passages from both columns
 		clean = []string{}
 		for _, p := range si.Passages {
-			if p[0:vv.LENGTHOFAUTHORID] != sv.Auth {
+			if p[0:vv.AUIDLEN] != sv.Auth {
 				clean = append(clean, p)
 			} else {
 				delete(si.MappedPsgByName, p)
@@ -500,7 +500,7 @@ func rationalizeselections(original str.ServerSession, sv selectionvalues) str.S
 
 		clean = []string{}
 		for _, p := range se.Passages {
-			if p[0:vv.LENGTHOFAUTHORID] != sv.Auth {
+			if p[0:vv.AUIDLEN] != sv.Auth {
 				clean = append(clean, p)
 			} else {
 				delete(se.MappedPsgByName, p)
@@ -954,7 +954,7 @@ func locusendpointer(wuid string, locus string, sep string) ([2]int, bool) {
 func validateworkselection(uid string) *str.DbWork {
 	w := &str.DbWork{}
 	w.UID = "work_not_found"
-	au := uid[0:vv.LENGTHOFAUTHORID]
+	au := uid[0:vv.AUIDLEN]
 	if _, ok := mps.AllWorks[uid]; ok {
 		w = mps.AllWorks[uid]
 	} else {
