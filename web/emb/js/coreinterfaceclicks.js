@@ -216,8 +216,8 @@ function generateautofilllocationstring(){
 }
 
 function browsetopassage() {
-    let auth = $('#authorsautocomplete').val().slice(-7, -1);
-    let wrk = $('#worksautocomplete').val().slice(-4, -1);
+    let auth = $('#authorsautocomplete').val().slice(-1 * (AUIDLEN + 1), -1);
+    let wrk = $('#worksautocomplete').val().slice(-1 * (WORKNAMELEN + 1), -1);
 
     if ($('#autofillinput').is(':checked')) {
         // you are using the autofill boxes
@@ -398,7 +398,7 @@ function dropdownbuttonsetter(b, v) {
 
 $('#authinfobutton').click(function(){
         $('#authorholdings').toggle();
-        let authorid = $('#authorsautocomplete').val().slice(-7, -1);
+        let authorid = $('#authorsautocomplete').val().slice(-1 * (AUIDLEN + 1), -1);
         $.getJSON('/get/json/authorinfo/' + authorid, function (selectiondata) {
                 $('#authorholdings').html(selectiondata['value']);
                  });
@@ -445,8 +445,8 @@ $('#endpointbutton-isclosed').click(function(){
     $('#endpointbutton-isclosed').hide();
      if ($('#autofillinput').is(':checked')) {
         let levellist = ['00', '01', '02', '03', '04', '05'];
-        let author = aac.val().slice(-7, -1);
-        let work = $('#worksautocomplete').val().slice(-4, -1);
+        let author = aac.val().slice(-1 * (AUIDLEN + 1), -1);
+        let work = $('#worksautocomplete').val().slice(-1 * (WORKNAMELEN + 1), -1);
         let getpath = author + '/' + work;
         $.getJSON('/get/json/workstructure/' + getpath, function (selectiondata) {
             let lvls = selectiondata['totallevels'];

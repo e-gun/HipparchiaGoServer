@@ -3,6 +3,16 @@
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 
+// this is how you can allow shifts from a universalid of `gr0001w001` to `tlg0001w001`
+// NB: coreinterfaceclicks.js also uses these values
+
+const WORKNAMELEN = 3;
+const CORPPREFIXLEN = 2;
+const AUTHNAMELEN = 4;
+const AUIDLEN = CORPPREFIXLEN + AUTHNAMELEN;
+
+const NUMBEROFLEVELS = 6;
+
 //
 // AUTHORS
 //
@@ -59,11 +69,16 @@ $('#authorsautocomplete').autocomplete({
         let origEvent = event;
         let auid = '';
         while (origEvent.originalEvent !== undefined){ origEvent = origEvent.originalEvent; }
+
+        // console.log(thisselector.val());
+        // `M. Tullius Cicero [lt0474]`
+        // and you are targeting `lt0474` in that string
+
         if (origEvent.type === 'click'){
             document.getElementById('authorsautocomplete').value = ui.item.value;
-            auid = thisselector.val().slice(-7, -1);
+            auid = thisselector.val().slice(-1 * (AUIDLEN + 1), -1);
         } else {
-            auid = thisselector.val().slice(-7, -1);
+            auid = thisselector.val().slice(-1 * (AUIDLEN + 1), -1);
         }
         loadWorklist(auid);
         selector.prop('placeholder', '(Pick a work)');
@@ -75,10 +90,15 @@ $('#authorsautocomplete').autocomplete({
 
 $('#addauthortosearchlist').click( function() {
         let name = $('#authorsautocomplete').val();
-        let authorid = name.slice(-7, -1);
+        let authorid = name.slice(-1 * (AUIDLEN + 1), -1);
         let locus = locusdataloader();
         let endpoint = endpointdataloader();
-        let wrk = $('#worksautocomplete').val().slice(-4, -1);
+
+        // console.log($('#worksautocomplete').val());
+        // `Academica (w045)`
+        // and you are targeting `045` in that string
+
+        let wrk = $('#worksautocomplete').val().slice(-1 * (WORKNAMELEN + 1), -1); // want the `001` in `gr0007w001`
         let rawlocus = $('#rawlocationinput').val();
         let rawendpoint = $('#rawendpointinput').val();
         if ($('#endpointnotice').is(':hidden')) {
@@ -133,10 +153,10 @@ $('#addauthortosearchlist').click( function() {
 
 $('#excludeauthorfromsearchlist').click( function() {
         let name = $('#authorsautocomplete').val();
-        let authorid = name.slice(-7, -1);
+        let authorid = name.slice(-1 * (AUIDLEN + 1), -1);
         let locus = locusdataloader();
         let endpoint = endpointdataloader();
-        let wrk = $('#worksautocomplete').val().slice(-4, -1);
+        let wrk = $('#worksautocomplete').val().slice(-1 * (WORKNAMELEN + 1), -1);
         let rawlocus = $('#rawlocationinput').val();
         let rawendpoint = $('#rawendpointinput').val();
         resetworksautocomplete();
@@ -210,8 +230,8 @@ function loadWorklist(authornumber){
 $('#worksautocomplete').autocomplete({
     focus: function (event, ui) {
         resetworksautocomplete();
-        let auth = $("#authorsautocomplete").val().slice(-7, -1);
-        let wrk = ui.item.value.slice(-4, -1);
+        let auth = $("#authorsautocomplete").val().slice(-1 * (AUIDLEN + 1), -1);
+        let wrk = ui.item.value.slice(-1 * (WORKNAMELEN + 1), -1);
         if ($('#autofillinput').is(':checked')) {
             loadLevellist(auth, wrk, 'firstline');
         } else {
@@ -269,7 +289,7 @@ function locusdataloader() {
     let l0 = document.getElementById("level00").value;
     let lvls = [ l5, l4, l3, l2, l1, l0];
     let locusdata = '';
-    for (let i = 0; i < 6; i++ ) {
+    for (let i = 0; i < NUMBEROFLEVELS; i++ ) {
         if (lvls[i] !== '') { locusdata += lvls[i]+'|' } }
     locusdata = locusdata.slice(0, (locusdata.length)-1);
     return locusdata;
@@ -284,7 +304,7 @@ function endpointdataloader() {
     let l0 = $('#level00endpoint').val();
     let lvls = [ l5, l4, l3, l2, l1, l0];
     let locusdata = '';
-    for (let i = 0; i < 6; i++ ) {
+    for (let i = 0; i < NUMBEROFLEVELS; i++ ) {
         if (lvls[i] !== '') { locusdata += lvls[i]+'|' } }
     locusdata = locusdata.slice(0, (locusdata.length)-1);
 
@@ -341,12 +361,6 @@ function loadLevellist(author, work, pariallocus){
 
         $(generateme).show();
         $(generateme).autocomplete ({
-            // focus: async function (event, ui) {
-            //     if (atlevel > 0) {
-            //         const loc = await waitAndReturnLocusValue();
-            //         loadLevellist(author, work, loc);
-            //         }
-            //     },
             source: possibilities, // alas: the select function can execute before the possibilities have loaded...
             select: async function (event, ui) {
                 // as per the preceding: if select() executes before source() is done resetting the
@@ -368,12 +382,6 @@ function loadLevellist(author, work, pariallocus){
         if ( low !== '-9999') { $(generateendpoint).prop('placeholder', '('+label+' '+String(low)+' to '+String(high)+')'); }
         else { $(generateendpoint).prop('placeholder', '(awaiting a valid selection...)'); }
         $(generateendpoint).autocomplete ({
-            // focus: function (event, ui) {
-            //     if (atlevel > 0) {
-            //         let loc = endpointdataloader();
-            //         endpointloadLevellist(author, work, loc);
-            //         }
-            //     },
             source: possibilities,
             select: async function (event, ui) {
                 const loc = await waitAndReturnEndPointLocusValue();
@@ -415,13 +423,6 @@ function endpointloadLevellist(author, work, pariallocus){
 
         $(generateme).show();
         $(generateme).autocomplete ({
-            // focus: async function (event, ui) {
-            //     if (atlevel > 0) {
-            //         let loc = endpointdataloader();
-            //         endpointdataloader(author, work, loc);
-            //         $('#level0'+String(atlevel-1)+'endpoint').show()
-            //         }
-            //     },
             source: possibilities,
             select: async function (event, ui) {
                 const loc = await waitAndReturnEndPointLocusValue();
@@ -437,7 +438,6 @@ function endpointloadLevellist(author, work, pariallocus){
 $('#genresautocomplete').autocomplete({
     source: '/hints/authgenre/_'
     });
-
 
 $('#workgenresautocomplete').autocomplete({
     source: '/hints/workgenre/_'
