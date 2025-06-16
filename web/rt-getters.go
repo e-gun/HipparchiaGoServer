@@ -90,17 +90,17 @@ func RtGetJSSession(c echo.Context) error {
 
 	var jso JSO
 	jso.Browsercontext = i2s(s.BrowseCtx)
-	jso.Christiancorpus = t2y(s.ActiveCorp["ch"])
+	jso.Christiancorpus = t2y(s.ActiveCorp[vv.CHRABBREV])
 	jso.CssColors = s.CssColors
 	jso.Earliestdate = s.Earliest
 	jso.FontSelected = s.FontSel
-	jso.Greekcorpus = t2y(s.ActiveCorp["gr"])
+	jso.Greekcorpus = t2y(s.ActiveCorp[vv.TLGABBREV])
 	jso.Headwordindexing = t2y(s.HeadwordIdx)
 	jso.Incerta = t2y(s.IncertaOK)
 	jso.Indexbyfrequency = t2y(s.FrqIdx)
-	jso.Inscriptioncorpus = t2y(s.ActiveCorp["in"])
+	jso.Inscriptioncorpus = t2y(s.ActiveCorp[vv.INSABBREV])
 	jso.Latestdate = s.Latest
-	jso.Latincorpus = t2y(s.ActiveCorp["lt"])
+	jso.Latincorpus = t2y(s.ActiveCorp[vv.LATABBREV])
 	jso.Linesofcontext = i2s(s.HitContext)
 	jso.Lda2D = t2y(s.LDA2D)
 	jso.LdaGraph = t2y(s.LDAgraph)
@@ -108,7 +108,7 @@ func RtGetJSSession(c echo.Context) error {
 	jso.LdaSearch = t2y(s.VecLDASearch)
 	jso.Maxresults = i2s(s.HitLimit)
 	jso.Nearornot = s.NearOrNot
-	jso.Papyruscorpus = t2y(s.ActiveCorp["dp"])
+	jso.Papyruscorpus = t2y(s.ActiveCorp[vv.DDPABREV])
 	jso.Proximity = i2s(s.Proximity)
 	jso.Rawinputstyle = t2y(s.RawInput)
 	jso.Searchscope = s.SearchScope

@@ -45,6 +45,10 @@ func main() {
 		QUIT = "to stop the server press Control-C or close this window"
 	)
 
+	// inject some key variables
+	str.TLGAbbrev = vv.TLGABBREV
+	str.LATAbbrev = vv.LATABBREV
+
 	// lnch.PrintVersion() needs to know this
 	lnch.GitCommit = GitCommit
 	lnch.VersSuppl = VersSuppl
@@ -140,11 +144,11 @@ func main() {
 	// [3] now that we have access to the db, set some variables
 	//
 
-	vv.GrCt = vv.SetCorpusCount(vv.GREEKCORP, db.SQLPool)
-	vv.LtCt = vv.SetCorpusCount(vv.LATINCORP, db.SQLPool)
-	vv.InCt = vv.SetCorpusCount(vv.INSCRIPTCORP, db.SQLPool)
-	vv.ChCt = vv.SetCorpusCount(vv.CHRISTINSC, db.SQLPool)
-	vv.DpCt = vv.SetCorpusCount(vv.PAPYRUSCORP, db.SQLPool)
+	vv.GrCt = vv.SetCorpusCount(vv.TLGABBREV, db.SQLPool)
+	vv.LtCt = vv.SetCorpusCount(vv.LATABBREV, db.SQLPool)
+	vv.InCt = vv.SetCorpusCount(vv.INSABBREV, db.SQLPool)
+	vv.ChCt = vv.SetCorpusCount(vv.CHRABBREV, db.SQLPool)
+	vv.DpCt = vv.SetCorpusCount(vv.DDPABREV, db.SQLPool)
 	vv.DbLmMapSize = vv.SetLemmCount(db.SQLPool)
 
 	go vlt.WebsocketPool.WSPoolStartListening()

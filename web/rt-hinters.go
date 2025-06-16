@@ -183,7 +183,7 @@ func isidhint(skg string) bool {
 	// note that ids for papyrus, etc are not necc. going to have a digit in third place; many will be unfindable
 	// this is a to-do of sorts; but we are aiming for 'good enough' right now; nobody is really using this as it
 	// is basically a debugger's function
-	preff := []string{vv.GREEKCORP, vv.LATINCORP, vv.PAPYRUSCORP, vv.INSCRIPTCORP, vv.CHRISTINSC}
+	preff := []string{vv.TLGABBREV, vv.LATABBREV, vv.DDPABREV, vv.INSABBREV, vv.CHRABBREV}
 
 	pref := fmt.Sprintf("(%s)", strings.Join(preff, ")|("))
 	r := fmt.Sprintf("(%s)[0-9]", pref) // --> ((gr)|(lt)|(dp)|(in)|(ch))[0-9]

@@ -2,6 +2,7 @@ package format
 
 import (
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
+	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"strings"
 )
 
@@ -34,20 +35,20 @@ func FormatAnnotations(l str.DbWorkline) string {
 	//}
 
 	categoriestouse := map[string]map[string]bool{
-		"gr": {
+		vv.TLGABBREV: {
 			"notes":          true,
 			"date":           true,
 			"city":           true,
 			"region":         true,
 			"documentnumber": true,
 		},
-		"lt": {
+		vv.LATABBREV: {
 			"notes":  true,
 			"date":   true,
 			"city":   true,
 			"region": true,
 		},
-		"in": {
+		vv.INSABBREV: {
 			"date":      true,
 			"corrected": true,
 			"altered":   true,
@@ -55,7 +56,7 @@ func FormatAnnotations(l str.DbWorkline) string {
 			"alternate": true,
 			"discarded": true,
 		},
-		"dp": {
+		vv.DDPABREV: {
 			"date":       true,
 			"provenance": true,
 			"corrected":  true,
@@ -63,7 +64,7 @@ func FormatAnnotations(l str.DbWorkline) string {
 			"alternate":  true,
 			"discarded":  true,
 		},
-		"ch": {
+		vv.CHRABBREV: {
 			"date":      true,
 			"corrected": true,
 			"altered":   true,

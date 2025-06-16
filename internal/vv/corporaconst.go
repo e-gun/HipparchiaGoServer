@@ -11,25 +11,23 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// if you alter the db contents, you need to adjust this...
-
 const (
-	DEFAULTCORPORA = "{\"gr\": true, \"lt\": true, \"in\": false, \"ch\": false, \"dp\": false}"
-	GREEKCORP      = "gr"
-	LATINCORP      = "lt"
-	PAPYRUSCORP    = "dp"
-	INSCRIPTCORP   = "in"
-	CHRISTINSC     = "ch"
+	TLGABBREV = "gr" // this and the following *must* match the corresponding HipparchiaGoBuilder values
+	LATABBREV = "lt"
+	DDPABREV  = "dp"
+	INSABBREV = "in"
+	CHRABBREV = "ch"
 )
 
 var (
-	TheCorpora = []string{GREEKCORP, LATINCORP, INSCRIPTCORP, CHRISTINSC, PAPYRUSCORP}
+	TheCorpora = []string{TLGABBREV, LATABBREV, INSABBREV, CHRABBREV, DDPABREV}
 	// GrCt - this and the next will be (re)set at launch time; but the supplied values are almost certainly right
-	GrCt = 1823
-	LtCt = 363
-	InCt = 463
-	ChCt = 291
-	DpCt = 516
+	GrCt           = 1823
+	LtCt           = 363
+	InCt           = 463
+	ChCt           = 291
+	DpCt           = 516
+	DefaultCorpora = fmt.Sprintf(`{"%s": true, "%s": true, "%s": false, "%s": false, "%s": false}`, TLGABBREV, LATABBREV, DDPABREV, INSABBREV, CHRABBREV)
 )
 
 func SetCorpusCount(corp string, p *pgxpool.Pool) int {

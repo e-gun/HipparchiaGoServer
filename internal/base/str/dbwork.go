@@ -5,6 +5,11 @@
 
 package str
 
+var (
+	TLGAbbrev = "gr" // should inject vv.TLGABBREV value at launch
+	LATAbbrev = "lt" // should inject vv.LATABBREV value at launch vv.LATABBREV
+)
+
 type DbWork struct {
 	UID       string
 	Title     string
@@ -50,7 +55,7 @@ func (dbw *DbWork) Corpus() string {
 func (dbw *DbWork) IsPHI() bool {
 	// can't use vv: circular imports
 	// so this could bite you some day...
-	if dbw.UID[0:2] != "gr" && dbw.UID[0:2] != "lt" {
+	if dbw.UID[0:2] != TLGAbbrev && dbw.UID[0:2] != LATAbbrev {
 		return true
 	} else {
 		return false

@@ -74,20 +74,20 @@ func RtSetOption(c echo.Context) error {
 			}
 			switch opt {
 			case "greekcorpus":
-				s.ActiveCorp[vv.GREEKCORP] = b
-				go modifyglobalmapsifneeded(vv.GREEKCORP, b)
+				s.ActiveCorp[vv.TLGABBREV] = b
+				go modifyglobalmapsifneeded(vv.TLGABBREV, b)
 			case "latincorpus":
-				s.ActiveCorp[vv.LATINCORP] = b
-				go modifyglobalmapsifneeded(vv.LATINCORP, b)
+				s.ActiveCorp[vv.LATABBREV] = b
+				go modifyglobalmapsifneeded(vv.LATABBREV, b)
 			case "papyruscorpus":
-				s.ActiveCorp[vv.PAPYRUSCORP] = b
-				go modifyglobalmapsifneeded(vv.PAPYRUSCORP, b)
+				s.ActiveCorp[vv.DDPABREV] = b
+				go modifyglobalmapsifneeded(vv.DDPABREV, b)
 			case "inscriptioncorpus":
-				s.ActiveCorp[vv.INSCRIPTCORP] = b
-				go modifyglobalmapsifneeded(vv.INSCRIPTCORP, b)
+				s.ActiveCorp[vv.INSABBREV] = b
+				go modifyglobalmapsifneeded(vv.INSABBREV, b)
 			case "christiancorpus":
-				s.ActiveCorp[vv.CHRISTINSC] = b
-				go modifyglobalmapsifneeded(vv.CHRISTINSC, b)
+				s.ActiveCorp[vv.CHRABBREV] = b
+				go modifyglobalmapsifneeded(vv.CHRABBREV, b)
 			case "rawinputstyle":
 				s.RawInput = b
 			case "onehit":

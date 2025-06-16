@@ -375,9 +375,9 @@ func builddefaultconfig() *str.CurrentConfiguration {
 	c.VocabScans = vv.VOCABSCANSION
 	c.WorkerCount = runtime.NumCPU()
 	c.ZapLunates = false
-	e := json.Unmarshal([]byte(vv.DEFAULTCORPORA), &c.DefCorp)
+	e := json.Unmarshal([]byte(vv.DefaultCorpora), &c.DefCorp)
 	if e != nil {
-		fmt.Println("builddefaultconfig() could not json.Unmarshal DEFAULTCORPORA: " + vv.DEFAULTCORPORA)
+		fmt.Println("builddefaultconfig() could not json.Unmarshal DefaultCorpora: " + vv.DefaultCorpora)
 	}
 
 	pl := str.PostgresLogin{

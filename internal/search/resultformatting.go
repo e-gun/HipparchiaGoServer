@@ -465,7 +465,7 @@ func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
 func FormatInscriptionDates(template string, dbw *str.DbWorkline) string {
 	datestring := ""
 	fc := dbw.GetCorpus()
-	dated := fc == vv.INSCRIPTCORP || fc == vv.CHRISTINSC || fc == vv.PAPYRUSCORP
+	dated := fc == vv.INSABBREV || fc == vv.CHRABBREV || fc == vv.DDPABREV
 	if dated {
 		cd := gen.IntToBCE(mps.AllWorks[dbw.WkUID].ConvDate)
 		if cd == "9999 C.E." {
@@ -484,7 +484,7 @@ func formatinscriptionplaces(dbw *str.DbWorkline) string {
 
 	placestring := ""
 	fc := dbw.GetCorpus()
-	placed := fc == vv.INSCRIPTCORP || fc == vv.CHRISTINSC || fc == vv.PAPYRUSCORP
+	placed := fc == vv.INSABBREV || fc == vv.CHRABBREV || fc == vv.DDPABREV
 	if placed {
 		placestring = fmt.Sprintf(PLACER, mps.AllWorks[dbw.WkUID].Prov)
 	}
