@@ -9,6 +9,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
+	"maps"
 	"reflect"
 	"regexp"
 	"sort"
@@ -401,7 +402,9 @@ func headworddistribbycorp(wc str.DbHeadwordCounts) string {
 	var pd []string
 	m := message.NewPrinter(language.English)
 
-	mymap := mps.ParsedGreekWeightsCorpora
+	// you will induce a race condition if you do not use clones of the maps
+	mymap := maps.Clone(mps.ParsedGreekWeightsCorpora)
+
 	if gen.IsLatin.MatchString(wc.Word) {
 		mymap = mps.ParsedLatinWeightsCorpora
 	} else {
@@ -456,7 +459,8 @@ func headworddistribbyera(wc str.DbHeadwordCounts) string {
 	var pd []string
 	m := message.NewPrinter(language.English)
 
-	mymap := mps.ParsedGreekWeightsEras
+	mymap := maps.Clone(mps.ParsedGreekWeightsEras)
+
 	//if gen.IsLatin.MatchString(wc.Word) {
 	//	mymap = mps.ParsedLatinWeightsEras
 	//}
@@ -502,9 +506,9 @@ func headworddistribbygenre(wc str.DbHeadwordCounts) string {
 	var pd []string
 	m := message.NewPrinter(language.English)
 
-	mymap := mps.ParsedGreekWeightsGenres
+	mymap := maps.Clone(mps.ParsedGreekWeightsGenres)
 	if gen.IsLatin.MatchString(wc.Word) {
-		mymap = mps.ParsedLatinWeightsGenres
+		mymap = maps.Clone(mps.ParsedGreekWeightsGenres)
 	}
 
 	cv := wc.SortedGenrePairs()

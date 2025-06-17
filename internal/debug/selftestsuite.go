@@ -161,7 +161,7 @@ func selftestsuite() {
 	u := fmt.Sprintf("http://%s:%d/", lnch.Config.HostIP, lnch.Config.HostPort)
 
 	tt := [5]bool{true, true, true, true, true}
-	// tt := [5]bool{false, false, false, false, true}
+	// tt = [5]bool{false, false, false, true, false}
 
 	getter := func(u string) {
 		res, e := http.Get(u)
@@ -203,9 +203,9 @@ func selftestsuite() {
 	if tt[2] {
 		stm.Emit("[III] 4 browsing and lexical tests", mm.MSGWARN)
 
-		br := "browse/index/gr00%d/001/%d"
+		br := "browse/index/%s00%d/001/%d"
 		for i := 0; i < 50; i++ {
-			getter(u + fmt.Sprintf(br, i+10, 100))
+			getter(u + fmt.Sprintf(br, vv.TLGABBREV, i+10, 100))
 		}
 		stm.Timer("D1", MSG10, start, previous)
 		previous = time.Now()
@@ -222,6 +222,7 @@ func selftestsuite() {
 		stm.Timer("D2", fmt.Sprintf(MSG11, len(lex)), start, previous)
 		previous = time.Now()
 
+		// this is currently exposing a race condition in `format/lexical.go` and its call to headworddistribbycorp()
 		wds = "pud sud obse αφροδ γραμ ποικιλ pud sud obse αφροδ γραμ ποικιλ pud sud obse αφροδ γραμ ποικιλ"
 
 		lex = strings.Split(wds, " ")
@@ -255,7 +256,7 @@ func selftestsuite() {
 	// glove seizes scads of memory and never releases it; need to fix wego, though, it seems
 	vmod := []string{"w2v", "lexvec", "glove"}
 	vtxp := []string{"winner", "unparsed", "yoked", "montecarlo"}
-	vauu := []string{"gr0011"} // sophocles
+	vauu := []string{vv.TLGABBREV + "0011"} // sophocles
 
 	// fnc for [iv.3]
 	httpgetauthor := func(v string) {
@@ -297,7 +298,7 @@ func selftestsuite() {
 	// [V] lda vectorization tests
 	if tt[4] {
 		stm.Emit("[V] lda vectorization tests", mm.MSGWARN)
-		vauu = []string{"lt0472"} // catullus
+		vauu = []string{vv.LATABBREV + "0472"} // catullus
 
 		preptext("lda")
 		nb := fmt.Sprintf(MSG15, len(vauu), len(vtxp))

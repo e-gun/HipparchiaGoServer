@@ -31,7 +31,7 @@ const (
 	--buttonandcheckboxcontents: {{.colorA2}};
 
 	--locuscolor: {{.colorA1}};
-	--notations: {{.colorA6}};
+	--notations: {{.colorA2}};
 	--dottedborders: {{.colorA1}};
 	--bracketcolor1: {{.colorA2}};
 	--bracketcolor2: {{.colorA2}};
