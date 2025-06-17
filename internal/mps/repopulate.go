@@ -23,7 +23,7 @@ var (
 	LoadedCorp  = make(map[string]bool)
 )
 
-// RePopulateGlobalMaps - full up WkCorpusMap, AuCorpusMap, ...
+// RePopulateGlobalMaps - fill up WkCorpusMap, AuCorpusMap, ... Called if the active corpus list changes
 func RePopulateGlobalMaps() {
 	WkCorpusMap = Buildwkcorpusmap()
 	AuCorpusMap = buildaucorpusmap()

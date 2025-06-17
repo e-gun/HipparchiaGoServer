@@ -4,7 +4,8 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 )
 
-// set these in main.go at launch time
+// set these in main.go at launch
+// write once and read many: race candidates if there are any writes after launce
 
 var (
 	UnparsedWeights           = map[string]float32{}
