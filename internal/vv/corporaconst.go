@@ -22,6 +22,13 @@ const (
 	WKIDLEN   = 3
 	ABBREVLEN = 3
 	AUIDLEN   = ABBREVLEN + AUNAMELEN
+
+	//any change to the above needs to be reflected in `web/emb/js/autocomplete.js` where on sees:
+	//const WORKNAMELEN = 3;
+	//const CORPPREFIXLEN = 3;
+	//const AUTHNAMELEN = 4;
+	//const AUIDLEN = CORPPREFIXLEN + AUTHNAMELEN;
+	//const NUMBEROFLEVELS = 6;
 )
 
 var (

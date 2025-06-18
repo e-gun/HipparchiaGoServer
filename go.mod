@@ -7,7 +7,7 @@ toolchain go1.24.0
 require (
 	github.com/e-gun/lastnlines v0.1.0
 	github.com/e-gun/nlp v0.0.2
-	github.com/e-gun/policeresponses v0.0.3
+	github.com/e-gun/policeresponses v0.0.4
 	github.com/e-gun/tsnemp v0.1.7
 	github.com/e-gun/wego v0.1.1
 	github.com/go-echarts/go-echarts/v2 v2.6.0

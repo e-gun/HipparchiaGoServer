@@ -3,8 +3,15 @@
 //    License: GNU GENERAL PUBLIC LICENSE 3
 //        (see LICENSE in the top level directory of the distribution)
 
+//
+// KEY CONSTANTS
+//
+
 // this is how you can allow shifts from a universalid of `gr0001w001` to `tlg0001w001`
 // NB: coreinterfaceclicks.js also uses these values
+
+// the values here *must* match the corresponding values in `vv.corporaconst.go` and a change in one file
+// requires and edit to the other
 
 const WORKNAMELEN = 3;
 const CORPPREFIXLEN = 3;

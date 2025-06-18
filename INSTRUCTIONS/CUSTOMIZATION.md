@@ -27,17 +27,17 @@ Items of most interest in the configuration file:
     "CustomCSS": false,
     "DbDebug": false,
     "DefCorp": {
-      "ch": false,
-      "dp": false,
-      "gr": true,
-      "in": false,
-      "lt": true
+      "chx": false,
+      "dpx": false,
+      "tlg": true,
+      "inx": false,
+      "lat": true
     },
     "EchoLog": 0,
     "Font": "Noto",
     "Gzip": false,
     "HostIP": "127.0.0.1",
-    "HostPort": 8000,
+    "HostPort": 8001,
     "LdaGraph": false,
     "LdaTopics": 8,
     "LogLevel": 0,
@@ -93,7 +93,7 @@ placed in `~/.config/`. It is formatted as follows:
 ]
 ```
 
-The full list of configuration files follows. Note that many of them are specific to `SEMATNTICVECTORS`. See that help file for more.
+The full list of configuration files follows. Note that many of them are specific to `SEMANTICVECTORS`. See that help file for more.
 
 ```
 ~/.config/ % ls -1 hgs-*
