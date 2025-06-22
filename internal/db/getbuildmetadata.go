@@ -1,15 +1,16 @@
 package db
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5"
-	"strings"
+	"github.com/olekukonko/tablewriter" // tablewriter is a 'free' import because it was already a dependency via wego
 )
 
 func LoadBuildMetadata() string {
 	const (
-		SELECTFROM = `SELECT category, builderver, gitcommit, date, notes FROM buildmetadata`
+		SELECTFROM = `SELECT category, builderver, gitcommit, date, notes FROM buildmetadata ORDER BY category ASC`
 		TMPL       = "%s\t%s\t%s\t%s\t%s"
 	)
 	dbconn := getdbconnection()
@@ -41,10 +42,17 @@ func LoadBuildMetadata() string {
 		fmt.Println(e)
 	}
 
-	var allstr []string
+	var allstr [][]string
 	for _, v := range alldata {
-		allstr = append(allstr, fmt.Sprintf(TMPL, v.Date, v.Builderver, v.Gitcommit, v.Category, v.Notes))
+		bv := fmt.Sprintf("%s (git: %s)", v.Builderver, v.Gitcommit)
+		allstr = append(allstr, []string{v.Category, bv, v.Date, v.Notes})
 	}
 
-	return strings.Join(allstr, "\n")
+	var buf bytes.Buffer
+	table := tablewriter.NewTable(&buf)
+	table.Header("Category", "HGB version", "Build Date", "Notes")
+	table.Bulk(allstr)
+	table.Render()
+
+	return buf.String()
 }

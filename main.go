@@ -41,6 +41,7 @@ func main() {
 		MSG3 = "corpus maps built"
 		MSG4 = "unnested lemma map built (%d items)"
 		MSG5 = "nested lemma map built"
+		MSG6 = "load word weights"
 		SUMM = "C3initialization took %.3fsC0"
 		QUIT = "to stop the server press Control-C or close this window"
 	)
@@ -159,6 +160,8 @@ func main() {
 	go vlt.PathInfoHub()
 	go vlt.TerminalTicker(vv.TICKERDELAY)
 
+	msg.TMI("Build Metadata:\n" + db.LoadBuildMetadata())
+
 	//
 	// [4] concurrent loading of the core data
 	//
@@ -181,7 +184,14 @@ func main() {
 
 		// full up WkCorpusMap, AuCorpusMap, ...
 		mps.RePopulateGlobalMaps()
+
 		msg.Timer("A3", MSG3, start, previous)
+
+		mps.LoadUnparsedWordCountWeights()
+		mps.LoadParsedWordCountWeights()
+
+		msg.Timer("A4", MSG6, start, previous)
+
 	}(&awaiting)
 
 	awaiting.Add(1)
@@ -196,9 +206,6 @@ func main() {
 
 		previous = time.Now()
 		mps.NestedLemm = mps.NestedLemmaMapper(mps.AllLemm)
-
-		mps.LoadUnparsedWordCountWeights()
-		mps.LoadParsedWordCountWeights()
 
 		msg.Timer("B2", MSG5, start, previous)
 	}(&awaiting)

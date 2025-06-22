@@ -16,9 +16,10 @@ import (
 
 const (
 	TERMINATIONS = `(\s|\.|\]|\<|⟩|\)|’|”|\!|,|:|;|}|\?|⸥|«|·|$)` // circular imports means this is declared 2x... see also "vv.constants.go"
+	ACCENTED     = `ἂἃἄἅἆἇᾂᾃᾄᾅᾆᾇᾶᾷὰάἒἓἔἕὲέἲἳἴἵἶἷίὶῒΐῗΐὂὃὄὅόὸὒὓὔὕὖὗῢΰῦῧύὺᾒᾓᾔᾕᾖᾗῂῄῆῇἤἢἥἣὴήἦἧὢὣὤὥὦὧᾢᾣᾤᾥᾦᾧῲῴῶῷώὼ`
 	// GLC is derived from the HGB betacode converter and should be comprehensive
-	GLC = `ΐάέήίΰαβγδεζηθικλμνξοπρτυφχψωϊϋόύώϝϲἀἁἂἃἄἅἆἇἐἑἒἓἔἕἠἡἢἣἤἥἦἧἰἱἲἳἴἵἶἷὀὁὂὃὄὅὐὑὒὓὔὕὖὗὠὡὢὣὤὥὦὧὰὲὴὶὸὺὼᾀᾁᾂᾃᾄᾅᾆᾇᾐᾑᾒᾓᾔᾕᾖᾗᾠᾡᾢᾣᾤᾥᾦᾧᾲᾳᾴᾶᾷῂῃῄῆῇῒῖῢῤῥῦῧῲῳῴῶῷ`
-	GUC = `ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΤΥΦΧΨΩϜϹἈἉἊἋἌἍἎἏἘἙἚἛἜἝἨἩἪἫἬἭἮἯἸἹἺἻἼἽἾἿὈὉὊὋὌὍὙὛὝὟὨὩὪὫὬὭὮὯᾊᾋᾌᾍᾎᾏᾚᾛᾜᾝᾞᾟᾪᾫᾬᾭᾮᾯᾼῌῬῼ⒣`
+	//GLC      = `ΐάέήίΰαβγδεζηθικλμνξοπρτυφχψωϊϋόύώϝϲἀἁἂἃἄἅἆἇἐἑἒἓἔἕἠἡἢἣἤἥἦἧἰἱἲἳἴἵἶἷὀὁὂὃὄὅὐὑὒὓὔὕὖὗὠὡὢὣὤὥὦὧὰὲὴὶὸὺὼᾀᾁᾂᾃᾄᾅᾆᾇᾐᾑᾒᾓᾔᾕᾖᾗᾠᾡᾢᾣᾤᾥᾦᾧᾲᾳᾴᾶᾷῂῃῄῆῇῒῖῢῤῥῦῧῲῳῴῶῷ`
+	//GUC      = `ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΤΥΦΧΨΩϜϹἈἉἊἋἌἍἎἏἘἙἚἛἜἝἨἩἪἫἬἭἮἯἸἹἺἻἼἽἾἿὈὉὊὋὌὍὙὛὝὟὨὩὪὫὬὭὮὯᾊᾋᾌᾍᾎᾏᾚᾛᾜᾝᾞᾟᾪᾫᾬᾭᾮᾯᾼῌῬῼ⒣`
 )
 
 var (
@@ -30,9 +31,11 @@ var (
 	uvcaps     = uvcapsreducer()
 	LunateSwap = regexp.MustCompile("σ" + TERMINATIONS)
 	IsLatin    = regexp.MustCompile(`[a-zA-Z]`)
-	IsGreekLC  = regexp.MustCompile(`[` + GLC + `]`)
-	IsGreekUC  = regexp.MustCompile(`[` + GUC + `]`)
-	IsGreek    = regexp.MustCompile(`[` + GUC + GLC + `]`)
+	FindAccent = regexp.MustCompile(`[` + ACCENTED + `]`)
+
+	//IsGreekLC  = regexp.MustCompile(`[` + GLC + `]`)
+	//IsGreekUC  = regexp.MustCompile(`[` + GUC + `]`)
+	//IsGreek    = regexp.MustCompile(`[` + GUC + GLC + `]`)
 )
 
 //
@@ -392,4 +395,38 @@ func uvcapsreducer() map[rune]rune {
 		}
 	}
 	return reducer
+}
+
+// StripExtraAccent - morphology lookups fail here; so οἷόν --> οἷον; θαυμάζεταί --> θαυμάζεται; μίμηϲίϲ --> μίμηϲιϲ
+func StripExtraAccent(w string) string {
+	acc := FindAccent.FindAllStringSubmatch(w, -1)
+
+	if len(acc) < 2 {
+		return w
+	}
+
+	chunks := FindAccent.Split(w, -1)
+
+	var parts []string
+	if len(chunks) == 3 {
+		parts = []string{
+			chunks[0],                  // μ
+			acc[0][0],                  // ί
+			chunks[1],                  // μηϲ
+			StripaccentsSTR(acc[1][0]), // ι
+			chunks[2],                  // ϲ
+		}
+	}
+
+	if len(chunks) == 2 {
+		parts = []string{
+			acc[0][0],
+			chunks[0],
+			StripaccentsSTR(acc[1][0]),
+			chunks[1],
+		}
+	}
+
+	// fmt.Println(w, "multiple accents; -->", strings.Join(parts, ""))
+	return strings.Join(parts, "")
 }

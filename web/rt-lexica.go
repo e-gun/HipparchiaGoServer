@@ -238,9 +238,11 @@ func findbyform(word string, author string, zaplunates bool) string {
 	// [a] search for morphology matches
 	thesefinds := db.GetMorphMatch(word, d)
 	if len(thesefinds) == 0 {
-		// was it a capitalization issue...
+		// was it a capitalization issue... a double accent...
 		// there is an argument for doing the ToLower version first, but we will stick with this for now
-		thesefinds = db.GetMorphMatch(strings.ToLower(word), d)
+		cleaned := strings.ToLower(word)
+		cleaned = gen.StripExtraAccent(cleaned)
+		thesefinds = db.GetMorphMatch(cleaned, d)
 	}
 
 	if len(thesefinds) == 0 {
