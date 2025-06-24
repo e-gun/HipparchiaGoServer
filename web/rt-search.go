@@ -116,11 +116,18 @@ func RtSearch(c echo.Context) error {
 		}
 	}
 
+	// [D1] DROP DUPLICATE LINES
+	if len(completed.SkgSlice) > 1 || len(completed.PrxSlice) > 1 {
+		// you might have dupes...
+		completed.DedupeResults()
+	}
+
+	// [D2] TRIM RESULTS
 	if completed.Results.Len() > reallimit {
 		completed.Results.ResizeTo(reallimit)
 	}
 
-	// [E] DONE: TIME TO FORMAT
+	// [F] DONE: TIME TO FORMAT
 
 	search.SortResults(&completed)
 	soj := str.SearchOutputJSON{}

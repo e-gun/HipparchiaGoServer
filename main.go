@@ -101,7 +101,7 @@ func main() {
 	// vectorless: ./HipparchiaGoServer -pc -st -dv
 
 	// profile into pdf:
-	// 	"go tool pprof --pdf ./HipparchiaGoServer /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1075644045/cpu.pprof > ./fyi/CPUProfile.pdf"
+	// 	"go tool pprof --pdf ./HipparchiaGoServer /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1075644045/cpu.pprof > ./INSTRUCTIONS/fyi/MEMProfileVectors.pdf"
 	//	"cp /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1075644045/cpu.pprof ./pgo/default.pgo"
 
 	if lnch.Config.ProfileCPU {
@@ -127,7 +127,7 @@ func main() {
 		uh, _ := os.UserHomeDir()
 		f, err := os.Create(uh + "/" + vv.LOGFILEML)
 		msg.EC(err)
-		f.Close()
+		_ = f.Close()
 	}
 
 	lnch.PrintVersion(*lnch.Config)

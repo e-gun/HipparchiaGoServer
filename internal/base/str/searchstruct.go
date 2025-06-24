@@ -110,3 +110,33 @@ func (s *SearchStruct) SetType() {
 
 	return
 }
+
+func (s *SearchStruct) DedupeResults() {
+	// LemmaIntoRegexSlice() might mean you are doing many searches
+	// `seruus¹` in Plautus will come back as 3 collections of strings for which to search
+	// but then you can end up with non-unique hits since (alas) some of those search strings are non-unique
+	// here we toss the duplicates
+
+	// you only need to do this check `if len(s.SkgSlice) > 1`
+
+	dedupmap := map[string]bool{}
+	dupemap := map[string]bool{}
+	var dedupedlines WorkLineBundle
+	ll := s.Results.Yield()
+	dupsfound := 0
+
+	for l := range ll {
+		_, present := dedupmap[l.BuildHyperlink()]
+		if !present {
+			dedupmap[l.BuildHyperlink()] = true
+			dedupedlines.AppendOne(l)
+		} else {
+			dupsfound++
+			dupemap[l.BuildHyperlink()] = true
+		}
+	}
+
+	Msg.TMI(fmt.Sprintf("DedupeResults(): %d duplicate results found out of %d total results", dupsfound, s.Results.Len()))
+
+	s.Results = dedupedlines
+}

@@ -413,7 +413,7 @@ func StripExtraAccent(w string) string {
 			chunks[0],                  // μ
 			acc[0][0],                  // ί
 			chunks[1],                  // μηϲ
-			StripaccentsSTR(acc[1][0]), // ι
+			StripaccentsSTR(acc[1][0]), // ί --> ι
 			chunks[2],                  // ϲ
 		}
 	}

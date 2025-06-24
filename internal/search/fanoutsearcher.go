@@ -56,6 +56,18 @@ func SearchAndInsertResults(ss *str.SearchStruct) {
 		mx = ss.CurrentLimit * 3
 	}
 
+	// LemmaIntoRegexSlice() might mean you are doing many searches
+	// `seruus¹` in Plautus will come back as 3 collections of strings for which to search
+	// but then you can end up with non-unique hits (deduplication comes later) as well as a cap issue before you
+	// even find them
+
+	slicesize := len(ss.SkgSlice)
+	if len(ss.PrxSlice) > slicesize {
+		slicesize = len(ss.PrxSlice)
+	}
+
+	mx = mx * slicesize
+
 	// [c] fan in to gather the results into a single channel
 	resultchan := resultchannelaggregator(ss.Context, searchchannels...)
 

@@ -173,27 +173,27 @@ self-test with vectors can be deceptive because `-wc` flag will not override con
 
 ```
 % cloc --exclude-dir=z --not-match-f="^jq*" .
-     191 text files.
-     173 unique files.                                          
-     286 files ignored.
+     207 text files.
+     191 unique files.
+    3743 files ignored.
 
-github.com/AlDanial/cloc v 2.04  T=0.15 s (1188.7 files/s, 229376.9 lines/s)
+github.com/AlDanial/cloc v 2.04  T=0.80 s (237.5 files/s, 44104.4 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                             103           3487           3829          16353
-CSS                             13            384            127           1705
-JavaScript                       8            312            198           1583
-HTML                            13            169             18           1573
-Markdown                        11            476              0           1227
+Go                             120           3688           4157          17502
+CSS                             13            477            144           2013
+HTML                            13            162             18           1589
+JavaScript                       8            321            216           1587
+Markdown                        10            447              0           1156
 Text                             6            108              0            487
-XML                              7              0              0            418
+XML                              8              0              0            454
 JSON                             8              0              0            416
 SVG                              1              1              1            392
-Bourne Shell                     2             19              7             76
+Bourne Shell                     3             25              7             89
 Python                           1              5              6              7
 -------------------------------------------------------------------------------
-SUM:                           173           4961           4186          24237
+SUM:                           191           5234           4549          25692
 -------------------------------------------------------------------------------
 
 ```
