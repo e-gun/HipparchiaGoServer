@@ -4,7 +4,7 @@ But people who already have `homebrew` installed are perhaps interested in going
 ## Installing HipparchiaGoServer
 
 1. first install and configure `PostgreSQL`
-1. next load `hipparchiaDB` into `PostgreSQL`
+1. next load `hgdb` into `PostgreSQL`
 1. next acquire a binary for `HipparchiaGoServer`
 
 ### [A] install and configure `PostgreSQL`
@@ -55,10 +55,11 @@ You also want to start the server: `brew services restart postgresql@15`
 
 ### [C] the first launch of `HipparchiaGoServer`: loading `hipparchiaDB` into `PostgreSQL`
 
-0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation. If a working installation executes `HipparchiaGoServer -ex`, it will generate a valid `hDB` folder.]
-   The data *must* reside in a folder named `hDB`. This folder has to be in the same folder as `HipparchiaGoServer`. Note that `hdb` ≠ `hDB`.
+0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation. If a working installation executes `HipparchiaGoServer -ex`, it will generate a valid `HGDBArchive` folder.]
+   The data *must* reside in a folder named `HGDBArchive`. This folder has to be in the same folder as `HipparchiaGoServer`.
    You can (re)move the data folder after you have successfully installed the data into the database.
 
+NB: The data will already be available if you build the database yourself with `HipparchiaGoBuilder`. And several of the steps below will be skipped. But building and running `HipparchiaGoBuilder` is beyond the scope of these instructions.
 ![inst02](./gitimg/macos_posgresapp/04_data_is_ready.png)
 
 1. Double-click to launch. It is possible that you will get a complaint about an UNIDENTIFIED DEVELOPER.
@@ -73,7 +74,7 @@ You also want to start the server: `brew services restart postgresql@15`
 
 2. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
 
-3. On the first run instruction files will be dropped into your current working directory. You will be asked for the password for `hippa_wr`.
+3. On the first run instruction files will be dropped into your current working directory. You will be asked for the password for `hgdbuser`.
 
    ![inst15](./gitimg/macos_posgresapp/04_firstrun.png)
 

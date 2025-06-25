@@ -2,7 +2,7 @@
 
 1. first install and configure `PostgreSQL`
 1. next acquire a binary for `HipparchiaGoServer`
-1. then load `hipparchiaDB` into `PostgreSQL` when running `HipparchiaGoServer` for the first time
+1. then load `hgdb` into `PostgreSQL` when running `HipparchiaGoServer` for the first time
 1. [fyi] how to archive and/or migrate the data
 1. [fyi] how to reset the database and start over
 
@@ -32,10 +32,11 @@ password at `C.2` below.
 ![inst4](./gitimg/windows/06_db_adminpass.png)
 
 5. return to accepting defaults...
+   (note that if you select a port other than `5432` the initial insertion of the data will become very tricky since the installer will default to `5342` and you will need to install with various command line options set)
 
 ![inst5](./gitimg/windows/07_dbport.png)
 
-6. this one is big: you must pick `C` as your `locale`
+6. this one is *extremely important* and not a default value: you must pick `C` as your `locale`
 
 ![inst6](./gitimg/windows/08_locale.png)
 
@@ -62,11 +63,13 @@ password at `C.2` below.
 
 ---
 
-### [C] the first launch of `HipparchiaGoServer`: loading `hipparchiaDB` into `PostgreSQL`
+### [C] the first launch of `HipparchiaGoServer`: loading `hgdb` into `PostgreSQL`
 0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation.]
-   The data *must* reside in a folder named `hDB`. This folder has to be in the same folder as `HipparchiaGoServer`. Note that `hdb` ≠ `hDB`.
+   The data *must* reside in a folder named `HGDBArchive`. This folder has to be in the same folder as `HipparchiaGoServer`. 
 See the image and note that both are present in the same directory. You can (re)move the data folder after you
 have successfully installed the data into the database.
+
+NB: The data will already be available if you build the database yourself with `HipparchiaGoBuilder`. And several of the steps below will be skipped. But building and running `HipparchiaGoBuilder` is beyond the scope of these instructions.
   
 ![inst13](./gitimg/windows/16b_have_binary.png)
 
@@ -91,7 +94,7 @@ PSQL administrator password you entered at `A.4` above.
 
 ![inst13](./gitimg/windows/19_loading.png)
 
-6. Now you can point a browser at http://127.0.0.1:8000. You can also leave the server running indefinitely. It does not consume many resources if not active: 0% CPU, <1% RAM.
+6. Now you can point a browser at http://127.0.0.1:8001. You can also leave the server running indefinitely. It does not consume many resources if not active: 0% CPU, <1% RAM.
 
 
 ![inst13](./gitimg/windows/19b_loaded.png)
@@ -100,11 +103,11 @@ PSQL administrator password you entered at `A.4` above.
 
 ### [D] Archiving / Migrating
 
-1. If you lose/destroy the `hDB` folder with the original data and want it back, the data can be extracted and archived.
+1. If you lose/destroy the `HGDBArchive` folder with the original data and want it back, the data can be extracted and archived.
 
 2. Move `HipparchiaGoServer` into your home directory. Launch `PowerShell`
 
-3. Type `.\HipparchiaGoServer.exe -ex`. The data will be put into a new `hDB` folder in the current directory.
+3. Type `.\HipparchiaGoServer.exe -ex`. The data will be put into a new `HGDBArchive` folder in the current directory.
 
 ---
 
@@ -121,23 +124,11 @@ PSQL administrator password you entered at `A.4` above.
 
 #### [E2] less easy
 
-1. Delete the `hgs-*.json` files in the `.config` folder of your home folder.
-
-```
-.config/hgs-prolix-conf.json
-.config/hgs-users.json
-.config/hgs-vector-conf-glove.json
-.config/hgs-vector-conf-lda.json
-.config/hgs-vector-conf-lexvec.json
-.config/hgs-vector-conf-w2v.json
-.config/hgs-vector-stops-greek.json
-.config/hgs-vector-stops-latin.json
-
-```
+1. Delete the `HipparchiaGoServer` folder in the `.config` folder of your home folder.
 
 ![inst13](./gitimg/windows/21_configfile.png)
 
-2. Launch `SQL Shell` (which can be found inside the `PostgreSQL 15` folder).
+2. Launch `SQL Shell` (which can be found inside the `PostgreSQL 17` folder).
 
 3. Gain access to the `postgres` database by hitting `RETURN` 4x: you are accepting the default supplied values;
       at the fifth stop you will need to enter the ADMIN password you set earlier in `A.4`.
@@ -145,8 +136,8 @@ PSQL administrator password you entered at `A.4` above.
 ![inst11](./gitimg/windows/13_insidesqlshell.png)
 
 4. Now enter the following:
-- `DROP DATABASE "hipparchiaDB";`
-- `DROP USER hippa_wr;`
+- `DROP DATABASE "hgdb";`
+- `DROP USER hgdbuser;`
 - `DROP EXTENSION pg_trgm;`
 - `\q`
 

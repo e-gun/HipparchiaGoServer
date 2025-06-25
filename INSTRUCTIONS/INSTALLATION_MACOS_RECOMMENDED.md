@@ -2,7 +2,7 @@
 
 1. first install and configure `PostgreSQL`
 1. next acquire a binary for `HipparchiaGoServer`
-1. load `hipparchiaDB` into `PostgreSQL` on the first launch of `HipparchiaGoServer`
+1. load `hgdb` into `PostgreSQL` on the first launch of `HipparchiaGoServer`
 1. [fyi] how to archive and/or migrate the data
 1. [fyi] how to reset the database and start over
 
@@ -38,18 +38,19 @@
 
 ![inst12](./gitimg/windows/16_getbinary.png)
 
-2. If you download a file like `HipparchiaGoServer-1.1.0-darwin-amd64.zip`, it needs to be UNZIPPED. Double-clicking will do that. You will then see something like `HipparchiaGoServer-1.1.0-darwin-amd64` in the same folder.
+2. If you download a file like `HipparchiaGoServer-2.0.1-darwin-amd64.zip`, it needs to be UNZIPPED. Double-clicking will do that. You will then see something like `HipparchiaGoServer-2.0.1-darwin-amd64` in the same folder.
 
-3. This file *might* need to be RENAMED: `HipparchiaGoServer-1.1.0-darwin-amd64` --> `HipparchiaGoServer`
+3. This file *might* need to be RENAMED: `HipparchiaGoServer-2.0.1-darwin-amd64` --> `HipparchiaGoServer`
 
 ---
 
 ### [C] the first launch of `HipparchiaGoServer`: loading `hipparchiaDB` into `PostgreSQL`
 
-0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation. If a working installation executes `HipparchiaGoServer -ex`, it will generate a valid `hDB` folder.]
-   The data *must* reside in a folder named `hDB`. This folder has to be in the same folder as `HipparchiaGoServer`. Note that `hdb` ≠ `hDB`.
+0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation. If a working installation executes `HipparchiaGoServer -ex`, it will generate a valid `HGDBArchive` folder.]
+   The data *must* reside in a folder named `HGDBArchive`. This folder has to be in the same folder as `HipparchiaGoServer`.
    You can (re)move the data folder after you have successfully installed the data into the database.
 
+NB: The data will already be available if you build the database yourself with `HipparchiaGoBuilder`. And several of the steps below will be skipped. But building and running `HipparchiaGoBuilder` is beyond the scope of these instructions.
 ![inst02](./gitimg/macos_posgresapp/04_data_is_ready.png)
 
 1. macOS has been locking down access to `unsigned` applications from `unknown developers`. This is a good thing in general, but not in this case. You need to force the system to trust the application. This can only be done via `Terminal.app`. So here we go... Launch `Terminal.app` (which can be found in `/Applications/Utilities`)
@@ -60,7 +61,7 @@ open ~
 ```
 
 
- If `HipparchiaGoServer` is not in this directory (perhaps it is in `Downloads` instead...), then move it here. Also make sure that the `hDB` is here. (This really only matters for the first launch and ensuring that the command in the next step exectues properly. After the first launch the `hDB` folder can be deleted if you wish and the application can be moved elsewhere.)
+ If `HipparchiaGoServer` is not in this directory (perhaps it is in `Downloads` instead...), then move it here. Also make sure that the `HGDBArchive` is here. (This really only matters for the first launch and ensuring that the command in the next step exectues properly. After the first launch the `HGDBArchive` folder can be deleted if you wish and the application can be moved elsewhere.)
 
 ![inst02](./gitimg/macos_posgresapp/04a_firstrun_in_folder.png)
 
@@ -80,10 +81,9 @@ xattr -r -d com.apple.quarantine ./HipparchiaGoServer
 
 ![inst02](./gitimg/macos_posgresapp/04e_firstrun_db_connection.png)
 
-
 6. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
 
-7. On the first run instruction files will be dropped into your current working directory. You will be asked for the password for `hippa_wr`.
+7. On the first run instruction files will be dropped into your current working directory. You will be asked for the password for `hgdbuser`.
 
    ![inst15](./gitimg/macos_posgresapp/04_firstrun.png)
 
@@ -97,26 +97,23 @@ xattr -r -d com.apple.quarantine ./HipparchiaGoServer
 
 10. Eventually the server will launch. The self-load process only has to happen once.
 
-   ![inst02](./gitimg/macos_posgresapp/06_selfload_done.png)
-
-NB: `hippa_rd` errors are safe to ignore.
+   ![inst02](./gitimg/macos_posgresapp/06b_selfload_done.png)
 
 ![inst02](./gitimg/macos_posgresapp/06b_selfload_done.png)
 
-11. When you see `http server started on 127.0.0.1:8000` you are up and running. Now you can point a browser at http://127.0.0.1:8000.
-Whenever the server is running, your browser can interact with http://127.0.0.1:8000. You can also leave the server 
+11. When you see `http server started on 127.0.0.1:8001` you are up and running. Now you can point a browser at http://127.0.0.1:8001.
+Whenever the server is running, your browser can interact with http://127.0.0.1:8001. You can also leave the server 
 running indefinitely. It does not consume many resources if not active: 0% CPU, <1% RAM.
-
 
 ---
 
 ### [D] [FYI] Archiving / Migrating
 
-1. If you lose/destroy the `hDB` folder with the original data and want it back, the data can be extracted and archived.
+1. If you lose/destroy the `HGDBArchive` folder with the original data and want it back, the data can be extracted and archived.
 
 2. Move `HipparchiaGoServer` into your home directory. Launch `Terminal.App`
 
-3. Type `./HipparchiaGoServer -ex`. The data will be put into a new `hDB` folder in the current directory.
+3. Type `./HipparchiaGoServer -ex`. The data will be put into a new `HGDBArchive` folder in the current directory.
 
 ---
 
@@ -132,11 +129,11 @@ Make sure to read all of the terminal output and scan for these tell-tale error 
 
 *The solution*: (1) `reset` + (2) `run`; after a `reset` [see `E1` below] the next launch is a `first launch` [see `C` above and note that you have to meet the requirements there for this second step to succeed]
 
-##### [E0b] *You see*: `could not open input file "/Users/YOURUSER/hDB/toc.dat"`
+##### [E0b] *You see*: `could not open input file "/Users/YOURUSER/HGDBArchive/toc.dat"`
 
-*The problem is*: the `hDB` folder cannot be found.
+*The problem is*: the `HGDBArchive` folder cannot be found.
 
-*The solution*: make sure that the `hDB` folder is in the same folder as `HipparchiaGoServer`. [see `C0` above]
+*The solution*: make sure that the `HGDBArchive` folder is in the same folder as `HipparchiaGoServer`. [see `C0` above]
 
 #### [E1] easier reset
 
@@ -158,11 +155,11 @@ Make sure to read all of the terminal output and scan for these tell-tale error 
    ![inst01](./gitimg/macos_homebrew/01_terminal.png)
 
 2. If you want to zap everything and start over, then open `Terminal.app` and enter the following:
-- `rm ~/.config/hgs-*.json`
-- `/Applications/Postgres.app/Contents/Versions/15/bin/psql postgres` [note that `15` might change at some date]
+- `rm -rf ~/.config/HipparchiaGoServer/`
+- `/Applications/Postgres.app/Contents/Versions/17/bin/psql postgres` [note that `17` might change at some date]
 - - inside of `psql` enter the following
-- - `DROP DATABASE "hipparchiaDB";`
-- - `DROP USER hippa_wr;`
+- - `DROP DATABASE "hgdb";`
+- - `DROP USER hgdbuser;`
 - - `DROP EXTENSION pg_trgm;`
 - - `\q`
 

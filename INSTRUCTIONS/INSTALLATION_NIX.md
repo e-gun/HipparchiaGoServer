@@ -21,13 +21,13 @@
    - execute the following; use good/strong passwords and write them down:
 ```
 ALTER USER postgres WITH PASSWORD 'somespqladminpass';
-CREATE ROLE hippa_wr LOGIN ENCRYPTED PASSWORD 'somepassword' NOSUPERUSER INHERIT 
+CREATE ROLE hgdbuser LOGIN ENCRYPTED PASSWORD 'somepassword' NOSUPERUSER INHERIT 
     CREATEDB NOCREATEROLE NOREPLICATION;
-CREATE DATABASE "hipparchiaDB" WITH OWNER = hippa_wr ENCODING = 'UTF8';
+CREATE DATABASE "hgdb" WITH OWNER = hgdbuser ENCODING = 'UTF8';
 CREATE EXTENSION pg_trgm;
 \q
 ```
-4. Depending on your platform, you **might** need to tinker with your postgres configuration. Find `pg_hba.conf`. It will be somewhere like `/var/lib/pgsql/15/data/pg_hba.conf` or `/etc/postgresql/14/main/pg_hba.conf`. [it can be found via executing `SHOW hba_file;` inside the `psql` shell]
+4. Depending on your platform, you **might** need to tinker with your postgres configuration. Find `pg_hba.conf`. It will be somewhere like `/var/lib/pgsql/17/data/pg_hba.conf` or `/etc/postgresql/14/main/pg_hba.conf`. [it can be found via executing `SHOW hba_file;` inside the `psql` shell]
    - Ensure that the `METHOD` in `pg_hba.conf` is `password` and NOT `peer` or `ident`. Ensure that this is true for both `local` connections AND for `127.0.0.1/32` connections. 
    - Look at the end of the file and confirm that you see a block that looks like this:
 
@@ -40,7 +40,7 @@ CREATE EXTENSION pg_trgm;
  host    all             all             127.0.0.1/32            password
 ```
 5. IF you see that block and the `METHOD` is not right, then edit `pg_hba.conf`. 
-   - After the edit, you need to and reload the server: `sudo systemctl restart postgresql-15`, vel sim.). 
+   - After the edit, you need to and reload the server: `sudo systemctl restart postgresql-17`, vel sim.). 
 
 ---
 
@@ -55,20 +55,21 @@ CREATE EXTENSION pg_trgm;
 
 ### [C] launch `HipparchiaGoServer`
 
-0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation. If a working installation executes `HipparchiaGoServer -ex`, it will generate a valid `hDB` folder.]
-   The data *must* reside in a folder named `hDB`. This folder has to be in the same folder as `HipparchiaGoServer`. Note that `hdb` ≠ `hDB`.
+0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation. If a working installation executes `HipparchiaGoServer -ex`, it will generate a valid `HGDBArchive` folder.]
+   The data *must* reside in a folder named `HGDBArchive`. This folder has to be in the same folder as `HipparchiaGoServer`. 
    You can (re)move the data folder after you have successfully installed the data into the database.
+
+NB: The data will already be available if you build the database yourself with `HipparchiaGoBuilder`. And several of the steps below will be skipped. But building and running `HipparchiaGoBuilder` is beyond the scope of these instructions.
 1. Launch the binary: `./HipparchiaGoServer`. 
 2. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
-3. On the first run instruction files will be dropped into your current working directory. You will be asked for the passwords for `hippa_wr` and `postgres`.
+3. On the first run instruction files will be dropped into your current working directory. You will be asked for the passwords for `hgdbuser` and `postgres`.
    ![launch](./gitimg/linux/02_linux_loading.png)
 
 4. Then you will be told that the self-load is about to begin.
 5. Thousands of messages will fly across the screen.
 6. Eventually the server will launch. The self-load process only has to happen once.
-NB: `hippa_rd` errors are safe to ignore.
-7. When you see `http server started on 127.0.0.1:8000` you are up and running. You might as well click and then bookmark the following: http://127.0.0.1:8000.
-   From here on out you can just double-click to launch the program. When the server is running, your browser can interact with http://127.0.0.1:8000.
+7. When you see `http server started on 127.0.0.1:8001` you are up and running. You might as well click and then bookmark the following: http://127.0.0.1:8001.
+   From here on out you can just double-click to launch the program. When the server is running, your browser can interact with http://127.0.0.1:8001.
    You can also leave the server running indefinitely. It does not consume many resources if not active: 0% CPU, <1% RAM.
 
 ![launch](./gitimg/linux/03_linux_loaded.png)

@@ -410,7 +410,7 @@ func DBSelfDestruct() {
 
 	hd, e := os.UserHomeDir()
 	Msg.EC(e)
-	cp := fmt.Sprintf(vv.CONFIGALTAPTH, hd)
+	cp := fmt.Sprintf(vv.CONFIGALTAPTH+"/", hd)
 	_ = os.Remove(cp + vv.CONFIGPROLIX)
 	Msg.CRIT(fmt.Sprintf(DONE2, cp))
 }
