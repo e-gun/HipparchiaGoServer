@@ -172,7 +172,6 @@ func w2vvectorconfig() word2vec.Options {
 	)
 
 	cfg := DefaultW2VVectors
-	cfg.Goroutines = runtime.NumCPU()
 
 	h, e := os.UserHomeDir()
 	if e != nil {
@@ -203,6 +202,8 @@ func w2vvectorconfig() word2vec.Options {
 		cfg = vc
 	}
 
+	// cfg.Goroutines = runtime.NumCPU()
+	cfg.Goroutines = lnch.Config.WorkerCount
 	return cfg
 }
 
@@ -217,7 +218,6 @@ func lexvecvectorconfig() lexvec.Options {
 
 	// cfg := lexvec.DefaultOptions()
 	cfg := DefaultLexVecVectors
-	cfg.Goroutines = runtime.NumCPU()
 
 	h, e := os.UserHomeDir()
 	if e != nil {
@@ -247,6 +247,8 @@ func lexvecvectorconfig() lexvec.Options {
 		Msg.TMI(MSG2 + vv.CONFIGVECTORLEXVEC)
 		cfg = vc
 	}
+
+	cfg.Goroutines = lnch.Config.WorkerCount
 	return cfg
 }
 
@@ -259,9 +261,7 @@ func glovevectorconfig() glove.Options {
 		MSG2 = "read vector configuration from "
 	)
 
-	// cfg := glove.DefaultOptions()
 	cfg := DefaultGloveVectors
-	cfg.Goroutines = runtime.NumCPU()
 
 	h, e := os.UserHomeDir()
 	if e != nil {
@@ -292,5 +292,7 @@ func glovevectorconfig() glove.Options {
 		cfg = vc
 	}
 
+	// cfg.Goroutines = runtime.NumCPU()
+	cfg.Goroutines = lnch.Config.WorkerCount
 	return cfg
 }

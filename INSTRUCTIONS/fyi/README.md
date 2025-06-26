@@ -69,8 +69,6 @@ e-gun/HipparchiaGoServer/ % ./HipparchiaGoServer -st -gl 3
 
 ```
 
-self-test with vectors can be deceptive because `-wc` flag will not override config json.
-
 ### some vectorless selftest times
 
 * 91s on 8 cores of apple silicon (m1) virtualizing rocky linux
@@ -83,9 +81,19 @@ self-test with vectors can be deceptive because `-wc` flag will not override con
 * 483s on 6 cores of apple silicon (m1) virtualizing windows 11 arm
 * 1144s (ouch) on a 2017 MacBook w/ 1.3GHz Core i5
 
-### self-test: cpu-constrained vs i/o constrained
+### self-test: how many cores is enough?
 
-![workers vs time](../gitimg/workers_vs_time.png)
+Some individual tests split well over multiple workers. Some do not. And even then, more cores helps until it does not.
+
+Note that 20 cores can be slower than 12 in some (fast-to-finish) tests. And more cores barely matters after 6
+for vector tests. The lemmata tests yield the major differences. But real gains stop around 14 cores in every case. 
+
+Diminishing returns start to hit hard  around 7 cores.
+
+The default setting is `use all cores`, but many people can safely dial this back. 
+
+![workers vs time](../gitimg/workers_vs_time_a.png)
+![workers vs time](../gitimg/workers_vs_time_b.png)
 
 ## profiling
 

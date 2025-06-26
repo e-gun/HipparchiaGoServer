@@ -63,21 +63,19 @@ open ~
 
  If `HipparchiaGoServer` is not in this directory (perhaps it is in `Downloads` instead...), then move it here. Also make sure that the `HGDBArchive` is here. (This really only matters for the first launch and ensuring that the command in the next step exectues properly. After the first launch the `HGDBArchive` folder can be deleted if you wish and the application can be moved elsewhere.)
 
-![inst02](./gitimg/macos_posgresapp/04a_firstrun_in_folder.png)
+That is, make sure your home directory looks like the image above and that both `HipparchiaGoServer` and `HGDBArchive` can be found in it.
 
- 
-3. The following command will bypass the gatekeeper check on the application. Enter it in the terminal and press `return`: 
+
+3. The following command will bypass the gatekeeper check on the application. Enter it in the terminal and press `return`. 
 ```
 xattr -r -d com.apple.quarantine ./HipparchiaGoServer
 ```
-
-![inst02](./gitimg/macos_posgresapp/04d_firstrun_xattr.png)
 
 4. Now you can double-click the application to launch. It is possible that you will get a complaint about an UNIDENTIFIED DEVELOPER. This is a problem, and something went wrong in the previous step.
 
 ![inst02](./gitimg/macos_posgresapp/04a_firstrun_unidentified.png)
 
-5. If you do not see that UNIDENTIFIED DEVELOPER warning, then congratulations. But at this point you will be told about a different potential security issue when you attempt to connect to `postgresql`. You need to `OK` this.
+5. If you do not see that UNIDENTIFIED DEVELOPER warning, then congratulations. But at this point you will be told about a different potential security issue when you attempt to connect to `postgresql`. You need to `OK` this. No, there is not a problem if you connect to `postgresql`: this is why you installed it a few minutes ago.
 
 ![inst02](./gitimg/macos_posgresapp/04e_firstrun_db_connection.png)
 
@@ -85,21 +83,19 @@ xattr -r -d com.apple.quarantine ./HipparchiaGoServer
 
 7. On the first run instruction files will be dropped into your current working directory. You will be asked for the password for `hgdbuser`.
 
-   ![inst15](./gitimg/macos_posgresapp/04_firstrun.png)
+   ![inst02](./gitimg/macos_posgresapp/05_selfload.png)
 
 8. Then you will be told that the self-load is about to begin.
 
-   ![inst02](./gitimg/macos_posgresapp/05_selfload.png)
+   [See the preceding image again for this.]
 
-9. Thousands of messages will fly across the screen.
 
-   ![inst02](./gitimg/macos_posgresapp/05b_loading_in_progress.png)
+9. For a number of minutes, thousands of messages will fly across the screen.
 
-10. Eventually the server will launch. The self-load process only has to happen once.
+
+10. Eventually the server will launch. This self-load process only has to happen once. All other launches will take less than a second.
 
    ![inst02](./gitimg/macos_posgresapp/06b_selfload_done.png)
-
-![inst02](./gitimg/macos_posgresapp/06b_selfload_done.png)
 
 11. When you see `http server started on 127.0.0.1:8001` you are up and running. Now you can point a browser at http://127.0.0.1:8001.
 Whenever the server is running, your browser can interact with http://127.0.0.1:8001. You can also leave the server 
@@ -163,6 +159,7 @@ Make sure to read all of the terminal output and scan for these tell-tale error 
 - - `DROP EXTENSION pg_trgm;`
 - - `\q`
 
+[semi-obsolete v1.x image with different USER and DATABASE values]
 ![inst01](./gitimg/macos_posgresapp/07_reset.png)
 
 
