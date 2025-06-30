@@ -58,3 +58,4 @@
 * as of Jun 2025 all users are expected to migrate to `HipparchiaGoBuilder` database builds in order to run `HipparchiaGoServer v2.0.0+`
 * `HipparchiaBuilder` databases and `HipparchiaGoBuilder` databases can co-exist and `HipparchiaGoServer v1.4.0` and `HipparchiaGoServer v2.0.0+` can run simultaneously without mutual interference. 
 * some time after successful migration to `v2.0.0+` one should consider deleting/archiving the old `HipparchiaBuilder` database and retaining only the `HipparchiaGoBuilder` database
+* * note that the server now defaults to `127.0.0.1:8001` instead of `127.0.0.1:8000`. You might need to update some browser bookmarks.

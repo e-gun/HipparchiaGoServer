@@ -51,9 +51,10 @@ func PrintVersion(cc str.CurrentConfiguration) {
 	versioninfo := fmt.Sprintf(ME, vv.MYNAME, vv.VERSION+VersSuppl)
 	versioninfo = sn + versioninfo + gc + pg + ll
 	versioninfo = Msg.ColStyle(versioninfo)
-	if !Config.LogToFile {
-		fmt.Println(versioninfo)
-	} else {
+
+	// always worth seeing this on the console...
+	fmt.Println(versioninfo)
+	if Config.LogToFile {
 		Msg.EmitToFile(versioninfo)
 	}
 }
@@ -77,10 +78,8 @@ func PrintBuildInfo(cc str.CurrentConfiguration) {
 	bi += Msg.ColStyle(fmt.Sprintf(SY, runtime.GOOS, runtime.GOARCH))
 	bi += Msg.ColStyle(fmt.Sprintf(WC, cc.WorkerCount, runtime.NumCPU()))
 
-	if !Config.LogToFile {
-		fmt.Println(bi)
-	} else {
+	fmt.Println(bi)
+	if Config.LogToFile {
 		Msg.EmitToFile(bi)
 	}
-
 }
