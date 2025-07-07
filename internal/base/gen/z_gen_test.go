@@ -7,7 +7,7 @@ import (
 )
 
 func TestStripextraaccent(t *testing.T) {
-	tg := `ἀληθῶϲ οἷόν τε θαυμάζεταί ὀνομάτων`
+	tg := `ἀληθῶϲ οἷόν τε θαυμάζεταί ὀνομάτων δριμεῖαί`
 	words := strings.Split(tg, " ")
 	for _, word := range words {
 		w := StripExtraAccent(word)

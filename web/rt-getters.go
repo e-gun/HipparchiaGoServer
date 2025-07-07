@@ -373,7 +373,7 @@ func RtGetJSSearchlist(c echo.Context) error {
 		WORKTMPL  = `%s, <span class="italic">%s</span> [%d line%s - %d word%s]`
 		SPILLOVER = `<br>(and <span class="emph">%d</span> additional works)`
 		SUMMARY   = `<br><span class="emph">%d</span> total line%s and <span class="emph">%d</span> total word%s`
-		REG       = `(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
+		REG       = `(?P<auth>.......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`
 	)
 
 	user := vlt.ReadUUIDCookie(c)
@@ -425,14 +425,14 @@ func RtGetJSSearchlist(c echo.Context) error {
 
 	pattern := regexp.MustCompile(REG)
 	for _, p := range sl.Inc.Passages {
-		cit, wordcount, linecount := searchlistpassages(pattern, p)
+		cit, wordcount, linecount := searchlistpassages(pattern, p, user)
 		wkk = append(wkk, cit)
 		totalwords += wordcount
 		totallines += linecount
 	}
 
 	for _, p := range sl.Excl.Passages {
-		cit, wordcount, linecount := searchlistpassages(pattern, p)
+		cit, wordcount, linecount := searchlistpassages(pattern, p, user)
 		wkk = append(wkk, cit+"[EXCLUDED]")
 		totalwords -= wordcount
 		totallines -= linecount
@@ -471,7 +471,7 @@ func RtGetEmptyGet(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, j, vv.JSONINDENT)
 }
 
-func searchlistpassages(pattern *regexp.Regexp, p string) (string, int, int) {
+func searchlistpassages(pattern *regexp.Regexp, p string, user string) (string, int, int) {
 	const (
 		PSGTEMPL = `%s, <span class="italic">%s</span> %s - %s [%d words]`
 	)
@@ -484,6 +484,8 @@ func searchlistpassages(pattern *regexp.Regexp, p string) (string, int, int) {
 	f := db.GrabOneLine(au, st)
 	l := db.GrabOneLine(au, sp)
 	s := search.BuildHollowSearch()
+	s.User = user // if not set: `[HGS-SEA] SSBuildQueries() aborting: the ID '' is not in the sessionvault`
+
 	s.SearchIn.Passages = []string{p}
 	search.SSBuildQueries(&s)
 	search.SearchAndInsertResults(&s)

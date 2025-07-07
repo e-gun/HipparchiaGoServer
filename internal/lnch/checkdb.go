@@ -465,6 +465,7 @@ func GetPGBinaryPath(command string) string {
 		WINPGEXE = `C:\Program Files\PostgreSQL\%d\bin\`
 		LNXBIN   = `/usr/bin/`
 		LNXLBIN  = `/usr/local/bin/`
+		LNXSNAP  = `/snap/bin/postgresql.`
 		FAIL     = "Cannot find PostgreSQL binaries: aborting"
 	)
 
@@ -482,6 +483,11 @@ func GetPGBinaryPath(command string) string {
 		if y == nil {
 			// != nil will trigger a fail later
 			return LNXLBIN + command
+		}
+		_, y = os.Stat(LNXSNAP + command)
+		if y == nil {
+			// != nil will trigger a fail later
+			return LNXSNAP + command
 		}
 	}
 

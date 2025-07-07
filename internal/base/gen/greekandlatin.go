@@ -16,7 +16,7 @@ import (
 
 const (
 	TERMINATIONS = `(\s|\.|\]|\<|⟩|\)|’|”|\!|,|:|;|}|\?|⸥|«|·|$)` // circular imports means this is declared 2x... see also "vv.constants.go"
-	ACCENTED     = `ἂἃἄἅἆἇᾂᾃᾄᾅᾆᾇᾶᾷὰάἒἓἔἕὲέἲἳἴἵἶἷίὶῒΐῗΐὂὃὄὅόὸὒὓὔὕὖὗῢΰῦῧύὺᾒᾓᾔᾕᾖᾗῂῄῆῇἤἢἥἣὴήἦἧὢὣὤὥὦὧᾢᾣᾤᾥᾦᾧῲῴῶῷώὼ`
+	ACCENTED     = `ἂἃἄἅἆἇᾂᾃᾄᾅᾆᾇᾶᾷὰάἒἓἔἕὲέἲἳἴἵἶἷῖίὶῒΐῗΐὂὃὄὅόὸὒὓὔὕὖὗῢΰῦῧύὺᾒᾓᾔᾕᾖᾗῂῄῆῇἤἢἥἣὴήἦἧὢὣὤὥὦὧᾢᾣᾤᾥᾦᾧῲῴῶῷώὼ`
 	// GLC is derived from the HGB betacode converter and should be comprehensive
 	//GLC      = `ΐάέήίΰαβγδεζηθικλμνξοπρτυφχψωϊϋόύώϝϲἀἁἂἃἄἅἆἇἐἑἒἓἔἕἠἡἢἣἤἥἦἧἰἱἲἳἴἵἶἷὀὁὂὃὄὅὐὑὒὓὔὕὖὗὠὡὢὣὤὥὦὧὰὲὴὶὸὺὼᾀᾁᾂᾃᾄᾅᾆᾇᾐᾑᾒᾓᾔᾕᾖᾗᾠᾡᾢᾣᾤᾥᾦᾧᾲᾳᾴᾶᾷῂῃῄῆῇῒῖῢῤῥῦῧῲῳῴῶῷ`
 	//GUC      = `ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΤΥΦΧΨΩϜϹἈἉἊἋἌἍἎἏἘἙἚἛἜἝἨἩἪἫἬἭἮἯἸἹἺἻἼἽἾἿὈὉὊὋὌὍὙὛὝὟὨὩὪὫὬὭὮὯᾊᾋᾌᾍᾎᾏᾚᾛᾜᾝᾞᾟᾪᾫᾬᾭᾮᾯᾼῌῬῼ⒣`
@@ -397,7 +397,7 @@ func uvcapsreducer() map[rune]rune {
 	return reducer
 }
 
-// StripExtraAccent - morphology lookups fail here; so οἷόν --> οἷον; θαυμάζεταί --> θαυμάζεται; μίμηϲίϲ --> μίμηϲιϲ
+// StripExtraAccent - morphology lookups fail on these words; so οἷόν --> οἷον; θαυμάζεταί --> θαυμάζεται; μίμηϲίϲ --> μίμηϲιϲ
 func StripExtraAccent(w string) string {
 	acc := FindAccent.FindAllStringSubmatch(w, -1)
 
