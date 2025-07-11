@@ -7,23 +7,23 @@
     <script src="/emb/echarts/echarts.min.js"></script>
     <script src="/emb/echarts/echarts-gl.min.js"></script>
     <title>Hipparchia</title>
-    <link rel=stylesheet type=text/css href="/emb/css/hipparchiastyles.css">
+    <link rel=stylesheet type=text/css href="/emb/css/hipparchiastyles.css?v={{.cssopts}}">
     <link rel=stylesheet type=text/css href="/emb/jq/jquery-ui.css">
 </head>
 <body>
 
 <!--
 
-    {{index . "myname"}}: an interface to a database of Greek and Latin texts
+    {{.myname}}: an interface to a database of Greek and Latin texts
 
-    {{index . "copyright"}}
+    {{.copyright}}
 
-    Source: {{index . "source"}}
+    Source: {{.source}}
 
-    {{index . "longver"}}
-    Environment: {{index . "env"}}
+    {{.longver}}
+    Environment: {{.env}}
 
-    {{index . "ticker"}}
+    {{.ticker}}
 -->
 
 <!-- left side navigation panel -->
@@ -66,7 +66,7 @@
 
     <p class="optionlabel">Lines of context to accompany search results</p>
     <p class="optionitem">
-        <input id="linesofcontextspinner" type="text" value="{{index . "resultcontext"}}" width="20px;">
+        <input id="linesofcontextspinner" type="text" value="{{.resultcontext}}" width="20px;">
     </p>
 
     <p class="optionlabel">Sort results by</p>
@@ -84,7 +84,7 @@
 
     <p class="optionlabel">Lines of context in the browser window</p>
     <p class="optionitem">
-        <input id="browserspinner" type="text" value="{{index . "browsecontext"}}" width="20px;">
+        <input id="browserspinner" type="text" value="{{.browsecontext}}" width="20px;">
     </p>
 
     <p class="optionlabel">Vocabulary lists...</p>
@@ -157,7 +157,7 @@
             (texttoswap)
         </button>
         <div id="cssmode" class="dropdown-content">
-            {{index . "csscolordropdown"}}
+            {{.csscolordropdown}}
         </div>
     </div>
 
@@ -167,7 +167,7 @@
             (texttoswap)
         </button>
         <div id="displayfont" class="dropdown-content">
-            {{index . "fontdropdown"}}
+            {{.fontdropdown}}
         </div>
     </div>
 
@@ -309,7 +309,7 @@
         <span id="termonecheckbox">
                 &nbsp;<span class="choice">λ</span>&nbsp;<input type="checkbox" id="termoneisalemma" value="yes">
             </span>
-        {{index . "vec"}}
+        {{.vec}}
         <button id="extendsearchbutton-ispresentlyopen" title="Complicate the search"><span class="material-icons">expand_less</span></button>
         <button id="extendsearchbutton-ispresentlyclosed" title="Complicate the search"><span class="material-icons">expand_more</span></button>
         <br />
@@ -331,7 +331,7 @@
                 <span class="small rarechars">λ</span><input type="checkbox" id="termtwoisalemma" value="yes">
             </span>
 
-            <input id="proximityspinner" type="text" size="2" value="{{index . "proxval"}}">
+            <input id="proximityspinner" type="text" size="2" value="{{.proxval}}">
             <span class="reduced">
             <label for="searchlines">lines
                 <input type="radio" name="searchfor" id="searchlines" value="L"></label>
@@ -488,11 +488,11 @@
 </div>
 
 <div id="versioning">
-    <span class="unobtrusive">HGS&nbsp;{{index . "version"}}</span>
+    <span class="unobtrusive">HGS&nbsp;{{.version}}</span>
 </div>
 
 <!-- authentication html (if neccessary) -->
-{{index . "authhtm"}}
+{{.authhtm}}
 
 <!-- load uielementlists first: others will use its values -->
 <script src="/emb/js/uielementlists.js"></script>

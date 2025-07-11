@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/clr"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
@@ -122,6 +123,7 @@ func RtFrontpage(c echo.Context) error {
 		"proxval":          s.Proximity,
 		"fontdropdown":     fontdropdownhtml(),
 		"csscolordropdown": colorschemedropdownhtml(),
+		"cssopts":          getcssopts(s),
 	}
 
 	f, e := efs.ReadFile("emb/htm/frontpage.html")
@@ -166,4 +168,13 @@ func fontdropdownhtml() string {
 		known = append(known, fmt.Sprintf(FO, k, k, k))
 	}
 	return strings.Join(known, "\n")
+}
+
+func getcssopts(s str.ServerSession) string {
+	// index.html should ask for `href="/emb/css/hipparchiastyles.css?v=LightUbuntu>` instead of just `hipparchiastyles.css`
+	// this is just to keep browsers from caching the css and so thwarting the selection of new fonts and colors when
+	// you reload of "/" at that point. Firefox on Windows was the first to show this. Most browser/os combos are not a problem.
+
+	// the server does not read the value, it only pushes it; the browser is free to cache the variants...
+	return s.CssColors + s.FontSel
 }
