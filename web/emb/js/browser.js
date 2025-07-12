@@ -75,7 +75,13 @@ function parsepassagereturned(passagereturned) {
     $('observed').click( function(e) {
         e.preventDefault();
         let browsedauthorid = document.getElementById('browsertableuid').attributes.uid.value;
-        $.getJSON('/lex/findbyform/' + this.id + '/' + browsedauthorid, function (definitionreturned) {
+
+        // `<observed id="τράχηλον--205">τράχηλον</observed>`
+        // this.id will be `τράχηλον--205`
+        // but you need to turn `τράχηλον--205` into `τράχηλον` to do the lookup
+        let theword = this.id.split('--')[0];
+
+        $.getJSON('/lex/findbyform/' + theword + '/' + browsedauthorid, function (definitionreturned) {
             document.getElementById('leftmodalheadertext').innerHTML = definitionreturned['entryname'];
             document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml'];
             document.getElementById('lexmodal').style.display = "block";

@@ -2,27 +2,28 @@ package format
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"regexp"
-	"strings"
 )
 
 // ProlixBrowswerCitations - the prolix bibliographic info for a line/work
 func ProlixBrowswerCitations(f str.DbWorkline, l str.DbWorkline) string {
 	const (
 		CVBROWSER = `
-		<p class="currentlyviewing">
-		%s<br>
-		<span class="currentlyviewingcitation">%s — %s</span>
-		<br>
-		<span class="publicationinfo">%s</span>
-		%s</p>`
+        <p class="currentlyviewing">
+        %s<br>
+        <span class="currentlyviewingcitation">%s — %s</span>
+        <br>
+        <span class="publicationinfo">%s</span>
+        %s</p>`
 		CVTMAKER = `
-		<p class="currentlyviewing">%s<br><span class="publicationinfo">(%s)</span>%s</p>`
+        <p class="currentlyviewing">%s<br><span class="publicationinfo">(%s)</span>%s</p>`
 		CT     = `<cvauthor">%s</span>, <cvwork">%s</span>`
 		HIDDEN = `<!-- transmission: %s -->`
 	)
@@ -68,13 +69,13 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
                 <td class="browsedline">%s</td>
                 <td class="browsercite">%s</td>
             </tr>
-		`
+        `
 		TRTMPL = `
             <tr class="browser">
                 <td class="browsedlinewithoutnotes">%s</td>
                 <td class="browsercite">%s</td>
             </tr>
-		`
+        `
 
 		FOCA = `<span class="focusline">`
 		FOCB = `</span>`
@@ -149,6 +150,10 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 		return ar
 	}()
 
+	// count: to keep the ids unique: `<observed id="τράχηλον--205">τράχηλον</observed>`; but then you have to clean them later...
+	// this requires keeping `$('observed').click( function(e) {}` in `browser.js` in sync with what we do here
+	count := 0
+
 	for i := range lines {
 		// turn "abc def" into "<observed id="abc">abc</observed> <observed id="def">def</observed>"
 		// the complication is that x.MarkedUp contains html; use x.Accented to find the words
@@ -164,6 +169,7 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 		lmw := mw[len(mw)-1]
 
 		for j := range wds {
+			count++
 			p := almostallregex[wds[j]]
 			if j == len(wds)-1 && terminalhyph.MatchString(lmw) {
 				// wds[lastwordindex] is the unhyphenated word
@@ -176,11 +182,13 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 				// without strings.Replace() gr2042@81454 browser formatting error: τὴν ἐκκληϲίαν, τὸν οἶκον τῆϲ class="expanded_text">προϲ-
 				// the html ends up as: <span <observed="" id="προϲευχῆϲ">class="expanded_text"&gt;προϲ-</span>
 				newline = strings.Replace(newline, "<span ", "<span_", -1)
-				r := fmt.Sprintf(`$1<observed id="%s">$2</observed>$3`, lwd)
+				r := fmt.Sprintf(`$1<observed id="%s--%d">$2</observed>$3`, lwd, count)
 				newline = np.ReplaceAllString(newline, r)
 				newline = strings.Replace(newline, "<span_", "<span ", -1)
 			} else {
-				newline = p.ReplaceAllString(newline, `$1<observed id="$2">$2</observed>$3`)
+				// r := `$1<observed id="$2">$2</observed>$3`
+				r := fmt.Sprintf("$1<observed id=\"$2--%d\">$2</observed>$3", count)
+				newline = p.ReplaceAllString(newline, r)
 			}
 			// complication: elision: <observed id="ἀλλ">ἀλλ</observed>’
 			// but you can't deal with that here: the ’ will not turn up a find in the dictionary; the ' will yield bad SQL
@@ -197,8 +205,8 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 		cit := SelectivelyDisplayCitations(lines[i], previous, focus)
 
 		// useful for debugging ...
-		dbloc := fmt.Sprintf("<!-- %s %d -->\t", lines[i].AuID(), lines[i].TbIndex)
-		dbln := fmt.Sprintf("<!-- %s -->\t", lines[i].MarkedUp)
+		dbloc := fmt.Sprintf("<!-- %s %d -->", lines[i].AuID(), lines[i].TbIndex)
+		dbln := fmt.Sprintf("<!-- %s -->\n\t", lines[i].MarkedUp)
 
 		blines[i] = dbloc + dbln + bl
 		bcites[i] = fmt.Sprintf("<span class=\"eighty\">%s</span>&nbsp;", cit) // the "normal" sized space is to maintain vertical alignment
@@ -235,6 +243,9 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 		tab = strings.Replace(tab, "id=\"σ\">ς</observed>’ ", "id=\"σ\">σ</observed>’ ", -1)
 	}
 
+	// for html legibility; if you do "</observed>" instead of "</observed> " you will get spacing problems in the output
+	tab = strings.ReplaceAll(tab, "</observed> ", "</observed> \n\t")
+
 	return tab
 }
 
@@ -247,7 +258,7 @@ func stabilizebrowserwidth(longestline int) string {
 	)
 
 	//if 1 > 0 {
-	//	return ""
+	//  return ""
 	//}
 
 	maxlen := longestline + NOTESANDLOCUSFUDGE
