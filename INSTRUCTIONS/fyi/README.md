@@ -69,24 +69,21 @@ e-gun/HipparchiaGoServer/ % ./HipparchiaGoServer -st -gl 3
 
 ```
 
-### some vectorless selftest times
+### some vectorless and vector selftest times
 
-* 91s on 8 cores of apple silicon (m1) virtualizing rocky linux
-* 111s on 6 cores of apple silicon (m1) virtualizing rocky linux
-* 113s on 6 cores of an intel 9900k running a virtualized ubuntu
-* 147s on 6 cores of apple silicon (m1) virtualizing freebsd13 w/ zfs
-* 101 on 6 cores of apple silicon (m1) virtualizing macos
-* 232s on 6 cores of an intel 9900k running a virtualized windows 10
-* 349s on a mac mini 2018
-* 483s on 6 cores of apple silicon (m1) virtualizing windows 11 arm
-* 1144s (ouch) on a 2017 MacBook w/ 1.3GHz Core i5
+* apple m1 chip and 20 workers on macOS: 38s / 140s
+* intel i9-9900K and 8 workers on FreeBSD: 52s / 217s
+* ryzen 9600x with 12 workers on Windows 11: 63s / 125s
+* ryzen 9600x with 12 workers on Ubuntu: 30s / 99s
+
+there is a hefty Windows tax...
 
 ### self-test: how many cores is enough?
 
 Some individual tests split well over multiple workers. Some do not. And even then, more cores helps until it does not.
 
 Note that 20 cores can be slower than 12 in some (fast-to-finish) tests. And more cores barely matters after 6
-for vector tests. The lemmata tests yield the major differences. Diminishing returns start to hit hard  around 7 cores. Real gains stop around 14 cores in every case. 
+for vector tests. The lemmata tests yield the major differences. Diminishing returns start to hit hard around 7 cores. Real gains stop around 14 cores in every case. It looks like I/O speed can leave the cores starved for data.
 
 The default setting is `use all cores`, but many people can safely dial this back. 
 
@@ -180,27 +177,27 @@ The default setting is `use all cores`, but many people can safely dial this bac
 
 ```
 % cloc --exclude-dir=z --not-match-f="^jq*" .
-     207 text files.
-     191 unique files.
-    3743 files ignored.
+     209 text files.
+     193 unique files.                                          
+     281 files ignored.
 
-github.com/AlDanial/cloc v 2.04  T=0.80 s (237.5 files/s, 44104.4 lines/s)
+github.com/AlDanial/cloc v 2.06  T=0.19 s (1020.6 files/s, 188220.0 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                             120           3688           4157          17502
+Go                             120           3702           4176          17538
 CSS                             13            477            144           2013
+JavaScript                      10            325            254           1591
 HTML                            13            162             18           1589
-JavaScript                       8            321            216           1587
-Markdown                        10            447              0           1156
+Markdown                        10            446              0           1152
 Text                             6            108              0            487
-XML                              8              0              0            454
+XML                              8              0              0            461
 JSON                             8              0              0            416
 SVG                              1              1              1            392
 Bourne Shell                     3             25              7             89
 Python                           1              5              6              7
 -------------------------------------------------------------------------------
-SUM:                           191           5234           4549          25692
+SUM:                           193           5251           4606          25735
 -------------------------------------------------------------------------------
 
 ```

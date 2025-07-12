@@ -141,6 +141,7 @@ func ConfigAtLaunch() {
 			"host":        Config.HostIP,
 			"knowncolors": strings.Join(kcc, "C0, C3"),
 			"knownfnts":   strings.Join(kff, "C0, C3"),
+			"lfstatus":    Config.LogToFile,
 			"loge":        vv.LOGFILEEL,
 			"logm":        vv.LOGFILEML,
 			"maxipsrch":   Config.MaxSrchIP,

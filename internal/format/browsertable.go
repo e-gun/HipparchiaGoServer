@@ -196,7 +196,11 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 
 		cit := SelectivelyDisplayCitations(lines[i], previous, focus)
 
-		blines[i] = bl
+		// useful for debugging ...
+		dbloc := fmt.Sprintf("<!-- %s %d -->\t", lines[i].AuID(), lines[i].TbIndex)
+		dbln := fmt.Sprintf("<!-- %s -->\t", lines[i].MarkedUp)
+
+		blines[i] = dbloc + dbln + bl
 		bcites[i] = fmt.Sprintf("<span class=\"eighty\">%s</span>&nbsp;", cit) // the "normal" sized space is to maintain vertical alignment
 		bnotes[i] = fmt.Sprintf("<span class=\"eighty\">%s</span>&nbsp;", FormatAnnotations(lines[i]))
 		previous = lines[i]

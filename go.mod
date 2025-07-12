@@ -17,7 +17,7 @@ require (
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/olekukonko/tablewriter v1.0.8
 	github.com/pkg/profile v1.7.0
-	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b
+	golang.org/x/exp v0.0.0-20250711185948-6ae5c78190dc
 	golang.org/x/text v0.27.0
 	gonum.org/v1/gonum v0.16.0
 )
