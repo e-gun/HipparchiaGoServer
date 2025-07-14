@@ -7,6 +7,12 @@ package web
 
 import (
 	"fmt"
+	"net/http"
+	"slices"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/clr"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
@@ -15,11 +21,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
-	"net/http"
-	"slices"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // RtSetOption - modify the session in light of the selection made
@@ -58,7 +59,7 @@ func RtSetOption(c echo.Context) error {
 			mps.AllAuthors = mps.MapNewAuthorCorpus(c, mps.AllAuthors)
 			// re-populateglobalmaps
 			mps.RePopulateGlobalMaps()
-			d := fmt.Sprintf("modifyglobalmapsifneeded(): %.3fs", time.Now().Sub(start).Seconds())
+			d := fmt.Sprintf("modifyglobalmapsifneeded(): %.3fs", time.Since(start).Seconds())
 			Msg.PEEK(d)
 		}
 	}

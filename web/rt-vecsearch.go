@@ -7,6 +7,8 @@ package web
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
@@ -17,7 +19,6 @@ import (
 	"github.com/e-gun/nlp"
 	"github.com/labstack/echo/v4"
 	"gonum.org/v1/gonum/mat"
-	"strings"
 )
 
 //
@@ -43,9 +44,9 @@ func RtLDASearch(c echo.Context, srch str.SearchStruct) error {
 	var vs str.SearchStruct
 	if srch.ID != "ldamodelbot()" {
 		vs = search.SessionIntoBulkSearch(c, lnch.Config.VectorMaxlines)
-		vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{vs.WSID, 1}
-		vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{vs.WSID, LDAMSG}
-		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{vs.WSID, fmt.Sprintf(ESM1)}
+		vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{Key: vs.WSID, Val: 1}
+		vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{Key: vs.WSID, Val: LDAMSG}
+		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{Key: vs.WSID, Val: fmt.Sprintf(ESM1)}
 	} else {
 		vs = srch
 	}
@@ -60,7 +61,7 @@ func RtLDASearch(c echo.Context, srch str.SearchStruct) error {
 	stops := gen.StringMapKeysIntoSlice(vec.GetStopSet())
 	vectoriser := nlp.NewCountVectoriser(stops...)
 
-	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{vs.WSID, fmt.Sprintf(ESM2)}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{Key: vs.WSID, Val: fmt.Sprintf(ESM2)}
 
 	// consider building TESTITERATIONS models and making a table for each
 	var dot mat.Matrix
@@ -86,7 +87,7 @@ func RtLDASearch(c echo.Context, srch str.SearchStruct) error {
 
 	var img string
 	if se.LDAgraph || srch.ID == "ldamodelbot()" {
-		vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{vs.WSID, fmt.Sprintf(ESM3)}
+		vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{Key: vs.WSID, Val: fmt.Sprintf(ESM3)}
 		img = vec.LDAPlot(vs.Context, se.LDA2D, ntopics, incl, se.VecTextPrep, dot, bags)
 	}
 

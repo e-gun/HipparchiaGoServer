@@ -8,6 +8,12 @@ package web
 import (
 	"cmp"
 	"fmt"
+	"net/http"
+	"slices"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
@@ -19,11 +25,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
-	"net/http"
-	"slices"
-	"sort"
-	"strings"
-	"time"
 )
 
 // RtIndexMaker - build an index for whatever collection of lines you would be searching
@@ -93,8 +94,8 @@ func RtIndexMaker(c echo.Context) error {
 	si := search.BuildDefaultSearch(c)
 	si.Type = "index"
 
-	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{si.WSID, MSG1}
-	vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{si.WSID, 1}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{Key: si.WSID, Val: MSG1}
+	vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{Key: si.WSID, Val: 1}
 
 	// [a] gather the lines...
 
@@ -149,7 +150,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	morphmap := db.ArrayToGetRequiredMorphObjects(morphslice)
 
-	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{si.ID, MSG2}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{Key: si.ID, Val: MSG2}
 
 	var slicedlookups []str.WordInfo
 	for _, w := range slicedwords {
@@ -260,7 +261,7 @@ func RtIndexMaker(c echo.Context) error {
 	// [d] the final map
 	// [d1] build it
 
-	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{si.ID, MSG3}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{Key: si.ID, Val: MSG3}
 
 	indexmap := make(map[gen.PolytonicSorterStruct][]str.WordInfo, len(trimslices))
 	for _, w := range trimslices {
@@ -304,7 +305,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	indexmap = make(map[gen.PolytonicSorterStruct][]str.WordInfo, 1) // drop after use
 
-	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{si.ID, MSG4}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{Key: si.ID, Val: MSG4}
 
 	trr := make([]string, len(plainkeys))
 	for i, k := range plainkeys {
@@ -337,7 +338,7 @@ func RtIndexMaker(c echo.Context) error {
 
 	cit := strings.Join(tc, ", ")
 
-	el := fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
+	el := fmt.Sprintf("%.2f", time.Since(start).Seconds())
 
 	// one of the places where you can catch a session reset
 	if !vlt.AllSessions.IsInVault(user) {

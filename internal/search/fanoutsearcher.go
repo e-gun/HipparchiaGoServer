@@ -7,12 +7,13 @@ package search
 
 import (
 	"context"
+	"sync"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"sync"
 )
 
 var (
@@ -83,19 +84,23 @@ func searchqueryfeeder(ss *str.SearchStruct) (<-chan str.PrerolledQuery, error) 
 	emitone := func(i int) {
 		remainder = len(ss.Queries) - i - 1
 		if remainder%vv.POLLEVERYNTABLES == 0 {
-			vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{ss.WSID, remainder}
+			vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{Key: ss.WSID, Val: remainder}
 		}
 		emitqueries <- ss.Queries[i]
 	}
 
 	feed := func() {
 		defer close(emitqueries)
+		flag := false
 		for i := 0; i < len(ss.Queries); i++ {
 			select {
 			case <-ss.Context.Done():
-				break
+				flag = true
 			default:
 				emitone(i)
+			}
+			if flag {
+				break
 			}
 		}
 	}
@@ -191,7 +196,7 @@ func finalresultcollation(ss *str.SearchStruct, maxhits int, foundbundle <-chan 
 		} else {
 			collated.AppendLines(foundbundle.Lines)
 		}
-		vlt.WSInfo.UpdateHits <- vlt.WSSIKVi{ss.WSID, collated.Len()}
+		vlt.WSInfo.UpdateHits <- vlt.WSSIKVi{Key: ss.WSID, Val: collated.Len()}
 	}
 
 	done := false

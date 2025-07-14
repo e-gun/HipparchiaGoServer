@@ -7,6 +7,10 @@ package web
 
 import (
 	"fmt"
+	"slices"
+	"strconv"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
@@ -14,9 +18,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v4"
-	"slices"
-	"strconv"
-	"strings"
 )
 
 // RtMorphchart - return a chart mapping known forms of a word to their grammatical identification
@@ -35,7 +36,7 @@ func RtMorphchart(c echo.Context) error {
 		CTM   = `<verbform searchterm="%s">%s</verbform> (<span class="counter">%d</span>)`
 		TBTOP = `
 		<div class="center">
-			<span class="verylarge">All known forms of <dictionaryidsearch entryid="%f" language="%s">%s</dictionaryidsearch></span>
+			<span class="verylarge">All known forms of <dictionaryidsearch entryid="%s" language="%s">%s</dictionaryidsearch></span>
 		</div>`
 	)
 

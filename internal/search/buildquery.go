@@ -8,15 +8,16 @@ package search
 import (
 	"bytes"
 	"fmt"
+	"html/template"
+	"regexp"
+	"strconv"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"html/template"
-	"regexp"
-	"strconv"
-	"strings"
 )
 
 const (
@@ -62,7 +63,7 @@ func SSBuildQueries(s *str.SearchStruct) {
 		REG    = `(?P<auth>.{%d})_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)` // %d to allow for AUIDLEN
 		IDX    = `(index %sBETWEEN %d AND %d)`                          // %s is "" or "NOT "
 		ABORT  = "SSBuildQueries() aborting: the ID '%s' is not in the sessionvault"
-		ABORT2 = "SSBuildQueries() aborting: testqueryregex() failed to compile regex"
+		ABORT2 = "SSBuildQueries() aborting: testqueryregex() failed to compile regex '%s'"
 	)
 
 	// check to see if RtResetSession() was called in the middle of a search
@@ -109,13 +110,13 @@ func SSBuildQueries(s *str.SearchStruct) {
 	// [a1] individual works included/excluded
 	for _, w := range inc.Works {
 		wk := mps.AllWorks[w]
-		b := str.QueryBounds{wk.FirstLine, wk.LastLine}
+		b := str.QueryBounds{Start: wk.FirstLine, Stop: wk.LastLine}
 		boundedincl[wk.AuID()] = append(boundedincl[wk.AuID()], b)
 	}
 
 	for _, w := range exc.Works {
 		wk := mps.AllWorks[w]
-		b := str.QueryBounds{wk.FirstLine, wk.LastLine}
+		b := str.QueryBounds{Start: wk.FirstLine, Stop: wk.LastLine}
 		boundedexcl[wk.AuID()] = append(boundedexcl[wk.AuID()], b)
 	}
 	// fmt.Println(boundedincl) --> map[gr0545:[{13717 19042}]]
@@ -130,7 +131,7 @@ func SSBuildQueries(s *str.SearchStruct) {
 		au := subs[pattern.SubexpIndex("auth")]
 		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
 		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
-		b := str.QueryBounds{st, sp}
+		b := str.QueryBounds{Start: st, Stop: sp}
 		boundedincl[au] = append(boundedincl[au], b)
 		// fmt.Printf("%s: %d - %d\n", au, st, sp)
 	}
@@ -140,7 +141,7 @@ func SSBuildQueries(s *str.SearchStruct) {
 		au := subs[pattern.SubexpIndex("auth")]
 		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
 		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
-		b := str.QueryBounds{st, sp}
+		b := str.QueryBounds{Start: st, Stop: sp}
 		boundedexcl[au] = append(boundedexcl[au], b)
 	}
 
@@ -255,9 +256,9 @@ func SSBuildQueries(s *str.SearchStruct) {
 	//	mm(q.PsqlQuery, 3)
 	//}
 
-	vlt.WSInfo.UpdateTW <- vlt.WSSIKVi{s.WSID, len(prqq)}
-	vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{s.WSID, len(prqq)}
-	vlt.WSInfo.UpdateHits <- vlt.WSSIKVi{s.WSID, 0}
+	vlt.WSInfo.UpdateTW <- vlt.WSSIKVi{Key: s.WSID, Val: len(prqq)}
+	vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{Key: s.WSID, Val: len(prqq)}
+	vlt.WSInfo.UpdateHits <- vlt.WSSIKVi{Key: s.WSID, Val: 0}
 }
 
 //

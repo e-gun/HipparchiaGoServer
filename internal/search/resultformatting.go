@@ -8,6 +8,11 @@ package search
 import (
 	"bytes"
 	"fmt"
+	"regexp"
+	"strings"
+	"text/template"
+	"time"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
@@ -15,10 +20,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
-	"regexp"
-	"strings"
-	"text/template"
-	"time"
 )
 
 const (
@@ -436,7 +437,7 @@ func formatfinalsearchsummary(s *str.SearchStruct, skipped int) string {
 		"SortCriterion":  so,
 		"Sought":         s.InitSum,
 		"Suspension":     hitcap,
-		"TimeElapsed":    fmt.Sprintf("%.2f", time.Now().Sub(s.Launched).Seconds()),
+		"TimeElapsed":    fmt.Sprintf("%.2f", time.Since(s.Launched).Seconds()),
 		"WkCount":        m.Sprintf("%d", s.SearchSize),
 	}
 
@@ -554,11 +555,11 @@ func unbalancedspancleaner(html string) string {
 
 // don't let regex compilation get looped...
 var (
-	spkr    = regexp.MustCompile("<speaker>\\[(.*?)</speaker>") // really just "[ϲτρ. α." problem in Aeschylus? fix in builder?
-	esbboth = regexp.MustCompile("\\[(.*?)]")
-	erbboth = regexp.MustCompile("\\((.*?)\\)")
+	spkr    = regexp.MustCompile(`<speaker>\[(.*?)</speaker>`) // really just "[ϲτρ. α." problem in Aeschylus? fix in builder?
+	esbboth = regexp.MustCompile(`\[(.*?)]`)
+	erbboth = regexp.MustCompile(`\((.*?)\)`)
 	eabboth = regexp.MustCompile("⟨(.*?)⟩")
-	ecbboth = regexp.MustCompile("\\{(.*?)}")
+	ecbboth = regexp.MustCompile(`\{(.*?)}`)
 )
 
 // formateditorialbrackets - helper for TextBlockCleaner()

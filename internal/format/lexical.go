@@ -2,6 +2,13 @@ package format
 
 import (
 	"fmt"
+	"maps"
+	"reflect"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
@@ -9,12 +16,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
-	"maps"
-	"reflect"
-	"regexp"
-	"sort"
-	"strconv"
-	"strings"
 )
 
 // FormatLexicalOutput - turn a DbLexicon word into HTML
@@ -151,7 +152,7 @@ func FormatLexParsingData(mpp []str.MorphPossib) string {
 		MORPHTR = `<tr>%s</tr>`
 		MORPHTD = `<td class="%s">%s</td>`
 	)
-	pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
+	pat := regexp.MustCompile(`^(.{1,3}\.)\s`)
 
 	mpmap := make(map[string]str.MorphPossib, len(mpp))
 	for _, p := range mpp {

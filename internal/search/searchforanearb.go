@@ -8,17 +8,18 @@ package search
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"sort"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"regexp"
-	"sort"
-	"strings"
-	"sync"
-	"time"
 )
 
 //
@@ -52,7 +53,7 @@ func WithinXLinesSearch(first str.SearchStruct) str.SearchStruct {
 	// this was toggled just before the queries were written; it needs to be reset now
 	first.CurrentLimit = first.OriginalLimit
 
-	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
+	d := fmt.Sprintf("[Δ: %.3fs] ", time.Since(previous).Seconds())
 	Msg.PEEK(fmt.Sprintf(MSG1, d, first.Results.Len()))
 	previous = time.Now()
 
@@ -84,7 +85,7 @@ func WithinXLinesSearch(first str.SearchStruct) str.SearchStruct {
 
 	SSBuildQueries(&second)
 
-	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
+	d = fmt.Sprintf("[Δ: %.3fs] ", time.Since(previous).Seconds())
 	Msg.PEEK(fmt.Sprintf(MSG2, d))
 	previous = time.Now()
 
@@ -112,15 +113,13 @@ func WithinXLinesSearch(first str.SearchStruct) str.SearchStruct {
 			high := r.TbIndex + first.ProxDist
 			for j := low; j <= high; j++ {
 				hlk := fmt.Sprintf(str.WKLNHYPERLNKTEMPL, r.AuID(), r.WkID(), j)
-				if _, ok := hitmapper[hlk]; ok {
-					delete(hitmapper, hlk)
-				}
+				delete(hitmapper, hlk) // a no-op if not present
 			}
 		}
 		second.Results.Lines = gen.StringMapIntoSlice(hitmapper)
 	}
 
-	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
+	d = fmt.Sprintf("[Δ: %.3fs] ", time.Since(previous).Seconds())
 	Msg.PEEK(fmt.Sprintf(MSG3, d, second.Results.Len()))
 
 	vlt.WSInfo.Del <- second.ID
@@ -167,7 +166,7 @@ func WithinXWordsSearch(first str.SearchStruct) str.SearchStruct {
 	// this was toggled just before the queries were written; it needs to be reset now
 	first.CurrentLimit = first.OriginalLimit
 
-	d := fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
+	d := fmt.Sprintf("[Δ: %.3fs] ", time.Since(previous).Seconds())
 	Msg.PEEK(fmt.Sprintf(MSG1, d, first.Results.Len()))
 	previous = time.Now()
 
@@ -220,7 +219,7 @@ func WithinXWordsSearch(first str.SearchStruct) str.SearchStruct {
 
 	SearchAndInsertResults(&second)
 
-	d = fmt.Sprintf("[Δ: %.3fs] ", time.Now().Sub(previous).Seconds())
+	d = fmt.Sprintf("[Δ: %.3fs] ", time.Since(previous).Seconds())
 	Msg.PEEK(fmt.Sprintf(MSG2, d, first.Results.Len()))
 	previous = time.Now()
 
@@ -359,16 +358,20 @@ func xwordsfeeder(ctx context.Context, kvp *[]kvpair, ss *str.SearchStruct) (<-c
 
 	go func() {
 		defer close(emit)
+		flag := false
 		for i := 0; i < len(*kvp); i++ {
 			select {
 			case <-ctx.Done():
-				break
+				flag = true
 			default:
 				remainder = len(ss.Queries) - i - 1
 				if remainder%vv.POLLEVERYNTABLES == 0 {
-					vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{ss.WSID, remainder}
+					vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{Key: ss.WSID, Val: remainder}
 				}
 				emit <- (*kvp)[i]
+			}
+			if flag {
+				break
 			}
 		}
 	}()
@@ -436,7 +439,7 @@ func xwordscollation(ctx context.Context, ss *str.SearchStruct, hits <-chan int)
 				if h != -1 {
 					// *something* came back from xwordscheckfinds; a negative result is {-1, ""}
 					allhits = append(allhits, h)
-					vlt.WSInfo.UpdateHits <- vlt.WSSIKVi{ss.WSID, len(allhits)}
+					vlt.WSInfo.UpdateHits <- vlt.WSSIKVi{Key: ss.WSID, Val: len(allhits)}
 				}
 				if len(allhits) > ss.OriginalLimit {
 					done = true

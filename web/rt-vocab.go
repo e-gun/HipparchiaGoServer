@@ -7,6 +7,12 @@ package web
 
 import (
 	"fmt"
+	"net/http"
+	"regexp"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
@@ -19,11 +25,6 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
-	"net/http"
-	"regexp"
-	"sort"
-	"strings"
-	"time"
 )
 
 // RtVocabMaker - get the vocabulary for whatever collection of lines you would be searching
@@ -117,8 +118,8 @@ func RtVocabMaker(c echo.Context) error {
 	si := search.BuildDefaultSearch(c)
 	si.Type = "vocab"
 
-	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{si.WSID, MSG1}
-	vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{si.WSID, 1}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{Key: si.WSID, Val: MSG1}
+	vlt.WSInfo.UpdateRemain <- vlt.WSSIKVi{Key: si.WSID, Val: 1}
 
 	// [a] get all the lines you need and turn them into []WordInfo; Headwords to be filled in later
 	mx := lnch.Config.MaxText * vv.MAXVOCABLINEGENERATION
@@ -165,7 +166,7 @@ func RtVocabMaker(c echo.Context) error {
 	// [c1] get and map all the DbMorphology
 	morphmap := db.ArrayToGetRequiredMorphObjects(morphslice)
 
-	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{id, MSG2}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{Key: id, Val: MSG2}
 
 	// [c2] map observed words to possibilities
 	poss := make(map[string][]str.MorphPossib)
@@ -216,7 +217,7 @@ func RtVocabMaker(c echo.Context) error {
 
 	// [f1] consolidate the information
 
-	pat := regexp.MustCompile("^(.{1,3}\\.)\\s")
+	pat := regexp.MustCompile(`^(.{1,3}\.)\s`)
 
 	vim := make(map[string]str.VocInfo)
 	for k, v := range vic {
@@ -253,7 +254,7 @@ func RtVocabMaker(c echo.Context) error {
 		ct += 1
 	}
 
-	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{id, MSG3}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{Key: id, Val: MSG3}
 
 	// [f2] sort the results
 	if s.VocByCount {
@@ -268,7 +269,7 @@ func RtVocabMaker(c echo.Context) error {
 		sort.Slice(vis, func(i, j int) bool { return vis[i].Strip < vis[j].Strip })
 	}
 
-	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{id, MSG4}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{Key: id, Val: MSG4}
 
 	// [g] format the output
 
@@ -326,7 +327,7 @@ func RtVocabMaker(c echo.Context) error {
 	m := message.NewPrinter(language.English)
 	wf := m.Sprintf("%d", len(parsedwords))
 
-	el := fmt.Sprintf("%.2f", time.Now().Sub(start).Seconds())
+	el := fmt.Sprintf("%.2f", time.Since(start).Seconds())
 
 	ky := multiworkkeymaker(mp, &vocabsrch)
 

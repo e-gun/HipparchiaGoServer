@@ -121,7 +121,7 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 	// complication: hyphenated words at the end of a line
 	// this will already have markup from bracketformatting and so have to be handled carefully
 
-	terminalhyph := regexp.MustCompile("(\\S+-)$")
+	terminalhyph := regexp.MustCompile(`(\S+-)$`)
 
 	allwords := func() []string {
 		wm := make(map[string]bool)
@@ -179,8 +179,6 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 					// web.Msg.PEEK(fmt.Sprintf(FAIL, lmw))
 					np = regexp.MustCompile("FIND_NOTHING")
 				}
-				// without strings.Replace() gr2042@81454 browser formatting error: τὴν ἐκκληϲίαν, τὸν οἶκον τῆϲ class="expanded_text">προϲ-
-				// the html ends up as: <span <observed="" id="προϲευχῆϲ">class="expanded_text"&gt;προϲ-</span>
 				newline = strings.Replace(newline, "<span ", "<span_", -1)
 				r := fmt.Sprintf(`$1<observed id="%s--%d">$2</observed>$3`, lwd, count)
 				newline = np.ReplaceAllString(newline, r)
@@ -231,7 +229,7 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 
 	// that was the body, now do the head and tail
 	top := fmt.Sprintf(UIDDIV, lines[0].AuID())
-	top += `<table><tbody>`
+	top += `<table id="browsertable"><tbody>`
 	if regularizewidth {
 		top += stabilizebrowserwidth(longestnote)
 	}

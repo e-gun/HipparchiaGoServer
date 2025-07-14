@@ -8,14 +8,15 @@ package search
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"strings"
-	"time"
 )
 
 //
@@ -234,7 +235,7 @@ func CloneSearch(f *str.SearchStruct, iteration int) str.SearchStruct {
 
 	InsertNewContextIntoSS(&clone)
 
-	vlt.WSInfo.UpdateIteration <- vlt.WSSIKVi{clone.WSID, clone.PhaseNum}
+	vlt.WSInfo.UpdateIteration <- vlt.WSSIKVi{Key: clone.WSID, Val: clone.PhaseNum}
 
 	return clone
 }
