@@ -118,11 +118,6 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 	bcites := make([]string, len(lines))
 	previous := lines[0]
 
-	// complication: hyphenated words at the end of a line
-	// this will already have markup from bracketformatting and so have to be handled carefully
-
-	terminalhyph := regexp.MustCompile(`(\S+-)$`)
-
 	allwords := func() []string {
 		wm := make(map[string]bool)
 		for i := range lines {
@@ -150,6 +145,11 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 		return ar
 	}()
 
+	// complication: hyphenated words at the end of a line
+	// this will already have markup from bracketformatting and so have to be handled carefully
+
+	hasterminalhyph := regexp.MustCompile(`(\S+-)$`)
+
 	// count: to keep the ids unique: `<observed id="τράχηλον--205">τράχηλον</observed>`; but then you have to clean them later...
 	// this requires keeping `$('observed').click( function(e) {}` in `browser.js` in sync with what we do here
 	count := 0
@@ -158,21 +158,24 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 		// turn "abc def" into "<observed id="abc">abc</observed> <observed id="def">def</observed>"
 		// the complication is that x.MarkedUp contains html; use x.Accented to find the words
 
-		// further complications: hyphenated words & capitalized words
+		// further complications: hyphenated words & capitalized words (note we are using GetAccented())
 		wds := strings.Split(lines[i].GetAccented(), " ")
-		lastwordindex := len(wds) - 1
-		lwd := wds[lastwordindex] // preserve this before potentially shrinking wds
-		wds = gen.Unique(wds)
 
-		newline := lines[i].GetMarked()
+		lastwordindexval := len(wds) - 1
+		lwd := wds[lastwordindexval] // preserve this before potentially shrinking wds
+
+		newline := lines[i].GetMarked() // note that we just shifted to GetMarked()
 		mw := strings.Split(lines[i].GetMarked(), " ")
-		lmw := mw[len(mw)-1]
+		lmw := mw[len(mw)-1] // the last word of the line: doest it have a hyphen?
+		hashyph := hasterminalhyph.MatchString(lmw)
+		alreadydone := make(map[string]bool)
 
 		for j := range wds {
 			count++
 			p := almostallregex[wds[j]]
-			if j == len(wds)-1 && terminalhyph.MatchString(lmw) {
-				// wds[lastwordindex] is the unhyphenated word
+
+			if hashyph && j == lastwordindexval {
+				// wds[lastwordindexval] is the unhyphenated word
 				// almostallregex does not contain this pattern: "ἱμα-", e.g.
 				np, e := regexp.Compile(fmt.Sprintf(OBSREGTEMPL, gen.UVσςϲCapsVariants(lmw)))
 				if e != nil {
@@ -183,11 +186,12 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 				r := fmt.Sprintf(`$1<observed id="%s--%d">$2</observed>$3`, lwd, count)
 				newline = np.ReplaceAllString(newline, r)
 				newline = strings.Replace(newline, "<span_", "<span ", -1)
-			} else {
+			} else if !alreadydone[lmw] {
 				// r := `$1<observed id="$2">$2</observed>$3`
 				r := fmt.Sprintf("$1<observed id=\"$2--%d\">$2</observed>$3", count)
 				newline = p.ReplaceAllString(newline, r)
 			}
+			alreadydone[wds[j]] = true
 			// complication: elision: <observed id="ἀλλ">ἀλλ</observed>’
 			// but you can't deal with that here: the ’ will not turn up a find in the dictionary; the ' will yield bad SQL
 			// so the dictionary lookup has to be reworked
