@@ -72,23 +72,24 @@ function parsepassagereturned(passagereturned) {
 
     showmany(postbrowsepickui);
 
-    $('observed').click( function(e) {
-        e.preventDefault();
-        let browsedauthorid = document.getElementById('browsertableuid').attributes.uid.value;
-
-        // `<observed id="τράχηλον--205">τράχηλον</observed>`
-        // this.id will be `τράχηλον--205`
+    let browsedauthorid = document.getElementById('browsertableuid').attributes.uid.value;
+    const observed = document.querySelectorAll('observed');
+    for (let i = 0; i < observed.length; i++) {
+        const id = observed[i].id;
+        // example: `<observed id="τράχηλον--205">τράχηλον</observed>`
+        // observed[i].id will be `τράχηλον--205`
         // but you need to turn `τράχηλον--205` into `τράχηλον` to do the lookup
-        let theword = this.id.split('--')[0];
-
-        $.getJSON('/lex/findbyform/' + theword + '/' + browsedauthorid, function (definitionreturned) {
-            document.getElementById('leftmodalheadertext').innerHTML = definitionreturned['entryname'];
-            document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml'];
-            document.getElementById('lexmodal').style.display = "block";
-            jshld.html(definitionreturned['newjs']);
-            // the js will be `fmt.Sprintf(vv.BROWSERJS, "bibl")`
+        const theword = id.split('--')[0];
+        observed[i].addEventListener('click', function(e) {
+            $.getJSON('/lex/findbyform/' + theword + '/' + browsedauthorid, function (definitionreturned) {
+                document.getElementById('leftmodalheadertext').innerHTML = definitionreturned['entryname'];
+                document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml'];
+                document.getElementById('lexmodal').style.display = "block";
+                jshld.html(definitionreturned['newjs']);
+            });
+            return false;
         });
-        return false;
-    });
+    }
+
 	return [fwdurl, bkdurl]
 }

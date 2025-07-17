@@ -10,7 +10,7 @@ require (
 	github.com/e-gun/policeresponses v0.0.4
 	github.com/e-gun/tsnemp v0.1.7
 	github.com/e-gun/wego v0.1.1
-	github.com/go-echarts/go-echarts/v2 v2.6.0
+	github.com/go-echarts/go-echarts/v2 v2.6.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/jackc/pgx/v5 v5.7.5

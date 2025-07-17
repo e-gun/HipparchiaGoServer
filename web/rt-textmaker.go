@@ -114,7 +114,7 @@ func RtTextMaker(c echo.Context) error {
 	tab := strings.Join(trr, "")
 	// that was the body, now do the head and tail
 	top := fmt.Sprintf(`<div id="browsertableuid" uid="%s"></div>`, srch.Results.Lines[0].AuID())
-	top += `<table><tbody>`
+	top += `<table id="textmaker"><tbody>`
 	top += `<tr class="spacing">` + strings.Repeat("&nbsp;", vv.MINBROWSERWIDTH) + `</tr>`
 
 	tab = top + tab + `</tbody></table>`
