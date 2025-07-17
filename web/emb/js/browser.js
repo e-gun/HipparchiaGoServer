@@ -5,6 +5,8 @@
 
 
 function browseuponclick(url){
+    
+    console.log("browseuponclick url is '" + url + "'");
 	$.getJSON(
 	    { url: '/browse/' + url,
 	    success: function (passagereturned) {

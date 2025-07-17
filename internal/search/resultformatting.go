@@ -53,7 +53,7 @@ func FormatNoContextResults(ss *str.SearchStruct) str.SearchOutputJSON {
 		</tr>`
 
 		DATES    = `[<span class="date">%s</span>]`
-		SPSUBBER = `<spcauthor">%s</span>,&nbsp;<spcwork">%s</span>: <browser_id="%s"><spclocus">%s</span></browser>`
+		SPSUBBER = `<spcauthor">%s</span>,&nbsp;<spcwork">%s</span>: <clicktobrowse_id="%s--%d"><spclocus">%s</span></clicktobrowse>`
 	)
 
 	type TRTempl struct {
@@ -105,11 +105,11 @@ func FormatNoContextResults(ss *str.SearchStruct) str.SearchOutputJSON {
 		lk := r.BuildHyperlink()
 		lc := strings.Join(r.FindLocus(), ".")
 
-		// <span class="foundauthor">%s</span>,&nbsp;<span class="foundwork">%s</span>: <browser id="%s"><span class="foundlocus">%s</span></browser>
-		ci := fmt.Sprintf(SPSUBBER, au, wk, lk, lc)
+		// <span class="foundauthor">%s</span>,&nbsp;<span class="foundwork">%s</span>: <browser id="%s--%d"><span class="foundlocus">%s</span></browser>
+		ci := fmt.Sprintf(SPSUBBER, au, wk, lk, i, lc)
 		ci = gen.AvoidLongLines(ci, vv.MAXTITLELENGTH)
 		ci = strings.Replace(ci, "<spc", `<span class="found`, -1)
-		ci = strings.Replace(ci, `browser_id`, `browser id`, -1)
+		ci = strings.Replace(ci, `clicktobrowse_id`, `clicktobrowse id`, -1)
 
 		tr := TRTempl{
 			TRClass:    rc,
@@ -126,7 +126,7 @@ func FormatNoContextResults(ss *str.SearchStruct) str.SearchOutputJSON {
 	}
 
 	var out str.SearchOutputJSON
-	out.JS = fmt.Sprintf(vv.CLICKTOBROWSE, "browser")
+	out.JS = fmt.Sprintf(vv.CLICKTOBROWSE, "clicktobrowse")
 	out.Title = fmt.Sprintf("Sought »%s«", ss.Seeking)
 	out.Image = ""
 	out.Searchsummary = formatfinalsearchsummary(ss, skipcount)
@@ -162,7 +162,7 @@ func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON 
 		<locus>
 			<span class="findnumber">[{{.Findnumber}}]</span>&nbsp;{{.FindDate}}
 			<span class="foundauthor">{{.Foundauthor}}</span>,&nbsp;<span class="foundwork">{{.Foundwork}}</span>
-			<browser id="{{.FindURL}}"><span class="foundlocus">{{.FindLocus}}</span></browser>
+			<clicktobrowse id="{{.FindURL}}"><span class="foundlocus">{{.FindLocus}}</span></clicktobrowse>
 		</locus>
 		{{.LocusBody}}`
 
@@ -242,7 +242,7 @@ func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON 
 		psg.Findnumber = kk + 1
 		psg.Foundauthor = DbWlnMyAu(&r).Name
 		psg.Foundwork = DbWlnMyWk(&r).Title
-		psg.FindURL = r.BuildHyperlink()
+		psg.FindURL = fmt.Sprintf("%s--%d", r.BuildHyperlink(), kk)
 		psg.FindLocus = strings.Join(r.FindLocus(), ".")
 		psg.FindDate = FormatInscriptionDates(DTT, &r)
 		psg.FindCity = formatinscriptionplaces(&r)
@@ -339,7 +339,7 @@ func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON 
 	// ouput
 
 	var out str.SearchOutputJSON
-	out.JS = fmt.Sprintf(vv.CLICKTOBROWSE, "browser")
+	out.JS = fmt.Sprintf(vv.CLICKTOBROWSE, "clicktobrowse")
 	out.Title = fmt.Sprintf("Sought »%s«", RestoreWhiteSpace(thesearch.Seeking))
 	out.Image = ""
 	out.Searchsummary = formatfinalsearchsummary(thesearch, skipcount)

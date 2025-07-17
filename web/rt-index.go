@@ -453,22 +453,22 @@ func convertwordinfototablerow(ww []str.WordInfo, uniquerowid int) string {
 	//		<td class="headword"><indexobserved id=""></indexobserved></td>
 	//		<td class="word"><indexobserved id="διδόντεϲ">διδόντεϲ</indexobserved></td>
 	//		<td class="count">2</td>
-	//		<td class="passages"><indexedlocation id="index/gr0540/015/3831">⒪ 2.4</indexedlocation>, <indexedlocation id="index/gr0540/025/5719">⒴ 32.5</indexedlocation></td>
+	//		<td class="passages"><indexedlocation id="index/gr0540/015/3831--11">⒪ 2.4</indexedlocation>, <indexedlocation id="index/gr0540/025/5719--11">⒴ 32.5</indexedlocation></td>
 	//	</tr>
 
 	const (
 		TBLRW = `
 		<tr>
-			<td class="headword"><indexobserved id="%s">%s</indexobserved></td>
-			<td class="word"><indexobserved id="%s">%s</indexobserved></td>
+			<td class="headword"><indexobserved id="%s--%dh">%s</indexobserved></td>
+			<td class="word"><indexobserved id="%s--%dw">%s</indexobserved></td>
 			<td class="count">%d</td>
 			<td class="passages">%s</td>
 		</tr>`
 
 		HMNTBLRW = `
 		<tr>
-			<td class="headword"><indexobserved id="%s">%s</indexobserved></td>
-			<td class="word"><span class="homonym"><indexobserved id="%s">%s</indexobserved></span></td>
+			<td class="headword"><indexobserved id="%s--%dh">%s</indexobserved></td>
+			<td class="word"><span class="homonym"><indexobserved id="%s--%dw">%s</indexobserved></span></td>
 			<td class="count">%d</td>
 			<td class="passages">%s</td>
 		</tr>`
@@ -494,7 +494,9 @@ func convertwordinfototablerow(ww []str.WordInfo, uniquerowid int) string {
 
 	trr := make([]string, len(keys))
 	used := make(map[string]bool)
+
 	for i, k := range keys {
+		uniquerowid++
 		wii := indexmap[k]
 		hw := ""
 		if used[wii[0].HeadWd] {
@@ -521,7 +523,7 @@ func convertwordinfototablerow(ww []str.WordInfo, uniquerowid int) string {
 			templ = HMNTBLRW
 		}
 
-		t := fmt.Sprintf(templ, hw, hw, wii[0].Word, wii[0].Word, len(pp), p)
+		t := fmt.Sprintf(templ, hw, uniquerowid, hw, wii[0].Word, uniquerowid, wii[0].Word, len(pp), p)
 		trr[i] = t
 		used[wii[0].HeadWd] = true
 	}

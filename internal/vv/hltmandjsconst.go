@@ -6,11 +6,15 @@
 package vv
 
 const (
-	CLICKTOLOOKUPOLD = `
-		$('%s').click( function(e) {
-			e.preventDefault();
-			var windowWidth = $(window).width();
-			var windowHeight = $(window).height();
+	CLICKTOLOOKUP = `
+    var vocabList = document.querySelectorAll('**REPLACEME**');
+    for (let i = 0; i < vocabList.length; i++) {
+        const theitem = vocabList[i];
+        theitem.addEventListener('click', function(e) {
+            const theword = e.target.id.split('--')[0];
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            e.preventDefault();
 			$( '#lexicadialogtext' ).dialog({
 				closeOnEscape: true, 
 				autoOpen: false,
@@ -22,72 +26,70 @@ const (
 				icons: { primary: 'ui-icon-close' },
 				click: function() { $( this ).dialog( 'close' ); }
 				});
-			$.getJSON('/lex/findbyform/'+this.id, function (definitionreturned) {
-				$( '#lexicaljsscriptholder' ).html(definitionreturned['newjs']);
-				document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml']
-				document.getElementById('lexmodal').style.display = "block";
-			});
-		return false;
-		});`
+            // Make a GET request to the /lex/findbyform endpoint
+            fetch('/lex/findbyform/' + theword)
+                .then(response => response.json())
+                .then(definitionreturned => {
+                    // Update the content of the dialog box with the returned data
+                    const newJS = definitionreturned['newjs'];
+                    const newHTML = definitionreturned['newhtml'];
+                    document.getElementById('lexmodalbody').innerHTML = newHTML;
+                    document.getElementById('lexmodal').style.display = 'block';
+                });
+        });
+    }`
 
-	CLICKTOLOOKUP = `
+	// CLICKTOLOOKUPINPROGRESS - todo: replace jquery $( '#lexicadialogtext' ).dialog():
+	CLICKTOLOOKUPINPROGRESS = `
     var vocabList = document.querySelectorAll('**REPLACEME**');
     for (let i = 0; i < vocabList.length; i++) {
         const theitem = vocabList[i];
         theitem.addEventListener('click', function(e) {
             const theword = e.target.id.split('--')[0];
             e.preventDefault();
-
             // Get the window dimensions
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
+           const windowWidth = window.innerWidth;
+           const windowHeight = window.innerHeight;
 
-            // Create a new dialog box element
-            const dialogBox = document.createElement('div');
-            dialogBox.id = 'lexicadialogtext';
-            dialogBox.style.width = (windowWidth * 0.33).toString() + 'px';
-            dialogBox.style.height = (windowHeight * 0.9.toString() + 'px';
-            dialogBox.style.position = 'absolute';
-            dialogBox.style.left = '50%';
-            dialogBox.style.top = '50%';
-            dialogBox.style.transform = 'translate(-50%, -50%)';
-            dialogBox.style.borderRadius = '10px';
-            dialogBox.style.padding = '20px';
-            dialogBox.style.backgroundColor = '#f0f0f0';
+           // Create a new dialog box element
+           const dialogBox = document.createElement('div');
+           dialogBox.id = 'lexmodalbody';
+           dialogBox.style.width = (windowWidth * 0.33).toString() + 'px';
+           dialogBox.style.height = (windowHeight * 0.9).toString() + 'px';
+           dialogBox.style.position = 'absolute';
 
-            // Set the title of the dialog box
-            const title = document.createElement('h3');
-            title.textContent = this.id;
-            dialogBox.appendChild(title);
+           // Set the title of the dialog box
+           const title = document.createElement('h3');
+           title.textContent = this.id;
+           dialogBox.appendChild(title);
 
-            // Make the dialog box draggable
-            let isDragging = false;
-            dialogBox.addEventListener('mousedown', function(e) {
-                isDragging = true;
-            });
-            document.addEventListener('mouseup', function(e) {
-                isDragging = false;
-            });
-            dialogBox.addEventListener('mousemove', function(e) {
-                if (isDragging) {
-                    const x = e.clientX - dialogBox.offsetWidth / 2;
-                    const y = e.clientY - dialogBox.offsetHeight / 2;
-                    dialogBox.style.left = x.toString()+ 'px';
-                    dialogBox.style.top = y.toString()+ 'px';
-                }
-            });
+           // Make the dialog box draggable
+           let isDragging = false;
+           dialogBox.addEventListener('mousedown', function(e) {
+               isDragging = true;
+           });
+           document.addEventListener('mouseup', function(e) {
+               isDragging = false;
+           });
+           dialogBox.addEventListener('mousemove', function(e) {
+               if (isDragging) {
+                   const x = e.clientX - dialogBox.offsetWidth / 2;
+                   const y = e.clientY - dialogBox.offsetHeight / 2;
+                   dialogBox.style.left = x.toString()+ 'px';
+                   dialogBox.style.top = y.toString()+ 'px';
+               }
+           });
 
-            // Close the dialog box when the user clicks on the close button
-            const closeButton = document.createElement('button');
-            closeButton.textContent = 'Close';
-            closeButton.addEventListener('click', function(e) {
-                dialogBox.remove();
-            });
-            dialogBox.appendChild(closeButton);
+           // Close the dialog box when the user clicks on the close button
+           const closeButton = document.createElement('button');
+           closeButton.textContent = 'Close';
+           closeButton.addEventListener('click', function(e) {
+               dialogBox.remove();
+           });
+           dialogBox.appendChild(closeButton);
 
-            // Add the dialog box to the document
-            document.body.appendChild(dialogBox);
-
+           // Add the dialog box to the document
+           document.body.appendChild(dialogBox);
             // Make a GET request to the /lex/findbyform endpoint
             fetch('/lex/findbyform/' + theword)
                 .then(response => response.json())
@@ -117,7 +119,7 @@ const (
             // but you need to turn "index/tlg0612/001/4270--31" into "index/tlg0612/001/4270" to do the lookup
             // the "--31" is added to keep the ids distinct and it means "I was assigned by the 31st word in the index"
 
-            const locus = e.target.id.split('--')[0]; 
+            const locus = location.id.split('--')[0]; 
             fetch('/browse/' + locus)
                 .then(response => response.json())
                 .then(passagereturned => {
