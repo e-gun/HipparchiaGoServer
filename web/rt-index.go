@@ -80,6 +80,8 @@ func RtIndexMaker(c echo.Context) error {
 		WLHTM  = `<p class="emph">Words that appear only here in the whole database:</p><p class="indented smallerthannormal">`
 	)
 
+	// see convertwordinfototablerow() for what a row looks like
+
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, str.CommonJSONOutput{JS: vv.JSVALIDATION}, vv.JSONINDENT)
@@ -307,11 +309,13 @@ func RtIndexMaker(c echo.Context) error {
 
 	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{Key: si.ID, Val: MSG4}
 
+	uniquerowid := 0
 	trr := make([]string, len(plainkeys))
 	for i, k := range plainkeys {
 		// example
 		// k: ἀδικέω; plainmap[k]: []WordInfo -> ἀδικεῖτε, ἀδικηϲάντων, ἀδικούμεθα, ...
-		trr[i] = convertwordinfototablerow(plainmap[k])
+		uniquerowid++
+		trr[i] = convertwordinfototablerow(plainmap[k], uniquerowid)
 	}
 
 	htm := fmt.Sprintf(TBLTMP, strings.Join(trr, ""))
@@ -439,7 +443,7 @@ func multiworkkeymaker(mapper map[string]rune, srch *str.SearchStruct) string {
 }
 
 // convertwordinfototablerow - []WordInfo --> "<tr>...</tr>"
-func convertwordinfototablerow(ww []str.WordInfo) string {
+func convertwordinfototablerow(ww []str.WordInfo, uniquerowid int) string {
 	// every word has the same headword
 	// now we build a sub-map after the pattern of the main map: but now the keys are the words, not the headwords
 
@@ -468,7 +472,7 @@ func convertwordinfototablerow(ww []str.WordInfo) string {
 			<td class="passages">%s</td>
 		</tr>`
 
-		IDXLOC = `<indexedlocation id="%s">%s</indexedlocation>`
+		IDXLOC = `<indexedlocation id="%s--%d">%s</indexedlocation>`
 	)
 
 	// build it
@@ -505,7 +509,7 @@ func convertwordinfototablerow(ww []str.WordInfo) string {
 		dedup := make(map[string]bool) // this is hacky: why duplicates to begin with?
 		for j := 0; j < len(wii); j++ {
 			if _, ok := dedup[wii[j].Loc]; !ok {
-				pp = append(pp, fmt.Sprintf(IDXLOC, wii[j].Loc, wii[j].Cit))
+				pp = append(pp, fmt.Sprintf(IDXLOC, wii[j].Loc, uniquerowid, wii[j].Cit))
 				dedup[wii[j].Loc] = true
 			}
 		}

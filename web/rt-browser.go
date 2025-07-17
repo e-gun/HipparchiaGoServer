@@ -85,7 +85,10 @@ func RtBrowseLine(c echo.Context) error {
 		au := elem[0]
 		wk := elem[1]
 		ln, e := strconv.Atoi(elem[2])
-		Msg.EC(e)
+		if e != nil {
+			Msg.NOTE("Error in RtBrowseLine() - " + e.Error())
+			return emptyjsreturn(c)
+		}
 		ctx := s.BrowseCtx
 		bp := generatebrowsedpassage(au, wk, ln, ctx, s.ZapLunates, regularizewidth)
 		return jsonresponse(c, bp)

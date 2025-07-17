@@ -258,15 +258,11 @@ func (m *MessageMaker) EF(err error, fn string) {
 	}
 }
 
-// EC - report error and page that called function
+// EC - report error and branch that called function
 func (m *MessageMaker) EC(err error) {
-	var c string
-	if m.Clr != "" {
-		c = m.Clr
-	}
 	if err != nil {
-		fmt.Printf(PANIC2, YELLOW2, m.LNm, m.Ver, RESET, CYAN2, c, RESET, RED1, RESET)
-		fmt.Println(err)
+		fmt.Printf(PANIC2, YELLOW2, m.LNm, m.Ver, RESET, CYAN2, m.SNm, RESET, RED1, RESET)
+		fmt.Println("\t" + err.Error())
 		m.ExitOrHang(1)
 	}
 }

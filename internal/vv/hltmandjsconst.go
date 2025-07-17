@@ -30,7 +30,35 @@ const (
 		return false;
 		});`
 
+	// BROWSERJS - in Firefox an index to all of Ovid consumes 960MB of memory...: 1.6M objects and 1.1M domNode
+	// the older jQuery version of vv.BROWSERJS: 1.5GB of memory: 3.2M objects and 3.2M domNode
 	BROWSERJS = `
+	$('#pollingdata').hide();
+
+    var indexedLocations = document.querySelectorAll('%s');
+    for (let i = 0; i < indexedLocations.length; i++) {
+        const location = indexedLocations[i];
+        location.addEventListener('click', function(e) {
+            // Extract the ID from the clicked element's ID attribute
+            const locus = e.target.id.split('-')[0];
+            fetch('/browse/' + locus)
+                .then(response => response.json())
+                .then(passagereturned => {
+                    const fb = parsepassagereturned(passagereturned);
+                    // left and right arrow keys
+                    document.getElementById('browserdialogtext').addEventListener('keydown', e => {
+                        switch (e.which) {
+                            case 37: browseuponclick(fb[1]); break;
+                            case 39: browseuponclick(fb[0]); break;
+                        }
+                    });
+                    document.getElementById('browseforward').addEventListener('click', () => browseuponclick(fb[0]));
+                    document.getElementById('browseback').addEventListener('click', () => browseuponclick(fb[1]));
+                })
+        });
+    }`
+
+	BROWSERJSOLD = `
 	$('#pollingdata').hide();
 	
 	$('%s').click( function() {
