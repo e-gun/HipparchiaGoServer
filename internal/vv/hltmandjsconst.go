@@ -6,7 +6,7 @@
 package vv
 
 const (
-	LEXFINDJS = `
+	CLICKTOLOOKUPOLD = `
 		$('%s').click( function(e) {
 			e.preventDefault();
 			var windowWidth = $(window).width();
@@ -30,9 +30,80 @@ const (
 		return false;
 		});`
 
-	// BROWSERJS - in Firefox an index to all of Ovid consumes 960MB of memory...: 1.6M objects and 1.1M domNode
-	// the older jQuery version of vv.BROWSERJS: 1.5GB of memory: 3.2M objects and 3.2M domNode
-	BROWSERJS = `
+	CLICKTOLOOKUP = `
+    var vocabList = document.querySelectorAll('**REPLACEME**');
+    for (let i = 0; i < vocabList.length; i++) {
+        const theitem = vocabList[i];
+        theitem.addEventListener('click', function(e) {
+            const theword = e.target.id.split('--')[0];
+            e.preventDefault();
+
+            // Get the window dimensions
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+
+            // Create a new dialog box element
+            const dialogBox = document.createElement('div');
+            dialogBox.id = 'lexicadialogtext';
+            dialogBox.style.width = (windowWidth * 0.33).toString() + 'px';
+            dialogBox.style.height = (windowHeight * 0.9.toString() + 'px';
+            dialogBox.style.position = 'absolute';
+            dialogBox.style.left = '50%';
+            dialogBox.style.top = '50%';
+            dialogBox.style.transform = 'translate(-50%, -50%)';
+            dialogBox.style.borderRadius = '10px';
+            dialogBox.style.padding = '20px';
+            dialogBox.style.backgroundColor = '#f0f0f0';
+
+            // Set the title of the dialog box
+            const title = document.createElement('h3');
+            title.textContent = this.id;
+            dialogBox.appendChild(title);
+
+            // Make the dialog box draggable
+            let isDragging = false;
+            dialogBox.addEventListener('mousedown', function(e) {
+                isDragging = true;
+            });
+            document.addEventListener('mouseup', function(e) {
+                isDragging = false;
+            });
+            dialogBox.addEventListener('mousemove', function(e) {
+                if (isDragging) {
+                    const x = e.clientX - dialogBox.offsetWidth / 2;
+                    const y = e.clientY - dialogBox.offsetHeight / 2;
+                    dialogBox.style.left = x.toString()+ 'px';
+                    dialogBox.style.top = y.toString()+ 'px';
+                }
+            });
+
+            // Close the dialog box when the user clicks on the close button
+            const closeButton = document.createElement('button');
+            closeButton.textContent = 'Close';
+            closeButton.addEventListener('click', function(e) {
+                dialogBox.remove();
+            });
+            dialogBox.appendChild(closeButton);
+
+            // Add the dialog box to the document
+            document.body.appendChild(dialogBox);
+
+            // Make a GET request to the /lex/findbyform endpoint
+            fetch('/lex/findbyform/' + theword)
+                .then(response => response.json())
+                .then(definitionreturned => {
+                    // Update the content of the dialog box with the returned data
+                    const newJS = definitionreturned['newjs'];
+                    const newHTML = definitionreturned['newhtml'];
+                    document.getElementById('lexmodalbody').innerHTML = newHTML;
+                    document.getElementById('lexmodal').style.display = 'block';
+                });
+        });
+    }`
+
+	// CLICKTOBROWSE - in Firefox an index to all of Ovid consumes 960MB of memory: 1.6M objects and 1.1M domNode
+	// the older jQuery version of vv.CLICKTOBROWSE: 1.5GB of memory: 3.2M objects and 3.2M domNode
+	CLICKTOBROWSE = `
 	$('#pollingdata').hide();
 
     var indexedLocations = document.querySelectorAll('%s');
@@ -40,7 +111,13 @@ const (
         const location = indexedLocations[i];
         location.addEventListener('click', function(e) {
             // Extract the ID from the clicked element's ID attribute
-            const locus = e.target.id.split('-')[0];
+
+            // example: <td class="passages"><indexedlocation id="index/tlg0612/001/4270--31">11.11.1</indexedlocation></td>
+            // indexedlocation[i].id will be "index/tlg0612/001/4270--31""
+            // but you need to turn "index/tlg0612/001/4270--31" into "index/tlg0612/001/4270" to do the lookup
+            // the "--31" is added to keep the ids distinct and it means "I was assigned by the 31st word in the index"
+
+            const locus = e.target.id.split('--')[0]; 
             fetch('/browse/' + locus)
                 .then(response => response.json())
                 .then(passagereturned => {
@@ -57,27 +134,6 @@ const (
                 })
         });
     }`
-
-	BROWSERJSOLD = `
-	$('#pollingdata').hide();
-	
-	$('%s').click( function() {
-		$.getJSON('/browse/'+this.id, function (passagereturned) {
-			$('#browseforward').unbind('click');
-			$('#browseback').unbind('click');
-			var fb = parsepassagereturned(passagereturned)
-			// left and right arrow keys
-			$('#browserdialogtext').keydown(function(e) {
-				switch(e.which) {
-					case 37: browseuponclick(fb[1]); break;
-					case 39: browseuponclick(fb[0]); break;
-				}
-			});
-			$('#browseforward').bind('click', function(){ browseuponclick(fb[0]); });
-			$('#browseback').bind('click', function(){ browseuponclick(fb[1]); });
-		});
-	});
-	`
 
 	MORPHJS = `
 	<script>

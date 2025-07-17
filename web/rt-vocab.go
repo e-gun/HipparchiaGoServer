@@ -50,7 +50,7 @@ func RtVocabMaker(c echo.Context) error {
 	//    at jQuery.fn.init.<anonymous> (jquery.js:6182:18) ["this.empty().append( value )"]
 	//    at access (jquery.js:3905:8) [a bulk caller; "fn.call( elems, value );"]
 	//
-	// only a major rewrite of jquery would work? pure js in LEXFINDJS is the other alternative...
+	// only a major rewrite of jquery would work? pure js in CLICKTOLOOKUP is the other alternative...
 
 	const (
 		SUMM = `
@@ -280,7 +280,10 @@ func RtVocabMaker(c echo.Context) error {
 
 	trr := make([]string, len(vis)+2)
 	trr[0] = headtempl
+
+	uniqueid := 0
 	for i, v := range vis {
+		uniqueid++
 		rc := ""
 		if i%2 == 0 {
 			rc = "nthrow"
@@ -289,10 +292,11 @@ func RtVocabMaker(c echo.Context) error {
 		}
 
 		var nt string
+		wdid := fmt.Sprintf("%s--%d", v.Word, uniqueid)
 		if s.VocScansion {
-			nt = fmt.Sprintf(TRRS, rc, v.Word, v.Word, v.Metr, v.C, v.TR)
+			nt = fmt.Sprintf(TRRS, rc, wdid, v.Word, v.Metr, v.C, v.TR)
 		} else {
-			nt = fmt.Sprintf(TRR, rc, v.Word, v.Word, v.C, v.TR)
+			nt = fmt.Sprintf(TRR, rc, wdid, v.Word, v.C, v.TR)
 		}
 		trr[i+1] = nt
 	}
@@ -350,8 +354,8 @@ func RtVocabMaker(c echo.Context) error {
 	jso.Htm = htm
 	jso.Tit = fmt.Sprintf("Vocabulary for %s, %s", an, wn)
 
-	j := fmt.Sprintf(vv.LEXFINDJS, "vocabobserved")
-	jso.JS = fmt.Sprintf("<script>%s</script>", j)
+	ctl := strings.Replace(vv.CLICKTOLOOKUP, "**REPLACEME**", "vocabobserved", 1)
+	jso.JS = "<script>" + ctl + "</script>"
 
 	vlt.WSInfo.Del <- si.WSID
 	vlt.WSInfo.Del <- vocabsrch.WSID

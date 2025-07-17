@@ -550,7 +550,7 @@ func insertlexicaljs() string {
 	</script>`
 	)
 
-	jscore := fmt.Sprintf(vv.BROWSERJS, "bibl")
+	jscore := fmt.Sprintf(vv.CLICKTOBROWSE, "bibl")
 
 	thejs := fmt.Sprintf(LJS, jscore, vv.DICTIDJS)
 	return thejs

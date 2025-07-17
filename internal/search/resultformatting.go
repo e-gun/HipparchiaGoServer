@@ -126,7 +126,7 @@ func FormatNoContextResults(ss *str.SearchStruct) str.SearchOutputJSON {
 	}
 
 	var out str.SearchOutputJSON
-	out.JS = fmt.Sprintf(vv.BROWSERJS, "browser")
+	out.JS = fmt.Sprintf(vv.CLICKTOBROWSE, "browser")
 	out.Title = fmt.Sprintf("Sought »%s«", ss.Seeking)
 	out.Image = ""
 	out.Searchsummary = formatfinalsearchsummary(ss, skipcount)
@@ -339,7 +339,7 @@ func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON 
 	// ouput
 
 	var out str.SearchOutputJSON
-	out.JS = fmt.Sprintf(vv.BROWSERJS, "browser")
+	out.JS = fmt.Sprintf(vv.CLICKTOBROWSE, "browser")
 	out.Title = fmt.Sprintf("Sought »%s«", RestoreWhiteSpace(thesearch.Seeking))
 	out.Image = ""
 	out.Searchsummary = formatfinalsearchsummary(thesearch, skipcount)
