@@ -5,8 +5,7 @@
 
 
 function browseuponclick(url){
-    
-    console.log("browseuponclick url is '" + url + "'");
+   // console.log("browseuponclick url is '" + url + "'");
 	$.getJSON(
 	    { url: '/browse/' + url,
 	    success: function (passagereturned) {
@@ -94,4 +93,13 @@ function parsepassagereturned(passagereturned) {
     }
 
 	return [fwdurl, bkdurl]
+}
+
+function clickandbrowseforward(url) {
+    // need a named function to add/remove eventlisteners; called by vv.CLICKTOBROWSE injected JS
+    browseuponclick(url);
+}
+
+function clickandbrowseback(url) {
+    browseuponclick(url);
 }

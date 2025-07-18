@@ -103,8 +103,42 @@ const (
         });
     }`
 
+	// OLDCLICKTOBROWSE - uses more memory
+	OLDCLICKTOBROWSE = `
+	$('#pollingdata').hide();
+
+	var indexedLocations = document.querySelectorAll('%s');
+	for (let i = 0; i < indexedLocations.length; i++) {
+		const location = indexedLocations[i];
+		location.addEventListener('click', function(e) {
+			// Extract the ID from the clicked element's ID attribute
+	
+			// example: <td class="passages"><indexedlocation id="index/tlg0612/001/4270--31">11.11.1</indexedlocation></td>
+			// indexedlocation[i].id will be "index/tlg0612/001/4270--31""
+			// but you need to turn "index/tlg0612/001/4270--31" into "index/tlg0612/001/4270" to do the lookup
+			// the "--31" is added to keep the ids distinct and it means "I was assigned by the 31st word in the index"
+	
+			const locus = location.id.split('--')[0];
+			$.getJSON('/browse/'+locus, function (passagereturned) {
+				$('#browseforward').unbind('click');
+				$('#browseback').unbind('click');
+				var fb = parsepassagereturned(passagereturned)
+				// left and right arrow keys
+				$('#browserdialogtext').keydown(function(e) {
+					switch(e.which) {
+						case 37: browseuponclick(fb[1]); break;
+						case 39: browseuponclick(fb[0]); break;
+					}
+				});
+				$('#browseforward').bind('click', function(){ browseuponclick(fb[0]); });
+				$('#browseback').bind('click', function(){ browseuponclick(fb[1]); });
+			});
+		});
+    }`
+
 	// CLICKTOBROWSE - in Firefox an index to all of Ovid consumes 960MB of memory: 1.6M objects and 1.1M domNode
-	// the older jQuery version of vv.CLICKTOBROWSE: 1.5GB of memory: 3.2M objects and 3.2M domNode
+	// the older jQuery version of vv.CLICKTOBROWSE: 1.5GB of memory: 3.2M objects and 3.2M domNode; but there are big
+	// potential problems here: you need to remove the eventlisteners and you cannot remove anonymous handlers ...
 	CLICKTOBROWSE = `
 	$('#pollingdata').hide();
 
@@ -131,8 +165,8 @@ const (
                             case 39: browseuponclick(fb[0]); break;
                         }
                     });
-                    document.getElementById('browseforward').addEventListener('click', () => browseuponclick(fb[0]));
-                    document.getElementById('browseback').addEventListener('click', () => browseuponclick(fb[1]));
+                    document.getElementById('browseforward').addEventListener('click', clickandbrowseforward(fb[0]));
+                    document.getElementById('browseback').addEventListener('click', clickandbrowseback(fb[1]));
                 })
         });
     }`
