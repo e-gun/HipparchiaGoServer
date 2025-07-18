@@ -378,7 +378,7 @@ func RtIndexMaker(c echo.Context) error {
 	jso.Htm = htm
 	jso.Tit = fmt.Sprintf("Index to %s, %s", an, wn)
 
-	ctl := strings.Replace(vv.CLICKTOLOOKUP, "**REPLACEME**", "indexobserved", 1)
+	ctl := strings.Replace(vv.INDEXANDVOCLISTCLICKTOLOOKUP, "**REPLACEME**", "indexobserved", 1)
 	j := ctl + fmt.Sprintf(vv.CLICKTOBROWSE, "indexedlocation")
 
 	jso.JS = fmt.Sprintf("<script>%s</script>", j)

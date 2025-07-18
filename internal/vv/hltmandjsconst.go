@@ -6,11 +6,12 @@
 package vv
 
 const (
-	CLICKTOLOOKUP = `
+	INDEXANDVOCLISTCLICKTOLOOKUP = `
     var vocabList = document.querySelectorAll('**REPLACEME**');
     for (let i = 0; i < vocabList.length; i++) {
         const theitem = vocabList[i];
         theitem.addEventListener('click', function(e) {
+            // 'accuso--2h' --> 'accuso'
             const theword = e.target.id.split('--')[0];
             const windowWidth = window.innerWidth;
             const windowHeight = window.innerHeight;
@@ -31,27 +32,32 @@ const (
                 .then(response => response.json())
                 .then(definitionreturned => {
                     // Update the content of the dialog box with the returned data
-                    const newJS = definitionreturned['newjs'];
                     const newHTML = definitionreturned['newhtml'];
+
                     document.getElementById('lexmodalbody').innerHTML = newHTML;
                     document.getElementById('lexmodal').style.display = 'block';
+
+					let jshld = $('#lexicaljsscriptholder');
+					jshld.html(definitionreturned['newjs']);
                 });
         });
     }`
 
 	// CLICKTOBROWSE - in Firefox an index to all of Ovid consumes 960MB of memory: 1.6M objects and 1.1M domNode
-	// the older jQuery version of vv.CLICKTOBROWSE: 1.5GB of memory: 3.2M objects and 3.2M domNode; but there are big
-	// potential problems here: you need to remove the eventlisteners and you cannot remove anonymous handlers ...
+	// the older jQuery version of vv.CLICKTOBROWSE: 1.5GB of memory: 3.2M objects and 3.2M domNode
 	CLICKTOBROWSE = `
 	$('#pollingdata').hide();
-    var indexedLocations = document.querySelectorAll('%s');
-	for (let i = 0; i < indexedLocations.length; i++) {
-		const location = indexedLocations[i];
+
+    // depending on who called vv.CLICKTOBROWSE the next will be 'indexedLocation', 'bibl', or 'clicktobrowse'
+    var theLocations = document.querySelectorAll('%s'); 
+
+	for (let i = 0; i < theLocations.length; i++) {
+		const location = theLocations[i];
 		location.addEventListener('click', function(e) {
 			// Extract the ID from the clicked element's ID attribute
 	
 			// example: <td class="passages"><indexedlocation id="index/tlg0612/001/4270--31">11.11.1</indexedlocation></td>
-			// indexedlocation[i].id will be "index/tlg0612/001/4270--31""
+			// theLocations[i].id will be "index/tlg0612/001/4270--31""
 			// but you need to turn "index/tlg0612/001/4270--31" into "index/tlg0612/001/4270" to do the lookup
 			// the "--31" is added to keep the ids unique and it means "I was assigned by the 31st word in the index"
 	

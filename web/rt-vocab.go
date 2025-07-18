@@ -50,7 +50,7 @@ func RtVocabMaker(c echo.Context) error {
 	//    at jQuery.fn.init.<anonymous> (jquery.js:6182:18) ["this.empty().append( value )"]
 	//    at access (jquery.js:3905:8) [a bulk caller; "fn.call( elems, value );"]
 	//
-	// only a major rewrite of jquery would work? pure js in CLICKTOLOOKUP is the other alternative...
+	// only a major rewrite of jquery would work? pure js in INDEXANDVOCLISTCLICKTOLOOKUP is the other alternative...
 
 	const (
 		SUMM = `
@@ -354,7 +354,7 @@ func RtVocabMaker(c echo.Context) error {
 	jso.Htm = htm
 	jso.Tit = fmt.Sprintf("Vocabulary for %s, %s", an, wn)
 
-	ctl := strings.Replace(vv.CLICKTOLOOKUP, "**REPLACEME**", "vocabobserved", 1)
+	ctl := strings.Replace(vv.INDEXANDVOCLISTCLICKTOLOOKUP, "**REPLACEME**", "vocabobserved", 1)
 	jso.JS = "<script>" + ctl + "</script>"
 
 	vlt.WSInfo.Del <- si.WSID

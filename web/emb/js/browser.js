@@ -36,7 +36,7 @@ function parsepassagereturned(passagereturned) {
     const bdt = $('#browserdialogtext');
     const aac = $('#authorsautocomplete');
     const wac = $('#worksautocomplete');
-    const jshld = $('#lexicaljsscriptholder');
+
     bdt.text('');
     let fwdurl = passagereturned['browseforwards'];  // e.g. 'linenumber/lt1254w001/4868'
     let bkdurl = passagereturned['browseback'];      // e.g. 'linenumber/lt1254w001/4840'
@@ -70,26 +70,21 @@ function parsepassagereturned(passagereturned) {
         // observed[i].id will be `τράχηλον--205`
         // but you need to turn `τράχηλον--205` into `τράχηλον` to do the lookup
         const theword = id.split('--')[0];
-        observed[i].addEventListener('click', function(e) {
-            $.getJSON('/lex/findbyform/' + theword + '/' + browsedauthorid, function (definitionreturned) {
-                document.getElementById('leftmodalheadertext').innerHTML = definitionreturned['entryname'];
-                document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml'];
-                document.getElementById('lexmodal').style.display = "block";
-                jshld.html(definitionreturned['newjs']);
-            });
-            return false;
-        });
+        attachlexicallookupeventlistener(observed[i], theword, browsedauthorid)
     }
 
 	return [fwdurl, bkdurl]
 }
 
-function clickandbrowseforward(url) {
-    // need a named function to add/remove eventlisteners; also called by vv.CLICKTOBROWSE for injected JS
-    // anonymous functions produce event pile-ups
-    browseuponclick(url);
-}
-
-function clickandbrowseback(url) {
-    browseuponclick(url);
+function attachlexicallookupeventlistener(theobject, theword, browsedauthorid) {
+    const jshld = $('#lexicaljsscriptholder');
+    theobject.addEventListener('click', function(e) {
+        $.getJSON('/lex/findbyform/' + theword + '/' + browsedauthorid, function (definitionreturned) {
+            document.getElementById('leftmodalheadertext').innerHTML = definitionreturned['entryname'];
+            document.getElementById('lexmodalbody').innerHTML = definitionreturned['newhtml'];
+            document.getElementById('lexmodal').style.display = "block";
+            jshld.html(definitionreturned['newjs']);
+        });
+        return false;
+    });
 }
