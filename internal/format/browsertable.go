@@ -186,10 +186,12 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 				r := fmt.Sprintf(`$1<observed id="%s--%d">$2</observed>$3`, lwd, count)
 				newline = np.ReplaceAllString(newline, r)
 				newline = strings.Replace(newline, "<span_", "<span ", -1)
-			} else if !alreadydone[lmw] {
+			} else if !alreadydone[wds[j]] {
 				// r := `$1<observed id="$2">$2</observed>$3`
 				r := fmt.Sprintf("$1<observed id=\"$2--%d\">$2</observed>$3", count)
 				newline = p.ReplaceAllString(newline, r)
+			} else {
+				// fmt.Println("skipping ", lmw)
 			}
 			alreadydone[wds[j]] = true
 			// complication: elision: <observed id="ἀλλ">ἀλλ</observed>’
