@@ -14,3 +14,9 @@ func TestStripextraaccent(t *testing.T) {
 		fmt.Println(word, w)
 	}
 }
+
+func TestCapsVariants(t *testing.T) {
+	tg := `ἔρωτα·`
+	cv := CapsVariants(tg)
+	fmt.Println(cv)
+}

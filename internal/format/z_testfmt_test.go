@@ -6,10 +6,8 @@ import (
 	"testing"
 )
 
-// TestBuildBrowserTable - BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regularizewidth bool)
-func TestBuildBrowserTable(t *testing.T) {
-	// <!-- tlg0658 962 --><!-- ἴϲθι, Θεάγενεϲ, οὐδ’ ἂν τὸ παρὸν τοῦτο ἀλλήλοιϲ διελεγό- -->
-	wkln := str.DbWorkline{
+var (
+	wl1 = str.DbWorkline{
 		WkUID:       "tlg0658w001",
 		TbIndex:     962,
 		Lvl5Value:   "-1",
@@ -24,6 +22,27 @@ func TestBuildBrowserTable(t *testing.T) {
 		Hyphenated:  "διελεγόμεθα",
 		Annotations: "",
 	}
+	wl2 = str.DbWorkline{
+		WkUID:       "tlg0658w001",
+		TbIndex:     962,
+		Lvl5Value:   "-1",
+		Lvl4Value:   "-1",
+		Lvl3Value:   "1",
+		Lvl2Value:   "26",
+		Lvl1Value:   "2",
+		Lvl0Value:   "5",
+		MarkedUp:    "ρον ἐπιτροπεύειν ἔρωτα· πολλὰ μία ἡμέρα καὶ δύο πολλά-",
+		Accented:    "ρον ἐπιτροπεύειν ἔρωτα πολλὰ μία ἡμέρα καὶ δύο πολλάκις",
+		Stripped:    "",
+		Hyphenated:  "πολλάκις",
+		Annotations: "",
+	}
+)
+
+// TestBuildBrowserTable - BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regularizewidth bool)
+func TestBuildBrowserTable(t *testing.T) {
+	// <!-- tlg0658 962 --><!-- ἴϲθι, Θεάγενεϲ, οὐδ’ ἂν τὸ παρὸν τοῦτο ἀλλήλοιϲ διελεγό- -->
+	wkln := wl2
 	lines := []str.DbWorkline{wkln}
 	zaplunates := false
 	regularizewidth := false

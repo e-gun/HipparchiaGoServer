@@ -92,7 +92,12 @@ func CapsVariants(word string) string {
 	for _, r := range rr {
 		rs := string(r)
 		c := strings.ToUpper(rs)
-		cv += fmt.Sprintf("[%s%s]", rs, c)
+		if c != rs {
+			cv += fmt.Sprintf("[%s%s]", rs, c)
+		} else {
+			// to prevent `·` from becoming `··` if you somehow sent something that was not a pure `word` to this fnc
+			cv += c
+		}
 	}
 	return cv
 }
