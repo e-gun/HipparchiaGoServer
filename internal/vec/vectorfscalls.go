@@ -136,7 +136,7 @@ func ldavecconfig() ldaconfig {
 		content, err := json.MarshalIndent(cfg, vv.JSONINDENT, vv.JSONINDENT)
 		dbi.EC(err)
 
-		err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+vv.CONFIGVECTORLDA, content, vv.WRITEPERMS)
+		err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+"/"+vv.CONFIGVECTORLDA, content, vv.WRITEPERMS)
 		dbi.EC(err)
 		Msg.PEEK(MSG1 + vv.CONFIGVECTORLDA)
 	} else {
