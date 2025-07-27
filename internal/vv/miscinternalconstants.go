@@ -21,7 +21,7 @@ const (
 	JSONINDENT             = "  "
 	NESTEDLEMMASIZE        = 544
 	NUMBEROFCITATIONLEVELS = 6
-	TERMINATIONS           = `(\s|\.|\]|\<|⟩|\)|’|”|\!|,|:|;|}|\?|⸥|«|·|$)` // circular imports means this is declared 2x... see also "gen.greekandlatin.go"
+	TERMINATIONS           = `(\s|\.|\]|\<|⟩|\)|’|”|\!|,|:|;|}|\?|⸥|«|—|·|$)` // circular imports means this is declared 2x... see also "gen.greekandlatin.go"
 	VARIADATE              = 8888
 )
 

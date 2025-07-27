@@ -177,27 +177,27 @@ The default setting is `use all cores`, but many people can safely dial this bac
 
 ```
 % cloc --exclude-dir=z --not-match-f="^jq*" .
-     209 text files.
-     193 unique files.                                          
-     281 files ignored.
+     210 text files.
+     194 unique files.                                          
+     282 files ignored.
 
-github.com/AlDanial/cloc v 2.06  T=0.19 s (1020.6 files/s, 188220.0 lines/s)
+github.com/AlDanial/cloc v 2.06  T=0.21 s (915.8 files/s, 168646.2 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                             120           3702           4176          17538
+Go                             121           3733           4198          17615
 CSS                             13            477            144           2013
-JavaScript                      10            325            254           1591
 HTML                            13            162             18           1589
-Markdown                        10            446              0           1152
+JavaScript                      10            327            256           1589
+Markdown                        10            447              0           1148
 Text                             6            108              0            487
-XML                              8              0              0            461
+XML                              8              0              0            466
 JSON                             8              0              0            416
 SVG                              1              1              1            392
 Bourne Shell                     3             25              7             89
 Python                           1              5              6              7
 -------------------------------------------------------------------------------
-SUM:                           193           5251           4606          25735
+SUM:                           194           5285           4630          25811
 -------------------------------------------------------------------------------
 
 ```

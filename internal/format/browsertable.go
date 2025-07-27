@@ -61,7 +61,7 @@ func ProlixBrowswerCitations(f str.DbWorkline, l str.DbWorkline) string {
 // BuildBrowserTable - where the actual HTML gets generated; this table is better for cut-and-paste...
 func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regularizewidth bool) string {
 	const (
-		OBSREGTEMPL = "(^|\\s|\\[|\\>|⟨|‘|“|;)(%s)" + vv.TERMINATIONS
+		OBSREGTEMPL = "(^|\\s|\\[|\\>|⟨|‘|“|”|;)(%s)" + vv.TERMINATIONS
 		UIDDIV      = `<div id="browsertableuid" uid="%s"></div>`
 		TRTMPLNOTES = `
             <tr class="browser">

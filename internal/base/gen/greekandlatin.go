@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	TERMINATIONS = `(\s|\.|\]|\<|⟩|\)|’|”|\!|,|:|;|}|\?|⸥|«|·|$)` // circular imports means this is declared 2x... see also "vv.constants.go"
+	TERMINATIONS = `(\s|\.|\]|\<|⟩|\)|’|”|\!|,|:|;|}|\?|⸥|«|—|·|$)` // circular imports means this is declared 2x... see also "vv.constants.go"
 	ACCENTED     = `ἂἃἄἅἆἇᾂᾃᾄᾅᾆᾇᾶᾷὰάἒἓἔἕὲέἲἳἴἵἶἷῖίὶῒΐῗΐὂὃὄὅόὸὒὓὔὕὖὗῢΰῦῧύὺᾒᾓᾔᾕᾖᾗῂῄῆῇἤἢἥἣὴήἦἧὢὣὤὥὦὧᾢᾣᾤᾥᾦᾧῲῴῶῷώὼ`
 	// GLC is derived from the HGB betacode converter and should be comprehensive
 	//GLC      = `ΐάέήίΰαβγδεζηθικλμνξοπρτυφχψωϊϋόύώϝϲἀἁἂἃἄἅἆἇἐἑἒἓἔἕἠἡἢἣἤἥἦἧἰἱἲἳἴἵἶἷὀὁὂὃὄὅὐὑὒὓὔὕὖὗὠὡὢὣὤὥὦὧὰὲὴὶὸὺὼᾀᾁᾂᾃᾄᾅᾆᾇᾐᾑᾒᾓᾔᾕᾖᾗᾠᾡᾢᾣᾤᾥᾦᾧᾲᾳᾴᾶᾷῂῃῄῆῇῒῖῢῤῥῦῧῲῳῴῶῷ`
