@@ -11,7 +11,8 @@ const (
 	CONFIGLOCATION    = "."
 	CONFIGALTAPTH     = "%s/.config/HipparchiaGoServer" // %s = os.UserHomeDir()
 	CONFIGAUTH        = "users.json"
-	CONFIGPROLIX      = "options.json"
+	CONFIGOPTIONS     = "options.json"
+	CONFIGCOLORS      = "colors.json"
 	CUSTOMCSSFILENAME = "custom-hipparchiastyles.css"
 	HDBFOLDER         = "HGDBArchive"
 	LOGFILEEL         = "hgs-echo.log"

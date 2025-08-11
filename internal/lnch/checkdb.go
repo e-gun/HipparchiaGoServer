@@ -48,7 +48,7 @@ func PGFSConfig(cfp string, h string) {
 		Msg.EC(ee)
 	}
 
-	fmt.Println(Msg.Color(fmt.Sprintf(FNF, vv.CONFIGPROLIX)))
+	fmt.Println(Msg.Color(fmt.Sprintf(FNF, vv.CONFIGOPTIONS)))
 	fmt.Printf(Msg.Color(fmt.Sprintf(PWD1, vv.DEFAULTPSQLUSER)))
 
 	var hwrpw string
@@ -68,10 +68,10 @@ func PGFSConfig(cfp string, h string) {
 	content, err := json.MarshalIndent(cfg, vv.JSONINDENT, vv.JSONINDENT)
 	Msg.EC(err)
 
-	err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+"/"+vv.CONFIGPROLIX, content, 0644)
+	err = os.WriteFile(fmt.Sprintf(vv.CONFIGALTAPTH, h)+"/"+vv.CONFIGOPTIONS, content, 0644)
 	Msg.EC(err)
 
-	fmt.Println(Msg.Color(fmt.Sprintf(FWR, fmt.Sprintf(vv.CONFIGALTAPTH, h)+"/"+vv.CONFIGPROLIX)))
+	fmt.Println(Msg.Color(fmt.Sprintf(FWR, fmt.Sprintf(vv.CONFIGALTAPTH, h)+"/"+vv.CONFIGOPTIONS)))
 
 	// do we need to head over to selfinstaller.go and to initialize the database?
 
@@ -128,7 +128,7 @@ OR at 'C3%sC0'`
 		hd, err := os.UserHomeDir()
 		Msg.EC(err)
 
-		fp := fmt.Sprintf(vv.CONFIGALTAPTH, hd) + vv.CONFIGPROLIX
+		fp := fmt.Sprintf(vv.CONFIGALTAPTH, hd) + vv.CONFIGOPTIONS
 		_ = os.Remove(fp)
 
 		fmt.Println()
@@ -411,7 +411,7 @@ func DBSelfDestruct() {
 	hd, e := os.UserHomeDir()
 	Msg.EC(e)
 	cp := fmt.Sprintf(vv.CONFIGALTAPTH+"/", hd)
-	_ = os.Remove(cp + vv.CONFIGPROLIX)
+	_ = os.Remove(cp + vv.CONFIGOPTIONS)
 	Msg.CRIT(fmt.Sprintf(DONE2, cp))
 }
 

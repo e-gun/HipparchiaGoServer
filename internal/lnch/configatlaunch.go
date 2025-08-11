@@ -45,7 +45,7 @@ func LookForConfigFile() {
 		// how likely is this...?
 		// b = errors.New("cannot find UserHomeDir")
 	}
-	cfp := fmt.Sprintf(vv.CONFIGALTAPTH, h) + "/" + vv.CONFIGPROLIX
+	cfp := fmt.Sprintf(vv.CONFIGALTAPTH, h) + "/" + vv.CONFIGOPTIONS
 	_, c = os.Stat(cfp)
 
 	notfound := c != nil
@@ -71,12 +71,12 @@ func ConfigAtLaunch() {
 	Config = builddefaultconfig()
 
 	uh, _ := os.UserHomeDir()
-	h := fmt.Sprintf(vv.CONFIGALTAPTH, uh)
-	prolixcfg := fmt.Sprintf("%s/%s", h, vv.CONFIGPROLIX)
+	configpath := fmt.Sprintf(vv.CONFIGALTAPTH, uh)
+	options := fmt.Sprintf("%s/%s", configpath, vv.CONFIGOPTIONS)
 
-	loadedcfg, e := os.Open(prolixcfg)
+	loadedcfg, e := os.Open(options)
 	if e != nil {
-		Msg.CRIT(fmt.Sprintf(FAIL6, prolixcfg))
+		Msg.CRIT(fmt.Sprintf(FAIL6, options))
 	}
 
 	decoderc := json.NewDecoder(loadedcfg)
@@ -87,12 +87,14 @@ func ConfigAtLaunch() {
 	if errc == nil {
 		Config = &confc
 	} else {
-		Msg.CRIT(fmt.Sprintf(FAIL3, prolixcfg))
+		Msg.CRIT(fmt.Sprintf(FAIL3, options))
 	}
+
+	loadcolors(configpath)
 
 	Msg.LLvl = Config.LogLevel
 
-	// on old CONFIGPROLIX might mean you set the following to zero; that is very bad...
+	// on old CONFIGOPTIONS might mean you set the following to zero; that is very bad...
 	if Config.MaxSrchTot == 0 {
 		// "HipparchiaGoServer -ms 1" is a perfectly sensible setting...
 		Config.MaxSrchTot = vv.MAXSEARCHTOTAL
@@ -126,7 +128,7 @@ func ConfigAtLaunch() {
 			"authstatus":  Config.Authenticate,
 			"badchars":    Config.BadChars,
 			"confauth":    vv.CONFIGAUTH,
-			"conffile":    vv.CONFIGPROLIX,
+			"conffile":    vv.CONFIGOPTIONS,
 			"cpus":        runtime.NumCPU(),
 			"css":         vv.CUSTOMCSSFILENAME,
 			"ctxlines":    Config.BrowserCtx,
@@ -137,7 +139,7 @@ func ConfigAtLaunch() {
 			"echoll":      Config.EchoLog,
 			"hdbf":        vv.HDBFOLDER,
 			"hgsll":       Config.LogLevel,
-			"home":        h,
+			"home":        configpath,
 			"host":        Config.HostIP,
 			"knowncolors": strings.Join(kcc, "C0, C3"),
 			"knownfnts":   strings.Join(kff, "C0, C3"),
@@ -218,7 +220,7 @@ func ConfigAtLaunch() {
 			Config.LogLevel = ll
 		case "-gz":
 			Config.Gzip = true
-		case "-h":
+		case "-configpath":
 			help()
 		case "-lf":
 			// toggle...
@@ -304,7 +306,7 @@ func ConfigAtLaunch() {
 	if errc != nil {
 		y = " *not*"
 	}
-	Msg.TMI(fmt.Sprintf("'%s%s'%s loaded", h, vv.CONFIGPROLIX, y))
+	Msg.TMI(fmt.Sprintf("'%s%s'%s loaded", configpath, vv.CONFIGOPTIONS, y))
 
 	setconfigpass(&confc, cf)
 
@@ -410,7 +412,7 @@ func setconfigpass(cfg *str.CurrentConfiguration, cf string) {
 	h := fmt.Sprintf(vv.CONFIGALTAPTH, uh)
 
 	if cf == "" {
-		cf = fmt.Sprintf("%s/%s", vv.CONFIGLOCATION, vv.CONFIGPROLIX)
+		cf = fmt.Sprintf("%s/%s", vv.CONFIGLOCATION, vv.CONFIGOPTIONS)
 	}
 
 	if Config.PGLogin.Pass == "" {
@@ -431,7 +433,7 @@ func setconfigpass(cfg *str.CurrentConfiguration, cf string) {
 		erra := decodera.Decode(&confa)
 
 		if erra != nil && cfg.PGLogin.DBName == "" {
-			Msg.CRIT(fmt.Sprintf(FAIL3, fmt.Sprintf("%s/%s", h, vv.CONFIGPROLIX)))
+			Msg.CRIT(fmt.Sprintf(FAIL3, fmt.Sprintf("%s/%s", h, vv.CONFIGOPTIONS)))
 			Msg.CRIT(fmt.Sprintf(FAIL4))
 			fmt.Printf(vv.MINCONFIG)
 			Msg.ExitOrHang(0)
@@ -564,5 +566,39 @@ func reportcolorschemes() {
 	for _, n := range kcc {
 		cv := clr.CssColorHSLs[n]
 		fmt.Println(fmt.Sprintf(TMPL, cv[0], cv[1], cv[2], cv[3], n))
+	}
+}
+
+func loadcolors(configpath string) {
+	clrs := map[string][]int{}
+	clroptfile := fmt.Sprintf("%s/%s", configpath, vv.CONFIGCOLORS)
+	loadedcfg, e := os.Open(clroptfile)
+	if e != nil {
+		writedefaultcolors(clroptfile)
+	} else {
+		decoder := json.NewDecoder(loadedcfg)
+		errc := decoder.Decode(&clrs)
+		if errc != nil {
+			fmt.Println("could not parse color data: overwriting " + vv.CONFIGCOLORS)
+			writedefaultcolors(clroptfile)
+		} else {
+			clr.CssColorHSLs = clrs
+		}
+	}
+}
+
+func writedefaultcolors(clroptfilepath string) {
+	const (
+		COLORNOTE = "\n// format: hue, saturation, minormaxlum1, minormaxlum2; 'Dark' and 'Light' cannot be modified."
+	)
+	// built-in clr.CssColorHSLs will be used
+	jsonclr, err := json.MarshalIndent(clr.CssColorHSLs, "", "\t")
+	if err != nil {
+		fmt.Println("Error marshaling data:", err)
+	}
+	note := []byte(COLORNOTE)
+	err = os.WriteFile(clroptfilepath, append(jsonclr, note...), 0644)
+	if err != nil {
+		fmt.Println("Error writing file:", err)
 	}
 }
