@@ -1,8 +1,6 @@
 module github.com/e-gun/HipparchiaGoServer
 
-go 1.23.0
-
-toolchain go1.24.0
+go 1.24.0
 
 require (
 	github.com/e-gun/lastnlines v0.1.0
@@ -17,7 +15,7 @@ require (
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/olekukonko/tablewriter v1.0.9
 	github.com/pkg/profile v1.7.0
-	golang.org/x/exp v0.0.0-20250808145144-a408d31f581a
+	golang.org/x/exp v0.0.0-20250813145105-42675adae3e6
 	golang.org/x/text v0.28.0
 	gonum.org/v1/gonum v0.16.0
 )

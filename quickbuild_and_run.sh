@@ -14,6 +14,6 @@ fi
 
 LDF="-s -w -X main.GitCommit=${GC} -X main.BuildDate=${DT} -X main.VersSuppl=${VS} -X main.PGOInfo=${PG}"
 
-${GO} build -pgo=${PGF} -ldflags "${LDF}"
+GOEXPERIMENT=greenteagc,jsonv2 ${GO} build -pgo=${PGF} -ldflags "${LDF}"
 
 ./HipparchiaGoServer  -gl 3 -el 1 -sp 8001 -cm Triadic -ft Fira
