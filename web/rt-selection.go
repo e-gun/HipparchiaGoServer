@@ -693,7 +693,13 @@ func workvalueofpassage(psg string) string {
 	st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
 	sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
 	thework := ""
-	for _, w := range mps.AllAuthors[au].WorkList {
+
+	wl := mps.AllAuthors[au].WorkList
+	if len(wl) > 0 {
+		return ""
+	}
+
+	for _, w := range wl {
 		ws := mps.AllWorks[w].FirstLine
 		we := mps.AllWorks[w].LastLine
 		if st >= ws && sp <= we {
