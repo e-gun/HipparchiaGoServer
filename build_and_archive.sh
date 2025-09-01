@@ -75,7 +75,7 @@ do
       SUFF=""
     fi
     EXE=${P}-${V}-${os}-${arch}${SUFF}
-	  env GOOS=${os} GOARCH=${arch} go build -pgo=${PGF} -ldflags "${LDF}" -o ${P}${SUFF}
+	  env GOOS=${os} GOARCH=${arch} GOEXPERIMENT=greenteagc,jsonv2 go build -pgo=${PGF} -ldflags "${LDF}" -o ${P}${SUFF}
 	  zip -q ${EXE}.zip ${P}${SUFF}
 	  mv ${EXE}.zip ${OUT}/
 	  rm ${P}${SUFF}
