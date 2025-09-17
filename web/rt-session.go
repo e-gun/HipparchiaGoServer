@@ -33,7 +33,7 @@ func RtSessionSetsCookie(c echo.Context) error {
 		v = []byte{}
 		Msg.WARN(FAIL)
 	}
-	swap := strings.NewReplacer(`"`, "%22", ",", "%2C", " ", "%20")
+	swap := strings.NewReplacer(`"`, "%22", ",", "%2C", " ", "%20", "_", "%5F")
 	vs := swap.Replace(string(v))
 
 	// note that cookie.Path = "/" is essential; otherwise different cookies for different contexts: "/browse" vs "/"
@@ -68,7 +68,7 @@ func RtSessionGetCookie(c echo.Context) error {
 	var s str.ServerSession
 	// invalid character '%' looking for beginning of object key string:
 	// {%22ID%22:%22723073ae-09a7-4b24-a5d6-7e20603d8c44%22%2C%22IsLoggedIn%22:true%2C...}
-	swap := strings.NewReplacer("%22", `"`, "%2C", ",", "%20", " ")
+	swap := strings.NewReplacer("%22", `"`, "%2C", ",", "%20", " ", "%5F", "_")
 	cv := swap.Replace(cookie.Value)
 
 	cv = strings.Replace(cv, "%", "", -1)

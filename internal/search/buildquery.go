@@ -64,6 +64,7 @@ func SSBuildQueries(s *str.SearchStruct) {
 		IDX    = `(index %sBETWEEN %d AND %d)`                          // %s is "" or "NOT "
 		ABORT  = "SSBuildQueries() aborting: the ID '%s' is not in the sessionvault"
 		ABORT2 = "SSBuildQueries() aborting: testqueryregex() failed to compile regex '%s'"
+		ERROR  = "SSBuildQueries(): pattern.FindStringSubmatch() failed to return results for %s"
 	)
 
 	// check to see if RtResetSession() was called in the middle of a search
@@ -128,6 +129,10 @@ func SSBuildQueries(s *str.SearchStruct) {
 		// "gr0032_FROM_11313_TO_11843"
 		// there is an "index out of range" panic you will see in here if "gr0028_FROM_-1_TO_5" arrives
 		subs := pattern.FindStringSubmatch(p)
+		if subs == nil {
+			Msg.WARN(fmt.Sprintf(ERROR, p))
+			continue
+		}
 		au := subs[pattern.SubexpIndex("auth")]
 		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
 		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
@@ -138,6 +143,10 @@ func SSBuildQueries(s *str.SearchStruct) {
 
 	for _, p := range exc.Passages {
 		subs := pattern.FindStringSubmatch(p)
+		if subs == nil {
+			Msg.WARN(fmt.Sprintf(ERROR, p))
+			continue
+		}
 		au := subs[pattern.SubexpIndex("auth")]
 		st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
 		sp, _ := strconv.Atoi(subs[pattern.SubexpIndex("stop")])
