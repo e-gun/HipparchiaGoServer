@@ -39,6 +39,7 @@ func LemmaIntoRegexSlice(hdwd string) []string {
 	// there is a problem: unless you do something, "(^|\s)ἁλιεύϲ(\s|$)" will be a search term but this will not find "ἁλιεὺϲ"
 	var lemm []string
 	for _, l := range mps.AllLemm[hdwd].Deriv {
+		l = strings.ToLower(l) // 'Hispania' will not be found
 		lemm = append(lemm, gen.FindAcuteOrGrave(l))
 	}
 
@@ -58,6 +59,7 @@ func LemmaIntoRegexSlice(hdwd string) []string {
 			break
 		}
 	}
+
 	return qq
 }
 
