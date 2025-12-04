@@ -265,6 +265,10 @@ func RtGetJSAuthorinfo(c echo.Context) error {
 
 	id := c.Param("id")
 	au := mps.AllAuthors[id]
+	if au == nil {
+		nf := fmt.Sprintf("No author found with an id of '%s'", id)
+		return c.JSONPretty(http.StatusOK, jsstruct{nf}, vv.JSONINDENT)
+	}
 
 	var at AUTempl
 	at.Name = au.Name
