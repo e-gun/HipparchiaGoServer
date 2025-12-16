@@ -220,7 +220,7 @@ func ConfigAtLaunch() {
 			Config.LogLevel = ll
 		case "-gz":
 			Config.Gzip = true
-		case "-configpath":
+		case "-h":
 			help()
 		case "-lf":
 			// toggle...
