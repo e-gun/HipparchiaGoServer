@@ -8,5 +8,5 @@ package vv
 const (
 	MYNAME    = "HipparchiaGoServer"
 	SHORTNAME = "HGS"
-	VERSION   = "2.0.4"
+	VERSION   = "2.0.5"
 )

@@ -225,18 +225,18 @@ var (
 		SubFolder:        "lato",
 		MainBodyFontSize: 100,
 	}
-	// MPlusOneFont - has not Italic ...
+	// MPlusOneFont - has no Italic ... unless you build your own Oblique with FontForge
 	MPlusOneFont = str.FontTempl{
 		Type:             "opentype",
 		ShrtType:         "otf",
 		Bold:             "Mplus1-BoldSubset.otf",
-		BoldItalic:       "Mplus1-BoldSubset.otf",
+		BoldItalic:       "Mplus1-BoldObliqueSubset.otf",
 		CondensedBold:    "Mplus1-RegularSubset.otf",
 		CondensedItalic:  "Mplus1-RegularSubset.otf",
 		CondensedRegular: "Mplus1-RegularSubset.otf",
 		SemiCondRegular:  "Mplus1-RegularSubset.otf",
-		SemiCondItalic:   "Mplus1-RegularSubset.otf",
-		Italic:           "Mplus1-RegularSubset.otf",
+		SemiCondItalic:   "Mplus1-ObliqueSubset.otf",
+		Italic:           "Mplus1-ObliqueSubset.otf",
 		Light:            "Mplus1-LightSubset.otf",
 		Mono:             "Mplus1Code-RegulaSubset.otf",
 		Regular:          "Mplus1-RegularSubset.otf",
