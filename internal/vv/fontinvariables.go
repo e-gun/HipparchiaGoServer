@@ -10,9 +10,13 @@ import (
 )
 
 var (
-	ServableFonts = map[string]str.FontTempl{"Alegreya": AlegreyaFont, "Brill": BrillFont, "CMU": CMUFont,
-		"Fira": FiraFont, "Gentium": GentiumFont, "Inter": InterFont, "Iosevka": IosevkaFont, "Lato": LatoFont,
-		"MPlus1": MPlusOneFont, "Noto": NotoFont, "SourceSans": SourceSansFont, "Ubuntu": UbuntuFont} // cf rt-embhcss.go
+	ServableFonts = map[string]str.FontTempl{
+		"Alegreya": AlegreyaFont, "Brill": BrillFont, "CMU": CMUFont,
+		"Fira": FiraFont, "Gentium": GentiumFont,
+		"Inter": InterFont, "Iosevka": IosevkaFont, "Lato": LatoFont,
+		"MPlus1": MPlusOneFont, "Noto": NotoFont,
+		"SourceSans": SourceSansFont, "Ubuntu": UbuntuFont,
+	} // cf rt-embhcss.go
 )
 
 //
@@ -135,19 +139,19 @@ var (
 	GentiumFont = str.FontTempl{
 		Type:             "truetype",
 		ShrtType:         "ttf",
-		Bold:             "GentiumPlusCompact-BoldSubset.ttf",
-		BoldItalic:       "GentiumPlusCompact-BoldItalicSubset.ttf",
-		CondensedBold:    "GentiumPlusCompact-BoldSubset.ttf",
-		CondensedItalic:  "GentiumPlusCompact-ItalicSubset.ttf",
-		CondensedRegular: "GentiumPlusCompact-RegularSubset.ttf",
-		SemiCondRegular:  "GentiumPlusCompact-RegularSubset.ttf",
-		SemiCondItalic:   "GentiumPlusCompact-ItalicSubset.ttf",
-		Italic:           "GentiumPlusCompact-ItalicSubset.ttf",
-		Light:            "GentiumPlusCompact-RegularSubset.ttf",
+		Bold:             "Gentium-BoldSubset.ttf",
+		BoldItalic:       "Gentium-BoldItalicSubset.ttf",
+		CondensedBold:    "Gentium-BoldSubset.ttf",
+		CondensedItalic:  "Gentium-ItalicSubset.ttf",
+		CondensedRegular: "Gentium-RegularSubset.ttf",
+		SemiCondRegular:  "Gentium-RegularSubset.ttf",
+		SemiCondItalic:   "Gentium-ItalicSubset.ttf",
+		Italic:           "Gentium-ItalicSubset.ttf",
+		Light:            "Gentium-RegularSubset.ttf",
 		Mono:             "",
-		Regular:          "GentiumPlusCompact-RegularSubset.ttf",
-		SemiBold:         "GentiumPlusCompact-BoldSubset.ttf",
-		Thin:             "GentiumPlusCompact-RegularSubset.ttf",
+		Regular:          "Gentium-RegularSubset.ttf",
+		SemiBold:         "Gentium-SemiBoldSubset.ttf",
+		Thin:             "Gentium-RegularSubset.ttf",
 		HasLunateSigma:   true,
 		UseGenericMono:   true,
 		NeedsManualStyle: []string{"hipparchialightstatic", "hipparchiasemicondensedstatic",
