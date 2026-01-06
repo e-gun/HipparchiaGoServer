@@ -24,14 +24,16 @@ const (
 
 var (
 	// runefd etc. to avoid looping this in hot code
-	runefd     = getrunefeeder()
-	exrunefd   = extendedrunefeeder()
-	runereduce = getrunereducer()
-	uvreduce   = uvσςϲreducer()
-	uvcaps     = uvcapsreducer()
-	LunateSwap = regexp.MustCompile("σ" + TERMINATIONS)
-	IsLatin    = regexp.MustCompile(`[a-zA-Z]`)
-	FindAccent = regexp.MustCompile(`[` + ACCENTED + `]`)
+	runefd         = getrunefeeder()
+	exrunefd       = extendedrunefeeder()
+	runereduce     = getrunereducer()
+	uvreduce       = uvσςϲreducer()
+	uvcaps         = uvcapsreducer()
+	LunateSwap     = regexp.MustCompile("σ" + TERMINATIONS)
+	LexSigmaAbbrev = regexp.MustCompile(`([\s>])ς\. `)     // delunated LSJ entries look weird: `κατὰ ς. `, etc.
+	LexSigmaAbbMku = regexp.MustCompile(`\sς(</[^>]+>)\.`) // ` ς</quote>. `
+	IsLatin        = regexp.MustCompile(`[a-zA-Z]`)
+	FindAccent     = regexp.MustCompile(`[` + ACCENTED + `]`)
 
 	//IsGreekLC  = regexp.MustCompile(`[` + GLC + `]`)
 	//IsGreekUC  = regexp.MustCompile(`[` + GUC + `]`)
@@ -199,15 +201,25 @@ func FindAcuteOrGrave(s string) string {
 func DeLunate(txt string) string {
 	txt = strings.Replace(txt, "ϲ", "σ", -1)
 	txt = strings.Replace(txt, "Ϲ", "Σ", -1)
-	txt = LunateSwap.ReplaceAllString(txt, "ς$1")
+	txt = LunateSwap.ReplaceAllString(txt, "ς${1}")
+	return txt
+}
+
+// LexDeLunate - same as DeLunate but add checks for the abbreviation of examples in sigma-entries:
+func LexDeLunate(txt string) string {
+	// example is σιτίον and `τἀν Πρυτανείῳ ς. public maintenance` --> `τἀν Πρυτανείῳ σ. public maintenance`
+	txt = DeLunate(txt)
+	txt = LexSigmaAbbrev.ReplaceAllString(txt, "${1}σ. ")
+	// txt = strings.Replace(txt, "ς</hb-lx-lg-grc>.", "σ</hb-lx-lg-grc>.", -1) // not worth building a regex
+	txt = LexSigmaAbbMku.ReplaceAllString(txt, " σ${1}. ")
 	return txt
 }
 
 // ReLunate -  Τὴν οὖν τῶν σωμάτων σύνταξιν σκεψαμένους πρὸς --> Τὴν οὖν τῶν ϲωμάτων ϲύνταξιν ϲκεψαμένουϲ πρὸϲ
 func ReLunate(txt string) string {
 	txt = strings.Replace(txt, "σ", "ϲ", -1)
+	txt = strings.Replace(txt, "ς", "ϲ", -1)
 	txt = strings.Replace(txt, "Σ", "Ϲ", -1)
-	txt = LunateSwap.ReplaceAllString(txt, "ς$1")
 	return txt
 }
 

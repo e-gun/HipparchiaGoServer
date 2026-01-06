@@ -68,7 +68,7 @@ func RtLexLookup(c echo.Context) error {
 	html := dictsearch(seeking, dict, s.ZapLunates)
 
 	if s.ZapLunates {
-		seeking = gen.DeLunate(seeking)
+		seeking = gen.LexDeLunate(seeking)
 	}
 
 	var jb jsb
@@ -113,7 +113,7 @@ func RtLexFindByForm(c echo.Context) error {
 	js := insertlexicaljs()
 
 	if s.ZapLunates {
-		word = gen.DeLunate(word)
+		word = gen.LexDeLunate(word)
 	}
 
 	var jb jsb
@@ -158,7 +158,7 @@ func RtLexId(c echo.Context) error {
 	js := insertlexicaljs()
 
 	if s.ZapLunates {
-		html = gen.DeLunate(html)
+		html = gen.LexDeLunate(html)
 	}
 
 	var jb jsb
@@ -206,8 +206,8 @@ func RtLexReverse(c echo.Context) error {
 	html := reversefind(word, dd)
 
 	if s.ZapLunates {
-		html = gen.DeLunate(html)
-		word = gen.DeLunate(word)
+		html = gen.LexDeLunate(html)
+		word = gen.LexDeLunate(word)
 	}
 
 	var jb jsb
@@ -280,7 +280,7 @@ func findbyform(word string, author string, zaplunates bool) string {
 
 	// [h] conditionally rewrite the html
 	if zaplunates {
-		html = gen.DeLunate(html)
+		html = gen.LexDeLunate(html)
 	}
 
 	// author flagging: "<bibl id="perseus/lt0474" --> "<bibl class="flagged" id="perseus/lt0474"
@@ -412,7 +412,7 @@ func dictsearch(seeking string, dict string, zaplunates bool) string {
 	}
 
 	if zaplunates {
-		html = gen.DeLunate(html)
+		html = gen.LexDeLunate(html)
 	}
 
 	return html
