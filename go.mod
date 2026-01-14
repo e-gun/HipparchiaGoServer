@@ -15,14 +15,14 @@ require (
 	github.com/labstack/echo/v4 v4.15.0
 	github.com/olekukonko/tablewriter v1.1.2
 	github.com/pkg/profile v1.7.0
-	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93
-	golang.org/x/text v0.32.0
-	gonum.org/v1/gonum v0.16.0
+	golang.org/x/exp v0.0.0-20260112195511-716be5621a96
+	golang.org/x/text v0.33.0
+	gonum.org/v1/gonum v0.17.0
 )
 
 require (
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/clipperhouse/displaywidth v0.6.2 // indirect
+	github.com/clipperhouse/displaywidth v0.7.0 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
 	github.com/e-gun/safestack v0.1.1 // indirect
@@ -30,7 +30,7 @@ require (
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/felixge/fgprof v0.9.5 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/google/pprof v0.0.0-20251213031049-b05bdaca462f // indirect
+	github.com/google/pprof v0.0.0-20260111202518-71be6bfdd440 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
@@ -49,10 +49,10 @@ require (
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
-	golang.org/x/crypto v0.46.0 // indirect
-	golang.org/x/net v0.48.0 // indirect
+	golang.org/x/crypto v0.47.0 // indirect
+	golang.org/x/net v0.49.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/sys v0.39.0 // indirect
+	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 )
