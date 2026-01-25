@@ -6,6 +6,7 @@
 package web
 
 import (
+	"bytes"
 	"crypto/md5"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
@@ -684,10 +685,13 @@ func rationalizeselections(original str.ServerSession, sv selectionvalues) str.S
 	return rationalized
 }
 
-// workvalueofpassage - what work does "lt0474_FROM_58578_TO_61085" come from?
+// workvalueofpassage - what work does " lat1318_FROM_1563_TO_2397" come from?
 func workvalueofpassage(psg string) string {
-	pattern := regexp.MustCompile(`(?P<auth>......)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`)
-	// "gr0032_FROM_11313_TO_11843"
+	// change from `lt` to `lat` broke the regex: `..` vs `...`
+	// getuiddots() prevents us having to worry about this ever again
+	subpattern := fmt.Sprintf(`(?P<auth>%s)_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)`, getuiddots())
+	pattern := regexp.MustCompile(subpattern)
+
 	subs := pattern.FindStringSubmatch(psg)
 	au := subs[pattern.SubexpIndex("auth")]
 	st, _ := strconv.Atoi(subs[pattern.SubexpIndex("start")])
@@ -695,7 +699,7 @@ func workvalueofpassage(psg string) string {
 	thework := ""
 
 	wl := mps.AllAuthors[au].WorkList
-	if len(wl) > 0 {
+	if len(wl) == 0 {
 		return ""
 	}
 
@@ -970,6 +974,15 @@ func validateworkselection(uid string) *str.DbWork {
 		}
 	}
 	return w
+}
+
+// getuiddots - used to flesh out regex with the right number of "." elements
+func getuiddots() string {
+	var buf bytes.Buffer
+	for i := 0; i < vv.AUIDLEN; i++ {
+		buf.WriteString(".")
+	}
+	return buf.String()
 }
 
 // A LIST
