@@ -17,7 +17,7 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/opts"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"gonum.org/v1/gonum/mat"
 	"io"
 	"math"
@@ -76,7 +76,7 @@ func BuildBlankNNGraph(settings string, coreword string, incl string) *charts.Gr
 }
 
 // FormatNNGraph - fill out a blank graph
-func FormatNNGraph(c echo.Context, graph *charts.Graph, coreword string, nn map[string]search.Neighbors) *charts.Graph {
+func FormatNNGraph(c *echo.Context, graph *charts.Graph, coreword string, nn map[string]search.Neighbors) *charts.Graph {
 	const (
 		SYMSIZE       = 25
 		PERIPHSYMSZ   = 15

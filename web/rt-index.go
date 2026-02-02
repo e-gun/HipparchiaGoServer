@@ -22,14 +22,14 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )
 
 // RtIndexMaker - build an index for whatever collection of lines you would be searching
-func RtIndexMaker(c echo.Context) error {
-	c.Response().After(func() { vlt.LogPaths("RtIndexMaker()") })
+func RtIndexMaker(c *echo.Context) error {
+	// c.Response().After(func() { vlt.LogPaths("RtIndexMaker()") })
 
 	// note that templates + bytes.Buffer is more legible than '%s' time and again BUT it is also slightly slower
 	// this was tested via a rewrite of RtIndexMaker() and other rt-textindicesandvocab functions

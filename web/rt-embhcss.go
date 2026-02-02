@@ -14,7 +14,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"io"
 	"io/fs"
 	"net/http"
@@ -51,7 +51,7 @@ var (
 )
 
 // RtEmbHCSS - send "hipparchiastyles.css" after building it as per the configured font settings
-func RtEmbHCSS(c echo.Context) error {
+func RtEmbHCSS(c *echo.Context) error {
 	const (
 		ECSSDIR = "emb/css/"
 	)
@@ -128,7 +128,7 @@ func RtEmbHCSS(c echo.Context) error {
 	return c.String(http.StatusOK, css)
 }
 
-func CustomCSS(c echo.Context) error {
+func CustomCSS(c *echo.Context) error {
 	const (
 		FAIL1 = "could not open CSS file '%s%s'; using default instead"
 		FAIL2 = "could not read CSS file '%s%s'; using default instead"
@@ -156,7 +156,7 @@ func CustomCSS(c echo.Context) error {
 	return c.String(http.StatusOK, string(b))
 }
 
-func PrintColorSamples(c echo.Context) error {
+func PrintColorSamples(c *echo.Context) error {
 	const (
 		SWAP = `<!-- SWAPMEOUT -->`
 	)

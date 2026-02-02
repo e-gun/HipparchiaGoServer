@@ -13,14 +13,14 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"net/http"
 	"strings"
 	"time"
 )
 
 // RtSessionSetsCookie - turn the session into a cookie
-func RtSessionSetsCookie(c echo.Context) error {
+func RtSessionSetsCookie(c *echo.Context) error {
 	const (
 		FAIL = "RtSessionSetsCookie() could not marshal the session"
 	)
@@ -48,7 +48,7 @@ func RtSessionSetsCookie(c echo.Context) error {
 }
 
 // RtSessionGetCookie - turn a stored cookie into a session
-func RtSessionGetCookie(c echo.Context) error {
+func RtSessionGetCookie(c *echo.Context) error {
 	const (
 		FAIL1 = "RtSessionGetCookie failed to read cookie %s for %s"
 		FAIL2 = "RtSessionGetCookie failed to unmarshal cookie %s for %s"
@@ -100,7 +100,7 @@ func RtSessionGetCookie(c echo.Context) error {
 }
 
 // RtResetSession - delete and then reset the session
-func RtResetSession(c echo.Context) error {
+func RtResetSession(c *echo.Context) error {
 
 	user := vlt.ReadUUIDCookie(c)
 	oldsess := vlt.AllSessions.GetSess(user)

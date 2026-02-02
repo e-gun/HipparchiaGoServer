@@ -11,7 +11,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"net/http"
 	"sync"
 	"time"
@@ -83,7 +83,7 @@ func MakeDefaultSession(id string) str.ServerSession {
 //
 
 // ReadUUIDCookie - find the ID of the client
-func ReadUUIDCookie(c echo.Context) string {
+func ReadUUIDCookie(c *echo.Context) string {
 	cookie, err := c.Cookie("ID")
 	if err != nil {
 		id := WriteUUIDCookie(c)
@@ -99,7 +99,7 @@ func ReadUUIDCookie(c echo.Context) string {
 }
 
 // WriteUUIDCookie - set the ID of the client
-func WriteUUIDCookie(c echo.Context) string {
+func WriteUUIDCookie(c *echo.Context) string {
 	cookie := new(http.Cookie)
 	cookie.Name = "ID"
 	cookie.Path = "/"

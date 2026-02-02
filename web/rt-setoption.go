@@ -20,11 +20,11 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vec"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // RtSetOption - modify the session in light of the selection made
-func RtSetOption(c echo.Context) error {
+func RtSetOption(c *echo.Context) error {
 	const (
 		FAIL1 = "RtSetOption() was given bad input: %s"
 		FAIL2 = "RtSetOption() hit an impossible case"

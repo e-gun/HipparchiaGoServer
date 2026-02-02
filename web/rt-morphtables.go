@@ -17,15 +17,15 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/format"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // RtMorphchart - return a chart mapping known forms of a word to their grammatical identification
-func RtMorphchart(c echo.Context) error {
+func RtMorphchart(c *echo.Context) error {
 	// /lex/chart/greek/39046.0/37925260/ἐπιγιγνώϲκω
 
 	// should reach this route exclusively via a click from rt-lexica.go
-	c.Response().After(func() { vlt.LogPaths("RtMorphchart()") })
+	// c.Response().After(func() { vlt.LogPaths("RtMorphchart()") })
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
 		return jsonresponse(c, str.SearchOutputJSON{JS: vv.VALIDATIONBOX})

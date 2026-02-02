@@ -8,12 +8,12 @@ package web
 import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"net/http"
 )
 
 // RtAuthLogin - accept and validate login info sent from <form id="hipparchiauserlogin"...>
-func RtAuthLogin(c echo.Context) error {
+func RtAuthLogin(c *echo.Context) error {
 	cid := vlt.ReadUUIDCookie(c)
 	s := vlt.AllSessions.GetSess(cid)
 	u := c.FormValue("user")
@@ -34,7 +34,7 @@ func RtAuthLogin(c echo.Context) error {
 }
 
 // RtAuthLogout - log this session out
-func RtAuthLogout(c echo.Context) error {
+func RtAuthLogout(c *echo.Context) error {
 	u := vlt.ReadUUIDCookie(c)
 	s := vlt.AllSessions.GetSess(u)
 	s.LoginName = "Anonymous"
@@ -44,7 +44,7 @@ func RtAuthLogout(c echo.Context) error {
 }
 
 // RtAuthChkuser - report who this session is logged in as
-func RtAuthChkuser(c echo.Context) error {
+func RtAuthChkuser(c *echo.Context) error {
 	user := vlt.ReadUUIDCookie(c)
 	s := vlt.AllSessions.GetSess(user)
 	a := vlt.AllAuthorized.Check(s.ID)

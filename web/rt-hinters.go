@@ -11,7 +11,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"net/http"
 	"regexp"
 	"slices"
@@ -19,7 +19,7 @@ import (
 )
 
 // RtAuthorHints - /hints/author/_?term=auf --> [{'value': 'Aufidius Bassus [lt0809]'}, {'value': 'Aufustius [lt0401]'}]
-func RtAuthorHints(c echo.Context) error {
+func RtAuthorHints(c *echo.Context) error {
 	const (
 		TEMPL = "%s [%s]"
 	)
@@ -63,7 +63,7 @@ func RtAuthorHints(c echo.Context) error {
 }
 
 // RtLemmaHints - /hints/lemmata/_?term=dol --> [{"value": "dolabella\u00b9"}, {"value": "dolabra"}, {"value": "dolamen"}, ... ]
-func RtLemmaHints(c echo.Context) error {
+func RtLemmaHints(c *echo.Context) error {
 	const (
 		MAXLEMMARETURN = 33 // hates "προ" and "προτ": so many come back that you will lag the DOM
 		MAXMSG         = "... (and %d more) ..."
@@ -122,24 +122,24 @@ func RtLemmaHints(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, jss, vv.JSONINDENT)
 }
 
-func RtAuGenreHints(c echo.Context) error {
+func RtAuGenreHints(c *echo.Context) error {
 	return basichinter(c, mps.AuGenres)
 }
 
-func RtWkGenreHints(c echo.Context) error {
+func RtWkGenreHints(c *echo.Context) error {
 	return basichinter(c, mps.WkGenres)
 }
 
-func RtAuLocHints(c echo.Context) error {
+func RtAuLocHints(c *echo.Context) error {
 	return basichinter(c, mps.AuLocs)
 }
 
-func RtWkLocHints(c echo.Context) error {
+func RtWkLocHints(c *echo.Context) error {
 	return basichinter(c, mps.WkLocs)
 }
 
 // basichinter - which substrings of the request are members of the master map?
-func basichinter(c echo.Context, mastermap map[string]bool) error {
+func basichinter(c *echo.Context, mastermap map[string]bool) error {
 	skg := c.QueryParam("term")
 	if len(skg) < 2 {
 		return emptyjsreturn(c)

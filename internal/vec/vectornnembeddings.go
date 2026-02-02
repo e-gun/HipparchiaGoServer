@@ -24,7 +24,7 @@ import (
 	"github.com/e-gun/wego/pkg/model/modelutil/vector"
 	"github.com/e-gun/wego/pkg/model/word2vec"
 	"github.com/e-gun/wego/pkg/search"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"io"
@@ -46,7 +46,7 @@ import (
 // see also https://github.com/fogfish/word2vec (but then you need cgo and cross-compiling will be a problem)
 
 // GenerateVectEmbeddings - turn a search into a collection of semantic vector embeddings
-func GenerateVectEmbeddings(c echo.Context, modeltype string, s str.SearchStruct) embedding.Embeddings {
+func GenerateVectEmbeddings(c *echo.Context, modeltype string, s str.SearchStruct) embedding.Embeddings {
 	const (
 		FAIL1  = "model initialization failed"
 		FAIL2  = "GenerateVectEmbeddings() failed to train vector embeddings"
@@ -221,7 +221,7 @@ func GenerateVectEmbeddings(c echo.Context, modeltype string, s str.SearchStruct
 }
 
 // GenerateNeighborsData - generate the Neighbors data for a headword within a search
-func GenerateNeighborsData(c echo.Context, s str.SearchStruct) map[string]search.Neighbors {
+func GenerateNeighborsData(c *echo.Context, s str.SearchStruct) map[string]search.Neighbors {
 	const (
 		FMSG  = `Fetching a stored model`
 		GMSG  = `Generating a model`

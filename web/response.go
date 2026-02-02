@@ -6,12 +6,12 @@
 package web
 
 import (
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"net/http"
 )
 
 // jsonresponse - send the JSON; this function lets one test and document different strategies; jsr should be a json-ready struct
-func jsonresponse(c echo.Context, jsr any) error {
+func jsonresponse(c *echo.Context, jsr any) error {
 
 	return c.JSON(http.StatusOK, jsr)
 

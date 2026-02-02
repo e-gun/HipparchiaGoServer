@@ -8,7 +8,7 @@ package web
 import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/gorilla/websocket"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 //
@@ -16,7 +16,7 @@ import (
 //
 
 // RtWebsocket - progress info for a search (multiple clients client at a time)
-func RtWebsocket(c echo.Context) error {
+func RtWebsocket(c *echo.Context) error {
 	const (
 		FAILCON = "RtWebsocket(): ws connection failed"
 	)

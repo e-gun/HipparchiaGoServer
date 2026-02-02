@@ -17,7 +17,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"net/http"
 	"reflect"
 	"regexp"
@@ -102,7 +102,7 @@ func (s selectionvalues) A() bool {
 }
 
 // RtSelectionMake - register a selection and modify the session accordingly
-func RtSelectionMake(c echo.Context) error {
+func RtSelectionMake(c *echo.Context) error {
 	// GET http://localhost:8000/selection/make/_?auth=lt0474&work=073&locus=3|10&endpoint=
 
 	// note that you need to return JSON: reportcurrentselections() to fill #selectionstable on the page
@@ -142,7 +142,7 @@ func RtSelectionMake(c echo.Context) error {
 }
 
 // RtSelectionClear - remove a selection from the session
-func RtSelectionClear(c echo.Context) error {
+func RtSelectionClear(c *echo.Context) error {
 	const (
 		FAIL1 = "RtSelectionClear() was given bad input: %s"
 		FAIL2 = "RtSelectionClear() was given bad category: %s"
@@ -281,7 +281,7 @@ func RtSelectionClear(c echo.Context) error {
 	return r
 }
 
-func RtSelectionFetch(c echo.Context) error {
+func RtSelectionFetch(c *echo.Context) error {
 	sd := reportcurrentselections(c)
 	return c.JSONPretty(http.StatusOK, sd, vv.JSONINDENT)
 }
@@ -797,7 +797,7 @@ type selectiondata struct {
 }
 
 // reportcurrentselections - prepare JSON for the page re. current selections
-func reportcurrentselections(c echo.Context) selectiondata {
+func reportcurrentselections(c *echo.Context) selectiondata {
 	// ultimately feeding autocomplete.js
 	//    $('#timerestrictions').html(selectiondata.timeexclusions);
 	//    $('#selectioninfocell').html(selectiondata.selections);

@@ -13,7 +13,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"slices"
 	"strconv"
 	"strings"
@@ -37,31 +37,31 @@ type browsedpassage struct {
 //
 
 // RtBrowseLocus - open a browser if sent '/browse/locus/gr0086/025/999a|_0'
-func RtBrowseLocus(c echo.Context) error {
+func RtBrowseLocus(c *echo.Context) error {
 	sep := "|"
 	bp := browse(c, sep)
 	return jsonresponse(c, bp)
 }
 
 // RtBrowsePerseus - open a browser if sent '/browse/perseus/lt0550/001/2:717'
-func RtBrowsePerseus(c echo.Context) error {
+func RtBrowsePerseus(c *echo.Context) error {
 	sep := ":"
 	bp := browse(c, sep)
 	return jsonresponse(c, bp)
 }
 
 // RtBrowseRaw - open a browser if sent '/browse/rawlocus/lt0474/055/1.1.1'
-func RtBrowseRaw(c echo.Context) error {
+func RtBrowseRaw(c *echo.Context) error {
 	sep := "."
 	bp := browse(c, sep)
 	return jsonresponse(c, bp)
 }
 
 // RtBrowseLine - open a browser if sent '/browse/index/lt0550/001/1855'
-func RtBrowseLine(c echo.Context) error {
+func RtBrowseLine(c *echo.Context) error {
 	// sample input: '/browse/index/lt0550/001/1855'
 	// the one route that calls generatebrowsedpassage() directly
-	c.Response().After(func() { vlt.LogPaths("RtBrowseLine()") })
+	// c.Response().After(func() { vlt.LogPaths("RtBrowseLine()") })
 
 	const (
 		FAIL = "RtBrowseLine() could not parse %s"
@@ -99,7 +99,7 @@ func RtBrowseLine(c echo.Context) error {
 }
 
 // RtEmptyBrowse - to stave off 404s
-func RtEmptyBrowse(c echo.Context) error {
+func RtEmptyBrowse(c *echo.Context) error {
 	bp := browsedpassage{}
 	return jsonresponse(c, bp)
 }
@@ -109,7 +109,7 @@ func RtEmptyBrowse(c echo.Context) error {
 //
 
 // browse - parse request and send a request to generatebrowsedpassage
-func browse(c echo.Context, sep string) browsedpassage {
+func browse(c *echo.Context, sep string) browsedpassage {
 	// sample input: http://localhost:8000//browse/perseus/lt0550/001/2:717
 	const (
 		FAIL  = "browse() could not parse %s"

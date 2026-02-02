@@ -13,7 +13,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"net/http"
 	"strings"
 )
@@ -23,13 +23,13 @@ import (
 //
 
 // RtSearchConfirm - just tells the client JS where to find the poll
-func RtSearchConfirm(c echo.Context) error {
+func RtSearchConfirm(c *echo.Context) error {
 	pt := fmt.Sprintf("%d", lnch.Config.HostPort)
 	return c.String(http.StatusOK, pt)
 }
 
 // RtSearch - find X (derived from boxes on page) in Y (derived from the session)
-func RtSearch(c echo.Context) error {
+func RtSearch(c *echo.Context) error {
 	// "OneBox"
 	// [1] single word
 	// [2] phrase
@@ -96,7 +96,7 @@ func RtSearch(c echo.Context) error {
 
 	// [D] OK, IT IS A SEARCH FOR A WORD OR PHRASE
 
-	c.Response().After(func() { vlt.LogPaths("RtSearch()") })
+	// c.Response().After(func() { vlt.LogPaths("RtSearch()") })
 
 	// HasPhraseBoxA makes us use a fake limit temporarily
 	reallimit := srch.CurrentLimit

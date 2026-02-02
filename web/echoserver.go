@@ -6,19 +6,22 @@
 package web
 
 import (
-	"bytes"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"github.com/e-gun/HipparchiaGoServer/internal/debug"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	pr "github.com/e-gun/policeresponses"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
+	"github.com/rs/zerolog"
+	"golang.org/x/exp/slog"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 var (
@@ -27,51 +30,118 @@ var (
 
 // StartEchoServer - start serving; this blocks and does not return while the program remains alive
 func StartEchoServer() {
-	const (
-		LLOGFMT = "r: ${status}\tt: ${latency_human}\tu: ${uri}\n"
-		RLOGFMT = "${time_rfc3339}\t${remote_ip}\t${custom}\t${status}\t${bytes_out}\t${uri}\n"
-	)
 
 	e := echo.New()
 
 	configureecho(e)
 
-	// if you log to a file, then there is a "f.Close()", and it has to be inside this code block
-	// ctf - a CustomTagFunc to return a short user agent
-	ctf := func(c echo.Context, buf *bytes.Buffer) (int, error) {
-		ua := strings.Split(c.Request().UserAgent(), " ")
-		if len(ua) == 0 {
-			return 0, nil
-		} else {
-			last := ua[len(ua)-1]
-			buf.Write([]byte(last))
-			return 1, nil
+	output := os.Stderr
+	var err error
+
+	if lnch.Config.LogToFile {
+		uh, _ := os.UserHomeDir()
+		output, err = os.Create(uh + "/" + vv.LOGFILEEL)
+		if err != nil {
+			os.Exit(1)
 		}
+		defer func(output *os.File) {
+			e2 := output.Close()
+			if e2 != nil {
+
+			}
+		}(output) // this line implies that all logging config has to be kept inside StartEchoServer()
 	}
 
+	logger := zerolog.New(zerolog.ConsoleWriter{
+		Out:        output,
+		TimeFormat: time.DateTime,
+	})
+
+	lvl1 := func(c *echo.Context, v middleware.RequestLoggerValues) error {
+		// 2026-02-02T17:02:46-05:00 INF 200 URI=/emb/echarts/echarts.min.js
+		if v.Status < 400 {
+			logger.Info().
+				Timestamp().
+				Str("URI", v.URI).
+				Msg(fmt.Sprintf("%d", v.Status))
+		} else {
+			logger.Warn().
+				Timestamp().
+				Str("URI", v.URI).
+				Msg(fmt.Sprintf("%d", v.Status))
+		}
+		return nil
+	}
+
+	lvl2 := func(c *echo.Context, v middleware.RequestLoggerValues) error {
+		// 2026-02-02T17:02:46-05:00 INF 200 Remote=127.0.0.1:63190 URI=/emb/jq/jquery.min.js
+		if v.Status < 400 {
+			logger.Info().
+				Timestamp().
+				Str("Remote", c.Request().RemoteAddr).
+				Str("URI", v.URI).
+				Msg(fmt.Sprintf("%d", v.Status))
+		} else {
+			logger.Warn().
+				Timestamp().
+				Str("Remote", c.Request().RemoteAddr).
+				Str("URI", v.URI).
+				Msg(fmt.Sprintf("%d", v.Status))
+		}
+		return nil
+	}
+
+	lvl3 := func(c *echo.Context, v middleware.RequestLoggerValues) error {
+		// 2026-02-02T17:02:46-05:00 INF 200 Remote=127.0.0.1:64246 SZ=109 UA=Firefox/147.0 URI=/selection/fetch
+		ua := strings.Split(v.UserAgent, " ")
+		agent := ua[len(ua)-1]
+
+		if v.Status < 400 {
+			logger.Info().
+				Timestamp().
+				Str("SZ", fmt.Sprintf("%d", v.ResponseSize)).
+				Str("Remote", c.Request().RemoteAddr).
+				Str("URI", v.URI).
+				Str("UA", agent).
+				Msg(fmt.Sprintf("%d", v.Status))
+		} else {
+			logger.Warn().
+				Timestamp().
+				Str("SZ", fmt.Sprintf("%d", v.ResponseSize)).
+				Str("Remote", c.Request().RemoteAddr).
+				Str("URI", v.URI).
+				Str("UA", agent).
+				Msg(fmt.Sprintf("%d", v.Status))
+		}
+		return nil
+	}
+
+	lvlog := lvl1
+
 	if lnch.Config.EchoLog > 0 {
-		lwc := middleware.LoggerConfig{}
 		switch lnch.Config.EchoLog {
 		case 3:
-			lwc = middleware.LoggerConfig{}
+			lvlog = lvl3
 		case 2:
-			lwc = middleware.LoggerConfig{Format: RLOGFMT, CustomTagFunc: ctf}
+			lvlog = lvl2
 		case 1:
-			lwc = middleware.LoggerConfig{Format: LLOGFMT}
+			lvlog = lvl1
 		default:
 			// do nothing; but this is effectively "3"
 		}
 
-		if lnch.Config.LogToFile {
-			uh, _ := os.UserHomeDir()
-			f, err := os.Create(uh + "/" + vv.LOGFILEEL)
-			if err != nil {
-				os.Exit(1)
-			}
-			defer f.Close() // this line implies that all logging config has to be kept inside StartEchoServer()
-			lwc.Output = f
-		}
-		e.Use(middleware.LoggerWithConfig(lwc))
+		rqlogconfig := middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+			LogContentLength: true,
+			LogRemoteIP:      true,
+			LogHost:          true,
+			LogURI:           true,
+			LogUserAgent:     true,
+			LogStatus:        true,
+			LogResponseSize:  true,
+			LogValuesFunc:    lvlog,
+		})
+
+		e.Use(rqlogconfig)
 	}
 
 	buildroutes(e)
@@ -84,7 +154,10 @@ func StartEchoServer() {
 		starttlsserver(e)
 	} else {
 		Msg.WARN("(tls unavailable)")
-		e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", lnch.Config.HostIP, lnch.Config.HostPort)))
+		s := http.Server{Addr: fmt.Sprintf("%s:%d", lnch.Config.HostIP, lnch.Config.HostPort), Handler: e}
+		if err := s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error(err.Error())
+		}
 	}
 }
 
@@ -235,15 +308,15 @@ func buildroutes(e *echo.Echo) {
 }
 
 func configureecho(e *echo.Echo) {
-	e.HideBanner = true
-	e.HidePort = false
-	e.Debug = false
-	e.DisableHTTP2 = true // HTTP2 would require a lot of pain (certs, etc) for virtually no gain
+	//e.HideBanner = true
+	//e.HidePort = false
+	//e.Debug = false
+	//e.DisableHTTP2 = true // HTTP2 would require a lot of pain (certs, etc) for virtually no gain
 
 	if lnch.Config.Authenticate {
 		// assume that anyone who is using authentication is serving via the internet and so set timeouts
-		e.Server.ReadTimeout = vv.TIMEOUTRD
-		e.Server.WriteTimeout = vv.TIMEOUTWR
+		//e.Server.ReadTimeout = vv.TIMEOUTRD
+		//e.Server.WriteTimeout = vv.TIMEOUTWR
 		// also assume that internet exposure yields scanning attempts that will spam 404s & 500s; block IPs that do this
 		policing(e)
 	}
@@ -258,7 +331,7 @@ func configureecho(e *echo.Echo) {
 }
 
 func policing(e *echo.Echo) {
-	e.Use(pr.PoliceRequestAndResponse)
+	// e.Use(pr.PoliceRequestAndResponse)
 	go pr.ResponseStatsKeeper()
 	go pr.IPBlacklistKeeper()
 	if !lnch.Config.BlackAndWhite {

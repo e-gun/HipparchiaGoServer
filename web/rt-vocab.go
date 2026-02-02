@@ -21,15 +21,15 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )
 
 // RtVocabMaker - get the vocabulary for whatever collection of lines you would be searching
-func RtVocabMaker(c echo.Context) error {
-	c.Response().After(func() { vlt.LogPaths("RtVocabMaker()") })
+func RtVocabMaker(c *echo.Context) error {
+	// c.Response().After(func() { vlt.LogPaths("RtVocabMaker()") })
 	// todo: worry about γ' for γε
 
 	// item example: <indexedlocation id="index/lt1351/004/4180">⒟ 1.82.18</indexedlocation>

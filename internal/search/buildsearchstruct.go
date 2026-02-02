@@ -16,7 +16,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 //
@@ -24,7 +24,7 @@ import (
 //
 
 // BuildDefaultSearch - fill out the basic values for a new search
-func BuildDefaultSearch(c echo.Context) str.SearchStruct {
+func BuildDefaultSearch(c *echo.Context) str.SearchStruct {
 	const (
 		VECTORSEARCHSUMMARY = "Acquiring a model for the selected texts"
 	)
@@ -245,7 +245,7 @@ func InsertNewContextIntoSS(ss *str.SearchStruct) {
 }
 
 // SessionIntoBulkSearch - grab every line of text in the currently selected set of authors, works, and passages
-func SessionIntoBulkSearch(c echo.Context, lim int) str.SearchStruct {
+func SessionIntoBulkSearch(c *echo.Context, lim int) str.SearchStruct {
 	user := vlt.ReadUUIDCookie(c)
 	sess := vlt.AllSessions.GetSess(user)
 

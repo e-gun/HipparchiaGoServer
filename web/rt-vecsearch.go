@@ -17,7 +17,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/e-gun/nlp"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"gonum.org/v1/gonum/mat"
 )
 
@@ -26,14 +26,14 @@ import (
 //
 
 // RtLDASearch - a special case for RtSearch() where you requested Latent Dirichlet Allocation vectorization of the results
-func RtLDASearch(c echo.Context, srch str.SearchStruct) error {
+func RtLDASearch(c *echo.Context, srch str.SearchStruct) error {
 	const (
 		LDAMSG = `Building LDA model for the current selections`
 		ESM1   = "Preparing the text for modeling"
 		ESM2   = "Building topic models"
 		ESM3   = "Building the graph (please be patient this can be very slow...)"
 	)
-	c.Response().After(func() { vlt.LogPaths("RtLDASearch()") })
+	// c.Response().After(func() { vlt.LogPaths("RtLDASearch()") })
 
 	se := srch.StoredSession
 	ntopics := se.LDAtopics
@@ -106,7 +106,7 @@ func RtLDASearch(c echo.Context, srch str.SearchStruct) error {
 }
 
 // RtNeighborsSearch - a special case for RtSearch() where you requested NN vectorization of the results
-func RtNeighborsSearch(c echo.Context, srch str.SearchStruct) error {
+func RtNeighborsSearch(c *echo.Context, srch str.SearchStruct) error {
 	const (
 		NTH      = 3
 		THETABLE = `
@@ -143,7 +143,7 @@ func RtNeighborsSearch(c echo.Context, srch str.SearchStruct) error {
 		SETTINGS = `model type: %s; text prep: %s`
 	)
 
-	c.Response().After(func() { vlt.LogPaths("RtNeighborsSearch()") })
+	// c.Response().After(func() { vlt.LogPaths("RtNeighborsSearch()") })
 	s := srch.StoredSession
 
 	term := srch.LemmaOne

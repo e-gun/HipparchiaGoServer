@@ -16,7 +16,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"golang.org/x/exp/slices"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
@@ -34,7 +34,7 @@ type jsstruct struct {
 }
 
 // RtGetJSSession - return the JSON for the session values for parsing by client JS
-func RtGetJSSession(c echo.Context) error {
+func RtGetJSSession(c *echo.Context) error {
 	// see hipparchiajs/coreinterfaceclicks.js
 
 	user := vlt.ReadUUIDCookie(c)
@@ -127,7 +127,7 @@ func RtGetJSSession(c echo.Context) error {
 }
 
 // RtGetJSWorksOf - /get/json/worksof/lt0972 --> [{"value": "Satyrica (w001)"}, {"value": "Satyrica, fragmenta (w002)"}]
-func RtGetJSWorksOf(c echo.Context) error {
+func RtGetJSWorksOf(c *echo.Context) error {
 	const (
 		TEMPL = "%s (%s)"
 	)
@@ -154,7 +154,7 @@ func RtGetJSWorksOf(c echo.Context) error {
 }
 
 // RtGetJSWorksStruct - workstructure/lt0474/058 --> {"totallevels": 4, "level": 3, "label": "book", "low": "1", "high": "3", "range": ["1", "2", "3"]}
-func RtGetJSWorksStruct(c echo.Context) error {
+func RtGetJSWorksStruct(c *echo.Context) error {
 	// that is a top: interiors look like "1|3" for "book one", "subheading_val 3"
 
 	locus := c.Param("locus")
@@ -179,7 +179,7 @@ func RtGetJSWorksStruct(c echo.Context) error {
 }
 
 // RtGetJSHelpdata - populate <div id="helptabs"> on frontpage.html via $('#helpbutton').click in documentready.js
-func RtGetJSHelpdata(c echo.Context) error {
+func RtGetJSHelpdata(c *echo.Context) error {
 	const (
 		REIN  = `<!-- swap_in_values -->`
 		REOUT = `<code>%s</code>`
@@ -227,7 +227,7 @@ func RtGetJSHelpdata(c echo.Context) error {
 
 }
 
-func RtGetJSAuthorinfo(c echo.Context) error {
+func RtGetJSAuthorinfo(c *echo.Context) error {
 	const (
 		MTEMPL = `
 		<span class="emph"><span class="emph">{{.Name}}</span></span>&nbsp;
@@ -329,7 +329,7 @@ func RtGetJSAuthorinfo(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, out, vv.JSONINDENT)
 }
 
-func RtGetJSSampCit(c echo.Context) error {
+func RtGetJSSampCit(c *echo.Context) error {
 	// in: http://localhost:5000/get/json/samplecitation/lt0474/001
 	// out: {"firstline": "1.1", "lastline": "99.9"}
 	locus := c.Param("locus")
@@ -372,7 +372,7 @@ func RtGetJSSampCit(c echo.Context) error {
 }
 
 // RtGetJSSearchlist - report the search list contents to the browser
-func RtGetJSSearchlist(c echo.Context) error {
+func RtGetJSSearchlist(c *echo.Context) error {
 	const (
 		WORKTMPL  = `%s, <span class="italic">%s</span> [%d line%s - %d word%s]`
 		SPILLOVER = `<br>(and <span class="emph">%d</span> additional works)`
@@ -468,7 +468,7 @@ func RtGetJSSearchlist(c echo.Context) error {
 }
 
 // RtGetEmptyGet - to stave off 404s
-func RtGetEmptyGet(c echo.Context) error {
+func RtGetEmptyGet(c *echo.Context) error {
 	var j jsstruct
 	j.V = "[the request was empty; no data returned]"
 

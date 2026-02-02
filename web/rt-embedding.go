@@ -8,7 +8,7 @@ package web
 import (
 	"embed"
 	"fmt"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"net/http"
 	"strings"
 )
@@ -33,45 +33,45 @@ const (
 	EITC = "emb/images/hipparchia_apple-touch-icon-precomposed.png"
 )
 
-func RtEmbJQuery(c echo.Context) error {
+func RtEmbJQuery(c *echo.Context) error {
 	return pathembedder(c, EJQ)
 }
 
-func RtEmbJQueryImg(c echo.Context) error {
+func RtEmbJQueryImg(c *echo.Context) error {
 	return pathembedder(c, EJQI)
 }
 
-func RtEmbJS(c echo.Context) error {
+func RtEmbJS(c *echo.Context) error {
 	return pathembedder(c, EJS)
 }
 
-func RtEmbTTF(c echo.Context) error {
+func RtEmbTTF(c *echo.Context) error {
 	return pathembedder(c, ETT)
 }
 
-func RtEmbOTF(c echo.Context) error {
+func RtEmbOTF(c *echo.Context) error {
 	return pathembedder(c, EOT)
 }
 
-func RtEmbWOF(c echo.Context) error {
+func RtEmbWOF(c *echo.Context) error {
 	return pathembedder(c, EWF)
 }
 
-func RtEbmFavicon(c echo.Context) error {
+func RtEbmFavicon(c *echo.Context) error {
 	return fileembedder(c, EICO)
 }
 
-func RtEbmTouchIcon(c echo.Context) error {
+func RtEbmTouchIcon(c *echo.Context) error {
 	return fileembedder(c, EITC)
 }
 
 // RtEmbPDFHelp - send one of the embedded PDF files
-func RtEmbPDFHelp(c echo.Context) error {
+func RtEmbPDFHelp(c *echo.Context) error {
 	return pathembedder(c, EPD)
 }
 
 // RtEmbEcharts - send one of the embedded graphing JS files
-func RtEmbEcharts(c echo.Context) error {
+func RtEmbEcharts(c *echo.Context) error {
 	return pathembedder(c, EEC)
 }
 
@@ -80,7 +80,7 @@ func RtEmbEcharts(c echo.Context) error {
 //
 
 // pathembedder - read and send file at path
-func pathembedder(c echo.Context, d string) error {
+func pathembedder(c *echo.Context, d string) error {
 	const (
 		FNF      = "pathembedder() can't find '%s'"
 		OOPSFILE = "emb/pdf/oops.pdf"
@@ -111,7 +111,7 @@ func pathembedder(c echo.Context, d string) error {
 }
 
 // fileembedder - read and send file
-func fileembedder(c echo.Context, f string) error {
+func fileembedder(c *echo.Context, f string) error {
 	j, e := efs.ReadFile(f)
 	if e != nil {
 		Msg.WARN(fmt.Sprintf("can't find %s", f))

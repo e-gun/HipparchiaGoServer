@@ -14,7 +14,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"net/http"
 	"runtime"
 	"sort"
@@ -25,7 +25,7 @@ import (
 
 var (
 	// have the option to return/generate some sort of fail message...
-	emptyjsreturn = func(c echo.Context) error { return c.JSONPretty(http.StatusOK, "", vv.JSONINDENT) }
+	emptyjsreturn = func(c *echo.Context) error { return c.JSONPretty(http.StatusOK, "", vv.JSONINDENT) }
 )
 
 //
@@ -33,7 +33,7 @@ var (
 //
 
 // RtFrontpage - send the html for "/"
-func RtFrontpage(c echo.Context) error {
+func RtFrontpage(c *echo.Context) error {
 	const (
 		UPSTR    = "[%v] HGS uptime: %v [%s]"
 		PADDING  = " ----------------- "

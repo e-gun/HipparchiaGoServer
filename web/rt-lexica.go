@@ -15,7 +15,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"regexp"
 	"sort"
 	"strings"
@@ -29,8 +29,8 @@ type jsb struct {
 }
 
 // RtLexLookup - search the dictionary for a headword substring
-func RtLexLookup(c echo.Context) error {
-	c.Response().After(func() { vlt.LogPaths("RtLexLookup()") })
+func RtLexLookup(c *echo.Context) error {
+	// c.Response().After(func() { vlt.LogPaths("RtLexLookup()") })
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
@@ -80,14 +80,14 @@ func RtLexLookup(c echo.Context) error {
 }
 
 // RtLexFindByForm - search the dictionary for a specific headword
-func RtLexFindByForm(c echo.Context) error {
+func RtLexFindByForm(c *echo.Context) error {
 	// be able to respond to "GET /lexica/findbyform/ἀμιϲθὶ/gr0062 HTTP/1.1"
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
 		return jsonresponse(c, jsb{JS: vv.JSVALIDATION})
 	}
 	s := vlt.AllSessions.GetSess(user)
-	c.Response().After(func() { vlt.LogPaths("RtLexFindByForm()") })
+	// c.Response().After(func() { vlt.LogPaths("RtLexFindByForm()") })
 
 	req := c.Param("wd")
 	elem := strings.Split(req, "/")
@@ -125,7 +125,7 @@ func RtLexFindByForm(c echo.Context) error {
 }
 
 // RtLexId - grab a word by its entry value
-func RtLexId(c echo.Context) error {
+func RtLexId(c *echo.Context) error {
 	// http://127.0.0.1:8000/lexica/idlookup/latin/24236.0
 	const (
 		FAIL1 = "RtLexId() received bad request: '%s'"
@@ -169,9 +169,9 @@ func RtLexId(c echo.Context) error {
 }
 
 // RtLexReverse - look for the headwords that have the sought word in their body
-func RtLexReverse(c echo.Context) error {
+func RtLexReverse(c *echo.Context) error {
 	// be able to respond to "/lexica/reverselookup/0ae94619/sorrow"
-	c.Response().After(func() { vlt.LogPaths("RtLexReverse()") })
+	// c.Response().After(func() { vlt.LogPaths("RtLexReverse()") })
 
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
