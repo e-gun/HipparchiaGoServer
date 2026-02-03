@@ -8,11 +8,12 @@ package db
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/jackc/pgx/v5"
-	"sort"
-	"strings"
 )
 
 // FindValidLevelValues - tell me some of a citation and I can tell you what is a valid choice at the next step

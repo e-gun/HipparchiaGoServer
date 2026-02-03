@@ -9,8 +9,9 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"slices"
+
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 )
 
 // FingerprintNNVectorSearch - derive a unique md5 for any given mix of search items & vector settings

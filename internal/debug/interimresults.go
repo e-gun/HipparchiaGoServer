@@ -7,8 +7,9 @@ package debug
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"slices"
+
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 )
 
 // ShowInterimResults - print out the current results

@@ -8,9 +8,10 @@ package web
 import (
 	"embed"
 	"fmt"
-	"github.com/labstack/echo/v5"
 	"net/http"
 	"strings"
+
+	"github.com/labstack/echo/v5"
 )
 
 //go:embed emb

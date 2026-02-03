@@ -9,6 +9,12 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/debug"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
@@ -16,12 +22,6 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
 	"github.com/rs/zerolog"
-	"golang.org/x/exp/slog"
-	"log"
-	"net/http"
-	"os"
-	"strings"
-	"time"
 )
 
 var (
@@ -30,10 +30,13 @@ var (
 
 // StartEchoServer - start serving; this blocks and does not return while the program remains alive
 func StartEchoServer() {
-
 	e := echo.New()
-
 	configureecho(e)
+
+	//
+	// the next long block is all about logging
+	// all logging config has to be kept inside StartEchoServer(); else "file already closed"
+	//
 
 	output := os.Stderr
 	var err error
@@ -47,9 +50,9 @@ func StartEchoServer() {
 		defer func(output *os.File) {
 			e2 := output.Close()
 			if e2 != nil {
-
+				fmt.Println(e2.Error())
 			}
-		}(output) // this line implies that all logging config has to be kept inside StartEchoServer()
+		}(output)
 	}
 
 	logger := zerolog.New(zerolog.ConsoleWriter{
@@ -58,7 +61,7 @@ func StartEchoServer() {
 	})
 
 	lvl1 := func(c *echo.Context, v middleware.RequestLoggerValues) error {
-		// 2026-02-02T17:02:46-05:00 INF 200 URI=/emb/echarts/echarts.min.js
+		// 2026-02-02 17:40:08 INF 200 URI=/emb/echarts/echarts.min.js
 		if v.Status < 400 {
 			logger.Info().
 				Timestamp().
@@ -74,17 +77,17 @@ func StartEchoServer() {
 	}
 
 	lvl2 := func(c *echo.Context, v middleware.RequestLoggerValues) error {
-		// 2026-02-02T17:02:46-05:00 INF 200 Remote=127.0.0.1:63190 URI=/emb/jq/jquery.min.js
+		// 2026-02-02 17:40:08 INF 200 IP=127.0.0.1:63190 URI=/emb/jq/jquery.min.js
 		if v.Status < 400 {
 			logger.Info().
 				Timestamp().
-				Str("Remote", c.Request().RemoteAddr).
+				Str("IP", c.Request().RemoteAddr).
 				Str("URI", v.URI).
 				Msg(fmt.Sprintf("%d", v.Status))
 		} else {
 			logger.Warn().
 				Timestamp().
-				Str("Remote", c.Request().RemoteAddr).
+				Str("IP", c.Request().RemoteAddr).
 				Str("URI", v.URI).
 				Msg(fmt.Sprintf("%d", v.Status))
 		}
@@ -92,7 +95,7 @@ func StartEchoServer() {
 	}
 
 	lvl3 := func(c *echo.Context, v middleware.RequestLoggerValues) error {
-		// 2026-02-02T17:02:46-05:00 INF 200 Remote=127.0.0.1:64246 SZ=109 UA=Firefox/147.0 URI=/selection/fetch
+		// 2026-02-02 17:40:08 INF 200 IP=127.0.0.1:64246 SZ=109 UA=Firefox/147.0 URI=/selection/fetch
 		ua := strings.Split(v.UserAgent, " ")
 		agent := ua[len(ua)-1]
 
@@ -100,7 +103,7 @@ func StartEchoServer() {
 			logger.Info().
 				Timestamp().
 				Str("SZ", fmt.Sprintf("%d", v.ResponseSize)).
-				Str("Remote", c.Request().RemoteAddr).
+				Str("IP", c.Request().RemoteAddr).
 				Str("URI", v.URI).
 				Str("UA", agent).
 				Msg(fmt.Sprintf("%d", v.Status))
@@ -108,7 +111,7 @@ func StartEchoServer() {
 			logger.Warn().
 				Timestamp().
 				Str("SZ", fmt.Sprintf("%d", v.ResponseSize)).
-				Str("Remote", c.Request().RemoteAddr).
+				Str("IP", c.Request().RemoteAddr).
 				Str("URI", v.URI).
 				Str("UA", agent).
 				Msg(fmt.Sprintf("%d", v.Status))
@@ -116,7 +119,7 @@ func StartEchoServer() {
 		return nil
 	}
 
-	lvlog := lvl1
+	lvlog := lvl3
 
 	if lnch.Config.EchoLog > 0 {
 		switch lnch.Config.EchoLog {
@@ -130,7 +133,7 @@ func StartEchoServer() {
 			// do nothing; but this is effectively "3"
 		}
 
-		rqlogconfig := middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		rqlogmiddleware := middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 			LogContentLength: true,
 			LogRemoteIP:      true,
 			LogHost:          true,
@@ -141,8 +144,12 @@ func StartEchoServer() {
 			LogValuesFunc:    lvlog,
 		})
 
-		e.Use(rqlogconfig)
+		e.Use(rqlogmiddleware)
 	}
+
+	//
+	// now that logging is set up we can do the real business of launching...
+	//
 
 	buildroutes(e)
 
@@ -153,11 +160,7 @@ func StartEchoServer() {
 	if candossl() {
 		starttlsserver(e)
 	} else {
-		Msg.WARN("(tls unavailable)")
-		s := http.Server{Addr: fmt.Sprintf("%s:%d", lnch.Config.HostIP, lnch.Config.HostPort), Handler: e}
-		if err := s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error(err.Error())
-		}
+		starthttpserver(e)
 	}
 }
 
@@ -308,11 +311,6 @@ func buildroutes(e *echo.Echo) {
 }
 
 func configureecho(e *echo.Echo) {
-	//e.HideBanner = true
-	//e.HidePort = false
-	//e.Debug = false
-	//e.DisableHTTP2 = true // HTTP2 would require a lot of pain (certs, etc) for virtually no gain
-
 	if lnch.Config.Authenticate {
 		// assume that anyone who is using authentication is serving via the internet and so set timeouts
 		//e.Server.ReadTimeout = vv.TIMEOUTRD
@@ -357,9 +355,27 @@ func candossl() bool {
 	return ok
 }
 
+func starthttpserver(e *echo.Echo) {
+	Msg.WARN("(tls unavailable)")
+
+	saddr := fmt.Sprintf("%s:%d", lnch.Config.HostIP, lnch.Config.HostPort)
+	fmt.Printf("⇨ http server started at %s\n", saddr)
+
+	s := http.Server{
+		Addr:         saddr,
+		Handler:      e,
+		ReadTimeout:  vv.TIMEOUTRD,
+		WriteTimeout: vv.TIMEOUTWR,
+	}
+
+	if err := s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		log.Fatal(err)
+	}
+}
+
 func starttlsserver(e *echo.Echo) {
 	saddr := fmt.Sprintf("%s:%d", lnch.Config.HostIP, lnch.Config.HostSSLPort)
-	fmt.Printf("⇨ https server started on %s\n", saddr)
+	fmt.Printf("⇨ https server started at %s\n", saddr)
 	s := http.Server{
 		Addr:      saddr,
 		Handler:   e, // set Echo as handler

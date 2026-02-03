@@ -8,11 +8,12 @@ package db
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"strings"
 )
 
 var (

@@ -8,13 +8,14 @@ package vec
 import (
 	"bytes"
 	"fmt"
-	"github.com/go-echarts/go-echarts/v2/render"
-	"github.com/go-echarts/go-echarts/v2/types"
 	"html/template"
 	"io"
 	"reflect"
 	"regexp"
 	"strings"
+
+	"github.com/go-echarts/go-echarts/v2/render"
+	"github.com/go-echarts/go-echarts/v2/types"
 )
 
 //

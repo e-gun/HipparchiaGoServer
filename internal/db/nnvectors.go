@@ -11,11 +11,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/e-gun/wego/pkg/embedding"
 	"github.com/jackc/pgx/v5"
-	"io"
-	"strings"
 )
 
 // VectorDBCheckNN - has a search with this fingerprint already been stored?

@@ -6,10 +6,11 @@
 package lnch
 
 import (
-	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
-	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"runtime"
 	"time"
+
+	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
+	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 )
 
 func NewMessageMakerConfigured() *mm.MessageMaker {

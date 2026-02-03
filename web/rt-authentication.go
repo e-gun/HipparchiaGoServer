@@ -6,10 +6,11 @@
 package web
 
 import (
+	"net/http"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v5"
-	"net/http"
 )
 
 // RtAuthLogin - accept and validate login info sent from <form id="hipparchiauserlogin"...>

@@ -8,6 +8,11 @@ package web
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"sort"
+	"strings"
+	"sync"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
@@ -16,10 +21,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v5"
-	"regexp"
-	"sort"
-	"strings"
-	"sync"
 )
 
 type jsb struct {

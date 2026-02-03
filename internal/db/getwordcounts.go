@@ -8,10 +8,11 @@ package db
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"strings"
 )
 
 // GetMultipleWordCounts - return total word count figures for each word in a slice of words

@@ -8,6 +8,13 @@ package web
 import (
 	"bytes"
 	"fmt"
+	"net/http"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
+	"text/template"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
@@ -20,12 +27,6 @@ import (
 	"golang.org/x/exp/slices"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
-	"net/http"
-	"regexp"
-	"sort"
-	"strconv"
-	"strings"
-	"text/template"
 )
 
 // jsstruct - this is for generating a specific ultra-boring brand of JSON that jQuery loves

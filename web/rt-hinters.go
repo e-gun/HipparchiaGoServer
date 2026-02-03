@@ -7,15 +7,16 @@ package web
 
 import (
 	"fmt"
+	"net/http"
+	"regexp"
+	"slices"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v5"
-	"net/http"
-	"regexp"
-	"slices"
-	"strings"
 )
 
 // RtAuthorHints - /hints/author/_?term=auf --> [{'value': 'Aufidius Bassus [lt0809]'}, {'value': 'Aufustius [lt0401]'}]

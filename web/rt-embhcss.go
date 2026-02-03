@@ -8,13 +8,6 @@ package web
 import (
 	"bytes"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
-	"github.com/e-gun/HipparchiaGoServer/internal/clr"
-	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
-	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/labstack/echo/v5"
 	"io"
 	"io/fs"
 	"net/http"
@@ -22,6 +15,14 @@ import (
 	"slices"
 	"strings"
 	"text/template"
+
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
+	"github.com/e-gun/HipparchiaGoServer/internal/clr"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
+	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
+	"github.com/e-gun/HipparchiaGoServer/internal/vv"
+	"github.com/labstack/echo/v5"
 )
 
 type FontSwap struct {

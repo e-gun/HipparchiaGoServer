@@ -7,6 +7,12 @@ package web
 
 import (
 	"fmt"
+	"net/http"
+	"slices"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
@@ -18,11 +24,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
-	"net/http"
-	"slices"
-	"sort"
-	"strings"
-	"time"
 )
 
 //

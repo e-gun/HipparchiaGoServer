@@ -6,8 +6,9 @@
 package str
 
 import (
-	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
 	"regexp"
+
+	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
 )
 
 // avoid importing values into "str"

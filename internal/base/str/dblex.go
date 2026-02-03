@@ -8,9 +8,10 @@ package str
 import (
 	"bytes"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"strings"
 	"text/template"
+
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 )
 
 // hipparchiaDB-# \d latin_morphology

@@ -7,15 +7,16 @@ package search
 
 import (
 	"fmt"
+	"regexp"
+	"sort"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"regexp"
-	"sort"
-	"strings"
 )
 
 func LemmaIntoRegexSlice(hdwd string) []string {

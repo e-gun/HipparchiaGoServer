@@ -7,16 +7,17 @@ package vlt
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
-	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"github.com/e-gun/lastnlines"
 	"math"
 	"os"
 	"runtime"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
+	"github.com/e-gun/HipparchiaGoServer/internal/vv"
+	"github.com/e-gun/lastnlines"
 )
 
 // TerminalTicker - requires running with the "-tk" flag; feed basic use states to the console and update them indefinitely

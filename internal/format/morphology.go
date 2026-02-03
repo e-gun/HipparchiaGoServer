@@ -7,8 +7,9 @@ package format
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"strings"
+
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 )
 
 var (

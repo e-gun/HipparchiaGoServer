@@ -8,10 +8,11 @@ package vec
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
-	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"os"
 	"sort"
+
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 )
 
 //

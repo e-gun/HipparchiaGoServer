@@ -8,9 +8,10 @@ package vv
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"regexp"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const (

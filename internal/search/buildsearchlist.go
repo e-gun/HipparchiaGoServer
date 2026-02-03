@@ -6,12 +6,13 @@
 package search
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"strconv"
-	"strings"
 )
 
 type ProcessedList struct {

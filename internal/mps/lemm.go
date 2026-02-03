@@ -8,11 +8,12 @@ package mps
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"strings"
 )
 
 // LemmaMapper - map[string]DbLemma for all lemmata

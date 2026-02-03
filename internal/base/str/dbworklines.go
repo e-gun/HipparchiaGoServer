@@ -7,9 +7,10 @@ package str
 
 import (
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"regexp"
 	"strings"
+
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 )
 
 var (

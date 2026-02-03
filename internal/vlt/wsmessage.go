@@ -8,11 +8,12 @@ package vlt
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/gorilla/websocket"
-	"strings"
-	"time"
 )
 
 // consider "github.com/coder/websocket" instead as gorilla is marked as unmaintained

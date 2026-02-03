@@ -8,6 +8,12 @@ package vec
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
@@ -20,11 +26,6 @@ import (
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"gonum.org/v1/gonum/mat"
-	"regexp"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
 
 	tsnemp "github.com/e-gun/tsnemp/pkg"
 )

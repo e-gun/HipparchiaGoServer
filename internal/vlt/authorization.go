@@ -8,12 +8,13 @@ package vlt
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
-	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
-	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"io"
 	"os"
 	"sync"
+
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
+	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
+	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 )
 
 var (

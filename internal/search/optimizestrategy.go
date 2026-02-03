@@ -7,10 +7,11 @@ package search
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
-	"strings"
 )
 
 // optimizesearch - think about rewriting the search to make it faster

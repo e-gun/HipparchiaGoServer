@@ -6,9 +6,10 @@
 package format
 
 import (
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"strings"
 )
 
 func FormatAnnotations(l str.DbWorkline) string {

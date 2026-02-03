@@ -7,9 +7,10 @@ package search
 
 import (
 	"fmt"
+	"slices"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/mps"
-	"slices"
 )
 
 // BuildSelectionOverview will call the relevant SearchIncExl functions: see buildsearchlist.go

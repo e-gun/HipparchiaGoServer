@@ -10,11 +10,6 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
-	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
-	"github.com/e-gun/HipparchiaGoServer/internal/clr"
-	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"os"
 	"runtime"
 	"slices"
@@ -22,6 +17,12 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
+	"github.com/e-gun/HipparchiaGoServer/internal/clr"
+	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 )
 
 //go:embed efs

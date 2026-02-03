@@ -7,6 +7,9 @@ package web
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/format"
@@ -16,8 +19,6 @@ import (
 	"github.com/labstack/echo/v5"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
-	"net/http"
-	"strings"
 )
 
 // RtTextMaker - make a text of whatever collection of lines you would be searching

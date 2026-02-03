@@ -6,11 +6,12 @@
 package vec
 
 import (
-	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
-	"github.com/e-gun/HipparchiaGoServer/internal/db"
 	"math/rand"
 	"sort"
 	"strings"
+
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
+	"github.com/e-gun/HipparchiaGoServer/internal/db"
 )
 
 //

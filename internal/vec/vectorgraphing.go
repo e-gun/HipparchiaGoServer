@@ -8,6 +8,11 @@ package vec
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"math"
+	"math/rand"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
@@ -19,10 +24,6 @@ import (
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/labstack/echo/v5"
 	"gonum.org/v1/gonum/mat"
-	"io"
-	"math"
-	"math/rand"
-	"strings"
 )
 
 const (

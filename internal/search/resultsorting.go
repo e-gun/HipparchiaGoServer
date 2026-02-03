@@ -6,8 +6,9 @@
 package search
 
 import (
-	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"sort"
+
+	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 )
 
 // SortResults - sort the search results by the session's registerselection criterion

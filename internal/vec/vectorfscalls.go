@@ -8,13 +8,14 @@ package vec
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"runtime"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/e-gun/wego/pkg/model/glove"
 	"github.com/e-gun/wego/pkg/model/lexvec"
 	"github.com/e-gun/wego/pkg/model/word2vec"
-	"os"
-	"runtime"
 )
 
 var (

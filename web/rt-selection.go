@@ -9,6 +9,12 @@ import (
 	"bytes"
 	"crypto/md5"
 	"fmt"
+	"net/http"
+	"reflect"
+	"regexp"
+	"strconv"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/db"
@@ -18,11 +24,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v5"
-	"net/http"
-	"reflect"
-	"regexp"
-	"strconv"
-	"strings"
 )
 
 type jsdata struct {
