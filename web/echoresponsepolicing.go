@@ -174,8 +174,8 @@ func ResponseStatsKeeper() {
 		blistwr <- wr
 		ok := <-wr.resp
 		if !ok {
-			hl := fmt.Sprintf(Emit.Yel+"%s"+Emit.Rst, status.ip)
-			Emit.E(fmt.Sprintf(BLACK1, hl, status.uri))
+			//hl := fmt.Sprintf(Emit.Yel+"%s"+Emit.Rst, status.ip)
+			//Emit.E(fmt.Sprintf(BLACK1, hl, status.uri))
 		}
 	}
 

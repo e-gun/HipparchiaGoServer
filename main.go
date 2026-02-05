@@ -7,6 +7,12 @@ package main
 
 import (
 	"fmt"
+	_ "net/http/pprof"
+	"os"
+	"runtime"
+	"sync"
+	"time"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/mm"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/clr"
@@ -20,11 +26,6 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/e-gun/HipparchiaGoServer/web"
 	"github.com/pkg/profile"
-	_ "net/http/pprof"
-	"os"
-	"runtime"
-	"sync"
-	"time"
 )
 
 // these next variables should be injected at build time: 'go build -ldflags "-X main.GitCommit=$GIT_COMMIT"', etc
@@ -101,7 +102,7 @@ func main() {
 	// vectorless: ./HipparchiaGoServer -pc -st -dv
 
 	// profile into pdf:
-	// 	"go tool pprof --pdf ./HipparchiaGoServer /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1075644045/cpu.pprof > ./INSTRUCTIONS/fyi/MEMProfileVectors.pdf"
+	// 	"go tool pprof --pdf ./HipparchiaGoServer /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1075644045/cpu.pprof > ./INSTRUCTIONS/fyi/CPUProfileVectors.pdf"
 	//	"cp /var/folders/d8/_gb2lcbn0klg22g_cbwcxgmh0000gn/T/profile1075644045/cpu.pprof ./pgo/default.pgo"
 
 	if lnch.Config.ProfileCPU {
