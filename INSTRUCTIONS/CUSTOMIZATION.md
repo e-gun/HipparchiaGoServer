@@ -1,6 +1,6 @@
 # Customizing an instillation
 
-If you edit the file named `hgs-prolix-conf.json` in the folder `.config` within your home folder, you can override a number of built-in defaults. 
+If you edit the file named `options.json` in the folder `.config/HipparchiaGoServer` within your home folder, you can override a number of built-in defaults. 
 You need to get `PGLogin` right. The password is the most important part. The other values should be correct at their defaults.
 
 One-time overrides are available by setting flags when launching `HipparchiaGoServer`. Try running `HipparchiaGoServer -h` to see them.
@@ -9,8 +9,8 @@ Items of most interest in the configuration file:
 
 * `BrowserCtx` sets the default number of lines to show in the browser. The size of your monitor will determine the most convenient value for you.
 * `CustomCSS` when set to `true` tells the server to load custom CSS. The server looks for a file named `custom-hipparchiastyles.css` inside `~/.config/`. You should use `hipparchiastyles.css` as a starting template.
-* `DefCorp` sets which corpora are active on a reset. So if you almost never search Greek, you can set `gr` to `false`, for example. On a slow machine, this would significantly speed up `in every active author` searches.
-* `Font` sets the interface font. `Noto`, `Fira`, and `Roboto` are embedded in the program. If you pick another name, you need to have it installed on your machine. 
+* `DefCorp` sets which corpora are active on a reset. So if you almost never search Greek, you can set `tlg` to `false`, for example. On a slow machine, this would significantly speed up `in every active author` searches.
+* `Font` sets the interface font. `Allegreya`, `Brill`, `CMU`, `Fira`, `Gentium`, `Inter`, `IOsevka`, `Lato`, `Mplus`, `Noto`, `SourceSans`, and `Ubuntu` are embedded in the program. If you pick another name, you need to have it installed on your machine. 
 * `QuietStart` spares you the copyright notice.
 * `VectorChtHt` and `VectorChWd` will set the height and width of the vector charts. Note that `px` is required as are the quotation marks: `"1000px"`, e.g.
 * `VectorMaxlines` sets the maximum scope of a vector search. `1000000` will let you model all of Latin. All of Greek is about 10x larger.
@@ -96,13 +96,14 @@ placed in `~/.config/`. It is formatted as follows:
 The full list of configuration files follows. Note that many of them are specific to `SEMANTICVECTORS`. See that help file for more.
 
 ```
-~/.config/ % ls -1 hgs-*
-hgs-prolix-conf.json
-hgs-users.json
-hgs-vector-conf-glove.json
-hgs-vector-conf-lda.json
-hgs-vector-conf-lexvec.json
-hgs-vector-conf-w2v.json
-hgs-vector-stops-greek.json
-hgs-vector-stops-latin.json
+.config/HipparchiaGoServer/ % ls -1 hgs-*
+colors.json
+options.json
+users.json
+vector-conf-glove.json
+vector-conf-lda.json
+vector-conf-lexvec.json
+vector-conf-w2v.json
+vector-stops-greek.json
+vector-stops-latin.json
 ```

@@ -1,0 +1,45 @@
+{
+	"Dark": [
+		50,
+		40,
+		0,
+		100
+	],
+	"Light": [
+		140,
+		25,
+		100,
+		0
+	],
+	"Monochrome": [
+		50,
+		40,
+		95,
+		8
+	],
+	"SplitComp": [
+		175,
+		12,
+		85,
+		10
+	],
+	"Square": [
+		111,
+		25,
+		85,
+		15
+	],
+	"Tetradic": [
+		40,
+		17,
+		80,
+		15
+	],
+	"Triadic": [
+		55,
+		40,
+		15,
+		100
+	]
+}
+// format: hue, saturation, minormaxlum1, minormaxlum2; 'Dark' and 'Light' cannot be modified.

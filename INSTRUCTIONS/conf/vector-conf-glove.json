@@ -3,8 +3,8 @@
     "BatchSize": 1024,
     "CountType": "inc",
     "Dim": 75,
-    "DocInMemory": false,
-    "Goroutines": 6,
+    "DocInMemory": true,
+    "Goroutines": 20,
     "Initlr": 0.025,
     "Iter": 25,
     "LogBatch": 100000,
@@ -13,7 +13,7 @@
     "SolverType": "adagrad",
     "SubsampleThreshold": 0.001,
     "ToLower": false,
-    "Verbose": true,
+    "Verbose": false,
     "Window": 8,
     "Xmax": 90
   }

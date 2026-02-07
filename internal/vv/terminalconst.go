@@ -79,7 +79,7 @@ const (
          C4"{\"Pass\": \"YOURPASSWORDHERE\" ,\"Host\": \"127.0.0.1\", \"Port\": 5432, \"DBName\": \"hipparchiaDB\" ,\"User\": \"hippa_wr\"}"C0
      
      S1NB:S0 a properly formatted version of "C3{{.conffile}}C0" in "C3{{.home}}C0" configures everything for you. 
-         See "C3sample_hgs-prolix.jsonC0"" as well as other sample configuration files at
-             C3{{.projurl}}C0
+         See "C3{{.conffile}}C0" as well as other sample configuration files at
+             C3{{.projurl}}C0 inside the C3/INSTRUCTIONS/conf/C0 folder
 `
 )

@@ -1,4 +1,4 @@
-## HipparchiaGoServer v2.0.5
+## HipparchiaGoServer v2.1.0
 
 ### WARNING: REQUIRES A DATABASE BUILT WITH `HipparchiaGoBuilder`
 [look under`migration` below for further details]

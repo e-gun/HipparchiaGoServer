@@ -176,28 +176,27 @@ The default setting is `use all cores`, but many people can safely dial this bac
 ## code stats
 
 ```
-% cloc --exclude-dir=z --not-match-f="^jq*" .
-     210 text files.
-     194 unique files.                                          
-     282 files ignored.
+     213 text files.
+     197 unique files.
+     308 files ignored.
 
-github.com/AlDanial/cloc v 2.06  T=0.21 s (915.8 files/s, 168646.2 lines/s)
+github.com/AlDanial/cloc v 2.08  T=0.19 s (1055.3 files/s, 195135.9 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                             121           3733           4198          17615
+Go                             123           3870           4267          18018
 CSS                             13            477            144           2013
 HTML                            13            162             18           1589
 JavaScript                      10            327            256           1589
-Markdown                        10            447              0           1148
+Markdown                        10            447              0           1149
+XML                              9              0              0            557
 Text                             6            108              0            487
-XML                              8              0              0            466
 JSON                             8              0              0            416
 SVG                              1              1              1            392
 Bourne Shell                     3             25              7             89
 Python                           1              5              6              7
 -------------------------------------------------------------------------------
-SUM:                           194           5285           4630          25811
+SUM:                           197           5422           4699          26306
 -------------------------------------------------------------------------------
 
 ```
