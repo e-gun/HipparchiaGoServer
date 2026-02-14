@@ -129,7 +129,8 @@ func starthttpserver(e *echo.Echo) {
 	Msg.WARN("(tls unavailable)")
 
 	saddr := fmt.Sprintf("%s:%d", lnch.Config.HostIP, lnch.Config.HostPort)
-	fmt.Printf("⇨ http server started at %s\n", saddr)
+
+	serverlaunchmessage(saddr, false)
 
 	s := http.Server{
 		Addr:    saddr,
@@ -137,6 +138,7 @@ func starthttpserver(e *echo.Echo) {
 	}
 
 	// assume that anyone who is using authentication is serving via the internet and so set timeouts
+	// some searches can be very long so localhost should be given every opportunity to run
 	if lnch.Config.Authenticate {
 		s.ReadTimeout = vv.TIMEOUTRD
 		s.WriteTimeout = vv.TIMEOUTWR
@@ -149,7 +151,8 @@ func starthttpserver(e *echo.Echo) {
 
 func starttlsserver(e *echo.Echo) {
 	saddr := fmt.Sprintf("%s:%d", lnch.Config.HostIP, lnch.Config.HostSSLPort)
-	fmt.Printf("⇨ https server started at %s\n", saddr)
+
+	serverlaunchmessage(saddr, true)
 
 	s := http.Server{
 		Addr:      saddr,
@@ -167,4 +170,17 @@ func starttlsserver(e *echo.Echo) {
 	if err := s.ListenAndServeTLS(lnch.Config.SSLCertDir+vv.SSLCPEM, lnch.Config.SSLCertDir+vv.SSLPPEM); err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
+}
+
+func serverlaunchmessage(saddr string, isssl bool) {
+	adds := ""
+	if isssl {
+		adds = "s"
+	}
+
+	oldname := Msg.SNm
+	Msg.SNm = vv.SHORTNAME
+	styled := Msg.ColStyle(fmt.Sprintf(Msg.Color("C3server listening atC0 C2http%s://%sC0"), adds, saddr))
+	Msg.Emit(styled, -1)
+	Msg.SNm = oldname
 }

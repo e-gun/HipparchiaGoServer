@@ -211,7 +211,7 @@ func (m *MessageMaker) Color(tagged string) string {
 
 	if !m.Win && !m.BW {
 		swap = strings.NewReplacer("C1", YELLOW1, "C2", CYAN2, "C3", BLUE1, "C4", GREEN, "C5", RED1,
-			"C6", GREY3, "C7", BLINK, "C0", RESET)
+			"C6", GREY3, "C7", BLINK, "C8", WHITE, "C0", RESET)
 	}
 	tagged = swap.Replace(tagged)
 	return tagged

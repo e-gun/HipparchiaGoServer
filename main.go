@@ -44,7 +44,7 @@ func main() {
 		MSG5 = "nested lemma map built"
 		MSG6 = "load word weights"
 		SUMM = "C3initialization took %.3fsC0"
-		QUIT = "to stop the server press Control-C or close this window"
+		QUIT = "C4to stop the server pressC0 C1Control-CC0 C4or close this windowC0"
 	)
 
 	// inject some key variables
@@ -238,7 +238,7 @@ func main() {
 
 	// çmps.SubsetChars()
 
-	msg.MAND(QUIT)
+	msg.Emit(msg.ColStyle(QUIT), -1)
 
 	if lnch.Config.Authenticate {
 		vlt.BuildUserPassPairs(*lnch.Config)

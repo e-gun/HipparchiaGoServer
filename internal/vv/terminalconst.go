@@ -19,7 +19,7 @@ const (
 	This is free software, and you are welcome to redistribute it and/or 
 	modify it under the terms of the GNU General Public License version 3.`
 
-	PROJYEAR = "2022-25"
+	PROJYEAR = "2022-26"
 	PROJAUTH = "E. Gunderson"
 	PROJMAIL = "Department of Classics, 125 Queen’s Park, Toronto, ON  M5S 2C7 Canada"
 	PROJURL  = "https://github.com/e-gun/HipparchiaGoServer"
