@@ -140,6 +140,13 @@ func CustomCSS(c *echo.Context) error {
 	f := fmt.Sprintf("%s/%s", h, vv.CUSTOMCSSFILENAME)
 
 	csf, ee := os.Open(f)
+	defer func(csf *os.File) {
+		err := csf.Close()
+		if err != nil {
+
+		}
+	}(csf)
+
 	if ee != nil {
 		Msg.CRIT(fmt.Sprintf(FAIL1, h, vv.CUSTOMCSSFILENAME))
 		lnch.Config.CustomCSS = false

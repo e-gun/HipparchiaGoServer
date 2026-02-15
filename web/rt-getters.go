@@ -135,7 +135,7 @@ func RtGetJSWorksOf(c *echo.Context) error {
 
 	id := c.Param("id")
 
-	wl := []string{}
+	var wl []string
 	if _, ok := mps.AllAuthors[id]; ok {
 		wl = mps.AllAuthors[id].WorkList
 		//fmt.Println("RtGetJSWorksOf", id)

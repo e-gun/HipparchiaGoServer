@@ -67,6 +67,7 @@ func ConfigAtLaunch() {
 		FAIL7 = "ConfigAtLaunch() failed to execute help text template"
 		FAIL8 = "Cannot find current working directory"
 		FAIL9 = "Could not find css color scheme '%s'. Falling back to '%s'"
+		FAILA = "Could not close '%s' (!)"
 	)
 
 	Config = builddefaultconfig()
@@ -83,7 +84,10 @@ func ConfigAtLaunch() {
 	decoderc := json.NewDecoder(loadedcfg)
 	confc := str.CurrentConfiguration{}
 	errc := decoderc.Decode(&confc)
-	_ = loadedcfg.Close()
+	cerr := loadedcfg.Close()
+	if cerr != nil {
+		Msg.CRIT(fmt.Sprintf(FAILA, options))
+	}
 
 	if errc == nil {
 		Config = &confc

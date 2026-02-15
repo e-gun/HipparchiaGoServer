@@ -149,37 +149,38 @@ func TerminalTicker(wait time.Duration) {
 	}
 }
 
+// unused
 // LogPaths - increment path counter for this path; optionally do runtime.GC as well
-func LogPaths(fn string) {
-	// sample output:
-	// [a] "[HGS] RtLexReverse() runtime.GC() 426M --> 408M"
-	// [b] "[HGS] RtLexLookup() current heap: 340M"
-
-	const (
-		MSG  = "%s runtime.GC() %s --> %s"
-		HEAP = "%s current heap: %s"
-	)
-
-	// GENERAL STATS
-	piupdate <- fn
-
-	// GC INFO
-
-	var mem runtime.MemStats
-	runtime.ReadMemStats(&mem)
-	b := fmt.Sprintf("%dM", mem.HeapAlloc/1024/1024)
-
-	if !Msg.GC {
-		Msg.PEEK(fmt.Sprintf(HEAP, fn, b))
-	} else {
-		runtime.GC()
-		runtime.ReadMemStats(&mem)
-		a := fmt.Sprintf("%dM", mem.HeapAlloc/1024/1024)
-		Msg.PEEK(fmt.Sprintf(MSG, fn, b, a))
-	}
-
-	return
-}
+//func LogPaths(fn string) {
+//	// sample output:
+//	// [a] "[HGS] RtLexReverse() runtime.GC() 426M --> 408M"
+//	// [b] "[HGS] RtLexLookup() current heap: 340M"
+//
+//	const (
+//		MSG  = "%s runtime.GC() %s --> %s"
+//		HEAP = "%s current heap: %s"
+//	)
+//
+//	// GENERAL STATS
+//	piupdate <- fn
+//
+//	// GC INFO
+//
+//	var mem runtime.MemStats
+//	runtime.ReadMemStats(&mem)
+//	b := fmt.Sprintf("%dM", mem.HeapAlloc/1024/1024)
+//
+//	if !Msg.GC {
+//		Msg.PEEK(fmt.Sprintf(HEAP, fn, b))
+//	} else {
+//		runtime.GC()
+//		runtime.ReadMemStats(&mem)
+//		a := fmt.Sprintf("%dM", mem.HeapAlloc/1024/1024)
+//		Msg.PEEK(fmt.Sprintf(MSG, fn, b, a))
+//	}
+//
+//	return
+//}
 
 //
 // CHANNEL-BASED PATHINFO REPORTING TO COMMUNICATE STATS BETWEEN ROUTINES

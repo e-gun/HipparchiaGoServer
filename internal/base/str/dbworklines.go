@@ -274,7 +274,7 @@ func (lv *LevelValues) CleanVals() {
 	repl := strings.NewReplacer("/", "／", "?", "？")
 	lv.Low = repl.Replace(lv.Low)
 	lv.High = repl.Replace(lv.High)
-	for i, _ := range lv.Range {
+	for i := range lv.Range {
 		lv.Range[i] = repl.Replace(lv.Range[i])
 	}
 }

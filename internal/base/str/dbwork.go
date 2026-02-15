@@ -42,12 +42,12 @@ func (dbw *DbWork) WkID() string {
 func (dbw *DbWork) AuID() string {
 	if len(dbw.UID) < LengthOfAuthorID {
 		return ""
-	} else {
-		return dbw.UID[:LengthOfAuthorID]
 	}
+
+	return dbw.UID[:LengthOfAuthorID]
 }
 
-// Corpus() - ex: gr2017w068 --> gr
+// Corpus - ex: gr2017w068 --> gr
 func (dbw *DbWork) Corpus() string {
 	return dbw.UID[0:LenthOfCorpusAbbrev]
 }
@@ -57,9 +57,9 @@ func (dbw *DbWork) IsPHI() bool {
 	// so this could bite you some day...
 	if dbw.UID[0:LenthOfCorpusAbbrev] != TLGAbbrev && dbw.UID[0:LenthOfCorpusAbbrev] != LATAbbrev {
 		return true
-	} else {
-		return false
 	}
+
+	return false
 }
 
 func (dbw *DbWork) CitationFormat() []string {
@@ -81,16 +81,16 @@ func (dbw *DbWork) CountLevels() int {
 }
 
 // DateInRange - is the work dated between X and Y?
-func (dbw DbWork) DateInRange(earliest int, latest int) bool {
+func (dbw *DbWork) DateInRange(earliest int, latest int) bool {
 	if earliest >= dbw.ConvDate && dbw.ConvDate <= latest {
 		return true
-	} else {
-		return false
 	}
+
+	return false
 }
 
 // Length - how many db lines?
-func (dbw DbWork) Length() int {
+func (dbw *DbWork) Length() int {
 	if dbw.LastLine == 0 {
 		// this would be a PHI build error in RemapInscriptionAuthorsAndWorks(): should be gone by now but for three
 		// one-line zero-word stragglers that need checking...
@@ -103,7 +103,7 @@ func (dbw DbWork) Length() int {
 		// inz05lw00a  | EG 1.343,2[LSAG 265,3] (Sikelia, Syrakousai) | direct (in0190) |         0 |         0 |        0
 		//(3 rows)
 		return 1
-	} else {
-		return dbw.LastLine - dbw.FirstLine
 	}
+
+	return dbw.LastLine - dbw.FirstLine
 }

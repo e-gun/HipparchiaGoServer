@@ -160,7 +160,7 @@ func SSBuildQueries(s *str.SearchStruct) {
 	// but the keys to boundedincl in fact gives you the answer to the latter two
 
 	alltables := inc.Authors
-	for t, _ := range boundedincl {
+	for t := range boundedincl {
 		alltables = append(alltables, t)
 	}
 

@@ -79,7 +79,7 @@ func (dbl *DbLexicon) IsLatin() bool {
 	}
 }
 
-func (ent *DbLexicon) PrintOut() {
+func (dbl *DbLexicon) PrintOut() {
 	const (
 		TMPL = `
 	EntryName     {{.EntryName}}
@@ -90,12 +90,12 @@ func (ent *DbLexicon) PrintOut() {
 	SenseIDs      {{.SenseIDs}}`
 	)
 	m := map[string]string{
-		"EntryName": ent.EntryName,
-		"EntryMetr": ent.EntryMetr,
-		"IDVal":     ent.IdString,
-		"Transl":    ent.Transl,
-		"Usedby":    ent.Usedby,
-		"SenseIDs":  strings.Join(ent.SenseIDs, ";"),
+		"EntryName": dbl.EntryName,
+		"EntryMetr": dbl.EntryMetr,
+		"IDVal":     dbl.IdString,
+		"Transl":    dbl.Transl,
+		"Usedby":    dbl.Usedby,
+		"SenseIDs":  strings.Join(dbl.SenseIDs, ";"),
 	}
 
 	t := template.Must(template.New("").Parse(TMPL))

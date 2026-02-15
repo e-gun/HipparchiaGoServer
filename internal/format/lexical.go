@@ -23,8 +23,8 @@ import (
 	"golang.org/x/text/message"
 )
 
-// FormatLexicalOutput - turn a DbLexicon word into HTML
-func FormatLexicalOutput(w str.DbLexicon) string {
+// FmtLexicalOutput - turn a DbLexicon word into HTML
+func FmtLexicalOutput(w str.DbLexicon) string {
 	const (
 		HEADTEMPL = `<div id="%s_%s"><hr>
 		<p class="dictionaryheading" id="%s_%s">%s &nbsp;%s</p>
@@ -116,8 +116,8 @@ func FormatLexicalOutput(w str.DbLexicon) string {
 	return html
 }
 
-// FormatLexPrevalenceData - turn a wordcount into an HTML summary
-func FormatLexPrevalenceData(w str.DbUnparsedWordCounts, s string) string {
+// FmtLexPrevalenceData - turn a wordcount into an HTML summary
+func FmtLexPrevalenceData(w str.DbUnparsedWordCounts, s string) string {
 	// <p class="wordcounts">Prevalence (all forms): <span class="prevalence">Ⓣ</span> 1482 / <span class="prevalence">Ⓖ</span> 1415 / <span class="prevalence">Ⓓ</span> 54 / <span class="prevalence">Ⓘ</span> 11 / <span class="prevalence">Ⓒ</span> 2</p>
 	const (
 		PDPAR = `<p class="wordcounts">Prevalence of <span class="emph">%s</span>: %s</p>`
@@ -141,8 +141,8 @@ func FormatLexPrevalenceData(w str.DbUnparsedWordCounts, s string) string {
 	return html
 }
 
-// FormatLexParsingData - turn []MorphPossib into HTML
-func FormatLexParsingData(mpp []str.MorphPossib) string {
+// FmtLexParsingData - turn []MorphPossib into HTML
+func FmtLexParsingData(mpp []str.MorphPossib) string {
 	const (
 		OBSERVED = `<span class="obsv"><span class="obsv"> from <span class="baseform"><a class="lex" href="#%s_%s">%s</a></span>
 	`
@@ -281,7 +281,6 @@ func formatgksenseinfo(s str.LexicalSenses) string {
 
 func formatltsenseinfo(ss []str.LexicalSenses) string {
 	const (
-		TEMPL1 = " <hb-lx-sensecounter>&nbsp;(%s)</hb-lx-sensecounter><hb-lx-sensecounter-sm>[%d]</hb-lx-sensecounter-sm> "
 		TEMPL2 = " <hb-lx-sensecounter>&nbsp;(%s)&nbsp;</hb-lx-sensecounter>"
 	)
 	// the latin dictionary senses are not tidy like the greek ones
@@ -435,7 +434,7 @@ func headworddistribbycorp(wc str.DbHeadwordCounts) string {
 
 	// now make it "out of 100"
 	wmpax := wp[0].Value
-	for i, _ := range wp {
+	for i := range wp {
 		wp[i].Value = (wp[i].Value / wmpax) * 100
 	}
 	// [{TLG 100} {INS 45.10161} {CHR 11.330574} {DDP 4.092751} {LAT 0}]
@@ -488,7 +487,7 @@ func headworddistribbyera(wc str.DbHeadwordCounts) string {
 
 	// now make it "out of 100"
 	wmpax := wp[0].Value
-	for i, _ := range wp {
+	for i := range wp {
 		wp[i].Value = (wp[i].Value / wmpax) * 100
 	}
 	// [{Late 100} {Early 52.26577} {Middle 52.253265}]
@@ -542,7 +541,7 @@ func headworddistribbygenre(wc str.DbHeadwordCounts) string {
 
 	// now make it "out of 100"
 	wmpax := wp[0].Value
-	for i, _ := range wp {
+	for i := range wp {
 		wp[i].Value = (wp[i].Value / wmpax) * 100
 	}
 

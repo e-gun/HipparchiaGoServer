@@ -7,11 +7,12 @@ package format
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/search"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
-	"strconv"
-	"strings"
 )
 
 // BasicCitation - produce a comma-separated citation from a DbWorkline: e.g., "book 5, chapter 37, section 5, line 3"

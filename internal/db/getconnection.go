@@ -20,7 +20,6 @@ import (
 func getdbconnection() *pgxpool.Conn {
 	const (
 		FAIL1   = "db.getdbconnection() could not Acquire() from the DBConnectionPool."
-		FAIL2   = `Your password in '%s' is incorrect? Too many connections to the server?`
 		FAIL3   = `The database is empty. Deleting any configuration files so you can reset the server.`
 		FAIL4   = `Failed to delete %s`
 		ERRRUN  = `dial error`

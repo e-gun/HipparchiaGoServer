@@ -43,7 +43,7 @@ func buildmontecarloparsemap(parsemap map[string]map[string]bool) map[string]hwg
 
 	allheadwords := make(map[string]bool)
 	for i := range parsemap {
-		for k, _ := range parsemap[i] {
+		for k := range parsemap[i] {
 			allheadwords[k] = true
 		}
 	}
@@ -57,7 +57,7 @@ func buildmontecarloparsemap(parsemap map[string]map[string]bool) map[string]hwg
 	// [c1] lower the internal values first
 	for i := range parsemap {
 		newmap := make(map[string]bool)
-		for k, _ := range parsemap[i] {
+		for k := range parsemap[i] {
 			newmap[strings.ToLower(k)] = true
 		}
 		parsemap[i] = newmap
@@ -76,7 +76,7 @@ func buildmontecarloparsemap(parsemap map[string]map[string]bool) map[string]hwg
 		var g hwguesser
 		g.words = make(map[int]string)
 		t := 0
-		for j, _ := range parsemap[i] {
+		for j := range parsemap[i] {
 			t += scoremap[j]
 			g.words[t] = j
 		}
@@ -96,7 +96,7 @@ func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string
 
 	allheadwords := make(map[string]bool)
 	for i := range parsemap {
-		for k, _ := range parsemap[i] {
+		for k := range parsemap[i] {
 			allheadwords[k] = true
 		}
 	}
@@ -110,7 +110,7 @@ func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string
 	// [c1] lower the internal values first
 	for i := range parsemap {
 		newmap := make(map[string]bool)
-		for k, _ := range parsemap[i] {
+		for k := range parsemap[i] {
 			newmap[strings.ToLower(k)] = true
 		}
 		parsemap[i] = newmap
@@ -129,7 +129,7 @@ func buildwinnertakesallparsemap(parsemap map[string]map[string]bool) map[string
 			continue
 		}
 		var hwl str.WHWList
-		for j, _ := range parsemap[w] {
+		for j := range parsemap[w] {
 			var thishw str.WeightedHeadword
 			thishw.Word = j
 			thishw.Count = scoremap[j]
@@ -159,7 +159,7 @@ func buildyokedparsemap(parsemap map[string]map[string]bool) map[string]string {
 
 	allheadwords := make(map[string]bool)
 	for i := range parsemap {
-		for k, _ := range parsemap[i] {
+		for k := range parsemap[i] {
 			allheadwords[k] = true
 		}
 	}
@@ -169,7 +169,7 @@ func buildyokedparsemap(parsemap map[string]map[string]bool) map[string]string {
 	// [b1] lower the internal values first
 	for i := range parsemap {
 		newmap := make(map[string]bool)
-		for k, _ := range parsemap[i] {
+		for k := range parsemap[i] {
 			newmap[strings.ToLower(k)] = true
 		}
 		parsemap[i] = newmap
@@ -186,7 +186,7 @@ func buildyokedparsemap(parsemap map[string]map[string]bool) map[string]string {
 	yoked := make(map[string]string)
 	for i := range lcparsemap {
 		var ww []string
-		for j, _ := range parsemap[i] {
+		for j := range parsemap[i] {
 			ww = append(ww, j)
 		}
 		sort.Strings(ww)

@@ -126,8 +126,6 @@ func candossl() bool {
 }
 
 func starthttpserver(e *echo.Echo) {
-	Msg.WARN("(tls unavailable)")
-
 	saddr := fmt.Sprintf("%s:%d", lnch.Config.HostIP, lnch.Config.HostPort)
 
 	serverlaunchmessage(saddr, false)
@@ -167,20 +165,23 @@ func starttlsserver(e *echo.Echo) {
 		s.WriteTimeout = vv.TIMEOUTWR
 	}
 
-	if err := s.ListenAndServeTLS(lnch.Config.SSLCertDir+vv.SSLCPEM, lnch.Config.SSLCertDir+vv.SSLPPEM); err != http.ErrServerClosed {
+	if err := s.ListenAndServeTLS(lnch.Config.SSLCertDir+vv.SSLCPEM, lnch.Config.SSLCertDir+vv.SSLPPEM); errors.Is(err, http.ErrServerClosed) {
 		log.Fatal(err)
 	}
 }
 
 func serverlaunchmessage(saddr string, isssl bool) {
 	adds := ""
+	addmsg := " (tls unavailable)"
 	if isssl {
 		adds = "s"
+		addmsg = ""
 	}
 
 	oldname := Msg.SNm
 	Msg.SNm = vv.SHORTNAME
-	styled := Msg.ColStyle(fmt.Sprintf(Msg.Color("C3server listening atC0 C2http%s://%sC0"), adds, saddr))
+
+	styled := Msg.ColStyle(fmt.Sprintf(Msg.Color("C3server listening atC0 C2http%s://%sC0C3%sC0"), adds, saddr, addmsg))
 	Msg.Emit(styled, -1)
 	Msg.SNm = oldname
 }

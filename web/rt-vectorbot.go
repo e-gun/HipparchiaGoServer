@@ -7,6 +7,7 @@ package web
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"slices"
 	"sort"
@@ -138,6 +139,10 @@ func ldamodelbot(c *echo.Context, s str.SearchStruct, a string) {
 
 	// SessionIntoBulkSearch() can't be used because there is no real session...
 
+	if a != "" {
+		// `a` is an unused parameter; we do not care...
+	}
+
 	s.CurrentLimit = lnch.Config.VectorMaxlines
 	s.Seeking = ""
 
@@ -209,6 +214,7 @@ func activatevectorbot() {
 		MSG1       = "activatevectorbot(): launching"
 		MSG2       = "(%.1f%%) checking need to model %s (%s)"
 		MSG3       = "The vectorbot has checked all authors and is now shutting down"
+		MSG4       = "vectorbot response failed to close"
 		URL        = "http://%s:%d/vbot/%s/%s"
 		COUNTEVERY = 10
 		THROTTLE   = 25
@@ -275,8 +281,15 @@ func activatevectorbot() {
 			previous = time.Now()
 		}
 		u := fmt.Sprintf(URL, lnch.Config.HostIP, lnch.Config.HostPort, "nn", a)
-		_, err := http.Get(u)
+		resp, err := http.Get(u)
 		Msg.EC(err)
+
+		defer func(Body io.ReadCloser) {
+			ce := Body.Close()
+			if ce != nil {
+				Msg.WARN(MSG4)
+			}
+		}(resp.Body)
 
 		// if you do not throttle the bot it will violate MAXECHOREQPERSECONDPERIP
 		time.Sleep(THROTTLE * time.Millisecond)

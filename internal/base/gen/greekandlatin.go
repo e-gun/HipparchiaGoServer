@@ -78,14 +78,15 @@ func SwapAcuteForGrave(thetext string) string {
 	return a4gswap.Replace(thetext)
 }
 
+// unused
 // SwapGraveForAcute - ά --> ὰ
-func SwapGraveForAcute(thetext string) string {
-	swap := strings.NewReplacer("ά", "ὰ", "έ", "ὲ", "ί", "ὶ", "ό", "ὸ", "ύ", "ὺ", "ή", "ὴ", "ώ", "ὼ",
-		"ἄ", "ἂ", "ἅ", "ἃ", "ᾴ", "ᾲ", "ᾄ", "ᾂ", "ᾅ", "ᾃ", "ἔ", "ἒ", "ἴ", "ἲ", "ὄ", "ὂ", "ὅ", "ὃ", "ὔ", "ὒ", "ὕ", "ὓ",
-		"ἤ", "ἢ", "ἥ", "ἣ", "ᾕ", "ᾓ", "ᾔ", "ᾒ", "ὤ", "ὢ", "ὥ", "ὣ", "ᾥ", "ᾣ", "ᾤ", "ᾢ", "a", "á", "e", "é",
-		"i", "í", "o", "ó", "u", "ú")
-	return swap.Replace(thetext)
-}
+//func SwapGraveForAcute(thetext string) string {
+//	swap := strings.NewReplacer("ά", "ὰ", "έ", "ὲ", "ί", "ὶ", "ό", "ὸ", "ύ", "ὺ", "ή", "ὴ", "ώ", "ὼ",
+//		"ἄ", "ἂ", "ἅ", "ἃ", "ᾴ", "ᾲ", "ᾄ", "ᾂ", "ᾅ", "ᾃ", "ἔ", "ἒ", "ἴ", "ἲ", "ὄ", "ὂ", "ὅ", "ὃ", "ὔ", "ὒ", "ὕ", "ὓ",
+//		"ἤ", "ἢ", "ἥ", "ἣ", "ᾕ", "ᾓ", "ᾔ", "ᾒ", "ὤ", "ὢ", "ὥ", "ὣ", "ᾥ", "ᾣ", "ᾤ", "ᾢ", "a", "á", "e", "é",
+//		"i", "í", "o", "ó", "u", "ú")
+//	return swap.Replace(thetext)
+//}
 
 // CapsVariants - build regex compilation template for a word and its capitalized variant: [aA][bB][cC]
 func CapsVariants(word string) string {
@@ -278,7 +279,7 @@ func getrunereducer() map[rune]rune {
 	// runefd now a var at top of file
 
 	reducer := make(map[rune]rune)
-	for f, _ := range runefd {
+	for f := range runefd {
 		for _, r := range runefd[f] {
 			reducer[r] = f
 		}
@@ -386,7 +387,7 @@ func uvσςϲreducer() map[rune]rune {
 	feeder['i'] = []rune("iIÍÏíïJj")
 
 	reducer := make(map[rune]rune)
-	for f, _ := range feeder {
+	for f := range feeder {
 		for _, r := range feeder[f] {
 			reducer[r] = f
 		}
@@ -406,7 +407,7 @@ func uvcapsreducer() map[rune]rune {
 	feeder['I'] = []rune("IJ")
 
 	reducer := make(map[rune]rune)
-	for f, _ := range feeder {
+	for f := range feeder {
 		for _, r := range feeder[f] {
 			reducer[r] = f
 		}

@@ -731,7 +731,7 @@ func lemmahighlighter(lm string) *regexp.Regexp {
 		TP      = `%s` // move from match $1 to $0 in highlightsearchterm() yielded this shift...
 	)
 
-	lemm := []string{}
+	var lemm []string
 	if _, ok := mps.AllLemm[lm]; ok {
 		lemm = mps.AllLemm[lm].Deriv
 	}

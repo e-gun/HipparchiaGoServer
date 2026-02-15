@@ -541,8 +541,7 @@ func lda3dscatter(ntopics int, incl string, bagger string, Y, labels mat.Matrix,
 	dr, _ := Y.Dims()
 
 	col := func(top int) *opts.ItemStyle {
-		is := getchartitemstyle(top)
-		return &is
+		return new(getchartitemstyle(top))
 	}
 
 	generateseries := func(topic int) []opts.Chart3DData {
@@ -657,43 +656,44 @@ func customscatterhtmlandjs(s *charts.Scatter) string {
 	return htmlandjs
 }
 
-func custom3dscatterhtmlandjs(s *charts.Scatter3D) string {
-	// WARNING: this will not produce a chart right now
-	// work has been suspended indefinitely...
-
-	s.Validate()
-
-	// [a] we are building a page with only one chart and doing it by hand
-	p := components.NewPage()
-	p.Renderer = NewCustomPageRender(p, p.Validate)
-
-	// [b] add assets to the page
-	assets := s.GetAssets()
-	for _, v := range assets.JSAssets.Values {
-		p.JSAssets.Add(v)
-	}
-
-	for _, v := range assets.CSSAssets.Values {
-		p.CSSAssets.Add(v)
-	}
-
-	// [c] add the chart to the page
-	p.Charts = append(p.Charts, s)
-	p.Validate()
-
-	// [d] render the chart and get the html+js for it
-	var buf bytes.Buffer
-	err := p.Render(&buf)
-	if err != nil {
-		Msg.WARN("custom3dscatterhtmlandjs() failed to render the page template")
-		//[Hipparchia Golang Server v.1.2.6] UNRECOVERABLE ERROR
-		//template: chart:11:41: executing "base" at <.JSONNotEscapedAction>: can't evaluate field JSONNotEscapedAction in type *charts.Scatter3D
-	}
-
-	htmlandjs := string(buf.Bytes())
-
-	return htmlandjs
-}
+// unused / incomplete
+//func custom3dscatterhtmlandjs(s *charts.Scatter3D) string {
+//	// WARNING: this will not produce a chart right now
+//	// work has been suspended indefinitely...
+//
+//	s.Validate()
+//
+//	// [a] we are building a page with only one chart and doing it by hand
+//	p := components.NewPage()
+//	p.Renderer = NewCustomPageRender(p, p.Validate)
+//
+//	// [b] add assets to the page
+//	assets := s.GetAssets()
+//	for _, v := range assets.JSAssets.Values {
+//		p.JSAssets.Add(v)
+//	}
+//
+//	for _, v := range assets.CSSAssets.Values {
+//		p.CSSAssets.Add(v)
+//	}
+//
+//	// [c] add the chart to the page
+//	p.Charts = append(p.Charts, s)
+//	p.Validate()
+//
+//	// [d] render the chart and get the html+js for it
+//	var buf bytes.Buffer
+//	err := p.Render(&buf)
+//	if err != nil {
+//		Msg.WARN("custom3dscatterhtmlandjs() failed to render the page template")
+//		//[Hipparchia Golang Server v.1.2.6] UNRECOVERABLE ERROR
+//		//template: chart:11:41: executing "base" at <.JSONNotEscapedAction>: can't evaluate field JSONNotEscapedAction in type *charts.Scatter3D
+//	}
+//
+//	htmlandjs := string(buf.Bytes())
+//
+//	return htmlandjs
+//}
 
 func getvecchrtwdht() (string, string) {
 	wd := lnch.Config.VectorChtWd

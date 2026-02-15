@@ -20,6 +20,7 @@ import (
 )
 
 // time tests and profiling tests
+// note that we are assuming an http server, not an https server
 
 type srchtest struct {
 	id string

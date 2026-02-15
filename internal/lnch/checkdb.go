@@ -203,7 +203,6 @@ func ReLoadDBfolder(pw string) {
 func InitializeHDB(pgpw string, hdbpw string) {
 	Msg.TMI("InitializeHDB()")
 	const (
-		C0 = `CREATE ROLE %s LOGIN ENCRYPTED PASSWORD '%s' NOSUPERUSER INHERIT CREATEDB NOCREATEROLE NOREPLICATION;`
 		C1 = `
 			DO
 			$do$
@@ -218,7 +217,13 @@ func InitializeHDB(pgpw string, hdbpw string) {
 			   END IF;
 			END
 			$do$;`
-		C2 = `CREATE DATABASE "%s" WITH OWNER = %s ENCODING = 'UTF8';`
+		C2   = `CREATE DATABASE "%s" WITH OWNER = %s ENCODING = 'UTF8';`
+		C3   = `CREATE EXTENSION IF NOT EXISTS pg_trgm;`
+		DONE = "Initialized the database framework"
+		// unused
+		// C0 = `CREATE ROLE %s LOGIN ENCRYPTED PASSWORD '%s' NOSUPERUSER INHERIT CREATEDB NOCREATEROLE NOREPLICATION;`
+
+		// nota bene re C2:
 		// next is not allowed: "ERROR:  CREATE DATABASE cannot be executed from a function"
 		//		C2 = `
 		//DO
@@ -235,8 +240,6 @@ func InitializeHDB(pgpw string, hdbpw string) {
 		//END
 		//$do$;
 		//`
-		C3   = `CREATE EXTENSION IF NOT EXISTS pg_trgm;`
-		DONE = "Initialized the database framework"
 	)
 
 	queries := []string{

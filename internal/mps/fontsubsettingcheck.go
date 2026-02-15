@@ -53,18 +53,18 @@ func SubsetChars() {
 // graballtables - get all lines from all authors(!) and then see what runes are in use in them
 func graballtables() map[rune]bool {
 	fmt.Println("graballtables start")
-	var maps []map[rune]bool
+	var mymaps []map[rune]bool
 	count := 0
 	for _, a := range AllAuthors {
 		count++
 		t := grabonetable(a.UID)
 		c := allunicodeinuse(t)
-		maps = append(maps, c)
+		mymaps = append(mymaps, c)
 		if count%250 == 0 {
 			fmt.Println(count)
 		}
 	}
-	m := collapsemaps(maps)
+	m := collapsemaps(mymaps)
 	return m
 }
 

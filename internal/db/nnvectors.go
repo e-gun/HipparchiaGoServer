@@ -59,7 +59,6 @@ func VectorDBCheckNN(fp string) bool {
 func VectorDBAddNN(fp string, embs embedding.Embeddings) {
 	const (
 		MSG1 = "VectorDBAddNN(): "
-		MSG2 = "%s compression: %dM -> %dM (-> %.1f%%)"
 		MSG3 = "VectorDBAddNN() was sent empty embeddings"
 		FAIL = "VectorDBAddNN() failed when calling json.Marshal(embs): nothing stored"
 		INS  = `
@@ -67,6 +66,8 @@ func VectorDBAddNN(fp string, embs embedding.Embeddings) {
 				(fingerprint, vectorsize, vectordata)
 			VALUES ('%s', $1, $2)`
 		GZ = gzip.BestSpeed
+		// unused
+		// MSG2 = "%s compression: %dM -> %dM (-> %.1f%%)"
 	)
 
 	if embs.Empty() {
@@ -111,9 +112,10 @@ func VectorDBAddNN(fp string, embs embedding.Embeddings) {
 // VectorDBFetchNN - get a set of embeddings from vv.VECTORTABLENAMENN
 func VectorDBFetchNN(fp string) embedding.Embeddings {
 	const (
-		MSG1 = "VectorDBFetchNN(): "
 		MSG2 = "VectorDBFetchNN() pulled empty set of embeddings for %s"
 		Q    = `SELECT vectordata FROM %s WHERE fingerprint = '%s' LIMIT 1`
+		// unused
+		// MSG1 = "VectorDBFetchNN(): "
 	)
 
 	dbconn := getdbconnection()

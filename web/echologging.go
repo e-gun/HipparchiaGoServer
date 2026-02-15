@@ -18,11 +18,10 @@ import (
 )
 
 func GetZLogger(output *os.File) *zerolog.Logger {
-	logger := zerolog.New(zerolog.ConsoleWriter{
+	return new(zerolog.New(zerolog.ConsoleWriter{
 		Out:        output,
 		TimeFormat: time.DateTime,
-	})
-	return &logger
+	}))
 }
 
 // GetMyLvlLogger - return a logging function; different degrees of explicitness as per `thelevel`
@@ -33,16 +32,17 @@ func GetMyLvlLogger(thelevel int, logger *zerolog.Logger) func(c *echo.Context, 
 
 	lvl1 := func(c *echo.Context, v middleware.RequestLoggerValues) error {
 		// 2026-02-02 17:40:08 INF 200 URI=/emb/echarts/echarts.min.js
+		st := fmt.Sprintf("%d", v.Status)
 		if v.Status < 400 {
 			logger.Info().
 				Timestamp().
 				Str("URI", v.URI).
-				Msg(fmt.Sprintf("%d", v.Status))
+				Msg(st)
 		} else {
 			logger.Warn().
 				Timestamp().
 				Str("URI", v.URI).
-				Msg(fmt.Sprintf("%d", v.Status))
+				Msg(st)
 		}
 		return nil
 	}
@@ -54,18 +54,19 @@ func GetMyLvlLogger(thelevel int, logger *zerolog.Logger) func(c *echo.Context, 
 			return c.String(http.StatusForbidden, "IP format error")
 		}
 
+		st := fmt.Sprintf("%d", v.Status)
 		if v.Status < 400 {
 			logger.Info().
 				Timestamp().
 				Str("IP", ipsplit[0]).
 				Str("URI", v.URI).
-				Msg(fmt.Sprintf("%d", v.Status))
+				Msg(st)
 		} else {
 			logger.Warn().
 				Timestamp().
 				Str("IP", ipsplit[0]).
 				Str("URI", v.URI).
-				Msg(fmt.Sprintf("%d", v.Status))
+				Msg(st)
 		}
 		return nil
 	}
@@ -79,6 +80,7 @@ func GetMyLvlLogger(thelevel int, logger *zerolog.Logger) func(c *echo.Context, 
 
 		ua := strings.Split(v.UserAgent, " ")
 		agent := ua[len(ua)-1]
+		st := fmt.Sprintf("%d", v.Status)
 
 		if v.Status < 400 {
 			logger.Info().
@@ -87,7 +89,7 @@ func GetMyLvlLogger(thelevel int, logger *zerolog.Logger) func(c *echo.Context, 
 				Str("IP", ipsplit[0]).
 				Str("URI", v.URI).
 				Str("UA", agent).
-				Msg(fmt.Sprintf("%d", v.Status))
+				Msg(st)
 		} else {
 			logger.Warn().
 				Timestamp().
@@ -95,7 +97,7 @@ func GetMyLvlLogger(thelevel int, logger *zerolog.Logger) func(c *echo.Context, 
 				Str("IP", ipsplit[0]).
 				Str("URI", v.URI).
 				Str("UA", agent).
-				Msg(fmt.Sprintf("%d", v.Status))
+				Msg(st)
 		}
 		return nil
 	}

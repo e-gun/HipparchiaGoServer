@@ -12,7 +12,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 )
 
-func FormatAnnotations(l str.DbWorkline) string {
+func FmtAnnotations(l str.DbWorkline) string {
 	// HGB sets these in herxrunner.go
 
 	// 	metadatacategories = map[int]string{

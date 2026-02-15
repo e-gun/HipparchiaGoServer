@@ -155,7 +155,7 @@ func RtLexId(c *echo.Context) error {
 		return emptyjsreturn(c)
 	}
 
-	html := format.FormatLexicalOutput(f[0])
+	html := format.FmtLexicalOutput(f[0])
 	js := insertlexicaljs()
 
 	if s.ZapLunates {
@@ -262,17 +262,17 @@ func findbyform(word string, author string, zaplunates bool) string {
 
 	wc := db.GetIndividualUnparsedWordCount(word)
 	label := wc.Word
-	allformpd := format.FormatLexPrevalenceData(wc, label)
+	allformpd := format.FmtLexPrevalenceData(wc, label)
 
 	// [e] format the parsing summary
 
-	parsing := format.FormatLexParsingData(mpp)
+	parsing := format.FmtLexParsingData(mpp)
 
 	// [f] generate the lexical output: multiple entries possible - <div id="δημόϲιοϲ_23337644"> ... <div id="δημοϲίᾳ_23333080"> ...
 
 	var entries string
 	for _, lf := range lexicalfinds {
-		entries += format.FormatLexicalOutput(lf)
+		entries += format.FmtLexicalOutput(lf)
 	}
 
 	// [g] add the HTML + JS to inject `{"newhtml": "...", "newjs":"..."}`
@@ -293,7 +293,7 @@ func findbyform(word string, author string, zaplunates bool) string {
 // reversefind - english word into collection of HTML dictionary entries
 func reversefind(word string, dicts []string) string {
 	const (
-		ENTRYSPAN = `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="#%s_%f">%s</a>
+		ENTRYSPAN = `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="#%s_%s">%s</a>
 			<span class="small">&nbsp;(%d)</span></span><br />`
 		SEPARATOR = `<hr>`
 		ITEMIZER  = `<hr><span class="small">(%d)</span>`
@@ -359,7 +359,7 @@ func dictsearch(seeking string, dict string, zaplunates bool) string {
 	// this is pretty slow if you do 100 entries... so run it in parallel
 
 	const (
-		ENTRYLINE = `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="#%s_%f">%s</a><span class="small">&nbsp;(%d)</span><br>`
+		ENTRYLINE = `<span class="sensum">(%d)&nbsp;<a class="nounderline" href="#%s_%s">%s</a><span class="small">&nbsp;(%d)</span><br>`
 		HITCAP    = `<span class="small">[stopped searching after %d entries found]</span><br>`
 		SEPARATOR = `<hr>`
 		CHUNKHEAD = `<hr><span class="small">(%d)</span>`
@@ -530,7 +530,7 @@ func paralleldictformatter(lexicalfinds []str.DbLexicon) map[string]string {
 // multipleentriesashtml - turn []DbLexicon into a map: [entryid]entryhtml
 func multipleentriesashtml(ee []str.DbLexicon) map[string]string {
 	oneentry := func(e str.DbLexicon) (string, string) {
-		body := format.FormatLexicalOutput(e)
+		body := format.FmtLexicalOutput(e)
 		return e.IdString, body
 	}
 

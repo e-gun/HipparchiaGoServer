@@ -25,7 +25,6 @@ const (
 	MAXVOCABLINEGENERATION   = 1 // this is a multiplier for Config.MaxText; the browser does not get overwhelmed by these lists
 	MINDATE                  = -850
 	MINDATESTR               = "-850"
-	MINORGENREWTCAP          = 250
 	SIMULTANEOUSSEARCHES     = 3               // cap on the number of db connections at (S * Config.WorkerCount)
 	UNACCEPTABLEINPUT        = `"'!@:,=_/#%&;` // we want to be able to do regex...; echo+net/url means some can't even make it into a parser: #%&;
 	USELESSINPUT             = `’“”̣`          // these can't be found and so should be dropped; note the subscript dot at the end

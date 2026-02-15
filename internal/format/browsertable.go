@@ -219,7 +219,7 @@ func BuildBrowserTable(focus int, lines []str.DbWorkline, zaplunates bool, regul
 
 		blines[i] = dbloc + dbln + bl
 		bcites[i] = fmt.Sprintf("<span class=\"eighty\">%s</span>&nbsp;", cit) // the "normal" sized space is to maintain vertical alignment
-		bnotes[i] = fmt.Sprintf("<span class=\"eighty\">%s</span>&nbsp;", FormatAnnotations(lines[i]))
+		bnotes[i] = fmt.Sprintf("<span class=\"eighty\">%s</span>&nbsp;", FmtAnnotations(lines[i]))
 		previous = lines[i]
 	}
 
@@ -281,20 +281,21 @@ func stabilizebrowserwidth(longestline int) string {
 	return row
 }
 
+// unused
 // isoktoshownotes - try to avoid re-showing notes that pop-up mid-text owing to original data block reset issue
-func isoktoshownotes(l str.DbWorkline) bool {
-	// the original data also reset the notes at block ends so you can re-see them in the middle of a text
-	// should really only display notes that go with "t" or "sa" lines, vel sim
-	w := mps.AllWorks[l.WkUID]
-
-	// inscriptions, etc
-	if l.TbIndex == w.FirstLine {
-		return true
-	}
-
-	// letters of cicero (and who else?)
-	if l.Lvl1Value == "sa" || l.Lvl0Value == "t" {
-		return true
-	}
-	return false
-}
+//func isoktoshownotes(l str.DbWorkline) bool {
+//	// the original data also reset the notes at block ends so you can re-see them in the middle of a text
+//	// should really only display notes that go with "t" or "sa" lines, vel sim
+//	w := mps.AllWorks[l.WkUID]
+//
+//	// inscriptions, etc
+//	if l.TbIndex == w.FirstLine {
+//		return true
+//	}
+//
+//	// letters of cicero (and who else?)
+//	if l.Lvl1Value == "sa" || l.Lvl0Value == "t" {
+//		return true
+//	}
+//	return false
+//}

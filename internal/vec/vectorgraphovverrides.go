@@ -146,6 +146,7 @@ var CustomHeaderTpl = `
 `
 
 // note that BaseTpl has since changed at https://github.com/go-echarts/go-echarts/blob/master/charts/base.go
+
 // CustomBaseTpl - to enable svg, add the following to "let goecharts_...": `, {renderer: "svg"}`; but the fonts will break
 var CustomBaseTpl = `
 {{- define "base_element" -}}
@@ -207,42 +208,44 @@ var CustomPageTpl = `
 
 // version 2.3.3
 
+// unused
 // ModMustTemplate233 creates a new template with the given name and parsed contents.
-func ModMustTemplate233(name string, contents []string) *template.Template {
-	const (
-		JSNAME = "safeJS"
-	)
+//func ModMustTemplate233(name string, contents []string) *template.Template {
+//	const (
+//		JSNAME = "safeJS"
+//	)
+//
+//	tpl := template.Must(template.New(name).Parse(contents[0])).Funcs(template.FuncMap{
+//		JSNAME: func(s interface{}) template.JS {
+//			return template.JS(fmt.Sprint(s))
+//		},
+//	})
+//
+//	for _, cont := range contents[1:] {
+//		tpl = template.Must(tpl.Parse(cont))
+//	}
+//	return tpl
+//}
 
-	tpl := template.Must(template.New(name).Parse(contents[0])).Funcs(template.FuncMap{
-		JSNAME: func(s interface{}) template.JS {
-			return template.JS(fmt.Sprint(s))
-		},
-	})
-
-	for _, cont := range contents[1:] {
-		tpl = template.Must(tpl.Parse(cont))
-	}
-	return tpl
-}
-
+// unused
 // CustomBaseTpl233 - to enable svg, add the following to "let goecharts_...": `, {renderer: "svg"}`; but the fonts will break
-var CustomBaseTpl233 = `
-{{- define "base" }}
-<!-- CustomBaseTpl -->
-<div class="container">
-    <div class="item" id="{{ .ChartID }}" style="width:{{ .Initialization.Width }};height:{{ .Initialization.Height }};"></div>
-</div>
-<script type="text/javascript">
-    "use strict";
-    let goecharts_{{ .ChartID | safeJS }} = echarts.init(document.getElementById('{{ .ChartID | safeJS }}'), "{{ .Theme }}");
-    let option_{{ .ChartID | safeJS }} = {{ .JSONNotEscaped | safeJS }};
-	let action_{{ .ChartID | safeJS }} = {{ .JSONNotEscapedAction | safeJS }};
-    goecharts_{{ .ChartID | safeJS }}.setOption(option_{{ .ChartID | safeJS }});
- 	goecharts_{{ .ChartID | safeJS }}.dispatchAction(action_{{ .ChartID | safeJS }});
-
-    {{- range .JSFunctions.Fns }}
-    {{ . | safeJS }}
-    {{- end }}
-</script>
-{{ end }}
-`
+//var CustomBaseTpl233 = `
+//{{- define "base" }}
+//<!-- CustomBaseTpl -->
+//<div class="container">
+//    <div class="item" id="{{ .ChartID }}" style="width:{{ .Initialization.Width }};height:{{ .Initialization.Height }};"></div>
+//</div>
+//<script type="text/javascript">
+//    "use strict";
+//    let goecharts_{{ .ChartID | safeJS }} = echarts.init(document.getElementById('{{ .ChartID | safeJS }}'), "{{ .Theme }}");
+//    let option_{{ .ChartID | safeJS }} = {{ .JSONNotEscaped | safeJS }};
+//	let action_{{ .ChartID | safeJS }} = {{ .JSONNotEscapedAction | safeJS }};
+//    goecharts_{{ .ChartID | safeJS }}.setOption(option_{{ .ChartID | safeJS }});
+// 	goecharts_{{ .ChartID | safeJS }}.dispatchAction(action_{{ .ChartID | safeJS }});
+//
+//    {{- range .JSFunctions.Fns }}
+//    {{ . | safeJS }}
+//    {{- end }}
+//</script>
+//{{ end }}
+//`

@@ -17,7 +17,6 @@ import (
 func LoadBuildMetadata() string {
 	const (
 		SELECTFROM = `SELECT category, builderver, gitcommit, date, notes FROM buildmetadata ORDER BY category ASC`
-		TMPL       = "%s\t%s\t%s\t%s\t%s"
 	)
 	dbconn := getdbconnection()
 	defer dbconn.Release()
@@ -57,8 +56,21 @@ func LoadBuildMetadata() string {
 	var buf bytes.Buffer
 	table := tablewriter.NewTable(&buf)
 	table.Header("Category", "HGB version", "Build Date", "Notes")
-	table.Bulk(allstr)
-	table.Render()
+
+	be := table.Bulk(allstr)
+	if be != nil {
+		return ""
+	}
+
+	te := table.Render()
+	if te != nil {
+		return ""
+	}
+
+	ee := table.Close()
+	if ee != nil {
+		return ""
+	}
 
 	return buf.String()
 }

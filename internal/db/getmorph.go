@@ -11,6 +11,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/e-gun/HipparchiaGoServer/internal/base/gen"
 	"github.com/e-gun/HipparchiaGoServer/internal/base/str"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/google/uuid"
@@ -65,9 +66,10 @@ func ArrayToGetRequiredMorphObjects(wordlist []string) map[string]str.DbMorpholo
 	defer dbconn.Release()
 
 	// look for the upper case matches too: Ϲωκράτηϲ and not just ϲωκρατέω (!)
+	uppercaser := gen.HipparchiaUppercaser
 	uppers := make([]string, len(wordlist))
 	for i := 0; i < len(wordlist); i++ {
-		uppers[i] = strings.Title(wordlist[i])
+		uppers[i] = uppercaser(wordlist[i])
 	}
 
 	// γ': a lot of cycles looking for a small number of words...

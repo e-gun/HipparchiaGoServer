@@ -145,8 +145,10 @@ func basichinter(c *echo.Context, mastermap map[string]bool) error {
 	if len(skg) < 2 {
 		return emptyjsreturn(c)
 	}
+
+	uppercaser := gen.HipparchiaUppercaser
 	skg = strings.ToLower(skg)
-	skg = strings.Title(skg)
+	skg = uppercaser(skg)
 
 	// is what we have a match?
 	var ff []string

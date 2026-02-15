@@ -99,7 +99,7 @@ func RtTextMaker(c *echo.Context) error {
 	lines = srch.Results.Yield()
 	for l := range lines {
 		cit := format.SelectivelyDisplayCitations(l, previous, -1)
-		trr[i] = fmt.Sprintf(TBLRW, format.FormatAnnotations(l), l.GetMarked(), cit)
+		trr[i] = fmt.Sprintf(TBLRW, format.FmtAnnotations(l), l.GetMarked(), cit)
 		if l.WkUID != previous.WkUID {
 			// you were doing multi-text generation
 			workcount += 1

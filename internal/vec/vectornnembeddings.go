@@ -66,7 +66,7 @@ func GenerateVectEmbeddings(c *echo.Context, modeltype string, s str.SearchStruc
 	// lack of a real session means we can't call readUUIDCookie() repeatedly
 	// this also means we need the "modeltype" parameter as well (bot: configtype; surfer: sessiontype)
 	start := time.Now()
-	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{s.ID, PRLMSG}
+	vlt.WSInfo.UpdateSummMsg <- vlt.WSSIKVs{Key: s.ID, Val: PRLMSG}
 
 	var vs str.SearchStruct
 	p := message.NewPrinter(language.English)
@@ -76,7 +76,7 @@ func GenerateVectEmbeddings(c *echo.Context, modeltype string, s str.SearchStruc
 		vs = sr.SessionIntoBulkSearch(c, lnch.Config.VectorMaxlines)
 		Msg.PEEK(fmt.Sprintf(MSG1, vs.Results.Len()))
 		s.Results = vs.Results
-		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, p.Sprintf(TBMSG, vs.Results.Len())}
+		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{Key: s.ID, Val: p.Sprintf(TBMSG, vs.Results.Len())}
 	}
 
 	thetext := buildtextblock(&s)
@@ -177,7 +177,7 @@ func GenerateVectEmbeddings(c *echo.Context, modeltype string, s str.SearchStruc
 					// tm = coll[3]
 				}
 			}
-			vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, fmt.Sprintf(VMSG, in, ti)}
+			vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{Key: s.ID, Val: fmt.Sprintf(VMSG, in, ti)}
 			time.Sleep(vv.WSPOLLINGPAUSE)
 			if !s.IsActive {
 				break
@@ -195,7 +195,7 @@ func GenerateVectEmbeddings(c *echo.Context, modeltype string, s str.SearchStruc
 		return embedding.Embeddings{}
 	}
 
-	vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, DBMSG}
+	vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{Key: s.ID, Val: DBMSG}
 
 	// use buffers; skip the disk; psql used for storage: VectorDBAddNN() & VectorDBFetchNN()
 	var buf bytes.Buffer
@@ -236,10 +236,10 @@ func GenerateNeighborsData(c *echo.Context, s str.SearchStruct) map[string]searc
 	isstored := db.VectorDBCheckNN(fp)
 	var embs embedding.Embeddings
 	if isstored {
-		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, FMSG}
+		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{Key: s.ID, Val: FMSG}
 		embs = db.VectorDBFetchNN(fp)
 	} else {
-		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, GMSG}
+		vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{Key: s.ID, Val: GMSG}
 		embs = GenerateVectEmbeddings(c, s.VecModeler, s)
 		db.VectorDBAddNN(fp, embs)
 		if !embs.Empty() {
@@ -250,7 +250,7 @@ func GenerateNeighborsData(c *echo.Context, s str.SearchStruct) map[string]searc
 	// [b] make a query against the model
 
 	// len(s.Results) is zero, so it is OK to UpdateSS() without copying 500k lines
-	vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{s.ID, MQMEG}
+	vlt.WSInfo.UpdateVProgMsg <- vlt.WSSIKVs{Key: s.ID, Val: MQMEG}
 
 	searcher, err := search.New(embs...)
 	if err != nil {

@@ -14,14 +14,14 @@ import (
 	"text/template"
 )
 
-func main() {
-	// make the following '--main-font-color'
-	h := 133
-	s := 12
-	lum := 10
-	minmax := 85
-	fmt.Println(generatemonoscheme([]int{h, s, lum, minmax}))
-}
+//func main() {
+//	// make the following '--main-font-color'
+//	h := 133
+//	s := 12
+//	lum := 10
+//	minmax := 85
+//	fmt.Println(generatemonoscheme([]int{h, s, lum, minmax}))
+//}
 
 func generatemonoscheme(hslm []int) string {
 	return generatecolorscheme("mono", hslm[0], hslm[1], hslm[2], hslm[3])
@@ -317,7 +317,7 @@ func colornamesamplesheet(schemename string, hslm []int) string {
 
 	lett := []string{"A", "B", "C", "D", "E"}
 
-	sheet := []string{}
+	var sheet []string
 
 	for _, l := range lett {
 		for n := range 7 {

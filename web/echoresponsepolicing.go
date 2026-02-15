@@ -325,7 +325,14 @@ func emittofile(s string) {
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
+
+	defer func(f *os.File) {
+		cerr := f.Close()
+		if cerr != nil {
+			fmt.Println("response policing emittofile() failed to close file")
+		}
+	}(f)
+
 	if _, err = f.WriteString(ms); err != nil {
 		panic(err)
 	}

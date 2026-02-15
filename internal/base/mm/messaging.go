@@ -32,20 +32,21 @@ const (
 	RESET                = "\033[0m"
 	BLUE1                = "\033[38;5;38m"  // DeepSkyBlue2
 	BLUE2                = "\033[38;5;68m"  // SteelBlue3
-	CYAN1                = "\033[38;5;109m" // LightSkyBlue3
 	CYAN2                = "\033[38;5;117m" // SkyBlue1
 	GREEN                = "\033[38;5;70m"  // Chartreuse3
 	RED1                 = "\033[38;5;160m" // Red3
-	RED2                 = "\033[38;5;168m" // HotPink3
 	YELLOW1              = "\033[38;5;178m" // Gold3
 	YELLOW2              = "\033[38;5;143m" // DarkKhaki
-	GREY1                = "\033[38;5;254m" // Grey89
-	GREY2                = "\033[38;5;247m" // Grey62
 	GREY3                = "\033[38;5;242m" // Grey42
 	WHITE                = "\033[38;5;255m" // Grey93
 	BLINK                = "\033[30;0;5m"
 	PANIC                = "[%s%s v.%s%s] %sUNRECOVERABLE ERROR%s\n"
 	PANIC2               = "[%s%s v.%s%s] (%s%s%s) %sUNRECOVERABLE ERROR%s\n"
+	// unused/fyi
+	// CYAN1                = "\033[38;5;109m" // LightSkyBlue3
+	// RED2                 = "\033[38;5;168m" // HotPink3
+	// GREY1                = "\033[38;5;254m" // Grey89
+	// GREY2                = "\033[38;5;247m" // Grey62
 )
 
 // tedious because we need to avoid circular imports
@@ -197,7 +198,14 @@ func (m *MessageMaker) EmitToFile(message string) {
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
+
+	defer func(f *os.File) {
+		cerr := f.Close()
+		if cerr != nil {
+			fmt.Println("MessageMaker failed to close its file")
+		}
+	}(f)
+
 	if _, err = f.WriteString(message); err != nil {
 		panic(err)
 	}

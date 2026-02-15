@@ -94,9 +94,10 @@ func (c *WSClient) ReceiveID() {
 // WSMessageLoop - output the constantly updated search progress to the websocket; then exit
 func (c *WSClient) WSMessageLoop() {
 	const (
-		FAIL      = `WSClient.WSMessageLoop() never found '%s' in the SearchMap`
 		SUCCESS   = `WSClient.WSMessageLoop() found '%s' in the SearchMap`
 		VECAPPEND = `<br><span class="smallerthannormal">%s</span>`
+		// unused
+		// FAIL      = `WSClient.WSMessageLoop() never found '%s' in the SearchMap`
 	)
 
 	getsrchinfo := func() WSSrchInfo {
