@@ -283,11 +283,10 @@ func (m *MessageMaker) ExitOrHang(e int) {
 	)
 	if !m.Win {
 		os.Exit(e)
-	} else {
-		m.Emit(fmt.Sprintf(HANG, m.LNm, SUSP), -1)
-		time.Sleep(SUSP * time.Second)
-		os.Exit(e)
 	}
+	m.Emit(fmt.Sprintf(HANG, m.LNm, SUSP), -1)
+	time.Sleep(SUSP * time.Second)
+	os.Exit(e)
 }
 
 // ResetScreen - ANSI reset of console

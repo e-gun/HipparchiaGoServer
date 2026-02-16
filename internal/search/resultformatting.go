@@ -221,7 +221,7 @@ func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON 
 
 	ctxsearch.Results.Lines = []str.DbWorkline{}
 	SSBuildQueries(&ctxsearch)
-	SearchAndInsertResults(&ctxsearch)
+	ExecuteSearchAndInsertResults(&ctxsearch)
 
 	// now you have all the lines you will ever need; map those lines for subsequent lookup
 	linemap := make(map[string]str.DbWorkline)
@@ -307,13 +307,13 @@ func FormatWithContextResults(thesearch *str.SearchStruct) str.SearchOutputJSON 
 				pat, e := regexp.Compile(strings.Join(re, "|"))
 				if e != nil {
 					pat = regexp.MustCompile("FAILED_FIND_NOTHING")
-					Msg.WARN(fmt.Sprintf("SearchTermFinder() could not compile the following: %s", strings.Join(re, "|")))
+					Msg.WARN(fmt.Sprintf("SrchTermFinder() could not compile the following: %s", strings.Join(re, "|")))
 				}
 				highlightsearchterm(pat, &p.CookedCTX[i])
 			}
 			if len(thesearch.Proximate) > 0 {
 				// look for the proximate term
-				pat := SearchTermFinder(thesearch.Proximate)
+				pat := SrchTermFinder(thesearch.Proximate)
 				highlightsearchterm(pat, &p.CookedCTX[i])
 			}
 		}
@@ -452,7 +452,7 @@ func formatfinalsearchsummary(s *str.SearchStruct, skipped int) string {
 
 // highlightsearchterm - html markup for the search term in the line so it can jump out at you
 func highlightsearchterm(pattern *regexp.Regexp, line *ResultPassageLine) {
-	//	regexequivalent is compiled via SearchTermFinder() in rt-search.go
+	//	regexequivalent is compiled via SrchTermFinder() in rt-search.go
 
 	// see the warnings and caveats at highlightsearchterm() in searchformatting.py
 	if pattern.MatchString(line.Contents) {
@@ -697,11 +697,11 @@ func gethighlighter(ss *str.SearchStruct) *regexp.Regexp {
 	}
 
 	if len(ss.Seeking) != 0 {
-		re = SearchTermFinder(skg)
+		re = SrchTermFinder(skg)
 	} else if len(ss.LemmaOne) != 0 {
 		re = lemmahighlighter(ss.LemmaOne)
 	} else if len(ss.Proximate) != 0 {
-		re = SearchTermFinder(prx)
+		re = SrchTermFinder(prx)
 	} else if len(ss.LemmaTwo) != 0 {
 		re = lemmahighlighter(ss.LemmaTwo)
 	} else {

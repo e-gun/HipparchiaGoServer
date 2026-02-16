@@ -278,15 +278,15 @@ func ColumnPicker(c string, r str.DbWorkline) string {
 	return li
 }
 
-// SearchTermFinder - find the universal regex equivalent of the search term
-func SearchTermFinder(term string) *regexp.Regexp {
+// SrchTermFinder - find the universal regex equivalent of the search term
+func SrchTermFinder(term string) *regexp.Regexp {
 	//	you need to convert:
 	//		ποταμον
 	//	into:
 	//		([πΠ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][τΤ][αἀἁἂἃἄἅἆἇᾀᾁᾂᾃᾄᾅᾆᾇᾲᾳᾴᾶᾷᾰᾱὰάᾈᾉᾊᾋᾌᾍᾎᾏἈἉἊἋἌἍἎἏΑ][μΜ][οὀὁὂὃὄὅόὸΟὈὉὊὋὌὍ][νΝ])
 
 	const (
-		MSG = "SearchTermFinder() could not compile the following: %s"
+		MSG = "SrchTermFinder() could not compile the following: %s"
 	)
 
 	stre := gen.UniversalPatternMaker(term)

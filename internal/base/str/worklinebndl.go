@@ -41,17 +41,15 @@ func (wlb *WorkLineBundle) Len() int {
 func (wlb *WorkLineBundle) IsEmpty() bool {
 	if len(wlb.Lines) == 0 {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 func (wlb *WorkLineBundle) FirstLine() DbWorkline {
 	if len(wlb.Lines) != 0 {
 		return wlb.Lines[0]
-	} else {
-		return DbWorkline{}
 	}
+	return DbWorkline{}
 }
 
 func (wlb *WorkLineBundle) AppendLines(toadd []DbWorkline) {

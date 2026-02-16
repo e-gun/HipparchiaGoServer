@@ -33,9 +33,8 @@ func (i *SearchIncExl) IsEmpty() bool {
 	l += len(i.Works) + len(i.Passages)
 	if l > 0 {
 		return false
-	} else {
-		return true
 	}
+	return true
 }
 
 func (i *SearchIncExl) CountItems() int {

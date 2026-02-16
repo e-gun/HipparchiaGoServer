@@ -49,10 +49,9 @@ func VectorDBCheckNN(fp string) bool {
 		// mm := err.Error()
 		// mm will be "no rows in result set" if you did not find the fingerprint
 		return false
-	} else {
-		Msg.TMI(fmt.Sprintf(F, ss.S))
-		return true
 	}
+	Msg.TMI(fmt.Sprintf(F, ss.S))
+	return true
 }
 
 // VectorDBAddNN - add a set of embeddings to vv.VECTORTABLENAMENN

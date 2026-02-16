@@ -159,7 +159,7 @@ func ldamodelbot(c *echo.Context, s str.SearchStruct, a string) {
 	search.SSBuildQueries(&s)
 	s.IsActive = true
 	s.TableSize = 1
-	search.SearchAndInsertResults(&s)
+	search.ExecuteSearchAndInsertResults(&s)
 	e := RtLDASearch(c, s)
 	if e != nil {
 		Msg.WARN("ldamodelbot() could not execute RtLDASearch()")
@@ -198,7 +198,7 @@ func nnmodelbot(c *echo.Context, s str.SearchStruct, a string) {
 		search.SSBuildQueries(&s)
 		s.IsActive = true
 		s.TableSize = 1
-		search.SearchAndInsertResults(&s)
+		search.ExecuteSearchAndInsertResults(&s)
 		if s.Results.Len() > MINSIZE {
 			embs := vec.GenerateVectEmbeddings(c, m, s)
 			db.VectorDBAddNN(fp, embs)
@@ -212,7 +212,7 @@ func nnmodelbot(c *echo.Context, s str.SearchStruct, a string) {
 func activatevectorbot() {
 	const (
 		MSG1       = "activatevectorbot(): launching"
-		MSG2       = "(%.1f%%) checking need to model %s (%s)"
+		MSG2       = "(%.1f٪) checking need to model %s (%s)"
 		MSG3       = "The vectorbot has checked all authors and is now shutting down"
 		MSG4       = "vectorbot response failed to close"
 		URL        = "http://%s:%d/vbot/%s/%s"

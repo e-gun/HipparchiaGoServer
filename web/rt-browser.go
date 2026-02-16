@@ -93,10 +93,10 @@ func RtBrowseLine(c *echo.Context) error {
 		ctx := s.BrowseCtx
 		bp := generatebrowsedpassage(au, wk, ln, ctx, s.ZapLunates, regularizewidth)
 		return jsonresponse(c, bp)
-	} else {
-		Msg.FYI(fmt.Sprintf(FAIL, locus))
-		return emptyjsreturn(c)
 	}
+
+	Msg.FYI(fmt.Sprintf(FAIL, locus))
+	return emptyjsreturn(c)
 }
 
 // RtEmptyBrowse - to stave off 404s
@@ -144,10 +144,9 @@ func browse(c *echo.Context, sep string) browsedpassage {
 			regularizewidth = false
 		}
 		return generatebrowsedpassage(au, wk, ln[0], ctx, s.ZapLunates, regularizewidth)
-	} else {
-		Msg.FYI(fmt.Sprintf(FAIL, locus))
-		return browsedpassage{}
 	}
+	Msg.FYI(fmt.Sprintf(FAIL, locus))
+	return browsedpassage{}
 }
 
 // generatebrowsedpassage - browse Author A at line X with a context of Y lines

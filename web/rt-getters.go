@@ -82,9 +82,8 @@ func RtGetJSSession(c *echo.Context) error {
 	t2y := func(b bool) string {
 		if b {
 			return "yes"
-		} else {
-			return "no"
 		}
+		return "no"
 	}
 
 	i2s := func(i int) string { return fmt.Sprintf("%d", i) }
@@ -493,7 +492,7 @@ func searchlistpassages(pattern *regexp.Regexp, p string, user string) (string, 
 
 	s.SearchIn.Passages = []string{p}
 	search.SSBuildQueries(&s)
-	search.SearchAndInsertResults(&s)
+	search.ExecuteSearchAndInsertResults(&s)
 	wordcount := 0
 	ll := s.Results.Yield()
 	for ln := range ll {

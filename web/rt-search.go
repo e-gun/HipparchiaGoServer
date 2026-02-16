@@ -111,7 +111,7 @@ func RtSearch(c *echo.Context) error {
 		}
 	} else {
 		completed = srch
-		search.SearchAndInsertResults(&completed)
+		search.ExecuteSearchAndInsertResults(&completed)
 		if completed.HasPhraseBoxA {
 			search.FindPhrasesAcrossLines(&completed)
 		}

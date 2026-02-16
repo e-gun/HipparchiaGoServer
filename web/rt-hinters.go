@@ -196,9 +196,8 @@ func isidhint(skg string) bool {
 	Msg.EC(e)
 	if re.MatchString(skg) {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 // aunamehint - which authors names contain the letters you have sent? "Var..." (used to do a 'starts with' check instead)

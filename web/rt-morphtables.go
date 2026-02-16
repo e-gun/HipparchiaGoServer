@@ -228,9 +228,8 @@ func RtMorphchart(c *echo.Context) error {
 		// the "(3*tc)/2" below is required to keep ἀγαθόϲ from returning as if ἀγαθόω; otherwise "2*" would make sense
 		if cc < (3*tc)/2 {
 			return true
-		} else {
-			return false
 		}
+		return false
 	}()
 
 	var jb jsb

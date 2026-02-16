@@ -70,36 +70,32 @@ func (s selectionvalues) WUID() string {
 func (s selectionvalues) AWPR() bool {
 	if len(s.Auth) > 0 && len(s.Work) > 0 && len(s.Start) > 0 && len(s.End) > 0 {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 // AWP - author, work, and passage
 func (s selectionvalues) AWP() bool {
 	if len(s.Auth) > 0 && len(s.Work) > 0 && len(s.Start) > 0 && len(s.End) == 0 {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 // AW - author, work, and not passage
 func (s selectionvalues) AW() bool {
 	if len(s.Auth) > 0 && len(s.Work) > 0 && len(s.Start) == 0 && len(s.End) == 0 {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 // A - author, not work, and not passage
 func (s selectionvalues) A() bool {
 	if len(s.Auth) > 0 && len(s.Work) == 0 && len(s.Start) == 0 && len(s.End) == 0 {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 // RtSelectionMake - register a selection and modify the session accordingly

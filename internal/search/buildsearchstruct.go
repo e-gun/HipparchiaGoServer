@@ -272,7 +272,7 @@ func SessionIntoBulkSearch(c *echo.Context, lim int) str.SearchStruct {
 	ss.TableSize = len(ss.Queries)
 	ss.IsActive = true
 
-	SearchAndInsertResults(&ss)
+	ExecuteSearchAndInsertResults(&ss)
 	return ss
 }
 

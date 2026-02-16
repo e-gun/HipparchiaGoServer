@@ -185,11 +185,10 @@ func (dbw *DbWorkline) UVXform(s string) string {
 
 	if strings.HasSuffix(dbw.Lvl0Value, "t") {
 		return s
-	} else {
-		s = gen.UVcaps(s)
-		// preserve smallcaps V
-		return smallcapsuv(s)
 	}
+	s = gen.UVcaps(s)
+	// preserve smallcaps V
+	return smallcapsuv(s)
 }
 
 // ShowMarkup - reveal markup in a line
@@ -207,9 +206,8 @@ func (dbw *DbWorkline) SameLevelAs(other DbWorkline) bool {
 	five := dbw.Lvl5Value == other.Lvl5Value
 	if one && two && three && four && five {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 func (dbw *DbWorkline) StrippedSlice() []string {

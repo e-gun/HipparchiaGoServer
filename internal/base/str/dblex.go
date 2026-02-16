@@ -66,17 +66,16 @@ func (dbl *DbLexicon) SetLang(l string) {
 func (dbl *DbLexicon) GetLang() string {
 	if gen.IsLatin.MatchString(dbl.EntryName) {
 		return "latin"
-	} else {
-		return "greek"
 	}
+	return "greek"
+
 }
 
 func (dbl *DbLexicon) IsLatin() bool {
 	if gen.IsLatin.MatchString(dbl.EntryName) {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 func (dbl *DbLexicon) PrintOut() {

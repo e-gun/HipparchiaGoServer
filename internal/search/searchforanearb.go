@@ -31,11 +31,11 @@ func WithinXLinesSearch(first str.SearchStruct) str.SearchStruct {
 	// after finding A, look for B within N lines of A
 
 	// (part 1)
-	//		SearchAndInsertResults(first)
+	//		ExecuteSearchAndInsertResults(first)
 	//
 	// (part 2)
 	// 		populate a new search list with a ton of passages via the first results
-	//		SearchAndInsertResults(second)
+	//		ExecuteSearchAndInsertResults(second)
 
 	const (
 		PSGT = `%s_FROM_%d_TO_%d`
@@ -45,7 +45,7 @@ func WithinXLinesSearch(first str.SearchStruct) str.SearchStruct {
 	)
 
 	previous := time.Now()
-	SearchAndInsertResults(&first)
+	ExecuteSearchAndInsertResults(&first)
 
 	if first.HasPhraseBoxA {
 		FindPhrasesAcrossLines(&first)
@@ -89,7 +89,7 @@ func WithinXLinesSearch(first str.SearchStruct) str.SearchStruct {
 	Msg.PEEK(fmt.Sprintf(MSG2, d))
 	previous = time.Now()
 
-	SearchAndInsertResults(&second)
+	ExecuteSearchAndInsertResults(&second)
 	if second.HasPhraseBoxA && !second.IsLemmAndPhr {
 		FindPhrasesAcrossLines(&second)
 	} else if second.IsLemmAndPhr {
@@ -132,7 +132,7 @@ func WithinXWordsSearch(first str.SearchStruct) str.SearchStruct {
 	// after finding A, look for B within N words of A
 
 	// (part 1)
-	//		SearchAndInsertResults(first)
+	//		ExecuteSearchAndInsertResults(first)
 	//
 	// (part 2)
 	// 		grab the neighborhoods of these hits
@@ -155,7 +155,7 @@ func WithinXWordsSearch(first str.SearchStruct) str.SearchStruct {
 	)
 
 	previous := time.Now()
-	SearchAndInsertResults(&first)
+	ExecuteSearchAndInsertResults(&first)
 
 	if first.HasPhraseBoxA {
 		FindPhrasesAcrossLines(&first)
@@ -217,7 +217,7 @@ func WithinXWordsSearch(first str.SearchStruct) str.SearchStruct {
 
 	// [b] run the second "search" for anything/everything: ""
 
-	SearchAndInsertResults(&second)
+	ExecuteSearchAndInsertResults(&second)
 
 	d = fmt.Sprintf("[Δ: %.3fs] ", time.Since(previous).Seconds())
 	Msg.PEEK(fmt.Sprintf(MSG2, d, first.Results.Len()))

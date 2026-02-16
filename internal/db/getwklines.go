@@ -94,7 +94,6 @@ func GrabOneLine(table string, line int) str.DbWorkline {
 	if foundlines.Len() != 0 {
 		// "index = %d" in QTMPL ought to mean you can never have len(foundlines) > 1 because index values are unique
 		return foundlines.FirstLine()
-	} else {
-		return str.DbWorkline{}
 	}
+	return str.DbWorkline{}
 }
