@@ -6,7 +6,6 @@
 package web
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -56,44 +55,29 @@ func PoliceRequestAndResponseV5(nextechohandler echo.HandlerFunc) echo.HandlerFu
 		}
 
 		if !ok {
-			// register a 403
+			// you are on the list; register a 403; return without serving anything other than the error message
 			slistwr <- registerresult
 			time.Sleep(SLOWDN * time.Second)
 			e := echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf(BLACK0, c.RealIP()))
 			return e
-		} else {
-			// assume failure...
-			status := http.StatusInternalServerError
-
-			// execute the next function now so that the context holds the right response code
-			// otherwise you will always get `200`
-			err := nextechohandler(c)
-
-			if err != nil {
-				// set status value to the error code
-				var sc echo.HTTPStatusCoder
-				if wasok := errors.As(err, &sc); wasok {
-					status = sc.StatusCode()
-				}
-			} else {
-				// set status value to the success code
-				rw, uErr := echo.UnwrapResponse(c.Response())
-				if uErr == nil {
-					status = rw.Status
-				} else {
-					// status is pre-set as http.StatusInternalServerError
-					// but that might not be correct?
-					// also not sure how you can really get here
-					Msg.WARN(fmt.Sprintf(WARNING, c.Request().RequestURI))
-				}
-			}
-
-			registerresult.code = status
-			slistwr <- registerresult
-
-			// fmt.Println(registerresult)
-			return nil
 		}
+
+		// so, not on the list, but what is the response code that we need to log...
+
+		// execute the next function now so that the context holds the right response code
+		// otherwise you will always get `200`
+		err := nextechohandler(c)
+
+		rw, status := echo.ResolveResponseStatus(c.Response(), err) // new function as of echo 5.0.3
+		if rw.Status != status {
+			// this check is just so we "use" the rw variable which we do not in fact need
+			// note that the two can differ: a 200 and a 404 on a request for "/zz", for example
+		}
+
+		registerresult.code = status
+		slistwr <- registerresult
+
+		return nil
 	}
 }
 

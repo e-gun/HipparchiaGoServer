@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/e-gun/HipparchiaGoServer/internal/debug"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
@@ -143,7 +144,7 @@ func starthttpserver(e *echo.Echo) {
 	}
 
 	if err := s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		log.Fatal(err)
+		failuretolaunch(saddr, err)
 	}
 }
 
@@ -166,7 +167,7 @@ func starttlsserver(e *echo.Echo) {
 	}
 
 	if err := s.ListenAndServeTLS(lnch.Config.SSLCertDir+vv.SSLCPEM, lnch.Config.SSLCertDir+vv.SSLPPEM); errors.Is(err, http.ErrServerClosed) {
-		log.Fatal(err)
+		failuretolaunch(saddr, err)
 	}
 }
 
@@ -181,7 +182,24 @@ func serverlaunchmessage(saddr string, isssl bool) {
 	oldname := Msg.SNm
 	Msg.SNm = vv.SHORTNAME
 
-	styled := Msg.ColStyle(fmt.Sprintf(Msg.Color("C3server listening atC0 C2http%s://%sC0C3%sC0"), adds, saddr, addmsg))
+	styled := Msg.ColStyle(fmt.Sprintf(Msg.Color("C3server started atC0 C2http%s://%sC0C3%sC0"), adds, saddr, addmsg))
 	Msg.Emit(styled, -1)
 	Msg.SNm = oldname
+}
+
+// failuretolaunch - exit the program and tell why
+func failuretolaunch(saddr string, err error) {
+	// the most common failure to launch is handled here: you are likely already running another copy...
+	if strings.Contains(err.Error(), "address already in use") {
+		// in full: `listen tcp 127.0.0.1:8001: bind: address already in use`
+		Msg.SNm = vv.SHORTNAME
+
+		Msg.Emit(Msg.ColStyle(fmt.Sprintf("C5%sC0 C7failed to startC0", vv.MYNAME)), -1)
+		Msg.Emit(Msg.ColStyle(fmt.Sprintf("C8-->C0 C3%sC0 C2is already useC0 <--", saddr)), -1)
+		Msg.Emit("exiting...", -1)
+		os.Exit(1)
+	}
+
+	// if that was not the error, we still want to know what killed us...
+	log.Fatal(err)
 }
