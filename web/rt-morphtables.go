@@ -25,11 +25,13 @@ func RtMorphchart(c *echo.Context) error {
 	// /lex/chart/greek/39046.0/37925260/ἐπιγιγνώϲκω
 
 	// should reach this route exclusively via a click from rt-lexica.go
-	// c.Response().After(func() { vlt.LogPaths("RtMorphchart()") })
 	user := vlt.ReadUUIDCookie(c)
 	if !vlt.AllAuthorized.Check(user) {
 		return jsonresponse(c, str.SearchOutputJSON{JS: vv.VALIDATIONBOX})
 	}
+
+	defer vlt.LogPaths("RtMorphchart()")
+
 	s := vlt.AllSessions.GetSess(user)
 
 	const (

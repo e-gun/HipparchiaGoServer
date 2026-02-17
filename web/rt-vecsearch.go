@@ -33,7 +33,7 @@ func RtLDASearch(c *echo.Context, srch str.SearchStruct) error {
 		ESM2   = "Building topic models"
 		ESM3   = "Building the graph (please be patient this can be very slow...)"
 	)
-	// c.Response().After(func() { vlt.LogPaths("RtLDASearch()") })
+	defer vlt.LogPaths("RtLDASearch()")
 
 	se := srch.StoredSession
 	ntopics := se.LDAtopics
@@ -143,7 +143,8 @@ func RtNeighborsSearch(c *echo.Context, srch str.SearchStruct) error {
 		SETTINGS = `model type: %s; text prep: %s`
 	)
 
-	// c.Response().After(func() { vlt.LogPaths("RtNeighborsSearch()") })
+	defer vlt.LogPaths("RtNeighborsSearch()")
+
 	s := srch.StoredSession
 
 	term := srch.LemmaOne

@@ -98,75 +98,268 @@ The default setting is `use all cores`, but many people can safely dial this bac
 * `MEMProfile.pdf`
 * `CPUProfile.pdf`
 
-## memory use during self-test
+## memory use during self-test 
+
+### with manual gc set to `true`
 
 ``` 
-% /Users/erik/Applications/net/HipparchiaGoServer -st -wc 20 -gl 4
-[HGS] Hipparchia Golang Server (v1.3.1-pre) [git: ed35669c] [default.pgo] [gl=4; el=0]
-	Built:	2024-03-22@14:20:00		Golang:	go1.22.1
+% ./HipparchiaGoServer -gl 4 -el 0 -st
+[HGS] HipparchiaGoServer (v2.1.0) [no pgo] [gl=4; el=0]
+	Golang:	go1.26.0
 	System:	darwin-arm64			WKvCPU:	20/20
-[HGS-VEC] Number of stored vector models: 12
-[HGS-MPS] MapNewWorkCorpus() added 6625 works from 'gr'
-[HGS-MPS] MapNewWorkCorpus() added 836 works from 'lt'
-[HGS] [A1: 0.152s][Δ: 0.152s] 7461 works built: map[string]DbWork
-[HGS-MPS] MapNewAuthorCorpus() added 1823 authors from 'gr'
-[HGS-MPS] MapNewAuthorCorpus() added 362 authors from 'lt'
-[HGS] [A2: 0.160s][Δ: 0.008s] 2185 authors built: map[string]DbAuthor
-[HGS] [A3: 0.162s][Δ: 0.002s] corpus maps built
-[HGS] [B1: 0.210s][Δ: 0.210s] unnested lemma map built (158817 items)
-[HGS] [B2: 0.269s][Δ: 0.059s] nested lemma map built
-[HGS] main() post-initialization current heap: 80M
-[HGS] initialization took 0.309s
+[HGS-DBI] Number of stored vector models: 12
+[HGS-MPS] MapNewWorkCorpus() added 837 works from 'lat'
+[HGS-MPS] MapNewWorkCorpus() added 6625 works from 'tlg'
+[HGS] [A1: 0.131s][Δ: 0.131s] 7462 works built: map[string]DbWork
+[HGS-MPS] MapNewAuthorCorpus() added 1823 authors from 'tlg'
+[HGS-MPS] MapNewAuthorCorpus() added 363 authors from 'lat'
+[HGS] [A2: 0.138s][Δ: 0.007s] 2186 authors built: map[string]DbAuthor
+[HGS] [A3: 0.140s][Δ: 0.003s] corpus maps built
+[HGS] [A4: 0.147s][Δ: 0.010s] load word weights
+[HGS] [B1: 0.178s][Δ: 0.178s] unnested lemma map built (158966 items)
+[HGS] [B2: 0.225s][Δ: 0.047s] nested lemma map built
+[HGS] initialization took 0.312s
 [HGS] to stop the server press Control-C or close this window
+[HGS] server started at http://127.0.0.1:8001 (tls unavailable)
 [HGS-SELFTEST] Running Selftest 1 of 1
 [HGS-SELFTEST] entering selftestsuite mode (4 segments)
 [HGS-SELFTEST] [I] 6 search tests
-⇨ http server started on 127.0.0.1:8000
-[HGS-WEB] RtSearch() current heap: 92M
-[HGS-SELFTEST] [A1: 0.700s][Δ: 0.700s] single word in corpus: 'vervex'
-[HGS-WEB] RtSearch() current heap: 106M
-[HGS-SELFTEST] [A2: 1.992s][Δ: 1.292s] phrase in corpus: 'plato omnem'
-[HGS-SEA] [Δ: 1.337s]  WithinXLinesSearch(): 2307 initial hits
-[HGS-SEA] [Δ: 0.004s]  SSBuildQueries() rerun
-[HGS-SEA] [Δ: 0.033s]  WithinXLinesSearch(): 3 subsequent hits
-[HGS-WEB] RtSearch() current heap: 103M
-[HGS-SELFTEST] [A3: 3.391s][Δ: 1.400s] phrase near phrase: 'καὶ δὴ καὶ' near 'εἴ που καὶ'
-[HGS-WEB] RtSearch() current heap: 115M
-[HGS-SELFTEST] [B1: 4.457s][Δ: 1.066s] lemma in corpus: 'φθορώδηϲ'
-[HGS-STR] SwapPhraseAndLemma() was called: lemmatized 'γαῖα' swapped with 'ἐϲχάτη χθονόϲ'
-[HGS-SEA] [Δ: 1.584s]  WithinXLinesSearch(): 11 initial hits
-[HGS-SEA] [Δ: 0.002s]  SSBuildQueries() rerun
-[HGS-SEA] [Δ: 0.004s]  WithinXLinesSearch(): 4 subsequent hits
-[HGS-WEB] RtSearch() current heap: 132M
-[HGS-SELFTEST] [B2: 6.071s][Δ: 1.614s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
-[HGS-SEA] PickFastestLemma() is NOT swapping πόλιϲ for ὁπλίζω: possible hits 125274 vs 2547; known forms 50 vs 191
-[HGS-SEA] [Δ: 6.100s]  WithinXLinesSearch(): 99350 initial hits
-[HGS-SEA] [Δ: 0.189s]  SSBuildQueries() rerun
-[HGS-SEA] [Δ: 14.943s]  WithinXLinesSearch(): 101 subsequent hits
-[HGS-WEB] RtSearch() current heap: 196M
-[HGS-SELFTEST] [B3: 27.552s][Δ: 21.481s] lemma near lemma in corpus: 'πόλιϲ' near 'ὁπλίζω'
+[HGS-VLT] RtSearch() runtime.GC() 89M --> 82M
+[HGS-SELFTEST] [A1: 0.764s][Δ: 0.764s] single word in corpus: 'vervex'
+[HGS-VLT] RtSearch() runtime.GC() 96M --> 85M
+[HGS-SELFTEST] [A2: 2.322s][Δ: 1.557s] phrase in corpus: 'plato omnem'
+[HGS-SEA] [Δ: 1.317s]  WithinXLinesSearch(): 2308 initial hits
+[HGS-SEA] [Δ: 0.003s]  SSBuildQueries() rerun
+[HGS-SEA] [Δ: 0.026s]  WithinXLinesSearch(): 3 subsequent hits
+[HGS-VLT] RtSearch() runtime.GC() 136M --> 90M
+[HGS-SELFTEST] [A3: 3.700s][Δ: 1.378s] phrase near phrase: 'καὶ δὴ καὶ' near 'εἴ που καὶ'
+[HGS-VLT] RtSearch() runtime.GC() 101M --> 93M
+[HGS-SELFTEST] [B1: 4.800s][Δ: 1.101s] lemma in corpus: 'φθορώδηϲ'
+[HGS-SEA] swapphraseandlemma() was called: lemmatized 'γαῖα' swapped with 'ἐϲχάτη χθονόϲ'
+[HGS-SEA] [Δ: 1.604s]  WithinXLinesSearch(): 11 initial hits
+[HGS-SEA] [Δ: 0.001s]  SSBuildQueries() rerun
+[HGS-SEA] [Δ: 0.005s]  WithinXLinesSearch(): 4 subsequent hits
+[HGS-VLT] RtSearch() runtime.GC() 111M --> 95M
+[HGS-SELFTEST] [B2: 6.442s][Δ: 1.642s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
+[HGS-SEA] pickfastestlemma() is NOT swapping πόλιϲ for ὁπλίζω: possible hits 205378 vs 3205; known forms 50 vs 192
+[HGS-SEA] [Δ: 6.826s]  WithinXLinesSearch(): 99194 initial hits
+[HGS-SEA] [Δ: 0.174s]  SSBuildQueries() rerun
+[HGS-SEA] [Δ: 14.493s]  WithinXLinesSearch(): 101 subsequent hits
+[HGS-VLT] RtSearch() runtime.GC() 189M --> 105M
+[HGS-SELFTEST] [B3: 28.172s][Δ: 21.730s] lemma near lemma in corpus: 'πόλιϲ' near 'ὁπλίζω'
 [HGS-SELFTEST] [II] 3 text, index, and vocab maker tests
-[HGS-WEB] RtTextMaker() current heap: 338M
-[HGS-SELFTEST] [C1: 27.757s][Δ: 0.205s] build a text for 35000 arbitrary lines
-[HGS-WEB] RtIndexMaker() current heap: 302M
-[HGS-SELFTEST] [C2: 28.961s][Δ: 1.204s] build an index to 35000 arbitrary lines
-[HGS-DBI] ArrayToGetRequiredMorphObjects() will search among 153612 words
-[HGS-WEB] RtVocabMaker() current heap: 432M
-[HGS-SELFTEST] [C3: 31.379s][Δ: 2.418s] build vocabulary list for 35000 arbitrary lines
+[HGS-VLT] RtTextMaker() runtime.GC() 177M --> 138M
+[HGS-SELFTEST] [C1: 28.536s][Δ: 0.364s] build a text for 40000 arbitrary lines
+[HGS-VLT] RtIndexMaker() runtime.GC() 287M --> 127M
+[HGS-SELFTEST] [C2: 28.829s][Δ: 0.293s] build an index to 40000 arbitrary lines
+[HGS-DBI] ArrayToGetRequiredMorphObjects() will search among 177369 words
+[HGS-VLT] RtVocabMaker() runtime.GC() 587M --> 143M
+[HGS-SELFTEST] [C3: 33.309s][Δ: 4.480s] build vocabulary list for 40000 arbitrary lines
 [HGS-SELFTEST] [III] 4 browsing and lexical tests
+[HGS-VLT] RtBrowseLine() runtime.GC() 153M --> 127M
 ...
-[HGS-WEB] RtBrowseLine() current heap: 221M
-[HGS-SELFTEST] [D1: 31.557s][Δ: 0.178s] browse 50 passages
+[HGS-WEB] could not find a work for tlg0025w001
+[HGS-VLT] RtBrowseLine() runtime.GC() 127M --> 127M
 ...
-[HGS-WEB] RtLexFindByForm() current heap: 264M
-[HGS-SELFTEST] [D2: 35.687s][Δ: 4.130s] look up 48 specific words
+[HGS-SELFTEST] [D1: 34.101s][Δ: 0.792s] browse 50 passages
+[HGS-VLT] RtLexFindByForm() runtime.GC() 127M --> 127M
 ...
-[HGS-WEB] RtLexLookup() current heap: 190M
-[HGS-SELFTEST] [D3: 50.739s][Δ: 15.052s] look up 18 word substrings
+[HGS-SELFTEST] [D2: 37.522s][Δ: 3.421s] look up 48 specific words
+[HGS-VLT] RtLexLookup() runtime.GC() 134M --> 128M
 ...
-[HGS-WEB] RtLexReverse() current heap: 285M
-[HGS-SELFTEST] [D4: 62.603s][Δ: 11.864s] reverse lookup for 6 word substrings
+[HGS-SELFTEST] [D3: 38.883s][Δ: 1.361s] look up 18 word substrings
+[HGS-VLT] RtLexReverse() runtime.GC() 185M --> 141M
 ...
+[HGS-SELFTEST] [D4: 40.305s][Δ: 1.422s] reverse lookup for 6 word substrings
+```
+
+### with manual gc set to `false` (default)
+
+```
+./HipparchiaGoServer -gl 4 -el 0 -st
+[HGS] HipparchiaGoServer (v2.1.0-pre) [git: d1ac12bf] [default.pgo] [gl=4; el=0]
+	Built:	2026-02-16@20:26:55		Golang:	go1.26.0-X:jsonv2
+	System:	darwin-arm64			WKvCPU:	20/20
+[HGS-DBI] Number of stored vector models: 12
+[HGS-MPS] MapNewWorkCorpus() added 837 works from 'lat'
+[HGS-MPS] MapNewWorkCorpus() added 6625 works from 'tlg'
+[HGS] [A1: 0.077s][Δ: 0.077s] 7462 works built: map[string]DbWork
+[HGS-MPS] MapNewAuthorCorpus() added 363 authors from 'lat'
+[HGS-MPS] MapNewAuthorCorpus() added 1823 authors from 'tlg'
+[HGS] [A2: 0.085s][Δ: 0.007s] 2186 authors built: map[string]DbAuthor
+[HGS] [A3: 0.088s][Δ: 0.003s] corpus maps built
+[HGS] [A4: 0.090s][Δ: 0.005s] load word weights
+[HGS] [B1: 0.158s][Δ: 0.158s] unnested lemma map built (158966 items)
+[HGS] [B2: 0.202s][Δ: 0.043s] nested lemma map built
+[HGS] initialization took 0.257s
+[HGS] to stop the server press Control-C or close this window
+[HGS] server started at http://127.0.0.1:8001 (tls unavailable)
+[HGS-SELFTEST] Running Selftest 1 of 1
+[HGS-SELFTEST] entering selftestsuite mode (4 segments)
+[HGS-SELFTEST] [I] 6 search tests
+[HGS-VLT] RtSearch() current heap: 89M
+[HGS-SELFTEST] [A1: 0.876s][Δ: 0.876s] single word in corpus: 'vervex'
+[HGS-VLT] RtSearch() current heap: 104M
+[HGS-SELFTEST] [A2: 1.972s][Δ: 1.096s] phrase in corpus: 'plato omnem'
+[HGS-SEA] [Δ: 1.352s]  WithinXLinesSearch(): 2308 initial hits
+[HGS-SEA] [Δ: 0.004s]  SSBuildQueries() rerun
+[HGS-SEA] [Δ: 0.023s]  WithinXLinesSearch(): 3 subsequent hits
+[HGS-VLT] RtSearch() current heap: 102M
+[HGS-SELFTEST] [A3: 3.365s][Δ: 1.393s] phrase near phrase: 'καὶ δὴ καὶ' near 'εἴ που καὶ'
+[HGS-VLT] RtSearch() current heap: 113M
+[HGS-SELFTEST] [B1: 4.348s][Δ: 0.983s] lemma in corpus: 'φθορώδηϲ'
+[HGS-SEA] swapphraseandlemma() was called: lemmatized 'γαῖα' swapped with 'ἐϲχάτη χθονόϲ'
+[HGS-SEA] [Δ: 1.369s]  WithinXLinesSearch(): 11 initial hits
+[HGS-SEA] [Δ: 0.001s]  SSBuildQueries() rerun
+[HGS-SEA] [Δ: 0.004s]  WithinXLinesSearch(): 4 subsequent hits
+[HGS-VLT] RtSearch() current heap: 131M
+[HGS-SELFTEST] [B2: 5.737s][Δ: 1.389s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
+[HGS-SEA] pickfastestlemma() is NOT swapping πόλιϲ for ὁπλίζω: possible hits 205378 vs 3205; known forms 50 vs 192
+[HGS-SEA] [Δ: 5.706s]  WithinXLinesSearch(): 99194 initial hits
+[HGS-SEA] [Δ: 0.164s]  SSBuildQueries() rerun
+[HGS-SEA] [Δ: 13.901s]  WithinXLinesSearch(): 101 subsequent hits
+[HGS-VLT] RtSearch() current heap: 194M
+[HGS-SELFTEST] [B3: 25.730s][Δ: 19.993s] lemma near lemma in corpus: 'πόλιϲ' near 'ὁπλίζω'
+[HGS-SELFTEST] [II] 3 text, index, and vocab maker tests
+[HGS-VLT] RtTextMaker() current heap: 203M
+[HGS-SELFTEST] [C1: 26.166s][Δ: 0.436s] build a text for 40000 arbitrary lines
+[HGS-VLT] RtIndexMaker() current heap: 170M
+[HGS-SELFTEST] [C2: 26.433s][Δ: 0.267s] build an index to 40000 arbitrary lines
+[HGS-DBI] ArrayToGetRequiredMorphObjects() will search among 191070 words
+[HGS-VLT] RtVocabMaker() current heap: 609M
+[HGS-SELFTEST] [C3: 30.596s][Δ: 4.164s] build vocabulary list for 40000 arbitrary lines
+[HGS-SELFTEST] [III] 4 browsing and lexical tests
+[HGS-VLT] RtBrowseLine() current heap: 624M
+[HGS-VLT] RtBrowseLine() current heap: 625M
+[HGS-VLT] RtBrowseLine() current heap: 627M
+[HGS-VLT] RtBrowseLine() current heap: 627M
+[HGS-VLT] RtBrowseLine() current heap: 628M
+[HGS-VLT] RtBrowseLine() current heap: 630M
+[HGS-VLT] RtBrowseLine() current heap: 632M
+[HGS-VLT] RtBrowseLine() current heap: 633M
+[HGS-VLT] RtBrowseLine() current heap: 635M
+[HGS-VLT] RtBrowseLine() current heap: 637M
+[HGS-VLT] RtBrowseLine() current heap: 638M
+[HGS-WEB] could not find a work for tlg0021w001
+[HGS-VLT] RtBrowseLine() current heap: 638M
+[HGS-VLT] RtBrowseLine() current heap: 640M
+[HGS-VLT] RtBrowseLine() current heap: 641M
+[HGS-VLT] RtBrowseLine() current heap: 643M
+[HGS-WEB] could not find a work for tlg0025w001
+[HGS-VLT] RtBrowseLine() current heap: 643M
+[HGS-VLT] RtBrowseLine() current heap: 644M
+[HGS-VLT] RtBrowseLine() current heap: 646M
+[HGS-VLT] RtBrowseLine() current heap: 648M
+[HGS-VLT] RtBrowseLine() current heap: 648M
+[HGS-VLT] RtBrowseLine() current heap: 648M
+[HGS-VLT] RtBrowseLine() current heap: 650M
+[HGS-VLT] RtBrowseLine() current heap: 651M
+[HGS-VLT] RtBrowseLine() current heap: 653M
+[HGS-VLT] RtBrowseLine() current heap: 654M
+[HGS-VLT] RtBrowseLine() current heap: 654M
+[HGS-VLT] RtBrowseLine() current heap: 655M
+[HGS-VLT] RtBrowseLine() current heap: 656M
+[HGS-VLT] RtBrowseLine() current heap: 656M
+[HGS-VLT] RtBrowseLine() current heap: 657M
+[HGS-VLT] RtBrowseLine() current heap: 657M
+[HGS-VLT] RtBrowseLine() current heap: 658M
+[HGS-VLT] RtBrowseLine() current heap: 658M
+[HGS-VLT] RtBrowseLine() current heap: 658M
+[HGS-VLT] RtBrowseLine() current heap: 658M
+[HGS-VLT] RtBrowseLine() current heap: 658M
+[HGS-VLT] RtBrowseLine() current heap: 659M
+[HGS-VLT] RtBrowseLine() current heap: 659M
+[HGS-VLT] RtBrowseLine() current heap: 660M
+[HGS-VLT] RtBrowseLine() current heap: 660M
+[HGS-VLT] RtBrowseLine() current heap: 660M
+[HGS-VLT] RtBrowseLine() current heap: 660M
+[HGS-VLT] RtBrowseLine() current heap: 660M
+[HGS-VLT] RtBrowseLine() current heap: 662M
+[HGS-VLT] RtBrowseLine() current heap: 664M
+[HGS-VLT] RtBrowseLine() current heap: 665M
+[HGS-VLT] RtBrowseLine() current heap: 665M
+[HGS-VLT] RtBrowseLine() current heap: 668M
+[HGS-VLT] RtBrowseLine() current heap: 669M
+[HGS-VLT] RtBrowseLine() current heap: 671M
+[HGS-SELFTEST] [D1: 30.811s][Δ: 0.215s] browse 50 passages
+[HGS-VLT] RtLexFindByForm() current heap: 672M
+[HGS-VLT] RtLexFindByForm() current heap: 672M
+[HGS-VLT] RtLexFindByForm() current heap: 673M
+[HGS-VLT] RtLexFindByForm() current heap: 673M
+[HGS-VLT] RtLexFindByForm() current heap: 674M
+[HGS-VLT] RtLexFindByForm() current heap: 678M
+[HGS-VLT] RtLexFindByForm() current heap: 679M
+[HGS-VLT] RtLexFindByForm() current heap: 680M
+[HGS-VLT] RtLexFindByForm() current heap: 680M
+[HGS-VLT] RtLexFindByForm() current heap: 683M
+[HGS-VLT] RtLexFindByForm() current heap: 684M
+[HGS-VLT] RtLexFindByForm() current heap: 684M
+[HGS-VLT] RtLexFindByForm() current heap: 686M
+[HGS-VLT] RtLexFindByForm() current heap: 686M
+[HGS-VLT] RtLexFindByForm() current heap: 691M
+[HGS-VLT] RtLexFindByForm() current heap: 692M
+[HGS-VLT] RtLexFindByForm() current heap: 692M
+[HGS-VLT] RtLexFindByForm() current heap: 692M
+[HGS-VLT] RtLexFindByForm() current heap: 693M
+[HGS-VLT] RtLexFindByForm() current heap: 693M
+[HGS-VLT] RtLexFindByForm() current heap: 694M
+[HGS-VLT] RtLexFindByForm() current heap: 695M
+[HGS-VLT] RtLexFindByForm() current heap: 696M
+[HGS-VLT] RtLexFindByForm() current heap: 696M
+[HGS-VLT] RtLexFindByForm() current heap: 697M
+[HGS-VLT] RtLexFindByForm() current heap: 698M
+[HGS-VLT] RtLexFindByForm() current heap: 699M
+[HGS-VLT] RtLexFindByForm() current heap: 488M
+[HGS-VLT] RtLexFindByForm() current heap: 122M
+[HGS-VLT] RtLexFindByForm() current heap: 122M
+[HGS-VLT] RtLexFindByForm() current heap: 123M
+[HGS-VLT] RtLexFindByForm() current heap: 124M
+[HGS-VLT] RtLexFindByForm() current heap: 124M
+[HGS-VLT] RtLexFindByForm() current heap: 125M
+[HGS-VLT] RtLexFindByForm() current heap: 125M
+[HGS-VLT] RtLexFindByForm() current heap: 126M
+[HGS-VLT] RtLexFindByForm() current heap: 127M
+[HGS-VLT] RtLexFindByForm() current heap: 129M
+[HGS-VLT] RtLexFindByForm() current heap: 129M
+[HGS-VLT] RtLexFindByForm() current heap: 130M
+[HGS-VLT] RtLexFindByForm() current heap: 130M
+[HGS-VLT] RtLexFindByForm() current heap: 131M
+[HGS-VLT] RtLexFindByForm() current heap: 131M
+[HGS-VLT] RtLexFindByForm() current heap: 132M
+[HGS-VLT] RtLexFindByForm() current heap: 133M
+[HGS-VLT] RtLexFindByForm() current heap: 137M
+[HGS-VLT] RtLexFindByForm() current heap: 138M
+[HGS-VLT] RtLexFindByForm() current heap: 138M
+[HGS-SELFTEST] [D2: 33.536s][Δ: 2.725s] look up 48 specific words
+[HGS-VLT] RtLexLookup() current heap: 145M
+[HGS-DBI] FindProximateEntry() found no entry before '0.000000'
+[HGS-VLT] RtLexLookup() current heap: 149M
+[HGS-VLT] RtLexLookup() current heap: 154M
+[HGS-VLT] RtLexLookup() current heap: 157M
+[HGS-VLT] RtLexLookup() current heap: 171M
+[HGS-VLT] RtLexLookup() current heap: 181M
+[HGS-VLT] RtLexLookup() current heap: 187M
+[HGS-DBI] FindProximateEntry() found no entry before '0.000000'
+[HGS-VLT] RtLexLookup() current heap: 191M
+[HGS-VLT] RtLexLookup() current heap: 196M
+[HGS-VLT] RtLexLookup() current heap: 199M
+[HGS-VLT] RtLexLookup() current heap: 213M
+[HGS-VLT] RtLexLookup() current heap: 223M
+[HGS-VLT] RtLexLookup() current heap: 230M
+[HGS-DBI] FindProximateEntry() found no entry before '0.000000'
+[HGS-VLT] RtLexLookup() current heap: 131M
+[HGS-VLT] RtLexLookup() current heap: 136M
+[HGS-VLT] RtLexLookup() current heap: 138M
+[HGS-VLT] RtLexLookup() current heap: 151M
+[HGS-VLT] RtLexLookup() current heap: 161M
+[HGS-SELFTEST] [D3: 34.614s][Δ: 1.078s] look up 18 word substrings
+[HGS-VLT] RtLexReverse() current heap: 209M
+[HGS-VLT] RtLexReverse() current heap: 247M
+[HGS-VLT] RtLexReverse() current heap: 153M
+[HGS-VLT] RtLexReverse() current heap: 206M
+[HGS-VLT] RtLexReverse() current heap: 250M
+[HGS-VLT] RtLexReverse() current heap: 153M
+[HGS-SELFTEST] [D4: 35.927s][Δ: 1.313s] reverse lookup for 6 word substrings
 ```
 
 ## workflow
@@ -176,27 +369,29 @@ The default setting is `use all cores`, but many people can safely dial this bac
 ## code stats
 
 ```
-     213 text files.
-     197 unique files.
-     308 files ignored.
+ % cloc --exclude-dir=z --not-match-f="^jq*" --not-match-f="xml" .
+     205 text files.
+     190 unique files.
+     288 files ignored.
 
-github.com/AlDanial/cloc v 2.08  T=0.19 s (1055.3 files/s, 195135.9 lines/s)
+github.com/AlDanial/cloc v 2.08  T=0.19 s (987.6 files/s, 187474.6 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Go                             123           3870           4267          18018
+Go                             124           3895           4463          17901
 CSS                             13            477            144           2013
 HTML                            13            162             18           1589
-JavaScript                      10            327            256           1589
-Markdown                        10            447              0           1149
-XML                              9              0              0            557
+JavaScript                       8            323            218           1585
+Markdown                        10            447              0           1150
+JSON                             9              0              0            498
 Text                             6            108              0            487
-JSON                             8              0              0            416
 SVG                              1              1              1            392
 Bourne Shell                     3             25              7             89
+XML                              1              0              0              9
 Python                           1              5              6              7
+YAML                             1              8             34              4
 -------------------------------------------------------------------------------
-SUM:                           197           5422           4699          26306
+SUM:                           190           5451           4891          25724
 -------------------------------------------------------------------------------
 
 ```

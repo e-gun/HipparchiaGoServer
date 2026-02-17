@@ -29,7 +29,6 @@ import (
 
 // RtIndexMaker - build an index for whatever collection of lines you would be searching
 func RtIndexMaker(c *echo.Context) error {
-	// c.Response().After(func() { vlt.LogPaths("RtIndexMaker()") })
 
 	// note that templates + bytes.Buffer is more legible than '%s' time and again BUT it is also slightly slower
 	// this was tested via a rewrite of RtIndexMaker() and other rt-textindicesandvocab functions
@@ -86,6 +85,8 @@ func RtIndexMaker(c *echo.Context) error {
 	if !vlt.AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, str.CommonJSONOutput{JS: vv.JSVALIDATION}, vv.JSONINDENT)
 	}
+
+	defer vlt.LogPaths("RtIndexMaker()")
 
 	start := time.Now()
 

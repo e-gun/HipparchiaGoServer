@@ -23,7 +23,6 @@ import (
 
 // RtTextMaker - make a text of whatever collection of lines you would be searching
 func RtTextMaker(c *echo.Context) error {
-	// c.Response().After(func() { vlt.LogPaths("RtTextMaker()") })
 
 	// text generation works like a simple search for "anything" in each line of the selected texts
 	// the results then get output as a big "browser table"...
@@ -57,6 +56,8 @@ func RtTextMaker(c *echo.Context) error {
 	if !vlt.AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, str.CommonJSONOutput{JS: vv.JSVALIDATION}, vv.JSONINDENT)
 	}
+
+	defer vlt.LogPaths("RtTextMaker()")
 
 	s := vlt.AllSessions.GetSess(user)
 	srch := search.SessionIntoBulkSearch(c, vv.MAXTEXTLINEGENERATION)

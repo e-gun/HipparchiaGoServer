@@ -29,7 +29,6 @@ import (
 
 // RtVocabMaker - get the vocabulary for whatever collection of lines you would be searching
 func RtVocabMaker(c *echo.Context) error {
-	// c.Response().After(func() { vlt.LogPaths("RtVocabMaker()") })
 	// todo: worry about γ' for γε
 
 	// item example: <indexedlocation id="index/lt1351/004/4180">⒟ 1.82.18</indexedlocation>
@@ -107,6 +106,8 @@ func RtVocabMaker(c *echo.Context) error {
 	if !vlt.AllAuthorized.Check(user) {
 		return c.JSONPretty(http.StatusOK, str.CommonJSONOutput{JS: vv.JSVALIDATION}, vv.JSONINDENT)
 	}
+
+	defer vlt.LogPaths("RtVocabMaker()")
 
 	start := time.Now()
 	s := vlt.AllSessions.GetSess(user)
