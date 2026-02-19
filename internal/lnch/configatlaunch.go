@@ -84,15 +84,16 @@ func ConfigAtLaunch() {
 	decoderc := json.NewDecoder(loadedcfg)
 	confc := str.CurrentConfiguration{}
 	errc := decoderc.Decode(&confc)
-	cerr := loadedcfg.Close()
-	if cerr != nil {
-		Msg.CRIT(fmt.Sprintf(FAILA, options))
-	}
 
 	if errc == nil {
 		Config = &confc
 	} else {
 		Msg.CRIT(fmt.Sprintf(FAIL3, options))
+	}
+
+	ev := loadedcfg.Close()
+	if ev != nil {
+		Msg.CRIT(fmt.Sprintf(FAILA, options))
 	}
 
 	loadcolors(configpath)

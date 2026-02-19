@@ -39,9 +39,8 @@ func SortResults(s *str.SearchStruct) {
 			return DbWlnMyAu(one).ConvDate < DbWlnMyAu(two).ConvDate
 		} else if d1 != NULL && d2 == NULL {
 			return DbWlnMyAu(one).ConvDate < DbWlnMyAu(two).ConvDate
-		} else {
-			return DbWlnMyAu(one).ConvDate < DbWlnMyAu(two).ConvDate
 		}
+		return DbWlnMyAu(one).ConvDate < DbWlnMyAu(two).ConvDate
 	}
 
 	increasingLines := func(one, two *str.DbWorkline) bool {

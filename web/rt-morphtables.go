@@ -330,9 +330,9 @@ func rcombinator(slc []int, start int, posit int) [][]int {
 
 		if posit+1 >= len(slc) {
 			return combin
-		} else {
-			combin = append(combin, rcombinator(c, slc[posit+1], posit+1)...)
 		}
+
+		combin = append(combin, rcombinator(c, slc[posit+1], posit+1)...)
 	}
 	return combin
 }

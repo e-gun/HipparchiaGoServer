@@ -439,10 +439,9 @@ func getdotcitation(idx int, bags []bagwithlocus) string {
 	if len(init) > SAMPSIZE {
 		samp = strings.Join(init[0:SAMPSIZE], " ") + "..."
 		return fmt.Sprintf(NAMETMPL, loc, samp)
-	} else {
-		samp = strings.Join(init[0:], " ") + "..."
-		return fmt.Sprintf(NAMETMPL, loc, samp)
 	}
+	samp = strings.Join(init[0:], " ") + "..."
+	return fmt.Sprintf(NAMETMPL, loc, samp)
 }
 
 //

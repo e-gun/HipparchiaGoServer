@@ -130,19 +130,22 @@ func (dbw *DbWorkline) GatherSimpleAnnotations() string {
 	// hb-sp-marginaltext has been pushed into Annotations
 	// but the metatada also lives here
 	// distinguish between them
+
 	if len(strings.Split(dbw.Annotations, " · ")) > 1 {
 		// this is not simple
 		return ""
-	} else {
-		if len(strings.Split(dbw.Annotations, ":")) > 1 {
-			// this is not simple
-			// `notes: Pomp. C. art. Don. GL 5.199K`
-			// vs `Non. 342M`
-			// see the first lines of Pl., Bacchides for a mix of both...
-			return ""
-		}
-		return dbw.Annotations
 	}
+
+	if len(strings.Split(dbw.Annotations, ":")) > 1 {
+		// this is not simple
+		// `notes: Pomp. C. art. Don. GL 5.199K`
+		// vs `Non. 342M`
+		// see the first lines of Pl., Bacchides for a mix of both...
+		return ""
+	}
+
+	return dbw.Annotations
+
 }
 
 // GetMarked - do a v --> u transformation on the marked up line

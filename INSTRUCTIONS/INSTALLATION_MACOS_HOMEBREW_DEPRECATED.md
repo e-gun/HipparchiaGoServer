@@ -4,8 +4,8 @@ But people who already have `homebrew` installed are perhaps interested in going
 ## Installing HipparchiaGoServer
 
 1. first install and configure `PostgreSQL`
-1. next load `hgdb` into `PostgreSQL`
-1. next acquire a binary for `HipparchiaGoServer`
+2. next load `hgdb` into `PostgreSQL`
+3. next acquire a binary for `HipparchiaGoServer`
 
 ### [A] install and configure `PostgreSQL`
 
@@ -49,13 +49,13 @@ You also want to start the server: `brew services restart postgresql@15`
 
 ![inst12](./gitimg/windows/16_getbinary.png)
 
-2. If you download a file like `HipparchiaGoServer-1.1.0-darwin-amd64.zip`, it needs to be UNZIPPED. Double-clicking will do that. You will then see something like `HipparchiaGoServer-1.1.0-darwin-amd64` in the same folder.
+1. If you download a file like `HipparchiaGoServer-1.1.0-darwin-amd64.zip`, it needs to be UNZIPPED. Double-clicking will do that. You will then see something like `HipparchiaGoServer-1.1.0-darwin-amd64` in the same folder.
 
-3. This file *might* need to be RENAMED: `HipparchiaGoServer-1.1.0-darwin-amd64` --> `HipparchiaGoServer`
+2. This file *might* need to be RENAMED: `HipparchiaGoServer-1.1.0-darwin-amd64` --> `HipparchiaGoServer`
 
 ### [C] the first launch of `HipparchiaGoServer`: loading `hipparchiaDB` into `PostgreSQL`
 
-0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation. If a working installation executes `HipparchiaGoServer -ex`, it will generate a valid `HGDBArchive` folder.]
+1. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation. If a working installation executes `HipparchiaGoServer -ex`, it will generate a valid `HGDBArchive` folder.]
    The data *must* reside in a folder named `HGDBArchive`. This folder has to be in the same folder as `HipparchiaGoServer`.
    You can (re)move the data folder after you have successfully installed the data into the database.
 
@@ -72,21 +72,21 @@ NB: The data will already be available if you build the database yourself with `
 
 ![inst02](./gitimg/macos_posgresapp/04c_firstrun_permission.png)
 
-2. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
+1. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
 
-3. On the first run instruction files will be dropped into your current working directory. You will be asked for the password for `hgdbuser`.
+2. On the first run instruction files will be dropped into your current working directory. You will be asked for the password for `hgdbuser`.
 
    ![inst15](./gitimg/macos_posgresapp/04_firstrun.png)
 
-4. Then you will be told that the self-load is about to begin.
+3. Then you will be told that the self-load is about to begin.
 
    ![inst02](./gitimg/macos_posgresapp/05_selfload.png)
 
-5. Thousands of messages will fly across the screen.
+4. Thousands of messages will fly across the screen.
 
    ![inst02](./gitimg/macos_posgresapp/05b_loading_in_progress.png)
 
-6. Eventually the server will launch. The self-load process only has to happen once.
+5. Eventually the server will launch. The self-load process only has to happen once.
 
    ![inst02](./gitimg/macos_posgresapp/06_selfload_done.png)
 
@@ -94,7 +94,7 @@ NB: `hippa_rd` errors are safe to ignore.
 
 ![inst02](./gitimg/macos_posgresapp/06b_selfload_done.png)
 
-7. When you see `http server started on 127.0.0.1:8000` you are up and running. From here on out you can just double-click
+1. When you see `http server started on 127.0.0.1:8000` you are up and running. From here on out you can just double-click
    to launch the program. You can also leave it running indefinitely: it does not consume many resources if not active.
 
 ### [D] [FYI] Archiving / Migrating

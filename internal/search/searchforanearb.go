@@ -570,9 +570,8 @@ func iterativeproxwordsmatching(text string, sought string, proximity int) []str
 	appenduptoxitems := func(first []string, second []string, items int) []string {
 		if len(second) >= items {
 			return append(first, second[0:items]...)
-		} else {
-			return append(first, second[0:]...)
 		}
+		return append(first, second[0:]...)
 	}
 
 	selectivebuilder := func(split []string) []string {

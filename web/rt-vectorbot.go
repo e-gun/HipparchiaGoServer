@@ -7,7 +7,6 @@ package web
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 	"slices"
 	"sort"
@@ -259,6 +258,8 @@ func activatevectorbot() {
 	tot := float32(len(auu))
 	count := 0
 
+	var responseaggregator []*http.Response // to close the responses when we are done; only the inspector cares about this
+
 	for _, a := range auu {
 		mustnotify := false
 
@@ -281,21 +282,22 @@ func activatevectorbot() {
 			previous = time.Now()
 		}
 		u := fmt.Sprintf(URL, lnch.Config.HostIP, lnch.Config.HostPort, "nn", a)
-		resp, err := http.Get(u)
+		rsp, err := http.Get(u)
 		Msg.EC(err)
-
-		defer func(Body io.ReadCloser) {
-			ce := Body.Close()
-			if ce != nil {
-				Msg.WARN(MSG4)
-			}
-		}(resp.Body)
+		responseaggregator = append(responseaggregator, rsp)
 
 		// if you do not throttle the bot it will violate MAXECHOREQPERSECONDPERIP
 		time.Sleep(THROTTLE * time.Millisecond)
 
 		if count%SIZEVERY == 0 {
 			db.VectorDBSizeNN(mm.MSGNOTE)
+		}
+	}
+
+	for _, r := range responseaggregator {
+		err := r.Body.Close()
+		if err != nil {
+			return
 		}
 	}
 

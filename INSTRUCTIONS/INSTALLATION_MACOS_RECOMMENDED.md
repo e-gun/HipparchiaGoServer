@@ -1,10 +1,10 @@
 ## Installing HipparchiaGoServer
 
 1. first install and configure `PostgreSQL`
-1. next acquire a binary for `HipparchiaGoServer`
-1. load `hgdb` into `PostgreSQL` on the first launch of `HipparchiaGoServer`
-1. [fyi] how to archive and/or migrate the data
-1. [fyi] how to reset the database and start over
+2. next acquire a binary for `HipparchiaGoServer`
+3. load `hgdb` into `PostgreSQL` on the first launch of `HipparchiaGoServer`
+4. [fyi] how to archive and/or migrate the data
+5. [fyi] how to reset the database and start over
 
 ---
 
@@ -38,15 +38,15 @@
 
 ![inst12](./gitimg/windows/16_getbinary.png)
 
-2. If you download a file like `HipparchiaGoServer-2.0.1-darwin-amd64.zip`, it needs to be UNZIPPED. Double-clicking will do that. You will then see something like `HipparchiaGoServer-2.0.1-darwin-amd64` in the same folder.
+1. If you download a file like `HipparchiaGoServer-2.0.1-darwin-amd64.zip`, it needs to be UNZIPPED. Double-clicking will do that. You will then see something like `HipparchiaGoServer-2.0.1-darwin-amd64` in the same folder.
 
-3. This file *might* need to be RENAMED: `HipparchiaGoServer-2.0.1-darwin-amd64` --> `HipparchiaGoServer`
+2. This file *might* need to be RENAMED: `HipparchiaGoServer-2.0.1-darwin-amd64` --> `HipparchiaGoServer`
 
 ---
 
 ### [C] the first launch of `HipparchiaGoServer`: loading `hipparchiaDB` into `PostgreSQL`
 
-0. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation. If a working installation executes `HipparchiaGoServer -ex`, it will generate a valid `HGDBArchive` folder.]
+1. You need to have the DATA available. [The data needs to come from a `pg_dump` of a working `HipparchiaGoServer` installation. If a working installation executes `HipparchiaGoServer -ex`, it will generate a valid `HGDBArchive` folder.]
    The data *must* reside in a folder named `HGDBArchive`. This folder has to be in the same folder as `HipparchiaGoServer`.
    You can (re)move the data folder after you have successfully installed the data into the database.
 
@@ -66,38 +66,38 @@ open ~
 That is, make sure your home directory looks like the image above and that both `HipparchiaGoServer` and `HGDBArchive` can be found in it.
 
 
-3. The following command will bypass the gatekeeper check on the application. Enter it in the terminal and press `return`. 
+1. The following command will bypass the gatekeeper check on the application. Enter it in the terminal and press `return`. 
 ```
 xattr -r -d com.apple.quarantine ./HipparchiaGoServer
 ```
 
-4. Now you can double-click the application to launch. It is possible that you will get a complaint about an UNIDENTIFIED DEVELOPER. This is a problem, and something went wrong in the previous step.
+1. Now you can double-click the application to launch. It is possible that you will get a complaint about an UNIDENTIFIED DEVELOPER. This is a problem, and something went wrong in the previous step.
 
 ![inst02](./gitimg/macos_posgresapp/04a_firstrun_unidentified.png)
 
-5. If you do not see that UNIDENTIFIED DEVELOPER warning, then congratulations. But at this point you will be told about a different potential security issue when you attempt to connect to `postgresql`. You need to `OK` this. No, there is not a problem if you connect to `postgresql`: this is why you installed it a few minutes ago.
+1. If you do not see that UNIDENTIFIED DEVELOPER warning, then congratulations. But at this point you will be told about a different potential security issue when you attempt to connect to `postgresql`. You need to `OK` this. No, there is not a problem if you connect to `postgresql`: this is why you installed it a few minutes ago.
 
 ![inst02](./gitimg/macos_posgresapp/04e_firstrun_db_connection.png)
 
-6. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
+1. The database load happens the first time you run `HipparchiaGoServer`. This will take *several minutes*.
 
-7. On the first run instruction files will be dropped into your current working directory. You will be asked for the password for `hgdbuser`.
+2. On the first run instruction files will be dropped into your current working directory. You will be asked for the password for `hgdbuser`.
 
    ![inst02](./gitimg/macos_posgresapp/05_selfload.png)
 
-8. Then you will be told that the self-load is about to begin.
+3. Then you will be told that the self-load is about to begin.
 
    [See the preceding image again for this.]
 
 
-9. For a number of minutes, thousands of messages will fly across the screen.
+1. For a number of minutes, thousands of messages will fly across the screen.
 
 
-10. Eventually the server will launch. This self-load process only has to happen once. All other launches will take less than a second.
+1. Eventually the server will launch. This self-load process only has to happen once. All other launches will take less than a second.
 
    ![inst02](./gitimg/macos_posgresapp/06b_selfload_done.png)
 
-11. When you see `http server started on 127.0.0.1:8001` you are up and running. Now you can point a browser at http://127.0.0.1:8001.
+1. When you see `http server started on 127.0.0.1:8001` you are up and running. Now you can point a browser at http://127.0.0.1:8001.
 Whenever the server is running, your browser can interact with http://127.0.0.1:8001. You can also leave the server 
 running indefinitely. It does not consume many resources if not active: 0% CPU, <1% RAM.
 
@@ -141,7 +141,7 @@ Make sure to read all of the terminal output and scan for these tell-tale error 
 
 ![inst13](./gitimg/macos_posgresapp/07b_selfreset_done.png)
 
-3. The next time you run `HipparchiaGoServer` will be like a first launch as per the above.
+1. The next time you run `HipparchiaGoServer` will be like a first launch as per the above.
 
 
 #### [E2] less easy reset
@@ -163,4 +163,4 @@ Make sure to read all of the terminal output and scan for these tell-tale error 
 ![inst01](./gitimg/macos_posgresapp/07_reset.png)
 
 
-3. The next time you run `HipparchiaGoServer` will be like a first launch as per the above.
+1. The next time you run `HipparchiaGoServer` will be like a first launch as per the above.

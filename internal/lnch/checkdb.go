@@ -135,12 +135,12 @@ OR at 'C3%sC0'`
 		fmt.Println()
 		fmt.Println(Msg.Color(fmt.Sprintf(FAIL2, fp, pw)))
 		os.Exit(0)
+	}
+
+	if a != nil {
+		fn = vv.HDBFOLDER
 	} else {
-		if a != nil {
-			fn = vv.HDBFOLDER
-		} else {
-			fn = h + "/" + vv.HDBFOLDER
-		}
+		fn = h + "/" + vv.HDBFOLDER
 	}
 
 	fmt.Println(Msg.Color(fmt.Sprintf(WARN, DELAY)))

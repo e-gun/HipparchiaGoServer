@@ -94,13 +94,12 @@ func pathembedder(c *echo.Context, d string) error {
 		if !strings.HasSuffix(f, ".pdf") {
 			// a normal 404 error
 			return c.String(http.StatusNotFound, "")
-		} else {
-			// the documentation was not build in...
-			// omit checking the error if OOPSFILE itself is not found: an empty string will be sent; no harm in that
-			k, _ := efs.ReadFile(OOPSFILE)
-			c.Response().Header().Add("Content-Type", "application/pdf")
-			return c.String(http.StatusOK, string(k))
 		}
+		// the documentation was not build in...
+		// omit checking the error if OOPSFILE itself is not found: an empty string will be sent; no harm in that
+		k, _ := efs.ReadFile(OOPSFILE)
+		c.Response().Header().Add("Content-Type", "application/pdf")
+		return c.String(http.StatusOK, string(k))
 	}
 
 	add := addresponsehead(f)

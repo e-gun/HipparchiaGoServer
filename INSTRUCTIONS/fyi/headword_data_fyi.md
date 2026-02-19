@@ -8,15 +8,15 @@
 * mean:	`942.2`
 * median:	`8.0`
 
-|                        | Count | Percentage|
-|------------------------|-------|---|
-| total headwords        | 116310  | 100|
-| hapax legomena         | 25019 | 21.5|
-| between 2 and 10       | 42209| 36.3|
-| between 11 and 100     | 28861| 24.8|
-| between 101 and 1000   | 14549| 12.5|
-| between 1001 and 10000 | 4738| 4.1|
-|  more than 10001       | 933| 0.8|
+|                        | Count  | Percentage |
+|------------------------|--------|------------|
+| total headwords        | 116310 | 100        |
+| hapax legomena         | 25019  | 21.5       |
+| between 2 and 10       | 42209  | 36.3       |
+| between 11 and 100     | 28861  | 24.8       |
+| between 101 and 1000   | 14549  | 12.5       |
+| between 1001 and 10000 | 4738   | 4.1        |
+| more than 10001        | 933    | 0.8        |
 
 ![workers vs time](../gitimg/greek_headwords.png)
 
@@ -59,15 +59,15 @@ hipparchiaDB=# SELECT entry_name,total_count from dictionary_headword_wordcounts
 * mean:	`292.2`
 * median:	`11.0`
 
-|                       | Count | Percentage|
-|-----------------------|-------|---|
-| total headwords       | 37594  | 100|
-| hapax legomena        | 6908 | 18.3|
-| between 2 and 10      | 12465| 33.1|
-| between 11 and 100    | 10983| 29.2|
-| between 101 and 1000  | 5693| 15.1|
-| between 1001 and 10000 | 1423| 3.8|
-| more than 10001       | 122| 0.3|
+|                        | Count | Percentage |
+|------------------------|-------|------------|
+| total headwords        | 37594 | 100        |
+| hapax legomena         | 6908  | 18.3       |
+| between 2 and 10       | 12465 | 33.1       |
+| between 11 and 100     | 10983 | 29.2       |
+| between 101 and 1000   | 5693  | 15.1       |
+| between 1001 and 10000 | 1423  | 3.8        |
+| more than 10001        | 122   | 0.3        |
 
 ![workers vs time](../gitimg/latin_headwords.png)
 

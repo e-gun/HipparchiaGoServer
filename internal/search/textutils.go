@@ -45,7 +45,7 @@ func LemmaIntoRegexSlice(hdwd string) []string {
 	}
 
 	ct := 0
-	for true {
+	for {
 		var bnd []string
 		for i := 0; i < vv.MAXLEMMACHUNKSIZE; i++ {
 			if ct > len(lemm)-1 {

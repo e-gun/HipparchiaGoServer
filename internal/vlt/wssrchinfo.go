@@ -113,10 +113,9 @@ func WSSearchInfoHub() {
 	fetchifexists := func(id string) WSSrchInfo {
 		if _, ok := Allinfo[id]; ok {
 			return Allinfo[id]
-		} else {
-			// any non-zero value for SrchCount is fine; the test in rt-websocket.go is just for 0
-			return WSSrchInfo{ID: id, Exists: true, SrchCount: 1}
 		}
+		// any non-zero value for SrchCount is fine; the test in rt-websocket.go is just for 0
+		return WSSrchInfo{ID: id, Exists: true, SrchCount: 1}
 	}
 
 	ipcount := func(id string) int {

@@ -8,7 +8,6 @@ package web
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -23,10 +22,10 @@ const (
 // PoliceRequestAndResponseV5 - echo v5; track Response code counts + block repeat 404 offenders; this is custom middleware for an *echo.Echo
 func PoliceRequestAndResponseV5(nextechohandler echo.HandlerFunc) echo.HandlerFunc {
 	const (
-		BLACK0  = "%s blacklisted: too many previous response code errors\n"
-		SLOWDN  = 3
-		BLACK1  = "%s: invalid request prefix in URI '%s'\n"
-		WARNING = "PoliceRequestAndResponse failed to 'echo.UnwrapResponse' for '%s'"
+		BLACK0 = "%s blacklisted: too many previous response code errors\n"
+		SLOWDN = 3
+		BLACK1 = "%s: invalid request prefix in URI '%s'\n"
+		// WARNING = "PoliceRequestAndResponse failed to 'echo.UnwrapResponse' for '%s'"
 	)
 
 	return func(c *echo.Context) error {
@@ -226,10 +225,10 @@ var (
 	}()
 
 	// StartBlack - []string of bad IPs; checked when IPBlacklistKeeper starts
-	StartBlack = []string{}
+	StartBlack = []string{} // inspector will say "empty slice using a literal", but you have to do this one this way
 
 	// AlwaysWhite - []string of good IPs; checked when IPBlacklistKeeper starts
-	AlwaysWhite = []string{}
+	AlwaysWhite = []string{} // inspector will say "empty slice using a literal", but you have to do this one this way
 
 	blistwr = make(chan writeblacklist)
 	blistrd = make(chan readblacklist)
@@ -298,27 +297,27 @@ func defaultemit(s string) {
 }
 
 // emittofile - send output to a file instead; this is just an example; you will want a different filename
-func emittofile(s string) {
-	var (
-		EFile  = "policeresponses-log.txt"
-		MyName = "policeresponses"
-	)
-	tn := time.Now().Format(time.RFC3339)
-	ms := fmt.Sprintf("[%s] [%s] %s\n", tn, MyName, s)
-	f, err := os.OpenFile(EFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
-		panic(err)
-	}
-
-	defer func(f *os.File) {
-		cerr := f.Close()
-		if cerr != nil {
-			fmt.Println("response policing emittofile() failed to close file")
-		}
-	}(f)
-
-	if _, err = f.WriteString(ms); err != nil {
-		panic(err)
-	}
-	return
-}
+//func emittofile(s string) {
+//	var (
+//		EFile  = "policeresponses-log.txt"
+//		MyName = "policeresponses"
+//	)
+//	tn := time.Now().Format(time.RFC3339)
+//	ms := fmt.Sprintf("[%s] [%s] %s\n", tn, MyName, s)
+//	f, err := os.OpenFile(EFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	defer func(f *os.File) {
+//		cerr := f.Close()
+//		if cerr != nil {
+//			fmt.Println("response policing emittofile() failed to close file")
+//		}
+//	}(f)
+//
+//	if _, err = f.WriteString(ms); err != nil {
+//		panic(err)
+//	}
+//	return
+//}

@@ -180,7 +180,7 @@ func RtSetOption(c *echo.Context) error {
 					s.BrowseCtx = vv.MAXBROWSERCONTEXT
 				}
 			case "proximity":
-				if 1 <= intval || intval <= vv.MAXDISTANCE {
+				if 1 <= intval && intval <= vv.MAXDISTANCE {
 					s.Proximity = intval
 				} else if intval < 1 {
 					s.Proximity = 1
@@ -188,7 +188,7 @@ func RtSetOption(c *echo.Context) error {
 					s.Proximity = vv.MAXDISTANCE
 				}
 			case "neighborcount":
-				if vv.VECTORNEIGHBORSMIN <= intval || intval <= vv.VECTORNEIGHBORSMAX {
+				if vv.VECTORNEIGHBORSMIN <= intval && intval <= vv.VECTORNEIGHBORSMAX {
 					s.VecNeighbCt = intval
 				} else if intval < vv.VECTORNEIGHBORSMIN {
 					s.VecNeighbCt = vv.VECTORNEIGHBORSMIN
@@ -196,7 +196,7 @@ func RtSetOption(c *echo.Context) error {
 					s.VecNeighbCt = vv.VECTORNEIGHBORSMAX
 				}
 			case "ldatopiccount":
-				if 1 <= intval || intval <= vv.LDAMAXTOPICS {
+				if 1 <= intval && intval <= vv.LDAMAXTOPICS {
 					s.LDAtopics = intval
 				} else if intval < 1 {
 					s.LDAtopics = 1
