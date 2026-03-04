@@ -49,7 +49,7 @@ func PrintVersion(cc str.CurrentConfiguration) {
 	}
 
 	ll := fmt.Sprintf(LL, cc.LogLevel, cc.EchoLog)
-	versioninfo := fmt.Sprintf(ME, vv.MYNAME, vv.VERSION+VersSuppl)
+	versioninfo := fmt.Sprintf(ME, vv.PROJNAME, vv.VERSION+VersSuppl)
 	versioninfo = sn + versioninfo + gc + pg + ll
 	versioninfo = Msg.ColStyle(versioninfo)
 

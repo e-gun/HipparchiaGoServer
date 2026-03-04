@@ -194,7 +194,7 @@ func failuretolaunch(saddr string, err error) {
 		// in full: `listen tcp 127.0.0.1:8001: bind: address already in use`
 		Msg.SNm = vv.SHORTNAME
 
-		Msg.Emit(Msg.ColStyle(fmt.Sprintf("C5%sC0 C7failed to startC0", vv.MYNAME)), -1)
+		Msg.Emit(Msg.ColStyle(fmt.Sprintf("C5%sC0 C7failed to startC0", vv.PROJNAME)), -1)
 		Msg.Emit(Msg.ColStyle(fmt.Sprintf("C8-->C0 C3%sC0 C2is already useC0 <--", saddr)), -1)
 		Msg.Emit("exiting...", -1)
 		os.Exit(1)

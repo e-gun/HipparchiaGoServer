@@ -125,7 +125,7 @@ OR at 'C3%sC0'`
 
 	notfound := (a != nil) && (b != nil)
 	if notfound {
-		fmt.Println(Msg.Color(fmt.Sprintf(FAIL, vv.HDBFOLDER, vv.MYNAME, h+"/"+vv.HDBFOLDER)))
+		fmt.Println(Msg.Color(fmt.Sprintf(FAIL, vv.HDBFOLDER, vv.PROJNAME, h+"/"+vv.HDBFOLDER)))
 		hd, err := os.UserHomeDir()
 		Msg.EC(err)
 
@@ -161,7 +161,7 @@ OR at 'C3%sC0'`
 		Msg.CRIT(ERR)
 	}
 
-	Msg.CRIT(fmt.Sprintf(OK, vv.MYNAME))
+	Msg.CRIT(fmt.Sprintf(OK, vv.PROJNAME))
 	fmt.Println()
 }
 

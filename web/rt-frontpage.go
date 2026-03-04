@@ -48,7 +48,8 @@ func RtFrontpage(c *echo.Context) error {
             <span class="rarechars choice">τ⃗</span>&nbsp;<input type="checkbox" id="isldasearch" value="yes">
         </span>`
 	)
-	// will set if missing
+
+	// ReadUUIDCookie() will set a cookie if one missing
 	user := vlt.ReadUUIDCookie(c)
 	s := vlt.AllSessions.GetSess(user)
 
@@ -109,7 +110,7 @@ func RtFrontpage(c *echo.Context) error {
 	}
 
 	subs := map[string]interface{}{
-		"myname":           vv.MYNAME,
+		"myname":           vv.PROJNAME,
 		"copyright":        fmt.Sprintf(vv.TERMINALTEXT, vv.PROJYEAR, vv.PROJAUTH, vv.PROJMAIL),
 		"source":           vv.PROJURL,
 		"version":          vv.VERSION + lnch.VersSuppl,
