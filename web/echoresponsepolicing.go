@@ -21,23 +21,16 @@ const (
 	LOCKOUTRESPCODE = 418
 )
 
+var (
+	lockoutresponsefnc = blacklistandredirect
+)
+
 // PoliceRequestAndResponseV5 - echo v5; track Response code counts + block repeat 404 offenders; this is custom middleware for an *echo.Echo
 func PoliceRequestAndResponseV5(nextechohandler echo.HandlerFunc) echo.HandlerFunc {
 	const (
-		BLACK0 = "%s blacklisted: too many previous response code errors"
-		SLOWDN = 3
 		BLACK1 = "%s: invalid request prefix in URI '%s'\n"
-		BLACK2 = "%s has been blacklisted. This server refuses to brew coffee because it is, permanently, a teapot. Please stop sending invalid requests."
 		// WARNING = "PoliceRequestAndResponse failed to 'echo.UnwrapResponse' for '%s'"
 	)
-
-	lrc := http.StatusForbidden
-	blacklistmsg := BLACK0
-
-	if LOCKOUTRESPCODE == 418 {
-		lrc = http.StatusTeapot
-		blacklistmsg = BLACK2
-	}
 
 	return func(c *echo.Context) error {
 		// presumed guilty; need to prove innocence
@@ -65,11 +58,9 @@ func PoliceRequestAndResponseV5(nextechohandler echo.HandlerFunc) echo.HandlerFu
 		}
 
 		if !ok {
-			// you are on the list; register a lockout; return without serving anything other than the error message
+			// you are on the list; register a lockout; return without serving any real contents
 			slistwr <- registerresult
-			time.Sleep(SLOWDN * time.Second)
-			e := echo.NewHTTPError(lrc, fmt.Sprintf(blacklistmsg, c.RealIP()))
-			return e
+			return lockoutresponsefnc(c)
 		}
 
 		// so, not on the list, but what is the response code that we need to log...
@@ -225,6 +216,36 @@ func ResponseStatsKeeper() {
 			// ...
 		}
 	}
+}
+
+func blacklistandredirect(c *echo.Context) error {
+	// you are on the list; register a lockout; redirect this abusive person to his/her own box
+	err := c.Redirect(http.StatusSeeOther, "https://127.0.0.1")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func blacklistandsenderror(c *echo.Context) error {
+	const (
+		SLOWDN = 3
+		BLACK0 = "%s blacklisted: too many previous response code errors"
+		BLACK2 = "%s has been blacklisted. This server refuses to brew coffee because it is, permanently, a teapot. Please stop sending invalid requests."
+	)
+
+	lrc := http.StatusForbidden
+	blacklistmsg := BLACK0
+
+	if LOCKOUTRESPCODE == 418 {
+		lrc = http.StatusTeapot
+		blacklistmsg = BLACK2
+	}
+
+	// you are on the list; register a lockout; return without serving anything other than the error message
+	time.Sleep(SLOWDN * time.Second)
+	e := echo.NewHTTPError(lrc, fmt.Sprintf(blacklistmsg, c.RealIP()))
+	return e
 }
 
 //
