@@ -17,6 +17,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/debug"
 	"github.com/e-gun/HipparchiaGoServer/internal/lnch"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
+	pr "github.com/e-gun/policeresponses"
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
 )
@@ -100,16 +101,26 @@ func configureecho(e *echo.Echo) {
 }
 
 func policing(e *echo.Echo) {
-	e.Use(PoliceRequestAndResponseV5)
-	go ResponseStatsKeeper()
-	go IPBlacklistKeeper()
+	// pr has variables:
+	// LockoutResponseFnc: either `BlacklistAndRedirect` or `BlacklistAndSendError`
+	// LockoutResponseCode: either `403` or `418`
+	// RedirectURL: "https://127.0.0.1" (default)
+
+	// the defaults for the first two are:
+	// BlacklistAndRedirect and 418; but the use of the former means that the latter is not going to be relevant
+
+	pr.RedirectURL = "https://127.0.0.1/i_was_blacklisted_because_of_too_many_404s"
+
+	e.Use(pr.PoliceRequestAndResponseV5)
+	go pr.ResponseStatsKeeper()
+	go pr.IPBlacklistKeeper()
 	if !lnch.Config.BlackAndWhite {
-		Emit.ColorOn()
+		pr.Emit.ColorOn()
 	}
 	if lnch.Config.TickerActive || lnch.Config.LogToFile {
-		Emit.E = Msg.EmitToFile
+		pr.Emit.E = Msg.EmitToFile
 	} else {
-		Emit.E = Msg.AlwaysEmit
+		pr.Emit.E = Msg.AlwaysEmit
 	}
 }
 
