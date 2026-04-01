@@ -12,6 +12,7 @@ const (
 	DEFAULTPSQLPORT    = 5432
 	DEFAULTPSQLDB      = "hgdb"
 	DEFAULTQUERYSYNTAX = "~"
+	REALIPMETH         = 0 // how will echo find RealIP? 0: no proxy; 1 x-forwarded header; 2 x-real-ip heaer
 	SERVEDFROMHOST     = "127.0.0.1"
 	SERVEDFROMPORT     = 8001
 	SERVEDFROMSSLPORT  = 4443

@@ -31,6 +31,7 @@ type CurrentConfiguration struct {
 	PGLogin         PostgresLogin
 	ProfileCPU      bool
 	ProfileMEM      bool
+	RealIPMeth      int
 	ResetVectors    bool
 	QuietStart      bool
 	SelfTest        int

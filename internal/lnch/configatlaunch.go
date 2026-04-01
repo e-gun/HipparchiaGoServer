@@ -156,6 +156,7 @@ func ConfigAtLaunch() {
 			"maxtotscrh":  Config.MaxSrchTot,
 			"port":        Config.HostPort,
 			"projurl":     vv.PROJURL,
+			"rip":         Config.RealIPMeth,
 			"sslcert":     vv.SSLCPEM,
 			"ssldir":      Config.SSLCertDir,
 			"sslport":     Config.HostSSLPort,
@@ -258,6 +259,10 @@ func ConfigAtLaunch() {
 			Config.ProfileMEM = true
 		case "-q":
 			Config.QuietStart = true
+		case "-ri":
+			ri, err := strconv.Atoi(args[i+1])
+			Msg.EC(err)
+			Config.RealIPMeth = ri
 		case "-rl":
 			ReLoadDBfolder(Config.PGLogin.Pass)
 		case "-rv":
@@ -365,6 +370,7 @@ func builddefaultconfig() *str.CurrentConfiguration {
 	c.ProfileCPU = false
 	c.ProfileMEM = false
 	c.QuietStart = false
+	c.RealIPMeth = vv.REALIPMETH
 	c.ResetVectors = false
 	c.SelfTest = 0
 	c.SSLCertDir = vv.SSLCERTDIR

@@ -57,6 +57,7 @@ const (
    C1-pmC0          enable MEM profiling run
    C1-pgC0 C2{string}C0 supply full PostgreSQL credentials C4(*)C0
    C1-qC0           quiet startup: suppress copyright notice
+   C1-riC0          how will echo find RealIP? 0: no proxy; 1: x-forwarded header; 2: x-real-ip heaer [C6currentC0: C3{{.rip}}C0]
    C1-rlC0          reload the database tables; data will be read from: "C3{{.dbf}}C0" in "C3{{.cwd}}C0"
    C1-rvC0          reset the stored semantic vector table
    C1-saC0 C2{string}C0 server IP address [C6currentC0: C3{{.host}}C0]

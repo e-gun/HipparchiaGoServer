@@ -11,11 +11,11 @@ require (
 	github.com/go-echarts/go-echarts/v2 v2.7.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
-	github.com/jackc/pgx/v5 v5.8.0
-	github.com/labstack/echo/v5 v5.0.4
+	github.com/jackc/pgx/v5 v5.9.1
+	github.com/labstack/echo/v5 v5.1.0
 	github.com/olekukonko/tablewriter v1.1.4
 	github.com/pkg/profile v1.7.0
-	github.com/rs/zerolog v1.34.0
+	github.com/rs/zerolog v1.35.0
 	golang.org/x/exp v0.0.0-20260312153236-7ab1446f8b90
 	golang.org/x/text v0.35.0
 	gonum.org/v1/gonum v0.17.0
@@ -28,7 +28,7 @@ require (
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/e-gun/safestack v0.1.1 // indirect
 	github.com/e-gun/sparse v0.0.0-20230418220937-07063da15582 // indirect
-	github.com/fatih/color v1.18.0 // indirect
+	github.com/fatih/color v1.19.0 // indirect
 	github.com/felixge/fgprof v0.9.5 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/goccy/go-json v0.10.6 // indirect
@@ -43,7 +43,7 @@ require (
 	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/olekukonko/cat v0.0.0-20250911104152-50322a0618f6 // indirect
 	github.com/olekukonko/errors v1.2.0 // indirect
-	github.com/olekukonko/ll v0.1.7 // indirect
+	github.com/olekukonko/ll v0.1.8 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/cobra v1.10.2 // indirect

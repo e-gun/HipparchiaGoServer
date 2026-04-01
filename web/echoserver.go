@@ -98,6 +98,17 @@ func configureecho(e *echo.Echo) {
 	if lnch.Config.Gzip {
 		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}))
 	}
+
+	// change as of echo 5.1.0; and see https://echo.labstack.com/docs/ip-address
+	switch lnch.Config.RealIPMeth {
+	case 1:
+		e.IPExtractor = echo.ExtractIPFromXFFHeader()
+	case 2:
+		e.IPExtractor = echo.ExtractIPFromRealIPHeader()
+	default:
+		e.IPExtractor = echo.ExtractIPDirect()
+	}
+
 }
 
 func policing(e *echo.Echo) {
