@@ -59,20 +59,6 @@ func main() {
 	lnch.BuildDate = BuildDate
 	lnch.PGOInfo = PGOInfo
 
-	//
-	// [0] debugging code block #1 of 2
-	//
-
-	// memory use debugging runs have to be custom-built
-
-	// UNCOMMENT next and then: "curl http://localhost:8080/debug/pprof/heap > heap.0.pprof"
-	// "go tool pprof heap.0.pprof" -> "top 20", etc.
-
-	//go func() {
-	//	lnch.Msg.CRIT("**THIS BUILD IS NOT FOR RELEASE** PPROF server is active")
-	//	http.ListenAndServe("localhost:8080", nil)
-	//}()
-
 	vv.LaunchTime = time.Now()
 
 	//
@@ -227,7 +213,7 @@ func main() {
 	msg.Emit(msg.ColStyle(fmt.Sprintf(SUMM, time.Now().Sub(vv.LaunchTime).Seconds())), -1)
 
 	//
-	// [5] debugging code block #2 of 2
+	// [5] debugging code block
 	// uncomment the following but very spammy in the console...
 	//
 
