@@ -8,7 +8,7 @@ require (
 	github.com/e-gun/policeresponses v0.2.0
 	github.com/e-gun/tsnemp v0.1.7
 	github.com/e-gun/wego v0.1.1
-	github.com/go-echarts/go-echarts/v2 v2.7.1
+	github.com/go-echarts/go-echarts/v2 v2.7.2
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/jackc/pgx/v5 v5.9.1
@@ -16,8 +16,8 @@ require (
 	github.com/olekukonko/tablewriter v1.1.4
 	github.com/pkg/profile v1.7.0
 	github.com/rs/zerolog v1.35.0
-	golang.org/x/exp v0.0.0-20260312153236-7ab1446f8b90
-	golang.org/x/text v0.35.0
+	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f
+	golang.org/x/text v0.36.0
 	gonum.org/v1/gonum v0.17.0
 )
 

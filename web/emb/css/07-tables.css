@@ -172,6 +172,11 @@ td.count {
     text-align: center;
 }
 
+td.indexval {
+    color: var(--hgscol09);
+    text-align: center;
+}
+
 td.crossreference {
     padding-right: 10px;
     padding-left: 10px;

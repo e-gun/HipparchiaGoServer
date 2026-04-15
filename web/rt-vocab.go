@@ -65,6 +65,7 @@ func RtVocabMaker(c *echo.Context) error {
 		THH = `
 		<table>
 		<tr>
+				<th class="vocabtable"></th>
 				<th class="vocabtable">word</th>
 				<th class="vocabtable">count</th>
 				<th class="vocabtable">definitions</th>
@@ -72,6 +73,7 @@ func RtVocabMaker(c *echo.Context) error {
 
 		TRR = `
 		<tr class="%s">
+			<td class="indexval">%d</th>
 			<td class="word"><vocabobserved id="%s">%s</vocabobserved></td>
 			<td class="count">%d</td>
 			<td class="trans">%s</td>
@@ -80,6 +82,7 @@ func RtVocabMaker(c *echo.Context) error {
 		THHS = `
 		<table>
 		<tr>
+				<th class="vocabtable"></th>
 				<th class="vocabtable">word</th>
 				<th class="vocabtable">scansion</th>
 				<th class="vocabtable">count</th>
@@ -88,6 +91,7 @@ func RtVocabMaker(c *echo.Context) error {
 
 		TRRS = `
 		<tr class="%s">
+			<td class="indexval">%d</th>
 			<td class="word"><vocabobserved id="%s">%s</vocabobserved></td>
 			<td class="scansion">%s</td>
 			<td class="count">%d</td>
@@ -295,9 +299,9 @@ func RtVocabMaker(c *echo.Context) error {
 		var nt string
 		wdid := fmt.Sprintf("%s--%d", v.Word, uniqueid)
 		if s.VocScansion {
-			nt = fmt.Sprintf(TRRS, rc, wdid, v.Word, v.Metr, v.C, v.TR)
+			nt = fmt.Sprintf(TRRS, rc, uniqueid, wdid, v.Word, v.Metr, v.C, v.TR)
 		} else {
-			nt = fmt.Sprintf(TRR, rc, wdid, v.Word, v.C, v.TR)
+			nt = fmt.Sprintf(TRR, rc, uniqueid, wdid, v.Word, v.C, v.TR)
 		}
 		trr[i+1] = nt
 	}
