@@ -23,6 +23,7 @@ import (
 	"github.com/e-gun/HipparchiaGoServer/internal/vlt"
 	"github.com/e-gun/HipparchiaGoServer/internal/vv"
 	"github.com/labstack/echo/v5"
+	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )
@@ -165,6 +166,10 @@ func RtIndexMaker(c *echo.Context) error {
 			if _, y := morphmap[w.Word+"'"]; y {
 				emm = true
 				w.Word = w.Word + "'"
+				mme = w.Word
+			} else if _, capital := morphmap[cases.Title(language.Und).String(w.Word)]; capital {
+				emm = true
+				w.Word = cases.Title(language.Und).String(w.Word)
 				mme = w.Word
 			} else {
 				w.HeadWd = UPW
