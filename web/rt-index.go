@@ -163,14 +163,43 @@ func RtIndexMaker(c *echo.Context) error {
 		if _, ok := morphmap[w.Word]; !ok {
 			// here is where you check to see if the word + an apostrophe can be found: γ is really γ' (i.e. γε)
 			// this also means that you had to grab all of those extra forms in the first place
-			if _, y := morphmap[w.Word+"'"]; y {
+
+			// you also do kludgy checks for other things that can fool the morph lookups
+
+			// double accented words remain a problem
+
+			ifnc := func(r rune) rune {
+				if r == 'ϊ' {
+					return 'ι'
+				} else if r == 'ῒ' {
+					return 'ι'
+				}
+				return r
+			}
+
+			apostrophe := w.Word + "'"
+			capitalize := cases.Title(language.Und).String(w.Word)
+			iotareplacer := strings.Map(ifnc, w.Word)
+			capiota := strings.Map(ifnc, capitalize) // this never catches anything?
+
+			if _, y := morphmap[apostrophe]; y {
 				emm = true
-				w.Word = w.Word + "'"
+				w.Word = apostrophe
 				mme = w.Word
-			} else if _, capital := morphmap[cases.Title(language.Und).String(w.Word)]; capital {
+			} else if _, capital := morphmap[capitalize]; capital {
 				emm = true
-				w.Word = cases.Title(language.Und).String(w.Word)
+				w.Word = capitalize
 				mme = w.Word
+			} else if _, hi := morphmap[iotareplacer]; hi {
+				emm = true
+				w.Word = iotareplacer
+				mme = w.Word
+			} else if _, caphi := morphmap[capiota]; caphi {
+				emm = true
+				w.Word = capiota
+				mme = w.Word
+				// the next will never print anything?
+				// fmt.Println("found2", w.Word)
 			} else {
 				w.HeadWd = UPW
 				slicedlookups = append(slicedlookups, w)
