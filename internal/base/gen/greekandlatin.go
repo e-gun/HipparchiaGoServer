@@ -48,12 +48,7 @@ var (
 func StripaccentsSTR(u string) string {
 	// reducer := getrunereducer()
 	ru := []rune(u)
-	stripped := make([]rune, len(ru))
-	for i, x := range ru {
-		stripped[i] = runereduce[x]
-	}
-	s := string(stripped)
-	return s
+	return string(StripaccentsRUNE(ru))
 }
 
 // StripaccentsRUNE - ὀκνεῖϲ --> οκνειϲ, etc.

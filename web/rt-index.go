@@ -180,7 +180,7 @@ func RtIndexMaker(c *echo.Context) error {
 			apostrophe := w.Word + "'"
 			capitalize := cases.Title(language.Und).String(w.Word)
 			iotareplacer := strings.Map(ifnc, w.Word)
-			capiota := strings.Map(ifnc, capitalize) // this never catches anything?
+			capiota := strings.Map(ifnc, capitalize) // this never catches anything? needs more work, I guess
 
 			if _, y := morphmap[apostrophe]; y {
 				emm = true

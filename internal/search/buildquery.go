@@ -60,11 +60,12 @@ const (
 // SSBuildQueries - populate a SearchStruct with []PrerolledQuery
 func SSBuildQueries(s *str.SearchStruct) {
 	const (
-		REG    = `(?P<auth>.{%d})_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)` // %d to allow for AUIDLEN
-		IDX    = `(index %sBETWEEN %d AND %d)`                          // %s is "" or "NOT "
-		ABORT  = "SSBuildQueries() aborting: the ID '%s' is not in the sessionvault"
-		ABORT2 = "SSBuildQueries() aborting: testqueryregex() failed to compile regex '%s'"
-		ERROR  = "SSBuildQueries(): pattern.FindStringSubmatch() failed to return results for %s"
+		REG     = `(?P<auth>.{%d})_FROM_(?P<start>\d+)_TO_(?P<stop>\d+)` // %d to allow for AUIDLEN
+		IDX     = `(index %sBETWEEN %d AND %d)`                          // %s is "" or "NOT "
+		ABORT   = "SSBuildQueries() aborting: the ID '%s' is not in the sessionvault"
+		ABORT2  = "SSBuildQueries() aborting: testqueryregex() failed to compile regex with skg='%s' and prx='%s'"
+		ERROR   = "SSBuildQueries(): pattern.FindStringSubmatch() failed to return results for %s"
+		RGXWARN = "<pre>*** the search did not execute because the query contains an invalid regular expression ***</pre><br>\n"
 	)
 
 	// check to see if RtResetSession() was called in the middle of a search
@@ -76,7 +77,8 @@ func SSBuildQueries(s *str.SearchStruct) {
 
 	querycontainsvalidregex := testqueryregex(s)
 	if !querycontainsvalidregex {
-		Msg.FYI(fmt.Sprintf(ABORT2, s.User))
+		Msg.FYI(fmt.Sprintf(ABORT2, s.Seeking, s.Proximate))
+		s.InitSum = RGXWARN + s.InitSum
 		return
 	}
 
