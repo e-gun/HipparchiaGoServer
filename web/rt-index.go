@@ -158,7 +158,7 @@ func RtIndexMaker(c *echo.Context) error {
 
 	var slicedlookups []str.WordInfo
 	for _, w := range slicedwords {
-		emm := false
+		shouldextractmorph := false
 		mme := w.Word
 		if _, ok := morphmap[w.Word]; !ok {
 			// here is where you check to see if the word + an apostrophe can be found: γ is really γ' (i.e. γε)
@@ -166,38 +166,49 @@ func RtIndexMaker(c *echo.Context) error {
 
 			// you also do kludgy checks for other things that can fool the morph lookups
 
-			// double accented words remain a problem
-
-			ifnc := func(r rune) rune {
+			// strings.Replace does not like to do what the following does
+			hiatusfnc := func(r rune) rune {
 				if r == 'ϊ' {
 					return 'ι'
 				} else if r == 'ῒ' {
-					return 'ι'
+					return 'ί'
+				} else if r == 'ϋ' {
+					return 'υ'
+				} else if r == 'ΰ' {
+					return 'ύ'
 				}
 				return r
 			}
 
-			apostrophe := w.Word + "'"
-			capitalize := cases.Title(language.Und).String(w.Word)
-			iotareplacer := strings.Map(ifnc, w.Word)
-			capiota := strings.Map(ifnc, capitalize) // this never catches anything? needs more work, I guess
+			// TODO: "ἐΰξοον" still needs to be handled
+			// but the two chars "ἐΰ" cannot use a runefnc as above
+			// homer has a bunch of this sort of thing: "ἤϊϲαν", "ὀΐομαι", ...
+			// "gen" could probably use a new generic cleaner function
 
-			if _, y := morphmap[apostrophe]; y {
-				emm = true
-				w.Word = apostrophe
+			// similarly the above does not catch the problem with "ὀδυϲῆϊ": subscript...
+
+			istrue := func(s string) {
+				shouldextractmorph = true
+				w.Word = s
 				mme = w.Word
+			}
+
+			cleaned := gen.StripExtraAccent(w.Word)
+			apostrophe := cleaned + "'"
+			capitalize := cases.Title(language.Und).String(cleaned)
+			hiatus := strings.Map(hiatusfnc, cleaned)
+			caphiatus := strings.Map(hiatusfnc, capitalize) // this never catches anything? needs more work, I guess
+
+			if _, y0 := morphmap[cleaned]; y0 {
+				istrue(cleaned)
+			} else if _, y := morphmap[apostrophe]; y {
+				istrue(apostrophe)
 			} else if _, capital := morphmap[capitalize]; capital {
-				emm = true
-				w.Word = capitalize
-				mme = w.Word
-			} else if _, hi := morphmap[iotareplacer]; hi {
-				emm = true
-				w.Word = iotareplacer
-				mme = w.Word
-			} else if _, caphi := morphmap[capiota]; caphi {
-				emm = true
-				w.Word = capiota
-				mme = w.Word
+				istrue(capitalize)
+			} else if _, hi := morphmap[hiatus]; hi {
+				istrue(hiatus)
+			} else if _, caphi := morphmap[caphiatus]; caphi {
+				istrue(caphiatus)
 				// the next will never print anything?
 				// fmt.Println("found2", w.Word)
 			} else {
@@ -205,10 +216,10 @@ func RtIndexMaker(c *echo.Context) error {
 				slicedlookups = append(slicedlookups, w)
 			}
 		} else {
-			emm = true
+			shouldextractmorph = true
 		}
 
-		if emm {
+		if shouldextractmorph {
 			mpp := extractmorphpossibilities(morphmap[mme].RawPossib)
 			if len(mpp) > 1 {
 				for i := 0; i < len(mpp); i++ {

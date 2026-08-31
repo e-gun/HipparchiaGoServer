@@ -16,7 +16,7 @@ require (
 	github.com/olekukonko/tablewriter v1.1.4
 	github.com/pkg/profile v1.7.0
 	github.com/rs/zerolog v1.35.1
-	golang.org/x/exp v0.0.0-20260820142414-ca536658362e
+	golang.org/x/exp v0.0.0-20260824195058-e88cd73687aa
 	golang.org/x/text v0.41.0
 	gonum.org/v1/gonum v0.17.0
 )
@@ -32,7 +32,7 @@ require (
 	github.com/felixge/fgprof v0.9.5 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/goccy/go-json v0.10.6 // indirect
-	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
+	github.com/google/pprof v0.0.0-20260830191439-4932ad3515ea // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
