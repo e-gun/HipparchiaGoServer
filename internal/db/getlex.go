@@ -49,6 +49,7 @@ func DictEntryGrabber(seeking string, dict string, col string, syntax string) []
 		&jsonsenses,
 	}
 
+	// the function that populates the returned slice lexicalfinds ([]str.DbLexicon)
 	rwfnc := func() error {
 		thehit.SetLang(dict)
 		sensemap := make(map[int]str.LexicalSenses)
@@ -160,6 +161,7 @@ func ArrayToGetHeadwordCounts(wordlist []string) map[string]int {
 
 	foreach := []any{&thehit.w, &thehit.c}
 
+	// the function that populates the returned map countmap
 	rwfnc := func() error {
 		countmap[thehit.w] = thehit.c
 		return nil
@@ -229,6 +231,7 @@ func MorphPossibIntoLexPossib(d string, mpp []str.MorphPossib) []str.DbLexicon {
 		&unsplitids,
 		&jsonsenses}
 
+	// the function that populates the returned slice lexicalfinds ([]str.DbLexicon)
 	rwfnc := func() error {
 		sensemap := make(map[int]str.LexicalSenses)
 		err := json.Unmarshal(jsonsenses, &sensemap)
