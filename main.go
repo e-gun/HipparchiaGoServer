@@ -147,6 +147,7 @@ func main() {
 	go vlt.PathInfoHub()
 	go vlt.TerminalTicker(vv.TICKERDELAY)
 
+	msg.TMI("PSQL Server:\n" + db.LoadServerInfo() + "\n")
 	msg.TMI("Build Metadata:\n" + db.LoadBuildMetadata())
 
 	//
