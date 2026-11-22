@@ -24,49 +24,48 @@ self-test without vectors is now `HipparchiaGoServer -st -dv`
 
 ``` 
 e-gun/HipparchiaGoServer/ % ./HipparchiaGoServer -st -gl 3
-[HGS] HipparchiaGoServer (v2.0.0-pre) [git: db012bd0] [default.pgo] [gl=3; el=0]
-	Built:	2025-06-17@10:22:24		Golang:	go1.24.4
+[HGS] HipparchiaGoServer (v2.1.3-pre) [git: e9cc5148] [default.pgo] [gl=3; el=0]
+	Built:	2026-11-22@12:46:23		Golang:	go1.27.4
 	System:	darwin-arm64			WKvCPU:	20/20
 [HGS-DBI] Number of stored vector models: 12
-[HGS] [A1: 0.078s][Δ: 0.078s] 7462 works built: map[string]DbWork
-[HGS] [A2: 0.087s][Δ: 0.009s] 2186 authors built: map[string]DbAuthor
-[HGS] [A3: 0.090s][Δ: 0.002s] corpus maps built
-[HGS] [B1: 0.154s][Δ: 0.154s] unnested lemma map built (158966 items)
-[HGS] [B2: 0.203s][Δ: 0.049s] nested lemma map built
-[HGS] initialization took 0.292s
+[HGS] [A1: 0.080s][Δ: 0.080s] 7462 works built: map[string]DbWork
+[HGS] [A2: 0.088s][Δ: 0.008s] 2186 authors built: map[string]DbAuthor
+[HGS] [A3: 0.091s][Δ: 0.003s] corpus maps built
+[HGS] [A4: 0.094s][Δ: 0.005s] load word weights
+[HGS] [B1: 0.175s][Δ: 0.175s] unnested lemma map built (165768 items)
+[HGS] [B2: 0.219s][Δ: 0.044s] nested lemma map built
+[HGS] initialization took 0.285s
 [HGS] to stop the server press Control-C or close this window
-[HGS-WEB] (tls unavailable)
+[HGS] server started at http://127.0.0.1:8001 (tls unavailable)
 [HGS-SELFTEST] Running Selftest 1 of 1
 [HGS-SELFTEST] entering selftestsuite mode (4 segments)
 [HGS-SELFTEST] [I] 6 search tests
-⇨ http server started on 127.0.0.1:8001
-[HGS-SELFTEST] [A1: 1.250s][Δ: 1.250s] single word in corpus: 'vervex'
-[HGS-SELFTEST] [A2: 2.667s][Δ: 1.417s] phrase in corpus: 'plato omnem'
-[HGS-SELFTEST] [A3: 4.313s][Δ: 1.645s] phrase near phrase: 'καὶ δὴ καὶ' near 'εἴ που καὶ'
-[HGS-SELFTEST] [B1: 5.680s][Δ: 1.367s] lemma in corpus: 'φθορώδηϲ'
-[HGS-SELFTEST] [B2: 7.377s][Δ: 1.697s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
-[HGS-SELFTEST] [B3: 27.858s][Δ: 20.481s] lemma near lemma in corpus: 'πόλιϲ' near 'ὁπλίζω'
+[HGS-SELFTEST] [A1: 0.288s][Δ: 0.288s] single word in corpus: 'vervex'
+[HGS-SELFTEST] [A2: 1.386s][Δ: 1.098s] phrase in corpus: 'plato omnem'
+[HGS-SELFTEST] [A3: 2.779s][Δ: 1.392s] phrase near phrase: 'καὶ δὴ καὶ' near 'εἴ που καὶ'
+[HGS-SELFTEST] [B1: 3.040s][Δ: 0.261s] lemma in corpus: 'φθορώδηϲ'
+[HGS-SELFTEST] [B2: 4.835s][Δ: 1.795s] lemma near phrase: 'γαῖα' near 'ἐϲχάτη χθονόϲ'
+[HGS-SELFTEST] [B3: 16.615s][Δ: 11.780s] lemma near lemma in corpus: 'πόλιϲ' near 'ὁπλίζω'
 [HGS-SELFTEST] [II] 3 text, index, and vocab maker tests
-[HGS-SELFTEST] [C1: 28.266s][Δ: 0.409s] build a text for 40000 arbitrary lines
-[HGS-SELFTEST] [C2: 28.634s][Δ: 0.368s] build an index to 40000 arbitrary lines
-[HGS-SELFTEST] [C3: 32.720s][Δ: 4.087s] build vocabulary list for 40000 arbitrary lines
+[HGS-SELFTEST] [C1: 16.975s][Δ: 0.360s] build a text for 40000 arbitrary lines
+[HGS-SELFTEST] [C2: 17.317s][Δ: 0.343s] build an index to 40000 arbitrary lines
+[HGS-SELFTEST] [C3: 22.614s][Δ: 5.297s] build vocabulary list for 40000 arbitrary lines
 [HGS-SELFTEST] [III] 4 browsing and lexical tests
 [HGS-WEB] could not find a work for tlg0021w001
 [HGS-WEB] could not find a work for tlg0025w001
-[HGS-SELFTEST] [D1: 32.913s][Δ: 0.193s] browse 50 passages
-[HGS-SELFTEST] [D2: 35.602s][Δ: 2.689s] look up 48 specific words
-[HGS-SELFTEST] [D3: 36.662s][Δ: 1.059s] look up 18 word substrings
-[HGS-SELFTEST] [D4: 37.864s][Δ: 1.203s] reverse lookup for 6 word substrings
+[HGS-SELFTEST] [D1: 22.830s][Δ: 0.215s] browse 50 passages
+[HGS-SELFTEST] [D2: 27.055s][Δ: 4.226s] look up 48 specific words
+[HGS-SELFTEST] [D3: 28.112s][Δ: 1.057s] look up 18 word substrings
+[HGS-SELFTEST] [D4: 29.202s][Δ: 1.090s] reverse lookup for 6 word substrings
 [HGS-DBI] VectorDBReset() dropped semantic_vectors_nn
 [HGS-SELFTEST] [IV] nearest neighbor vectorization tests
 [HGS-DBI] vectordbinitnn(): success
-[HGS-SELFTEST] [E1: 58.820s][Δ: 20.955s] semantic vector model test: w2v - 1 author(s) with 4 text preparation modes per author
-[HGS-SELFTEST] [E2: 80.535s][Δ: 21.715s] semantic vector model test: lexvec - 1 author(s) with 4 text preparation modes per author
-[HGS-SELFTEST] [E3: 118.893s][Δ: 38.358s] semantic vector model test: glove - 1 author(s) with 4 text preparation modes per author
+[HGS-SELFTEST] [E1: 48.712s][Δ: 19.510s] semantic vector model test: w2v - 1 author(s) with 4 text preparation modes per author
+[HGS-SELFTEST] [E2: 70.322s][Δ: 21.610s] semantic vector model test: lexvec - 1 author(s) with 4 text preparation modes per author
+[HGS-SELFTEST] [E3: 115.984s][Δ: 45.662s] semantic vector model test: glove - 1 author(s) with 4 text preparation modes per author
 [HGS-SELFTEST] [V] lda vectorization tests
-[HGS-SELFTEST] [F: 140.244s][Δ: 21.351s] lda vector model test - 1 author(s) with 4 text preparation modes per author
+[HGS-SELFTEST] [F: 136.498s][Δ: 20.514s] lda vector model test - 1 author(s) with 4 text preparation modes per author
 [HGS-SELFTEST] exiting selftestsuite mode
-
 ```
 
 ### some vectorless and vector selftest times
